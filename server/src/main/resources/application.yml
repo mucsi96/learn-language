@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:data/sample.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
