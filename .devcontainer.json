@@ -1,0 +1,13 @@
+{
+    // https://github.com/devcontainers/images/blob/main/src/python
+    "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
+    "features": {
+        // https://containers.dev/features
+        // https://github.com/devcontainers/features
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "21",
+            "jdkDistro": "tem",
+            "installMaven": true
+        }
+    }
+  }
