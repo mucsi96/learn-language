@@ -9,7 +9,8 @@
             "name": "LearnLanguageApplication",
             "request": "launch",
             "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
-            "projectName": "learn-language"
+            "projectName": "learn-language",
+            "cwd": "${workspaceFolder}/server"
         }
     ]
 }

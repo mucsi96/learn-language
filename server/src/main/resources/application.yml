@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:sqlite:data/sample.db
+    url: jdbc:sqlite:data/collection.anki2
     driver-class-name: org.sqlite.JDBC
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
