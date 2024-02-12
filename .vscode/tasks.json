@@ -1,16 +1,16 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Generate entity classes",
-            "type": "shell",
-            "command": "mvn generate-sources",
-            "group": "build",
-            "options": {
-                "cwd": "${workspaceFolder}/server"
-            }
-        }
-    ]
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Anki -> Postgres",
+      "type": "shell",
+      "command": "pgloader sqlite://${workspaceFolder}/data/collection.anki2 pgsql://postgres:postgres@localhost/language",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
 }
