@@ -18,3 +18,6 @@
 
 
 https://github.com/open-spaced-repetition
+
+
+https://pgloader.readthedocs.io/en/latest/ref/sqlite.html
