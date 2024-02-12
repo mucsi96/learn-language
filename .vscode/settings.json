@@ -11,6 +11,13 @@
       "database": "language",
       "username": "postgres",
       "password": "postgres"
+    },
+    {
+      "previewLimit": 1000,
+      "driver": "SQLite",
+      "name": "anki",
+      "database": "${workspaceFolder:learn-language}/data/collection.db"
     }
-  ]
+  ],
+  "sqltools.useNodeRuntime": true
 }

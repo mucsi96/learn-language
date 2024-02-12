@@ -10,7 +10,8 @@
       "version": "21",
       "jdkDistro": "tem",
       "installMaven": true
-    }
+    },
+    "ghcr.io/devcontainers/features/node:1": {}
   },
   "customizations": {
     "vscode": {
@@ -18,11 +19,10 @@
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
         "vscjava.vscode-java-pack",
-        "vmware.vscode-spring-boot",
-        "vscjava.vscode-spring-boot-dashboard",
-        "vscjava.vscode-spring-initializr",
+        "vmware.vscode-boot-dev-pack",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-pg"
+        "mtxr.sqltools-driver-pg",
+        "mtxr.sqltools-driver-sqlite"
       ]
     }
   }
