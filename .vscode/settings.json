@@ -19,5 +19,6 @@
       "database": "${workspaceFolder:learn-language}/data/collection.db"
     }
   ],
-  "sqltools.useNodeRuntime": true
+  "sqltools.useNodeRuntime": true,
+  "python.analysis.autoImportCompletions": true
 }

@@ -26,7 +26,8 @@
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg",
         "mtxr.sqltools-driver-sqlite",
-        "ms-python.autopep8"
+        "ms-python.autopep8",
+        "GrapeCity.gc-excelviewer"
       ]
     }
   },
