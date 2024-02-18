@@ -11,7 +11,10 @@
       "jdkDistro": "tem",
       "installMaven": true
     },
-    "ghcr.io/devcontainers/features/node:1": {}
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
   },
   "customizations": {
     "vscode": {
@@ -22,8 +25,10 @@
         "vmware.vscode-boot-dev-pack",
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg",
-        "mtxr.sqltools-driver-sqlite"
+        "mtxr.sqltools-driver-sqlite",
+        "ms-python.autopep8"
       ]
     }
-  }
+  },
+  "postCreateCommand": "pip install -r requirements.txt"
 }
