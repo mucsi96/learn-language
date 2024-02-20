@@ -11,7 +11,7 @@ import fitz
 type WordBlock = Tuple[int, int, int, int, str]
 type Box = Tuple[int, int, int, int]
 
-db = connect("data/collection.db")
+db = connect("anki/collection.anki2")
 cursor = db.cursor()
 
 cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
