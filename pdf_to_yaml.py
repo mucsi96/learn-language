@@ -2,23 +2,25 @@ from math import inf, sqrt
 from os import makedirs, path
 import re
 from shutil import rmtree
-from sqlite3 import connect
+import sqlite3
+from contextlib import closing
 from typing import List, Tuple
 from pandas import DataFrame
+import psycopg
 from requests import get
 import fitz
 
 type WordBlock = Tuple[int, int, int, int, str]
 type Box = Tuple[int, int, int, int]
 
-db = connect("anki/collection.anki2")
-cursor = db.cursor()
-
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-print(cursor.fetchall())
-
-cursor.execute("SELECT * FROM cards;")
-print(cursor.fetchall())
+with closing(sqlite3.connect("anki/collection.anki2")) as conn:
+    print(conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall())
+    print(conn.execute("SELECT sfld FROM notes;").fetchall())
+        
+with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
+    with conn.cursor() as cur:
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+        print(cur.fetchall())
 
 
 def download_pdf(url: str, save_path: str) -> None:

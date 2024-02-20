@@ -16,7 +16,7 @@
       "previewLimit": 1000,
       "driver": "SQLite",
       "name": "anki",
-      "database": "${workspaceFolder:learn-language}/data/collection.db"
+      "database": "${workspaceFolder:learn-language}/anki/collection.anki2"
     }
   ],
   "sqltools.useNodeRuntime": true,
