@@ -31,5 +31,8 @@
       ]
     }
   },
+  "mounts": [
+    "source=${localEnv:HOME}/Library/Application Support/Anki2/User 1,target=/workspaces/${localWorkspaceFolderBasename}/anki,type=bind,consistency=cached"
+  ],
   "postCreateCommand": "pip install -r requirements.txt"
 }

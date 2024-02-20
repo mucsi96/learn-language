@@ -1,5 +1,5 @@
 - geneate a JSON file
-- skip words from other csv files
+- skip words based on sqllight db
 
 - separate app for card generation
 

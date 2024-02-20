@@ -2,6 +2,7 @@ from math import inf, sqrt
 from os import makedirs, path
 import re
 from shutil import rmtree
+from sqlite3 import connect
 from typing import List, Tuple
 from pandas import DataFrame
 from requests import get
@@ -9,6 +10,15 @@ import fitz
 
 type WordBlock = Tuple[int, int, int, int, str]
 type Box = Tuple[int, int, int, int]
+
+db = connect("data/collection.db")
+cursor = db.cursor()
+
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+print(cursor.fetchall())
+
+cursor.execute("SELECT * FROM cards;")
+print(cursor.fetchall())
 
 
 def download_pdf(url: str, save_path: str) -> None:
