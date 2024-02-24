@@ -14,12 +14,12 @@ type WordBlock = Tuple[int, int, int, int, str]
 type Box = Tuple[int, int, int, int]
 
 with closing(sqlite3.connect("anki/collection.anki2")) as conn:
-    print(conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall())
-    print(conn.execute("SELECT sfld FROM notes;").fetchall())
-        
+    existing_words = conn.execute("SELECT sfld FROM notes;").fetchall()
+
 with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
     with conn.cursor() as cur:
-        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+        cur.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
         print(cur.fetchall())
 
 
@@ -64,9 +64,15 @@ def get_unique_word_positions(page: fitz.Page, min_x: float, max_x: float) -> Li
                 if span['size'] == 8.0 and span['font'] == 'GoetheFFClan' and span['color'] == 2236191:
                     lines.append(span['text'].strip())
         if len(lines) > 0 and block['bbox'][0] > min_x and block['bbox'][0] < max_x:
-            blocks.append((*block['bbox'], ' '.join(lines)))
+            blocks.append((*block['bbox'], ' '.join(lines).replace('- ', '')))
 
     return sorted(blocks, key=lambda block: block[1])
+
+
+def split_word(word: str) -> Tuple[str, str]:
+    parts = word.split(',')
+
+    return (parts[0], ','.join(parts[1:]))
 
 
 def extract_data_from_pdf(pdf_path: str, csv_path: str) -> None:
@@ -89,8 +95,9 @@ def extract_data_from_pdf(pdf_path: str, csv_path: str) -> None:
             y1,
             word,
         ) = word_block
+        (main_word, word_forms) = split_word(word)
         words.append(
-            {'word': word, 'example': get_closest_block(col1_b, word_block)[0][4]})
+            {'word': main_word, 'forms': word_forms, 'example': get_closest_block(col1_b, word_block)[0][4]})
     for word_block in col2_a:
         (
             x0,
@@ -99,8 +106,9 @@ def extract_data_from_pdf(pdf_path: str, csv_path: str) -> None:
             y1,
             word,
         ) = word_block
+        (main_word, word_forms) = split_word(word)
         words.append(
-            {'word': word, 'example': get_closest_block(col2_b, word_block)[0][4]})
+            {'word': main_word, 'forms': word_forms, 'example': get_closest_block(col2_b, word_block)[0][4]})
     df = DataFrame(data=words)
     df.to_csv(csv_path, index=False)
 
