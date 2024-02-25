@@ -1,26 +1,57 @@
 from math import inf, sqrt
 from os import makedirs, path
 import re
-from shutil import rmtree
 import sqlite3
 from contextlib import closing
-from typing import List, Tuple
 from pandas import DataFrame
 import psycopg
 from requests import get
 import fitz
 
-type WordBlock = Tuple[int, int, int, int, str]
-type Box = Tuple[int, int, int, int]
+type WordBlock = tuple[int, int, int, int, str]
+type Box = tuple[int, int, int, int]
 
-with closing(sqlite3.connect("anki/collection.anki2")) as conn:
-    existing_words = conn.execute("SELECT sfld FROM notes;").fetchall()
 
-with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
-    with conn.cursor() as cur:
-        cur.execute(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
-        print(cur.fetchall())
+class Word:
+    word: str
+    forms: list[str]
+    examples: list[str]
+
+    def __init__(self, word: str, forms: list[str], examples: list[str]) -> None:
+        self.word = word
+        self.forms = forms
+        self.examples = examples
+
+
+def get_existing_words() -> None:
+    with closing(sqlite3.connect("anki/collection.anki2")) as conn:
+        return conn.execute("SELECT sfld FROM notes;").fetchall()
+
+
+def save_wordlist(words: list[Word]) -> None:
+    with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE b1_wortliste (
+                    word VARCHAR PRIMARY KEY,
+                    forms text[],
+                    examples text[]
+                )
+            """)
+            conn.commit()
+            for word in words:
+                conn.execute("""
+                    INSERT INTO b1_wortliste (
+                        word,
+                        forms,
+                        examples
+                    ) VALUES (
+                        %s,
+                        %s,
+                        %s
+                    )
+                """, (word.word, word.forms, word.examples))
+                conn.commit()
 
 
 def download_pdf(url: str, save_path: str) -> None:
@@ -39,7 +70,7 @@ def box_distance(a: Box, b: Box) -> int:
     return gapx + gapy
 
 
-def get_closest_block(all_words: List[WordBlock], word_block: WordBlock) -> Tuple[WordBlock, float]:
+def get_closest_block(all_words: list[WordBlock], word_block: WordBlock) -> tuple[WordBlock, float]:
     closest = None
     closest_dist = None
     for x0, y0, x1, y1, word in all_words:
@@ -53,7 +84,7 @@ def get_closest_block(all_words: List[WordBlock], word_block: WordBlock) -> Tupl
     return (closest, closest_dist)
 
 
-def get_unique_word_positions(page: fitz.Page, min_x: float, max_x: float) -> List[WordBlock]:
+def get_unique_word_positions(page: fitz.Page, min_x: float, max_x: float) -> list[WordBlock]:
     blocks = []
 
     for block in page.get_textpage().extractDICT()['blocks']:
@@ -69,14 +100,24 @@ def get_unique_word_positions(page: fitz.Page, min_x: float, max_x: float) -> Li
     return sorted(blocks, key=lambda block: block[1])
 
 
-def split_word(word: str) -> Tuple[str, str]:
+def strip_items(items: list[str]) -> list[str]:
+    return list(map(lambda part: part.strip(), items))
+
+
+def split_word(word: str) -> tuple[str, list[str]]:
     parts = word.split(',')
+    return (parts[0].strip(), [part.strip() for part in parts[1:]])
 
-    return (parts[0], ','.join(parts[1:]))
+
+def split_examples(examples: str) -> list[str]:
+    sentence_pattern = re.compile(r'[A-Za-z]')
+
+    return [s.strip() + "." for s in examples.split('.') if sentence_pattern.match(s)]
 
 
-def extract_data_from_pdf(pdf_path: str, csv_path: str) -> None:
+def extract_data_from_pdf(pdf_path: str) -> None:
     document = fitz.open(pdf_path)
+    existing_word = get_existing_words()
     # for page_number in range(document.page_count):
     # page_number = 17
     page_number = 22
@@ -88,42 +129,29 @@ def extract_data_from_pdf(pdf_path: str, csv_path: str) -> None:
     col2_a = get_unique_word_positions(page, 314, 411)
     col2_b = get_unique_word_positions(page, 411, 900)
     for word_block in col1_a:
-        (
-            x0,
-            y0,
-            x1,
-            y1,
-            word,
-        ) = word_block
-        (main_word, word_forms) = split_word(word)
+        (main_word, word_forms) = split_word(word_block[4])
         words.append(
-            {'word': main_word, 'forms': word_forms, 'example': get_closest_block(col1_b, word_block)[0][4]})
+            Word(main_word, word_forms, split_examples(get_closest_block(
+                col1_b, word_block)[0][4]))
+        )
     for word_block in col2_a:
-        (
-            x0,
-            y0,
-            x1,
-            y1,
-            word,
-        ) = word_block
-        (main_word, word_forms) = split_word(word)
+        (main_word, word_forms) = split_word(word_block[4])
         words.append(
-            {'word': main_word, 'forms': word_forms, 'example': get_closest_block(col2_b, word_block)[0][4]})
-    df = DataFrame(data=words)
-    df.to_csv(csv_path, index=False)
+            Word(main_word, word_forms, split_examples(get_closest_block(
+                col1_b, word_block)[0][4]))
+        )
+    save_wordlist(words)
 
 
 def main():
     pdf_url = "https://www.goethe.de/pro/relaunch/prf/en/Goethe-Zertifikat_B1_Wortliste.pdf"
     pdf_path = ".cache/b1-wortliste.pdf"
-    csv_path = "data/b1-wortliste.csv"
 
     makedirs(path.dirname(pdf_path), exist_ok=True)
-    makedirs(path.dirname(csv_path), exist_ok=True)
 
     if not path.exists(pdf_path):
         download_pdf(pdf_url, pdf_path)
-    extract_data_from_pdf(pdf_path, csv_path)
+    extract_data_from_pdf(pdf_path)
 
 
 if __name__ == "__main__":
