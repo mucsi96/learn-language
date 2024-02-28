@@ -4,3 +4,7 @@
 
 - Goodle speach integration
 - ChatGPT integration
+
+
+
+- add batch processing https://community.openai.com/t/batching-with-chatcompletion-endpoint/137723
