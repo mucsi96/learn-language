@@ -1,3 +1,5 @@
+# Anki
+
 [Anki V3 scheduler](https://faqs.ankiweb.net/the-2021-scheduler.html)
 - https://github.com/ankitects/anki/blob/main/pylib/anki/scheduler/v3.py
 - https://github.com/ankitects/anki/blob/main/pylib/tests/test_schedv3.py
@@ -21,3 +23,8 @@ https://github.com/open-spaced-repetition
 
 
 https://pgloader.readthedocs.io/en/latest/ref/sqlite.html
+
+# OpenAI
+
+[Usage](https://platform.openai.com/usage)
+[Official Python library for the OpenAI API](https://github.com/openai/openai-python)
