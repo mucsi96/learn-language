@@ -28,29 +28,35 @@ def get_existing_words() -> None:
         return conn.execute("SELECT sfld FROM notes;").fetchall()
 
 
-def save_wordlist(words: list[Word]) -> None:
+def save_wordlist(category: str, words: list[Word]) -> None:
     with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                CREATE TABLE b1_wortliste (
-                    word VARCHAR PRIMARY KEY,
+                CREATE TABLE IF NOT EXISTS imports (
+                    id SERIAL PRIMARY KEY,
+                    category VARCHAR,
+                    word VARCHAR,
                     forms text[],
-                    examples text[]
+                    examples text[],
+                    imported_at timestamp default current_timestamp,
+                    processed_at timestamp
                 )
             """)
             conn.commit()
             for word in words:
                 conn.execute("""
-                    INSERT INTO b1_wortliste (
+                    INSERT INTO imports (
+                        category,
                         word,
                         forms,
                         examples
                     ) VALUES (
                         %s,
                         %s,
+                        %s,
                         %s
                     )
-                """, (word.word, word.forms, word.examples))
+                """, (category, word.word, word.forms, word.examples))
                 conn.commit()
 
 
@@ -115,32 +121,32 @@ def split_examples(examples: str) -> list[str]:
     return [s.strip() + "." for s in examples.split('.') if sentence_pattern.match(s)]
 
 
-def extract_data_from_pdf(pdf_path: str) -> None:
+def extract_data_from_pdf(pdf_path: str, from_page: int, to_page: int) -> None:
     document = fitz.open(pdf_path)
     existing_word = get_existing_words()
-    # for page_number in range(document.page_count):
-    # page_number = 17
-    page_number = 22
-    # page_number = 16
-    page = document[page_number]
-    words = []
-    col1_a = get_unique_word_positions(page, 0, 131)
-    col1_b = get_unique_word_positions(page, 131, 314)
-    col2_a = get_unique_word_positions(page, 314, 411)
-    col2_b = get_unique_word_positions(page, 411, 900)
-    for word_block in col1_a:
-        (main_word, word_forms) = split_word(word_block[4])
-        words.append(
-            Word(main_word, word_forms, split_examples(get_closest_block(
-                col1_b, word_block)[0][4]))
-        )
-    for word_block in col2_a:
-        (main_word, word_forms) = split_word(word_block[4])
-        words.append(
-            Word(main_word, word_forms, split_examples(get_closest_block(
-                col1_b, word_block)[0][4]))
-        )
-    save_wordlist(words)
+    for page_number in range(document.page_count):
+        if page_number < from_page or page_number > to_page:
+            continue
+        
+        page = document[page_number]
+        words = []
+        col1_a = get_unique_word_positions(page, 0, 131)
+        col1_b = get_unique_word_positions(page, 131, 314)
+        col2_a = get_unique_word_positions(page, 314, 411)
+        col2_b = get_unique_word_positions(page, 411, 900)
+        for word_block in col1_a:
+            (main_word, word_forms) = split_word(word_block[4])
+            words.append(
+                Word(main_word, word_forms, split_examples(get_closest_block(
+                    col1_b, word_block)[0][4]))
+            )
+        for word_block in col2_a:
+            (main_word, word_forms) = split_word(word_block[4])
+            words.append(
+                Word(main_word, word_forms, split_examples(get_closest_block(
+                    col1_b, word_block)[0][4]))
+            )
+        save_wordlist("B1", words)
 
 
 def main():
@@ -151,7 +157,7 @@ def main():
 
     if not path.exists(pdf_path):
         download_pdf(pdf_url, pdf_path)
-    extract_data_from_pdf(pdf_path)
+    extract_data_from_pdf(pdf_path, 16, 102)
 
 
 if __name__ == "__main__":
