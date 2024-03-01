@@ -1,10 +1,2 @@
-- skip words based on sqllight db
-- deal with double words. Like die Bank
 - separate app for card generation
-
-- Goodle speach integration
-- ChatGPT integration
-
-
-
-- add batch processing https://community.openai.com/t/batching-with-chatcompletion-endpoint/137723
+- show imported words on ui
