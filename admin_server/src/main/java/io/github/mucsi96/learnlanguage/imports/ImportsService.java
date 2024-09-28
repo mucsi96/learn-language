@@ -1,7 +1,7 @@
 package io.github.mucsi96.learnlanguage.imports;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,11 @@ import lombok.RequiredArgsConstructor;
 public class ImportsService {
     private final ImportsRepository importsRepository;
 
-    Page<Import> listImports(int page, int size) {
-        return importsRepository.findAll(PageRequest.of(page, size));
+    public List<String> getCategories() {
+        return importsRepository.findDistinctCategory();
+    }
+
+    List<Import> findAllByCategory(String category) {
+        return importsRepository.findByCategory(category);
     }
 }

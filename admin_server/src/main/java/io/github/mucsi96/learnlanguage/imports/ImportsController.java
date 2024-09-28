@@ -11,13 +11,17 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class ImportsController {
-    private final ImportsService decksService;
+    private final ImportsService importService;
+
+    @GetMapping("/api/import/categories")
+    public List<String> getCategories() {
+        return importService.getCategories();
+    }
+    
 
     @GetMapping("/api/imports")
-    public List<Import> listImports(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return decksService.listImports(page, size).toList();
+    public List<Import> listImports(@RequestParam String category) {
+        return importService.findAllByCategory(category);
     }
 
 }
