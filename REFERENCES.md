@@ -1,5 +1,7 @@
 # Anki
 
+https://juliensobczak.com/inspect/2022/05/30/anki-srs/
+
 [Anki V3 scheduler](https://faqs.ankiweb.net/the-2021-scheduler.html)
 - https://github.com/ankitects/anki/blob/main/pylib/anki/scheduler/v3.py
 - https://github.com/ankitects/anki/blob/main/pylib/tests/test_schedv3.py

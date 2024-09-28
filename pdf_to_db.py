@@ -1,9 +1,8 @@
-from math import inf, sqrt
+from math import inf
 from os import makedirs, path
 import re
 import sqlite3
 from contextlib import closing
-from pandas import DataFrame
 import psycopg
 from requests import get
 import fitz
