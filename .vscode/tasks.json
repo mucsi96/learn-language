@@ -28,6 +28,16 @@
       "command": "docker compose up --build --force-recreate --wait --remove-orphans --pull always",
       "problemMatcher": [],
       "detail": "Runs the Docker Compose configuration defined in docker-compose.yaml"
+    },
+    {
+      "label": "Start admin client",
+      "detail": "Starts the admin client",
+      "type": "shell",
+      "command": "yarn start",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/admin_client"
+      }
     }
   ]
 }

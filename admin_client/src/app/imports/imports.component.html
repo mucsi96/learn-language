@@ -1,0 +1,40 @@
+<table bt>
+  <thead>
+    <tr>
+      <td></td>
+      <th>ID</th>
+      <th>Word</th>
+      <th>Category</th>
+      <th>Forms</th>
+      <th>Examples</th>
+      <th>Imported At</th>
+      <th>Processed At</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (wordImport of imports(); track wordImport.id) {
+    <tr>
+      <td bt-row-selector></td>
+      <td>{{ wordImport.id }}</td>
+      <td>{{ wordImport.word }}</td>
+      <td>{{ wordImport.category }}</td>
+      <td>
+        @for (form of wordImport.forms; track $index) {
+        {{ form }}
+        @if ($index < wordImport.forms.length - 1) {
+        <br />
+        } }
+      </td>
+      <td>
+        @for (example of wordImport.examples; track $index) {
+        {{ example }}
+        @if ($index < wordImport.examples.length - 1) {
+        <br />
+        } }
+      </td>
+      <td>{{ wordImport.imported_at }}</td>
+      <td>{{ wordImport.processed_at }}</td>
+    </tr>
+    }
+  </tbody>
+</table>
