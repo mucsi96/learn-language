@@ -4,13 +4,30 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Anki -> Postgres",
+      "osx": {
+        "command": "cp '/Users/igorbari/Library/Application Support/Anki2/User 1/collection.anki2' anki/collection.anki2"
+      },
+      "label": "Copy Anki Collection",
+      "detail": "Copies the Anki collection file to the project",
       "type": "shell",
-      "command": "pgloader sqlite://${workspaceFolder}/data/collection.anki2 pgsql://postgres:postgres@localhost/language",
-      "group": "build",
       "options": {
         "cwd": "${workspaceFolder}"
-      }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Postgres",
+      "type": "shell",
+      "command": "docker compose up --wait db",
+      "problemMatcher": [],
+      "detail": "Runs the Docker Compose configuration defined in docker-compose.yaml"
+    },
+    {
+      "label": "Run Docker Compose",
+      "type": "shell",
+      "command": "docker compose up --build --force-recreate --wait --remove-orphans --pull always",
+      "problemMatcher": [],
+      "detail": "Runs the Docker Compose configuration defined in docker-compose.yaml"
     }
   ]
 }

@@ -6,6 +6,8 @@
         "ms-azuretools.vscode-docker",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
-        "donjayamanne.python-extension-pack"
+        "donjayamanne.python-extension-pack",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
     ]
 }

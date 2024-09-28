@@ -28,7 +28,7 @@ def get_existing_words() -> None:
 
 
 def save_wordlist(category: str, words: list[Word]) -> None:
-    with psycopg.connect("postgres://postgres:postgres@localhost:5432/language") as conn:
+    with psycopg.connect("postgres://postgres:postgres@localhost:8483/learn_language") as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS imports (
