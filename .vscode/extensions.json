@@ -8,6 +8,7 @@
         "esbenp.prettier-vscode",
         "donjayamanne.python-extension-pack",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-pg"
+        "mtxr.sqltools-driver-pg",
+        "humao.rest-client"
     ]
 }

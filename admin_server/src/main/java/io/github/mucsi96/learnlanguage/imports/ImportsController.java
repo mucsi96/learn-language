@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class ImportsController {
     private final ImportsService decksService;
 
-    @GetMapping("/imports")
+    @GetMapping("/api/imports")
     public List<Import> listImports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

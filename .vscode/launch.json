@@ -6,11 +6,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "LearnLanguageApplication",
+            "name": "admin server",
             "request": "launch",
             "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
-            "projectName": "learn-language",
-            "cwd": "${workspaceFolder}/server",
+            "cwd": "${workspaceFolder}/admin_server",
             "args": "--spring.profiles.active=local",
         }
     ]
