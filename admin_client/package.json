@@ -10,7 +10,6 @@
   },
   "private": true,
   "dependencies": {
-    "@mucsi96/ui-elements": "^64.0.0",
     "@angular/animations": "^18.1.0",
     "@angular/common": "^18.1.0",
     "@angular/compiler": "^18.1.0",
@@ -19,6 +18,9 @@
     "@angular/platform-browser": "^18.1.0",
     "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/router": "^18.1.0",
+    "@mucsi96/ui-elements": "^64.0.0",
+    "ag-grid-angular": "^32.2.1",
+    "ag-grid-community": "^32.2.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
