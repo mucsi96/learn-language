@@ -10,7 +10,8 @@
             "request": "launch",
             "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
             "projectName": "learn-language",
-            "cwd": "${workspaceFolder}/server"
+            "cwd": "${workspaceFolder}/server",
+            "args": "--spring.profiles.active=local",
         }
     ]
 }
