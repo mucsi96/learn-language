@@ -37,10 +37,6 @@ export class ImportsComponent {
         params.value ? toRelativeTime(params.value) : '',
     },
   ];
-  rowSelection: RowSelectionOptions = {
-    mode: 'multiRow',
-    headerCheckbox: false,
-  };
   rowModelType: RowModelType = 'infinite';
   gridOptions: GridOptions = {
     datasource: {
@@ -63,7 +59,6 @@ export class ImportsComponent {
     },
     onFirstDataRendered(params) {
       params.api.sizeColumnsToFit();
-      Ï;
     },
   };
 
