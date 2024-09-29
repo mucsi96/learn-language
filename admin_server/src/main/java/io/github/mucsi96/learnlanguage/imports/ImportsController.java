@@ -17,11 +17,11 @@ public class ImportsController {
     public List<String> getCategories() {
         return importService.getCategories();
     }
-    
 
     @GetMapping("/api/imports")
-    public List<Import> listImports(@RequestParam String category) {
-        return importService.findAllByCategory(category);
+    public List<Import> listImports(@RequestParam(required = true) String category, @RequestParam(required = false) Long after,
+            @RequestParam(required = true) int limit) {
+        return after == null ? importService.find(category, limit) : importService.findAfterId(category, after, limit);
     }
 
 }

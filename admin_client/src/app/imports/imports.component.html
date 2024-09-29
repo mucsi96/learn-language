@@ -1,8 +1,9 @@
 <ag-grid-angular
-  [rowData]="imports()"
   [columnDefs]="colDefs"
   [rowSelection]="rowSelection"
+  [rowModelType]="rowModelType"
   [gridOptions]="gridOptions"
+  [maxConcurrentDatasourceRequests]="1"
   class="ag-theme-quartz-dark"
   style="height: 500px"
 />

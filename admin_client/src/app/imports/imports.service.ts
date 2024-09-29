@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map, Observable } from 'rxjs';
+import { firstValueFrom, map, Observable } from 'rxjs';
 
 export type Import = {
   id: number;
@@ -27,21 +26,30 @@ type RawImport = {
   providedIn: 'root',
 })
 export class ImportsService {
-  $imports: Observable<Import[]>;
+  constructor(private readonly http: HttpClient) {}
 
-  constructor(private readonly http: HttpClient) {
-    this.$imports = this.http.get<RawImport[]>('/api/imports?category=B1').pipe(
-      map((imports) =>
-        imports.map(({ imported_at, processed_at, ...importedWord }) => ({
-          ...importedWord,
-          imported: imported_at ? new Date(imported_at) : undefined,
-          processed: processed_at ? new Date(processed_at) : undefined,
-        }))
+  async getImports({
+    category,
+    after,
+    limit,
+  }: {
+    category: string;
+    after?: number;
+    limit: number;
+  }): Promise<Import[]> {
+    const url = after
+      ? `/api/imports?category=${category}&after=${after}&limit=${limit}`
+      : `/api/imports?category=${category}&limit=${limit}`;
+    return firstValueFrom(
+      this.http.get<RawImport[]>(url).pipe(
+        map((imports) =>
+          imports.map(({ imported_at, processed_at, ...importedWord }) => ({
+            ...importedWord,
+            imported: imported_at ? new Date(imported_at) : undefined,
+            processed: processed_at ? new Date(processed_at) : undefined,
+          }))
+        )
       )
     );
-  }
-
-  getImports(): Signal<Import[] | undefined> {
-    return toSignal(this.$imports);
   }
 }
