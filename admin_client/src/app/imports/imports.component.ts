@@ -4,8 +4,7 @@ import { AgGridAngular } from 'ag-grid-angular';
 import {
   ColDef,
   GridOptions,
-  RowModelType,
-  RowSelectionOptions,
+  RowModelType
 } from 'ag-grid-community';
 import { Import, ImportsService } from './imports.service';
 
@@ -22,7 +21,6 @@ import { toRelativeTime } from '../utils/relativeTime';
 })
 export class ImportsComponent {
   colDefs: ColDef<Import>[] = [
-    { field: 'id' },
     { field: 'word', type: 'rightAligned' },
     { field: 'forms' },
     { field: 'examples' },
@@ -46,14 +44,11 @@ export class ImportsComponent {
         this.importService
           .getImports({
             category: 'B1',
-            after: params.startRow,
+            page: Math.floor(params.startRow / limit),
             limit,
           })
           .then((imports) => {
-            params.successCallback(
-              imports,
-              imports.length < limit ? -1 : params.startRow - 1
-            );
+            params.successCallback(imports.content, imports.totalElements);
           });
       },
     },

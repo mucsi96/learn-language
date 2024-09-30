@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, Signal } from '@angular/core';
-import { firstValueFrom, map, Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { firstValueFrom, map } from 'rxjs';
 
 export type Import = {
   id: number;
@@ -12,14 +12,22 @@ export type Import = {
   processed?: Date;
 };
 
-type RawImport = {
-  id: number;
-  category: string;
-  word: string;
-  forms: string[];
-  examples: string[];
-  imported_at?: string;
-  processed_at?: string;
+export type Imports = {
+  content: Import[];
+  totalElements: number;
+};
+
+type ImportsResponse = {
+  content: {
+    id: number;
+    category: string;
+    word: string;
+    forms: string[];
+    examples: string[];
+    imported_at?: string;
+    processed_at?: string;
+  }[];
+  totalElements: number;
 };
 
 @Injectable({
@@ -30,25 +38,26 @@ export class ImportsService {
 
   async getImports({
     category,
-    after,
+    page = 0,
     limit,
   }: {
     category: string;
-    after?: number;
+    page?: number;
     limit: number;
-  }): Promise<Import[]> {
-    const url = after
-      ? `/api/imports?category=${category}&after=${after}&limit=${limit}`
-      : `/api/imports?category=${category}&limit=${limit}`;
+  }): Promise<Imports> {
+    const url = `/api/imports?category=${category}&page=${page}&limit=${limit}`;
     return firstValueFrom(
-      this.http.get<RawImport[]>(url).pipe(
-        map((imports) =>
-          imports.map(({ imported_at, processed_at, ...importedWord }) => ({
-            ...importedWord,
-            imported: imported_at ? new Date(imported_at) : undefined,
-            processed: processed_at ? new Date(processed_at) : undefined,
-          }))
-        )
+      this.http.get<ImportsResponse>(url).pipe(
+        map((imports) => ({
+          ...imports,
+          content: imports.content.map(
+            ({ imported_at, processed_at, ...importedWord }) => ({
+              ...importedWord,
+              imported: imported_at ? new Date(imported_at) : undefined,
+              processed: processed_at ? new Date(processed_at) : undefined,
+            })
+          ),
+        }))
       )
     );
   }

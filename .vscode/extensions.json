@@ -9,6 +9,6 @@
         "donjayamanne.python-extension-pack",
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg",
-        "humao.rest-client"
+        "anweber.vscode-httpyac"
     ]
 }

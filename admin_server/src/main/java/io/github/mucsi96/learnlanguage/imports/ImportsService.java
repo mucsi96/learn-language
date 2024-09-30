@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.imports;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +17,7 @@ public class ImportsService {
         return importsRepository.findDistinctCategory();
     }
 
-    List<Import> find(String category, int limit) {
-        return importsRepository.findByCategoryOrderByIdAsc(category,
-                PageRequest.of(0, limit));
-    }
-
-    List<Import> findAfterId(String category, Long afterId, int limit) {
-        return importsRepository.findByCategoryAndIdGreaterThanOrderByIdAsc(category, afterId,
-                PageRequest.of(0, limit));
+    Page<List<Import>> getImportsPage(String category, int page, int limit) {
+        return importsRepository.findByCategoryOrderByIdAsc(category, PageRequest.of(page, limit));
     }
 }

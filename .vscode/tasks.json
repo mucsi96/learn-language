@@ -7,6 +7,9 @@
       "osx": {
         "command": "cp '/Users/igorbari/Library/Application Support/Anki2/User 1/collection.anki2' anki/collection.anki2"
       },
+      "linux": {
+        "command": "mkdir -p anki && cp '/mnt/c/Users/mucsi/AppData/Roaming/Anki2/User 1/collection.anki2' anki/collection.anki2"
+      },
       "label": "Copy Anki Collection",
       "detail": "Copies the Anki collection file to the project",
       "type": "shell",
@@ -14,6 +17,13 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Import Anki Collection",
+      "detail": "Imports the Anki collection file to the database",
+      "type": "shell",
+      "command": "python pdf_to_db.py",
+      "problemMatcher": [],
     },
     {
       "label": "Run Postgres",
