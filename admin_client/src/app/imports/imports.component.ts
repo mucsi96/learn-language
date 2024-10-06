@@ -7,10 +7,10 @@ import {
   RowModelType
 } from 'ag-grid-community';
 import { Import, ImportsService } from './imports.service';
+import { toRelativeTime } from '../utils/relativeTime';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import { toRelativeTime } from '../utils/relativeTime';
 
 @Component({
   selector: 'app-imports',

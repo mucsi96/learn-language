@@ -1,0 +1,14 @@
+:host .grid {
+  --ag-background-color: hsl(215, 28%, 17%);
+  --ag-foreground-color: var(--bt-text-color);
+  --ag-row-border-color: hsl(217, 19%, 27%);
+  --ag-wrapper-border-radius: 0;
+  --ag-borders: none;
+  --ag-header-foreground-color: var(--bt-text-color);
+  --ag-header-background-color: hsl(217, 19%, 27%);
+  --ag-row-hover-color: hsl(217, 19%, 27%);
+
+  ::ng-deep .ag-header-row {
+    text-transform: uppercase;
+  }
+}
