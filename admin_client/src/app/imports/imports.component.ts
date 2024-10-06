@@ -1,16 +1,13 @@
 import { Component } from '@angular/core';
 import '@mucsi96/ui-elements';
 import { AgGridAngular } from 'ag-grid-angular';
-import {
-  ColDef,
-  GridOptions,
-  RowModelType
-} from 'ag-grid-community';
+import { ColDef, GridOptions, RowModelType } from 'ag-grid-community';
 import { Import, ImportsService } from './imports.service';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { toRelativeTime } from '../utils/relativeTime';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-imports',
@@ -52,10 +49,16 @@ export class ImportsComponent {
           });
       },
     },
-    onFirstDataRendered(params) {
+    onFirstDataRendered: (params) => {
       params.api.sizeColumnsToFit();
+    },
+    onRowClicked: (params) => {
+      this.router.navigate(['/imports', params.data.id]);
     },
   };
 
-  constructor(private readonly importService: ImportsService) {}
+  constructor(
+    private readonly importService: ImportsService,
+    private readonly router: Router
+  ) {}
 }
