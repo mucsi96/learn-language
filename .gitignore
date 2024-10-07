@@ -2,3 +2,4 @@ data/
 .cache/
 anki/
 .env
+server/__pycache__
