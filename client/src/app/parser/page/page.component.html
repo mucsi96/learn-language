@@ -1,4 +1,6 @@
-@for (span of spans(); track span.text) {
+@for (column of columns(); track $index) {
+<app-column [type]="column.type" [bbox]="column.bbox"></app-column>
+} @for (span of spans(); track span.text) {
 <app-span
   [text]="span.text"
   [bbox]="span.bbox"

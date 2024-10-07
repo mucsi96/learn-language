@@ -14,6 +14,12 @@ export type Span = {
   excluded: boolean;
 };
 
+export type Column = {
+  bbox: BBox;
+  type: 'word' | 'example_sentence';
+}
+
 export type Page = {
   spans: Span[];
+  columns: Column[];
 };

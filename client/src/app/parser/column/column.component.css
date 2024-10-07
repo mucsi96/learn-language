@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &.word {
+    border: 1px solid blue;
+    background-color: rgba(0, 0, 255, 0.03);
+  }
+
+  &.example_sentence {
+    border: 1px solid orange;
+    background-color: rgba(255, 165, 0, 0.03);
+  }
+}

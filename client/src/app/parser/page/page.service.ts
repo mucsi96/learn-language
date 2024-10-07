@@ -17,4 +17,8 @@ export class PageService {
   get spans() {
     return toSignal(this.$page.pipe(map((page) => page.spans)));
   }
+
+  get columns() {
+    return toSignal(this.$page.pipe(map((page) => page.columns)));
+  }
 }

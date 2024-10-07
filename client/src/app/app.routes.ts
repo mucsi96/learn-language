@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { PageComponent } from './page/page.component';
+import { PageComponent } from './parser/page/page.component';
 
 export enum RouterTokens {
   HOME = '',

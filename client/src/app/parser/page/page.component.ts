@@ -1,18 +1,21 @@
 import { Component, Signal } from '@angular/core';
 import { PageService } from './page.service';
-import { Span } from '../types';
+import { Column, Span } from '../types';
 import { SpanComponent } from '../span/span.component';
+import { ColumnComponent } from '../column/column.component';
 
 @Component({
   selector: 'app-page',
   standalone: true,
-  imports: [SpanComponent],
+  imports: [SpanComponent, ColumnComponent],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
 })
 export class PageComponent {
   spans: Signal<Span[] | undefined>;
+  columns: Signal<Column[] | undefined>;
   constructor(private readonly pageService: PageService) {
     this.spans = this.pageService.spans;
+    this.columns = this.pageService.columns;
   }
 }
