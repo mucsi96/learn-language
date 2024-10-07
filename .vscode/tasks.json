@@ -4,28 +4,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "osx": {
-        "command": "cp '/Users/igorbari/Library/Application Support/Anki2/User 1/collection.anki2' anki/collection.anki2"
-      },
-      "linux": {
-        "command": "mkdir -p anki && cp '/mnt/c/Users/mucsi/AppData/Roaming/Anki2/User 1/collection.anki2' anki/collection.anki2"
-      },
-      "label": "Copy Anki Collection",
-      "detail": "Copies the Anki collection file to the project",
-      "type": "shell",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Import Anki Collection",
-      "detail": "Imports the Anki collection file to the database",
-      "type": "shell",
-      "command": "python pdf_to_db.py",
-      "problemMatcher": [],
-    },
-    {
       "label": "Run Postgres",
       "type": "shell",
       "command": "docker compose up --wait db",
@@ -40,13 +18,41 @@
       "detail": "Runs the Docker Compose configuration defined in docker-compose.yaml"
     },
     {
-      "label": "Start admin client",
-      "detail": "Starts the admin client",
+      "label": "Start client",
+      "detail": "Starts the client",
       "type": "shell",
       "command": "yarn start",
-      "problemMatcher": [],
       "options": {
-        "cwd": "${workspaceFolder}/admin_client"
+        "cwd": "${workspaceFolder}/client"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": "^X \\[(ERROR)\\] ((TS|NG)\\d+): (.*)$",
+            "severity": 1,
+            "code": 2,
+            "message": 4
+          },
+          {
+            "regexp": ""
+          },
+          {
+            "regexp": "^\\s*(.*):(\\d+):(\\d+):$",
+            "file": 1,
+            "line": 2,
+            "column": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "Changes detected\\. Rebuilding\\.\\.\\."
+          },
+          "endsPattern": {
+            "regexp": "Application bundle generation (complete|failed)"
+          }
+        }
       }
     }
   ]

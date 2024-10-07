@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import '@mucsi96/ui-elements';
 
 @Component({
   selector: 'app-root',

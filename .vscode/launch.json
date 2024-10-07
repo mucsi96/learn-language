@@ -1,16 +1,29 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "java",
-            "name": "admin server",
-            "request": "launch",
-            "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
-            "cwd": "${workspaceFolder}/admin_server",
-            "args": "--spring.profiles.active=local",
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Start server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--reload"],
+      "jinja": true,
+      "cwd": "${workspaceFolder}/server"
+    },
+    {
+      "name": "Start client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/client",
+      "preLaunchTask": "Start client",
+      "cwd": "${workspaceFolder}/server",
+      "sourceMaps": true,
+      "trace": true,
+      "smartStep": true
+    }
+  ]
 }

@@ -1,19 +1,19 @@
 import { Routes } from '@angular/router';
-import { ImportsComponent } from './imports/imports.component';
+import { PageComponent } from './page/page.component';
 
 export enum RouterTokens {
   HOME = '',
-  IMPORTS = 'imports',
+  SOURCES = 'sources',
 }
 
 export const routes: Routes = [
   {
     path: RouterTokens.HOME,
-    redirectTo: RouterTokens.IMPORTS,
+    redirectTo: RouterTokens.SOURCES,
     pathMatch: 'full',
   },
   {
-    path: RouterTokens.IMPORTS,
-    component: ImportsComponent,
+    path: RouterTokens.SOURCES,
+    component: PageComponent,
   },
 ];

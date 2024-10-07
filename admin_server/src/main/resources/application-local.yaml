@@ -1,5 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:8483/learn_language
-    username: postgres
-    password: postgres

@@ -1,0 +1,10 @@
+@for (span of spans(); track span.text) {
+<app-span
+  [text]="span.text"
+  [bbox]="span.bbox"
+  [font]="span.font"
+  [color]="span.color"
+  [fontSize]="span.fontSize"
+  [excluded]="span.excluded"
+></app-span>
+}

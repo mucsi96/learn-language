@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &:not(.excluded) {
+    background-color: rgba(0, 255, 0, 0.1);
+    border: 1px solid green;
+  }
+
+  &.excluded {
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid red;
+  }
+}
