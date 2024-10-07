@@ -1,8 +1,6 @@
 import { Component, HostBinding, Input } from '@angular/core';
 import { BBox } from '../types';
 
-const scale = 3;
-
 @Component({
   selector: 'app-span',
   standalone: true,
@@ -19,19 +17,19 @@ export class SpanComponent {
   @HostBinding('class.excluded') @Input() excluded?: boolean;
 
   @HostBinding('style.top') get top() {
-    return scale * (this.bbox?.y ?? 0) + 'px';
+    return 100 * (this.bbox?.y ?? 0) + 'vw';
   }
 
   @HostBinding('style.left') get left() {
-    return scale * (this.bbox?.x ?? 0) + 'px';
+    return 100 * (this.bbox?.x ?? 0) + 'vw';
   }
 
   @HostBinding('style.width') get width() {
-    return scale * (this.bbox?.width ?? 0) + 'px';
+    return 100 * (this.bbox?.width ?? 0) + 'vw';
   }
 
   @HostBinding('style.height') get height() {
-    return scale * (this.bbox?.height ?? 0) + 'px';
+    return 100 * (this.bbox?.height ?? 0) + 'vw';
   }
 
   @HostBinding('title') get title() {

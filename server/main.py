@@ -14,19 +14,6 @@ def extract_style(span):
     return f"font: {span['font']} | size: {span['size']} | color: {span['color']}"
 
 
-def map_bbox(item):
-    bbox = item['bbox']
-    return {
-        **item,
-        'bbox': {
-            'x': bbox[0],
-            'y': bbox[1],
-            'width': bbox[2] - bbox[0],
-            'height': bbox[3] - bbox[1]
-        }
-    }
-
-
 @app.get("/api/sources/{source_index}/page/{page_number}")
 def root(source_index: int, page_number: int):
     try:
@@ -43,6 +30,18 @@ def root(source_index: int, page_number: int):
         raise HTTPException(status_code=404, detail="Page number out of range")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    def map_bbox(item):
+        bbox = item['bbox']
+        return {
+            **item,
+            'bbox': {
+                'x': bbox[0] / page.rect.width,
+                'y': bbox[1] / page.rect.width,
+                'width': (bbox[2] - bbox[0]) / page.rect.width,
+                'height': (bbox[3] - bbox[1]) / page.rect.width
+            }
+        }
 
     spans = []
 
@@ -163,7 +162,7 @@ def root(source_index: int, page_number: int):
         "styles": styles,
         "stylesPercentage": styles_percentage,
         "columns": list(map(map_bbox, columns)),
-        "words": list(map(map_bbox, words)),
+        "words": list(map(map_bbox, words))
     }
 
 
