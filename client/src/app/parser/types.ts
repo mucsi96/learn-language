@@ -17,9 +17,17 @@ export type Span = {
 export type Column = {
   bbox: BBox;
   type: 'word' | 'example_sentence';
+  avgWordsPerSpan: number;
+}
+
+export type Word = {
+  bbox: BBox;
+  text: string;
+  exampleSentences: string[];
 }
 
 export type Page = {
   spans: Span[];
   columns: Column[];
+  words: Word[];
 };

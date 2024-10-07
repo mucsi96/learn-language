@@ -21,4 +21,8 @@ export class PageService {
   get columns() {
     return toSignal(this.$page.pipe(map((page) => page.columns)));
   }
+
+  get words() {
+    return toSignal(this.$page.pipe(map((page) => page.words)));
+  }
 }

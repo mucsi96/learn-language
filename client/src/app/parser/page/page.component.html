@@ -1,5 +1,15 @@
 @for (column of columns(); track $index) {
-<app-column [type]="column.type" [bbox]="column.bbox"></app-column>
+<app-column
+  [type]="column.type"
+  [bbox]="column.bbox"
+  [avgWordsPerSpan]="column.avgWordsPerSpan"
+></app-column>
+} @for (word of words(); track $index) {
+<app-word
+  [bbox]="word.bbox"
+  [text]="word.text"
+  [exampleSentences]="word.exampleSentences"
+></app-word>
 } @for (span of spans(); track span.text) {
 <app-span
   [text]="span.text"

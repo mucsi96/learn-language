@@ -103,7 +103,7 @@ def root(source_index: int, page_number: int):
         total_words = sum(len(span['text'].split())
                           for span in column['spans'])
         avg_words_per_span = total_words / len(column['spans'])
-        column['avg_words_per_span'] = avg_words_per_span
+        column['avgWordsPerSpan'] = avg_words_per_span
         column['type'] = 'example_sentence' if avg_words_per_span > 3 else 'word'
 
     # Add column information to spans
@@ -130,7 +130,7 @@ def root(source_index: int, page_number: int):
                     if related_word['text'] not in [word['text'] for word in words]:
                         words.append({
                             'text': related_word['text'],
-                            'example_sentences': [span['text']],
+                            'exampleSentences': [span['text']],
                             'bbox': [
                                 min(related_word['bbox']
                                     [0], span_bbox[0]),
@@ -145,7 +145,7 @@ def root(source_index: int, page_number: int):
                     else:
                         for word in words:
                             if word['text'] == related_word['text']:
-                                word['example_sentences'].append(
+                                word['exampleSentences'].append(
                                     span['text'])
                                 word['bbox'] = [
                                     min(word['bbox'][0],

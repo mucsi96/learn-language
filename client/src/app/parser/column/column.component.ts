@@ -13,6 +13,7 @@ const scale = 3;
 export class ColumnComponent {
   @Input() bbox?: BBox;
   @HostBinding('class') @Input() type?: 'word' | 'example_sentence';
+  @Input() avgWordsPerSpan?: number;
 
   @HostBinding('style.top') get top() {
     return scale * (this.bbox?.y ?? 0) + 'px';
@@ -28,5 +29,16 @@ export class ColumnComponent {
 
   @HostBinding('style.height') get height() {
     return scale * (this.bbox?.height ?? 0) + 'px';
+  }
+
+  @HostBinding('title') get title() {
+    return JSON.stringify(
+      {
+        type: this.type,
+        avgWordsPerSpan: this.avgWordsPerSpan,
+      },
+      null,
+      2
+    );
   }
 }

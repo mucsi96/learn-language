@@ -33,4 +33,17 @@ export class SpanComponent {
   @HostBinding('style.height') get height() {
     return scale * (this.bbox?.height ?? 0) + 'px';
   }
+
+  @HostBinding('title') get title() {
+    return JSON.stringify(
+      {
+        font: this.font,
+        fontSize: this.fontSize,
+        color: this.color,
+        excluded: this.excluded,
+      },
+      null,
+      2
+    );
+  }
 }
