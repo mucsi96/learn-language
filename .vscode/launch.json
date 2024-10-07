@@ -20,7 +20,6 @@
       "url": "http://localhost:4200",
       "webRoot": "${workspaceFolder}/client",
       "preLaunchTask": "Start client",
-      "cwd": "${workspaceFolder}/server",
       "sourceMaps": true,
       "trace": true,
       "smartStep": true

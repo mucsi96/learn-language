@@ -16,9 +16,18 @@ export class PageComponent {
   spans: Signal<Span[] | undefined>;
   columns: Signal<Column[] | undefined>;
   words: Signal<Word[] | undefined>;
+
   constructor(private readonly pageService: PageService) {
     this.spans = this.pageService.spans;
     this.columns = this.pageService.columns;
     this.words = this.pageService.words;
+  }
+
+  onBack() {
+    this.pageService.back();
+  }
+
+  onForward() {
+    this.pageService.forward();
   }
 }

@@ -14,7 +14,7 @@ def extract_style(span):
     return f"font: {span['font']} | size: {span['size']} | color: {span['color']}"
 
 
-@app.get("/api/sources/{source_index}/page/{page_number}")
+@app.get("/api/source/{source_index}/page/{page_number}")
 def root(source_index: int, page_number: int):
     try:
         document = fitz.open(sources[source_index])

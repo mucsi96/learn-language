@@ -1,3 +1,5 @@
+<button type="button" bt (click)="onBack()">Back</button>
+<button type="button" bt (click)="onForward()">Next</button>
 @for (column of columns(); track $index) {
 <app-column
   [type]="column.type"

@@ -18,6 +18,16 @@
       "detail": "Runs the Docker Compose configuration defined in docker-compose.yaml"
     },
     {
+      "label": "Start server",
+      "type": "shell",
+      "command": "uvicorn main:app --reload",
+      "problemMatcher": [],
+      "detail": "Starts the server",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+    },
+    {
       "label": "Start client",
       "detail": "Starts the client",
       "type": "shell",
