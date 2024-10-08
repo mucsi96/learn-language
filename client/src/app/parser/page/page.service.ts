@@ -16,7 +16,7 @@ import { Page } from '../types';
 })
 export class PageService {
   private readonly $sourceIndex = new BehaviorSubject(0);
-  private readonly $pageIndex = new BehaviorSubject(9);
+  private readonly $pageIndex = new BehaviorSubject(8);
   private readonly $page: Observable<Page>;
 
   constructor(http: HttpClient) {

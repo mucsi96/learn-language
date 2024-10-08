@@ -12,7 +12,7 @@
   [text]="word.text"
   [exampleSentences]="word.exampleSentences"
 ></app-word>
-} @for (span of spans(); track span.text) {
+} @for (span of spans(); track $index) {
 <app-span
   [text]="span.text"
   [bbox]="span.bbox"
