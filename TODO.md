@@ -1,2 +1,5 @@
-- separate app for card generation
-- show imported words on ui
+- add source handling
+- reflect source name and page number in route url
+- check all pages
+- handle examples belonging to previous page
+- check page 22
