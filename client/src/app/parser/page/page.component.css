@@ -1,0 +1,10 @@
+.page-nav {
+  display: flex;
+  margin: 0 auto;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.page-layout {
+  position: relative;
+}

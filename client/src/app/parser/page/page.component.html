@@ -1,24 +1,35 @@
-<button type="button" bt (click)="onBack()">Back</button>
-<button type="button" bt (click)="onForward()">Next</button>
-@for (column of columns(); track $index) {
-<app-column
-  [type]="column.type"
-  [bbox]="column.bbox"
-  [avgWordsPerSpan]="column.avgWordsPerSpan"
-></app-column>
-} @for (word of words(); track $index) {
-<app-word
-  [bbox]="word.bbox"
-  [text]="word.text"
-  [exampleSentences]="word.exampleSentences"
-></app-word>
-} @for (span of spans(); track $index) {
-<app-span
-  [text]="span.text"
-  [bbox]="span.bbox"
-  [font]="span.font"
-  [color]="span.color"
-  [fontSize]="span.fontSize"
-  [excluded]="span.excluded"
-></app-span>
+<div class="page-nav">
+  <button type="button" bt (click)="onBack()">Back</button>
+  <label bt
+    ><input type="number" bt [(ngModel)]="page" (change)="onPageChange()"
+  /></label>
+  <button type="button" bt (click)="onForward()">Next</button>
+</div>
+@if (loading()) {
+<div role="progressbar" bt></div>
+} @else {
+<section class="page-layout">
+  @for (column of columns(); track $index) {
+  <app-column
+    [type]="column.type"
+    [bbox]="column.bbox"
+    [avgWordsPerSpan]="column.avgWordsPerSpan"
+  ></app-column>
+  } @for (word of words(); track $index) {
+  <app-word
+    [bbox]="word.bbox"
+    [text]="word.text"
+    [exampleSentences]="word.exampleSentences"
+  ></app-word>
+  } @for (span of spans(); track $index) {
+  <app-span
+    [text]="span.text"
+    [bbox]="span.bbox"
+    [font]="span.font"
+    [color]="span.color"
+    [fontSize]="span.fontSize"
+    [excluded]="span.excluded"
+  ></app-span>
+  }
+</section>
 }

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject,
@@ -8,24 +8,35 @@ import {
   Observable,
   shareReplay,
   switchMap,
+  tap,
 } from 'rxjs';
 import { Page } from '../types';
+import { handleError } from '../../utils/handleError';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PageService {
-  private readonly $sourceIndex = new BehaviorSubject(0);
+  private readonly $sourceId = new BehaviorSubject(0);
   private readonly $pageIndex = new BehaviorSubject(8);
   private readonly $page: Observable<Page>;
+  private readonly loading = signal(true);
 
   constructor(http: HttpClient) {
-    this.$page = combineLatest([this.$sourceIndex, this.$pageIndex]).pipe(
-      switchMap(([sourceIndex, pageIndex]) => {
-        return http.get<Page>(`/api/source/${sourceIndex}/page/${pageIndex}`);
-      }),
+    this.$page = combineLatest([this.$sourceId, this.$pageIndex]).pipe(
+      tap(() => this.loading.set(true)),
+      switchMap(([sourceIndex, pageIndex]) =>
+        http.get<Page>(`/api/source/${sourceIndex}/page/${pageIndex}`).pipe(
+          handleError('Could load page'),
+          tap(() => this.loading.set(false))
+        )
+      ),
       shareReplay(1)
     );
+  }
+
+  get page() {
+    return this.$pageIndex.value;
   }
 
   get spans() {
@@ -40,11 +51,11 @@ export class PageService {
     return toSignal(this.$page.pipe(map((page) => page.words)));
   }
 
-  back() {
-    this.$pageIndex.next(this.$pageIndex.value - 1);
+  changePage(page: number) {
+    this.$pageIndex.next(page);
   }
 
-  forward() {
-    this.$pageIndex.next(this.$pageIndex.value + 1);
+  isLoading() {
+    return this.loading;
   }
 }
