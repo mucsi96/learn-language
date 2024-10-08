@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 import fitz
-from pdf_utils import extract_style, map_bbox, split_span
+from pdf_utils import extract_style, map_bbox, merge_bboxes, split_span
 from fitz import Page
 
 def process_document(source: str, page_number: int) -> dict:
@@ -64,12 +64,7 @@ def determine_columns(spans: list, styles_percentage: dict) -> list:
         for column in columns:
             if not (bbox[2] < column['bbox'][0] or bbox[0] > column['bbox'][2]):
                 column['spans'].append(span)
-                column['bbox'] = [
-                    min(column['bbox'][0], bbox[0]),
-                    min(column['bbox'][1], bbox[1]),
-                    max(column['bbox'][2], bbox[2]),
-                    max(column['bbox'][3], bbox[3]),
-                ]
+                column['bbox'] = merge_bboxes(column['bbox'], bbox)
                 column_found = True
                 break
 
@@ -103,21 +98,11 @@ def find_related_words(columns: list) -> list:
                         words.append({
                             'text': related_word['text'],
                             'exampleSentences': [span['text']],
-                            'bbox': [
-                                min(related_word['bbox'][0], span_bbox[0]),
-                                min(related_word['bbox'][1], span_bbox[1]),
-                                max(related_word['bbox'][2], span_bbox[2]),
-                                max(related_word['bbox'][3], span_bbox[3]),
-                            ],
+                            'bbox': merge_bboxes(related_word['bbox'], span_bbox),
                         })
                     else:
                         for word in words:
                             if word['text'] == related_word['text']:
                                 word['exampleSentences'].append(span['text'])
-                                word['bbox'] = [
-                                    min(word['bbox'][0], span_bbox[0]),
-                                    min(word['bbox'][1], span_bbox[1]),
-                                    max(word['bbox'][2], span_bbox[2]),
-                                    max(word['bbox'][3], span_bbox[3]),
-                                ]
+                                word['bbox'] = merge_bboxes(word['bbox'], span_bbox)
     return words

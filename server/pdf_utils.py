@@ -56,3 +56,11 @@ def calculate_styles(spans: List[Dict]) -> Dict:
         else:
             styles[style] = 1
     return styles
+
+def merge_bboxes(bbox_a, bbox_b):
+    return [
+        min(bbox_a[0], bbox_b[0]),
+        min(bbox_a[1], bbox_b[1]),
+        max(bbox_a[2], bbox_b[2]),
+        max(bbox_a[3], bbox_b[3]),
+    ]
