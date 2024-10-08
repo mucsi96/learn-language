@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 import fitz
-from utils import extract_style, map_bbox, split_span
+from pdf_utils import extract_style, map_bbox, split_span
 from fitz import Page
 
 def process_document(source: str, page_number: int) -> dict:

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from document_processor import process_document
+from pdf_parser import process_document
 
 router = APIRouter()
 

@@ -3,17 +3,19 @@ from typing import List, Dict
 def extract_style(span: Dict) -> str:
     return f"font: {span['font']} | size: {span['size']} | color: {span['color']}"
 
-def map_bbox(item: Dict, page_width: float) -> Dict:
-    bbox = item['bbox']
-    return {
-        **item,
-        'bbox': {
-            'x': bbox[0] / page_width,
-            'y': bbox[1] / page_width,
-            'width': (bbox[2] - bbox[0]) / page_width,
-            'height': (bbox[3] - bbox[1]) / page_width
+def map_bbox(page_width: float):
+    def mapper(item: dict) -> dict:
+        bbox = item['bbox']
+        return {
+            **item,
+            'bbox': {
+                'x': bbox[0] / page_width,
+                'y': bbox[1] / page_width,
+                'width': (bbox[2] - bbox[0]) / page_width,
+                'height': (bbox[3] - bbox[1]) / page_width,
+            },
         }
-    }
+    return mapper
 
 def split_span(span: Dict) -> List[Dict]:
     text = span['text']
