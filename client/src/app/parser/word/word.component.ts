@@ -14,19 +14,19 @@ export class WordComponent {
   @Input() exampleSentences?: string[];
 
   @HostBinding('style.top') get top() {
-    return 100 * (this.bbox?.y ?? 0) + 'vw';
+    return `calc(var(--page-width) * ${this.bbox?.y ?? 0})`;
   }
 
   @HostBinding('style.left') get left() {
-    return 100 * (this.bbox?.x ?? 0) + 'vw';
+    return `calc(var(--page-width) * ${this.bbox?.x ?? 0})`;
   }
 
   @HostBinding('style.width') get width() {
-    return 100 * (this.bbox?.width ?? 0) + 'vw';
+    return `calc(var(--page-width) * ${this.bbox?.width ?? 0})`;
   }
 
   @HostBinding('style.height') get height() {
-    return 100 * (this.bbox?.height ?? 0) + 'vw';
+    return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
   }
 
   @HostBinding('title') get title() {
