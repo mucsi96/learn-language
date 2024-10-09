@@ -16,6 +16,7 @@ def process_document(source: str, page_number: int) -> dict:
 
     styles = calculate_styles(spans)
     styles_percentage = calculate_styles_percentage(styles, len(spans))
+    spans = exclude_spans_by_style(spans, styles_percentage)
 
     columns = determine_columns(spans, styles_percentage)
 
@@ -51,11 +52,16 @@ def calculate_styles(spans: list) -> dict:
 def calculate_styles_percentage(styles: dict, total_spans: int) -> dict:
     return {style: (100 * count) / total_spans for style, count in styles.items()}
 
-def determine_columns(spans: list, styles_percentage: dict) -> list:
+def exclude_spans_by_style(spans: list, styles_percentage: dict) -> list:
+    return [
+        {**span, 'excluded': styles_percentage[extract_style(span)] < 10 or not span['text'].strip()}
+        for span in spans
+    ]
+
+def determine_columns(spans: list) -> list:
     columns = []
     for span in spans:
         bbox = span['bbox']
-        span['excluded'] = styles_percentage[extract_style(span)] < 10 or not span['text'].strip()
 
         if span['excluded']:
             continue
