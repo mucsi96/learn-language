@@ -18,7 +18,7 @@ def process_document(source: str, page_number: int) -> dict:
     styles_percentage = calculate_styles_percentage(styles, len(spans))
     spans = exclude_spans_by_style(spans, styles_percentage)
 
-    columns = determine_columns(spans, styles_percentage)
+    columns = determine_columns(spans)
 
     words = find_related_words(columns)
 
@@ -66,15 +66,26 @@ def determine_columns(spans: list) -> list:
         if span['excluded']:
             continue
 
-        column_found = False
-        for column in columns:
-            if not (bbox[2] < column['bbox'][0] or bbox[0] > column['bbox'][2]):
-                column['spans'].append(span)
-                column['bbox'] = merge_bboxes(column['bbox'], bbox)
-                column_found = True
-                break
+        best_overlap_percentage = 0
+        best_column = None
 
-        if not column_found:
+        for column in columns:
+            overlap_x1 = max(bbox[0], column['bbox'][0])
+            overlap_x2 = min(bbox[2], column['bbox'][2])
+            overlap_width = max(0, overlap_x2 - overlap_x1)
+            bbox_width = bbox[2] - bbox[0]
+            column_width = column['bbox'][2] - column['bbox'][0]
+            overlap_percentage = overlap_width / min(bbox_width, column_width)
+
+            if overlap_percentage > best_overlap_percentage:
+                best_overlap_percentage = overlap_percentage
+                best_column = column
+        
+        
+        if best_column:  # Adjust the threshold as needed
+            best_column['spans'].append(span)
+            best_column['bbox'] = merge_bboxes(best_column['bbox'], bbox)
+        else:
             columns.append({'spans': [span], 'bbox': bbox})
 
     for column in columns:
@@ -82,6 +93,11 @@ def determine_columns(spans: list) -> list:
         avg_words_per_span = total_words / len(column['spans'])
         column['avgWordsPerSpan'] = avg_words_per_span
         column['type'] = 'example_sentence' if avg_words_per_span > 3 else 'word'
+
+        # Calculate the average x1 and x2 for the column bbox
+        avg_x1 = sum(span['bbox'][0] for span in column['spans']) / len(column['spans'])
+        avg_x2 = sum(span['bbox'][2] for span in column['spans']) / len(column['spans'])
+        column['bbox'] = (avg_x1, column['bbox'][1], avg_x2, column['bbox'][3])
 
     return columns
 

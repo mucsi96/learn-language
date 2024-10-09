@@ -2,7 +2,6 @@
 - reflect source name and page number in route url
 - check all pages
 - handle examples belonging to previous page
-- check page 22
 - make all blocks buttons with lazy showing a propert tooltip instead of using title attribute
 - clicking on example sentece should copy it to clipboard
 - clicking on word should open an overlay for editing the word
