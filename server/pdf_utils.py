@@ -18,33 +18,37 @@ def map_bbox(page_width: float):
     return mapper
 
 def split_span(span: Dict) -> List[Dict]:
-    text = span['text']
-    parts = text.split('  ')  # Split by multiple spaces
+    chars = span['chars']
     spans = []
-    current_x = span['bbox'][0]
-    for part in parts:
-        part_width = len(part) / len(text) * (span['bbox'][2] - span['bbox'][0])
-        new_bbox = [current_x, span['bbox'][1], current_x + part_width, span['bbox'][3]]
+    current_chars = []
+    current_bbox = [span['bbox'][0], span['bbox'][1], span['bbox'][0], span['bbox'][3]]
+
+    for i, char in enumerate(chars):
+        if current_chars and current_chars[-1]['c'] == ' ' and char['c'] == ' ':
+            # Split here
+            spans.append({
+                'text': ''.join(c['c'] for c in current_chars).strip(),
+                'bbox': current_bbox,
+                'font': span['font'],
+                'size': span['size'],
+                'color': span['color']
+            })
+            current_chars = []
+            if i + 1 < len(chars):
+                current_bbox = [chars[i + 1]['bbox'][0], span['bbox'][1], chars[i + 1]['bbox'][0], span['bbox'][3]]
+        else:
+            current_chars.append(char)
+            current_bbox[2] = char['bbox'][2]
+
+    if current_chars:
         spans.append({
-            'text': part,
-            'bbox': new_bbox,
+            'text': ''.join(c['c'] for c in current_chars).strip(),
+            'bbox': current_bbox,
             'font': span['font'],
             'size': span['size'],
             'color': span['color']
         })
-        current_x += part_width + (span['size'] * 0.5)  # Adjust for space width
-    return spans
 
-def process_spans(page) -> List[Dict]:
-    spans = []
-    for block in page.get_textpage().extractRAWDICT()['blocks']:
-        for line in block['lines']:
-            for span in line['spans']:
-                span['text'] = ''.join(char_dict['c'] for char_dict in span['chars'])
-                if '  ' in span['text'].strip():  # Detect multiple spaces
-                    spans.extend(split_span(span))
-                else:
-                    spans.append(span)
     return spans
 
 def calculate_styles(spans: List[Dict]) -> Dict:
