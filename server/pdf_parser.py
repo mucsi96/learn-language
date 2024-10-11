@@ -1,11 +1,18 @@
+from io import BytesIO
 from fastapi import HTTPException
 import fitz
 from pdf_utils import extract_style, map_bbox, merge_bboxes, split_span
 from fitz import Page
+from azure.storage.blob import BlobClient
+from azure.identity import DefaultAzureCredential
+
+credentials = DefaultAzureCredential()
 
 def process_document(source: str, page_number: int) -> dict:
     try:
-        document = fitz.open(source)
+        blob_client = BlobClient.from_blob_url(source, credentials)
+        blob_data  = blob_client.download_blob().readall()
+        document = fitz.open(blob_client.blob_name, blob_data)
         page = document[page_number]
     except IndexError:
         raise HTTPException(status_code=404, detail="Page number out of range")

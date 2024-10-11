@@ -17,7 +17,7 @@ import { handleError } from '../../utils/handleError';
   providedIn: 'root',
 })
 export class PageService {
-  private readonly $sourceId = new BehaviorSubject(0);
+  private readonly $sourceId = new BehaviorSubject(1);
   private readonly $pageIndex = new BehaviorSubject(8);
   private readonly $page: Observable<Page>;
   private readonly loading = signal(true);

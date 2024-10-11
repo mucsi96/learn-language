@@ -1,6 +1,8 @@
 - add source handling
 - reflect source name and page number in route url
 - check all pages
+- check a2
+- check b1 17
 - handle examples belonging to previous page
 - make all blocks buttons with lazy showing a propert tooltip instead of using title attribute
 - clicking on example sentece should copy it to clipboard
