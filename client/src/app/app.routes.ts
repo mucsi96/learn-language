@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { PageComponent } from './parser/page/page.component';
+import { HomeComponent } from './home/home.component';
 
 export enum RouterTokens {
   HOME = '',
@@ -9,11 +10,11 @@ export enum RouterTokens {
 export const routes: Routes = [
   {
     path: RouterTokens.HOME,
-    redirectTo: RouterTokens.SOURCES,
     pathMatch: 'full',
+    component: HomeComponent
   },
   {
-    path: RouterTokens.SOURCES,
+    path: `${RouterTokens.SOURCES}/:sourceName/page/:pageNumber`,
     component: PageComponent,
   },
 ];

@@ -1,0 +1,5 @@
+@for (source of sources; track source.id) {
+<a bt-card [routerLink]="['/sources', $index, 'page', source.startPage]">
+  <h2 bt>{{ source.name }}</h2>
+</a>
+}
