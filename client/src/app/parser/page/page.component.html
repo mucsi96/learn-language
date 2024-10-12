@@ -16,13 +16,13 @@
       }
     </ul>
   </div>
-  <a bt [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
+  <a bt bt-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
     >Back</a
   >
   <label bt
     ><input type="number" bt [(ngModel)]="pageNumber" (change)="onPageChange()"
   /></label>
-  <a bt [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
+  <a bt bt-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
     >Next</a
   >
 </div>

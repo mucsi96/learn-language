@@ -1,7 +1,7 @@
 @if (loading()) {
 <div role="progressbar" bt></div>
 } @else {
-<h1 bt class="sources-heading">Sources <button bt>Add source</button></h1>
+<h1 bt class="sources-heading">Sources</h1>
 <section class="sources">
   @for (source of sources(); track source.id) {
   <a bt-card [routerLink]="['/sources', source.id, 'page', source.startPage]">
