@@ -8,7 +8,7 @@ def process_document(source: str, page_number: int) -> dict:
     try:
         (blob_name, blob_data) = fetch_blob(source)
         document = fitz.open(blob_name, blob_data)
-        page = document[page_number]
+        page = document[page_number - 1]
     except IndexError:
         raise HTTPException(status_code=404, detail="Page number out of range")
     except Exception as e:

@@ -7,19 +7,19 @@ sources = [
     {
         'id': 'goethe-a1',
         'name': 'Goethe A1',
-        'startPage': 8,
+        'startPage': 9,
         'blob_url': 'https://ibari.blob.core.windows.net/learn-german/A1_SD1_Wortliste_02.pdf'
     },
     {
         'id': 'goethe-a2',
         'name': 'Goethe A2',
-        'startPage': 7,
+        'startPage': 8,
         'blob_url': 'https://ibari.blob.core.windows.net/learn-german/Goethe-Zertifikat_A2_Wortliste.pdf'
     },
     {
         'id': 'goethe-b1',
         'name': 'Goethe B1',
-        'startPage': 15,
+        'startPage': 16,
         'blob_url': 'https://ibari.blob.core.windows.net/learn-german/Goethe-Zertifikat_B1_Wortliste.pdf'
     },
 ]
@@ -41,4 +41,5 @@ async def get_page(source_id: str, page_number: int):
             status_code=404, detail="Source index out of range")
 
     result = process_document(source['blob_url'], page_number)
+    result['sourceName'] = source['name']
     return result

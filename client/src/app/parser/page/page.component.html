@@ -1,11 +1,28 @@
 <div class="page-nav">
-  <a bt [routerLink]="['/sources', sourceId(), 'page', page() - 1]"
+  <button bt bt-dropdown popovertarget="dropdown-menu-popover">
+    {{ sourceName() }}
+    <svg></svg>
+  </button>
+  <div popover bt id="dropdown-menu-popover" #popover>
+    <ul bt-dropdown-menu>
+      @for (source of sources(); track source.id) {
+      <li>
+        <a
+          [routerLink]="['/sources', source.id, 'page', source.startPage]"
+          (click)="popover.hidePopover()"
+          >{{ source.name }}</a
+        >
+      </li>
+      }
+    </ul>
+  </div>
+  <a bt [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
     >Back</a
   >
   <label bt
-    ><input type="number" bt [(ngModel)]="page" (change)="onPageChange()"
+    ><input type="number" bt [(ngModel)]="pageNumber" (change)="onPageChange()"
   /></label>
-  <a bt [routerLink]="['/sources', sourceId(), 'page', page() + 1]"
+  <a bt [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
     >Next</a
   >
 </div>

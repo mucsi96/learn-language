@@ -58,6 +58,12 @@ export class PageService {
     );
   }
 
+  get sourceName() {
+    return toSignal(
+      this.$page.pipe(map((page) => page.sourceName))
+    );
+  }
+
   get spans() {
     return toSignal(this.$page.pipe(map((page) => page.spans)));
   }

@@ -30,6 +30,7 @@ export type Page = {
   spans: Span[];
   columns: Column[];
   words: Word[];
+  sourceName: string;
 };
 
 export type Source = {
