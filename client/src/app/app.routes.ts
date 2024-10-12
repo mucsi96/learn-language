@@ -14,7 +14,7 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
-    path: `${RouterTokens.SOURCES}/:sourceName/page/:pageNumber`,
+    path: `${RouterTokens.SOURCES}/:sourceId/page/:pageNumber`,
     component: PageComponent,
   },
 ];

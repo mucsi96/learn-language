@@ -31,3 +31,9 @@ export type Page = {
   columns: Column[];
   words: Word[];
 };
+
+export type Source = {
+  id: string;
+  name: string;
+  startPage: number;
+};

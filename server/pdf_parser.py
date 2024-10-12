@@ -1,18 +1,13 @@
-from io import BytesIO
 from fastapi import HTTPException
 import fitz
 from pdf_utils import extract_style, map_bbox, merge_bboxes, split_span
 from fitz import Page
-from azure.storage.blob import BlobClient
-from azure.identity import DefaultAzureCredential
-
-credentials = DefaultAzureCredential()
+from blob_storage import fetch_blob
 
 def process_document(source: str, page_number: int) -> dict:
     try:
-        blob_client = BlobClient.from_blob_url(source, credentials)
-        blob_data  = blob_client.download_blob().readall()
-        document = fitz.open(blob_client.blob_name, blob_data)
+        (blob_name, blob_data) = fetch_blob(source)
+        document = fitz.open(blob_name, blob_data)
         page = document[page_number]
     except IndexError:
         raise HTTPException(status_code=404, detail="Page number out of range")
@@ -37,6 +32,7 @@ def process_document(source: str, page_number: int) -> dict:
         "words": list(map(map_bbox(page.rect.width), words)),
     }
 
+
 def extract_spans(page: Page) -> list:
     spans = []
     for block in page.get_textpage().extractRAWDICT()['blocks']:
@@ -49,6 +45,7 @@ def extract_spans(page: Page) -> list:
                     spans.append(span)
     return spans
 
+
 def calculate_styles(spans: list) -> dict:
     styles = {}
     for span in spans:
@@ -56,14 +53,18 @@ def calculate_styles(spans: list) -> dict:
         styles[style] = styles.get(style, 0) + 1
     return styles
 
+
 def calculate_styles_percentage(styles: dict, total_spans: int) -> dict:
     return {style: (100 * count) / total_spans for style, count in styles.items()}
 
+
 def exclude_spans_by_style(spans: list, styles_percentage: dict) -> list:
     return [
-        {**span, 'excluded': styles_percentage[extract_style(span)] < 10 or not span['text'].strip()}
+        {**span, 'excluded': styles_percentage[extract_style(
+            span)] < 10 or not span['text'].strip()}
         for span in spans
     ]
+
 
 def determine_columns(spans: list) -> list:
     columns = []
@@ -87,8 +88,7 @@ def determine_columns(spans: list) -> list:
             if overlap_percentage > best_overlap_percentage:
                 best_overlap_percentage = overlap_percentage
                 best_column = column
-        
-        
+
         if best_column:  # Adjust the threshold as needed
             best_column['spans'].append(span)
             best_column['bbox'] = merge_bboxes(best_column['bbox'], bbox)
@@ -96,17 +96,21 @@ def determine_columns(spans: list) -> list:
             columns.append({'spans': [span], 'bbox': bbox})
 
     for column in columns:
-        total_words = sum(len(span['text'].split()) for span in column['spans'])
+        total_words = sum(len(span['text'].split())
+                          for span in column['spans'])
         avg_words_per_span = total_words / len(column['spans'])
         column['avgWordsPerSpan'] = avg_words_per_span
         column['type'] = 'example_sentence' if avg_words_per_span > 3 else 'word'
 
         # Calculate the average x1 and x2 for the column bbox
-        avg_x1 = sum(span['bbox'][0] for span in column['spans']) / len(column['spans'])
-        avg_x2 = sum(span['bbox'][2] for span in column['spans']) / len(column['spans'])
+        avg_x1 = sum(span['bbox'][0]
+                     for span in column['spans']) / len(column['spans'])
+        avg_x2 = sum(span['bbox'][2]
+                     for span in column['spans']) / len(column['spans'])
         column['bbox'] = (avg_x1, column['bbox'][1], avg_x2, column['bbox'][3])
 
     return columns
+
 
 def find_related_words(columns: list) -> list:
     words = []
@@ -133,5 +137,6 @@ def find_related_words(columns: list) -> list:
                         for word in words:
                             if word['text'] == related_word['text']:
                                 word['exampleSentences'].append(span['text'])
-                                word['bbox'] = merge_bboxes(word['bbox'], span_bbox)
+                                word['bbox'] = merge_bboxes(
+                                    word['bbox'], span_bbox)
     return words

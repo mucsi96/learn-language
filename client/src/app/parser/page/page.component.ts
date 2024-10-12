@@ -1,44 +1,53 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
+  inject,
   OnDestroy,
   signal,
-  Signal,
-  WritableSignal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PageService } from '../../page.service';
 import { ColumnComponent } from '../column/column.component';
 import { SpanComponent } from '../span/span.component';
-import { Column, Span, Word } from '../types';
 import { WordComponent } from '../word/word.component';
-import { PageService } from './page.service';
 
 @Component({
   selector: 'app-page',
   standalone: true,
-  imports: [SpanComponent, ColumnComponent, WordComponent, FormsModule],
+  imports: [
+    SpanComponent,
+    ColumnComponent,
+    WordComponent,
+    FormsModule,
+    RouterLink,
+  ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
 })
 export class PageComponent implements AfterViewInit, OnDestroy {
-  spans: Signal<Span[] | undefined>;
-  columns: Signal<Column[] | undefined>;
-  words: Signal<Word[] | undefined>;
-  page: WritableSignal<number>;
-  loading: Signal<boolean>;
-  resizeObserver: ResizeObserver | undefined;
+  private readonly pageService = inject(PageService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly elRef = inject(ElementRef);
+  readonly spans = this.pageService.spans;
+  readonly columns = this.pageService.columns;
+  readonly words = this.pageService.words;
+  readonly selectedSourceId = signal('');
+  readonly page = signal(1);
+  readonly sourceId = this.pageService.sourceId;
+  readonly loading = this.pageService.loading;
+  private resizeObserver: ResizeObserver | undefined;
 
-  constructor(
-    private readonly pageService: PageService,
-    private readonly elRef: ElementRef
-  ) {
-    this.spans = this.pageService.spans;
-    this.columns = this.pageService.columns;
-    this.words = this.pageService.words;
-    this.page = signal(this.pageService.page);
-    this.loading = this.pageService.isLoading();
+  constructor() {
+    this.route.params.subscribe((params) => {
+      const pageNumber = parseInt(params['pageNumber']);
+      this.page.set(pageNumber);
+      this.pageService.setSource(params['sourceId'], pageNumber);
+    });
   }
+
   ngAfterViewInit(): void {
     this.resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -55,17 +64,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.resizeObserver?.disconnect();
   }
 
-  onBack() {
-    this.page.set(this.page() - 1);
-    this.pageService.changePage(this.page());
-  }
-
-  onForward() {
-    this.page.set(this.page() + 1);
-    this.pageService.changePage(this.page());
-  }
-
   onPageChange() {
-    this.pageService.changePage(this.page());
+    this.pageService.setPage(this.page());
   }
 }

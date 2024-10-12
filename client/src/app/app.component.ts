@@ -7,8 +7,6 @@ import '@mucsi96/ui-elements';
   standalone: true,
   imports: [RouterOutlet, RouterLink],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
-export class AppComponent {
-  title = 'admin_client';
-}
+export class AppComponent {}

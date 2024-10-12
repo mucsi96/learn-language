@@ -1,5 +1,4 @@
 - add source handling
-- reflect source name and page number in route url
 - check all pages
 - check a2
 - check b1 17

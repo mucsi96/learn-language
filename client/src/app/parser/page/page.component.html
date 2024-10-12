@@ -1,9 +1,13 @@
 <div class="page-nav">
-  <button type="button" bt (click)="onBack()">Back</button>
+  <a bt [routerLink]="['/sources', sourceId(), 'page', page() - 1]"
+    >Back</a
+  >
   <label bt
     ><input type="number" bt [(ngModel)]="page" (change)="onPageChange()"
   /></label>
-  <button type="button" bt (click)="onForward()">Next</button>
+  <a bt [routerLink]="['/sources', sourceId(), 'page', page() + 1]"
+    >Next</a
+  >
 </div>
 @if (loading()) {
 <div role="progressbar" bt></div>
