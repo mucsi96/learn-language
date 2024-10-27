@@ -10,7 +10,7 @@ llm = AzureChatOpenAI(
         "AZURE_OPENAI_ENDPOINT"),
     openai_api_key=environ.get("AZURE_OPENAI_KEY"),
     api_version=environ.get("AZURE_OPENAI_API_VERSION"),
-    max_tokens=5000
+    max_tokens=2500,
 ).bind(response_format={"type": "json_object"})
 
 
@@ -49,4 +49,6 @@ def parse(image_bytes: bytes) -> dict:
             "image_url": {"url": f"data:image/png;base64,{image_base64}"}
         }
     ])
-    return json.loads(llm.invoke([message], config={''}).content)['word_list']
+    result = llm.invoke([message])
+    print(result)
+    return json.loads(result.content)['word_list']
