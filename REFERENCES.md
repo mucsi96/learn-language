@@ -30,3 +30,15 @@ https://pgloader.readthedocs.io/en/latest/ref/sqlite.html
 
 [Usage](https://platform.openai.com/usage)
 [Official Python library for the OpenAI API](https://github.com/openai/openai-python)
+
+# Azure
+
+- https://python.langchain.com/api_reference/openai/chat_models/langchain_openai.chat_models.azure.AzureChatOpenAI.html
+
+
+Please extract the wordlist data from this page?
+In response please provide a JSON array with objects containing following properties: "word", "forms", "examples".
+The word property holds a string. it's the basic form of the word without any forms.
+The forms is a string array representing the different forms. In case of a noun it the plural form. In case of verb
+It's the conjugations. Please enhance it to make those full words. Not just endings.
+The examples property is a string array enlisting the examples provided in the document. "C:\Users\mucsi\Pictures\b1-test.png"
