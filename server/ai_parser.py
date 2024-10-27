@@ -50,5 +50,10 @@ def parse(image_bytes: bytes) -> dict:
         }
     ])
     result = llm.invoke([message])
-    print(result)
+    print('prompt tokens:',
+          result.response_metadata['token_usage']['prompt_tokens'])
+    print('completion tokens:',
+          result.response_metadata['token_usage']['completion_tokens'])
+    print('total tokens:',
+          result.response_metadata['token_usage']['total_tokens'])
     return json.loads(result.content)['word_list']
