@@ -4,6 +4,7 @@ from pdf_utils import extract_style, map_bbox, merge_bboxes, split_span
 from fitz import Page
 from blob_storage import fetch_blob
 
+
 def process_document(source: str, page_number: int) -> dict:
     try:
         (blob_name, blob_data) = fetch_blob(source)
@@ -30,6 +31,7 @@ def process_document(source: str, page_number: int) -> dict:
         "stylesPercentage": styles_percentage,
         "columns": list(map(map_bbox(page.rect.width), columns)),
         "words": list(map(map_bbox(page.rect.width), words)),
+        "image": page.get_pixmap(matrix=fitz.Matrix(2, 2)),
     }
 
 
