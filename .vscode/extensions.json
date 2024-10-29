@@ -9,6 +9,7 @@
         "donjayamanne.python-extension-pack",
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg",
-        "anweber.vscode-httpyac"
+        "anweber.vscode-httpyac",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
     ]
 }

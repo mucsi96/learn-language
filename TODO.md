@@ -1,8 +1,4 @@
-- add source handling
-- check all pages
-- check a2
-- check b1 17
-- handle examples belonging to previous page
 - make all blocks buttons with lazy showing a propert tooltip instead of using title attribute
 - clicking on example sentece should copy it to clipboard
 - clicking on word should open an overlay for editing the word
+- add source handling

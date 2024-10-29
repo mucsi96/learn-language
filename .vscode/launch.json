@@ -12,17 +12,6 @@
       "args": ["main:app", "--reload"],
       "jinja": true,
       "cwd": "${workspaceFolder}/server"
-    },
-    {
-      "name": "Start client",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:4200",
-      "webRoot": "${workspaceFolder}/client",
-      "preLaunchTask": "Start client",
-      "sourceMaps": true,
-      "trace": true,
-      "smartStep": true
     }
   ]
 }
