@@ -1,7 +1,6 @@
 import {
   AfterViewInit,
   Component,
-  computed,
   ElementRef,
   inject,
   OnDestroy,
@@ -10,9 +9,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageService } from '../../page.service';
-import { ColumnComponent } from '../column/column.component';
 import { SpanComponent } from '../span/span.component';
-import { WordComponent } from '../word/word.component';
 import { SourcesService } from '../../sources.service';
 
 @Component({
@@ -20,8 +17,6 @@ import { SourcesService } from '../../sources.service';
   standalone: true,
   imports: [
     SpanComponent,
-    ColumnComponent,
-    WordComponent,
     FormsModule,
     RouterLink,
   ],
@@ -36,8 +31,6 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly elRef = inject(ElementRef);
   readonly sources = this.sourcesService.sourcesSignal;
   readonly spans = this.pageService.spans;
-  readonly columns = this.pageService.columns;
-  readonly words = this.pageService.words;
   readonly selectedSourceId = signal('');
   readonly pageNumber = signal(1);
   readonly sourceId = this.pageService.sourceId;

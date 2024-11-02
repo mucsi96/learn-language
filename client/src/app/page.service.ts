@@ -3,10 +3,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject,
-  combineLatest,
   filter,
   map,
-  Observable,
   shareReplay,
   switchMap,
   tap,
@@ -66,13 +64,5 @@ export class PageService {
 
   get spans() {
     return toSignal(this.$page.pipe(map((page) => page.spans)));
-  }
-
-  get columns() {
-    return toSignal(this.$page.pipe(map((page) => page.columns)));
-  }
-
-  get words() {
-    return toSignal(this.$page.pipe(map((page) => page.words)));
   }
 }
