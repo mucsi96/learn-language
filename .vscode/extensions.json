@@ -10,6 +10,7 @@
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg",
         "anweber.vscode-httpyac",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "formulahendry.code-runner"
     ]
 }

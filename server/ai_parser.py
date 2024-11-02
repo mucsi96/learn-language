@@ -3,14 +3,18 @@ import json
 from os import environ
 from langchain_core.messages import HumanMessage
 from langchain_openai import AzureChatOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from time import time
 
+credentials = DefaultAzureCredential()
 llm = AzureChatOpenAI(
-    azure_deployment="openai-deployment",
+    azure_deployment=environ.get("AZURE_OPENAI_DEPLOYMENT"),
     azure_endpoint=environ.get(
         "AZURE_OPENAI_ENDPOINT"),
-    openai_api_key=environ.get("AZURE_OPENAI_KEY"),
     api_version=environ.get("AZURE_OPENAI_API_VERSION"),
     max_tokens=2500,
+    azure_ad_token_provider=get_bearer_token_provider(
+        credentials, "https://cognitiveservices.azure.com/.default")
 ).bind(response_format={"type": "json_object"})
 
 
@@ -49,7 +53,10 @@ def parse(image_bytes: bytes) -> dict:
             "image_url": {"url": f"data:image/png;base64,{image_base64}"}
         }
     ])
+    start_time = time()
     result = llm.invoke([message])
+    end_time = time()
+    print(f"Execution time: {end_time - start_time} seconds")
     print('prompt tokens:',
           result.response_metadata['token_usage']['prompt_tokens'])
     print('completion tokens:',
