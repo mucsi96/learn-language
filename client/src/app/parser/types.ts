@@ -11,25 +11,17 @@ export type Span = {
   fontSize: string;
   color: string;
   bbox: BBox;
-  excluded: boolean;
-};
-
-export type Column = {
-  bbox: BBox;
-  type: 'word' | 'example_sentence';
-  avgWordsPerSpan: number;
+  word: Word;
 };
 
 export type Word = {
-  bbox: BBox;
-  text: string;
-  exampleSentences: string[];
+  word: string;
+  forms: string[];
+  examples: string[];
 };
 
 export type Page = {
   spans: Span[];
-  columns: Column[];
-  words: Word[];
   sourceName: string;
 };
 

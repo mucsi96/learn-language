@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 import fitz
 from blob_storage import fetch_blob
+from ai_parser import parse
 
 
 def process_document(source: str, page_number: int) -> dict:
@@ -13,20 +14,23 @@ def process_document(source: str, page_number: int) -> dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    wordlist = parse(page.get_pixmap(matrix=fitz.Matrix(2, 2)).tobytes())
+
     spans = []
     for block in page.get_textpage().extractDICT()['blocks']:
         for line in block['lines']:
             for span in line['spans']:
-                spans.append(span)
+                spans.append(map_span(page.rect.width, wordlist)(span))
 
     return {
-        "spans": list(map(map_bbox(page.rect.width), spans)),
-        "image": page.get_pixmap(matrix=fitz.Matrix(2, 2)),
+        'spans': spans
     }
-    
-def map_bbox(page_width: float):
+
+
+def map_span(page_width: float, wordlist: list):
     def mapper(item: dict) -> dict:
         bbox = item['bbox']
+        prefix = item['text'].split(',')[0].strip()
         return {
             **item,
             'bbox': {
@@ -35,5 +39,6 @@ def map_bbox(page_width: float):
                 'width': (bbox[2] - bbox[0]) / page_width,
                 'height': (bbox[3] - bbox[1]) / page_width,
             },
+            'word': next((word for word in wordlist if prefix and word['word'].startswith(prefix)), None)
         }
     return mapper

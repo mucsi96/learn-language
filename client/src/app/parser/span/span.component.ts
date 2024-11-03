@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { BBox } from '../types';
+import { BBox, Word } from '../types';
 
 @Component({
   selector: 'app-span',
@@ -14,7 +14,7 @@ export class SpanComponent {
   @Input() fontSize?: string;
   @Input() color?: string;
   @Input() bbox?: BBox;
-  @HostBinding('class.excluded') @Input() excluded?: boolean;
+  @HostBinding('class.word') @Input() word?: Word;
 
   @HostBinding('style.top') get top() {
     return `calc(var(--page-width) * ${this.bbox?.y ?? 0})`;
@@ -38,7 +38,7 @@ export class SpanComponent {
         font: this.font,
         fontSize: this.fontSize,
         color: this.color,
-        excluded: this.excluded,
+        word: this.word,
       },
       null,
       2

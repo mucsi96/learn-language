@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from pdf_parser import process_document
-from ai_parser import parse
 
 router = APIRouter()
 
@@ -43,5 +42,4 @@ async def get_page(source_id: str, page_number: int):
 
     result = process_document(source['blob_url'], page_number)
     result['sourceName'] = source['name']
-    result['ai_wordlist'] = parse(result['image'].tobytes())
-    return {k: v for k, v in result.items() if k != 'image'}
+    return result

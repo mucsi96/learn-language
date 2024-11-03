@@ -3,6 +3,8 @@ import json
 from os import environ
 from langchain_core.messages import HumanMessage
 from langchain_openai import AzureChatOpenAI
+from langchain.globals import set_llm_cache
+from langchain_community.cache import InMemoryCache
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from time import time
 
@@ -17,6 +19,7 @@ llm = AzureChatOpenAI(
         credentials, "https://cognitiveservices.azure.com/.default")
 ).bind(response_format={"type": "json_object"})
 
+set_llm_cache(InMemoryCache())
 
 def parse(image_bytes: bytes) -> dict:
     image_base64 = b64encode(image_bytes).decode("utf-8")
