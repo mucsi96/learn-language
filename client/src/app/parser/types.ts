@@ -11,8 +11,8 @@ export type Span = {
   fontSize: string;
   color: string;
   bbox: BBox;
-  word: Word;
-};
+  matches: Word[];
+}
 
 export type Word = {
   word: string;

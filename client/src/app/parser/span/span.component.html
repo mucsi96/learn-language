@@ -1,5 +1,6 @@
+@if (!matches?.length) {
 <div
-  [class.word]="word"
+  class="word"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
@@ -7,3 +8,41 @@
 >
   <span>{{ text }}</span>
 </div>
+
+} @else if (matches?.length === 1) {
+<button
+  class="word"
+  bt
+  type="button"
+  [style.left]="left"
+  [style.top]="top"
+  [style.width]="width"
+  [style.height]="height"
+>
+  <span>{{ text }}</span>
+</button>
+} @else {
+<button
+  class="word"
+  bt
+  bt-dropdown
+  type="button"
+  [attr.popovertarget]="text + '-popover'"
+  [style.left]="left"
+  [style.top]="top"
+  [style.width]="width"
+  [style.height]="height"
+>
+  <span>{{ text }}</span>
+  <svg></svg>
+</button>
+<div popover bt [attr.id]="text + '-popover'">
+  <ul bt-dropdown-menu>
+    @for (match of matches; track match.word) {
+    <li>
+      <button type="button">{{ match.word }}</button>
+    </li>
+    }
+  </ul>
+</div>
+}

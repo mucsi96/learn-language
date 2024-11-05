@@ -14,7 +14,7 @@ export class SpanComponent {
   @Input() fontSize?: string;
   @Input() color?: string;
   @Input() bbox?: BBox;
-  @HostBinding('class.word') @Input() word?: Word;
+  @Input() matches?: Word[];
 
   @HostBinding('style.top') get top() {
     return `calc(var(--page-width) * ${this.bbox?.y ?? 0})`;
@@ -38,7 +38,7 @@ export class SpanComponent {
         font: this.font,
         fontSize: this.fontSize,
         color: this.color,
-        word: this.word,
+        matches: this.matches,
       },
       null,
       2
