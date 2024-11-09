@@ -43,10 +43,10 @@ export class DraggableSelectionDirective {
       const parentRect = this.el.nativeElement.getBoundingClientRect();
       const endX = event.pageX - parentRect.left - window.scrollX;
       const endY = event.pageY - parentRect.top - window.scrollY;
-      const width = Math.abs(endX - this.startX);
-      const height = Math.abs(endY - this.startY);
-      const x = Math.min(this.startX, endX);
-      const y = Math.min(this.startY, endY);
+      const width = Math.abs(endX - this.startX) / parentRect.width;
+      const height = Math.abs(endY - this.startY) / parentRect.width;
+      const x = Math.min(this.startX, endX) / parentRect.width;
+      const y = Math.min(this.startY, endY) / parentRect.width;
 
       this.selectionBox.emit({ x, y, width, height });
 

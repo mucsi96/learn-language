@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from pdf_parser import process_document
+from fastapi import APIRouter, HTTPException, Request
+from pdf_parser import get_area_words, process_document
 
 router = APIRouter()
 
@@ -43,3 +43,25 @@ async def get_page(source_id: str, page_number: int):
     result = process_document(source['blob_url'], page_number)
     result['sourceName'] = source['name']
     return result
+
+@router.get("/api/source/{source_id}/page/{page_number}/words")
+async def get_words(source_id: str, page_number: int, request: Request):
+    source = next((src for src in sources if src['id'] == source_id), None)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Source not found")
+
+    x = request.query_params.get('x')
+    y = request.query_params.get('y')
+    width = request.query_params.get('width')
+    height = request.query_params.get('height')
+
+    if not all([x, y, width, height]):
+        raise HTTPException(status_code=400, detail="Missing rectangle coordinates")
+
+    try:
+        x, y, width, height = map(float, [x, y, width, height])
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid rectangle coordinates")
+
+    return get_area_words(source['blob_url'], page_number, x, y, width, height)
+        

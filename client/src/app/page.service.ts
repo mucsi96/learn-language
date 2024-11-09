@@ -9,34 +9,54 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { Page } from './parser/types';
+import { Page, WordList } from './parser/types';
 import { handleError } from './utils/handleError';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PageService {
-  readonly loading = signal(true);
+  readonly pageLoading = signal(true);
+  readonly areaLoading = signal(false);
   private readonly http = inject(HttpClient);
   private $selectedSource = new BehaviorSubject<
     { sourceId: string; pageNumber: number } | undefined
   >(undefined);
+  private $selectedRectange = new BehaviorSubject<
+    { x: number; y: number; width: number; height: number } | undefined
+  >(undefined);
   private readonly $page = this.$selectedSource.pipe(
     filter((source) => !!source),
-    tap(() => this.loading.set(true)),
+    tap(() => this.pageLoading.set(true)),
     switchMap(({ sourceId, pageNumber }) =>
       this.http.get<Page>(`/api/source/${sourceId}/page/${pageNumber}`).pipe(
-        map((page) => ({
-          ...page,
-          height: Math.max(
-            ...page.spans.map((span) => span.bbox.y + span.bbox.height)
-          ),
-        })),
         handleError('Could load page'),
-        tap(() => this.loading.set(false))
+        tap(() => this.pageLoading.set(false))
       )
     ),
     shareReplay(1)
+  );
+  private readonly $words = this.$selectedRectange.pipe(
+    filter(
+      (rectangle) =>
+        !!(
+          rectangle?.x &&
+          rectangle.y &&
+          rectangle.width &&
+          rectangle.height &&
+          this.$selectedSource.value
+        )
+    ),
+    tap(() => this.areaLoading.set(true)),
+    switchMap((rectangle) => {
+      const { sourceId, pageNumber } = this.$selectedSource.value!;
+      const { x, y, width, height } = rectangle!;
+      const url = `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`;
+      return this.http.get<WordList>(url).pipe(
+        handleError('Could not load word list'),
+        tap(() => this.areaLoading.set(false))
+      );
+    })
   );
 
   setPage(pageNumber: number) {
@@ -56,6 +76,15 @@ export class PageService {
     this.$selectedSource.next({ sourceId, pageNumber });
   }
 
+  setSelectedRectangle(rectangle: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) {
+    this.$selectedRectange.next(rectangle);
+  }
+
   get sourceId() {
     return toSignal(
       this.$selectedSource.pipe(map((source) => source?.sourceId))
@@ -72,5 +101,9 @@ export class PageService {
 
   get height() {
     return toSignal(this.$page.pipe(map((page) => page.height)));
+  }
+
+  get words() {
+    return toSignal(this.$words);
   }
 }

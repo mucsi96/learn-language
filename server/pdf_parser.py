@@ -8,6 +8,7 @@ from ai_parser import parse
 import os
 import tempfile
 
+
 def get_document_from_cache(blob_name: str) -> str:
     cache_dir = tempfile.gettempdir()
     cached_file_path = os.path.join(cache_dir, blob_name)
@@ -17,6 +18,7 @@ def get_document_from_cache(blob_name: str) -> str:
     else:
         return None
 
+
 def cache_document(blob_name: str, blob_data: bytes) -> str:
     cache_dir = tempfile.gettempdir()
     cached_file_path = os.path.join(cache_dir, blob_name)
@@ -24,7 +26,8 @@ def cache_document(blob_name: str, blob_data: bytes) -> str:
         f.write(blob_data)
     return cached_file_path
 
-def process_document(source: str, page_number: int) -> dict:
+
+def get_page(source: str, page_number: int) -> Page:
     try:
         blob_name = os.path.basename(source)
         blob_data = get_document_from_cache(blob_name)
@@ -32,16 +35,33 @@ def process_document(source: str, page_number: int) -> dict:
             blob_data = fetch_blob(source)
             cache_document(blob_name, blob_data)
         document = fitz.open(blob_name, blob_data)
-        page = document[page_number - 1]
+        return document[page_number - 1]
     except IndexError:
         raise HTTPException(status_code=404, detail="Page number out of range")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # wordlist = parse(page.get_pixmap(matrix=fitz.Matrix(2, 2)).tobytes())
+
+def process_document(source: str, page_number: int) -> dict:
+    page = get_page(source, page_number)
 
     return {
-        'spans': list(map(map_span(page.rect.width), extract_spans(page)))
+        'spans': list(map(map_span(page.rect.width), extract_spans(page))),
+        'height': page.rect.height / page.rect.width,
+    }
+
+
+def get_area_words(source: str, page_number: int, x: float, y: float, width: float, height: float) -> dict:
+    page = get_page(source, page_number)
+    rect = fitz.Rect(x * page.rect.width, y * page.rect.width, (x + width) * page.rect.width, (y + height) * page.rect.width)
+    pixel_map = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=rect)
+    words = parse(pixel_map.tobytes())
+    return {
+        'words': words,
+        'x': x,
+        'y': y,
+        'width': width,
+        'height': height
     }
 
 

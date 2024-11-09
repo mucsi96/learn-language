@@ -1,5 +1,5 @@
-import { Component, HostBinding, Input } from '@angular/core';
-import { BBox, Word } from '../types';
+import { Component, computed, HostBinding, Input } from '@angular/core';
+import { BBox, Word, WordList } from '../types';
 
 @Component({
   selector: 'app-span',
@@ -14,8 +14,26 @@ export class SpanComponent {
   @Input() fontSize?: string;
   @Input() color?: string;
   @Input() bbox?: BBox;
-  @Input() matches?: Word[];
   @Input() searchTerm?: string;
+  @Input() wordList?: WordList;
+
+  get matches() {
+    if (
+      !this.searchTerm ||
+      (this.bbox?.y ?? 0) < (this.wordList?.y ?? 0) ||
+      (this.bbox?.y ?? 0) >
+        (this.wordList?.y ?? 0) + (this.wordList?.height ?? 0) ||
+      (this.bbox?.x ?? 0) < (this.wordList?.x ?? 0) ||
+      (this.bbox?.x ?? 0) >
+        (this.wordList?.x ?? 0) + (this.wordList?.width ?? 0)
+    ) {
+      return [];
+    }
+
+    return this.wordList?.words?.filter((word) =>
+      word.word.toLowerCase().includes(this.searchTerm!.toLowerCase())
+    );
+  }
 
   @HostBinding('style.top') get top() {
     return `calc(var(--page-width) * ${this.bbox?.y ?? 0})`;
@@ -40,8 +58,8 @@ export class SpanComponent {
         bbox: this.bbox,
         fontSize: this.fontSize,
         color: this.color,
-        matches: this.matches,
         searchTerm: this.searchTerm,
+        matches: this.matches,
       },
       null,
       2

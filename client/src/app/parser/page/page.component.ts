@@ -13,6 +13,12 @@ import { PageService } from '../../page.service';
 import { SpanComponent } from '../span/span.component';
 import { SourcesService } from '../../sources.service';
 import { DraggableSelectionDirective } from '../../draggable-selection.directive';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-page',
@@ -22,6 +28,13 @@ import { DraggableSelectionDirective } from '../../draggable-selection.directive
     FormsModule,
     RouterLink,
     DraggableSelectionDirective,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatLabel,
+    MatInputModule,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -35,11 +48,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly sources = this.sourcesService.sourcesSignal;
   readonly spans = this.pageService.spans;
   readonly height = this.pageService.height;
+  readonly words = this.pageService.words;
   readonly selectedSourceId = signal('');
   readonly pageNumber = signal(1);
   readonly sourceId = this.pageService.sourceId;
   readonly sourceName = this.pageService.sourceName;
-  readonly loading = this.pageService.loading;
+  readonly loading = this.pageService.pageLoading;
+  readonly areaLoading = this.pageService.areaLoading;
   private resizeObserver: ResizeObserver | undefined;
 
   constructor() {
@@ -80,6 +95,6 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onSelection(event: { x: number; y: number; width: number; height: number }) {
-    console.log(event);
+    this.pageService.setSelectedRectangle(event);
   }
 }

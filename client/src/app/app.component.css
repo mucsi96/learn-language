@@ -1,3 +1,7 @@
+.header {
+  background-color: var(--mdc-fab-container-color);
+}
+
 main {
   margin-top: 50px;
 }

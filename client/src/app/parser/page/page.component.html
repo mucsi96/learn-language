@@ -1,36 +1,24 @@
 <div class="page-nav">
-  <button bt bt-dropdown popovertarget="dropdown-menu-popover">
+  <button mat-button [matMenuTriggerFor]="menu" class="bt-dropdown">
     {{ sourceName() }}
-    <svg></svg>
+    <mat-icon>arrow_drop_down</mat-icon>
   </button>
-  <div popover bt id="dropdown-menu-popover" #popover>
-    <ul bt-dropdown-menu>
-      @for (source of sources(); track source.id) {
-      <li>
-        <a
-          [routerLink]="['/sources', source.id, 'page', source.startPage]"
-          (click)="popover.hidePopover()"
-          >{{ source.name }}</a
-        >
-      </li>
-      }
-    </ul>
-  </div>
-  <a
-    bt
-    bt-button
-    [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
-    >Back</a
-  >
-  <label bt
-    ><input type="number" bt [(ngModel)]="pageNumber" (change)="onPageChange()"
-  /></label>
-  <a
-    bt
-    bt-button
-    [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
-    >Next</a
-  >
+  <mat-menu #menu="matMenu">
+    @for (source of sources(); track source.id) {
+    <button
+      mat-menu-item
+      [routerLink]="['/sources', source.id, 'page', source.startPage]"
+    >
+      {{ source.name }}
+    </button>
+    }
+  </mat-menu>
+  <a mat-flat-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]">Back</a>
+  <mat-form-field appearance="outline">
+    <mat-label>Page</mat-label>
+    <input matInput type="number" [(ngModel)]="pageNumber" (change)="onPageChange()" />
+  </mat-form-field>
+  <a mat-flat-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]">Next</a>
 </div>
 @if (loading()) {
 <div role="progressbar" bt></div>
@@ -41,15 +29,17 @@
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
 >
-  @for (span of spans(); track $index) {
+  @if (areaLoading()) {
+  <div class="area-loading" role="progressbar" bt></div>
+  } @for (span of spans(); track $index) {
   <app-span
     [text]="span.text"
     [bbox]="span.bbox"
     [font]="span.font"
     [color]="span.color"
     [fontSize]="span.fontSize"
-    [matches]="span.matches"
     [searchTerm]="span.searchTerm"
+    [wordList]="words()"
   ></app-span>
   }
 </section>

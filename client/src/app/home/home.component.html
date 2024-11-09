@@ -1,12 +1,21 @@
 @if (loading()) {
-<div role="progressbar" bt></div>
+<mat-progress-bar mode="indeterminate"></mat-progress-bar>
 } @else {
-<h1 bt class="sources-heading">Sources</h1>
+<h1 class="sources-heading">Sources</h1>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <a bt-card [routerLink]="['/sources', source.id, 'page', source.startPage]">
-    <h2 bt>{{ source.name }}</h2>
-  </a>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ source.name }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-actions>
+      <a
+        mat-button
+        [routerLink]="['/sources', source.id, 'page', source.startPage]"
+        >Open</a
+      >
+    </mat-card-actions>
+  </mat-card>
   }
 </section>
 }
