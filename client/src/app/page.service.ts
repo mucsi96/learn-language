@@ -26,6 +26,12 @@ export class PageService {
     tap(() => this.loading.set(true)),
     switchMap(({ sourceId, pageNumber }) =>
       this.http.get<Page>(`/api/source/${sourceId}/page/${pageNumber}`).pipe(
+        map((page) => ({
+          ...page,
+          height: Math.max(
+            ...page.spans.map((span) => span.bbox.y + span.bbox.height)
+          ),
+        })),
         handleError('Could load page'),
         tap(() => this.loading.set(false))
       )
@@ -57,12 +63,14 @@ export class PageService {
   }
 
   get sourceName() {
-    return toSignal(
-      this.$page.pipe(map((page) => page.sourceName))
-    );
+    return toSignal(this.$page.pipe(map((page) => page.sourceName)));
   }
 
   get spans() {
     return toSignal(this.$page.pipe(map((page) => page.spans)));
+  }
+
+  get height() {
+    return toSignal(this.$page.pipe(map((page) => page.height)));
   }
 }

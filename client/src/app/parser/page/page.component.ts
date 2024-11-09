@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostBinding,
   inject,
   OnDestroy,
   signal,
@@ -11,6 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageService } from '../../page.service';
 import { SpanComponent } from '../span/span.component';
 import { SourcesService } from '../../sources.service';
+import { DraggableSelectionDirective } from '../../draggable-selection.directive';
 
 @Component({
   selector: 'app-page',
@@ -19,6 +21,7 @@ import { SourcesService } from '../../sources.service';
     SpanComponent,
     FormsModule,
     RouterLink,
+    DraggableSelectionDirective,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -31,6 +34,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly elRef = inject(ElementRef);
   readonly sources = this.sourcesService.sourcesSignal;
   readonly spans = this.pageService.spans;
+  readonly height = this.pageService.height;
   readonly selectedSourceId = signal('');
   readonly pageNumber = signal(1);
   readonly sourceId = this.pageService.sourceId;
@@ -69,5 +73,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
       'page',
       this.pageNumber(),
     ]);
+  }
+
+  get heightStyle() {
+    return `calc(var(--page-width) * ${this.height() ?? 0})`;
+  }
+
+  onSelection(event: { x: number; y: number; width: number; height: number }) {
+    console.log(event);
   }
 }

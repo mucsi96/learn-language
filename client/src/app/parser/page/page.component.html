@@ -35,7 +35,12 @@
 @if (loading()) {
 <div role="progressbar" bt></div>
 } @else {
-<section class="page-layout">
+<section
+  class="page-layout"
+  appDraggableSelection
+  (selectionBox)="onSelection($event)"
+  [style.height]="heightStyle"
+>
   @for (span of spans(); track $index) {
   <app-span
     [text]="span.text"
