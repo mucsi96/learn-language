@@ -5,11 +5,32 @@ import fitz
 from fitz import Page
 from blob_storage import fetch_blob
 from ai_parser import parse
+import os
+import tempfile
 
+def get_document_from_cache(blob_name: str) -> str:
+    cache_dir = tempfile.gettempdir()
+    cached_file_path = os.path.join(cache_dir, blob_name)
+    if os.path.exists(cached_file_path):
+        with open(cached_file_path, 'rb') as f:
+            return f.read()
+    else:
+        return None
+
+def cache_document(blob_name: str, blob_data: bytes) -> str:
+    cache_dir = tempfile.gettempdir()
+    cached_file_path = os.path.join(cache_dir, blob_name)
+    with open(cached_file_path, 'wb') as f:
+        f.write(blob_data)
+    return cached_file_path
 
 def process_document(source: str, page_number: int) -> dict:
     try:
-        (blob_name, blob_data) = fetch_blob(source)
+        blob_name = os.path.basename(source)
+        blob_data = get_document_from_cache(blob_name)
+        if not blob_data:
+            blob_data = fetch_blob(source)
+            cache_document(blob_name, blob_data)
         document = fitz.open(blob_name, blob_data)
         page = document[page_number - 1]
     except IndexError:
@@ -17,10 +38,10 @@ def process_document(source: str, page_number: int) -> dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    wordlist = parse(page.get_pixmap(matrix=fitz.Matrix(2, 2)).tobytes())
+    # wordlist = parse(page.get_pixmap(matrix=fitz.Matrix(2, 2)).tobytes())
 
     return {
-        'spans': list(map(map_span(page.rect.width, wordlist), extract_spans(page)))
+        'spans': list(map(map_span(page.rect.width), extract_spans(page)))
     }
 
 
@@ -29,20 +50,14 @@ def extract_spans(page: Page) -> list:
     for block in page.get_textpage().extractRAWDICT()['blocks']:
         for line in block['lines']:
             for span in line['spans']:
-                span['text'] = ''.join(char['c'] for char in span['chars'])
-                if '  ' in span['text'].strip():  # Detect multiple spaces
-                    spans.extend(split_span(span))
-                else:
-                    spans.append(span)
+                spans.extend(split_span(span))
     return spans
 
 
-def map_span(page_width: float, wordlist: list):
+def map_span(page_width: float):
     def mapper(item: dict) -> dict:
         bbox = item['bbox']
-        search_term = re.split(r'[,/(-]', item['text'])[0].strip()
-        matches = list((word for word in wordlist if len(search_term) > 1 and word['word'].startswith(
-            search_term)))
+        search_term = re.split(r'\s?[,/(-]', item['text'])[0].strip()
         return {
             **item,
             'bbox': {
@@ -51,7 +66,7 @@ def map_span(page_width: float, wordlist: list):
                 'width': (bbox[2] - bbox[0]) / page_width,
                 'height': (bbox[3] - bbox[1]) / page_width,
             },
-            'matches': matches
+            'searchTerm': search_term
         }
     return mapper
 
@@ -63,28 +78,36 @@ def split_span(span: Dict) -> List[Dict]:
     current_bbox = [span['bbox'][0], span['bbox']
                     [1], span['bbox'][0], span['bbox'][3]]
     for i, char in enumerate(chars):
-        if current_chars and current_chars[-1]['c'] == ' ' and char['c'] == ' ':
+        text = ''.join(c['c'] for c in current_chars).strip()
+        if current_chars and len(current_chars) >= 2 and current_chars[-2]['c'] == ' ' and current_chars[-1]['c'] == ' ' and char['c'] != ' ' and text:
             # Split here
             spans.append({
-                'text': ''.join(c['c'] for c in current_chars).strip(),
+                'text': text,
                 'bbox': current_bbox,
+                'bbox': get_bbox_of_chars(current_chars),
                 'font': span['font'],
                 'size': span['size'],
                 'color': span['color']
             })
-            current_chars = []
-            if i + 1 < len(chars):
-                current_bbox = [chars[i + 1]['bbox'][0], span['bbox']
-                                [1], chars[i + 1]['bbox'][0], span['bbox'][3]]
+            current_chars = [char]
         else:
             current_chars.append(char)
-            current_bbox[2] = char['bbox'][2]
-    if current_chars:
+    text = ''.join(c['c'] for c in current_chars).strip()
+    if text:
         spans.append({
-            'text': ''.join(c['c'] for c in current_chars).strip(),
-            'bbox': current_bbox,
+            'text': text,
+            'bbox': get_bbox_of_chars(current_chars),
             'font': span['font'],
             'size': span['size'],
             'color': span['color']
         })
     return spans
+
+
+def get_bbox_of_chars(chars: List[Dict]) -> List[float]:
+    return [
+        min(c['bbox'][0] for c in chars if c['c'] != ' '),
+        min(c['bbox'][1] for c in chars if c['c'] != ' '),
+        max(c['bbox'][2] for c in chars if c['c'] != ' '),
+        max(c['bbox'][3] for c in chars if c['c'] != ' ')
+    ]

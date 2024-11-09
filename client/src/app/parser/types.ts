@@ -12,6 +12,7 @@ export type Span = {
   color: string;
   bbox: BBox;
   matches: Word[];
+  searchTerm?: string;
 }
 
 export type Word = {

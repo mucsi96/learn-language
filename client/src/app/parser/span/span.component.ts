@@ -15,6 +15,7 @@ export class SpanComponent {
   @Input() color?: string;
   @Input() bbox?: BBox;
   @Input() matches?: Word[];
+  @Input() searchTerm?: string;
 
   @HostBinding('style.top') get top() {
     return `calc(var(--page-width) * ${this.bbox?.y ?? 0})`;
@@ -36,9 +37,11 @@ export class SpanComponent {
     return JSON.stringify(
       {
         font: this.font,
+        bbox: this.bbox,
         fontSize: this.fontSize,
         color: this.color,
         matches: this.matches,
+        searchTerm: this.searchTerm,
       },
       null,
       2
