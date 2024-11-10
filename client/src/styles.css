@@ -41,6 +41,14 @@ body {
   --mdc-fab-container-color: hsl(220, 89%, 53%);
 }
 
+.mat-mdc-icon-button {
+  font-size: unset;
+}
+
+.mat-mdc-icon-button .mat-mdc-button-persistent-ripple {
+  border-radius: 0.5rem !important;
+}
+
 .mat-typography {
   font: unset;
   letter-spacing: unset;
