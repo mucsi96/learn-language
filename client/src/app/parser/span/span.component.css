@@ -13,3 +13,7 @@
     border: 1px solid darkslategray;
   }
 }
+
+.tooltip {
+  white-space: pre;
+}

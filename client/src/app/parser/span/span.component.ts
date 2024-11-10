@@ -1,10 +1,14 @@
-import { Component, computed, HostBinding, Input } from '@angular/core';
-import { BBox, Word, WordList } from '../types';
+import { Component, HostBinding, Input } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { BBox, WordList } from '../types';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-span',
   standalone: true,
-  imports: [],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MatMenuModule],
   templateUrl: './span.component.html',
   styleUrl: './span.component.css',
 })
@@ -51,7 +55,7 @@ export class SpanComponent {
     return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
   }
 
-  @HostBinding('title') get title() {
+  getTooltipText() {
     return JSON.stringify(
       {
         font: this.font,

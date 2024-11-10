@@ -5,6 +5,9 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
+  [matTooltip]="getTooltipText()"
+  matTooltipClass="multiline-tooltip"
+  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
 </div>
@@ -12,7 +15,7 @@
 } @else if (matches?.length === 1) {
 <button
   class="word"
-  bt
+  mat-button
   type="button"
   [style.left]="left"
   [style.top]="top"
@@ -24,10 +27,9 @@
 } @else {
 <button
   class="word"
-  bt
-  bt-dropdown
+  mat-button
   type="button"
-  [attr.popovertarget]="text + '-popover'"
+  [matMenuTriggerFor]="menu"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
@@ -36,13 +38,9 @@
   <span>{{ text }}</span>
   <svg></svg>
 </button>
-<div popover bt [attr.id]="text + '-popover'">
-  <ul bt-dropdown-menu>
-    @for (match of matches; track match.word) {
-    <li>
-      <button type="button">{{ match.word }}</button>
-    </li>
-    }
-  </ul>
-</div>
+<mat-menu #menu="matMenu">
+  @for (match of matches; track match.word) {
+  <button type="button" mat-menu-item>{{ match.word }}</button>
+  }
+</mat-menu>
 }
