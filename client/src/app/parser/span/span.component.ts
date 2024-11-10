@@ -70,6 +70,7 @@ export class SpanComponent {
     }
 
     this.dialog.open(WordDialogComponent, {
+      maxWidth: '90rem',
       data: word,
     });
   }

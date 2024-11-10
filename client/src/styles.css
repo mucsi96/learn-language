@@ -13,7 +13,7 @@ html {
   --mat-outlined-button-state-layer-color: hsl(217, 93%, 72%);
   --mat-text-button-state-layer-color: hsl(217, 93%, 72%);
   --mdc-circular-progress-active-indicator-color: white;
-  --mdc-dialog-container-color: hsl(217 19.1% 26.7%);
+  --mdc-dialog-container-color: hsl(215, 28%, 17%);
   --mdc-dialog-container-shape: 0.5rem;
   --mdc-filled-button-container-color: hsl(220, 89%, 53%);
   --mdc-filled-button-container-shape: 0.5rem;
@@ -28,7 +28,7 @@ html {
   --mdc-outlined-button-container-shape: 0.5rem;
   --mdc-outlined-button-label-text-color: hsl(220 89.2% 52.9%);
   --mdc-outlined-button-outline-color: transparent;
-  --mdc-outlined-card-container-color: var(--mat-app-background-color);
+  --mdc-outlined-card-container-color: transparent;
   --mdc-outlined-card-container-shape: 0.5rem;
   --mdc-text-button-container-shape: 0.5rem;
   --mdc-text-button-label-text-color: hsl(217, 93%, 72%);

@@ -1,0 +1,9 @@
+.field {
+  width: 100%;
+}
+
+.content {
+  display: grid;
+  gap: 1rem;
+  max-height: calc(100vh - 10rem);
+}
