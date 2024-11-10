@@ -1,4 +1,5 @@
 <div>
+  @if(sourceName()) {
   <button mat-stroked-button [matMenuTriggerFor]="menu" class="bt-dropdown">
     {{ sourceName() }}
     <mat-icon>arrow_drop_down</mat-icon>
@@ -13,6 +14,7 @@
     </button>
     }
   </mat-menu>
+  }
 </div>
 <div class="page-nav">
   <a
@@ -36,7 +38,7 @@
   >
 </div>
 @if (loading()) {
-<div role="progressbar" bt></div>
+<mat-spinner class="page-loading"></mat-spinner>
 } @else {
 <section
   class="page-layout"
@@ -45,7 +47,7 @@
   [style.height]="heightStyle"
 >
   @if (areaLoading()) {
-  <div class="area-loading" role="progressbar" bt></div>
+  <mat-spinner class="area-loading"></mat-spinner>
   } @for (span of spans(); track $index) {
   <app-span
     [text]="span.text"

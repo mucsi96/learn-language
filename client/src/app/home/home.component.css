@@ -9,3 +9,7 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
 }
+
+.page-loading {
+  margin: 150px auto;
+}

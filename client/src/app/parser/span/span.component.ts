@@ -58,10 +58,6 @@ export class SpanComponent {
   getTooltipText() {
     return JSON.stringify(
       {
-        font: this.font,
-        bbox: this.bbox,
-        fontSize: this.fontSize,
-        color: this.color,
         searchTerm: this.searchTerm,
         matches: this.matches,
       },

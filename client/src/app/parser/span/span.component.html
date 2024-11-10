@@ -15,25 +15,31 @@
 } @else if (matches?.length === 1) {
 <button
   class="word"
-  mat-button
+  mat-flat-button
   type="button"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
+  [matTooltip]="getTooltipText()"
+  matTooltipClass="multiline-tooltip"
+  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
 </button>
 } @else {
 <button
   class="word"
-  mat-button
+  mat-flat-button
   type="button"
   [matMenuTriggerFor]="menu"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
+  [matTooltip]="getTooltipText()"
+  matTooltipClass="multiline-tooltip"
+  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
   <svg></svg>
