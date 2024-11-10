@@ -1,5 +1,5 @@
-<div class="page-nav">
-  <button mat-button [matMenuTriggerFor]="menu" class="bt-dropdown">
+<div>
+  <button mat-stroked-button [matMenuTriggerFor]="menu" class="bt-dropdown">
     {{ sourceName() }}
     <mat-icon>arrow_drop_down</mat-icon>
   </button>
@@ -13,6 +13,8 @@
     </button>
     }
   </mat-menu>
+</div>
+<div class="page-nav">
   <a
     mat-flat-button
     [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
