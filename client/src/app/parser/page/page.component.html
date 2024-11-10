@@ -13,12 +13,25 @@
     </button>
     }
   </mat-menu>
-  <a mat-flat-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]">Back</a>
-  <mat-form-field appearance="outline">
+  <a
+    mat-flat-button
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
+    >Back</a
+  >
+  <mat-form-field>
     <mat-label>Page</mat-label>
-    <input matInput type="number" [(ngModel)]="pageNumber" (change)="onPageChange()" />
+    <input
+      matInput
+      type="number"
+      [(ngModel)]="pageNumber"
+      (change)="onPageChange()"
+    />
   </mat-form-field>
-  <a mat-flat-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]">Next</a>
+  <a
+    mat-flat-button
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
+    >Next</a
+  >
 </div>
 @if (loading()) {
 <div role="progressbar" bt></div>

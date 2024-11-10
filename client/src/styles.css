@@ -3,9 +3,51 @@ body {
   height: 100%;
 }
 
+html {
+  --mat-app-background-color: hsl(221, 39%, 11%);
+  --mat-app-text-color: hsl(218, 11%, 65%);
+  --mat-menu-container-color: hsl(217, 19%, 27%);
+  --mat-menu-container-shape: 0.5rem;
+  --mdc-filled-button-container-color: hsl(220, 89%, 53%);
+  --mdc-filled-button-container-shape: 0.5rem;
+  --mdc-filled-button-label-text-color: white;
+  --mdc-filled-text-field-active-indicator-height: 0;
+  --mdc-filled-text-field-caret-color: hsl(217, 93%, 72%);
+  --mdc-filled-text-field-container-color: hsl(217, 19%, 27%);
+  --mdc-filled-text-field-focus-active-indicator-color: hsl(217, 93%, 72%);
+  --mdc-filled-text-field-focus-active-indicator-height: 0;
+  --mdc-filled-text-field-focus-label-text-color: white;
+  --mdc-filled-text-field-label-text-weight: 500;
+  --mdc-outlined-card-container-color: var(--mat-app-background-color);
+  --mdc-outlined-card-container-shape: 0.5rem;
+  --mdc-text-button-container-shape: 0.5rem;
+  --mdc-text-button-label-text-color: hsl(217, 93%, 72%);
+  --mat-text-button-state-layer-color: hsl(217, 93%, 72%);
+}
+
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
   background-color: var(--mat-app-background-color);
+}
+
+.mat-accent.mat-mdc-fab {
+  --mdc-fab-container-color: hsl(220, 89%, 53%);
+}
+
+.mat-typography {
+  font: unset;
+  letter-spacing: unset;
+  font-family: system-ui;
   color: var(--mat-app-text-color);
+}
+
+.mdc-text-field--filled {
+  border: 1px solid hsl(215, 14%, 34%);
+  border-radius: 0.5rem !important;
+  color: white;
+}
+
+.mdc-text-field--focused {
+  border: 1px solid hsl(218, 93%, 61%);
+  box-shadow: hsl(218, 93%, 61%) 0 0 0 1px;
 }

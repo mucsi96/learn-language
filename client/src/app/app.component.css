@@ -1,7 +1,23 @@
 .header {
-  background-color: var(--mdc-fab-container-color);
+  background-color: hsl(215, 28%, 17%);
+  border-bottom: 1px solid hsl(215, 14%, 34%);
+  display: block;
+  padding: 0;
+
+  nav {
+    padding: 0 1rem;
+    max-width: 90rem;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
 }
 
 main {
-  margin-top: 50px;
+  display: block;
+  padding: 1px 1rem;
+  max-width: 90rem;
+  margin: 50px auto 0;
 }

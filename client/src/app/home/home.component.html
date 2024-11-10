@@ -4,18 +4,13 @@
 <h1 class="sources-heading">Sources</h1>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ source.name }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-actions>
-      <a
-        mat-button
-        [routerLink]="['/sources', source.id, 'page', source.startPage]"
-        >Open</a
-      >
-    </mat-card-actions>
-  </mat-card>
+  <a
+    mat-fab
+    extended
+    [routerLink]="['/sources', source.id, 'page', source.startPage]"
+  >
+    {{ source.name }}
+  </a>
   }
 </section>
 }
