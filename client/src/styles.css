@@ -7,10 +7,14 @@ html {
   --mat-app-background-color: hsl(221, 39%, 11%);
   --mat-app-text-color: hsl(218, 11%, 65%);
   --mat-filled-button-hover-state-layer-opacity: 1;
+  --mat-filled-button-state-layer-color: hsl(221, 79%, 48%);
   --mat-menu-container-color: hsl(217, 19%, 27%);
   --mat-menu-container-shape: 0.5rem;
   --mat-outlined-button-state-layer-color: hsl(217, 93%, 72%);
   --mat-text-button-state-layer-color: hsl(217, 93%, 72%);
+  --mdc-circular-progress-active-indicator-color: white;
+  --mdc-dialog-container-color: hsl(217 19.1% 26.7%);
+  --mdc-dialog-container-shape: 0.5rem;
   --mdc-filled-button-container-color: hsl(220, 89%, 53%);
   --mdc-filled-button-container-shape: 0.5rem;
   --mdc-filled-button-label-text-color: white;
@@ -28,8 +32,6 @@ html {
   --mdc-outlined-card-container-shape: 0.5rem;
   --mdc-text-button-container-shape: 0.5rem;
   --mdc-text-button-label-text-color: hsl(217, 93%, 72%);
-  --mat-filled-button-state-layer-color: hsl(221, 79%, 48%);
-  --mdc-circular-progress-active-indicator-color: white;
 }
 
 body {

@@ -5,9 +5,6 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [matTooltip]="getTooltipText()"
-  matTooltipClass="multiline-tooltip"
-  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
 </div>
@@ -17,13 +14,11 @@
   class="word"
   mat-flat-button
   type="button"
+  (click)="openWordDialog(matches?.[0])"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [matTooltip]="getTooltipText()"
-  matTooltipClass="multiline-tooltip"
-  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
 </button>
@@ -37,16 +32,15 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [matTooltip]="getTooltipText()"
-  matTooltipClass="multiline-tooltip"
-  matTooltipShowDelay="300"
 >
   <span>{{ text }}</span>
   <svg></svg>
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.word) {
-  <button type="button" mat-menu-item>{{ match.word }}</button>
+  <button type="button" mat-menu-item (click)="openWordDialog(match)">
+    {{ match.word }}
+  </button>
   }
 </mat-menu>
 }

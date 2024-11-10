@@ -1,14 +1,22 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, inject, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { BBox, WordList } from '../types';
+import { BBox, Word, WordList } from '../types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { WordDialogComponent } from '../word-dialog/word-dialog.component';
 
 @Component({
   selector: 'app-span',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule, MatMenuModule],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatMenuModule,
+    MatDialogModule,
+  ],
   templateUrl: './span.component.html',
   styleUrl: './span.component.css',
 })
@@ -20,6 +28,7 @@ export class SpanComponent {
   @Input() bbox?: BBox;
   @Input() searchTerm?: string;
   @Input() wordList?: WordList;
+  readonly dialog = inject(MatDialog);
 
   get matches() {
     if (
@@ -55,14 +64,13 @@ export class SpanComponent {
     return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
   }
 
-  getTooltipText() {
-    return JSON.stringify(
-      {
-        searchTerm: this.searchTerm,
-        matches: this.matches,
-      },
-      null,
-      2
-    );
+  openWordDialog(word?: Word) {
+    if (!word) {
+      return;
+    }
+
+    this.dialog.open(WordDialogComponent, {
+      data: word,
+    });
   }
 }

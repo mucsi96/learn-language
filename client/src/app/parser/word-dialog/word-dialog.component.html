@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>Add word</h2>
+<mat-dialog-content class="mat-typography">
+  <mat-form-field>
+    <mat-label>Word</mat-label>
+    <input matInput type="text" [(ngModel)]="word" />
+  </mat-form-field>
+  @for (form of forms; track $index) {
+  <mat-form-field>
+    <mat-label>Form {{ $index + 1 }}</mat-label>
+    <input matInput type="text" [(ngModel)]="form" />
+  </mat-form-field>
+  } @for (example of examples; track $index) {
+  <mat-form-field>
+    <mat-label>Example {{ $index + 1 }}</mat-label>
+    <input matInput type="text" [(ngModel)]="example" />
+  </mat-form-field>
+
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Install</button>
+</mat-dialog-actions>
