@@ -26,8 +26,10 @@ export class WordDialogComponent {
   public data: Word = inject(MAT_DIALOG_DATA);
   readonly type = signal('');
   readonly word = signal(this.data.word);
-  readonly translation = signal('');
+  readonly translation1 = signal('');
+  readonly translation2 = signal('');
   readonly forms = this.data.forms.map((form) => signal(form));
   readonly examples = this.data.examples.map((example) => signal(example));
-  readonly exampleTranslations = this.data.examples.map(() => signal(''));
+  readonly exampleTranslations1 = this.data.examples.map(() => signal(''));
+  readonly exampleTranslations2 = this.data.examples.map(() => signal(''));
 }

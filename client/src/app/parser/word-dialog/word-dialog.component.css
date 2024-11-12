@@ -3,7 +3,16 @@
 }
 
 .content {
+  width: min(90rem, 100vw);
   display: grid;
   gap: 1rem;
   max-height: calc(100vh - 10rem);
+}
+
+.word,
+.forms,
+.examples {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }

@@ -9,21 +9,27 @@
         <mat-label>Type</mat-label>
         <input matInput type="text" [(ngModel)]="type" />
       </mat-form-field>
-      <mat-form-field class="field">
-        <mat-label>German</mat-label>
-        <input matInput type="text" [(ngModel)]="word" />
-      </mat-form-field>
-      <mat-form-field class="field">
-        <mat-label>Translation</mat-label>
-        <input matInput type="text" [(ngModel)]="translation" />
-      </mat-form-field>
+      <div class="word">
+        <mat-form-field class="field">
+          <mat-label>German</mat-label>
+          <input matInput type="text" [(ngModel)]="word" />
+        </mat-form-field>
+        <mat-form-field class="field">
+          <mat-label>Translation 1</mat-label>
+          <input matInput type="text" [(ngModel)]="translation1" />
+        </mat-form-field>
+        <mat-form-field class="field">
+          <mat-label>Translation 2</mat-label>
+          <input matInput type="text" [(ngModel)]="translation2" />
+        </mat-form-field>
+      </div>
     </mat-card-content>
   </mat-card>
   <mat-card appearance="outlined">
     <mat-card-header>
       <mat-card-title>Forms</mat-card-title>
     </mat-card-header>
-    <mat-card-content>
+    <mat-card-content class="forms">
       @for (form of forms; track $index) {
       <mat-form-field class="field">
         <input matInput type="text" [(ngModel)]="form" />
@@ -35,19 +41,29 @@
     <mat-card-header>
       <mat-card-title>Examples</mat-card-title>
     </mat-card-header>
-    <mat-card-content>
+    <mat-card-content class="examples">
       @for (example of examples; track $index) {
       <mat-form-field class="field">
         <mat-label>German</mat-label>
         <input matInput type="text" [(ngModel)]="example" />
       </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>Translation 1</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="exampleTranslations1[$index]"
+        />
+      </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>Translation 2</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="exampleTranslations2[$index]"
+        />
+      </mat-form-field>
       }
-      @for (exampleTranslation of exampleTranslations; track $index) {
-        <mat-form-field class="field">
-          <mat-label>Translation</mat-label>
-          <input matInput type="text" [(ngModel)]="exampleTranslation" />
-        </mat-form-field>
-        }
     </mat-card-content>
   </mat-card>
 </mat-dialog-content>

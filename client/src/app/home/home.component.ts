@@ -28,7 +28,7 @@ export class HomeComponent {
 
   constructor() {
     this.dialog.open(WordDialogComponent, {
-      maxWidth: '90rem',
+      maxWidth: 'unset',
       data: {
         word: 'anfangen',
         forms: ['fängst an', 'fängt an', 'hat angefangen'],
