@@ -16,3 +16,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
+
+.page-loading {
+  margin: 150px auto;
+}

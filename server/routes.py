@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pdf_parser import get_area_words, process_document
+from ai_populator import populate
+from models import Word
 
 router = APIRouter()
 
@@ -65,3 +67,6 @@ async def get_words(source_id: str, page_number: int, request: Request):
 
     return get_area_words(source['blob_url'], page_number, x, y, width, height)
         
+@router.post("/api/prepopulate")
+async def prepopulate(word: Word):
+    return populate(word)

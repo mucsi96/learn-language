@@ -12,7 +12,7 @@ export type Span = {
   color: string;
   bbox: BBox;
   searchTerm?: string;
-}
+};
 
 export type Word = {
   word: string;
@@ -38,4 +38,16 @@ export type WordList = {
   y: number;
   width: number;
   height: number;
+};
+
+export type PopulatedWord = {
+  wordType: string;
+  swissGerman: {
+    translation: string;
+    examples: string[];
+  };
+  hungarian: {
+    translation: string;
+    examples: string[];
+  };
 };

@@ -1,25 +1,8 @@
 from base64 import b64encode
 import json
-from os import environ
 from langchain_core.messages import HumanMessage
-from langchain_openai import AzureChatOpenAI
-from langchain.globals import set_llm_cache
-from langchain_community.cache import InMemoryCache
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from time import time
-
-credentials = DefaultAzureCredential()
-llm = AzureChatOpenAI(
-    azure_deployment=environ.get("AZURE_OPENAI_DEPLOYMENT"),
-    azure_endpoint=environ.get(
-        "AZURE_OPENAI_ENDPOINT"),
-    api_version=environ.get("AZURE_OPENAI_API_VERSION"),
-    max_tokens=2500,
-    azure_ad_token_provider=get_bearer_token_provider(
-        credentials, "https://cognitiveservices.azure.com/.default")
-).bind(response_format={"type": "json_object"})
-
-set_llm_cache(InMemoryCache())
+from llm import llm
 
 def parse(image_bytes: bytes) -> dict:
     image_base64 = b64encode(image_bytes).decode("utf-8")

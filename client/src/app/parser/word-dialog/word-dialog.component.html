@@ -1,5 +1,8 @@
 <h2 mat-dialog-title>Add word</h2>
 <mat-dialog-content class="mat-typography content">
+  @if (loading()) {
+  <mat-spinner class="page-loading"></mat-spinner>
+  } @else {
   <mat-card appearance="outlined">
     <mat-card-header>
       <mat-card-title>Word</mat-card-title>
@@ -15,12 +18,12 @@
           <input matInput type="text" [(ngModel)]="word" />
         </mat-form-field>
         <mat-form-field class="field">
-          <mat-label>Translation 1</mat-label>
-          <input matInput type="text" [(ngModel)]="translation1" />
+          <mat-label>Hungarian</mat-label>
+          <input matInput type="text" [(ngModel)]="hungarianTranslation" />
         </mat-form-field>
         <mat-form-field class="field">
-          <mat-label>Translation 2</mat-label>
-          <input matInput type="text" [(ngModel)]="translation2" />
+          <mat-label>Swiss German</mat-label>
+          <input matInput type="text" [(ngModel)]="swissGermanTranslation" />
         </mat-form-field>
       </div>
     </mat-card-content>
@@ -48,24 +51,25 @@
         <input matInput type="text" [(ngModel)]="example" />
       </mat-form-field>
       <mat-form-field class="field">
-        <mat-label>Translation 1</mat-label>
+        <mat-label>Hungarian</mat-label>
         <input
           matInput
           type="text"
-          [(ngModel)]="exampleTranslations1[$index]"
+          [(ngModel)]="exampleHungarianTranslations[$index]"
         />
       </mat-form-field>
       <mat-form-field class="field">
-        <mat-label>Translation 2</mat-label>
+        <mat-label>Swiss German</mat-label>
         <input
           matInput
           type="text"
-          [(ngModel)]="exampleTranslations2[$index]"
+          [(ngModel)]="exampleSwissGermanTranslations[$index]"
         />
       </mat-form-field>
       }
     </mat-card-content>
   </mat-card>
+  }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>

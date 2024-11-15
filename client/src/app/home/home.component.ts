@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { MatDialog } from '@angular/material/dialog';
 import { WordDialogComponent } from '../parser/word-dialog/word-dialog.component';
+import { WordService } from '../word.service';
 
 @Component({
   selector: 'app-home',

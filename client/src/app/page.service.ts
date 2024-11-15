@@ -56,7 +56,8 @@ export class PageService {
         handleError('Could not load word list'),
         tap(() => this.areaLoading.set(false))
       );
-    })
+    }),
+    shareReplay(1)
   );
 
   setPage(pageNumber: number) {
