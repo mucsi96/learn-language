@@ -4,3 +4,5 @@ anki/
 .env
 server/__pycache__
 .kube/
+images/
+speech/
