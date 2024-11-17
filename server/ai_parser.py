@@ -1,8 +1,14 @@
 from base64 import b64encode
 import json
+import re
 from langchain_core.messages import HumanMessage
 from time import time
 from llm import llm
+
+
+def word_id(word: str) -> str:
+    return re.split(r'\s?[,/(-]', word)[0].strip().lower().replace(' ', '-')
+
 
 def parse(image_bytes: bytes) -> dict:
     image_base64 = b64encode(image_bytes).decode("utf-8")
@@ -49,4 +55,4 @@ def parse(image_bytes: bytes) -> dict:
           result.response_metadata['token_usage']['completion_tokens'])
     print('total tokens:',
           result.response_metadata['token_usage']['total_tokens'])
-    return json.loads(result.content)['word_list']
+    return list(map(lambda word: {**word, 'id': word_id(word['word'])}, json.loads(result.content)['word_list']))
