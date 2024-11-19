@@ -34,22 +34,32 @@ export class WordDialogComponent {
   readonly word = signal(this.data.word);
   readonly hungarianTranslation = signal('');
   readonly swissGermanTranslation = signal('');
+  readonly englishTranslation = signal('');
   readonly forms = this.data.forms.map((form) => signal(form));
   readonly examples = this.data.examples.map((example) => signal(example));
   readonly exampleHungarianTranslations = this.data.examples.map(() => signal(''));
   readonly exampleSwissGermanTranslations = this.data.examples.map(() => signal(''));
+  readonly exampleEnglishTranslations = this.data.examples.map(() => signal(''));
+
 
   constructor() {
     this.wordService.selectWord(this.data);
-    this.wordService.$populatedWord.pipe(first()).subscribe((word) => {
-      this.type.set(word.wordType);
-      this.hungarianTranslation.set(word.hungarian.translation);
-      this.swissGermanTranslation.set(word.swissGerman.translation);
+    this.wordService.$hungarianTranslation.pipe(first()).subscribe((word) => {
+      this.hungarianTranslation.set(word.translation);
       this.exampleHungarianTranslations.forEach((signal, index) =>
-        signal.set(word.hungarian.examples[index])
+        signal.set(word.examples[index])
       );
+    });
+    this.wordService.$swissGermanTranslation.pipe(first()).subscribe((word) => {
+      this.swissGermanTranslation.set(word.translation);
       this.exampleSwissGermanTranslations.forEach((signal, index) =>
-        signal.set(word.swissGerman.examples[index])
+        signal.set(word.examples[index])
+      );
+    });
+    this.wordService.$englishTranslation.pipe(first()).subscribe((word) => {
+      this.englishTranslation.set(word.translation);
+      this.exampleEnglishTranslations.forEach((signal, index) =>
+        signal.set(word.examples[index])
       );
     });
   }

@@ -40,14 +40,7 @@ export type WordList = {
   height: number;
 };
 
-export type PopulatedWord = {
-  wordType: string;
-  swissGerman: {
-    translation: string;
-    examples: string[];
-  };
-  hungarian: {
-    translation: string;
-    examples: string[];
-  };
+export type Translation = {
+  translation: string;
+  examples: string[];
 };
