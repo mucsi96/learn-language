@@ -1,34 +1,14 @@
 import base64
-import json
-from os import environ, makedirs, path
+from os import environ, makedirs
 from pathlib import Path
-from langchain_core.messages import HumanMessage, SystemMessage
-from time import time
 
 from openai import OpenAI
 from models import Word
-from llm import llm
 import random
 
 client = OpenAI(
     api_key=environ.get("OPEN_API_TOKEN"),
 )
-
-
-def translate(word: Word) -> dict:
-    for example in word.examples:
-        generate_image(word, example, word.examples.index(example))
-    generate_speech(word, word.word, 0)
-    for example in word.examples:
-        generate_speech(word, example, word.examples.index(example) + 1)
-    translations = translate_to_swiss(word)
-    generate_speech(word, translations['hungarian']['translation'], 10)
-    for example in translations['hungarian']['examples']:
-        generate_speech(word, example, 11 + translations['hungarian']['examples'].index(example))
-    return translations
-
-
-
 
 
 def generate_image(word: Word, input: str, index: int):

@@ -4,7 +4,7 @@ from fastapi import HTTPException
 import fitz
 from fitz import Page
 from blob_storage import fetch_blob
-from ai_parser import parse
+from services.ai_parser import parse
 import os
 import tempfile
 

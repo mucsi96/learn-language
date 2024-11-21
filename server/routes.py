@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
-from pdf_parser import get_area_words, process_document
-from translate import translate
+from services.pdf_parser import get_area_words, process_document
+from services.translate import translate
 from models import Word
 
 router = APIRouter()
