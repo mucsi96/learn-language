@@ -6,6 +6,7 @@
 - Complete the missing verb forms for the A2 level.  
 - Investigate and resolve the issue in A2 where dragging results in misplaced spans.
 - Click outside word dialog shoudn't close it
+- add error handling on UI
 
 - Enable copying example sentences to the clipboard with a click.  
 - Add functionality for handling source data.  

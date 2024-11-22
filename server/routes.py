@@ -45,6 +45,8 @@ async def get_page(source_id: str, page_number: int):
             status_code=404, detail="Source index out of range")
 
     result = process_document(source['blob_url'], page_number)
+    result['number'] = page_number
+    result['sourceId'] = source_id
     result['sourceName'] = source['name']
     return result
 

@@ -1,9 +1,11 @@
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   HostBinding,
   inject,
+  linkedSignal,
   OnDestroy,
   signal,
 } from '@angular/core';
@@ -21,22 +23,22 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
-    selector: 'app-page',
-    imports: [
-        SpanComponent,
-        FormsModule,
-        RouterLink,
-        DraggableSelectionDirective,
-        MatButtonModule,
-        MatIconModule,
-        MatMenuModule,
-        MatProgressSpinnerModule,
-        MatFormFieldModule,
-        MatLabel,
-        MatInputModule,
-    ],
-    templateUrl: './page.component.html',
-    styleUrl: './page.component.css'
+  selector: 'app-page',
+  imports: [
+    SpanComponent,
+    FormsModule,
+    RouterLink,
+    DraggableSelectionDirective,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatLabel,
+    MatInputModule,
+  ],
+  templateUrl: './page.component.html',
+  styleUrl: './page.component.css',
 })
 export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly sourcesService = inject(SourcesService);
@@ -45,23 +47,26 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
   readonly sources = this.sourcesService.sources.value;
-  readonly spans = this.pageService.spans;
-  readonly height = this.pageService.height;
-  readonly words = this.pageService.words;
-  readonly selectedSourceId = signal('');
-  readonly pageNumber = signal(1);
-  readonly sourceId = this.pageService.sourceId;
-  readonly sourceName = this.pageService.sourceName;
-  readonly loading = this.pageService.pageLoading;
-  readonly areaLoading = this.pageService.areaLoading;
+  readonly pageNumber = linkedSignal(
+    () => this.pageService.page.value()?.number
+  );
+  readonly selectedSourceId = computed(
+    () => this.pageService.page.value()?.sourceId
+  );
+  readonly spans = computed(() => this.pageService.page.value()?.spans);
+  readonly height = computed(() => this.pageService.page.value()?.height);
+  readonly words = computed(() => this.pageService.words.value());
+  readonly sourceName = computed(
+    () => this.pageService.page.value()?.sourceName
+  );
+  readonly loading = this.pageService.page.isLoading;
+  readonly areaLoading = this.pageService.words.isLoading;
   private resizeObserver: ResizeObserver | undefined;
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      const pageNumber = parseInt(params['pageNumber']);
-      this.pageNumber.set(pageNumber);
-      this.pageService.setSource(params['sourceId'], pageNumber);
-    });
+    this.route.params.subscribe((params) =>
+      this.pageService.setSource(params['sourceId'], params['pageNumber'])
+    );
   }
 
   ngAfterViewInit(): void {
@@ -83,7 +88,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   onPageChange() {
     this.router.navigate([
       '/sources',
-      this.sourceId(),
+      this.selectedSourceId(),
       'page',
       this.pageNumber(),
     ]);

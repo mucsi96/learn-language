@@ -21,7 +21,9 @@ export type Word = {
 };
 
 export type Page = {
+  number: number;
   spans: Span[];
+  sourceId: string;
   sourceName: string;
   height: number;
 };

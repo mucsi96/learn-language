@@ -1,80 +1,63 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  BehaviorSubject,
-  filter,
-  map,
-  shareReplay,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { Injectable, resource, signal } from '@angular/core';
 import { Page, WordList } from './parser/types';
-import { handleError } from './utils/handleError';
+
+type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
+type SelectedRectangle = { x: number; y: number; width: number; height: number } | undefined;
 
 @Injectable({
   providedIn: 'root',
 })
 export class PageService {
-  readonly pageLoading = signal(true);
-  readonly areaLoading = signal(false);
-  private readonly http = inject(HttpClient);
-  private $selectedSource = new BehaviorSubject<
-    { sourceId: string; pageNumber: number } | undefined
-  >(undefined);
-  private $selectedRectange = new BehaviorSubject<
-    { x: number; y: number; width: number; height: number } | undefined
-  >(undefined);
-  private readonly $page = this.$selectedSource.pipe(
-    filter((source) => !!source),
-    tap(() => this.pageLoading.set(true)),
-    switchMap(({ sourceId, pageNumber }) =>
-      this.http.get<Page>(`/api/source/${sourceId}/page/${pageNumber}`).pipe(
-        handleError('Could load page'),
-        tap(() => this.pageLoading.set(false))
-      )
-    ),
-    shareReplay(1)
-  );
-  private readonly $words = this.$selectedRectange.pipe(
-    filter(
-      (rectangle) =>
-        !!(
-          rectangle?.x &&
-          rectangle.y &&
-          rectangle.width &&
-          rectangle.height &&
-          this.$selectedSource.value
-        )
-    ),
-    tap(() => this.areaLoading.set(true)),
-    switchMap((rectangle) => {
-      const { sourceId, pageNumber } = this.$selectedSource.value!;
-      const { x, y, width, height } = rectangle!;
-      const url = `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`;
-      return this.http.get<WordList>(url).pipe(
-        handleError('Could not load word list'),
-        tap(() => this.areaLoading.set(false))
-      );
-    }),
-    shareReplay(1)
-  );
+  private readonly selectedSource = signal<SelectedSource>(undefined);
+  private readonly selectedRectange = signal<SelectedRectangle>(undefined);
+
+  readonly page = resource<Page, { selectedSource: SelectedSource }>({
+    request: () => ({ selectedSource: this.selectedSource() }),
+    loader: async ({ request: { selectedSource} }) => {
+      if (!selectedSource) {
+        return;
+      }
+      const response = await fetch(`/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`);
+      if (!response.ok) {
+        throw new Error('Could not load page');
+      }
+      return response.json();
+    },
+  });
+
+  readonly words = resource<WordList, { selectedSource: SelectedSource, selectedRectange: SelectedRectangle }>({
+    request: () => ({ selectedSource: this.selectedSource(), selectedRectange: this.selectedRectange() }),
+    loader: async ({ request: { selectedSource, selectedRectange } }) => {
+      if (!selectedSource || !selectedRectange) {
+        return;
+      }
+      const { sourceId, pageNumber } = selectedSource;
+      const { x, y, width, height } = selectedRectange;
+      const response = await fetch(`/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`);
+      if (!response.ok) {
+        throw new Error('Could not load word list');
+      }
+      return response.json();
+    },
+  });
+
 
   setPage(pageNumber: number) {
-    if (!this.$selectedSource.value) {
+    const selectedSource = this.selectedSource();
+    if (!selectedSource) {
       return;
     }
 
-    if (this.$selectedSource.value.pageNumber !== pageNumber) {
-      this.$selectedSource.next({
-        sourceId: this.$selectedSource.value.sourceId,
+    if (selectedSource.pageNumber !== pageNumber) {
+      this.selectedSource.set({
+        sourceId: selectedSource.sourceId,
         pageNumber,
       });
     }
   }
 
   setSource(sourceId: string, pageNumber: number) {
-    this.$selectedSource.next({ sourceId, pageNumber });
+    this.selectedSource.set({ sourceId, pageNumber });
   }
 
   setSelectedRectangle(rectangle: {
@@ -83,28 +66,6 @@ export class PageService {
     width: number;
     height: number;
   }) {
-    this.$selectedRectange.next(rectangle);
-  }
-
-  get sourceId() {
-    return toSignal(
-      this.$selectedSource.pipe(map((source) => source?.sourceId))
-    );
-  }
-
-  get sourceName() {
-    return toSignal(this.$page.pipe(map((page) => page.sourceName)));
-  }
-
-  get spans() {
-    return toSignal(this.$page.pipe(map((page) => page.spans)));
-  }
-
-  get height() {
-    return toSignal(this.$page.pipe(map((page) => page.height)));
-  }
-
-  get words() {
-    return toSignal(this.$words);
+    this.selectedRectange.set(rectangle);
   }
 }

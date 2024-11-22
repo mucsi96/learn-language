@@ -16,8 +16,16 @@
   </mat-menu>
   }
 </div>
+@if(pageNumber()) {
 <div class="page-nav">
-  <a mat-icon-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() - 1]"
+  <a
+    mat-icon-button
+    [routerLink]="[
+      '/sources',
+      selectedSourceId(),
+      'page',
+      pageNumber() ?? 0 - 1
+    ]"
     ><mat-icon>arrow_back_ios_new</mat-icon></a
   >
   <mat-form-field>
@@ -29,11 +37,18 @@
       (change)="onPageChange()"
     />
   </mat-form-field>
-  <a mat-icon-button [routerLink]="['/sources', sourceId(), 'page', pageNumber() + 1]"
+  <a
+    mat-icon-button
+    [routerLink]="[
+      '/sources',
+      selectedSourceId(),
+      'page',
+      pageNumber() ?? 0 + 1
+    ]"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
 </div>
-@if (loading()) {
+} @if (loading()) {
 <mat-spinner class="page-loading"></mat-spinner>
 } @else {
 <section
