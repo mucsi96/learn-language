@@ -20,8 +20,8 @@ import { WordDialogComponent } from '../parser/word-dialog/word-dialog.component
 })
 export class HomeComponent {
   private readonly sourcesService = inject(SourcesService);
-  readonly sources = this.sourcesService.sourcesSignal;
-  readonly loading = this.sourcesService.isLoading();
+  readonly sources = this.sourcesService.sources.value;
+  readonly loading = this.sourcesService.sources.isLoading;
 
   readonly dialog = inject(MatDialog);
 

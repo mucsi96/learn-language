@@ -44,7 +44,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
-  readonly sources = this.sourcesService.sourcesSignal;
+  readonly sources = this.sourcesService.sources.value;
   readonly spans = this.pageService.spans;
   readonly height = this.pageService.height;
   readonly words = this.pageService.words;
