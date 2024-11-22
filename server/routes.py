@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Request
+from services.speech import generate_speech
+from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
 from services.translate import translate
-from models import Word
+from models import ImageSource, SpeechSource, Word
 
 router = APIRouter()
 
@@ -70,3 +72,11 @@ async def get_words(source_id: str, page_number: int, request: Request):
 @router.post("/api/translate/{language_code}")
 async def get_translation(word: Word, language_code: str):
     return translate(word, language_code)
+
+@router.post("/api/image")
+async def get_image(imageSource: ImageSource):
+    return generate_image(imageSource.id, imageSource.input, imageSource.index)
+
+@router.post("/api/speech")
+async def get_speech(speechSource: SpeechSource):
+    return generate_speech(speechSource.id, speechSource.input, speechSource.language,  speechSource.index)
