@@ -6,19 +6,17 @@ import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { MatDialog } from '@angular/material/dialog';
 import { WordDialogComponent } from '../parser/word-dialog/word-dialog.component';
-import { WordService } from '../word.service';
 
 @Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [
-    RouterLink,
-    MatProgressSpinnerModule,
-    MatCardModule,
-    MatButtonModule,
-  ],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.css',
+    selector: 'app-home',
+    imports: [
+        RouterLink,
+        MatProgressSpinnerModule,
+        MatCardModule,
+        MatButtonModule,
+    ],
+    templateUrl: './home.component.html',
+    styleUrl: './home.component.css'
 })
 export class HomeComponent {
   private readonly sourcesService = inject(SourcesService);
@@ -31,6 +29,7 @@ export class HomeComponent {
     this.dialog.open(WordDialogComponent, {
       maxWidth: 'unset',
       data: {
+        id: 'anfangen',
         word: 'anfangen',
         forms: ['fängst an', 'fängt an', 'hat angefangen'],
         examples: [

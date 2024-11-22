@@ -11,20 +11,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { first } from 'rxjs';
 
 @Component({
-  selector: 'app-word-dialog',
-  standalone: true,
-  imports: [
-    MatDialogModule,
-    MatButtonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatLabel,
-    MatInputModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-  ],
-  templateUrl: './word-dialog.component.html',
-  styleUrl: './word-dialog.component.css',
+    selector: 'app-word-dialog',
+    imports: [
+        MatDialogModule,
+        MatButtonModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatLabel,
+        MatInputModule,
+        MatCardModule,
+        MatProgressSpinnerModule,
+    ],
+    templateUrl: './word-dialog.component.html',
+    styleUrl: './word-dialog.component.css'
 })
 export class WordDialogComponent {
   public data: Word = inject(MAT_DIALOG_DATA);

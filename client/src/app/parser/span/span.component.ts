@@ -8,17 +8,16 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { WordDialogComponent } from '../word-dialog/word-dialog.component';
 
 @Component({
-  selector: 'app-span',
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatMenuModule,
-    MatDialogModule,
-  ],
-  templateUrl: './span.component.html',
-  styleUrl: './span.component.css',
+    selector: 'app-span',
+    imports: [
+        MatButtonModule,
+        MatIconModule,
+        MatTooltipModule,
+        MatMenuModule,
+        MatDialogModule,
+    ],
+    templateUrl: './span.component.html',
+    styleUrl: './span.component.css'
 })
 export class SpanComponent {
   @Input() text?: string;

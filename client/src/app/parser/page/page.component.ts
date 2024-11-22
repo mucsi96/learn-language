@@ -21,23 +21,22 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
-  selector: 'app-page',
-  standalone: true,
-  imports: [
-    SpanComponent,
-    FormsModule,
-    RouterLink,
-    DraggableSelectionDirective,
-    MatButtonModule,
-    MatIconModule,
-    MatMenuModule,
-    MatProgressSpinnerModule,
-    MatFormFieldModule,
-    MatLabel,
-    MatInputModule,
-  ],
-  templateUrl: './page.component.html',
-  styleUrl: './page.component.css',
+    selector: 'app-page',
+    imports: [
+        SpanComponent,
+        FormsModule,
+        RouterLink,
+        DraggableSelectionDirective,
+        MatButtonModule,
+        MatIconModule,
+        MatMenuModule,
+        MatProgressSpinnerModule,
+        MatFormFieldModule,
+        MatLabel,
+        MatInputModule,
+    ],
+    templateUrl: './page.component.html',
+    styleUrl: './page.component.css'
 })
 export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly sourcesService = inject(SourcesService);
