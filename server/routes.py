@@ -1,4 +1,6 @@
+from turtle import up
 from fastapi import APIRouter, HTTPException, Request
+from blob_storage import upload_blob
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
@@ -50,6 +52,7 @@ async def get_page(source_id: str, page_number: int):
     result['sourceName'] = source['name']
     return result
 
+
 @router.get("/api/source/{source_id}/page/{page_number}/words")
 async def get_words(source_id: str, page_number: int, request: Request):
     source = next((src for src in sources if src['id'] == source_id), None)
@@ -62,23 +65,32 @@ async def get_words(source_id: str, page_number: int, request: Request):
     height = request.query_params.get('height')
 
     if not all([x, y, width, height]):
-        raise HTTPException(status_code=400, detail="Missing rectangle coordinates")
+        raise HTTPException(
+            status_code=400, detail="Missing rectangle coordinates")
 
     try:
         x, y, width, height = map(float, [x, y, width, height])
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid rectangle coordinates")
+        raise HTTPException(
+            status_code=400, detail="Invalid rectangle coordinates")
 
     return get_area_words(source['blob_url'], page_number, x, y, width, height)
-        
+
+
 @router.post("/api/translate/{language_code}")
 async def get_translation(word: Word, language_code: str):
     return translate(word, language_code)
 
+
 @router.post("/api/image")
 async def get_image(imageSource: ImageSource):
-    return generate_image(imageSource.id, imageSource.input, imageSource.index)
+    data = generate_image(imageSource.input)
+    upload_blob(
+        data, f"https://ibari.blob.core.windows.net/learn-german/{imageSource.id}-{imageSource.index}.png")
+
 
 @router.post("/api/speech")
 async def get_speech(speechSource: SpeechSource):
-    return generate_speech(speechSource.id, speechSource.input, speechSource.language,  speechSource.index)
+    data = generate_speech(speechSource.input)
+    upload_blob(
+        data, f"https://ibari.blob.core.windows.net/learn-german/{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3")

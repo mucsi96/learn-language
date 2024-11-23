@@ -15,6 +15,7 @@ export type Span = {
 };
 
 export type Word = {
+  id: string;
   word: string;
   forms: string[];
   examples: string[];
@@ -46,3 +47,10 @@ export type Translation = {
   translation: string;
   examples: string[];
 };
+
+export type ImageSource = {
+  id: string;
+  input: string;
+  index: number;
+};
+

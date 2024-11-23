@@ -1,5 +1,5 @@
 import { computed, Injectable, resource, signal } from '@angular/core';
-import { Translation, Word } from './parser/types';
+import { ImageSource, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 
 export const languages = ['hu', 'ch', 'en'] as const;
@@ -31,6 +31,11 @@ export class WordService {
 
   selectWord(word: Word) {
     this.selectedWord.set(word);
+    this.createImage({
+      id: word.id,
+      input: word.examples[0],
+      index: 0,
+    });
   }
 
   get isLoading() {
@@ -39,5 +44,12 @@ export class WordService {
         translation.isLoading()
       )
     );
+  }
+
+  createImage(imageSource: ImageSource) {
+    return fetchJson(`/api/image`, {
+      body: imageSource,
+      method: 'POST',
+    });
   }
 }

@@ -1,3 +1,4 @@
+import base64
 from os import environ, makedirs
 from pathlib import Path
 
@@ -9,7 +10,7 @@ client = OpenAI(
     api_key=environ.get("OPEN_API_TOKEN"),
 )
 
-def generate_speech(id: str, input: str, language: str, index: int):
+def generate_speech(input: str):
     root_dir = Path(__file__).parent / ".."
     makedirs(root_dir / "speech", exist_ok=True)
     voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
@@ -18,7 +19,8 @@ def generate_speech(id: str, input: str, language: str, index: int):
         model="tts-1-hd",
         voice=selected_voice,
         input=input,
+        response_format="b64_json"
     )
-    speech_filename = root_dir / \
-        f"speech/{id}_{language}_{index}.mp3"
-    response.stream_to_file(speech_filename)
+    if response.data[0].b64_json:
+        return base64.decodebytes(
+            bytes(response.data[0].b64_json, 'utf-8'))

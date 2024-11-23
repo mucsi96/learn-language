@@ -9,7 +9,7 @@ client = OpenAI(
 )
 
 
-def generate_image(id: str, input: str, index: int):
+def generate_image(input: str):
     root_dir = Path(__file__).parent / ".."
     makedirs(root_dir / "images", exist_ok=True)
     response = client.images.generate(
@@ -22,9 +22,5 @@ def generate_image(id: str, input: str, index: int):
         response_format="b64_json"
     )
     if response.data[0].b64_json:
-        image_data = base64.decodebytes(
+        return base64.decodebytes(
             bytes(response.data[0].b64_json, 'utf-8'))
-        image_filename = root_dir / \
-            f"images/{id}_{index}.png"
-        with open(image_filename, "wb") as image_file:
-            image_file.write(image_data)
