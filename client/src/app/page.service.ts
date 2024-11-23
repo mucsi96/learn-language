@@ -1,8 +1,11 @@
 import { Injectable, resource, signal } from '@angular/core';
 import { Page, WordList } from './parser/types';
+import { fetchJson } from './utils/fetchJson';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
-type SelectedRectangle = { x: number; y: number; width: number; height: number } | undefined;
+type SelectedRectangle =
+  | { x: number; y: number; width: number; height: number }
+  | undefined;
 
 @Injectable({
   providedIn: 'root',
@@ -13,34 +16,35 @@ export class PageService {
 
   readonly page = resource<Page, { selectedSource: SelectedSource }>({
     request: () => ({ selectedSource: this.selectedSource() }),
-    loader: async ({ request: { selectedSource} }) => {
+    loader: async ({ request: { selectedSource } }) => {
       if (!selectedSource) {
         return;
       }
-      const response = await fetch(`/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`);
-      if (!response.ok) {
-        throw new Error('Could not load page');
-      }
-      return response.json();
+      return fetchJson(
+        `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`
+      );
     },
   });
 
-  readonly words = resource<WordList, { selectedSource: SelectedSource, selectedRectange: SelectedRectangle }>({
-    request: () => ({ selectedSource: this.selectedSource(), selectedRectange: this.selectedRectange() }),
+  readonly words = resource<
+    WordList,
+    { selectedSource: SelectedSource; selectedRectange: SelectedRectangle }
+  >({
+    request: () => ({
+      selectedSource: this.selectedSource(),
+      selectedRectange: this.selectedRectange(),
+    }),
     loader: async ({ request: { selectedSource, selectedRectange } }) => {
       if (!selectedSource || !selectedRectange) {
         return;
       }
       const { sourceId, pageNumber } = selectedSource;
       const { x, y, width, height } = selectedRectange;
-      const response = await fetch(`/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`);
-      if (!response.ok) {
-        throw new Error('Could not load word list');
-      }
-      return response.json();
+      return fetchJson(
+        `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`
+      );
     },
   });
-
 
   setPage(pageNumber: number) {
     const selectedSource = this.selectedSource();

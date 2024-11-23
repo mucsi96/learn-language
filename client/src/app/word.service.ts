@@ -1,5 +1,6 @@
 import { computed, Injectable, resource, signal } from '@angular/core';
 import { Translation, Word } from './parser/types';
+import { fetchJson } from './utils/fetchJson';
 
 @Injectable({
   providedIn: 'root',
@@ -15,19 +16,10 @@ export class WordService {
           return;
         }
 
-        const response = await fetch(`/api/translate/${languageCode}`, {
+        return fetchJson(`/api/translate/${languageCode}`, {
+          body: selectedWord,
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(selectedWord),
         });
-
-        if (!response.ok) {
-          throw new Error('Could not load word');
-        }
-
-        return response.json();
       },
     });
   }

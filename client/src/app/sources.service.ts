@@ -1,5 +1,6 @@
 import { Injectable, resource } from '@angular/core';
 import { Source } from './parser/types';
+import { fetchJson } from './utils/fetchJson';
 
 @Injectable({
   providedIn: 'root',
@@ -7,11 +8,7 @@ import { Source } from './parser/types';
 export class SourcesService {
   readonly sources = resource<Source[], unknown>({
     loader: async () => {
-      const response = await fetch('/api/sources');
-      if (!response.ok) {
-        throw new Error('Could not load sources');
-      }
-      return response.json();
+      return fetchJson('/api/sources');
     },
   });
 }
