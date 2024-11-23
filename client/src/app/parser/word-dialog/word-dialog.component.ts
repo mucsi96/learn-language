@@ -6,7 +6,7 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { WordService } from '../../word.service';
+import { languages, WordService } from '../../word.service';
 import { Word } from '../types';
 
 @Component({
@@ -30,31 +30,24 @@ export class WordDialogComponent {
   readonly loading = this.wordService.isLoading;
   readonly type = signal('');
   readonly word = signal(this.data.word);
-  readonly hungarianTranslation = linkedSignal(
-    () => this.wordService.hungarianTranslation.value()?.translation
-  );
-  readonly swissGermanTranslation = linkedSignal(
-    () => this.wordService.swissGermanTranslation.value()?.translation
-  );
-  readonly englishTranslation = linkedSignal(
-    () => this.wordService.englishTranslation.value()?.translation
+  readonly translation = Object.fromEntries(
+    languages.map((languageCode) => [
+      languageCode,
+      linkedSignal(() => this.wordService.translation[languageCode].value()?.translation),
+    ])
   );
   readonly forms = this.data.forms.map((form) => signal(form));
   readonly examples = this.data.examples.map((example) => signal(example));
-  readonly exampleHungarianTranslations = this.data.examples.map((_, index) =>
-    linkedSignal(
-      () => this.wordService.hungarianTranslation.value()?.examples[index]
-    )
-  );
-  readonly exampleSwissGermanTranslations = this.data.examples.map((_, index) =>
-    linkedSignal(
-      () => this.wordService.swissGermanTranslation.value()?.examples[index]
-    )
-  );
-  readonly exampleEnglishTranslations = this.data.examples.map((_, index) =>
-    linkedSignal(
-      () => this.wordService.englishTranslation.value()?.examples[index]
-    )
+  readonly examplesTranslations = Object.fromEntries(
+    languages.map((languageCode) => [
+      languageCode,
+      this.data.examples.map((_, index) =>
+        linkedSignal(
+          () =>
+            this.wordService.translation[languageCode].value()?.examples[index]
+        )
+      ),
+    ])
   );
 
   constructor() {

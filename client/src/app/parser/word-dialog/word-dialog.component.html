@@ -19,11 +19,11 @@
         </mat-form-field>
         <mat-form-field class="field">
           <mat-label>Hungarian</mat-label>
-          <input matInput type="text" [(ngModel)]="hungarianTranslation" />
+          <input matInput type="text" [(ngModel)]="translation['hu']" />
         </mat-form-field>
         <mat-form-field class="field">
           <mat-label>Swiss German</mat-label>
-          <input matInput type="text" [(ngModel)]="swissGermanTranslation" />
+          <input matInput type="text" [(ngModel)]="translation['ch']" />
         </mat-form-field>
       </div>
     </mat-card-content>
@@ -55,7 +55,7 @@
         <input
           matInput
           type="text"
-          [(ngModel)]="exampleHungarianTranslations[$index]"
+          [(ngModel)]="examplesTranslations['hu'][$index]"
         />
       </mat-form-field>
       <mat-form-field class="field">
@@ -63,7 +63,7 @@
         <input
           matInput
           type="text"
-          [(ngModel)]="exampleSwissGermanTranslations[$index]"
+          [(ngModel)]="examplesTranslations['ch'][$index]"
         />
       </mat-form-field>
       }
