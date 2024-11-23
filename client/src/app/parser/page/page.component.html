@@ -24,7 +24,7 @@
       '/sources',
       selectedSourceId(),
       'page',
-      pageNumber() ?? 0 - 1
+      (pageNumber() ?? 0) - 1
     ]"
     ><mat-icon>arrow_back_ios_new</mat-icon></a
   >
@@ -43,7 +43,7 @@
       '/sources',
       selectedSourceId(),
       'page',
-      pageNumber() ?? 0 + 1
+      (pageNumber() ?? 0) + 1
     ]"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >

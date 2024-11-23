@@ -12,6 +12,14 @@
 .page-nav {
   display: flex;
   align-items: baseline;
+
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 .page-loading {
