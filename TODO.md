@@ -4,9 +4,9 @@
 - Retrieve and display images and play sounds in the UI using the storage account.  
 - Add card data to the database.  
 - Complete the missing verb forms for the A2 level.  
-- Investigate and resolve the issue in A2 where dragging results in misplaced spans.
 - Click outside word dialog shoudn't close it
 - add error handling on UI
+- switch from word dialog to a full page opening in new tab
 
 - Enable copying example sentences to the clipboard with a click.  
 - Add functionality for handling source data.  

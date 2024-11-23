@@ -21,7 +21,7 @@ def translate(word: Word, language_code: str) -> dict:
             "translation": "aafange",
             "examples": ["Ich fange an.", "Er fängt an."]
         }}
-        The wordType should be always in hungarian. The examples are optional.
+        The examples are optional.
     """
     )
     human_message = HumanMessage(
