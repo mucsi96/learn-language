@@ -1,4 +1,6 @@
-import { computed, Injectable, resource, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { computed, inject, Injectable, resource, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { ImageSource, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 
@@ -9,6 +11,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
 })
 export class WordService {
   private readonly selectedWord = signal<Word | undefined>(undefined);
+  private readonly http = inject(HttpClient);
 
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
@@ -29,13 +32,24 @@ export class WordService {
     ])
   );
 
-  selectWord(word: Word) {
+  async selectWord(word: Word) {
     this.selectedWord.set(word);
     this.createImage({
       id: word.id,
       input: word.examples[0],
       index: 0,
     });
+
+    await firstValueFrom(
+      this.http.get(
+        'https://ibari.blob.core.windows.net/learn-german/anfangen-0.png',
+        {
+          headers: {
+            'x-ms-version': '2025-01-05',
+          },
+        }
+      )
+    );
   }
 
   get isLoading() {

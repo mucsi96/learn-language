@@ -42,3 +42,5 @@ The word property holds a string. it's the basic form of the word without any fo
 The forms is a string array representing the different forms. In case of a noun it the plural form. In case of verb
 It's the conjugations. Please enhance it to make those full words. Not just endings.
 The examples property is a string array enlisting the examples provided in the document. "C:\Users\mucsi\Pictures\b1-test.png"
+
+- https://learn.microsoft.com/en-us/graph/templates
