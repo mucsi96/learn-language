@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e  # Exit immediately if a command exits with a non-zero status
 
 demo_k8s_config=$(az keyvault secret show --vault-name p02 --name demo-namespace-k8s-user-config --query value -o tsv)
 ai_endpoint=$(az keyvault secret show --vault-name p02 --name ai-endpoint --query value -o tsv)

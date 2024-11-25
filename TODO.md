@@ -1,3 +1,6 @@
+- Restring spa app to single container
+- Create app for REST API
+
 - Parallelize image and sound generation in the UI.  
 - Implement retry functionality for image and sound generation.  
 - Upload generated images and sounds to the storage account.  

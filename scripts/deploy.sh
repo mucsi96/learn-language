@@ -1,3 +1,6 @@
 #!/bin/sh
 
-az deployment group create --resource-group ibari --template-file main.bicep
+set -e  # Exit immediately if a command exits with a non-zero status
+
+terraform plan -out=tfplan
+terraform apply -auto-approve tfplan

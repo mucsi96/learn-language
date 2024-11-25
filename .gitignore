@@ -6,3 +6,6 @@ __pycache__
 .kube/
 images/
 speech/
+backend.tf
+tfplan
+.terraform/
