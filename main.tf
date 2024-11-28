@@ -56,8 +56,10 @@ resource "azuread_application_password" "admin_api_password" {
 }
 
 resource "azuread_service_principal" "admin_api_service_principal" {
-  client_id = azuread_application.admin_api.client_id
-  owners    = [data.azurerm_client_config.current.object_id]
+  client_id                    = azuread_application.admin_api.client_id
+  owners                       = [data.azurerm_client_config.current.object_id]
+  tags                         = ["WindowsAzureActiveDirectoryIntegratedApp"]
+  app_role_assignment_required = false
 }
 
 resource "azurerm_role_assignment" "admin_api_role_assignment" {
@@ -104,8 +106,10 @@ resource "azuread_application" "admin_spa" {
 }
 
 resource "azuread_service_principal" "admin_spa_service_principal" {
-  client_id = azuread_application.admin_spa.client_id
-  owners    = [data.azurerm_client_config.current.object_id]
+  client_id                    = azuread_application.admin_spa.client_id
+  owners                       = [data.azurerm_client_config.current.object_id]
+  tags                         = ["WindowsAzureActiveDirectoryIntegratedApp"]
+  app_role_assignment_required = false
 }
 
 resource "azuread_application_pre_authorized" "demo_api_access" {
@@ -120,12 +124,24 @@ resource "azuread_service_principal_delegated_permission_grant" "openid_profile_
   claim_values                         = ["openid", "profile"]
 }
 
-output "client_secret" {
+output "tenant_id" {
+  value = data.azurerm_client_config.current.tenant_id
+}
+
+output "admin_api_client_id" {
+  value = azuread_application.admin_api.client_id
+}
+
+output "admin_api_client_secret" {
   value     = azuread_application_password.admin_api_password.value
   sensitive = true
 }
 
 output "admin_api_scope" {
   value = "api://${azuread_application.admin_api.client_id}/read-files"
+}
+
+output "admin_spa_client_id" {
+  value = azuread_application.admin_spa.client_id
 }
 

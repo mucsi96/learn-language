@@ -4,7 +4,6 @@ import { provideRouter } from '@angular/router';
 import {
   HTTP_INTERCEPTORS,
   provideHttpClient,
-  withInterceptors,
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import {
@@ -30,6 +29,7 @@ import {
   PublicClientApplication,
 } from '@azure/msal-browser';
 import { routes } from './app.routes';
+import { environment } from '../environments/environment.development';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
@@ -51,9 +51,8 @@ export const appConfig: ApplicationConfig = {
       provide: MSAL_INSTANCE,
       useValue: new PublicClientApplication({
         auth: {
-          clientId: '9e8c4eca-7589-4f2b-a89c-76f67eb107b8',
-          authority:
-            'https://login.microsoftonline.com/c31b7767-aa6c-49a0-8292-b16aa2336434',
+          clientId: environment.clientId,
+          authority: `https://login.microsoftonline.com/${environment.tenantId}`,
           redirectUri: '/',
           postLogoutRedirectUri: '/',
         },
@@ -84,12 +83,7 @@ export const appConfig: ApplicationConfig = {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useValue: {
         interactionType: InteractionType.Redirect,
-        protectedResourceMap: new Map([
-          [
-            'https://ibari.blob.core.windows.net/*',
-            ['https://ibari.blob.core.windows.net/.default'],
-          ],
-        ]),
+        protectedResourceMap: new Map([['/api/*', [environment.apiScope]]]),
       } satisfies MsalInterceptorConfiguration,
     },
     MsalService,
