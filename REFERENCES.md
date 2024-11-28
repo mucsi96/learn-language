@@ -44,3 +44,13 @@ It's the conjugations. Please enhance it to make those full words. Not just endi
 The examples property is a string array enlisting the examples provided in the document. "C:\Users\mucsi\Pictures\b1-test.png"
 
 - https://learn.microsoft.com/en-us/graph/templates
+
+
+As an explanation:
+
+- MicrosoftGraph delegated permissions -> these are "scopes" in OAuth parlance
+-> use azuread_service_principal_delegated_permission_grant
+- MicrosoftGraph application permissions -> these are "roles" in OAuth parlance
+-> use azuread_app_role_assignment
+- to allow other application to access your own (as an application)
+-> use azuread_application_pre_authorized
