@@ -1,7 +1,5 @@
-from turtle import up
-from fastapi import APIRouter, HTTPException, Request
-from blob_storage import upload_blob, fetch_blob
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, Request, Response
+from blob_storage import upload_blob, fetch_blob, blob_exists
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
@@ -85,32 +83,41 @@ async def get_translation(word: Word, language_code: str):
 
 @router.post("/api/image")
 async def get_image(imageSource: ImageSource):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
+        imageSource.id}-{imageSource.index}.png"
+    url = f"/api/image/{blob_url.split('/')[-1]}"
+
+    if not imageSource.override and blob_exists(blob_url):
+        return {"url": url}
+
     data = generate_image(imageSource.input)
-    upload_blob(
-        data,
-        f"https://ibari.blob.core.windows.net/learn-german/{
-            imageSource.id}-{imageSource.index}.png",
-        imageSource.override)
+    upload_blob(data, blob_url)
+    return {"url": url}
 
 
 @router.post("/api/speech")
 async def get_speech(speechSource: SpeechSource):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
+        speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
+    url = f"/api/speech/{blob_url.split('/')[-1]}"
+
+    if not speechSource.override and blob_exists(blob_url):
+        return {"url": url}
+
     data = generate_speech(speechSource.input)
-    upload_blob(
-        data,
-        f"https://ibari.blob.core.windows.net/learn-german/{speechSource.id}-{
-            speechSource.language}-{speechSource.index}.mp3",
-        speechSource.override)
+    upload_blob(data, blob_url)
+    return {"url": url}
 
 
-@router.get("/api/image/{image_id}")
-async def proxy_image_request(image_id: str):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{image_id}.png"
+@router.get("/api/image/{file_name}")
+async def proxy_image_request(file_name: str):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
-    return StreamingResponse(blob_data, media_type="image/png")
+    return Response(blob_data, media_type="image/png")
 
-@router.get("/api/speech/{speech_id}")
-async def proxy_speech_request(speech_id: str):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{speech_id}.mp3"
+
+@router.get("/api/speech/{file_name}")
+async def proxy_speech_request(file_name: str):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
-    return StreamingResponse(blob_data, media_type="audio/mpeg")
+    return Response(blob_data, media_type="audio/mpeg")

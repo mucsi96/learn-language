@@ -8,6 +8,7 @@
 - add error handling on UI
 - switch from word dialog to a full page opening in new tab
 - add user avatar on UI
+- add JWT validation to API
 
 - Enable copying example sentences to the clipboard with a click.  
 - Add functionality for handling source data.  
