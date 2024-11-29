@@ -85,28 +85,26 @@ async def get_translation(word: Word, language_code: str):
 async def get_image(imageSource: ImageSource):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
         imageSource.id}-{imageSource.index}.png"
-    url = f"/api/image/{blob_url.split('/')[-1]}"
 
     if not imageSource.override and blob_exists(blob_url):
-        return {"url": url}
+        return Response(status_code=304)
 
     data = generate_image(imageSource.input)
     upload_blob(data, blob_url)
-    return {"url": url}
+    return Response(status_code=204)
 
 
 @router.post("/api/speech")
 async def get_speech(speechSource: SpeechSource):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
         speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
-    url = f"/api/speech/{blob_url.split('/')[-1]}"
 
     if not speechSource.override and blob_exists(blob_url):
-        return {"url": url}
+        return Response(status_code=304)
 
     data = generate_speech(speechSource.input)
     upload_blob(data, blob_url)
-    return {"url": url}
+    return Response(status_code=204)
 
 
 @router.get("/api/image/{file_name}")
