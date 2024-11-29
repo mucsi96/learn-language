@@ -1,6 +1,7 @@
 from turtle import up
 from fastapi import APIRouter, HTTPException, Request
-from blob_storage import upload_blob
+from blob_storage import upload_blob, fetch_blob
+from fastapi.responses import StreamingResponse
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
@@ -86,11 +87,30 @@ async def get_translation(word: Word, language_code: str):
 async def get_image(imageSource: ImageSource):
     data = generate_image(imageSource.input)
     upload_blob(
-        data, f"https://ibari.blob.core.windows.net/learn-german/{imageSource.id}-{imageSource.index}.png")
+        data,
+        f"https://ibari.blob.core.windows.net/learn-german/{
+            imageSource.id}-{imageSource.index}.png",
+        imageSource.override)
 
 
 @router.post("/api/speech")
 async def get_speech(speechSource: SpeechSource):
     data = generate_speech(speechSource.input)
     upload_blob(
-        data, f"https://ibari.blob.core.windows.net/learn-german/{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3")
+        data,
+        f"https://ibari.blob.core.windows.net/learn-german/{speechSource.id}-{
+            speechSource.language}-{speechSource.index}.mp3",
+        speechSource.override)
+
+
+@router.get("/api/image/{image_id}")
+async def proxy_image_request(image_id: str):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{image_id}.png"
+    blob_data = fetch_blob(blob_url)
+    return StreamingResponse(blob_data, media_type="image/png")
+
+@router.get("/api/speech/{speech_id}")
+async def proxy_speech_request(speech_id: str):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{speech_id}.mp3"
+    blob_data = fetch_blob(blob_url)
+    return StreamingResponse(blob_data, media_type="audio/mpeg")

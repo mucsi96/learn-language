@@ -1,6 +1,7 @@
-import { Injectable, resource, signal } from '@angular/core';
+import { inject, Injectable, resource, signal } from '@angular/core';
 import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
+import { HttpClient } from '@angular/common/http';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle =
@@ -11,23 +12,28 @@ type SelectedRectangle =
   providedIn: 'root',
 })
 export class PageService {
+  private readonly http = inject(HttpClient);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectange = signal<SelectedRectangle>(undefined);
 
-  readonly page = resource<Page, { selectedSource: SelectedSource }>({
+  readonly page = resource<
+    Page | undefined,
+    { selectedSource: SelectedSource }
+  >({
     request: () => ({ selectedSource: this.selectedSource() }),
     loader: async ({ request: { selectedSource } }) => {
       if (!selectedSource) {
         return;
       }
-      return fetchJson(
+      return fetchJson<Page>(
+        this.http,
         `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`
       );
     },
   });
 
   readonly words = resource<
-    WordList,
+    WordList | undefined,
     { selectedSource: SelectedSource; selectedRectange: SelectedRectangle }
   >({
     request: () => ({
@@ -40,7 +46,8 @@ export class PageService {
       }
       const { sourceId, pageNumber } = selectedSource;
       const { x, y, width, height } = selectedRectange;
-      return fetchJson(
+      return fetchJson<WordList>(
+        this.http,
         `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}`
       );
     },

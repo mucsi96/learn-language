@@ -1,17 +1,21 @@
-export async function fetchJson(url: string, options: { body?: any, method?: string; } = {}) {
-  const { body, method = 'GET' } = options;
-  const response = await fetch(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
-  if (!response.ok) {
-    throw new Error('Could not load data');
-  }
-
-  return response.json();
+export async function fetchJson<T>(
+  http: HttpClient,
+  url: string,
+  options: { body?: any; method?: string } = {}
+) {
+  const { body, method = 'get' } = options;
+  const response = await firstValueFrom(
+    http.request(method, url, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      }),
+      body,
+      responseType: 'json',
+    })
+  );
+  return response as T;
 }

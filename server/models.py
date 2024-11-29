@@ -11,9 +11,11 @@ class ImageSource(BaseModel):
     id: str
     input: str
     index: int
+    override: bool = False
     
 class SpeechSource(BaseModel):
     id: str
     input: str
     language: str
     index: int
+    override: bool = False

@@ -53,7 +53,7 @@ export const appConfig: ApplicationConfig = {
         auth: {
           clientId: environment.clientId,
           authority: `https://login.microsoftonline.com/${environment.tenantId}`,
-          redirectUri: '/',
+          redirectUri: '/auth',
           postLogoutRedirectUri: '/',
         },
         cache: {
@@ -83,7 +83,9 @@ export const appConfig: ApplicationConfig = {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useValue: {
         interactionType: InteractionType.Redirect,
-        protectedResourceMap: new Map([['/api/*', [environment.apiScope]]]),
+        protectedResourceMap: new Map([
+          [`${environment.apiBaseUrl}/*`, [environment.apiScope]],
+        ]),
       } satisfies MsalInterceptorConfiguration,
     },
     MsalService,

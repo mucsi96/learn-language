@@ -16,17 +16,21 @@ export class WordService {
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
-      resource<Translation, { selectedWord: Word | undefined }>({
+      resource<Translation | undefined, { selectedWord: Word | undefined }>({
         request: () => ({ selectedWord: this.selectedWord() }),
         loader: async ({ request: { selectedWord } }) => {
           if (!selectedWord) {
             return;
           }
 
-          return fetchJson(`/api/translate/${languageCode}`, {
-            body: selectedWord,
-            method: 'POST',
-          });
+          return fetchJson<Translation>(
+            this.http,
+            `/api/translate/${languageCode}`,
+            {
+              body: selectedWord,
+              method: 'POST',
+            }
+          );
         },
       }),
     ])
@@ -40,16 +44,7 @@ export class WordService {
       index: 0,
     });
 
-    await firstValueFrom(
-      this.http.get(
-        'https://ibari.blob.core.windows.net/learn-german/anfangen-0.png',
-        {
-          headers: {
-            'x-ms-version': '2025-01-05',
-          },
-        }
-      )
-    );
+    await firstValueFrom(this.http.get('/api/image/anfangen-0.png'));
   }
 
   get isLoading() {
@@ -61,7 +56,7 @@ export class WordService {
   }
 
   createImage(imageSource: ImageSource) {
-    return fetchJson(`/api/image`, {
+    return fetchJson(this.http, `/api/image`, {
       body: imageSource,
       method: 'POST',
     });

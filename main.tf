@@ -78,7 +78,7 @@ resource "azuread_application" "admin_spa" {
   }
 
   single_page_application {
-    redirect_uris = ["http://localhost:4200/"]
+    redirect_uris = ["http://localhost:4200/auth"]
   }
 
   required_resource_access {
@@ -138,7 +138,7 @@ output "admin_api_client_secret" {
 }
 
 output "admin_api_scope" {
-  value = "api://${azuread_application.admin_api.client_id}/read-files"
+  value = "${azuread_application.admin_api.client_id}/read-files"
 }
 
 output "admin_spa_client_id" {
