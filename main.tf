@@ -90,7 +90,7 @@ resource "azuread_application" "admin_spa" {
     }
 
     resource_access {
-      id   = azuread_service_principal.msgraph.oauth2_permission_scope_ids["profile"]
+      id   = azuread_service_principal.msgraph.oauth2_permission_scope_ids["User.Read"]
       type = "Scope"
     }
   }
@@ -121,7 +121,7 @@ resource "azuread_application_pre_authorized" "demo_api_access" {
 resource "azuread_service_principal_delegated_permission_grant" "openid_profile_grant" {
   service_principal_object_id          = azuread_service_principal.admin_spa_service_principal.object_id
   resource_service_principal_object_id = azuread_service_principal.msgraph.object_id
-  claim_values                         = ["openid", "profile"]
+  claim_values                         = ["openid", "User.Read"]
 }
 
 output "tenant_id" {

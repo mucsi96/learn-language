@@ -75,7 +75,7 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         interactionType: InteractionType.Redirect,
         authRequest: () => ({
-          scopes: ['openid', 'profile'],
+          scopes: ['user.read', environment.apiScope],
         }),
       } satisfies MsalGuardConfiguration,
     },
@@ -84,6 +84,7 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         interactionType: InteractionType.Redirect,
         protectedResourceMap: new Map([
+          ['https://graph.microsoft.com/v1.0/me', ['user.read']],
           [`${environment.apiBaseUrl}/*`, [environment.apiScope]],
         ]),
       } satisfies MsalInterceptorConfiguration,

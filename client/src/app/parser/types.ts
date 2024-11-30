@@ -1,3 +1,8 @@
+export type Profile = {
+  name: string;
+  initials: string;
+}
+
 export type BBox = {
   x: number;
   y: number;

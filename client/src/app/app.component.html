@@ -1,7 +1,9 @@
 <mat-toolbar class="header">
   <nav>
     <a mat-button routerLink="">Learn language</a>
-    <span class="avatar" matTooltip="{{ userEmail() }}">{{ userInitials() }}</span>
+    <span class="avatar" matTooltip="{{ profile.value()?.name }}">{{
+      profile.value()?.initials
+    }}</span>
   </nav>
 </mat-toolbar>
 
