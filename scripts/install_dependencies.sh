@@ -11,7 +11,6 @@ demo_db_password=$(az keyvault secret show --vault-name p02 --name demo-db-passw
 azure_tenant_id=$(terraform output -raw tenant_id)
 admin_api_client_id=$(terraform output -raw admin_api_client_id)
 admin_api_client_secret=$(terraform output -raw admin_api_client_secret)
-admin_api_scope=$(terraform output -raw admin_api_scope)
 admin_spa_client_id=$(terraform output -raw admin_spa_client_id)
 
 mkdir -p .kube
@@ -28,7 +27,7 @@ echo "AZURE_CLIENT_ID=$admin_api_client_id" >> .env
 echo "AZURE_CLIENT_SECRET=$admin_api_client_secret" >> .env
 echo "NG_APP_TENANT_ID=$azure_tenant_id" > client/.env
 echo "NG_APP_CLIENT_ID=$admin_spa_client_id" >> client/.env
-echo "NG_APP_API_SCOPE=$admin_api_scope" >> client/.env
+echo "NG_APP_API_CLIENT_ID=$admin_api_client_id" >> client/.env
 
 cd client && npm install && cd ..
 

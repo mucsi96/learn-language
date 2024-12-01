@@ -16,7 +16,13 @@ data "azurerm_client_config" "current" {}
 
 data "azuread_application_published_app_ids" "well_known" {}
 
-resource "random_uuid" "admin_api_reader_scope_id" {}
+resource "random_uuid" "admin_api_card_deck_read_scope_id" {}
+
+resource "random_uuid" "admin_api_card_deck_write_scope_id" {}
+
+resource "random_uuid" "admin_api_card_deck_reader_role_id" {}
+
+resource "random_uuid" "admin_api_card_deck_writer_role_id" {}
 
 resource "azuread_service_principal" "msgraph" {
   client_id    = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
@@ -43,11 +49,36 @@ resource "azuread_application" "admin_api" {
     requested_access_token_version = 2
 
     oauth2_permission_scope {
-      admin_consent_description  = "Read images and audio files"
-      admin_consent_display_name = "Read images and audio files"
-      id                         = random_uuid.admin_api_reader_scope_id.result
-      value                      = "read-files"
+      admin_consent_description  = "Allow the application to read cards of a deck"
+      admin_consent_display_name = "Allow the application to read cards of a deck"
+      id                         = random_uuid.admin_api_card_deck_read_scope_id.result
+      value                      = "card-deck-read"
     }
+
+    oauth2_permission_scope {
+      admin_consent_description  = "Allow the application to write cards of a deck"
+      admin_consent_display_name = "Allow the application to write cards of a deck"
+      id                         = random_uuid.admin_api_card_deck_write_scope_id.result
+      value                      = "card-deck-write"
+    }
+  }
+
+  app_role {
+    allowed_member_types = ["User"]
+    description          = "Users who can read cards of a deck"
+    display_name         = "Card Deck Reader"
+    enabled              = true
+    id                   = random_uuid.admin_api_card_deck_reader_role_id.result
+    value                = "card-deck-reader"
+  }
+
+  app_role {
+    allowed_member_types = ["User"]
+    description          = "Users who can write cards of a deck"
+    display_name         = "Card Deck Writer"
+    enabled              = true
+    id                   = random_uuid.admin_api_card_deck_writer_role_id.result
+    value                = "card-deck-writer"
   }
 }
 
@@ -99,7 +130,12 @@ resource "azuread_application" "admin_spa" {
     resource_app_id = azuread_application.admin_api.client_id
 
     resource_access {
-      id   = random_uuid.admin_api_reader_scope_id.result
+      id   = random_uuid.admin_api_card_deck_read_scope_id.result
+      type = "Scope"
+    }
+
+    resource_access {
+      id   = random_uuid.admin_api_card_deck_write_scope_id.result
       type = "Scope"
     }
   }
@@ -112,10 +148,10 @@ resource "azuread_service_principal" "admin_spa_service_principal" {
   app_role_assignment_required = false
 }
 
-resource "azuread_application_pre_authorized" "demo_api_access" {
+resource "azuread_application_pre_authorized" "admin_spa_pre_authorized" {
   application_id       = azuread_application.admin_api.id
   authorized_client_id = azuread_application.admin_spa.client_id
-  permission_ids       = [random_uuid.admin_api_reader_scope_id.result]
+  permission_ids       = [random_uuid.admin_api_card_deck_read_scope_id.result, random_uuid.admin_api_card_deck_write_scope_id.result]
 }
 
 resource "azuread_service_principal_delegated_permission_grant" "openid_profile_grant" {
@@ -135,10 +171,6 @@ output "admin_api_client_id" {
 output "admin_api_client_secret" {
   value     = azuread_application_password.admin_api_password.value
   sensitive = true
-}
-
-output "admin_api_scope" {
-  value = "${azuread_application.admin_api.client_id}/read-files"
 }
 
 output "admin_spa_client_id" {

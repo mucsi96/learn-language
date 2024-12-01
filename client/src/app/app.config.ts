@@ -35,6 +35,11 @@ const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
+const apiScopes = [
+  `${environment.apiClientId}/card-deck-read`,
+  `${environment.apiClientId}/card-deck-write`,
+];
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -75,7 +80,7 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         interactionType: InteractionType.Redirect,
         authRequest: () => ({
-          scopes: ['user.read', environment.apiScope],
+          scopes: ['user.read', ...apiScopes],
         }),
       } satisfies MsalGuardConfiguration,
     },
@@ -85,7 +90,7 @@ export const appConfig: ApplicationConfig = {
         interactionType: InteractionType.Redirect,
         protectedResourceMap: new Map([
           ['https://graph.microsoft.com/v1.0/me', ['user.read']],
-          [`${environment.apiBaseUrl}/*`, [environment.apiScope]],
+          [`${environment.apiBaseUrl}/*`, apiScopes],
         ]),
       } satisfies MsalInterceptorConfiguration,
     },

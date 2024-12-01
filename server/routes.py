@@ -5,6 +5,7 @@ from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
 from services.translate import translate
 from models import ImageSource, SpeechSource, Word
+from auth import is_card_deck_writer, is_card_deck_reader
 
 router = APIRouter()
 
@@ -30,12 +31,12 @@ sources = [
 ]
 
 
-@router.get("/api/sources")
+@router.get("/api/sources", dependencies=[is_card_deck_writer])
 async def get_sources():
     return [{k: v for k, v in source.items() if k != 'blob_url'} for source in sources]
 
 
-@router.get("/api/source/{source_id}/page/{page_number}")
+@router.get("/api/source/{source_id}/page/{page_number}", dependencies=[is_card_deck_writer])
 async def get_page(source_id: str, page_number: int):
     try:
         source = next((src for src in sources if src['id'] == source_id), None)
@@ -52,7 +53,7 @@ async def get_page(source_id: str, page_number: int):
     return result
 
 
-@router.get("/api/source/{source_id}/page/{page_number}/words")
+@router.get("/api/source/{source_id}/page/{page_number}/words", dependencies=[is_card_deck_writer])
 async def get_words(source_id: str, page_number: int, request: Request):
     source = next((src for src in sources if src['id'] == source_id), None)
     if source is None:
@@ -76,12 +77,12 @@ async def get_words(source_id: str, page_number: int, request: Request):
     return get_area_words(source['blob_url'], page_number, x, y, width, height)
 
 
-@router.post("/api/translate/{language_code}")
+@router.post("/api/translate/{language_code}", dependencies=[is_card_deck_writer])
 async def get_translation(word: Word, language_code: str):
     return translate(word, language_code)
 
 
-@router.post("/api/image")
+@router.post("/api/image", dependencies=[is_card_deck_writer])
 async def get_image(imageSource: ImageSource):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
         imageSource.id}-{imageSource.index}.png"
@@ -94,7 +95,7 @@ async def get_image(imageSource: ImageSource):
     return Response(status_code=204)
 
 
-@router.post("/api/speech")
+@router.post("/api/speech", dependencies=[is_card_deck_writer])
 async def get_speech(speechSource: SpeechSource):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
         speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
@@ -107,14 +108,14 @@ async def get_speech(speechSource: SpeechSource):
     return Response(status_code=204)
 
 
-@router.get("/api/image/{file_name}")
+@router.get("/api/image/{file_name}", dependencies=[is_card_deck_reader])
 async def proxy_image_request(file_name: str):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
     return Response(blob_data, media_type="image/png")
 
 
-@router.get("/api/speech/{file_name}")
+@router.get("/api/speech/{file_name}", dependencies=[is_card_deck_reader])
 async def proxy_speech_request(file_name: str):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
