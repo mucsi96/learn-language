@@ -5,19 +5,19 @@ import { BBox, Word, WordList } from '../types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { WordDialogComponent } from '../word-dialog/word-dialog.component';
+import { objectToQueryParam } from '../../utils/queryCompression';
 
 @Component({
-    selector: 'app-span',
-    imports: [
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatMenuModule,
-        MatDialogModule,
-    ],
-    templateUrl: './span.component.html',
-    styleUrl: './span.component.css'
+  selector: 'app-span',
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatMenuModule,
+    MatDialogModule,
+  ],
+  templateUrl: './span.component.html',
+  styleUrl: './span.component.css',
 })
 export class SpanComponent {
   @Input() text?: string;
@@ -63,14 +63,13 @@ export class SpanComponent {
     return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
   }
 
-  openWordDialog(word?: Word) {
+  getHref(word?: Word) {
     if (!word) {
       return;
     }
 
-    this.dialog.open(WordDialogComponent, {
-      maxWidth: 'unset',
-      data: word,
-    });
+    const wordData = objectToQueryParam(word);
+
+    return `/cards/${wordData}`;
   }
 }

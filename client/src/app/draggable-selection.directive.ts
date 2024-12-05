@@ -48,7 +48,9 @@ export class DraggableSelectionDirective {
       const x = Math.min(this.startX, endX) / parentRect.width;
       const y = Math.min(this.startY, endY) / parentRect.width;
 
-      this.selectionBox.emit({ x, y, width, height });
+      if (width > 0.01 && height > 0.01) {
+        this.selectionBox.emit({ x, y, width, height });
+      }
 
       this.removeRectangle();
     }

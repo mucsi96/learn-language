@@ -10,18 +10,18 @@
 </div>
 
 } @else if (matches?.length === 1) {
-<button
+<a
   class="word"
   mat-flat-button
-  type="button"
-  (click)="openWordDialog(matches?.[0])"
+  [href]="getHref(matches?.[0])"
+  target="_blank"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
 >
   <span>{{ text }}</span>
-</button>
+</a>
 } @else {
 <button
   class="word"
@@ -37,9 +37,9 @@
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.word) {
-  <button type="button" mat-menu-item (click)="openWordDialog(match)">
+  <a mat-menu-item [href]="getHref(match)" target="_blank">
     {{ match.word }}
-  </button>
+  </a>
   }
 </mat-menu>
 }

@@ -2,28 +2,28 @@ import { Routes } from '@angular/router';
 import { PageComponent } from './parser/page/page.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard, MsalRedirectComponent } from '@azure/msal-angular';
-
-export enum RouterTokens {
-  AUTH = 'auth',
-  HOME = '',
-  SOURCES = 'sources',
-}
+import { CardComponent } from './parser/card/card.component';
 
 export const routes: Routes = [
   {
-    path: RouterTokens.AUTH,
+    path: 'auth',
     pathMatch: 'full',
-    component: MsalRedirectComponent
+    component: MsalRedirectComponent,
   },
   {
-    path: RouterTokens.HOME,
+    path: '',
     pathMatch: 'full',
     component: HomeComponent,
-    canActivate: [MsalGuard]
+    canActivate: [MsalGuard],
   },
   {
-    path: `${RouterTokens.SOURCES}/:sourceId/page/:pageNumber`,
+    path: 'sources/:sourceId/page/:pageNumber',
     component: PageComponent,
-    canActivate: [MsalGuard]
+    canActivate: [MsalGuard],
+  },
+  {
+    path: 'cards/:cardData',
+    component: CardComponent,
+    canActivate: [MsalGuard],
   },
 ];

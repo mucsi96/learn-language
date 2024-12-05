@@ -10,7 +10,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
   providedIn: 'root',
 })
 export class WordService {
-  private readonly selectedWord = signal<Word | undefined>(undefined);
+  readonly selectedWord = signal<Word | undefined>(undefined);
   private readonly http = inject(HttpClient);
 
   readonly translation = Object.fromEntries(

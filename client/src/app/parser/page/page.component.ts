@@ -3,11 +3,9 @@ import {
   Component,
   computed,
   ElementRef,
-  HostBinding,
   inject,
   linkedSignal,
   OnDestroy,
-  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';

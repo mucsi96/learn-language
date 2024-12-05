@@ -1,12 +1,10 @@
-.field {
-  width: 100%;
-}
-
-.content {
-  width: min(90rem, 100vw);
+:root {
   display: grid;
   gap: 1rem;
-  max-height: calc(100vh - 10rem);
+}
+
+.field {
+  width: 100%;
 }
 
 .word,
