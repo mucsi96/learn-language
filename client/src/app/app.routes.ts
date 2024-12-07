@@ -22,7 +22,7 @@ export const routes: Routes = [
     canActivate: [MsalGuard],
   },
   {
-    path: 'cards/:cardData',
+    path: 'sources/:sourceId/cards/:cardData',
     component: CardComponent,
     canActivate: [MsalGuard],
   },

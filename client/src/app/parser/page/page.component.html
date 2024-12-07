@@ -61,6 +61,7 @@
   <mat-spinner class="area-loading"></mat-spinner>
   } @for (span of spans(); track $index) {
   <app-span
+    [sourceId]="selectedSourceId()"
     [text]="span.text"
     [bbox]="span.bbox"
     [font]="span.font"

@@ -13,7 +13,7 @@
 <a
   class="word"
   mat-flat-button
-  [href]="getHref(matches?.[0])"
+  [href]="cardHrefPrefix + (matches?.[0] | compressQuery | async)"
   target="_blank"
   [style.left]="left"
   [style.top]="top"
@@ -37,7 +37,11 @@
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.word) {
-  <a mat-menu-item [href]="getHref(match)" target="_blank">
+  <a
+    mat-menu-item
+    [href]="cardHrefPrefix + (match | compressQuery | async)"
+    target="_blank"
+  >
     {{ match.word }}
   </a>
   }

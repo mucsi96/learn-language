@@ -68,10 +68,13 @@ export class CardComponent {
   });
 
   constructor() {
-    this.activatedRoute.params.subscribe((params) => {
-      this.wordService.selectWord(
-        queryParamToObject(params['cardData']) as Word
-      );
+    this.activatedRoute.params.subscribe(async (params) => {
+      try {
+        const word = await queryParamToObject(params['cardData']);
+        this.wordService.selectWord(word as Word);
+      } catch (error) {
+        console.error(error);
+      }
     });
   }
 }
