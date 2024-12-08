@@ -38,13 +38,6 @@ export class WordService {
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
-    this.createImage({
-      id: word.id,
-      input: word.examples[0],
-      index: 0,
-    });
-
-    await firstValueFrom(this.http.get('/api/image/anfangen-0.png'));
   }
 
   get isLoading() {
@@ -53,6 +46,13 @@ export class WordService {
         translation.isLoading()
       )
     );
+  }
+
+  async getImageBlobUrl(imageUrl: string): Promise<string> {
+    const response = await firstValueFrom(
+      this.http.get(imageUrl, { responseType: 'blob' })
+    );
+    return URL.createObjectURL(response);
   }
 
   createImage(imageSource: ImageSource) {

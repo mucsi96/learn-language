@@ -1,4 +1,9 @@
-import { Component, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -66,12 +71,31 @@ export class CardComponent {
       ])
     );
   });
+  readonly exampleImages = signal<string[] | undefined>(undefined);
 
   constructor() {
     this.activatedRoute.params.subscribe(async (params) => {
       try {
-        const word = await queryParamToObject(params['cardData']);
-        this.wordService.selectWord(word as Word);
+        const word = await queryParamToObject<Word>(params['cardData']);
+        this.wordService.selectWord(word);
+        await Promise.all(
+          word.examples.map((example, index) =>
+            this.wordService.createImage({
+              id: word.id,
+              input: example,
+              index,
+            })
+          )
+        );
+        this.exampleImages.set(
+          await Promise.all(
+            word.examples.map((_, index) =>
+              this.wordService.getImageBlobUrl(
+                `/api/image/${word.id}-${index}.png`
+              )
+            )
+          )
+        );
       } catch (error) {
         console.error(error);
       }

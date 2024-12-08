@@ -7,14 +7,15 @@ export async function objectToQueryParam(
   writer.write(new TextEncoder().encode(jsonString));
   writer.close();
   const compressedBuffer = await new Response(stream.readable).arrayBuffer();
-  return encodeURIComponent(btoa(String.fromCharCode(...new Uint8Array(compressedBuffer))));
+  return encodeURIComponent(
+    btoa(String.fromCharCode(...new Uint8Array(compressedBuffer)))
+  );
 }
 
-export async function queryParamToObject(
-  queryParam: string
-): Promise<Record<string, any>> {
-  const compressedBuffer = Uint8Array.from(atob(decodeURIComponent(queryParam)), (c) =>
-    c.charCodeAt(0)
+export async function queryParamToObject<T>(queryParam: string): Promise<T> {
+  const compressedBuffer = Uint8Array.from(
+    atob(decodeURIComponent(queryParam)),
+    (c) => c.charCodeAt(0)
   );
   const stream = new DecompressionStream('gzip');
   const writer = stream.writable.getWriter();

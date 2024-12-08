@@ -88,11 +88,11 @@ async def get_image(imageSource: ImageSource):
         imageSource.id}-{imageSource.index}.png"
 
     if not imageSource.override and blob_exists(blob_url):
-        return Response(status_code=304)
+        return {}
 
     data = generate_image(imageSource.input)
     upload_blob(data, blob_url)
-    return Response(status_code=204)
+    return {}
 
 
 @router.post("/api/speech", dependencies=[is_card_deck_writer])
@@ -101,22 +101,22 @@ async def get_speech(speechSource: SpeechSource):
         speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
 
     if not speechSource.override and blob_exists(blob_url):
-        return Response(status_code=304)
+        return {}
 
     data = generate_speech(speechSource.input)
     upload_blob(data, blob_url)
-    return Response(status_code=204)
+    return {}
 
 
 @router.get("/api/image/{file_name}", dependencies=[is_card_deck_reader])
 async def proxy_image_request(file_name: str):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
-    return Response(blob_data, media_type="image/png")
+    return Response(content=blob_data, media_type="image/png")
 
 
 @router.get("/api/speech/{file_name}", dependencies=[is_card_deck_reader])
 async def proxy_speech_request(file_name: str):
     blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
     blob_data = fetch_blob(blob_url)
-    return Response(blob_data, media_type="audio/mpeg")
+    return Response(content=blob_data, media_type="audio/mpeg")
