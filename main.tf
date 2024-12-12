@@ -93,7 +93,13 @@ resource "azuread_service_principal" "admin_api_service_principal" {
   app_role_assignment_required = false
 }
 
-resource "azurerm_role_assignment" "admin_api_role_assignment" {
+resource "azurerm_role_assignment" "allow_admin_api_to_read_storage_account_keys" {
+  scope                = data.azurerm_storage_account.storage_account.id
+  role_definition_name = "Storage Account Key Operator Service Role"
+  principal_id         = azuread_service_principal.admin_api_service_principal.object_id
+}
+
+resource "azurerm_role_assignment" "allow_admin_api_to_read_and_write_storage_container" {
   scope                = data.azurerm_storage_container.storage_container.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azuread_service_principal.admin_api_service_principal.object_id
@@ -148,16 +154,20 @@ resource "azuread_service_principal" "admin_spa_service_principal" {
   app_role_assignment_required = false
 }
 
-resource "azuread_application_pre_authorized" "admin_spa_pre_authorized" {
+resource "azuread_application_pre_authorized" "allow_admin_spa_to_access_admin_api" {
   application_id       = azuread_application.admin_api.id
   authorized_client_id = azuread_application.admin_spa.client_id
   permission_ids       = [random_uuid.admin_api_card_deck_read_scope_id.result, random_uuid.admin_api_card_deck_write_scope_id.result]
 }
 
-resource "azuread_service_principal_delegated_permission_grant" "openid_profile_grant" {
+resource "azuread_service_principal_delegated_permission_grant" "allow_admin_spa_to_access_msgraph_user_profile" {
   service_principal_object_id          = azuread_service_principal.admin_spa_service_principal.object_id
   resource_service_principal_object_id = azuread_service_principal.msgraph.object_id
   claim_values                         = ["openid", "User.Read"]
+}
+
+output "subscription_id" {
+  value = data.azurerm_client_config.current.subscription_id
 }
 
 output "tenant_id" {

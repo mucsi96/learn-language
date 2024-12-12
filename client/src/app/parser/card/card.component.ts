@@ -1,9 +1,4 @@
-import {
-  Component,
-  inject,
-  linkedSignal,
-  signal,
-} from '@angular/core';
+import { Component, inject, linkedSignal, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -78,7 +73,7 @@ export class CardComponent {
       try {
         const word = await queryParamToObject<Word>(params['cardData']);
         this.wordService.selectWord(word);
-        await Promise.all(
+        const urls = await Promise.all(
           word.examples.map((example, index) =>
             this.wordService.createImage({
               id: word.id,
@@ -87,15 +82,7 @@ export class CardComponent {
             })
           )
         );
-        this.exampleImages.set(
-          await Promise.all(
-            word.examples.map((_, index) =>
-              this.wordService.getImageBlobUrl(
-                `/api/image/${word.id}-${index}.png`
-              )
-            )
-          )
-        );
+        this.exampleImages.set(urls);
       } catch (error) {
         console.error(error);
       }

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Response
-from blob_storage import upload_blob, fetch_blob, blob_exists
+from blob_storage import upload_blob, fetch_blob, blob_exists, generate_sas_token
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
@@ -88,11 +88,15 @@ async def get_image(imageSource: ImageSource):
         imageSource.id}-{imageSource.index}.png"
 
     if not imageSource.override and blob_exists(blob_url):
-        return {}
+        return {
+            'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+        }
 
     data = generate_image(imageSource.input)
     upload_blob(data, blob_url)
-    return {}
+    return {
+        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+    }
 
 
 @router.post("/api/speech", dependencies=[is_card_deck_writer])
@@ -101,22 +105,12 @@ async def get_speech(speechSource: SpeechSource):
         speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
 
     if not speechSource.override and blob_exists(blob_url):
-        return {}
+        return {
+            'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+        }
 
     data = generate_speech(speechSource.input)
-    upload_blob(data, blob_url)
-    return {}
-
-
-@router.get("/api/image/{file_name}", dependencies=[is_card_deck_reader])
-async def proxy_image_request(file_name: str):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
-    blob_data = fetch_blob(blob_url)
-    return Response(content=blob_data, media_type="image/png")
-
-
-@router.get("/api/speech/{file_name}", dependencies=[is_card_deck_reader])
-async def proxy_speech_request(file_name: str):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{file_name}"
-    blob_data = fetch_blob(blob_url)
-    return Response(content=blob_data, media_type="audio/mpeg")
+    url = upload_blob(data, blob_url)
+    return {
+        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+    }

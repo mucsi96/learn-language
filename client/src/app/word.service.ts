@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, resource, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
 import { ImageSource, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 
@@ -48,17 +47,12 @@ export class WordService {
     );
   }
 
-  async getImageBlobUrl(imageUrl: string): Promise<string> {
-    const response = await firstValueFrom(
-      this.http.get(imageUrl, { responseType: 'blob' })
-    );
-    return URL.createObjectURL(response);
-  }
-
-  createImage(imageSource: ImageSource) {
-    return fetchJson(this.http, `/api/image`, {
-      body: imageSource,
-      method: 'POST',
-    });
+  async createImage(imageSource: ImageSource) {
+    return (
+      await fetchJson<{ url: string }>(this.http, `/api/image`, {
+        body: imageSource,
+        method: 'POST',
+      })
+    ).url;
   }
 }
