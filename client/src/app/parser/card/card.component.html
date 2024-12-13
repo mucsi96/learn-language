@@ -52,7 +52,13 @@
       [(ngModel)]="examplesTranslations['ch'][$index]"
     />
   </mat-form-field>
-  <img src="{{ exampleImages.value()?.[$index] }}" class="image" />
+  <button (click)="exampleImages()[$index].reload()" class="image">
+    @if (exampleImages()[$index].isLoading()) {
+    <div class="skeleton"></div>
+    } @else {
+    <img src="{{ exampleImages()[$index].value() }}" />
+    }
+  </button>
   }
 </div>
 } }

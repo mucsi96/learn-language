@@ -3,8 +3,11 @@ import {
   computed,
   inject,
   Injectable,
+  Injector,
   linkedSignal,
   resource,
+  ResourceRef,
+  ResourceStatus,
   signal,
 } from '@angular/core';
 import { Translation, Word } from './parser/types';
@@ -17,6 +20,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
 })
 export class CardService {
   private readonly http = inject(HttpClient);
+  private readonly injector = inject(Injector);
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly type = signal('');
   readonly word = linkedSignal(() => this.selectedWord()?.word);
@@ -74,37 +78,33 @@ export class CardService {
       ])
     );
   });
-  readonly exampleImages = resource<
-    string[],
-    { id?: string; examples?: string[] }
-  >({
-    request: () => ({
-      id: this.selectedWord()?.id,
-      examples: this.selectedWord()?.examples,
-    }),
-    loader: async ({ request: { id, examples } }) => {
-      if (!id || !examples) {
-        return [];
-      }
-
-      return await Promise.all(
-        examples.map(async (example, index) => {
-          const { url } = await fetchJson<{ url: string }>(
-            this.http,
-            `/api/image`,
-            {
-              body: { id, input: example, index },
-              method: 'POST',
-            }
-          );
-          return url;
-        })
-      );
-    },
-  });
+  readonly exampleImages = signal<ResourceRef<string>[]>([]);
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
+    this.exampleImages.set(
+      word.examples.map((example, index) =>
+        resource<string, unknown>({
+          injector: this.injector,
+          loader: async ({ previous }) => {
+            const { url } = await fetchJson<{ url: string }>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  id: word.id,
+                  input: example,
+                  index,
+                  override: previous.status !== ResourceStatus.Idle,
+                },
+                method: 'POST',
+              }
+            );
+            return url;
+          },
+        })
+      )
+    );
   }
 
   get isLoading() {
