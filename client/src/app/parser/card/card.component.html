@@ -30,7 +30,7 @@
 </div>
 <h5>Examples</h5>
 @for (example of examples(); track $index) {
-<div class="examples">
+<div class="example">
   <mat-form-field class="field">
     <mat-label>German</mat-label>
     <input matInput type="text" [(ngModel)]="example" />
@@ -52,7 +52,7 @@
       [(ngModel)]="examplesTranslations['ch'][$index]"
     />
   </mat-form-field>
-  <img src="{{ exampleImages()?.[$index] }}" class="image" />
+  <img src="{{ exampleImages.value()?.[$index] }}" class="image" />
   }
 </div>
 } }

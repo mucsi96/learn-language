@@ -1,4 +1,11 @@
-import { Component, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  linkedSignal,
+  resource,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -6,9 +13,10 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { languages, WordService } from '../../word.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
+import { injectParams } from '../../utils/inject-params';
 
 @Component({
   selector: 'app-card',
@@ -27,10 +35,19 @@ import { Word } from '../types';
 export class CardComponent {
   private readonly wordService = inject(WordService);
   private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly data = this.wordService.selectedWord;
+  private readonly cardData = injectParams<string>('cardData');
+  private readonly data = resource<Word, { cardData: string | Params | null }>({
+    request: () => ({ cardData: this.cardData() }),
+    loader: ({ request: { cardData } }) => {
+      if (typeof cardData !== 'string') {
+        throw new Error('Invalid card data');
+      }
+      return queryParamToObject(cardData);
+    },
+  });
   readonly loading = this.wordService.isLoading;
   readonly type = signal('');
-  readonly word = linkedSignal(() => this.data()?.word);
+  readonly word = linkedSignal(() => this.data.value()?.word);
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
@@ -40,13 +57,13 @@ export class CardComponent {
     ])
   );
   readonly forms = linkedSignal(() =>
-    this.data()?.forms.map((form) => signal(form))
+    this.data.value()?.forms.map((form) => signal(form))
   );
   readonly examples = linkedSignal(() =>
-    this.data()?.examples.map((example) => signal(example))
+    this.data.value()?.examples.map((example) => signal(example))
   );
   readonly examplesTranslations = linkedSignal(() => {
-    const examples = this.data()?.examples;
+    const examples = this.data.value()?.examples;
 
     if (!examples) {
       return;
@@ -66,26 +83,35 @@ export class CardComponent {
       ])
     );
   });
-  readonly exampleImages = signal<string[] | undefined>(undefined);
+  readonly exampleImages = resource<
+    string[],
+    { id?: string; examples?: string[] }
+  >({
+    request: () => ({
+      id: this.data.value()?.id,
+      examples: this.examples()?.map((example) => example()),
+    }),
+    loader: async ({ request: { id, examples } }) => {
+      if (!id || !examples) {
+        return [];
+      }
+
+      return await Promise.all(
+        examples.map((example, index) =>
+          this.wordService.createImage({
+            id,
+            input: example,
+            index,
+          })
+        )
+      );
+    },
+  });
 
   constructor() {
-    this.activatedRoute.params.subscribe(async (params) => {
-      try {
-        const word = await queryParamToObject<Word>(params['cardData']);
-        this.wordService.selectWord(word);
-        const urls = await Promise.all(
-          word.examples.map((example, index) =>
-            this.wordService.createImage({
-              id: word.id,
-              input: example,
-              index,
-            })
-          )
-        );
-        this.exampleImages.set(urls);
-      } catch (error) {
-        console.error(error);
-      }
+    effect(() => {
+      const word = this.data.value();
+      word && this.wordService.selectWord(word);
     });
   }
 }

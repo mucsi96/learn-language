@@ -8,11 +8,17 @@
 }
 
 .word,
-.forms,
-.examples {
+.forms {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: 1rem;
+}
+
+.example {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 1rem;
+  margin-bottom: 10px;
 }
 
 .page-loading {
@@ -22,5 +28,7 @@
 .image {
   width: 300px;
   display: block;
+  grid-row: 1 / span 3;
+  grid-column: 1;
   margin-bottom: 20px;
 }
