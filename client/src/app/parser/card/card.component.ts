@@ -13,7 +13,7 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { languages, WordService } from '../../word.service';
-import { ActivatedRoute, Params } from '@angular/router';
+import { Params } from '@angular/router';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
 import { injectParams } from '../../utils/inject-params';
@@ -34,20 +34,10 @@ import { injectParams } from '../../utils/inject-params';
 })
 export class CardComponent {
   private readonly wordService = inject(WordService);
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly cardData = injectParams<string>('cardData');
-  private readonly data = resource<Word, { cardData: string | Params | null }>({
-    request: () => ({ cardData: this.cardData() }),
-    loader: ({ request: { cardData } }) => {
-      if (typeof cardData !== 'string') {
-        throw new Error('Invalid card data');
-      }
-      return queryParamToObject(cardData);
-    },
-  });
   readonly loading = this.wordService.isLoading;
   readonly type = signal('');
-  readonly word = linkedSignal(() => this.data.value()?.word);
+  readonly word = linkedSignal(() => this.wordService.selectedWord()?.word);
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
@@ -57,13 +47,13 @@ export class CardComponent {
     ])
   );
   readonly forms = linkedSignal(() =>
-    this.data.value()?.forms.map((form) => signal(form))
+    this.wordService.selectedWord()?.forms.map((form) => signal(form))
   );
   readonly examples = linkedSignal(() =>
-    this.data.value()?.examples.map((example) => signal(example))
+    this.wordService.selectedWord()?.examples.map((example) => signal(example))
   );
   readonly examplesTranslations = linkedSignal(() => {
-    const examples = this.data.value()?.examples;
+    const examples = this.wordService.selectedWord()?.examples;
 
     if (!examples) {
       return;
@@ -88,7 +78,7 @@ export class CardComponent {
     { id?: string; examples?: string[] }
   >({
     request: () => ({
-      id: this.data.value()?.id,
+      id: this.wordService.selectedWord()?.id,
       examples: this.examples()?.map((example) => example()),
     }),
     loader: async ({ request: { id, examples } }) => {
@@ -109,9 +99,15 @@ export class CardComponent {
   });
 
   constructor() {
-    effect(() => {
-      const word = this.data.value();
-      word && this.wordService.selectWord(word);
+    effect(async () => {
+      const cardData = this.cardData();
+
+      if (typeof cardData !== 'string') {
+        return;
+      }
+
+      const word = await queryParamToObject<Word>(cardData);
+      this.wordService.selectWord(word);
     });
   }
 }
