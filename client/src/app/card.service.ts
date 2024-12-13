@@ -16,9 +16,8 @@ export const languages = ['hu', 'ch', 'en'] as const;
   providedIn: 'root',
 })
 export class CardService {
-  readonly selectedWord = signal<Word | undefined>(undefined);
   private readonly http = inject(HttpClient);
-
+  readonly selectedWord = signal<Word | undefined>(undefined);
   readonly type = signal('');
   readonly word = linkedSignal(() => this.selectedWord()?.word);
   readonly translationMap = Object.fromEntries(
