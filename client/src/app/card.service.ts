@@ -78,28 +78,37 @@ export class CardService {
       ])
     );
   });
-  readonly exampleImages = signal<ResourceRef<string>[]>([]);
+  readonly exampleImages = signal<ResourceRef<string | undefined>[]>([]);
+  private exampleImagesReload: boolean[] = [];
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
+    this.exampleImagesReload = word.examples.map(() => false);
     this.exampleImages.set(
-      word.examples.map((example, index) =>
-        resource<string, unknown>({
+      word.examples.map((_, index) =>
+        resource<string | undefined, { englishTranslation?: string }>({
           injector: this.injector,
-          loader: async ({ previous }) => {
+          request: () => ({
+            englishTranslation: this.examplesTranslations()?.['en'][index](),
+          }),
+          loader: async ({ request: { englishTranslation } }) => {
+            if (!englishTranslation) {
+              return;
+            }
             const { url } = await fetchJson<{ url: string }>(
               this.http,
               `/api/image`,
               {
                 body: {
                   id: word.id,
-                  input: example,
+                  input: englishTranslation,
                   index,
-                  override: previous.status !== ResourceStatus.Idle,
+                  override: this.exampleImagesReload[index],
                 },
                 method: 'POST',
               }
             );
+            this.exampleImagesReload[index] = true;
             return url;
           },
         })
