@@ -1,4 +1,7 @@
-- Add card data to the database.  
+- Display card as green in case it's already in db
+- Update card if it's already in db
+- Add card deletion
+- Add example image urls to db
 - Complete the missing verb forms for the A2 level.  
 - add error handling on UI
 

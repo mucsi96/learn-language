@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-
 class Word(BaseModel):
     id: str
     word: str
@@ -19,3 +18,11 @@ class SpeechSource(BaseModel):
     language: str
     index: int
     override: bool = False
+
+class CardCreate(BaseModel):
+    id: str
+    word: str
+    type: str
+    translation: dict[str, str]
+    forms: list[str]
+    examples: list[dict[str, str]]

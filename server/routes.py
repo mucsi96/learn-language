@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, Request, Response
-from blob_storage import upload_blob, fetch_blob, blob_exists, generate_sas_token
+from fastapi import APIRouter, HTTPException, Request, Depends
+from blob_storage import upload_blob, blob_exists, generate_sas_token
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
 from services.translate import translate
-from models import ImageSource, SpeechSource, Word
-from auth import is_card_deck_writer, is_card_deck_reader
+from models import ImageSource, SpeechSource, Word, CardCreate
+from auth import is_card_deck_writer
 from services.word_type import detect_word_type
+from database import Card, get_db
 
 router = APIRouter()
 
@@ -120,3 +121,10 @@ async def get_speech(speechSource: SpeechSource):
 @router.post("/api/word-type", dependencies=[is_card_deck_writer])
 async def get_word_type(word: Word):
     return detect_word_type(word)
+
+
+@router.post("/api/card", dependencies=[is_card_deck_writer])
+async def create_card(card: CardCreate, db = Depends(get_db)):
+    db.add(Card(id=card.id, data=card.model_dump()))
+    db.commit()
+    return {}

@@ -48,4 +48,8 @@ export class CardComponent {
       this.cardService.selectWord(word);
     });
   }
+
+  createCard() {
+    this.cardService.createCard();
+  }
 }

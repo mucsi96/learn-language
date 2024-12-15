@@ -7,7 +7,7 @@ import {
   linkedSignal,
   resource,
   ResourceRef,
-  signal
+  signal,
 } from '@angular/core';
 import { Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
@@ -21,7 +21,6 @@ export class CardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   readonly selectedWord = signal<Word | undefined>(undefined);
-  readonly type = signal('');
   readonly word = linkedSignal(() => this.selectedWord()?.word);
   readonly wordType = resource<string | undefined, { word?: Word }>({
     request: () => ({ word: this.selectedWord() }),
@@ -139,5 +138,39 @@ export class CardService {
         translation.isLoading()
       )
     );
+  }
+
+  async createCard() {
+    const word = this.selectedWord();
+    if (!word) {
+      return;
+    }
+
+    const cardData = {
+      id: word.id,
+      word: word.word,
+      type: this.wordType.value(),
+      translation: Object.fromEntries(
+        languages.map((languageCode) => [
+          languageCode,
+          this.translation[languageCode](),
+        ])
+      ),
+      forms: this.forms()?.map((form) => form()),
+      examples: this.examples()?.map((example, index) => {
+        return Object.fromEntries([
+          ['de', example()],
+          ...languages.map((languageCode) => [
+            languageCode,
+            this.examplesTranslations()?.[languageCode][index](),
+          ]),
+        ]);
+      }),
+    };
+
+    await fetchJson(this.http, `/api/card`, {
+      body: cardData,
+      method: 'POST',
+    });
   }
 }

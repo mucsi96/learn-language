@@ -3,6 +3,11 @@
   gap: 1rem;
 }
 
+.title {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
 .field {
   width: 100%;
 }
