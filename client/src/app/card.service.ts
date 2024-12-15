@@ -7,8 +7,7 @@ import {
   linkedSignal,
   resource,
   ResourceRef,
-  ResourceStatus,
-  signal,
+  signal
 } from '@angular/core';
 import { Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
@@ -24,6 +23,24 @@ export class CardService {
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly type = signal('');
   readonly word = linkedSignal(() => this.selectedWord()?.word);
+  readonly wordType = resource<string | undefined, { word?: Word }>({
+    request: () => ({ word: this.selectedWord() }),
+    loader: async ({ request: { word } }) => {
+      if (!word) {
+        return;
+      }
+
+      const { type } = await fetchJson<{ type: string }>(
+        this.http,
+        `/api/word-type`,
+        {
+          body: word,
+          method: 'POST',
+        }
+      );
+      return type;
+    },
+  });
   readonly translationMap = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,

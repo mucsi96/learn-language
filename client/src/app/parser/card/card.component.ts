@@ -5,9 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CardService } from '../../card.service';
 import { injectParams } from '../../utils/inject-params';
 import { queryParamToObject } from '../../utils/queryCompression';
-import { CardService } from '../../card.service';
 import { Word } from '../types';
 
 @Component({
@@ -29,7 +29,7 @@ export class CardComponent {
   private readonly cardData = injectParams<string>('cardData');
   readonly loading = this.cardService.isLoading;
   readonly word = this.cardService.word;
-  readonly type = this.cardService.type;
+  readonly type = this.cardService.wordType;
   readonly translation = this.cardService.translation;
   readonly forms = this.cardService.forms;
   readonly examples = this.cardService.examples;

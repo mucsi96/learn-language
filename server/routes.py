@@ -6,6 +6,7 @@ from services.pdf_parser import get_area_words, process_document
 from services.translate import translate
 from models import ImageSource, SpeechSource, Word
 from auth import is_card_deck_writer, is_card_deck_reader
+from services.word_type import detect_word_type
 
 router = APIRouter()
 
@@ -110,7 +111,12 @@ async def get_speech(speechSource: SpeechSource):
         }
 
     data = generate_speech(speechSource.input)
-    url = upload_blob(data, blob_url)
+    upload_blob(data, blob_url)
     return {
         'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
     }
+
+
+@router.post("/api/word-type", dependencies=[is_card_deck_writer])
+async def get_word_type(word: Word):
+    return detect_word_type(word)

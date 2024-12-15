@@ -14,7 +14,7 @@ def generate_image(input: str):
     makedirs(root_dir / "images", exist_ok=True)
     response = client.images.generate(
         model="dall-e-3",
-        prompt=input,
+        prompt="Design a photorealistic, visually appealing, and modern image to illustrate the following example sentence: " + input,
         size="1024x1024",
         quality="hd",
         style="natural",

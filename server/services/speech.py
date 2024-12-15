@@ -3,7 +3,6 @@ from os import environ, makedirs
 from pathlib import Path
 
 from openai import OpenAI
-from models import Word
 import random
 
 client = OpenAI(
