@@ -39,7 +39,7 @@ async def get_sources():
 
 
 @router.get("/api/source/{source_id}/page/{page_number}", dependencies=[is_card_deck_writer])
-async def get_page(source_id: str, page_number: int):
+async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
     try:
         source = next((src for src in sources if src['id'] == source_id), None)
         if source is None:
@@ -49,6 +49,12 @@ async def get_page(source_id: str, page_number: int):
             status_code=404, detail="Source index out of range")
 
     result = process_document(source['blob_url'], page_number)
+    ids = [word['id'] for word in result['spans']]
+    cards = db.query(Card).filter(Card.id.in_(ids)).all()
+    result['spans'] = list(map(lambda span: {
+        **span,
+        **({'exists': True} if any(card.id == span['id'] for card in cards) else {})
+    }, result['spans']))
     result['number'] = page_number
     result['sourceId'] = source_id
     result['sourceName'] = source['name']
@@ -124,7 +130,7 @@ async def get_word_type(word: Word):
 
 
 @router.post("/api/card", dependencies=[is_card_deck_writer])
-async def create_card(card: CardCreate, db = Depends(get_db)):
+async def create_card(card: CardCreate, db=Depends(get_db)):
     db.add(Card(id=card.id, data=card.model_dump()))
     db.commit()
     return {}

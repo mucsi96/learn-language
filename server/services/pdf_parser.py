@@ -4,6 +4,7 @@ from fastapi import HTTPException
 import fitz
 from fitz import Page
 from blob_storage import fetch_blob
+from services.word_id import word_id
 from services.ai_parser import parse
 import os
 import tempfile
@@ -86,7 +87,8 @@ def map_span(page_width: float):
                 'width': (bbox[2] - bbox[0]) / page_width,
                 'height': (bbox[3] - bbox[1]) / page_width,
             },
-            'searchTerm': search_term
+            'id': word_id(item['text']),
+            'searchTerm': search_term,
         }
     return mapper
 

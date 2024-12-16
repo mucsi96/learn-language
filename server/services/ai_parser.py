@@ -1,12 +1,8 @@
 from base64 import b64encode
 import json
-import re
 from langchain_core.messages import HumanMessage
 from llm import llm
-
-
-def word_id(word: str) -> str:
-    return re.split(r'\s?[,/(-]', word)[0].strip().lower().replace(' ', '-')
+from services.word_id import word_id
 
 
 def parse(image_bytes: bytes) -> dict:

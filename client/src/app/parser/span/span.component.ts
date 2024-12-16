@@ -30,6 +30,7 @@ export class SpanComponent {
   @Input() color?: string;
   @Input() bbox?: BBox;
   @Input() searchTerm?: string;
+  @Input() exists?: boolean;
   @Input() wordList?: WordList;
   readonly dialog = inject(MatDialog);
 
@@ -65,6 +66,10 @@ export class SpanComponent {
 
   @HostBinding('style.height') get height() {
     return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
+  }
+
+  @HostBinding('class.exists') get existsClass() {
+    return !!this.exists;
   }
 
   get cardHrefPrefix() {

@@ -10,10 +10,10 @@
   }
 
   .word:not(button) {
-    border: 1px solid darkslategray;
+    border: 1px solid var(--border, darkslategray);
   }
-}
 
-.tooltip {
-  white-space: pre;
+  &.exists {
+    --border: hsl(111, 32%, 66%);
+  }
 }
