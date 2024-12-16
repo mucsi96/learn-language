@@ -3,6 +3,6 @@
 - Add example image urls to db
 - Complete the missing verb forms for the A2 level.  
 - add error handling on UI
-
-- Enable copying example sentences to the clipboard with a click.  
-- Add functionality for handling source data.  
+- Add sources to db
+- Remember last visited source page using db
+- Enable text selection without interfearing with draggign 
