@@ -28,6 +28,7 @@ export class CardComponent {
   private readonly cardService = inject(CardService);
   private readonly cardData = injectParams<string>('cardData');
   readonly loading = this.cardService.isLoading;
+  readonly card = this.cardService.card.value;
   readonly word = this.cardService.word;
   readonly type = this.cardService.wordType;
   readonly translation = this.cardService.translation;
@@ -51,5 +52,9 @@ export class CardComponent {
 
   createCard() {
     this.cardService.createCard();
+  }
+
+  updateCard() {
+
   }
 }

@@ -1,3 +1,5 @@
+- Close window after card creation
+- Add a loding state for card creation
 - Update card if it's already in db
 - Add card deletion
 - Add example image urls to db

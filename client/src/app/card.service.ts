@@ -9,7 +9,7 @@ import {
   ResourceRef,
   signal,
 } from '@angular/core';
-import { Translation, Word } from './parser/types';
+import { Card, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 
 export const languages = ['hu', 'ch', 'en'] as const;
@@ -21,12 +21,26 @@ export class CardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   readonly selectedWord = signal<Word | undefined>(undefined);
-  readonly word = linkedSignal(() => this.selectedWord()?.word);
-  readonly wordType = resource<string | undefined, { word?: Word }>({
-    request: () => ({ word: this.selectedWord() }),
-    loader: async ({ request: { word } }) => {
-      if (!word) {
+  readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
+    request: () => ({ selectedWord: this.selectedWord() }),
+    loader: async ({ request: { selectedWord } }) => {
+      if (!selectedWord || !selectedWord.exists) {
         return;
+      }
+
+      return fetchJson<Card>(this.http, `/api/card/${selectedWord.id}`);
+    },
+  });
+  readonly word = linkedSignal(() => this.selectedWord()?.word);
+  readonly wordType = resource<string | undefined, { word?: Word, card?: Card }>({
+    request: () => ({ word: this.selectedWord(), card: this.card.value() }),
+    loader: async ({ request: { word, card } }) => {
+      if (!word || word.exists && !card) {
+        return;
+      }
+
+      if (card) {
+        return card.type;
       }
 
       const { type } = await fetchJson<{ type: string }>(
@@ -43,11 +57,18 @@ export class CardService {
   readonly translationMap = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
-      resource<Translation | undefined, { selectedWord: Word | undefined }>({
-        request: () => ({ selectedWord: this.selectedWord() }),
-        loader: async ({ request: { selectedWord } }) => {
-          if (!selectedWord) {
+      resource<Translation | undefined, { selectedWord?: Word, card?: Card }>({
+        request: () => ({ selectedWord: this.selectedWord(), card: this.card.value() }),
+        loader: async ({ request: { selectedWord, card } }) => {
+          if (!selectedWord || selectedWord.exists && !card) {
             return;
+          }
+
+          if (card) {
+            return {
+              translation: card.translation?.[languageCode],
+              examples: card.examples?.map((example) => example[languageCode]),
+            }
           }
 
           return fetchJson<Translation>(
@@ -88,7 +109,7 @@ export class CardService {
         languageCode,
         examples.map((_, index) =>
           linkedSignal(
-            () => this.translationMap[languageCode].value()?.examples[index]
+            () => this.translationMap[languageCode].value()?.examples?.[index]
           )
         ),
       ])
@@ -166,7 +187,7 @@ export class CardService {
           ]),
         ]);
       }),
-    };
+    } satisfies Card;
 
     await fetchJson(this.http, `/api/card`, {
       body: cardData,

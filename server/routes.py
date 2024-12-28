@@ -5,7 +5,7 @@ from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
 from services.translate import translate
 from models import ImageSource, SpeechSource, Word, CardCreate
-from auth import is_card_deck_writer
+from auth import is_card_deck_writer, is_card_deck_reader
 from services.word_type import detect_word_type
 from database import Card, get_db
 
@@ -62,7 +62,7 @@ async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
 
 
 @router.get("/api/source/{source_id}/page/{page_number}/words", dependencies=[is_card_deck_writer])
-async def get_words(source_id: str, page_number: int, request: Request):
+async def get_words(source_id: str, page_number: int, request: Request, db=Depends(get_db)):
     source = next((src for src in sources if src['id'] == source_id), None)
     if source is None:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -82,7 +82,14 @@ async def get_words(source_id: str, page_number: int, request: Request):
         raise HTTPException(
             status_code=400, detail="Invalid rectangle coordinates")
 
-    return get_area_words(source['blob_url'], page_number, x, y, width, height)
+    area_words = get_area_words(source['blob_url'], page_number, x, y, width, height)
+    ids = [word['id'] for word in area_words['words']]
+    cards = db.query(Card).filter(Card.id.in_(ids)).all()
+    area_words['words'] = list(map(lambda word: {
+        **word,
+        **({'exists': True} if any(card.id == word['id'] for card in cards) else {})
+    }, area_words['words']))
+    return area_words
 
 
 @router.post("/api/translate/{language_code}", dependencies=[is_card_deck_writer])
@@ -128,6 +135,13 @@ async def get_speech(speechSource: SpeechSource):
 async def get_word_type(word: Word):
     return detect_word_type(word)
 
+
+@router.get("/api/card/{card_id}", dependencies=[is_card_deck_reader])
+async def get_card(card_id: str, db=Depends(get_db)):
+    card = db.query(Card).filter(Card.id == card_id).first()
+    if card is None:
+        raise HTTPException(status_code=404, detail="Card not found")
+    return card.data
 
 @router.post("/api/card", dependencies=[is_card_deck_writer])
 async def create_card(card: CardCreate, db=Depends(get_db)):

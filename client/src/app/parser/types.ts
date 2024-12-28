@@ -1,7 +1,7 @@
 export type Profile = {
   name: string;
   initials: string;
-}
+};
 
 export type BBox = {
   x: number;
@@ -26,6 +26,16 @@ export type Word = {
   word: string;
   forms: string[];
   examples: string[];
+  exists?: boolean;
+};
+
+export type Card = {
+  id: string;
+  word: string;
+  type?: string;
+  translation?: Record<string, string | undefined>;
+  forms?: string[];
+  examples?: Record<string, string | undefined>[];
 };
 
 export type Page = {
@@ -51,8 +61,8 @@ export type WordList = {
 };
 
 export type Translation = {
-  translation: string;
-  examples: string[];
+  translation?: string;
+  examples?: (string | undefined)[];
 };
 
 export type ImageSource = {
@@ -60,4 +70,3 @@ export type ImageSource = {
   input: string;
   index: number;
 };
-
