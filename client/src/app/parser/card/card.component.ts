@@ -50,8 +50,9 @@ export class CardComponent {
     });
   }
 
-  createCard() {
-    this.cardService.createCard();
+  async createCard() {
+    await this.cardService.createCard();
+    window.close();
   }
 
   updateCard() {
