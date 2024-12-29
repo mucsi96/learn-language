@@ -5,11 +5,11 @@ from sqlalchemy.schema import CreateSchema
 from sqlalchemy import event
 from urllib.parse import quote_plus
 
-username = quote_plus(environ.get("DEMO_DB_USERNAME"))
-password = quote_plus(environ.get("DEMO_DB_PASSWORD"))
+username = quote_plus(environ.get("DB_USERNAME"))
+password = quote_plus(environ.get("DB_PASSWORD"))
 
 engine = create_engine(
-    f"postgresql+psycopg://{username}:{password}@localhost:8484/demo", echo=True)
+    f"postgresql+psycopg://{username}:{password}@localhost:8484/db", echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
