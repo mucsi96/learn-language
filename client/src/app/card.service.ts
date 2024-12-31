@@ -34,7 +34,9 @@ export class CardService {
       return fetchJson<Card>(this.http, `/api/card/${selectedWord.id}`);
     },
   });
-  readonly word = linkedSignal(() => this.selectedWord()?.word);
+  readonly word = linkedSignal(
+    () => this.card.value()?.word ?? this.selectedWord()?.word
+  );
   readonly wordType = resource<
     string | undefined,
     { word?: Word; card?: Card }
@@ -101,10 +103,14 @@ export class CardService {
     ])
   );
   readonly forms = linkedSignal(() =>
-    this.selectedWord()?.forms.map((form) => signal(form))
+    (this.card.value() ?? this.selectedWord())?.forms?.map((form) =>
+      signal(form)
+    )
   );
-  readonly examples = linkedSignal(() =>
-    this.selectedWord()?.examples.map((example) => signal(example))
+  readonly examples = linkedSignal(
+    () =>
+      this.card.value()?.examples?.map((example) => signal(example['de'])) ??
+      this.selectedWord()?.examples.map((example) => signal(example))
   );
   readonly examplesTranslations = linkedSignal(() => {
     const examples = this.selectedWord()?.examples;
@@ -172,15 +178,17 @@ export class CardService {
     );
   }
 
-  async createCard() {
+  getCardData() {
     const word = this.selectedWord();
-    if (!word) {
+    const wordText = this.word();
+
+    if (!word || !wordText) {
       return;
     }
 
     const cardData = {
       id: word.id,
-      word: word.word,
+      word: wordText,
       type: this.wordType.value(),
       translation: Object.fromEntries(
         languages.map((languageCode) => [
@@ -199,10 +207,26 @@ export class CardService {
         ]);
       }),
     } satisfies Card;
+    return cardData;
+  }
 
+  async createCard() {
     await fetchJson(this.http, `/api/card`, {
-      body: cardData,
+      body: this.getCardData(),
       method: 'POST',
+    });
+  }
+
+  async updateCard() {
+    const word = this.selectedWord();
+
+    if (!word) {
+      return;
+    }
+
+    await fetchJson(this.http, `/api/card/${word.id}`, {
+      body: this.getCardData(),
+      method: 'PUT',
     });
   }
 }

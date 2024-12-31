@@ -55,7 +55,8 @@ export class CardComponent {
     window.close();
   }
 
-  updateCard() {
-
+  async updateCard() {
+    await this.cardService.updateCard();
+    window.close();
   }
 }

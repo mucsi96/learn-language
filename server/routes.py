@@ -148,3 +148,21 @@ async def create_card(card: CardCreate, db=Depends(get_db)):
     db.add(Card(id=card.id, data=card.model_dump()))
     db.commit()
     return {}
+
+@router.put("/api/card/{card_id}", dependencies=[is_card_deck_writer])
+async def update_card(card_id: str, card: CardCreate, db=Depends(get_db)):
+    existing_card = db.query(Card).filter(Card.id == card_id).first()
+    if existing_card is None:
+        raise HTTPException(status_code=404, detail="Card not found")
+    existing_card.data = card.model_dump()
+    db.commit()
+    return {"detail": "Card updated successfully"}
+
+@router.delete("/api/card/{card_id}", dependencies=[is_card_deck_writer])
+async def delete_card(card_id: str, db=Depends(get_db)):
+    card = db.query(Card).filter(Card.id == card_id).first()
+    if card is None:
+        raise HTTPException(status_code=404, detail="Card not found")
+    db.delete(card)
+    db.commit()
+    return {"detail": "Card deleted successfully"}
