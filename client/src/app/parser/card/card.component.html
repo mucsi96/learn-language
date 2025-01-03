@@ -3,13 +3,12 @@
 } @else {
 <h5 class="title">
   Word @if (card()) {
-  <button type="button" mat-flat-button (click)="updateCard()">
-    Update card
+  <button mat-flat-button color="red" (click)="confirmDeleteCard()">
+    Delete
   </button>
+  <button type="button" mat-flat-button (click)="updateCard()">Update</button>
   } @else {
-  <button type="button" mat-flat-button (click)="createCard()">
-    Create card
-  </button>
+  <button type="button" mat-flat-button (click)="createCard()">Create</button>
   }
 </h5>
 <mat-form-field class="field">

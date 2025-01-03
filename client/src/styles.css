@@ -34,6 +34,17 @@ html {
   --mdc-text-button-label-text-color: hsl(217, 93%, 72%);
 }
 
+mat-snack-bar-container.success {
+  --mdc-snackbar-container-color: hsl(145, 78%, 68%);
+  --mdc-snackbar-supporting-text-color: hsl(145, 100%, 14%);
+  --mdc-snackbar-container-shape: 0.5rem;
+}
+
+button[color="red"] {
+  --mdc-filled-button-container-color: hsl(0, 75%, 51%);
+  --mat-filled-button-state-layer-color: hsl(0, 74%, 45%);
+}
+
 body {
   margin: 0;
   background-color: var(--mat-app-background-color);

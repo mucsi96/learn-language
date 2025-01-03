@@ -229,4 +229,16 @@ export class CardService {
       method: 'PUT',
     });
   }
+
+  async deleteCard() {
+    const word = this.selectedWord();
+
+    if (!word) {
+      return;
+    }
+
+    await fetchJson(this.http, `/api/card/${word.id}`, {
+      method: 'DELETE',
+    });
+  }
 }
