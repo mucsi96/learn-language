@@ -34,10 +34,19 @@ html {
   --mdc-text-button-label-text-color: hsl(217, 93%, 72%);
 }
 
-mat-snack-bar-container.success {
-  --mdc-snackbar-container-color: hsl(145, 78%, 68%);
-  --mdc-snackbar-supporting-text-color: hsl(145, 100%, 14%);
+mat-snack-bar-container {
   --mdc-snackbar-container-shape: 0.5rem;
+  --mat-snack-bar-button-color: var(--mdc-snackbar-supporting-text-color);
+
+  &.success {
+    --mdc-snackbar-container-color: hsl(145, 78%, 68%);
+    --mdc-snackbar-supporting-text-color: hsl(145, 100%, 14%);
+  }
+
+  &.error {
+    --mdc-snackbar-container-color: hsl(0, 96%, 77%);
+    --mdc-snackbar-supporting-text-color: hsl(0, 74%, 16%);
+  }
 }
 
 button[color="red"] {

@@ -1,5 +1,4 @@
 - Complete the missing verb forms for the A2 level.  
-- add error handling on UI
 - Add sources to db
 - Remember last visited source page using db
 - Enable text selection without interfearing with draggign 

@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import {
   HTTP_INTERCEPTORS,
   provideHttpClient,
+  withInterceptors,
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import {
@@ -30,6 +31,7 @@ import {
 } from '@azure/msal-browser';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment.development';
+import { errorInterceptor } from './utils/error.interceptor';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
@@ -44,7 +46,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(
+      withInterceptorsFromDi(),
+      withInterceptors([errorInterceptor])
+    ),
     { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
     provideAnimationsAsync(),
     {
