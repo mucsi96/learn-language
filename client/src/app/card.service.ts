@@ -155,7 +155,7 @@ export class CardService {
               return;
             }
 
-            const imageUrl = word.exists && this.getImageUrl(index);
+            const imageUrl = word.exists && !this.exampleImagesReload[index] && this.getImageUrl(index);
 
             if (imageUrl) {
               const { url } = await fetchJson<{ url: string }>(
