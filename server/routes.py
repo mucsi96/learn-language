@@ -113,6 +113,12 @@ async def get_image(imageSource: ImageSource):
         'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
     }
 
+@router.get("/api/image/{image_id}", dependencies=[is_card_deck_reader])
+async def get_image(image_id: str):
+    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{image_id}.png"
+    return {
+        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+    }
 
 @router.post("/api/speech", dependencies=[is_card_deck_writer])
 async def get_speech(speechSource: SpeechSource):

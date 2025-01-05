@@ -132,21 +132,40 @@ export class CardService {
   });
   readonly exampleImages = signal<ResourceRef<string | undefined>[]>([]);
   private exampleImagesReload: boolean[] = [];
+  readonly selectedImage = linkedSignal(
+    () => this.card.value()?.image ?? this.getImageUrl(0)
+  );
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
     this.exampleImagesReload = word.examples.map(() => false);
     this.exampleImages.set(
       word.examples.map((_, index) =>
-        resource<string | undefined, { englishTranslation?: string }>({
+        resource<
+          string | undefined,
+          { card?: Card; englishTranslation?: string }
+        >({
           injector: this.injector,
           request: () => ({
+            card: this.card.value(),
             englishTranslation: this.examplesTranslations()?.['en'][index](),
           }),
-          loader: async ({ request: { englishTranslation } }) => {
-            if (!englishTranslation) {
+          loader: async ({ request: { card, englishTranslation } }) => {
+            if (!englishTranslation || (word.exists && !card)) {
               return;
             }
+
+            const imageUrl = word.exists && this.getImageUrl(index);
+
+            if (imageUrl) {
+              const { url } = await fetchJson<{ url: string }>(
+                this.http,
+                imageUrl
+              );
+              this.exampleImagesReload[index] = true;
+              return url;
+            }
+
             const { url } = await fetchJson<{ url: string }>(
               this.http,
               `/api/image`,
@@ -206,6 +225,7 @@ export class CardService {
           ]),
         ]);
       }),
+      image: this.selectedImage(),
     } satisfies Card;
     return cardData;
   }
@@ -241,4 +261,14 @@ export class CardService {
       method: 'DELETE',
     });
   }
+
+  getImageUrl = (index: number) => {
+    const word = this.selectedWord();
+
+    if (!word) {
+      return;
+    }
+
+    return `/api/image/${word.id}-${index}`;
+  };
 }

@@ -54,3 +54,7 @@ As an explanation:
 -> use azuread_app_role_assignment
 - to allow other application to access your own (as an application)
 -> use azuread_application_pre_authorized
+
+# Angular Material UI component library
+
+Material icon library: https://fonts.google.com/icons

@@ -88,3 +88,11 @@ body {
     max-width: unset;
   }
 }
+
+.mat-accent.mat-mdc-radio-button {
+  --mdc-radio-selected-focus-icon-color: hsl(218, 93%, 61%);
+  --mdc-radio-selected-hover-icon-color: hsl(218, 93%, 61%);
+  --mdc-radio-selected-icon-color: hsl(218, 93%, 61%);
+  --mdc-radio-selected-pressed-icon-color: hsl(218, 93%, 61%);
+  --mat-radio-checked-ripple-color: hsl(218, 93%, 61%);
+}

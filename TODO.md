@@ -1,5 +1,3 @@
-- Add card deletion
-- Add example image urls to db
 - Complete the missing verb forms for the A2 level.  
 - add error handling on UI
 - Add sources to db

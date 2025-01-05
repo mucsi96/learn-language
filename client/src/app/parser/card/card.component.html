@@ -3,8 +3,8 @@
 } @else {
 <h5 class="title">
   Word @if (card()) {
-  <button mat-flat-button color="red" (click)="confirmDeleteCard()">
-    Delete
+  <button mat-icon-button color="red" (click)="confirmDeleteCard()">
+    <mat-icon>delete</mat-icon>
   </button>
   <button type="button" mat-flat-button (click)="updateCard()">Update</button>
   } @else {
@@ -38,36 +38,45 @@
   }
 </div>
 <h5>Examples</h5>
-@for (example of examples(); track $index) {
-<div class="example">
-  <mat-form-field class="field">
-    <mat-label>German</mat-label>
-    <input matInput type="text" [(ngModel)]="example" />
-  </mat-form-field>
-  @if(examplesTranslations(); as examplesTranslations) {
-  <mat-form-field class="field">
-    <mat-label>Hungarian</mat-label>
-    <input
-      matInput
-      type="text"
-      [(ngModel)]="examplesTranslations['hu'][$index]"
-    />
-  </mat-form-field>
-  <mat-form-field class="field">
-    <mat-label>Swiss German</mat-label>
-    <input
-      matInput
-      type="text"
-      [(ngModel)]="examplesTranslations['ch'][$index]"
-    />
-  </mat-form-field>
-  <button (click)="exampleImages()[$index].reload()" class="image">
-    @if (exampleImages()[$index].isLoading()) {
-    <div class="skeleton"></div>
-    } @else {
-    <img src="{{ exampleImages()[$index].value() }}" />
+<mat-radio-group [(ngModel)]="selectedImage">
+  @for (example of examples(); track $index) {
+  <div class="example">
+    <div class="actions">
+      <mat-radio-button [value]="getImageUrl($index)"></mat-radio-button>
+      <button mat-icon-button (click)="exampleImages()[$index].reload()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+    <mat-form-field class="field">
+      <mat-label>German</mat-label>
+      <input matInput type="text" [(ngModel)]="example" />
+    </mat-form-field>
+    @if(examplesTranslations(); as examplesTranslations) {
+    <mat-form-field class="field">
+      <mat-label>Hungarian</mat-label>
+      <input
+        matInput
+        type="text"
+        [(ngModel)]="examplesTranslations['hu'][$index]"
+      />
+    </mat-form-field>
+    <mat-form-field class="field">
+      <mat-label>Swiss German</mat-label>
+      <input
+        matInput
+        type="text"
+        [(ngModel)]="examplesTranslations['ch'][$index]"
+      />
+    </mat-form-field>
+    <div class="image">
+      @if (exampleImages()[$index].isLoading()) {
+      <div class="skeleton"></div>
+      } @else {
+      <img src="{{ exampleImages()[$index].value() }}" />
+      }
+    </div>
     }
-  </button>
+  </div>
   }
-</div>
-} }
+</mat-radio-group>
+}

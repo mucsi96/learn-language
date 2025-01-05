@@ -12,6 +12,8 @@ import { injectParams } from '../../utils/inject-params';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-card',
@@ -23,6 +25,8 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
     MatInputModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatIcon,
+    MatRadioModule,
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
@@ -41,6 +45,8 @@ export class CardComponent {
   readonly examples = this.cardService.examples;
   readonly examplesTranslations = this.cardService.examplesTranslations;
   readonly exampleImages = this.cardService.exampleImages;
+  readonly selectedImage = this.cardService.selectedImage;
+  readonly getImageUrl = this.cardService.getImageUrl;
 
   constructor() {
     effect(async () => {

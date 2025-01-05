@@ -36,6 +36,7 @@ export type Card = {
   translation?: Record<string, string | undefined>;
   forms?: string[];
   examples?: Record<string, string | undefined>[];
+  image?: string;
 };
 
 export type Page = {

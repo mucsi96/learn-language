@@ -23,6 +23,7 @@ class CardCreate(BaseModel):
     id: str
     word: str
     type: str
+    image: str
     translation: dict[str, str]
     forms: list[str]
     examples: list[dict[str, str]]
