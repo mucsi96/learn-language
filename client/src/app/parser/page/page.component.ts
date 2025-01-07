@@ -2,10 +2,12 @@ import {
   AfterViewInit,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   linkedSignal,
   OnDestroy,
+  ResourceStatus,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -19,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { ScrollPositionService } from '../../scroll-position.service';
 
 @Component({
   selector: 'app-page',
@@ -60,11 +63,20 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly loading = this.pageService.page.isLoading;
   readonly areaLoading = this.pageService.words.isLoading;
   private resizeObserver: ResizeObserver | undefined;
+  private readonly scrollPositionService = inject(ScrollPositionService);
 
   constructor() {
     this.route.params.subscribe((params) =>
       this.pageService.setSource(params['sourceId'], params['pageNumber'])
     );
+
+    effect(() => {
+      if (this.pageService.page.status() === ResourceStatus.Resolved && this.pageService.page.value()) {
+        this.scrollPositionService.restoreScrollPosition();
+      } else {
+        this.scrollPositionService.detach();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
