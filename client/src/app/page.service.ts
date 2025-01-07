@@ -2,6 +2,7 @@ import { inject, Injectable, resource, signal } from '@angular/core';
 import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
+import { VisibilityService } from './visibility.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle =
@@ -15,14 +16,18 @@ export class PageService {
   private readonly http = inject(HttpClient);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectange = signal<SelectedRectangle>(undefined);
+  private readonly visibility = inject(VisibilityService).visibility;
 
   readonly page = resource<
     Page | undefined,
-    { selectedSource: SelectedSource }
+    { selectedSource: SelectedSource; visibility: boolean }
   >({
-    request: () => ({ selectedSource: this.selectedSource() }),
-    loader: async ({ request: { selectedSource } }) => {
-      if (!selectedSource) {
+    request: () => ({
+      selectedSource: this.selectedSource(),
+      visibility: this.visibility(),
+    }),
+    loader: async ({ request: { selectedSource, visibility } }) => {
+      if (!selectedSource || !visibility) {
         return;
       }
       return fetchJson<Page>(
@@ -34,14 +39,21 @@ export class PageService {
 
   readonly words = resource<
     WordList | undefined,
-    { selectedSource: SelectedSource; selectedRectange: SelectedRectangle }
+    {
+      selectedSource: SelectedSource;
+      selectedRectange: SelectedRectangle;
+      visibility: boolean;
+    }
   >({
     request: () => ({
       selectedSource: this.selectedSource(),
       selectedRectange: this.selectedRectange(),
+      visibility: this.visibility(),
     }),
-    loader: async ({ request: { selectedSource, selectedRectange } }) => {
-      if (!selectedSource || !selectedRectange) {
+    loader: async ({
+      request: { selectedSource, selectedRectange, visibility },
+    }) => {
+      if (!selectedSource || !selectedRectange || !visibility) {
         return;
       }
       const { sourceId, pageNumber } = selectedSource;
