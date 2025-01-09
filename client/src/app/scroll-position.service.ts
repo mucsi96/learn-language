@@ -4,20 +4,18 @@ import { Injectable, signal, untracked } from '@angular/core';
   providedIn: 'root',
 })
 export class ScrollPositionService {
-  public readonly scrollPosition = signal(0);
+  public scrollPosition = 0;
   private eventListener?: () => void;
 
   public restoreScrollPosition() {
     this.detach();
 
-    const scrollPosition = untracked(() => this.scrollPosition());
-
     setTimeout(() => {
-      window.scrollTo(0, scrollPosition);
+      window.scrollTo(0, this.scrollPosition);
     }, 100);
 
     this.eventListener = () => {
-      this.scrollPosition.set(window.scrollY);
+      this.scrollPosition = window.scrollY;
     };
 
     window.addEventListener('scroll', this.eventListener);

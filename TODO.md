@@ -2,4 +2,3 @@
 - Add sources to db
 - Remember last visited source page using db
 - Enable text selection without interfearing with draggign
-- preserve scroll position beween refetches
