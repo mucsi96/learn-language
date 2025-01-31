@@ -38,8 +38,8 @@ const globalRippleConfig: RippleGlobalOptions = {
 };
 
 const apiScopes = [
-  `${environment.apiClientId}/card-deck-read`,
-  `${environment.apiClientId}/card-deck-write`,
+  `${environment.apiClientId}/readDecks`,
+  `${environment.apiClientId}/createDeck`,
 ];
 
 export const appConfig: ApplicationConfig = {

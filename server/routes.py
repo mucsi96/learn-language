@@ -16,19 +16,19 @@ sources = [
         'id': 'goethe-a1',
         'name': 'Goethe A1',
         'startPage': 9,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-german/A1_SD1_Wortliste_02.pdf'
+        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/A1_SD1_Wortliste_02.pdf'
     },
     {
         'id': 'goethe-a2',
         'name': 'Goethe A2',
         'startPage': 8,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-german/Goethe-Zertifikat_A2_Wortliste.pdf'
+        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/Goethe-Zertifikat_A2_Wortliste.pdf'
     },
     {
         'id': 'goethe-b1',
         'name': 'Goethe B1',
         'startPage': 16,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-german/Goethe-Zertifikat_B1_Wortliste.pdf'
+        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/Goethe-Zertifikat_B1_Wortliste.pdf'
     },
 ]
 
