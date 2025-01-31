@@ -64,6 +64,13 @@
           }
         }
       }
+    },
+    {
+      "label": "Install Dependencies",
+      "type": "shell",
+      "command": "./scripts/install_dependencies.sh",
+      "problemMatcher": [],
+      "detail": "Installs all necessary dependencies"
     }
   ]
 }
