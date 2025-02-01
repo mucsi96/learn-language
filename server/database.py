@@ -9,7 +9,7 @@ username = quote_plus(environ.get("DB_USERNAME"))
 password = quote_plus(environ.get("DB_PASSWORD"))
 
 engine = create_engine(
-    f"postgresql+psycopg://{username}:{password}@localhost:8484/db", echo=True)
+    f"postgresql+psycopg://{username}:{password}@localhost:8484/postgres1", echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -26,6 +26,11 @@ event.listen(Base.metadata, 'before_create', CreateSchema(Base.metadata.schema))
 
 class Card(Base):
     __tablename__ = "cards"
+    id: Mapped[str] = mapped_column(primary_key=True)
+    data: Mapped[JSON] = mapped_column(type_=JSON)
+    
+class Source(Base):
+    __tablename__ = "sources"
     id: Mapped[str] = mapped_column(primary_key=True)
     data: Mapped[JSON] = mapped_column(type_=JSON)
 
