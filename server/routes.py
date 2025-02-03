@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from blob_storage import upload_blob, blob_exists, generate_sas_token
+from blob_storage import get_download_url, upload_blob, blob_exists
 from services.speech import generate_speech
 from services.images import generate_image
 from services.pdf_parser import get_area_words, process_document
@@ -16,26 +16,26 @@ sources = [
         'id': 'goethe-a1',
         'name': 'Goethe A1',
         'startPage': 9,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/A1_SD1_Wortliste_02.pdf'
+        'file_name': 'A1_SD1_Wortliste_02.pdf'
     },
     {
         'id': 'goethe-a2',
         'name': 'Goethe A2',
         'startPage': 8,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/Goethe-Zertifikat_A2_Wortliste.pdf'
+        'file_name': 'Goethe-Zertifikat_A2_Wortliste.pdf'
     },
     {
         'id': 'goethe-b1',
         'name': 'Goethe B1',
         'startPage': 16,
-        'blob_url': 'https://ibari.blob.core.windows.net/learn-language/Goethe-Zertifikat_B1_Wortliste.pdf'
+        'file_name': 'Goethe-Zertifikat_B1_Wortliste.pdf'
     },
 ]
 
 
 @router.get("/api/sources", dependencies=[is_card_deck_writer])
 async def get_sources():
-    return [{k: v for k, v in source.items() if k != 'blob_url'} for source in sources]
+    return [{k: v for k, v in source.items() if k != 'file_name'} for source in sources]
 
 
 @router.get("/api/source/{source_id}/page/{page_number}", dependencies=[is_card_deck_writer])
@@ -48,7 +48,7 @@ async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
         raise HTTPException(
             status_code=404, detail="Source index out of range")
 
-    result = process_document(source['blob_url'], page_number)
+    result = process_document(source['file_name'], page_number)
     ids = [word['id'] for word in result['spans']]
     cards = db.query(Card).filter(Card.id.in_(ids)).all()
     result['spans'] = list(map(lambda span: {
@@ -82,7 +82,7 @@ async def get_words(source_id: str, page_number: int, request: Request, db=Depen
         raise HTTPException(
             status_code=400, detail="Invalid rectangle coordinates")
 
-    area_words = get_area_words(source['blob_url'], page_number, x, y, width, height)
+    area_words = get_area_words(source['file_name'], page_number, x, y, width, height)
     ids = [word['id'] for word in area_words['words']]
     cards = db.query(Card).filter(Card.id.in_(ids)).all()
     area_words['words'] = list(map(lambda word: {
@@ -99,41 +99,38 @@ async def get_translation(word: Word, language_code: str):
 
 @router.post("/api/image", dependencies=[is_card_deck_writer])
 async def get_image(imageSource: ImageSource):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
-        imageSource.id}-{imageSource.index}.png"
+    blob_name = f"{imageSource.id}-{imageSource.index}.png"
 
-    if not imageSource.override and blob_exists(blob_url):
+    if not imageSource.override and blob_exists(blob_name):
         return {
-            'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+            'url': get_download_url(blob_name)
         }
 
     data = generate_image(imageSource.input)
-    upload_blob(data, blob_url)
+    upload_blob(data, blob_name)
     return {
-        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+        'url': get_download_url(blob_name)
     }
 
 @router.get("/api/image/{image_id}", dependencies=[is_card_deck_reader])
 async def get_image(image_id: str):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{image_id}.png"
     return {
-        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+        'url': get_download_url(f"{image_id}.png")
     }
 
 @router.post("/api/speech", dependencies=[is_card_deck_writer])
 async def get_speech(speechSource: SpeechSource):
-    blob_url = f"https://ibari.blob.core.windows.net/learn-german/{
-        speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
+    blob_name = f"{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
 
-    if not speechSource.override and blob_exists(blob_url):
+    if not speechSource.override and blob_exists(blob_name):
         return {
-            'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+            'url': get_download_url(blob_name)
         }
 
     data = generate_speech(speechSource.input)
-    upload_blob(data, blob_url)
+    upload_blob(data, blob_name)
     return {
-        'url': f"{blob_url}?{generate_sas_token(blob_url=blob_url)}"
+        'url': get_download_url(blob_name)
     }
 
 

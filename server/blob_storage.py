@@ -1,44 +1,48 @@
-from os import environ
-from azure.storage.blob import BlobClient, generate_blob_sas, BlobSasPermissions
+from azure.storage.blob import BlobClient, BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from azure.identity import DefaultAzureCredential
-from datetime import datetime, timedelta
-from azure.mgmt.storage import StorageManagementClient
+from datetime import datetime, timedelta, timezone
 
 credentials = DefaultAzureCredential()
-storage_client = StorageManagementClient(
-    credentials, environ.get("AZURE_SUBSCRIPTION_ID"))
-keys = storage_client.storage_accounts.list_keys("ibari", "ibari")
-account_key = keys.keys[0].value
+
+def get_blob_client(blob_name: str) -> BlobClient:
+    return get_blob_service_client().get_blob_client(container="learn-language", blob=blob_name)
 
 
-def get_blob_client(blob_url: str) -> BlobClient:
-    return BlobClient.from_blob_url(blob_url, credentials)
+def get_blob_service_client() -> BlobServiceClient:
+    return BlobServiceClient(account_url="https://ibari.blob.core.windows.net", credential=credentials)
 
 
-def fetch_blob(blob_url: str) -> bytes:
-    blob_client = get_blob_client(blob_url)
+def fetch_blob(blob_name: str) -> bytes:
+    blob_client = get_blob_client(blob_name)
     return blob_client.download_blob().readall()
 
 
-def upload_blob(data: bytes, blob_url: str) -> None:
-    blob_client = get_blob_client(blob_url)
+def upload_blob(data: bytes, blob_name: str) -> None:
+    blob_client = get_blob_client(blob_name)
     blob_client.upload_blob(data, overwrite=True)
 
 
-def blob_exists(blob_url: str) -> bool:
-    blob_client = get_blob_client(blob_url)
+def blob_exists(blob_name: str) -> bool:
+    blob_client = get_blob_client(blob_name)
     return blob_client.exists()
 
 
-def generate_sas_token(blob_url: str) -> str:
-    blob_client = get_blob_client(blob_url)
+def get_download_url(blob_name: str) -> str:
+    blob_client = get_blob_client(blob_name)
+    blob_service_client = get_blob_service_client()
+
+    user_delegation_key = blob_service_client.get_user_delegation_key(datetime.now(
+        timezone.utc), datetime.now(timezone.utc) + timedelta(minutes=2))
 
     sas_token = generate_blob_sas(
         account_name=blob_client.account_name,
-        account_key=account_key,
+        user_delegation_key=user_delegation_key,
         container_name=blob_client.container_name,
         blob_name=blob_client.blob_name,
         permission=BlobSasPermissions(read=True),
-        expiry=datetime.utcnow() + timedelta(minutes=10)
+        start=datetime.now(
+            timezone.utc),
+        expiry=datetime.now(
+            timezone.utc) + timedelta(minutes=2)
     )
-    return sas_token
+    return f"{blob_client.url}?{sas_token}"
