@@ -16,19 +16,19 @@ sources = [
         'id': 'goethe-a1',
         'name': 'Goethe A1',
         'startPage': 9,
-        'file_name': 'A1_SD1_Wortliste_02.pdf'
+        'file_name': 'sources/A1_SD1_Wortliste_02.pdf'
     },
     {
         'id': 'goethe-a2',
         'name': 'Goethe A2',
         'startPage': 8,
-        'file_name': 'Goethe-Zertifikat_A2_Wortliste.pdf'
+        'file_name': 'sources/Goethe-Zertifikat_A2_Wortliste.pdf'
     },
     {
         'id': 'goethe-b1',
         'name': 'Goethe B1',
         'startPage': 16,
-        'file_name': 'Goethe-Zertifikat_B1_Wortliste.pdf'
+        'file_name': 'sources/Goethe-Zertifikat_B1_Wortliste.pdf'
     },
 ]
 
@@ -97,9 +97,9 @@ async def get_translation(word: Word, language_code: str):
     return translate(word, language_code)
 
 
-@router.post("/api/image", dependencies=[is_card_deck_writer])
-async def get_image(imageSource: ImageSource):
-    blob_name = f"{imageSource.id}-{imageSource.index}.png"
+@router.post("/api/image/{source}", dependencies=[is_card_deck_writer])
+async def get_image(source: str, imageSource: ImageSource):
+    blob_name = f"images/{source}/{imageSource.id}-{imageSource.index}.png"
 
     if not imageSource.override and blob_exists(blob_name):
         return {
@@ -112,15 +112,15 @@ async def get_image(imageSource: ImageSource):
         'url': get_download_url(blob_name)
     }
 
-@router.get("/api/image/{image_id}", dependencies=[is_card_deck_reader])
-async def get_image(image_id: str):
+@router.get("/api/image/{source}/{image_id}", dependencies=[is_card_deck_reader])
+async def get_image(source: str, image_id: str):
     return {
-        'url': get_download_url(f"{image_id}.png")
+        'url': get_download_url(f"images/{source}/{image_id}.png")
     }
 
-@router.post("/api/speech", dependencies=[is_card_deck_writer])
-async def get_speech(speechSource: SpeechSource):
-    blob_name = f"{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
+@router.post("/api/speech/{source}", dependencies=[is_card_deck_writer])
+async def get_speech(source:str, speechSource: SpeechSource):
+    blob_name = f"speech/{source}/{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
 
     if not speechSource.override and blob_exists(blob_name):
         return {

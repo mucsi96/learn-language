@@ -2,18 +2,19 @@ import { Component, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
 import { CardService } from '../../card.service';
 import { injectParams } from '../../utils/inject-params';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { MatIcon } from '@angular/material/icon';
-import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-card',
@@ -33,6 +34,7 @@ import { MatRadioModule } from '@angular/material/radio';
 })
 export class CardComponent {
   private readonly cardService = inject(CardService);
+  private readonly route = inject(ActivatedRoute);
   private readonly cardData = injectParams<string>('cardData');
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -49,6 +51,9 @@ export class CardComponent {
   readonly getImageUrl = this.cardService.getImageUrl;
 
   constructor() {
+    this.route.params.subscribe((params) =>
+      this.cardService.selectedSourceId.set(params['sourceId'])
+    );
     effect(async () => {
       const cardData = this.cardData();
 

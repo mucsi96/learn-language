@@ -20,6 +20,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
 export class CardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly card = resource<
     Card | undefined,
@@ -143,19 +144,33 @@ export class CardService {
       word.examples.map((_, index) =>
         resource<
           string | undefined,
-          { card?: Card; englishTranslation?: string }
+          {
+            card?: Card;
+            englishTranslation?: string;
+            selectedSourceId?: string;
+          }
         >({
           injector: this.injector,
           request: () => ({
             card: this.card.value(),
             englishTranslation: this.examplesTranslations()?.['en'][index](),
+            selectedSourceId: this.selectedSourceId(),
           }),
-          loader: async ({ request: { card, englishTranslation } }) => {
-            if (!englishTranslation || (word.exists && !card)) {
+          loader: async ({
+            request: { card, englishTranslation, selectedSourceId },
+          }) => {
+            if (
+              !englishTranslation ||
+              (word.exists && !card) ||
+              !selectedSourceId
+            ) {
               return;
             }
 
-            const imageUrl = word.exists && !this.exampleImagesReload[index] && this.getImageUrl(index);
+            const imageUrl =
+              word.exists &&
+              !this.exampleImagesReload[index] &&
+              this.getImageUrl(index);
 
             if (imageUrl) {
               const { url } = await fetchJson<{ url: string }>(
@@ -168,7 +183,7 @@ export class CardService {
 
             const { url } = await fetchJson<{ url: string }>(
               this.http,
-              `/api/image`,
+              `/api/image/${selectedSourceId}`,
               {
                 body: {
                   id: word.id,
@@ -269,6 +284,6 @@ export class CardService {
       return;
     }
 
-    return `/api/image/${word.id}-${index}`;
+    return `/api/image/${this.selectedSourceId()}/${word.id}-${index}`;
   };
 }
