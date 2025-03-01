@@ -13,4 +13,8 @@ export class SourcesService {
       return fetchJson(this.http, '/api/sources');
     },
   });
+
+  refetchSources() {
+    this.sources.reload();
+  }
 }

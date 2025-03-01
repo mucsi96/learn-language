@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/api/sources", dependencies=[is_card_deck_writer])
 async def get_sources(db: Session = Depends(get_db)):
-    sources = db.query(Source).all()
+    sources = db.query(Source).order_by(Source.id).all()
     return list(map(lambda source: {
         'id': source.id,
         'name': source.name,
@@ -41,6 +41,10 @@ async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
     result['number'] = page_number
     result['sourceId'] = source_id
     result['sourceName'] = source.name
+    
+    source.bookmarked_page = page_number
+    db.commit()
+    
     return result
 
 

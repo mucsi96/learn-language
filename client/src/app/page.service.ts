@@ -3,6 +3,7 @@ import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { VisibilityService } from './visibility.service';
+import { SourcesService } from './sources.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle =
@@ -14,6 +15,7 @@ type SelectedRectangle =
 })
 export class PageService {
   private readonly http = inject(HttpClient);
+  private readonly sourceService = inject(SourcesService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectange = signal<SelectedRectangle>(undefined);
   private readonly visibility = inject(VisibilityService).visibility;
@@ -30,10 +32,14 @@ export class PageService {
       if (!selectedSource || !visibility) {
         return;
       }
-      return fetchJson<Page>(
+      const result = await fetchJson<Page>(
         this.http,
         `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`
       );
+
+      this.sourceService.refetchSources();
+
+      return result;
     },
   });
 
