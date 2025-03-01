@@ -7,48 +7,31 @@ from services.translate import translate
 from models import ImageSource, SpeechSource, Word, CardCreate
 from auth import is_card_deck_writer, is_card_deck_reader
 from services.word_type import detect_word_type
-from database import Card, get_db
+from database import Card, get_db, Source
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-sources = [
-    {
-        'id': 'goethe-a1',
-        'name': 'Goethe A1',
-        'startPage': 9,
-        'file_name': 'sources/A1_SD1_Wortliste_02.pdf'
-    },
-    {
-        'id': 'goethe-a2',
-        'name': 'Goethe A2',
-        'startPage': 8,
-        'file_name': 'sources/Goethe-Zertifikat_A2_Wortliste.pdf'
-    },
-    {
-        'id': 'goethe-b1',
-        'name': 'Goethe B1',
-        'startPage': 16,
-        'file_name': 'sources/Goethe-Zertifikat_B1_Wortliste.pdf'
-    },
-]
-
-
 @router.get("/api/sources", dependencies=[is_card_deck_writer])
-async def get_sources():
-    return [{k: v for k, v in source.items() if k != 'file_name'} for source in sources]
-
+async def get_sources(db: Session = Depends(get_db)):
+    sources = db.query(Source).all()
+    return list(map(lambda source: {
+        'id': source.id,
+        'name': source.name,
+        'startPage': source.bookmarked_page or source.start_page,
+    }, sources))
 
 @router.get("/api/source/{source_id}/page/{page_number}", dependencies=[is_card_deck_writer])
 async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
     try:
-        source = next((src for src in sources if src['id'] == source_id), None)
+        source = db.query(Source).filter(Source.id == source_id).first()
         if source is None:
             raise HTTPException(status_code=404, detail="Source not found")
     except IndexError:
         raise HTTPException(
             status_code=404, detail="Source index out of range")
 
-    result = process_document(source['file_name'], page_number)
+    result = process_document('sources/' + source.file_name, page_number)
     ids = [word['id'] for word in result['spans']]
     cards = db.query(Card).filter(Card.id.in_(ids)).all()
     result['spans'] = list(map(lambda span: {
@@ -57,13 +40,13 @@ async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
     }, result['spans']))
     result['number'] = page_number
     result['sourceId'] = source_id
-    result['sourceName'] = source['name']
+    result['sourceName'] = source.name
     return result
 
 
 @router.get("/api/source/{source_id}/page/{page_number}/words", dependencies=[is_card_deck_writer])
 async def get_words(source_id: str, page_number: int, request: Request, db=Depends(get_db)):
-    source = next((src for src in sources if src['id'] == source_id), None)
+    source = db.query(Source).filter(Source.id == source_id).first()
     if source is None:
         raise HTTPException(status_code=404, detail="Source not found")
 
@@ -82,7 +65,7 @@ async def get_words(source_id: str, page_number: int, request: Request, db=Depen
         raise HTTPException(
             status_code=400, detail="Invalid rectangle coordinates")
 
-    area_words = get_area_words(source['file_name'], page_number, x, y, width, height)
+    area_words = get_area_words(source.file_name, page_number, x, y, width, height)
     ids = [word['id'] for word in area_words['words']]
     cards = db.query(Card).filter(Card.id.in_(ids)).all()
     area_words['words'] = list(map(lambda word: {
@@ -169,3 +152,4 @@ async def delete_card(card_id: str, db=Depends(get_db)):
     db.delete(card)
     db.commit()
     return {"detail": "Card deleted successfully"}
+
