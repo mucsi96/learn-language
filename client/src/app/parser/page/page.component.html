@@ -62,6 +62,7 @@
   } @for (span of spans(); track $index) {
   <app-span
     [sourceId]="selectedSourceId()"
+    [pageNumber]="pageNumber()"
     [text]="span.text"
     [bbox]="span.bbox"
     [font]="span.font"

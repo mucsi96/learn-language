@@ -1,5 +1,5 @@
 from os import environ
-from sqlalchemy import MetaData, create_engine, JSON
+from sqlalchemy import ForeignKey, MetaData, create_engine, JSON
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.schema import CreateSchema
 from sqlalchemy import event
@@ -36,6 +36,12 @@ class Source(Base):
     file_name: Mapped[str] = mapped_column(nullable=False)
     start_page: Mapped[int] = mapped_column(nullable=False)
     bookmarked_page: Mapped[int] = mapped_column(nullable=True)
+
+class CardSource(Base):
+    __tablename__ = "card_sources"
+    card_id: Mapped[str] = mapped_column(ForeignKey("learn_language.cards.id"), primary_key=True)
+    source_id: Mapped[str] = mapped_column(ForeignKey("learn_language.sources.id"), primary_key=True)
+    page_number: Mapped[int] = mapped_column(nullable=False)
 
 def create_all():
     Base.metadata.create_all(engine, checkfirst=True)

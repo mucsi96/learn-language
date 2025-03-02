@@ -21,6 +21,8 @@ class SpeechSource(BaseModel):
 
 class CardCreate(BaseModel):
     id: str
+    sourceId: str
+    pageNumber: int
     word: str
     type: str
     image: str

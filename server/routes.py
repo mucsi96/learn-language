@@ -7,10 +7,11 @@ from services.translate import translate
 from models import ImageSource, SpeechSource, Word, CardCreate
 from auth import is_card_deck_writer, is_card_deck_reader
 from services.word_type import detect_word_type
-from database import Card, get_db, Source
+from database import Card, CardSource, get_db, Source
 from sqlalchemy.orm import Session
 
 router = APIRouter()
+
 
 @router.get("/api/sources", dependencies=[is_card_deck_writer])
 async def get_sources(db: Session = Depends(get_db)):
@@ -20,6 +21,7 @@ async def get_sources(db: Session = Depends(get_db)):
         'name': source.name,
         'startPage': source.bookmarked_page or source.start_page,
     }, sources))
+
 
 @router.get("/api/source/{source_id}/page/{page_number}", dependencies=[is_card_deck_writer])
 async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
@@ -41,10 +43,10 @@ async def get_page(source_id: str, page_number: int, db=Depends(get_db)):
     result['number'] = page_number
     result['sourceId'] = source_id
     result['sourceName'] = source.name
-    
+
     source.bookmarked_page = page_number
     db.commit()
-    
+
     return result
 
 
@@ -69,7 +71,8 @@ async def get_words(source_id: str, page_number: int, request: Request, db=Depen
         raise HTTPException(
             status_code=400, detail="Invalid rectangle coordinates")
 
-    area_words = get_area_words(source.file_name, page_number, x, y, width, height)
+    area_words = get_area_words(
+        source.file_name, page_number, x, y, width, height)
     ids = [word['id'] for word in area_words['words']]
     cards = db.query(Card).filter(Card.id.in_(ids)).all()
     area_words['words'] = list(map(lambda word: {
@@ -99,14 +102,16 @@ async def get_image(source: str, imageSource: ImageSource):
         'url': get_download_url(blob_name)
     }
 
+
 @router.get("/api/image/{source}/{image_id}", dependencies=[is_card_deck_reader])
 async def get_image(source: str, image_id: str):
     return {
         'url': get_download_url(f"images/{source}/{image_id}.png")
     }
 
+
 @router.post("/api/speech/{source}", dependencies=[is_card_deck_writer])
-async def get_speech(source:str, speechSource: SpeechSource):
+async def get_speech(source: str, speechSource: SpeechSource):
     blob_name = f"speech/{source}/{speechSource.id}-{speechSource.language}-{speechSource.index}.mp3"
 
     if not speechSource.override and blob_exists(blob_name):
@@ -133,11 +138,15 @@ async def get_card(card_id: str, db=Depends(get_db)):
         raise HTTPException(status_code=404, detail="Card not found")
     return card.data
 
+
 @router.post("/api/card", dependencies=[is_card_deck_writer])
 async def create_card(card: CardCreate, db=Depends(get_db)):
     db.add(Card(id=card.id, data=card.model_dump()))
+    db.add(CardSource(card_id=card.id, source_id=card.sourceId,
+           page_number=card.pageNumber))
     db.commit()
     return {}
+
 
 @router.put("/api/card/{card_id}", dependencies=[is_card_deck_writer])
 async def update_card(card_id: str, card: CardCreate, db=Depends(get_db)):
@@ -148,6 +157,7 @@ async def update_card(card_id: str, card: CardCreate, db=Depends(get_db)):
     db.commit()
     return {"detail": "Card updated successfully"}
 
+
 @router.delete("/api/card/{card_id}", dependencies=[is_card_deck_writer])
 async def delete_card(card_id: str, db=Depends(get_db)):
     card = db.query(Card).filter(Card.id == card_id).first()
@@ -156,4 +166,3 @@ async def delete_card(card_id: str, db=Depends(get_db)):
     db.delete(card)
     db.commit()
     return {"detail": "Card deleted successfully"}
-

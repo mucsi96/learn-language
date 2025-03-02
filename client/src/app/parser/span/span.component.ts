@@ -24,6 +24,7 @@ import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 })
 export class SpanComponent {
   @Input() sourceId?: string;
+  @Input() pageNumber?: number;
   @Input() text?: string;
   @Input() font?: string;
   @Input() fontSize?: string;
@@ -73,6 +74,6 @@ export class SpanComponent {
   }
 
   get cardHrefPrefix() {
-    return `/sources/${this.sourceId}/cards/`;
+    return `/sources/${this.sourceId}/page/${this.pageNumber}/cards/`;
   }
 }

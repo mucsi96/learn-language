@@ -51,9 +51,10 @@ export class CardComponent {
   readonly getImageUrl = this.cardService.getImageUrl;
 
   constructor() {
-    this.route.params.subscribe((params) =>
-      this.cardService.selectedSourceId.set(params['sourceId'])
-    );
+    this.route.params.subscribe((params) => {
+      this.cardService.selectedSourceId.set(params['sourceId']);
+      this.cardService.selectedPageNumber.set(parseInt(params['pageNumber']));
+    });
     effect(async () => {
       const cardData = this.cardData();
 

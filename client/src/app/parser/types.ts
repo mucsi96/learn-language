@@ -31,6 +31,8 @@ export type Word = {
 
 export type Card = {
   id: string;
+  sourceId: string;
+  pageNumber: number;
   word: string;
   type?: string;
   translation?: Record<string, string | undefined>;

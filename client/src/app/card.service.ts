@@ -21,6 +21,7 @@ export class CardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   readonly selectedSourceId = signal<string | undefined>(undefined);
+  readonly selectedPageNumber = signal<number | undefined>(undefined);
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly card = resource<
     Card | undefined,
@@ -213,15 +214,19 @@ export class CardService {
   }
 
   getCardData() {
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.selectedPageNumber();
     const word = this.selectedWord();
     const wordText = this.word();
 
-    if (!word || !wordText) {
+    if (!word || !wordText || !sourceId || !pageNumber) {
       return;
     }
 
     const cardData = {
       id: word.id,
+      sourceId,
+      pageNumber,
       word: wordText,
       type: this.wordType.value(),
       translation: Object.fromEntries(
