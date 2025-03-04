@@ -14,3 +14,5 @@ SQLAlchemy==2.0.35
 pydantic==2.9.2
 openai==1.54.4
 fastapi-azure-auth==5.0.1
+fsrs==5.1.2
+dfsgdsgdsfgsdf
