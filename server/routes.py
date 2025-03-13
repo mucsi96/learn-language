@@ -142,8 +142,8 @@ async def get_card(card_id: str, db=Depends(get_db)):
 
 @router.post("/api/card", dependencies=[is_card_deck_writer])
 async def create_card(card: CardCreate, db=Depends(get_db)):
-    card = fsrs.Card()
-    db.add(Card(id=card.id, data=card.model_dump(), **card.model_dump()))
+    fsrs_card = {k: v for k, v in fsrs.Card().to_dict().items() if k != "card_id"} 
+    db.add(Card(id=card.id, data=card.model_dump(), **fsrs_card))
     db.add(CardSource(card_id=card.id, source_id=card.sourceId,
            page_number=card.pageNumber))
     db.commit()
