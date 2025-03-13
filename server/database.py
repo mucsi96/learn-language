@@ -38,6 +38,7 @@ class Rating(IntEnum):
 class Card(Base):
     __tablename__ = "cards"
     id: Mapped[str] = mapped_column(primary_key=True)
+    source_id: Mapped[str] = mapped_column(ForeignKey("learn_language.sources.id"), nullable=False)
     data: Mapped[JSON] = mapped_column(type_=JSON, nullable=False)
     state: Mapped[State] = mapped_column(Enum(State), nullable=False)
     step: Mapped[int] = mapped_column(type_=Integer, nullable=True)
