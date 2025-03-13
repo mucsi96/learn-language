@@ -1,0 +1,12 @@
+.avatar {
+  display: inline-flex;
+  user-select: none;
+  background-color: hsl(215, 14%, 34%);
+  border-radius: 50%;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+  color: white;
+  font-size: 18px;
+}

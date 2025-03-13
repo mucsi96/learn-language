@@ -1,9 +1,9 @@
 <mat-toolbar class="header">
   <nav>
     <a mat-button routerLink="">Learn language</a>
-    <span class="avatar" matTooltip="{{ profile.value()?.name }}">{{
-      profile.value()?.initials
-    }}</span>
+    @if(isAuthenticated()) {
+    <app-header></app-header>
+    }
   </nav>
 </mat-toolbar>
 
