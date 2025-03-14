@@ -1,3 +1,9 @@
-<span class="avatar" matTooltip="{{ profile.value()?.name }}">{{
-  profile.value()?.initials
-}}</span>
+<button class="avatar" [matMenuTriggerFor]="menu">
+  {{ profile.value()?.initials }}
+</button>
+<mat-menu #menu="matMenu">
+  <span class="profile-name">
+    {{ profile.value()?.name }}
+  </span>
+  <a mat-menu-item [routerLink]="['/sources']">Admin</a>
+</mat-menu>

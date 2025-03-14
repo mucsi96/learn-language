@@ -3,12 +3,18 @@ import { PageComponent } from './parser/page/page.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
 import { CardComponent } from './parser/card/card.component';
+import { AdminComponent } from './admin/admin.component';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     component: HomeComponent,
+    canActivate: [MsalGuard],
+  },
+  {
+    path: 'sources',
+    component: AdminComponent,
     canActivate: [MsalGuard],
   },
   {
