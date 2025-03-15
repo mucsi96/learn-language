@@ -71,6 +71,18 @@
       "command": "./scripts/install_dependencies.sh",
       "problemMatcher": [],
       "detail": "Installs all necessary dependencies"
-    }
+    },
+    {
+      "type": "shell",
+      "label": "Compose up",
+      "command": "docker compose up --build --force-recreate --wait --remove-orphans --pull always",
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Compose down",
+      "command": "docker compose down",
+      "problemMatcher": []
+    },
   ]
 }

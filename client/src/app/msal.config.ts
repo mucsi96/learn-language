@@ -15,7 +15,7 @@ import {
   LogLevel,
   PublicClientApplication,
 } from '@azure/msal-browser';
-import { environment } from '../environments/environment.development';
+import { environment } from '../environments/environment';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 const apiScopes = [
@@ -62,7 +62,12 @@ export const msalConfig = [
       interactionType: InteractionType.Popup,
       protectedResourceMap: new Map([
         ['https://graph.microsoft.com/v1.0/me', ['user.read']],
-        [`${environment.apiBaseUrl}/*`, apiScopes],
+        [
+          `${
+            new URL(environment.apiContextPath, window.location.origin).href
+          }/*`,
+          apiScopes,
+        ],
       ]),
     } satisfies MsalInterceptorConfiguration,
   },

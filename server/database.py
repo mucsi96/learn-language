@@ -1,4 +1,5 @@
 from os import environ
+from dotenv import load_dotenv
 from sqlalchemy import ForeignKey, MetaData, create_engine, JSON, Integer, Float, DateTime, Enum
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.schema import CreateSchema
@@ -6,6 +7,8 @@ from sqlalchemy import event
 from urllib.parse import quote_plus
 from enum import IntEnum
 from datetime import datetime
+
+load_dotenv()
 
 username = quote_plus(environ.get("DB_USERNAME"))
 password = quote_plus(environ.get("DB_PASSWORD"))

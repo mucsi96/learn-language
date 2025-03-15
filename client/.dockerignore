@@ -1,0 +1,6 @@
+.angular
+.vscode
+node_modules
+.env
+README.md
+proxy.conf.json
