@@ -8,8 +8,6 @@ from urllib.parse import quote_plus
 from enum import IntEnum
 from datetime import datetime
 
-load_dotenv()
-
 username = quote_plus(environ.get("DB_USERNAME"))
 password = quote_plus(environ.get("DB_PASSWORD"))
 

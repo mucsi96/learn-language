@@ -19,6 +19,7 @@ COPY requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY --from=build-client /workspace/client/dist/index.html /app/templates/index.html
 COPY --from=build-client /workspace/client/dist /app/static
 COPY server /app/
 

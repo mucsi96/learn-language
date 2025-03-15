@@ -1,33 +1,33 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse
+from pathlib import Path
 from auth import security
 import subprocess
 from routes import router as api_router
 from fastapi import FastAPI, Request
 from os import environ
-from pathlib import Path
-from fastapi.responses import FileResponse
-from fastapi.templating import Jinja2Templates
 
 
-STATIC_DIR = Path("../client/dist")
-AZURE_TENANT_ID = environ.get("AZURE_TENANT_ID")
-AZURE_CLIENT_ID = environ.get("AZURE_CLIENT_ID")
-UI_CLIENT_ID = environ.get("UI_CLIENT_ID")
+ENV = environ.get("ENV")
 
 app = FastAPI()
 
 app.include_router(api_router, dependencies=[security])
 
-
-def is_static_file(path: str) -> bool:
-    return (STATIC_DIR / path).exists()
-
-
-if environ.get("ENV") == "development2":
+if ENV == "development":
     subprocess.Popen(["kubectl", "port-forward", "services/postgres1", "8484:http",
                      "--kubeconfig", "../.kube/db-config", "--namespace", "db"])
     subprocess.Popen(["npm", "run", "start"], cwd="../client")
 else:
-    templates = Jinja2Templates(directory=STATIC_DIR)
+    STATIC_DIR = Path("static")
+    AZURE_TENANT_ID = environ.get("AZURE_TENANT_ID")
+    AZURE_CLIENT_ID = environ.get("AZURE_CLIENT_ID")
+    UI_CLIENT_ID = environ.get("UI_CLIENT_ID")
+    templates = Jinja2Templates(directory=Path("templates"))
 
     @app.get("/{path:path}")
     async def serve_spa(request: Request, path: str):
