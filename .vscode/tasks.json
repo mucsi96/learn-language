@@ -8,14 +8,12 @@
       "type": "shell",
       "command": "uvicorn main:app --reload",
       "problemMatcher": [],
-      "detail": "Starts the server",
       "options": {
         "cwd": "${workspaceFolder}/server"
       },
     },
     {
       "label": "Start client",
-      "detail": "Starts the client",
       "type": "shell",
       "command": "yarn start",
       "options": {
@@ -55,8 +53,7 @@
       "label": "Install Dependencies",
       "type": "shell",
       "command": "./scripts/install_dependencies.sh",
-      "problemMatcher": [],
-      "detail": "Installs all necessary dependencies"
+      "problemMatcher": []
     },
     {
       "type": "shell",
