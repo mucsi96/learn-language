@@ -1,5 +1,5 @@
 from os import environ
-from dotenv import load_dotenv
+from venv import create
 from sqlalchemy import ForeignKey, MetaData, create_engine, JSON, Integer, Float, DateTime, Enum
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.schema import CreateSchema
@@ -10,9 +10,12 @@ from datetime import datetime
 
 username = quote_plus(environ.get("DB_USERNAME"))
 password = quote_plus(environ.get("DB_PASSWORD"))
+hostname = quote_plus(environ.get("DB_HOSTNAME"))
+port = quote_plus(environ.get("DB_PORT"))
+database = quote_plus(environ.get("DB_NAME"))
 
 engine = create_engine(
-    f"postgresql+psycopg://{username}:{password}@localhost:8484/postgres1", echo=True)
+    f"postgresql+psycopg://{username}:{password}@{hostname}:{port}/{database}", echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
@@ -70,9 +73,5 @@ class ReviewLog(Base):
     review_datetime: Mapped[datetime] = mapped_column(type_=DateTime, nullable=False)
     review_duration: Mapped[int] = mapped_column(type_=Integer, nullable=True)
 
-def create_all():
+def init_db():
     Base.metadata.create_all(engine, checkfirst=True)
-    print("Tables created")
-
-if __name__ == "__main__":
-    create_all()

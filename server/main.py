@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 from fastapi.templating import Jinja2Templates
@@ -10,16 +11,18 @@ import subprocess
 from routes import router as api_router
 from fastapi import FastAPI, Request
 from os import environ
+from database import init_db
 
 
 ENV = environ.get("ENV")
+DB_PORT = environ.get("DB_PORT")
 
 app = FastAPI()
 
 app.include_router(api_router, dependencies=[security])
 
 if ENV == "development":
-    subprocess.Popen(["kubectl", "port-forward", "services/postgres1", "8484:http",
+    subprocess.Popen(["kubectl", "port-forward", "services/postgres1", f"{DB_PORT}:http",
                      "--kubeconfig", "../.kube/db-config", "--namespace", "db"])
     subprocess.Popen(["npm", "run", "start"], cwd="../client")
 else:
@@ -45,3 +48,5 @@ else:
             "apiClientId": AZURE_CLIENT_ID,
             "mockAuth": False
         })
+
+init_db()

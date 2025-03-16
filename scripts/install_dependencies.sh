@@ -18,6 +18,9 @@ cat .env > server/.env
 echo "ENV=development" >> server/.env
 echo "DB_USERNAME=$db_username" >> server/.env
 echo "DB_PASSWORD=$db_password" >> server/.env
+echo "DB_HOSTNAME=localhost" >> server/.env
+echo "DB_PORT=5434" >> server/.env
+echo "DB_NAME=postgres1" >> server/.env
 echo "AZURE_SUBSCRIPTION_ID=$azure_subscription_id" >> server/.env
 echo "AZURE_TENANT_ID=$azure_tenant_id" >> server/.env
 echo "AZURE_CLIENT_ID=$api_client_id" >> server/.env
