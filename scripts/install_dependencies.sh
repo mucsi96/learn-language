@@ -10,12 +10,12 @@ azure_tenant_id=$(az keyvault secret show --vault-name p05 --name tenant-id --qu
 api_client_id=$(az keyvault secret show --vault-name p05 --name learn-language-api-client-id --query value -o tsv)
 api_client_secret=$(az keyvault secret show --vault-name p05 --name learn-language-api-client-secret --query value -o tsv)
 spa_client_id=$(az keyvault secret show --vault-name p05 --name learn-language-spa-client-id --query value -o tsv)
+openai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-openai-api-key --query value -o tsv)
 
 mkdir -p .kube
 echo "$db_k8s_config" > .kube/db-config
 
-cat .env > server/.env
-echo "ENV=development" >> server/.env
+echo "ENV=development" > server/.env
 echo "DB_USERNAME=$db_username" >> server/.env
 echo "DB_PASSWORD=$db_password" >> server/.env
 echo "DB_HOSTNAME=localhost" >> server/.env
@@ -26,6 +26,9 @@ echo "AZURE_TENANT_ID=$azure_tenant_id" >> server/.env
 echo "AZURE_CLIENT_ID=$api_client_id" >> server/.env
 echo "AZURE_CLIENT_SECRET=$api_client_secret" >> server/.env
 echo "UI_CLIENT_ID=$spa_client_id" >> server/.env
+echo "OPENAI_API_KEY=$openai_api_key" >> server/.env
+
+
 echo "NG_APP_TENANT_ID=$azure_tenant_id" > client/.env
 echo "NG_APP_CLIENT_ID=$spa_client_id" >> client/.env
 echo "NG_APP_API_CLIENT_ID=$api_client_id" >> client/.env

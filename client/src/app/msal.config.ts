@@ -12,6 +12,7 @@ import {
 import {
   BrowserCacheLocation,
   InteractionType,
+  IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
 } from '@azure/msal-browser';
@@ -23,58 +24,72 @@ const apiScopes = [
   `${environment.apiClientId}/createDeck`,
 ];
 
+function loggerCallback(_logLevel: LogLevel, message: string) {
+  console.log(message);
+}
+
+export function MSALInstanceFactory(): IPublicClientApplication {
+  return new PublicClientApplication({
+    auth: {
+      clientId: environment.clientId,
+      authority: `https://login.microsoftonline.com/${environment.tenantId}`,
+    },
+    cache: {
+      cacheLocation: BrowserCacheLocation.SessionStorage,
+    },
+    system: {
+      allowPlatformBroker: false, // Disables WAM Broker
+      loggerOptions: {
+        loggerCallback,
+        logLevel: LogLevel.Info,
+        piiLoggingEnabled: false,
+      },
+    },
+  });
+}
+
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+  const protectedResourceMap = new Map<string, Array<string>>();
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', [
+    'user.read',
+  ]);
+  protectedResourceMap.set(
+    `${new URL(environment.apiContextPath, window.location.origin).href}/*`,
+    apiScopes
+  );
+
+  return {
+    interactionType: InteractionType.Popup,
+    protectedResourceMap,
+  };
+}
+
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return {
+    interactionType: InteractionType.Popup,
+    authRequest: {
+      scopes: ['user.read', ...apiScopes],
+    },
+  };
+}
+
 export const msalConfig = [
-  {
-    provide: MSAL_INSTANCE,
-    useValue: new PublicClientApplication({
-      auth: {
-        clientId: environment.clientId,
-        authority: `https://login.microsoftonline.com/${environment.tenantId}`,
-        redirectUri: '/auth',
-        postLogoutRedirectUri: '/',
-      },
-      cache: {
-        cacheLocation: BrowserCacheLocation.LocalStorage,
-      },
-      system: {
-        allowNativeBroker: false, // Disables WAM Broker
-        loggerOptions: {
-          loggerCallback: (_logLevel: LogLevel, message: string) =>
-            console.log(message),
-          logLevel: LogLevel.Info,
-          piiLoggingEnabled: false,
-        },
-      },
-    }),
-  },
-  {
-    provide: MSAL_GUARD_CONFIG,
-    useValue: {
-      interactionType: InteractionType.Popup,
-      authRequest: () => ({
-        scopes: ['user.read', ...apiScopes],
-      }),
-    } satisfies MsalGuardConfiguration,
-  },
-  {
-    provide: MSAL_INTERCEPTOR_CONFIG,
-    useValue: {
-      interactionType: InteractionType.Popup,
-      protectedResourceMap: new Map([
-        ['https://graph.microsoft.com/v1.0/me', ['user.read']],
-        [
-          `${
-            new URL(environment.apiContextPath, window.location.origin).href
-          }/*`,
-          apiScopes,
-        ],
-      ]),
-    } satisfies MsalInterceptorConfiguration,
-  },
   {
     provide: HTTP_INTERCEPTORS,
     useClass: MsalInterceptor,
     multi: true,
+  },
+  {
+    provide: MSAL_INSTANCE,
+    useFactory: MSALInstanceFactory,
+  },
+  {
+    provide: MSAL_GUARD_CONFIG,
+    useFactory: MSALGuardConfigFactory,
+  },
+  {
+    provide: MSAL_INTERCEPTOR_CONFIG,
+    useFactory: MSALInterceptorConfigFactory,
   },
   MsalService,
   MsalGuard,
