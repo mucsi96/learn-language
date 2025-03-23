@@ -1,15 +1,25 @@
+from asyncio import transports
+from os import environ
 from azure.storage.blob import BlobClient, BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from azure.identity import DefaultAzureCredential
 from datetime import datetime, timedelta, timezone
 
+ENV = environ.get("ENV")
+ACCOUNT_URL = environ.get("STORAGE_ACCOUNT_BLOB_URL")
+CONTAINER_NAME = environ.get("STORAGE_ACCOUNT_CONTAINER_NAME")
+
 credentials = DefaultAzureCredential()
 
+
 def get_blob_client(blob_name: str) -> BlobClient:
-    return get_blob_service_client().get_blob_client(container="learn-language", blob=blob_name)
+    return get_blob_service_client().get_blob_client(container=CONTAINER_NAME, blob=blob_name)
 
 
 def get_blob_service_client() -> BlobServiceClient:
-    return BlobServiceClient(account_url="https://ibari.blob.core.windows.net", credential=credentials)
+    if ENV == "development":
+        return BlobServiceClient(account_url=ACCOUNT_URL, credential=credentials)
+    else:
+        return BlobServiceClient(account_url=ACCOUNT_URL, credential=credentials)
 
 
 def fetch_blob(blob_name: str) -> bytes:

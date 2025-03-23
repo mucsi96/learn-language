@@ -9,3 +9,4 @@ speech/
 backend.tf
 tfplan
 .terraform/
+.certs/

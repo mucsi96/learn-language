@@ -1,17 +1,23 @@
-python-dotenv==1.0.1
-psycopg[binary]==3.2.3
-fastapi==0.115.0
-uvicorn==0.31.0
-PyMuPDF==1.24.11
-azure-identity==1.19.0
-azure-storage-blob==12.23.1
-cachetools==5.5.0
-langchain==0.3.7
-langchain-core==0.3.15
-langchain-community==0.3.5
-langchain-openai==0.2.3
-SQLAlchemy==2.0.35
-pydantic==2.9.2
-openai==1.54.4
-fastapi-azure-auth==5.0.1
+# To update: pip list --outdated
+azure-identity==1.21.0
+azure-storage-blob==12.25.0
+cachetools==5.5.2
+fastapi==0.115.11
+fastapi-azure-auth==5.1.0
 fsrs==5.1.2
+jinja2==3.1.6
+langchain==0.3.20
+langchain-community==0.3.19
+langchain-core==0.3.45
+langchain-openai==0.3.8
+mucsi96.publish-tools == 41.0.0
+openai==1.66.3
+playwright == 1.50.0
+psycopg[binary]==3.2.6
+pydantic==2.10.6
+PyMuPDF==1.25.4
+pytest == 8.3.5
+pytest-playwright == 0.7.0
+python-dotenv==1.0.1
+SQLAlchemy==2.0.39
+uvicorn==0.34.0

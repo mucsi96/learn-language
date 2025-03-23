@@ -9,6 +9,7 @@ from auth import is_card_deck_writer, is_card_deck_reader
 from services.word_type import detect_word_type
 from database import Card, CardSource, get_db, Source
 from sqlalchemy.orm import Session
+import fsrs
 
 router = APIRouter()
 
@@ -141,7 +142,9 @@ async def get_card(card_id: str, db=Depends(get_db)):
 
 @router.post("/api/card", dependencies=[is_card_deck_writer])
 async def create_card(card: CardCreate, db=Depends(get_db)):
-    db.add(Card(id=card.id, data=card.model_dump()))
+    fsrs_card = {k: v for k, v in fsrs.Card().to_dict().items() if k != "card_id"}
+    data = {k: v for k, v in card.model_dump().items() if k not in ["id", "sourceId"]}
+    db.add(Card(id=card.id, source_id=card.sourceId, data=data, **fsrs_card))
     db.add(CardSource(card_id=card.id, source_id=card.sourceId,
            page_number=card.pageNumber))
     db.commit()

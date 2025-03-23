@@ -4,14 +4,68 @@ volumes:
   postgres-data:
 
 services:
+  mkcert:
+    environment:
+      CAROOT: "/certs"
+    image: "alpine/mkcert:latest"
+    command:
+      - -cert-file
+      - /certs/blobstorage.crt
+      - -key-file
+      - /certs/blobstorage.key
+      - blobstorage
+      - localhost
+    volumes:
+      - ./.certs:/certs
+
+  app:
+    build: .
+    env_file:
+      - server/.env
+    environment:
+      ENV: test
+      DB_HOSTNAME: "db"
+      DB_PORT: "5432"
+      DB_NAME: "test"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
+      STORAGE_ACCOUNT_BLOB_URL: "https://blobstorage:10000/devstoreaccount1"
+      STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
+    ports:
+      - "8180:8080"
+    depends_on:
+      mkcert:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      blobstorage:
+        condition: service_healthy
+    volumes_from:
+      - mkcert:ro
+
+  blobstorage:
+    image: "mcr.microsoft.com/azure-storage/azurite:latest"
+    command: "azurite-blob --blobHost 0.0.0.0 --oauth basic --cert /certs/blobstorage.crt --key /certs/blobstorage.key"
+    ports:
+      - "8181:10000"
+    healthcheck:
+      test: nc 127.0.0.1 10000 -z
+      interval: 1s
+      retries: 30
+    depends_on:
+      mkcert:
+        condition: service_completed_successfully
+    volumes_from:
+      - mkcert:ro
+
   db:
     image: "postgres:16.2-bullseye"
     environment:
-      POSTGRES_DB: "learn_language"
+      POSTGRES_DB: "test"
       POSTGRES_PASSWORD: "postgres"
       POSTGRES_USER: "postgres"
     ports:
-      - "8483:5432"
+      - "5435:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
