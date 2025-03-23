@@ -20,8 +20,6 @@ services:
 
   app:
     build: .
-    env_file:
-      - server/.env
     environment:
       ENV: test
       DB_HOSTNAME: "db"
