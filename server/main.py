@@ -10,11 +10,11 @@ from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
 
-load_dotenv()
-
-
 ENV = environ.get("ENV")
 DB_PORT = environ.get("DB_PORT")
+
+if ENV != "test":
+    load_dotenv()
 
 app = FastAPI()
 
