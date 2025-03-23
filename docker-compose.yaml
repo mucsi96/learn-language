@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: "postgres"
       STORAGE_ACCOUNT_BLOB_URL: "https://blobstorage:10000/devstoreaccount1"
       STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
+      OPENAI_API_KEY: "mock-key"
     ports:
       - "8180:8080"
     depends_on:
