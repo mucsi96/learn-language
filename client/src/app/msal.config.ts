@@ -73,25 +73,27 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   };
 }
 
-export const msalConfig = [
-  {
-    provide: HTTP_INTERCEPTORS,
-    useClass: MsalInterceptor,
-    multi: true,
-  },
-  {
-    provide: MSAL_INSTANCE,
-    useFactory: MSALInstanceFactory,
-  },
-  {
-    provide: MSAL_GUARD_CONFIG,
-    useFactory: MSALGuardConfigFactory,
-  },
-  {
-    provide: MSAL_INTERCEPTOR_CONFIG,
-    useFactory: MSALInterceptorConfigFactory,
-  },
-  MsalService,
-  MsalGuard,
-  MsalBroadcastService,
-];
+export function provideMsalConfig() {
+  return [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MsalInterceptor,
+      multi: true,
+    },
+    {
+      provide: MSAL_INSTANCE,
+      useFactory: MSALInstanceFactory,
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useFactory: MSALGuardConfigFactory,
+    },
+    {
+      provide: MSAL_INTERCEPTOR_CONFIG,
+      useFactory: MSALInterceptorConfigFactory,
+    },
+    MsalService,
+    MsalGuard,
+    MsalBroadcastService,
+  ];
+}

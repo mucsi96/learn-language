@@ -1,17 +1,16 @@
+from database import init_db
+from os import environ
+from fastapi import FastAPI, Request
+from routes import router as api_router
+import subprocess
+from auth import security
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
 
 load_dotenv()
-
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse
-from pathlib import Path
-from auth import security
-import subprocess
-from routes import router as api_router
-from fastapi import FastAPI, Request
-from os import environ
-from database import init_db
 
 
 ENV = environ.get("ENV")
@@ -46,7 +45,7 @@ else:
             "tenantId": AZURE_TENANT_ID,
             "clientId": UI_CLIENT_ID,
             "apiClientId": AZURE_CLIENT_ID,
-            "mockAuth": False
+            "mockAuth": ENV == "test"
         })
 
 init_db()

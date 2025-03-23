@@ -21,7 +21,6 @@ services:
   app:
     build: .
     env_file:
-      - .env
       - server/.env
     environment:
       ENV: test
@@ -31,7 +30,7 @@ services:
       DB_USERNAME: "postgres"
       DB_PASSWORD: "postgres"
       STORAGE_ACCOUNT_BLOB_URL: "https://blobstorage:10000/devstoreaccount1"
-      STORAGE_ACCOUNT_CONTAINER_NAME: "backups"
+      STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
     ports:
       - "8180:8080"
     depends_on:
