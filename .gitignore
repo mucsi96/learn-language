@@ -10,3 +10,4 @@ backend.tf
 tfplan
 .terraform/
 .certs/
+test-results/

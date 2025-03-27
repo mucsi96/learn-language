@@ -1,30 +1,32 @@
-from database import init_db
 from os import environ
-from fastapi import FastAPI, Request
-from routes import router as api_router
-import subprocess
-from auth import security
-from pathlib import Path
-from fastapi.responses import FileResponse
-from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
+import subprocess
 
+
+if environ.get("ENV") != "test":
+    load_dotenv()
 
 ENV = environ.get("ENV")
 DB_PORT = environ.get("DB_PORT")
-
-if ENV != "test":
-    load_dotenv()
-
-app = FastAPI()
-
-app.include_router(api_router, dependencies=[security])
 
 if ENV == "development":
     subprocess.Popen(["kubectl", "port-forward", "services/postgres1", f"{DB_PORT}:http",
                      "--kubeconfig", "../.kube/db-config", "--namespace", "db"])
     subprocess.Popen(["npm", "run", "start"], cwd="../client")
-else:
+    
+from database import init_db
+from fastapi import FastAPI, Request
+from auth import security
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
+from routes import router as api_router
+
+app = FastAPI()
+
+app.include_router(api_router, dependencies=[security])
+
+if ENV != "development":
     STATIC_DIR = Path("static")
     AZURE_TENANT_ID = environ.get("AZURE_TENANT_ID")
     AZURE_CLIENT_ID = environ.get("AZURE_CLIENT_ID")
