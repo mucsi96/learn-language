@@ -21,6 +21,7 @@ services:
   app:
     build: .
     environment:
+      HEALTH_CHECK_PORT: "8082"
       ENV: test
       DB_HOSTNAME: "db"
       DB_PORT: "5432"
@@ -32,6 +33,12 @@ services:
       OPENAI_API_KEY: "mock-key"
     ports:
       - "8180:8080"
+    healthcheck:
+      test: "curl --fail --silent localhost:8082/health || exit 1"
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
     depends_on:
       mkcert:
         condition: service_completed_successfully

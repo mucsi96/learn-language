@@ -8,6 +8,7 @@ if environ.get("ENV") != "test":
 
 ENV = environ.get("ENV")
 DB_PORT = environ.get("DB_PORT")
+HEALTH_CHECK_PORT = int(environ.get("HEALTH_CHECK_PORT", 8082))
 
 if ENV == "development":
     subprocess.Popen(["kubectl", "port-forward", "services/postgres1", f"{DB_PORT}:http",
@@ -21,6 +22,8 @@ from pathlib import Path
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from routes import router as api_router
+from threading import Thread
+import uvicorn
 
 app = FastAPI()
 
@@ -50,4 +53,14 @@ if ENV != "development":
             "mockAuth": ENV == "test"
         })
 
+def start_healthcheck_server():
+    health_app = FastAPI()
+
+    @health_app.get("/health")
+    async def health_check():
+        return {"status": "ok"}
+
+    uvicorn.run(health_app, host="0.0.0.0", port=HEALTH_CHECK_PORT)
+
 init_db()
+Thread(target=start_healthcheck_server, daemon=True).start()
