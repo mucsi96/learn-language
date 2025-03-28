@@ -1,4 +1,9 @@
+from pathlib import Path
+import sys
 from pytest import fixture
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from utils import cleanup_db, populate_db
 
 @fixture(scope="session")
