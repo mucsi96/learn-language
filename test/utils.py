@@ -6,8 +6,10 @@ environ.setdefault("DB_HOSTNAME", "localhost")
 environ.setdefault("DB_PORT", "5460")
 environ.setdefault("DB_NAME", "test")
 
-from server.database import get_db, Card, ReviewLog, CardSource, Source
+from server.database import get_db, Card, ReviewLog, CardSource, Source, init_db
 
+def initialize_db():
+    init_db()
 
 def cleanup_db():
     db = next(get_db())

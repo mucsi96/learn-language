@@ -4,7 +4,7 @@ from pytest import fixture
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import cleanup_db, populate_db
+from utils import cleanup_db, populate_db, initialize_db
 
 
 @fixture(scope="session")
@@ -23,6 +23,11 @@ def browser_type_launch_args(browser_type_launch_args):
         # "devtools": True,
         # "headless": False,
     }
+
+
+@fixture(scope="session", autouse=True)
+def init():
+    initialize_db()
 
 
 @fixture(autouse=True)
