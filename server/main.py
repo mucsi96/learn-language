@@ -13,7 +13,7 @@ if ENV == "development":
     subprocess.Popen(["kubectl", "port-forward", "services/postgres1", f"{DB_PORT}:http",
                      "--kubeconfig", "../.kube/db-config", "--namespace", "db"])
     subprocess.Popen(["npm", "run", "start"], cwd="../client")
-    
+
 from database import init_db
 from fastapi import FastAPI, Request
 from auth import security

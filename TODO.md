@@ -9,7 +9,6 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Assign cards
 
 
-- add tests for sources
 - Fix storage account connection in compose
 - add tests for pages and card creation, editing
 - deploy to Azure

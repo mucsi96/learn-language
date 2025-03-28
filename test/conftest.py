@@ -2,9 +2,10 @@ from pathlib import Path
 import sys
 from pytest import fixture
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
 from utils import cleanup_db, populate_db
+
 
 @fixture(scope="session")
 def browser_context_args(browser_context_args):
@@ -22,6 +23,7 @@ def browser_type_launch_args(browser_type_launch_args):
         # "devtools": True,
         # "headless": False,
     }
+
 
 @fixture(autouse=True)
 def cleanup(monkeypatch):
