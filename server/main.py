@@ -60,7 +60,7 @@ def start_healthcheck_server():
     async def health_check():
         return {"status": "ok"}
 
-    uvicorn.run(health_app, host="0.0.0.0", port=HEALTH_CHECK_PORT)
+    uvicorn.run(health_app, host="0.0.0.0", port=HEALTH_CHECK_PORT, log_level="warning")
 
 init_db()
 Thread(target=start_healthcheck_server, daemon=True).start()
