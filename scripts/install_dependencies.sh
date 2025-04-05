@@ -16,7 +16,8 @@ storageAccountBlobUrl=$(az storage account show --name ibari --resource-group ib
 mkdir -p .kube
 echo "$db_k8s_config" > .kube/db-config
 
-echo "ENV=development" > server/.env
+echo "SPRING_ACTUATOR_PORT=8082" > server/.env
+echo "SPRING_PROFILES_ACTIVE=local" >> server/.env
 echo "DB_USERNAME=$db_username" >> server/.env
 echo "DB_PASSWORD=$db_password" >> server/.env
 echo "DB_HOSTNAME=localhost" >> server/.env
@@ -38,6 +39,7 @@ echo "NG_APP_API_CLIENT_ID=$api_client_id" >> client/.env
 
 pip install -r requirements.txt
 
+cd server && mvn clean install && cd ..
 cd client && npm install && cd ..
 
 playwright install --with-deps chromium
