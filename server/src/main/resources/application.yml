@@ -7,4 +7,10 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+  cloud:
+    azure:
+      active-directory:
+        enabled: true
+        credential:
+          client-id: ${AZURE_CLIENT_ID}
 
