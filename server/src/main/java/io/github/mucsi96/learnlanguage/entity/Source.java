@@ -2,15 +2,12 @@ package io.github.mucsi96.learnlanguage.entity;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "sources", schema = "learn_language")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class Source {
 
     @Id
