@@ -14,17 +14,9 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
+    <th:block th:insert="~{fragments :: env}"></th:block>
   </head>
   <body class="mat-typography">
-    <script>
-      window.__env = {
-        apiContextPath: "{{ apiContextPath }}",
-        tenantId: "{{ tenantId }}",
-        clientId: "{{ clientId }}",
-        apiClientId: "{{ apiClientId }}",
-        mockAuth: "{{ mockAuth }}" === "True",
-      };
-    </script>
     <app-root></app-root>
   </body>
 </html>

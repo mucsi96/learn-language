@@ -21,8 +21,8 @@ services:
   app:
     build: .
     environment:
-      HEALTH_CHECK_PORT: "8082"
-      ENV: test
+      SPRING_ACTUATOR_PORT: "8082"
+      SPRING_PROFILES_ACTIVE: "test"
       DB_HOSTNAME: "db"
       DB_PORT: "5432"
       DB_NAME: "test"
@@ -34,7 +34,7 @@ services:
     ports:
       - "8180:8080"
     healthcheck:
-      test: "curl --fail --silent localhost:8082/health || exit 1"
+      test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
       interval: 2s
       timeout: 3s
       retries: 5

@@ -1,29 +1,47 @@
-from os import environ
-
-environ.setdefault("DB_USERNAME", "postgres")
-environ.setdefault("DB_PASSWORD", "postgres")
-environ.setdefault("DB_HOSTNAME", "localhost")
-environ.setdefault("DB_PORT", "5460")
-environ.setdefault("DB_NAME", "test")
-
-from server.database import get_db, Card, ReviewLog, CardSource, Source, init_db
-
-def initialize_db():
-    init_db()
+import psycopg
 
 def cleanup_db():
-    db = next(get_db())
-    db.query(ReviewLog).delete()
-    db.query(Card).delete()
-    db.query(CardSource).delete()
-    db.query(Source).delete()
-    db.commit()
+    conn = psycopg.connect(
+        dbname="test",
+        host="localhost",
+        user="postgres",
+        password="postgres",
+        port="5460",
+    )
+    cur = conn.cursor()
+
+    cur.execute("DROP SCHEMA IF EXISTS learn_language CASCADE")
+
+    conn.commit()
+    cur.close()
 
 
 def populate_db():
-    db = next(get_db())
-    db.add(Source(id="goethe-a1", name="Goethe A1", file_name="A1_SD1_Wortliste_02.pdf", start_page=9))
-    db.add(Source(id="goethe-a2", name="Goethe A2", file_name="Goethe-Zertifikat_A2_Wortliste.pdf", start_page=8))
-    db.add(Source(id="goethe-b1", name="Goethe B1", file_name="Goethe-Zertifikat_B1_Wortliste.pdf", start_page=16))
-    db.commit()
-    return db
+    conn = psycopg.connect(
+        dbname="test",
+        host="localhost",
+        user="postgres",
+        password="postgres",
+        port="5460",
+    )
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE SCHEMA learn_language;
+        CREATE TABLE learn_language.sources (
+            id character varying NOT NULL,
+            name character varying NOT NULL,
+            file_name character varying NOT NULL,
+            start_page integer NOT NULL,
+            bookmarked_page integer
+        );
+        INSERT INTO learn_language.sources (id, name, file_name, start_page, bookmarked_page) VALUES
+        ('goethe-a1', 'Goethe A1', 'A1_SD1_Wortliste_02.pdf', 9, NULL),
+        ('goethe-a2', 'Goethe A2', 'Goethe-Zertifikat_A2_Wortliste.pdf', 8, NULL),
+        ('goethe-b1', 'Goethe B1', 'Goethe-Zertifikat_B1_Wortliste.pdf', 16, NULL);
+
+    """
+    )
+
+    conn.commit()
+    cur.close()

@@ -13,4 +13,16 @@ spring:
         enabled: true
         credential:
           client-id: ${AZURE_CLIENT_ID}
+management:
+  server:
+    port: ${SPRING_ACTUATOR_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
 
