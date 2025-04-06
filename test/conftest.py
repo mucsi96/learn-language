@@ -4,7 +4,7 @@ from pytest import fixture
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import cleanup_db, populate_db
+from utils import cleanup_db, cleanup_storage, populate_db, populate_storage
 
 
 @fixture(scope="session")
@@ -30,4 +30,6 @@ def cleanup(monkeypatch):
     monkeypatch.setenv("REQUESTS_CA_BUNDLE", "./.certs/rootCA.pem")
     cleanup_db()
     populate_db()
+    cleanup_storage()
+    populate_storage()
     yield
