@@ -1,12 +1,10 @@
 :host {
   .word {
-    display: block;
     position: absolute;
     display: flex;
     text-align: initial;
     justify-content: flex-start;
     align-items: center;
-    padding: 0 0 0 4px;
   }
 
   .word:not(button) {
