@@ -7,6 +7,8 @@ import lombok.*;
 @Table(name = "card_sources", schema = "learn_language")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CardSource {
 
     @Id

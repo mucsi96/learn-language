@@ -1,12 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,5 +21,9 @@ public class SourceService {
 
     public Optional<Source> getSourceById(String id) {
         return sourceRepository.findById(id);
+    }
+
+    public Source saveSource(Source source) {
+        return sourceRepository.save(source);
     }
 }

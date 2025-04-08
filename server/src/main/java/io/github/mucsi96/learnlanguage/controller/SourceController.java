@@ -1,30 +1,32 @@
 package io.github.mucsi96.learnlanguage.controller;
 
-import io.github.mucsi96.learnlanguage.service.SourceService;
-import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
-import io.github.mucsi96.learnlanguage.model.SourceResponse;
-import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
-import io.github.mucsi96.learnlanguage.model.PageResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
-
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.SourceResponse;
+import io.github.mucsi96.learnlanguage.service.CardService;
+import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
+import io.github.mucsi96.learnlanguage.service.SourceService;
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("/api/sources")
 @RequiredArgsConstructor
 public class SourceController {
 
     private final SourceService sourceService;
+    private final CardService cardService;
     private final DocumentProcessorService documentProcessorService;
 
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    @GetMapping
+    @GetMapping("/api/sources")
     public List<SourceResponse> getSources() {
         return sourceService.getAllSources().stream().map(source -> SourceResponse.builder()
                 .id(source.getId())
@@ -33,15 +35,15 @@ public class SourceController {
                 .build()).collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    @GetMapping("/{sourceId}/page/{pageNumber}")
-    public PageResponse getPage(@PathVariable String sourceId, @PathVariable int pageNumber) {
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @GetMapping("/api/source/{sourceId}/page/{pageNumber}")
+    public PageResponse getPage(@PathVariable String sourceId, @PathVariable int pageNumber) throws IOException {
         var source = sourceService.getSourceById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-        var result = documentProcessorService.processDocument("sources/" + source.getName(), pageNumber);
+        var result = documentProcessorService.processDocument(source, pageNumber);
         var ids = result.getSpans().stream().map(span -> span.getId()).collect(Collectors.toList());
-        var cards = sourceService.getCardsByIds(ids);
+        var cards = cardService.getCardsByIds(ids);
 
         result.setSpans(result.getSpans().stream().map(span -> {
             span.setExists(cards.stream().anyMatch(card -> card.getId().equals(span.getId())));
@@ -53,7 +55,7 @@ public class SourceController {
         result.setSourceName(source.getName());
 
         source.setBookmarkedPage(pageNumber);
-        sourceService.updateSource(source);
+        sourceService.saveSource(source);
 
         return result;
     }

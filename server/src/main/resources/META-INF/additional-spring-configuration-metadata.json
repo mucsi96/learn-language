@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "blobstorage.accountUrl",
+    "type": "java.lang.String",
+    "description": "Azure Blob Storage account URL"
+  },
+  {
+    "name": "blobstorage.containerName",
+    "type": "java.lang.String",
+    "description": "Azure Blob Storage container name"
+  }
+]}

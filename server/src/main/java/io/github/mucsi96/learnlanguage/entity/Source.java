@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "sources", schema = "learn_language")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Source {
 
     @Id
@@ -15,6 +17,9 @@ public class Source {
 
     @Nonnull
     private String name;
+
+    @Nonnull
+    private String fileName;
 
     @Nonnull
     private Integer startPage;
