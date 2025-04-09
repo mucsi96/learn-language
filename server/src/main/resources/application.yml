@@ -1,13 +1,18 @@
 blobstorage:
   accountUrl: ${STORAGE_ACCOUNT_BLOB_URL:}
   containerName: ${STORAGE_ACCOUNT_CONTAINER_NAME:}
-
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        show-sql: true
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}

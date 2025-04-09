@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +31,6 @@ public class ReviewLog {
     @JoinColumn(name = "card_id", nullable = false)
     private Card card;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Rating rating;
 
