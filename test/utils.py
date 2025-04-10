@@ -34,23 +34,11 @@ def populate_db():
         port="5460",
     )
     cur = conn.cursor()
-    cur.execute(
-        """
-        CREATE SCHEMA learn_language;
-        CREATE TABLE learn_language.sources (
-            id character varying NOT NULL,
-            name character varying NOT NULL,
-            file_name character varying NOT NULL,
-            start_page integer NOT NULL,
-            bookmarked_page integer
-        );
-        INSERT INTO learn_language.sources (id, name, file_name, start_page, bookmarked_page) VALUES
-        ('goethe-a1', 'Goethe A1', 'A1_SD1_Wortliste_02.pdf', 9, NULL),
-        ('goethe-a2', 'Goethe A2', 'Goethe-Zertifikat_A2_Wortliste.pdf', 8, NULL),
-        ('goethe-b1', 'Goethe B1', 'Goethe-Zertifikat_B1_Wortliste.pdf', 16, NULL);
+    current_dir = Path(__file__).parent
+    init_sql_path = current_dir / "init.sql"
 
-    """
-    )
+    with init_sql_path.open("r") as sql_file:
+        cur.execute(sql_file.read()) # type: ignore
 
     conn.commit()
     cur.close()
@@ -65,13 +53,13 @@ def cleanup_storage():
     for blob in container_client.list_blobs():
         blob_client = container_client.get_blob_client(blob.name)
         blob_client.delete_blob()
-        
+
 def populate_storage():
     container_client = blob_service_client.get_container_client('learn-language')
-    
+
     if not container_client.exists():
         container_client.create_container()
-        
+
     pdf_files = [
         "A1_SD1_Wortliste_02.pdf",
         "Goethe-Zertifikat_A2_Wortliste.pdf",
@@ -83,4 +71,4 @@ def populate_storage():
     for filename in pdf_files:
         file_path = current_dir / filename
         with file_path.open("rb") as file_data:
-            container_client.get_blob_client(filename).upload_blob(file_data, overwrite=True)
+            container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
