@@ -8,7 +8,8 @@
   }
 
   .word:not(button) {
-    border: 1px solid var(--border, darkslategray);
+    outline: 1px solid var(--border, darkslategray);
+    outline-offset: 2px;
   }
 
   &.exists {

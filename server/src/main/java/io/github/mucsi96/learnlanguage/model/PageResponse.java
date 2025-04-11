@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class PageResponse {
     private int number;
-    private float height;
+    private double height;
     private String sourceId;
     private String sourceName;
     private List<Span> spans;
@@ -25,10 +25,10 @@ public class PageResponse {
         @Data
         @Builder
         public static class Bbox {
-            private float x;
-            private float y;
-            private float width;
-            private float height;
+            private double x;
+            private double y;
+            private double width;
+            private double height;
         }
     }
 }

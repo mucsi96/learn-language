@@ -27,7 +27,7 @@
       "module": "uvicorn",
       "args": ["main:app", "--reload"],
       "jinja": true,
-      "cwd": "${workspaceFolder}/server"
+      "cwd": "${workspaceFolder}/py_server"
     }
   ]
 }

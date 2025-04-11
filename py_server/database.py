@@ -23,7 +23,7 @@ def get_db():
 
 class Base(DeclarativeBase):
     metadata = MetaData(
-        schema="learn_language",
+        schema="py_learn_language",
     )
 
 
@@ -48,7 +48,7 @@ class Card(Base):
     __tablename__ = "cards"
     id: Mapped[str] = mapped_column(primary_key=True)
     source_id: Mapped[str] = mapped_column(
-        ForeignKey("learn_language.sources.id"), nullable=False)
+        ForeignKey("py_learn_language.sources.id"), nullable=False)
     data: Mapped[JSON] = mapped_column(type_=JSON, nullable=False)
     state: Mapped[State] = mapped_column(Enum(State), nullable=False)
     step: Mapped[int] = mapped_column(type_=Integer, nullable=True)
@@ -71,9 +71,9 @@ class Source(Base):
 class CardSource(Base):
     __tablename__ = "card_sources"
     card_id: Mapped[str] = mapped_column(ForeignKey(
-        "learn_language.cards.id"), primary_key=True)
+        "py_learn_language.cards.id"), primary_key=True)
     source_id: Mapped[str] = mapped_column(ForeignKey(
-        "learn_language.sources.id"), primary_key=True)
+        "py_learn_language.sources.id"), primary_key=True)
     page_number: Mapped[int] = mapped_column(nullable=False)
 
 
@@ -81,7 +81,7 @@ class ReviewLog(Base):
     __tablename__ = "review_logs"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     card_id: Mapped[str] = mapped_column(
-        ForeignKey("learn_language.cards.id"), nullable=False)
+        ForeignKey("py_learn_language.cards.id"), nullable=False)
     rating: Mapped[Rating] = mapped_column(Enum(Rating), nullable=False)
     review_datetime: Mapped[datetime] = mapped_column(
         type_=DateTime, nullable=False)

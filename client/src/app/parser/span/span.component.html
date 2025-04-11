@@ -6,7 +6,7 @@
   [style.width]="width"
   [style.height]="height"
 >
-  <span>{{ text }}</span>
+  {{ text }}
 </div>
 
 } @else if (matches?.length === 1) {
@@ -20,7 +20,7 @@
   [style.width]="width"
   [style.height]="height"
 >
-  <span>{{ text }}</span>
+  {{ text }}
 </a>
 } @else {
 <button
@@ -33,7 +33,7 @@
   [style.width]="width"
   [style.height]="height"
 >
-  <span>{{ text }}</span>
+  {{ text }}
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.word) {

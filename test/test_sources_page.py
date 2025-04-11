@@ -27,3 +27,12 @@ def test_next_page(page: Page):
     page.get_by_role(role="link", name="Goethe A1").click()
     page.get_by_role(role="link", name="Next page").click()
     expect(page.get_by_text("Seite 10")).to_be_visible()
+
+def test_bookmarks_last_visited_page(page: Page):
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+    page.get_by_role(role="link", name="Next page").click()
+    page.get_by_role(role="link", name="Next page").click()
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+    expect(page.get_by_text("Seite 11")).to_be_visible()
