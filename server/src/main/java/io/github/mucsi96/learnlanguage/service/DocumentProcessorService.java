@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.pdfbox.Loader;
@@ -27,17 +28,22 @@ public class DocumentProcessorService {
             var width = mediaBox.getWidth();
             var height = mediaBox.getHeight();
             var spans = new SpanExtractor().extractSpans(bytes, pageNumber).stream()
-                    .map((SpanExtractor.Span span) -> PageResponse.Span.builder()
-                            .id(span.getText())
-                            .text(span.getText())
-                            .bbox(PageResponse.Span.Bbox.builder()
-                                    .x(span.getX() / width)
-                                    .y(span.getY() / width)
-                                    .width(span.getWidth() / width)
-                                    .height(span.getHeight() / width)
-                                    .build())
-                            .exists(false)
-                            .build())
+                    .map((SpanExtractor.Span span) -> {
+                        String searchTerm = Pattern.compile("\\s?[,/(-]").split(span.getText())[0].strip();
+                        String id = searchTerm.toLowerCase().replace(" ", "-");
+                        return PageResponse.Span.builder()
+                                .id(id)
+                                .text(span.getText())
+                                .searchTerm(searchTerm)
+                                .bbox(PageResponse.Span.Bbox.builder()
+                                        .x(span.getX() / width)
+                                        .y(span.getY() / width)
+                                        .width(span.getWidth() / width)
+                                        .height(span.getHeight() / width)
+                                        .build())
+
+                                .build();
+                    })
                     .collect(Collectors.toList());
 
             return PageResponse.builder()

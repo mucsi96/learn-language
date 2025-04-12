@@ -19,6 +19,7 @@ public class PageResponse {
     public static class Span {
         private String id;
         private String text;
+        private String searchTerm;
         private boolean exists;
         private Bbox bbox;
 

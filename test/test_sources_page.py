@@ -1,4 +1,10 @@
+from pathlib import Path
+import sys
 from playwright.sync_api import Page, expect
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
+
+from utils import create_card
 
 
 def test_displays_current_page(page: Page):
@@ -28,6 +34,7 @@ def test_next_page(page: Page):
     page.get_by_role(role="link", name="Next page").click()
     expect(page.get_by_text("Seite 10")).to_be_visible()
 
+
 def test_bookmarks_last_visited_page(page: Page):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
@@ -36,3 +43,17 @@ def test_bookmarks_last_visited_page(page: Page):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
     expect(page.get_by_text("Seite 11")).to_be_visible()
+
+
+def test_highlights_existing_cards(page: Page):
+    create_card(
+        card_id='anfangen',
+        source_id="goethe-a2",
+        data={"word": "anfangen", "translation": "to start"},
+        state=1,
+        step=0,
+        due='2025-03-13 08:24:32.82948',
+    )
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A2").click()
+    expect(page.get_by_text("anfangen,")).to_have_attribute("aria-description", "Card exists")

@@ -69,11 +69,11 @@ export class SpanComponent {
     return `calc(var(--page-width) * ${this.bbox?.height ?? 0})`;
   }
 
-  @HostBinding('class.exists') get existsClass() {
-    return !!this.exists;
-  }
-
   get cardHrefPrefix() {
     return `/sources/${this.sourceId}/page/${this.pageNumber}/cards/`;
+  }
+
+  get ariaDescription() {
+    return this.exists ?  'Card exists' : 'Card does not exist';
   }
 }

@@ -1,18 +1,16 @@
-:host {
-  .word {
-    position: absolute;
-    display: flex;
-    text-align: initial;
-    justify-content: flex-start;
-    align-items: center;
-  }
-
-  .word:not(button) {
-    outline: 1px solid var(--border, darkslategray);
-    outline-offset: 2px;
-  }
+.word {
+  position: absolute;
+  display: flex;
+  text-align: initial;
+  justify-content: flex-start;
+  align-items: center;
 
   &.exists {
-    --border: hsl(111, 32%, 66%);
+    --outline: hsl(111, 32%, 66%);
+  }
+
+  &:not(button) {
+    outline: 1px solid var(--outline, darkslategray);
+    outline-offset: 2px;
   }
 }
