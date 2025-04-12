@@ -24,8 +24,9 @@ public class AreaWordsService {
   public List<WordResponse> getAreaWords(byte[] imageData) {
     var result = ChatClient.create(chatModel).prompt().system(
         """
-            Please extract the wordlist data from this page?
-            In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
+            You are a linguistic expert.
+            You task is to extract the wordlist data from provided page image.
+            !IMPORTANT! In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
             The word property holds a string. it's the basic form of the word without any forms.
             The forms is a string array representing the different forms. In case of a noun it the plural form.
             In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.
