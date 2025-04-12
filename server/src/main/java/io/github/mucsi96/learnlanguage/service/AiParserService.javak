@@ -1,0 +1,79 @@
+package io.github.mucsi96.learnlanguage.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.openai.api.OpenAiApi.ChatModel;
+import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.util.UriUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AiParserService {
+
+    private final ChatModel chatModel;
+    private final WordIdService wordIdService;
+    private final ObjectMapper objectMapper;
+
+    public List<Map<String, Object>> parse(byte[] imageBytes) {
+        String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+        String imageUrl = "data:image/png;base64," + UriUtils.encode(imageBase64, StandardCharsets.UTF_8);
+
+        String prompt = """
+                Please extract the wordlist data from this page?
+                In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
+                The word property holds a string. it's the basic form of the word without any forms.
+                The forms is a string array representing the different forms. In case of a noun it the plural form.
+                In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.
+                The examples property is a string array enlisting the examples provided in the document.
+                json_structure:
+                {
+                    word_list: [
+                        {
+                            "word": "das Haus",
+                            "forms": ["die Häuser"],
+                            "examples": ["Das Haus ist groß."]
+                        },
+                        {
+                            "word": "gehen",
+                            "forms": ["gehst", "geht", "ist gegangen"],
+                            "examples": ["Ich gehe jetzt.", "Er ist nach Hause gegangen."]
+                        }
+                    ]
+                }
+                """;
+
+        UserMessage message = new UserMessage(prompt,
+                new Media(MimeTypeUtils.IMAGE_PNG, imageUrl))
+        ));
+
+        String result = llmClient.invoke(message);
+        return extractWordList(result);
+    }
+
+    private List<Map<String, Object>> extractWordList(String result) {
+        try {
+            JsonNode wordListNode = objectMapper.readTree(result).get("word_list");
+            return wordListNode.isArray() ?
+                wordListNode.elements().asIterator().stream()
+                    .map(word -> {
+                        Map<String, Object> wordMap = objectMapper.convertValue(word, Map.class);
+                        wordMap.put("id", wordIdService.generateId((String) wordMap.get("word")));
+                        return wordMap;
+                    })
+                    .collect(Collectors.toList()) :
+                List.of();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI response", e);
+        }
+    }
+}
