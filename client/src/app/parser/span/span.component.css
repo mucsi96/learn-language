@@ -4,6 +4,8 @@
   text-align: initial;
   justify-content: flex-start;
   align-items: center;
+  padding: initial !important;
+  border-radius: initial !important;
 
   &.exists {
     --outline: hsl(111, 32%, 66%);
