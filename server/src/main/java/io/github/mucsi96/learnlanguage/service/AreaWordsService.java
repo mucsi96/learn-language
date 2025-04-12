@@ -33,7 +33,7 @@ public class AreaWordsService {
             The examples property is a string array enlisting the examples provided in the document.
             json_structure:
             {
-                word_list: [
+                wordList: [
                     {
                         "word": "das Haus",
                         "forms": ["die Häuser"],
