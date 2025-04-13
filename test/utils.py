@@ -3,6 +3,9 @@ from azure.storage.blob import BlobServiceClient
 from pathlib import Path
 from contextlib import contextmanager
 import json
+import base64
+import gzip
+from urllib.parse import unquote  # Add this import
 
 blob_service_client = BlobServiceClient.from_connection_string(
     "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;"
@@ -81,3 +84,16 @@ def create_card(card_id, source_id, data, state, step, due, last_review=None):
             %s, %s, %s, %s, %s, 0, NULL, %s, %s
           );
           """, (card_id, source_id, json.dumps(data), state, step, due, last_review))
+
+def extract_link_data(href: str | None) -> dict:
+    if not href:
+        return {}
+
+    last_path_param = href.split("/")[-1]
+    try:
+        decoded_param = unquote(last_path_param)
+        decoded_data = gzip.decompress(base64.b64decode(decoded_param))
+        data_dict = json.loads(decoded_data)
+        return data_dict
+    except Exception as e:
+        raise AssertionError(f"Failed to decode or validate link data: {e}")

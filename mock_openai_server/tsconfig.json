@@ -1,0 +1,7 @@
+{
+  "extends": "@tsconfig/node-ts/tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false
+  }
+}

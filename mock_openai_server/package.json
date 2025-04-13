@@ -1,0 +1,21 @@
+{
+  "name": "mock-openai-server",
+  "version": "1.0.0",
+  "description": "A mock server for OpenAI Chat API",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2",
+    "@types/node": "^22.14.1",
+    "@tsconfig/node-ts": "^23.6.1"
+  },
+  "author": "",
+  "license": "MIT"
+}
