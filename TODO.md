@@ -9,6 +9,5 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Assign cards
 
 
-- fix broken authetication with empty session on non-root pages
 - add tests for card creation, editing
 - deploy to Azure
