@@ -3,7 +3,6 @@
         "vmware.vscode-boot-dev-pack",
         "vscjava.vscode-java-pack",
         "angular.ng-template",
-        "ms-azuretools.vscode-docker",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "donjayamanne.python-extension-pack",

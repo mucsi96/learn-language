@@ -15,7 +15,7 @@
     {
       "label": "Start client",
       "type": "shell",
-      "command": "yarn start",
+      "command": "npm start",
       "options": {
         "cwd": "${workspaceFolder}/client"
       },
@@ -50,9 +50,13 @@
       }
     },
     {
-      "label": "Install Dependencies",
       "type": "shell",
-      "command": "./scripts/install_dependencies.sh",
+      "command": "bash",
+      "label": "Install dependencies",
+      "args": ["scripts/install_dependencies.sh"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "problemMatcher": []
     },
     {
