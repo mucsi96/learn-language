@@ -35,7 +35,7 @@ public class ImageController {
 
         byte[] data = imageService.generateImage(imageSource.getInput());
         blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
-        
+
         return ImageResponse.builder()
                 .url(blobStorageService.getDownloadUrl(blobName))
                 .build();
