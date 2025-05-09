@@ -11,3 +11,6 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 
 - add tests for card creation, editing
 - deploy to Azure
+
+
+- Add support for batch card creation. When reagion is created the word is added to a cart. Then by clicking a button all for all words in the cart cards are created.
