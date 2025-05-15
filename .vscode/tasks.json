@@ -4,6 +4,13 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Start DB Connection Proxy",
+      "type": "shell",
+      "command": "export $(grep DB_PORT server/.env | xargs) && kubectl port-forward services/postgres1 ${DB_PORT}:http --kubeconfig .kube/db-config --namespace db",
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
       "label": "Start server",
       "type": "shell",
       "command": "uvicorn main:app --reload",
