@@ -2,6 +2,10 @@ package io.github.mucsi96.learnlanguage.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Type;
+
+import io.github.mucsi96.learnlanguage.model.CardData;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,8 +32,12 @@ public class Card {
     @JoinColumn(name = "source_id", nullable = false)
     private Source source;
 
+    @Column(name = "source_page_number", nullable = false)
+    private Integer sourcePageNumber;
+
     @Column(nullable = false, columnDefinition = "jsonb")
-    private String data;
+    @Type(JsonBinaryType.class)
+    private CardData data;
 
     @Column(nullable = false)
     private State state;

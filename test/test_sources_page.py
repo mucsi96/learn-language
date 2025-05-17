@@ -49,7 +49,11 @@ def test_highlights_existing_cards(page: Page):
     create_card(
         card_id='anfangen',
         source_id="goethe-a2",
-        data={"word": "anfangen", "translation": "to start"},
+        source_page_number=9,
+        data={
+            "word": "anfangen",
+            "translation": {"en": "to start"},
+        },
         state=1,
         step=0,
         due='2025-03-13 08:24:32.82948',

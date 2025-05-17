@@ -64,6 +64,7 @@ public class SourceController {
     return result;
   }
 
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/api/source/{sourceId}/page/{pageNumber}/words")
   public WordListResponse getWords(
       @PathVariable String sourceId,

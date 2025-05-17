@@ -87,12 +87,18 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
     expect(card_page.get_by_text("Card created successfully")).to_be_visible()
 
     with with_db_connection() as cur:
-        cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
+        cur.execute("SELECT data, source_id, source_page_number FROM learn_language.cards WHERE id = 'abfahren'")
         result = cur.fetchone()
 
         assert result is not None, "Card was not created in the database"
 
-        card_data = json.loads(result[0])
+        card_data = result[0]
+        source_id = result[1]
+        source_page_number = result[2]
+
+        # Verify source ID and page number
+        assert source_id == "goethe-a1", "Source ID doesn't match"
+        assert source_page_number == 9, "Source page number doesn't match"
 
         # Verify word section
         assert card_data["type"] == "ige", "Word type doesn't match"
@@ -115,17 +121,6 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
                 break
 
         assert example_found, "Example not found in card data"
-
-        # Verify the card source
-        cur.execute("""
-            SELECT source_id, page_number
-            FROM learn_language.card_sources
-            WHERE card_id = 'abfahren'
-        """)
-        source_result = cur.fetchone()
-
-        assert source_result is not None, "Card source association not found"
-        assert source_result[0] == "goethe-a1", "Source ID doesn't match"
 
 
 

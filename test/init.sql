@@ -16,12 +16,6 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
-CREATE TABLE learn_language.card_sources (
-    page_number integer NOT NULL,
-    card_id character varying(255) NOT NULL,
-    source_id character varying(255) NOT NULL
-);
-
 
 CREATE TABLE learn_language.cards (
     difficulty real,
@@ -32,7 +26,8 @@ CREATE TABLE learn_language.cards (
     last_review timestamp(6) without time zone,
     data jsonb NOT NULL,
     id character varying(255) NOT NULL,
-    source_id character varying(255) NOT NULL
+    source_id character varying(255) NOT NULL,
+    source_page_number integer NOT NULL
 );
 
 
@@ -72,10 +67,6 @@ INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, 
 SELECT pg_catalog.setval('learn_language.review_logs_id_seq', 1, false);
 
 
-ALTER TABLE ONLY learn_language.card_sources
-    ADD CONSTRAINT card_sources_pkey PRIMARY KEY (card_id, source_id);
-
-
 ALTER TABLE ONLY learn_language.cards
     ADD CONSTRAINT cards_pkey PRIMARY KEY (id);
 
@@ -92,13 +83,5 @@ ALTER TABLE ONLY learn_language.review_logs
     ADD CONSTRAINT fk6qudadb9cdv57kh9g3khyench FOREIGN KEY (card_id) REFERENCES learn_language.cards(id);
 
 
-ALTER TABLE ONLY learn_language.card_sources
-    ADD CONSTRAINT fkg4hy9dh4g6kuev4u1q6n4q2ey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id);
-
-
 ALTER TABLE ONLY learn_language.cards
     ADD CONSTRAINT fkjei36iycub8pvhosmh0nuqskm FOREIGN KEY (source_id) REFERENCES learn_language.sources(id);
-
-
-ALTER TABLE ONLY learn_language.card_sources
-    ADD CONSTRAINT fkqwc1og0nacsbvsxwa1hdhrao0 FOREIGN KEY (card_id) REFERENCES learn_language.cards(id);

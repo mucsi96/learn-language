@@ -74,15 +74,15 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, step, due, last_review=None):
+def create_card(card_id, source_id, data, state, step, due, source_page_number=1, last_review=None):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (
-            id, source_id, data, state, step, stability, difficulty, due, last_review
+            id, source_id, source_page_number, data, state, step, stability, difficulty, due, last_review
           ) VALUES (
-            %s, %s, %s, %s, %s, 0, NULL, %s, %s
+            %s, %s, %s, %s, %s, 0, NULL, %s, %s, %s
           );
-          """, (card_id, source_id, json.dumps(data), state, step, due, last_review))
+          """, (card_id, source_id, source_page_number, json.dumps(data), state, step, due, last_review))
 
 
 # Create a mock base64 image - this is a 1x1 transparent pixel
