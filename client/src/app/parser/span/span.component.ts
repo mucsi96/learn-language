@@ -70,7 +70,7 @@ export class SpanComponent {
   }
 
   get cardHrefPrefix() {
-    return `/sources/${this.sourceId}/page/${this.pageNumber}/cards/`;
+    return `/sources/${this.sourceId}/page/${this.pageNumber}/cards?cardData=`;
   }
 
   get ariaDescription() {

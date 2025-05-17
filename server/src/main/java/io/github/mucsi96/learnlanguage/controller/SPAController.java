@@ -26,13 +26,14 @@ public class SPAController {
     @Value("${UI_CLIENT_ID:}")
     private String uiClientId;
 
-    @GetMapping({ "/", "/{segment1:[^.]*}", "/{segment1:.+}/{segment2:[^.]*}" })
+
+    @GetMapping("/")
     public String index(HttpServletRequest request, Model model) {
-        model.addAttribute("baseHref", request.getContextPath() + "/");
-        model.addAttribute("tenantId", tenantId);
-        model.addAttribute("clientId", uiClientId);
-        model.addAttribute("apiClientId", clientId);
-        model.addAttribute("mockAuth", environment.matchesProfiles("test"));
-        return "index";
+      model.addAttribute("baseHref", request.getContextPath() + "/");
+      model.addAttribute("tenantId", tenantId);
+      model.addAttribute("clientId", uiClientId);
+      model.addAttribute("apiClientId", clientId);
+      model.addAttribute("mockAuth", environment.matchesProfiles("test"));
+      return "index";
     }
 }

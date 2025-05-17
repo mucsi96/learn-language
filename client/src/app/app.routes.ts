@@ -24,7 +24,7 @@ export const routes: Routes = [
     canActivate: environment.mockAuth ? [] : [MsalGuard],
   },
   {
-    path: 'sources/:sourceId/page/:pageNumber/cards/:cardData',
+    path: 'sources/:sourceId/page/:pageNumber/cards',
     component: CardComponent,
     canActivate: environment.mockAuth ? [] : [MsalGuard],
   },

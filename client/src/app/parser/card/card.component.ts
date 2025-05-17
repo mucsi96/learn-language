@@ -11,7 +11,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { CardService } from '../../card.service';
-import { injectParams } from '../../utils/inject-params';
+import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
@@ -35,7 +35,7 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 export class CardComponent {
   private readonly cardService = inject(CardService);
   private readonly route = inject(ActivatedRoute);
-  private readonly cardData = injectParams<string>('cardData');
+  private readonly cardData = injectQueryParams<string>('cardData');
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   readonly loading = this.cardService.isLoading;

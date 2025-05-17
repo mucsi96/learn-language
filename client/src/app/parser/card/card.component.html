@@ -13,27 +13,42 @@
 </h5>
 <mat-form-field class="field">
   <mat-label>Type</mat-label>
-  <input matInput type="text" [(ngModel)]="type.value" />
+  <input matInput type="text" [(ngModel)]="type.value" aria-label="Word type" />
 </mat-form-field>
 <div class="word">
   <mat-form-field class="field">
     <mat-label>German</mat-label>
-    <input matInput type="text" [(ngModel)]="word" />
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="word"
+      aria-label="German translation"
+    />
   </mat-form-field>
   <mat-form-field class="field">
     <mat-label>Hungarian</mat-label>
-    <input matInput type="text" [(ngModel)]="translation['hu']" />
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['hu']"
+      aria-label="Hungarian translation"
+    />
   </mat-form-field>
   <mat-form-field class="field">
     <mat-label>Swiss German</mat-label>
-    <input matInput type="text" [(ngModel)]="translation['ch']" />
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['ch']"
+      aria-label="Swiss German translation"
+    />
   </mat-form-field>
 </div>
 <h5>Forms</h5>
 <div class="forms">
   @for (form of forms(); track $index) {
   <mat-form-field class="field">
-    <input matInput type="text" [(ngModel)]="form" />
+    <input matInput type="text" [(ngModel)]="form" aria-label="Form" />
   </mat-form-field>
   }
 </div>
@@ -49,7 +64,12 @@
     </div>
     <mat-form-field class="field">
       <mat-label>German</mat-label>
-      <input matInput type="text" [(ngModel)]="example" />
+      <input
+        matInput
+        type="text"
+        [(ngModel)]="example"
+        aria-label="Example in German"
+      />
     </mat-form-field>
     @if(examplesTranslations(); as examplesTranslations) {
     <mat-form-field class="field">
@@ -58,6 +78,7 @@
         matInput
         type="text"
         [(ngModel)]="examplesTranslations['hu'][$index]"
+        aria-label="Example in Hungarian"
       />
     </mat-form-field>
     <mat-form-field class="field">
@@ -66,6 +87,7 @@
         matInput
         type="text"
         [(ngModel)]="examplesTranslations['ch'][$index]"
+        aria-label="Example in Swiss German"
       />
     </mat-form-field>
     <div class="image">

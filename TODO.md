@@ -9,7 +9,9 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Assign cards
 
 
-- add tests for card creation, editing
+- add test for card creation. Checking DB.
+- add test for editing
+- add test for image generation
 - deploy to Azure
 
 

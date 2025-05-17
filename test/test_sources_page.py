@@ -1,10 +1,10 @@
 from pathlib import Path
 import sys
-from playwright.sync_api import Page, expect
+from playwright.sync_api import BrowserContext, Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_card, extract_link_data
+from utils import create_card
 
 
 def test_displays_current_page(page: Page):
@@ -59,7 +59,7 @@ def test_highlights_existing_cards(page: Page):
     expect(page.get_by_text("anfangen,")).to_have_attribute("aria-description", "Card exists")
 
 
-def test_drag_to_select_words(page: Page):
+def test_drag_to_select_words(page: Page, context: BrowserContext):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
 
@@ -78,17 +78,15 @@ def test_drag_to_select_words(page: Page):
 
     expect(page.get_by_role(role="link", name="aber")).to_be_visible()
     expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
-    assert extract_link_data(page.get_by_role(role="link", name="aber").get_attribute("href")) == {
-        'id': 'aber',
-        'exists': False,
-        'word': 'aber',
-        'forms': [],
-        'examples': ['Ab morgen muss ich arbeiten.']
-    }
-    assert extract_link_data(page.get_by_role(role="link", name="abfahren").get_attribute("href")) == {
-        'id': 'abfahren',
-        'exists': False,
-        'word': 'abfahren',
-        'forms': ['fährt ab', 'fuhr ab', 'abgefahren'],
-        'examples': ['Wir fahren um zwölf Uhr ab.']
-    }
+
+    with context.expect_page() as card_page_info:
+        page.get_by_role(role="link", name="aber").click()
+    card_page = card_page_info.value
+
+    expect(card_page.get_by_label("German translation", exact=True)).to_have_value("aber")
+
+    with context.expect_page() as card_page_info:
+        page.get_by_role(role="link", name="abfahren").click()
+    card_page = card_page_info.value
+
+    expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
