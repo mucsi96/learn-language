@@ -6,28 +6,10 @@ import requests
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import with_db_connection, mockImageBytes
+from utils import with_db_connection, mockImage1, mockImage2, navigate_to_card_creation
 
 def test_card_creation_page(page: Page, context: BrowserContext):
-    page.goto("http://localhost:8180/sources")
-    page.get_by_role(role="link", name="Goethe A1").click()
-
-    # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text("Alphabetische")
-    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.")
-    start_box = start_element.bounding_box()
-    end_box = end_element.bounding_box()
-
-    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
-
-    page.mouse.move(start_box["x"] + start_box["width"] / 2, start_box["y"] + start_box["height"] / 2)
-    page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"] / 2, end_box["y"] + end_box["height"] / 2)
-    page.mouse.up()
-
-    with context.expect_page() as card_page_info:
-        page.get_by_role(role="link", name="abfahren").click()
-    card_page = card_page_info.value
+    card_page = navigate_to_card_creation(page, context)
 
     # Word section
     expect(card_page.get_by_label("Word type", exact=True)).to_have_value("ige")
@@ -58,29 +40,11 @@ def test_card_creation_page(page: Page, context: BrowserContext):
     response = requests.get(image_src)
     response.raise_for_status()
 
-    assert response.content == mockImageBytes, "Image data does not match mock image data"
+    assert response.content == mockImage1, "Image data does not match mock image data"
 
 
 def test_card_creation_in_db(page: Page, context: BrowserContext):
-    page.goto("http://localhost:8180/sources")
-    page.get_by_role(role="link", name="Goethe A1").click()
-
-    # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text("Alphabetische")
-    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.")
-    start_box = start_element.bounding_box()
-    end_box = end_element.bounding_box()
-
-    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
-
-    page.mouse.move(start_box["x"] + start_box["width"] / 2, start_box["y"] + start_box["height"] / 2)
-    page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"] / 2, end_box["y"] + end_box["height"] / 2)
-    page.mouse.up()
-
-    with context.expect_page() as card_page_info:
-        page.get_by_role(role="link", name="abfahren").click()
-    card_page = card_page_info.value
+    card_page = navigate_to_card_creation(page, context)
 
     card_page.get_by_role(role="button", name="Create").click()
 
@@ -122,5 +86,20 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
 
         assert example_found, "Example not found in card data"
 
+def test_image_regeneration(page: Page, context: BrowserContext):
+    card_page = navigate_to_card_creation(page, context)
+
+    card_page.get_by_role("button").filter(has_text="refresh").first.click()
+
+    regenerated_image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
+    expect(regenerated_image_element).to_be_visible()
+
+    regenerated_image_src = regenerated_image_element.get_attribute('src')
+    assert regenerated_image_src is not None, "Regenerated image src attribute is None"
+
+    regenerated_response = requests.get(regenerated_image_src)
+    regenerated_response.raise_for_status()
+
+    assert regenerated_response.content == mockImage2, "Regenerated image data does not match Image 2"
 
 

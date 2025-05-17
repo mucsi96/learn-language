@@ -1,6 +1,14 @@
 import express from 'express';
 
 const app = express();
+// Image 1: 1x1 transparent pixel
+const image1 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+// Image 2: 1x1 red pixel
+const image2 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+let imageCallCounters = 0;
 
 app.use(express.json());
 
@@ -68,19 +76,17 @@ app.post('/v1/images/generations', (req, res) => {
   const { prompt } = req.body;
 
   console.log('Received image generation request with prompt:', prompt);
-
-  // Create a mock base64 image - this is a 1x1 transparent pixel
-  const mockBase64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  imageCallCounters++;
 
   res.status(200).json({
     created: Date.now(),
     data: [
       {
-        b64_json: mockBase64Image,
+        b64_json: imageCallCounters > 1 ? image2 : image1,
         revised_prompt: prompt,
-        url: null
-      }
-    ]
+        url: null,
+      },
+    ],
   });
 });
 

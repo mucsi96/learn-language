@@ -85,6 +85,31 @@ def create_card(card_id, source_id, data, state, step, due, source_page_number=1
           """, (card_id, source_id, source_page_number, json.dumps(data), state, step, due, last_review))
 
 
-# Create a mock base64 image - this is a 1x1 transparent pixel
-mockBase64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-mockImageBytes = base64.b64decode(mockBase64Image);
+# 1x1 transparent pixel (returned on first API call)
+mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
+
+# 1x1 red pixel (returned on subsequent API calls)
+mockImage2 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="Alphabetische", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name=source_name).click()
+
+    # Simulate dragging a rectangle to select words
+    start_element = page.get_by_text(start_text)
+    end_element = page.get_by_text(end_text)
+    start_box = start_element.bounding_box()
+    end_box = end_element.bounding_box()
+
+    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
+
+    page.mouse.move(start_box["x"] + start_box["width"] / 2, start_box["y"] + start_box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(end_box["x"] + end_box["width"] / 2, end_box["y"] + end_box["height"] / 2)
+    page.mouse.up()
+
+    with context.expect_page() as card_page_info:
+        page.get_by_role(role="link", name=word_name).click()
+    card_page = card_page_info.value
+
+    return card_page
