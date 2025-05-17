@@ -39,6 +39,12 @@ public class BlobStorageService {
         return getBlobClient(blobName).exists();
     }
 
+    @Value("${blobstorage.accountUrl}")
+    private String accountUrl;
+
+    @Value("${blobstorage.publicUrl:#{null}}")
+    private String publicUrl;
+
     public String getDownloadUrl(String blobName) {
         BlobClient blobClient = getBlobClient(blobName);
         UserDelegationKey userDelegationKey = blobServiceClient.getUserDelegationKey(
@@ -49,6 +55,12 @@ public class BlobStorageService {
                 new BlobSasPermission().setReadPermission(true)).setStartTime(OffsetDateTime.now());
 
         String sasToken = blobClient.generateUserDelegationSas(sasValues, userDelegationKey);
-        return blobClient.getBlobUrl() + "?" + sasToken;
+        String url = blobClient.getBlobUrl() + "?" + sasToken;
+
+        if (publicUrl != null && !publicUrl.isEmpty()) {
+            url = url.replaceFirst(accountUrl, publicUrl);
+        }
+
+        return url;
     }
 }

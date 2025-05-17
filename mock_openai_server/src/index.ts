@@ -63,6 +63,27 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add route for image generation mock
+app.post('/v1/images/generations', (req, res) => {
+  const { prompt } = req.body;
+
+  console.log('Received image generation request with prompt:', prompt);
+
+  // Create a mock base64 image - this is a 1x1 transparent pixel
+  const mockBase64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+  res.status(200).json({
+    created: Date.now(),
+    data: [
+      {
+        b64_json: mockBase64Image,
+        revised_prompt: prompt,
+        url: null
+      }
+    ]
+  });
+});
+
 app.post('/v1/chat/completions', (req, res) => {
   const { messages } = req.body;
 

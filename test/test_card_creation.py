@@ -1,9 +1,12 @@
+import json
 from pathlib import Path
 import sys
 from playwright.sync_api import Page, BrowserContext, expect
+import requests
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
+from utils import with_db_connection, mockImageBytes
 
 def test_card_creation_page(page: Page, context: BrowserContext):
     page.goto("http://localhost:8180/sources")
@@ -43,3 +46,86 @@ def test_card_creation_page(page: Page, context: BrowserContext):
         'nth=0')).to_have_value("Tizenkét órakor indulunk.")
     expect(card_page.get_by_label("Example in Swiss German", exact=True).locator(
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
+
+    # Image
+    image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
+    expect(image_element).to_be_visible()
+
+    image_src = image_element.get_attribute('src')
+
+    assert image_src is not None, "Image src attribute is None"
+
+    response = requests.get(image_src)
+    response.raise_for_status()
+
+    assert response.content == mockImageBytes, "Image data does not match mock image data"
+
+
+def test_card_creation_in_db(page: Page, context: BrowserContext):
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+
+    # Simulate dragging a rectangle to select words
+    start_element = page.get_by_text("Alphabetische")
+    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.")
+    start_box = start_element.bounding_box()
+    end_box = end_element.bounding_box()
+
+    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
+
+    page.mouse.move(start_box["x"] + start_box["width"] / 2, start_box["y"] + start_box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(end_box["x"] + end_box["width"] / 2, end_box["y"] + end_box["height"] / 2)
+    page.mouse.up()
+
+    with context.expect_page() as card_page_info:
+        page.get_by_role(role="link", name="abfahren").click()
+    card_page = card_page_info.value
+
+    card_page.get_by_role(role="button", name="Create").click()
+
+    expect(card_page.get_by_text("Card created successfully")).to_be_visible()
+
+    with with_db_connection() as cur:
+        cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
+        result = cur.fetchone()
+
+        assert result is not None, "Card was not created in the database"
+
+        card_data = json.loads(result[0])
+
+        # Verify word section
+        assert card_data["type"] == "ige", "Word type doesn't match"
+        assert card_data["word"] == "abfahren", "German word doesn't match"
+        assert card_data["translation"]["hu"] == "elindulni, elhagyni", "Hungarian translation doesn't match"
+        assert card_data["translation"]["ch"] == "abfahra, verlah", "Swiss German translation doesn't match"
+
+        # Verify forms
+        assert "fährt ab" in card_data["forms"], "Form 'fährt ab' not found"
+        assert "fuhr ab" in card_data["forms"], "Form 'fuhr ab' not found"
+        assert "abgefahren" in card_data["forms"], "Form 'abgefahren' not found"
+
+        # Verify examples
+        example_found = False
+        for example in card_data["examples"]:
+            if example["de"] == "Wir fahren um zwölf Uhr ab.":
+                example_found = True
+                assert example["hu"] == "Tizenkét órakor indulunk.", "Hungarian example doesn't match"
+                assert example["ch"] == "Mir fahred am zwöufi ab.", "Swiss German example doesn't match"
+                break
+
+        assert example_found, "Example not found in card data"
+
+        # Verify the card source
+        cur.execute("""
+            SELECT source_id, page_number
+            FROM learn_language.card_sources
+            WHERE card_id = 'abfahren'
+        """)
+        source_result = cur.fetchone()
+
+        assert source_result is not None, "Card source association not found"
+        assert source_result[0] == "goethe-a1", "Source ID doesn't match"
+
+
+

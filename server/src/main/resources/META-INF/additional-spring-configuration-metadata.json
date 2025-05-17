@@ -8,5 +8,10 @@
     "name": "blobstorage.containerName",
     "type": "java.lang.String",
     "description": "Azure Blob Storage container name"
+  },
+  {
+    "name": "blobstorage.publicUrl",
+    "type": "java.lang.String",
+    "description": "Publicly accessible URL for Azure Blob Storage"
   }
 ]}

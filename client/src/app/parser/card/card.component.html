@@ -94,7 +94,7 @@
       @if (exampleImages()[$index].isLoading()) {
       <div class="skeleton"></div>
       } @else {
-      <img src="{{ exampleImages()[$index].value() }}" />
+      <img src="{{ exampleImages()[$index].value() }}" [alt]="example()"/>
       }
     </div>
     }

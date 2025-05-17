@@ -4,7 +4,6 @@ from pathlib import Path
 from contextlib import contextmanager
 import json
 import base64
-import gzip
 from urllib.parse import unquote  # Add this import
 
 blob_service_client = BlobServiceClient.from_connection_string(
@@ -84,3 +83,8 @@ def create_card(card_id, source_id, data, state, step, due, last_review=None):
             %s, %s, %s, %s, %s, 0, NULL, %s, %s
           );
           """, (card_id, source_id, json.dumps(data), state, step, due, last_review))
+
+
+# Create a mock base64 image - this is a 1x1 transparent pixel
+mockBase64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+mockImageBytes = base64.b64decode(mockBase64Image);

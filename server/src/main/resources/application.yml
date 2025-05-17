@@ -1,6 +1,7 @@
 blobstorage:
   accountUrl: ${STORAGE_ACCOUNT_BLOB_URL:}
   containerName: ${STORAGE_ACCOUNT_CONTAINER_NAME:}
+  publicUrl: ${STORAGE_ACCOUNT_PUBLIC_URL:}
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_NAME}
