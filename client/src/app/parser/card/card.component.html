@@ -91,10 +91,13 @@
       />
     </mat-form-field>
     <div class="image">
-      @if (exampleImages()[$index].isLoading()) {
+      @if (exampleImages()[$index]) { @if (exampleImages()[$index].isLoading())
+      {
       <div class="skeleton"></div>
       } @else {
-      <img src="{{ exampleImages()[$index].value() }}" [alt]="example()"/>
+      <img src="{{ exampleImages()[$index].value() }}" [alt]="example()" />
+      } } @else {
+      <mat-icon>image_not_supported</mat-icon>
       }
     </div>
     }

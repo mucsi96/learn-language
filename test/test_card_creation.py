@@ -1,12 +1,10 @@
-import json
 from pathlib import Path
 import sys
 from playwright.sync_api import Page, BrowserContext, expect
-import requests
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import with_db_connection, mockImage1, mockImage2, navigate_to_card_creation
+from utils import with_db_connection, mockImage1, mockImage2, navigate_to_card_creation, get_image_content
 
 def test_card_creation_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
@@ -33,14 +31,8 @@ def test_card_creation_page(page: Page, context: BrowserContext):
     image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
     expect(image_element).to_be_visible()
 
-    image_src = image_element.get_attribute('src')
-
-    assert image_src is not None, "Image src attribute is None"
-
-    response = requests.get(image_src)
-    response.raise_for_status()
-
-    assert response.content == mockImage1, "Image data does not match mock image data"
+    image_content = get_image_content(image_element)
+    assert image_content == mockImage1, "Image data does not match mock image data"
 
 
 def test_card_creation_in_db(page: Page, context: BrowserContext):
@@ -94,12 +86,7 @@ def test_image_regeneration(page: Page, context: BrowserContext):
     regenerated_image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
     expect(regenerated_image_element).to_be_visible()
 
-    regenerated_image_src = regenerated_image_element.get_attribute('src')
-    assert regenerated_image_src is not None, "Regenerated image src attribute is None"
-
-    regenerated_response = requests.get(regenerated_image_src)
-    regenerated_response.raise_for_status()
-
-    assert regenerated_response.content == mockImage2, "Regenerated image data does not match Image 2"
+    regenerated_image_content = get_image_content(regenerated_image_element)
+    assert regenerated_image_content == mockImage2, "Regenerated image data does not match Image 2"
 
 

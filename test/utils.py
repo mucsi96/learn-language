@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import json
 import base64
 from urllib.parse import unquote  # Add this import
+import requests
 
 blob_service_client = BlobServiceClient.from_connection_string(
     "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;"
@@ -90,6 +91,15 @@ mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC
 
 # 1x1 red pixel (returned on subsequent API calls)
 mockImage2 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+def get_image_content(image_element):
+    image_src = image_element.get_attribute('src')
+    assert image_src is not None, "Image src attribute is None"
+
+    response = requests.get(image_src)
+    response.raise_for_status()
+
+    return response.content
 
 def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="Alphabetische", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
     page.goto("http://localhost:8180/sources")

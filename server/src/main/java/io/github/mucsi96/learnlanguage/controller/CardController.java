@@ -65,6 +65,6 @@ public class CardController {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-        return ResponseEntity.ok((CardData) card.getData());
+        return ResponseEntity.ok(card.getData());
     }
 }
