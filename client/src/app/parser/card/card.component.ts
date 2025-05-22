@@ -47,7 +47,7 @@ export class CardComponent {
   readonly examples = this.cardService.examples;
   readonly examplesTranslations = this.cardService.examplesTranslations;
   readonly exampleImages = this.cardService.exampleImages;
-  readonly selectedImage = this.cardService.selectedImage;
+  readonly selectedExampleIndex = this.cardService.selectedExampleIndex;
   readonly getImageUrl = this.cardService.getImageUrl;
 
   constructor() {

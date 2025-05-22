@@ -15,8 +15,7 @@ import lombok.experimental.SuperBuilder;
 public class CardData {
     private String word;
     private String type;
-    private String image;
     private Map<String, String> translation;
     private List<String> forms;
-    private List<Map<String, String>> examples;
+    private List<ExampleData> examples;
 }

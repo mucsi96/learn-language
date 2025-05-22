@@ -134,8 +134,10 @@ export class CardService {
   });
   readonly exampleImages = signal<ResourceRef<string | undefined>[]>([]);
   private exampleImagesReload: boolean[] = [];
-  readonly selectedImage = linkedSignal(
-    () => this.card.value()?.image ?? this.getImageUrl(0)
+  readonly selectedExampleIndex = linkedSignal(
+    () =>
+      this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
+      0
   );
 
   async selectWord(word: Word) {
@@ -236,16 +238,18 @@ export class CardService {
         ])
       ),
       forms: this.forms()?.map((form) => form()),
-      examples: this.examples()?.map((example, index) => {
-        return Object.fromEntries([
+      examples: this.examples()?.map((example, index) => ({
+        ...Object.fromEntries([
           ['de', example()],
           ...languages.map((languageCode) => [
             languageCode,
             this.examplesTranslations()?.[languageCode][index](),
           ]),
-        ]);
-      }),
-      image: this.selectedImage(),
+        ]),
+        ...(this.selectedExampleIndex() === index && {
+          isSelected: true,
+        })
+      })),
     } satisfies Card;
     return cardData;
   }

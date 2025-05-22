@@ -53,11 +53,11 @@
   }
 </div>
 <h5>Examples</h5>
-<mat-radio-group [(ngModel)]="selectedImage">
+<mat-radio-group [(ngModel)]="selectedExampleIndex">
   @for (example of examples(); track $index) {
   <div class="example">
     <div class="actions">
-      <mat-radio-button [value]="getImageUrl($index)"></mat-radio-button>
+      <mat-radio-button [value]="$index"></mat-radio-button>
       <button mat-icon-button (click)="exampleImages()[$index].reload()">
         <mat-icon>refresh</mat-icon>
       </button>

@@ -37,8 +37,9 @@ export type Card = {
   type?: string;
   translation?: Record<string, string | undefined>;
   forms?: string[];
-  examples?: Record<string, string | undefined>[];
-  image?: string;
+  examples?: (Record<string, string | undefined> & {
+    isSelected?: boolean;
+  })[];
 };
 
 export type Page = {

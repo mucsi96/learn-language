@@ -48,11 +48,11 @@ public class BlobStorageService {
     public String getDownloadUrl(String blobName) {
         BlobClient blobClient = getBlobClient(blobName);
         UserDelegationKey userDelegationKey = blobServiceClient.getUserDelegationKey(
-                OffsetDateTime.now(), OffsetDateTime.now().plusMinutes(2));
+                OffsetDateTime.now().minusMinutes(1), OffsetDateTime.now().plusMinutes(2));
 
         BlobServiceSasSignatureValues sasValues = new BlobServiceSasSignatureValues(
                 OffsetDateTime.now().plusMinutes(2),
-                new BlobSasPermission().setReadPermission(true)).setStartTime(OffsetDateTime.now());
+                new BlobSasPermission().setReadPermission(true)).setStartTime(OffsetDateTime.now().minusMinutes(1));
 
         String sasToken = blobClient.generateUserDelegationSas(sasValues, userDelegationKey);
         String url = blobClient.getBlobUrl() + "?" + sasToken;

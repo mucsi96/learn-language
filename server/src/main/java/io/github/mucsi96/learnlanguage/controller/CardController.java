@@ -35,7 +35,6 @@ public class CardController {
         CardData cardData = CardData.builder()
                 .word(request.getWord())
                 .type(request.getType())
-                .image(request.getImage())
                 .translation(request.getTranslation())
                 .forms(request.getForms())
                 .examples(request.getExamples())
@@ -66,5 +65,40 @@ public class CardController {
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
         return ResponseEntity.ok(card.getData());
+    }
+
+    @PutMapping("/card/{cardId}")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId, @RequestBody CardCreateRequest request) throws Exception {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+
+        CardData cardData = CardData.builder()
+                .word(request.getWord())
+                .type(request.getType())
+                .translation(request.getTranslation())
+                .forms(request.getForms())
+                .examples(request.getExamples())
+                .build();
+
+        card.setData(cardData);
+        cardRepository.save(card);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("detail", "Card updated successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/card/{cardId}")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+
+        cardRepository.delete(card);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("detail", "Card deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }
