@@ -116,7 +116,7 @@ app.post('/v1/chat/completions', (req, res) => {
           {
             word: 'abfahren',
             forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-            examples: ['Wir fahren um zwölf Uhr ab.'],
+            examples: ['Wir fahren um zwölf Uhr ab.', 'Wann fährt der Zug ab?'],
           },
         ],
       })
@@ -134,7 +134,7 @@ app.post('/v1/chat/completions', (req, res) => {
     res.status(200).json(
       createAssistantResponse({
         translation: 'to depart, to leave',
-        examples: ["We are departing at twelve o'clock."],
+        examples: ["We are departing at twelve o'clock.", 'When does the train leave?'],
       })
     );
     return;
@@ -150,7 +150,7 @@ app.post('/v1/chat/completions', (req, res) => {
     res.status(200).json(
       createAssistantResponse({
         translation: 'elindulni, elhagyni',
-        examples: ['Tizenkét órakor indulunk.'],
+        examples: ['Tizenkét órakor indulunk.', 'Mikor indul a vonat?'],
       })
     );
     return;
@@ -166,7 +166,7 @@ app.post('/v1/chat/completions', (req, res) => {
     res.status(200).json(
       createAssistantResponse({
         translation: 'abfahra, verlah',
-        examples: ['Mir fahred am zwöufi ab.'],
+        examples: ['Mir fahred am zwöufi ab.', 'Wänn fahrt de Zug ab?'],
       })
     );
     return;

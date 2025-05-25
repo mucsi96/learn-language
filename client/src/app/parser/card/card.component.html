@@ -94,7 +94,7 @@
       @if (exampleImages()[$index]) { @if (exampleImages()[$index].isLoading())
       {
       <div class="skeleton"></div>
-      } @else {
+      } @else if (exampleImages()[$index].value()) {
       <img src="{{ exampleImages()[$index].value() }}" [alt]="example()" />
       } } @else {
       <mat-icon>image_not_supported</mat-icon>

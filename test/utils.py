@@ -4,8 +4,8 @@ from pathlib import Path
 from contextlib import contextmanager
 import json
 import base64
-from urllib.parse import unquote  # Add this import
 import requests
+from playwright.sync_api import expect
 
 blob_service_client = BlobServiceClient.from_connection_string(
     "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;"
@@ -75,7 +75,7 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, step, due, source_page_number=1, last_review=None):
+def create_card(card_id, source_id, data, state, step, due, source_page_number=1, last_review=None, images=None):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (
@@ -85,6 +85,10 @@ def create_card(card_id, source_id, data, state, step, due, source_page_number=1
           );
           """, (card_id, source_id, source_page_number, json.dumps(data), state, step, due, last_review))
 
+    if images:
+        for index, image_data in enumerate(images):
+            upload_mock_image(image_data, source_id, card_id, index)
+
 
 # 1x1 transparent pixel (returned on first API call)
 mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
@@ -93,6 +97,7 @@ mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC
 mockImage2 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
 
 def get_image_content(image_element):
+    expect(image_element).to_be_visible()
     image_src = image_element.get_attribute('src')
     assert image_src is not None, "Image src attribute is None"
 
@@ -123,3 +128,14 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     card_page = card_page_info.value
 
     return card_page
+
+def upload_mock_image(image_data, source_id="goethe-a1", card_id="abfahren", example_index=0):
+    container_client = blob_service_client.get_container_client('learn-language')
+
+    if not container_client.exists():
+        container_client.create_container()
+
+    blob_name = f"images/{source_id}/{card_id}-{example_index}.png"
+    blob_client = container_client.get_blob_client(blob_name)
+
+    blob_client.upload_blob(image_data, overwrite=True)

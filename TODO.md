@@ -9,9 +9,6 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Assign cards
 
 
-- save only image file name
-- save all generated images in card
-- save the selected image
 - add test for editing
 - implement card deletion
 - deploy to Azure

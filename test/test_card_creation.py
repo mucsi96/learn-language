@@ -28,11 +28,11 @@ def test_card_creation_page(page: Page, context: BrowserContext):
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
 
     # Image
-    image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
-    expect(image_element).to_be_visible()
+    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    assert image_content1 == mockImage1, "Image data does not match mock image data"
+    assert image_content2 == mockImage2, "Image data does not match mock image data"
 
-    image_content = get_image_content(image_element)
-    assert image_content == mockImage1, "Image data does not match mock image data"
 
 
 def test_card_creation_in_db(page: Page, context: BrowserContext):
@@ -77,16 +77,14 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
                 break
 
         assert example_found, "Example not found in card data"
+        assert card_data["examples"][0]["isSelected"] is True, "First example should be selected"
 
 def test_image_regeneration(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
     card_page.get_by_role("button").filter(has_text="refresh").first.click()
 
-    regenerated_image_element = card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab.")
-    expect(regenerated_image_element).to_be_visible()
-
-    regenerated_image_content = get_image_content(regenerated_image_element)
+    regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     assert regenerated_image_content == mockImage2, "Regenerated image data does not match Image 2"
 
 
