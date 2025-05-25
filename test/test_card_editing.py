@@ -105,8 +105,8 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
         card_data = result[0]
 
     assert card_data["translation"]["hu"] == "elindulni, elutazni", "Hungarian translation wasn't updated"
-    assert card_data["examples"][0]["isSelected"] == False, "First example should no longer be selected"
-    assert card_data["examples"][1]["isSelected"] == False, "Second example should now be selected"
+    assert card_data["examples"][0]["isSelected"] == None, "First example should no longer be selected"
+    assert card_data["examples"][1]["isSelected"] == True, "Second example should now be selected"
     assert card_data["word"] == "abfahren", "German word was changed unexpectedly"
     assert card_data["translation"]["ch"] == "abfahra, verlah", "Swiss German translation was changed unexpectedly"
     assert "fährt ab" in card_data["forms"], "Form 'fährt ab' was lost"
