@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,15 +35,7 @@ public class ImageController {
         byte[] data = imageService.generateImage(imageSource.getInput());
         blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
-        return ImageResponse.builder()
-                .url(blobStorageService.getDownloadUrl(blobName))
-                .build();
-    }
-
-    @GetMapping("/api/image/{source}/{imageId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ImageResponse getImage(@PathVariable String source, @PathVariable String imageId) {
-        String url = blobStorageService.getDownloadUrl(String.format("images/%s/%s.png", source, imageId));
+        String url = blobStorageService.getDownloadUrl(blobName);
         return ImageResponse.builder()
                 .url(url)
                 .build();

@@ -6,8 +6,10 @@ import io.github.mucsi96.learnlanguage.entity.State;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.service.BlobStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class CardController {
 
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
+    private final BlobStorageService blobStorageService;
 
     @PostMapping("/card")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -64,7 +69,24 @@ public class CardController {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-        return ResponseEntity.ok(card.getData());
+        CardData cardData = card.getData();
+        enrichExamplesWithImageUrls(card.getSource().getId(), cardId, cardData.getExamples());
+
+        return ResponseEntity.ok(cardData);
+    }
+
+    private void enrichExamplesWithImageUrls(String sourceId, String cardId, List<ExampleData> examples) {
+        if (examples == null) {
+            return;
+        }
+
+        IntStream.range(0, examples.size()).forEach(index -> {
+            String blobName = String.format("images/%s/%s-%d.png", sourceId, cardId, index);
+            if (blobStorageService.blobExists(blobName)) {
+                String imageUrl = blobStorageService.getDownloadUrl(blobName);
+                examples.get(index).setImageUrl(imageUrl);
+            }
+        });
     }
 
     @PutMapping("/card/{cardId}")

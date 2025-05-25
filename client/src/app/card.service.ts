@@ -162,26 +162,16 @@ export class CardService {
           loader: async ({
             request: { card, englishTranslation, selectedSourceId },
           }) => {
+            if (card?.examples?.[index]?.imageUrl) {
+              return card.examples[index].imageUrl;
+            }
+
             if (
               !englishTranslation ||
               (word.exists && !card) ||
               !selectedSourceId
             ) {
               return;
-            }
-
-            const imageUrl =
-              word.exists &&
-              !this.exampleImagesReload[index] &&
-              this.getImageUrl(index);
-
-            if (imageUrl) {
-              const { url } = await fetchJson<{ url: string }>(
-                this.http,
-                imageUrl
-              );
-              this.exampleImagesReload[index] = true;
-              return url;
             }
 
             const { url } = await fetchJson<{ url: string }>(
@@ -285,14 +275,4 @@ export class CardService {
       method: 'DELETE',
     });
   }
-
-  getImageUrl = (index: number) => {
-    const word = this.selectedWord();
-
-    if (!word) {
-      return;
-    }
-
-    return `/api/image/${this.selectedSourceId()}/${word.id}-${index}`;
-  };
 }
