@@ -90,11 +90,18 @@ def create_card(card_id, source_id, data, state, step, due, source_page_number=1
             upload_mock_image(image_data, source_id, card_id, index)
 
 
-# 1x1 transparent pixel (returned on first API call)
+# 1x1 transparent pixel
 mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
 
-# 1x1 red pixel (returned on subsequent API calls)
+# 1x1 red pixel
 mockImage2 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+# 1x1 blue pixel
+mockImage3 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+# 1x1 green pixel
+mockImage4 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
 
 def get_image_content(image_element):
     expect(image_element).to_be_visible()

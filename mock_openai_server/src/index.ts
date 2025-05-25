@@ -8,7 +8,16 @@ const image1 =
 const image2 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
-let imageCallCounters = 0;
+// Image 3: 1x1 blue pixel
+const image3 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+// Image 4: 1x1 green pixel
+const image4 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+let imageCallCounter1 = 0;
+let imageCallCounter2 = 0;
 
 app.use(express.json());
 
@@ -71,18 +80,37 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add route to reset state for tests
+app.post('/reset', (req, res) => {
+  imageCallCounter1 = 0;
+  imageCallCounter2 = 0;
+  console.log('Reset image counter to 0');
+  res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
+});
+
 // Add route for image generation mock
 app.post('/v1/images/generations', (req, res) => {
   const { prompt } = req.body;
 
   console.log('Received image generation request with prompt:', prompt);
-  imageCallCounters++;
+
+  let b64_json = image1;
+
+  if (prompt.includes('We are departing at twelve o\'clock.')) {
+    imageCallCounter1++;
+    b64_json = imageCallCounter1 > 1 ? image3 : image1;
+  }
+
+  if (prompt.includes('When does the train leave?')) {
+    imageCallCounter2++;
+    b64_json = imageCallCounter2 > 1 ? image4 : image2;
+  }
 
   res.status(200).json({
     created: Date.now(),
     data: [
       {
-        b64_json: imageCallCounters > 1 ? image2 : image1,
+        b64_json,
         revised_prompt: prompt,
         url: null,
       },

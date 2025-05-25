@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import requests
 from pytest import fixture
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
@@ -32,4 +33,9 @@ def cleanup(monkeypatch):
     populate_db()
     cleanup_storage()
     populate_storage()
+    try:
+        requests.post("http://localhost:3000/reset", timeout=5)
+    except requests.RequestException as e:
+        print(f"Warning: Could not reset mock OpenAI server: {e}")
+
     yield
