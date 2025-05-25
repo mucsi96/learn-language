@@ -9,8 +9,6 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Assign cards
 
 
-- add test for editing
-- implement card deletion
 - deploy to Azure
 
 
