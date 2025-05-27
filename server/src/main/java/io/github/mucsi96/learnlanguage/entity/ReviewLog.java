@@ -32,10 +32,32 @@ public class ReviewLog {
     private Card card;
 
     @Column(nullable = false)
-    private Rating rating;
+    private Integer rating;
 
     @Column(nullable = false)
-    private LocalDateTime reviewDatetime;
+    private Integer state;
+
+    @Column(nullable = false)
+    private LocalDateTime due;
+
+    @Column(nullable = false)
+    private Double stability;
+
+    @Column(nullable = false)
+    private Double difficulty;
+
+    @Column(nullable = false)
+    private Double elapsedDays;
+
+    private Double lastElapsedDays;
+
+    @Column(nullable = false)
+    private Double scheduledDays;
+
+    private Integer learningSteps;
+
+    @Column(nullable = false)
+    private LocalDateTime review;
 
     private Integer reviewDuration;
 }

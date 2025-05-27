@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Card, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
+import { createEmptyCard } from 'ts-fsrs';
 
 export const languages = ['hu', 'ch', 'en'] as const;
 
@@ -245,8 +246,16 @@ export class CardService {
   }
 
   async createCard() {
+    const cardData = this.getCardData();
+    if (!cardData) return;
+
+    const cardWithFSRS = {
+      ...cardData,
+      ...createEmptyCard(),
+    };
+
     await fetchJson(this.http, `/api/card`, {
-      body: this.getCardData(),
+      body: cardWithFSRS,
       method: 'POST',
     });
   }

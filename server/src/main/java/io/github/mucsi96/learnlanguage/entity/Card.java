@@ -40,14 +40,31 @@ public class Card {
     private CardData data;
 
     @Column(nullable = false)
-    private State state;
+    private Integer state;
 
     private Integer step;
+
+    @Column(nullable = false)
     private Float stability;
+
+    @Column(nullable = false)
     private Float difficulty;
+
+    @Column(name = "elapsed_days", nullable = false)
+    private Float elapsedDays;
+
+    @Column(name = "scheduled_days", nullable = false)
+    private Float scheduledDays;
+
+    @Column(nullable = false)
+    private Integer reps;
+
+    @Column(nullable = false)
+    private Integer lapses;
 
     @Column(nullable = false)
     private LocalDateTime due;
 
+    @Column(name = "last_review")
     private LocalDateTime lastReview;
 }

@@ -18,10 +18,14 @@ SET default_table_access_method = heap;
 
 
 CREATE TABLE learn_language.cards (
-    difficulty real,
-    stability real,
+    difficulty real NOT NULL,
+    stability real NOT NULL,
     state integer NOT NULL,
-    step integer,
+    step integer NOT NULL,
+    elapsed_days real NOT NULL,
+    scheduled_days real NOT NULL,
+    reps integer NOT NULL,
+    lapses integer NOT NULL,
     due timestamp(6) without time zone NOT NULL,
     last_review timestamp(6) without time zone,
     data jsonb NOT NULL,

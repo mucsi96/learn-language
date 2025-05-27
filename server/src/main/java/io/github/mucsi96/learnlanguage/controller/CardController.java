@@ -2,7 +2,6 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
-import io.github.mucsi96.learnlanguage.entity.State;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
@@ -51,10 +50,14 @@ public class CardController {
                 .source(source)
                 .sourcePageNumber(request.getPageNumber())
                 .data(cardData)
-                .state(State.LEARNING)
-                .step(1)
-                .stability(0f)
-                .difficulty(0f)
+                .state(request.getState())
+                .step(request.getStep())
+                .stability(request.getStability())
+                .difficulty(request.getDifficulty())  // Default difficulty from FSRS
+                .elapsedDays(request.getElapsedDays())
+                .scheduledDays(request.getScheduledDays())
+                .reps(request.getReps())
+                .lapses(request.getLapses())
                 .due(LocalDateTime.now())
                 .build();
 
