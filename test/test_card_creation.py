@@ -43,7 +43,7 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
     expect(card_page.get_by_text("Card created successfully")).to_be_visible()
 
     with with_db_connection() as cur:
-        cur.execute("SELECT data, source_id, source_page_number FROM learn_language.cards WHERE id = 'abfahren'")
+        cur.execute("SELECT data, source_id, source_page_number, state FROM learn_language.cards WHERE id = 'abfahren'")
         result = cur.fetchone()
 
         assert result is not None, "Card was not created in the database"
@@ -51,6 +51,7 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
         card_data = result[0]
         source_id = result[1]
         source_page_number = result[2]
+        state = result[3]
 
         # Verify source ID and page number
         assert source_id == "goethe-a1", "Source ID doesn't match"
@@ -78,6 +79,7 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
 
         assert example_found, "Example not found in card data"
         assert card_data["examples"][0]["isSelected"] is True, "First example should be selected"
+        assert state == 0, "Card state should be 'new'"
 
 def test_image_regeneration(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)

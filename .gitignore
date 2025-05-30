@@ -11,3 +11,4 @@ tfplan
 .terraform/
 .certs/
 test-results/
+.ansible/

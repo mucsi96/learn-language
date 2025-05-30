@@ -11,13 +11,43 @@
       "isBackground": true
     },
     {
+      "type": "shell",
+      "command": "${command:python.interpreterPath} -m ansible.cli.vault encrypt vars/vault.yaml --vault-password-file .ansible/vault_key",
+      "isBackground": true,
+      "label": "Encrypt vault",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "type": "shell",
+      "command": "${command:python.interpreterPath} -m ansible.cli.vault decrypt vars/vault.yaml --vault-password-file .ansible/vault_key",
+      "isBackground": true,
+      "label": "Decrypt vault",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "type": "shell",
+      "command": "${command:python.interpreterPath} -m ansible.cli.vault view vars/vault.yaml --vault-password-file .ansible/vault_key",
+      "isBackground": true,
+      "label": "View vault",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
       "label": "Start server",
       "type": "shell",
       "command": "uvicorn main:app --reload",
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}/server"
-      },
+      }
     },
     {
       "label": "Start client",
@@ -77,6 +107,6 @@
       "label": "Compose down",
       "command": "docker compose down",
       "problemMatcher": []
-    },
+    }
   ]
 }

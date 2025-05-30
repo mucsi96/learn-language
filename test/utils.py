@@ -14,6 +14,7 @@ blob_service_client = BlobServiceClient.from_connection_string(
     + "/devstoreaccount1;"
 )
 
+
 @contextmanager
 def with_db_connection():
     conn = psycopg.connect(
@@ -31,9 +32,11 @@ def with_db_connection():
         cur.close()
         conn.close()
 
+
 def cleanup_db():
     with with_db_connection() as cur:
         cur.execute("DROP SCHEMA IF EXISTS learn_language CASCADE")
+
 
 def populate_db():
     with with_db_connection() as cur:
@@ -42,6 +45,7 @@ def populate_db():
 
         with init_sql_path.open("r") as sql_file:
             cur.execute(sql_file.read())  # type: ignore
+
 
 def cleanup_storage():
     container_client = blob_service_client.get_container_client('learn-language')
@@ -75,15 +79,15 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, step, due, source_page_number=1, last_review=None, images=None):
+def create_card(card_id, source_id, data, state, step, due, stability=0, difficulty=0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, images=None):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (
-            id, source_id, source_page_number, data, state, step, stability, difficulty, due, last_review
+            id, source_id, source_page_number, data, state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses
           ) VALUES (
-            %s, %s, %s, %s, %s, 0, NULL, %s, %s, %s
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
           );
-          """, (card_id, source_id, source_page_number, json.dumps(data), state, step, due, last_review))
+          """, (card_id, source_id, source_page_number, json.dumps(data), state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses))
 
     if images:
         for index, image_data in enumerate(images):
@@ -91,16 +95,20 @@ def create_card(card_id, source_id, data, state, step, due, source_page_number=1
 
 
 # 1x1 transparent pixel
-mockImage1 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
+mockImage1 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
 
 # 1x1 red pixel
-mockImage2 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+mockImage2 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
 
 # 1x1 blue pixel
-mockImage3 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+mockImage3 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
 
 # 1x1 green pixel
-mockImage4 = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+mockImage4 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
 
 
 def get_image_content(image_element):
@@ -112,6 +120,7 @@ def get_image_content(image_element):
     response.raise_for_status()
 
     return response.content
+
 
 def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="Alphabetische", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
     page.goto("http://localhost:8180/sources")
@@ -135,6 +144,7 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     card_page = card_page_info.value
 
     return card_page
+
 
 def upload_mock_image(image_data, source_id="goethe-a1", card_id="abfahren", example_index=0):
     container_client = blob_service_client.get_container_client('learn-language')
