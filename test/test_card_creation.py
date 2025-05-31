@@ -4,7 +4,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import with_db_connection, mockImage1, mockImage2, navigate_to_card_creation, get_image_content
+from utils import with_db_connection, mockImage1, mockImage2, mockImage3, navigate_to_card_creation, get_image_content
 
 def test_card_creation_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
@@ -87,6 +87,6 @@ def test_image_regeneration(page: Page, context: BrowserContext):
     card_page.get_by_role("button").filter(has_text="refresh").first.click()
 
     regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    assert regenerated_image_content == mockImage2, "Regenerated image data does not match Image 2"
+    assert regenerated_image_content == mockImage3, "Regenerated image data does not match Image 2"
 
 

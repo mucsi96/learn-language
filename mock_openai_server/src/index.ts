@@ -1,20 +1,20 @@
 import express from 'express';
 
 const app = express();
-// Image 1: 1x1 transparent pixel
+// Image 1: 1x1 yellow pixel
 const image1 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/58ABfUB/ZuFUpQAAAAASUVORK5CYII=';
 // Image 2: 1x1 red pixel
 const image2 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/axF9egAAAAASUVORK5CYII=';
 
 // Image 3: 1x1 blue pixel
 const image3 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z/CfHgAFqwJ/mNU2RQAAAABJRU5ErkJggg==';
 
 // Image 4: 1x1 green pixel
 const image4 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/xcAAwMB/fS3BscAAAAASUVORK5CYII=';
 
 let imageCallCounter1 = 0;
 let imageCallCounter2 = 0;
@@ -76,7 +76,10 @@ const createAssistantResponse = (
 
 // Middleware to log access details
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  // Skip logging for health endpoint
+  if (req.url !== '/health') {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  }
   next();
 });
 
@@ -92,11 +95,14 @@ app.post('/reset', (req, res) => {
 app.post('/v1/images/generations', (req, res) => {
   const { prompt } = req.body;
 
-  console.log('Received image generation request with prompt:', prompt);
+  console.log('Received image generation request with prompt:', prompt, {
+    imageCallCounter1,
+    imageCallCounter2,
+  });
 
   let b64_json = image1;
 
-  if (prompt.includes('We are departing at twelve o\'clock.')) {
+  if (prompt.includes("We are departing at twelve o'clock.")) {
     imageCallCounter1++;
     b64_json = imageCallCounter1 > 1 ? image3 : image1;
   }
@@ -162,7 +168,10 @@ app.post('/v1/chat/completions', (req, res) => {
     res.status(200).json(
       createAssistantResponse({
         translation: 'to depart, to leave',
-        examples: ["We are departing at twelve o'clock.", 'When does the train leave?'],
+        examples: [
+          "We are departing at twelve o'clock.",
+          'When does the train leave?',
+        ],
       })
     );
     return;

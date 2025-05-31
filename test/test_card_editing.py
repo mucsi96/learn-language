@@ -4,7 +4,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import get_image_content, mockImage1, mockImage2, mockImage4, create_card, navigate_to_card_creation, with_db_connection
+from utils import get_image_content, mockImage1, mockImage2, mockImage3, mockImage4, create_card, navigate_to_card_creation, with_db_connection
 
 def test_card_editing_page(page: Page, context: BrowserContext):
     create_card(
@@ -93,6 +93,10 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
     card_page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
     card_page.get_by_role("button").filter(has_text="refresh").nth(1).click()
+    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+
+    assert image_content2 == mockImage4, "Image data does not match mock image data"
+
     card_page.get_by_role("radio").nth(1).click()
     card_page.get_by_role(role="button", name="Update").click()
     expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
@@ -114,5 +118,5 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content1 == mockImage1, "First image should remain unchanged"
+    assert image_content1 == mockImage3, "First image should remain unchanged"
     assert image_content2 == mockImage4, "Second image should have been regenerated"

@@ -141,29 +141,34 @@ export class CardService {
       0
   );
 
+  reloadExampleImage(index: number) {
+    this.exampleImagesReload[index] = true;
+    this.exampleImages()[index].reload();
+  }
+
   async selectWord(word: Word) {
     this.selectedWord.set(word);
     this.exampleImagesReload = word.examples.map(() => false);
     this.exampleImages.set(
       word.examples.map((_, index) =>
         resource<
-          string | undefined,
+      string | undefined,
           {
             card?: Card;
             englishTranslation?: string;
             selectedSourceId?: string;
           }
-        >({
-          injector: this.injector,
-          request: () => ({
-            card: this.card.value(),
-            englishTranslation: this.examplesTranslations()?.['en'][index](),
-            selectedSourceId: this.selectedSourceId(),
-          }),
-          loader: async ({
-            request: { card, englishTranslation, selectedSourceId },
-          }) => {
-            if (card?.examples?.[index]?.imageUrl) {
+          >({
+            injector: this.injector,
+            request: () => ({
+              card: this.card.value(),
+              englishTranslation: this.examplesTranslations()?.['en'][index](),
+              selectedSourceId: this.selectedSourceId(),
+            }),
+            loader: async ({
+              request: { card, englishTranslation, selectedSourceId },
+            }) => {
+            if (card?.examples?.[index]?.imageUrl && !this.exampleImagesReload[index]) {
               return card.examples[index].imageUrl;
             }
 
@@ -188,7 +193,6 @@ export class CardService {
                 method: 'POST',
               }
             );
-            this.exampleImagesReload[index] = true;
             return url;
           },
         })
