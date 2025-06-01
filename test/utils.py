@@ -152,7 +152,7 @@ def upload_mock_image(image_data, source_id="goethe-a1", card_id="abfahren", exa
     if not container_client.exists():
         container_client.create_container()
 
-    blob_name = f"images/{source_id}/{card_id}-{example_index}.png"
+    blob_name = f"images/{source_id}/{card_id}-{example_index}.webp"
     blob_client = container_client.get_blob_client(blob_name)
 
     blob_client.upload_blob(image_data, overwrite=True)

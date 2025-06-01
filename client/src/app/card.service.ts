@@ -134,21 +134,21 @@ export class CardService {
     );
   });
   readonly exampleImages = signal<ResourceRef<string | undefined>[]>([]);
-  private exampleImagesReload: boolean[] = [];
+  private exampleImagesRegenerate: boolean[] = [];
   readonly selectedExampleIndex = linkedSignal(
     () =>
       this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
       0
   );
 
-  reloadExampleImage(index: number) {
-    this.exampleImagesReload[index] = true;
+  regenerateExampleImage(index: number) {
+    this.exampleImagesRegenerate[index] = true;
     this.exampleImages()[index].reload();
   }
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
-    this.exampleImagesReload = word.examples.map(() => false);
+    this.exampleImagesRegenerate = word.examples.map(() => false);
     this.exampleImages.set(
       word.examples.map((_, index) =>
         resource<
@@ -168,7 +168,7 @@ export class CardService {
             loader: async ({
               request: { card, englishTranslation, selectedSourceId },
             }) => {
-            if (card?.examples?.[index]?.imageUrl && !this.exampleImagesReload[index]) {
+            if (card?.examples?.[index]?.imageUrl && !this.exampleImagesRegenerate[index]) {
               return card.examples[index].imageUrl;
             }
 
@@ -188,7 +188,7 @@ export class CardService {
                   id: word.id,
                   input: englishTranslation,
                   index,
-                  override: this.exampleImagesReload[index],
+                  override: this.exampleImagesRegenerate[index],
                 },
                 method: 'POST',
               }

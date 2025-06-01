@@ -58,7 +58,7 @@
   <div class="example">
     <div class="actions">
       <mat-radio-button [value]="$index"></mat-radio-button>
-      <button mat-icon-button (click)="exampleImages()[$index].reload()">
+      <button mat-icon-button (click)="regenerateExampleImage($index)" aria-label="Regenerate example image">
         <mat-icon>refresh</mat-icon>
       </button>
     </div>

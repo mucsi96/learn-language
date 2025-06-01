@@ -1,12 +1,16 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Base64;
 import java.util.List;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MimeTypeUtils;
+
+import com.openai.client.OpenAIClient;
+import com.openai.models.ChatModel;
+import com.openai.models.chat.completions.ChatCompletionContentPart;
+import com.openai.models.chat.completions.ChatCompletionContentPartImage;
+import com.openai.models.chat.completions.ChatCompletionContentPartText;
+import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +22,26 @@ public class AreaWordsService {
   static record AreaWords(List<WordResponse> wordList) {
   }
 
-  private final ChatModel chatModel;
+  private final OpenAIClient openAIClient;
   private final WordIdService wordIdService;
 
   public List<WordResponse> getAreaWords(byte[] imageData) {
-    var result = ChatClient.create(chatModel).prompt().system(
-        """
+    String imageBase64Url = "data:image/png;base64," + Base64.getEncoder().encodeToString(imageData);
+    var imageContentPart =
+      ChatCompletionContentPart.ofImageUrl(ChatCompletionContentPartImage.builder()
+              .imageUrl(ChatCompletionContentPartImage.ImageUrl.builder()
+                      .url(imageBase64Url)
+                      .build())
+              .build());
+    var questionContentPart =
+                ChatCompletionContentPart.ofText(ChatCompletionContentPartText.builder()
+                        .text("Here is the image of the page")
+                        .build());
+
+    var createParams = ChatCompletionCreateParams.builder()
+        .model(ChatModel.GPT_4_1)
+        .addSystemMessage(
+          """
             You are a linguistic expert.
             You task is to extract the wordlist data from provided page image.
             !IMPORTANT! In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
@@ -46,10 +64,16 @@ public class AreaWordsService {
                     }
                 ]
             }
-            """)
-        .user(u -> u.text("Here is the image of the page").media(
-            Media.builder().data(imageData).mimeType(MimeTypeUtils.IMAGE_PNG).build()))
-        .call().entity(AreaWords.class);
+            """
+        )
+        .addUserMessageOfArrayOfContentParts(List.of(questionContentPart, imageContentPart))
+        .responseFormat(AreaWords.class)
+        .build();
+
+
+    var result = openAIClient.chat().completions().create(createParams).choices().stream()
+                .flatMap(choice -> choice.message().content().stream()).findFirst()
+                .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
 
     return result.wordList.stream().map(word -> {
       word.setId(wordIdService.generateWordId(word.getWord()));

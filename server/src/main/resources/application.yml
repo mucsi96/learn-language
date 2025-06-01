@@ -14,9 +14,6 @@ spring:
     properties:
       hibernate:
         show-sql: true
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
   cloud:
     azure:
       active-directory:

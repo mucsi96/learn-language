@@ -84,7 +84,7 @@ public class CardController {
         }
 
         IntStream.range(0, examples.size()).forEach(index -> {
-            String blobName = String.format("images/%s/%s-%d.png", sourceId, cardId, index);
+            String blobName = String.format("images/%s/%s-%d.webp", sourceId, cardId, index);
             if (blobStorageService.blobExists(blobName)) {
                 String imageUrl = blobStorageService.getDownloadUrl(blobName);
                 examples.get(index).setImageUrl(imageUrl);

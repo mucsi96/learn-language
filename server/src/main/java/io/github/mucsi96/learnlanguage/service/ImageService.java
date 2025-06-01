@@ -2,13 +2,11 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.Base64;
 
-import org.springframework.ai.image.ImageGeneration;
-import org.springframework.ai.image.ImageModel;
-import org.springframework.ai.image.ImageOptions;
-import org.springframework.ai.image.ImagePrompt;
-import org.springframework.ai.image.ImageResponse;
-import org.springframework.ai.openai.OpenAiImageOptions;
 import org.springframework.stereotype.Service;
+
+import com.openai.client.OpenAIClient;
+import com.openai.models.images.ImageGenerateParams;
+import com.openai.models.images.ImageModel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,21 +16,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ImageService {
 
-    private final ImageModel imageModel;
+  private final OpenAIClient openAIClient;
 
-    public byte[] generateImage(String input) {
-        ImageOptions options = OpenAiImageOptions.builder()
-            .withModel("dall-e-3")
-            .withQuality("hd")
-            .withStyle("natural")
-            .height(1024)
-            .width(1024)
-            .withResponseFormat("b64_json")
-            .build();
+  public byte[] generateImage(String input) {
+    ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
+        .prompt(
+            "Design a photorealistic, visually appealing, and modern image to illustrate the following example sentence without putting any text on the image: "
+                + input)
+        .model(ImageModel.GPT_IMAGE_1)
+        .size(ImageGenerateParams.Size._1024X1024)
+        .quality(ImageGenerateParams.Quality.HIGH)
+        .n(1)
+        .outputFormat(ImageGenerateParams.OutputFormat.WEBP)
+        .outputCompression(75)
+        .build();
 
-        ImagePrompt prompt = new ImagePrompt("Design a photorealistic, visually appealing, and modern image to illustrate the following example sentence: " + input, options);
-        ImageResponse imageResponse = imageModel.call(prompt);
-        ImageGeneration generation = imageResponse.getResult();
-        return Base64.getDecoder().decode(generation.getOutput().getB64Json());
-    }
+    var imageB64Json = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
+        .flatMap(image -> image.b64Json().stream())
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
+
+    return Base64.getDecoder().decode(imageB64Json);
+  }
 }

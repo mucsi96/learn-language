@@ -48,6 +48,9 @@ export class CardComponent {
   readonly examplesTranslations = this.cardService.examplesTranslations;
   readonly exampleImages = this.cardService.exampleImages;
   readonly selectedExampleIndex = this.cardService.selectedExampleIndex;
+  readonly regenerateExampleImage = this.cardService.regenerateExampleImage.bind(
+    this.cardService
+  );
 
   constructor() {
     this.route.params.subscribe((params) => {

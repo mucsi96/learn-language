@@ -1,8 +1,10 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
+
+import com.openai.client.OpenAIClient;
+import com.openai.models.ChatModel;
+import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 import lombok.RequiredArgsConstructor;
 
@@ -10,26 +12,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WordTypeService {
 
-  static record WordType(String word, String type) {
+  static record WordTypeResult(String word, String type) {
   }
 
-  private final ChatModel model;
+  private final OpenAIClient openAIClient;
 
   public String detectWordType(String word) {
-    var result = ChatClient.create(model).prompt()
-        .system(
+    var createParams = ChatCompletionCreateParams.builder()
+        .model(ChatModel.GPT_4_1)
+        .addSystemMessage(
             """
-                    You are a linguistic expert.
-                    Your task is to determine the type of the given word (e.g., noun, verb, adjective) and reply in hungarian.
-                    !IMPORTANT! Please provide the word type in the following JSON structure:
-                    {
-                        "word": "apple",
-                        "type": "noun"
-                    }
+                You are a linguistic expert.
+                Your task is to determine the type of the given word (e.g., noun, verb, adjective) and reply in hungarian.
+                !IMPORTANT! Please provide the word type in the following JSON structure:
+                {
+                    \"word\": \"apple\",
+                    \"type\": \"noun\"
+                }
                 """)
-        .user(u -> u.text("The word is: {word}.").param("word", word))
-        .call()
-        .entity(WordType.class);
-    return result.type;
+        .addUserMessage("The word is: %s.".formatted(word))
+        .responseFormat(WordTypeResult.class)
+        .build();
+
+    var result = openAIClient.chat().completions().create(createParams).choices().stream()
+        .flatMap(choice -> choice.message().content().stream()).findFirst()
+        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+
+    return result.type();
   }
 }
