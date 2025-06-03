@@ -18,112 +18,110 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class CardController {
 
-    private final CardRepository cardRepository;
-    private final SourceRepository sourceRepository;
-    private final BlobStorageService blobStorageService;
+  private final CardRepository cardRepository;
+  private final SourceRepository sourceRepository;
+  private final BlobStorageService blobStorageService;
 
-    @PostMapping("/card")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
-        // Get the source
-        Source source = sourceRepository.findById(request.getSourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
+  @PostMapping("/card")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
+    // Get the source
+    Source source = sourceRepository.findById(request.getSourceId())
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
 
-        CardData cardData = CardData.builder()
-                .word(request.getWord())
-                .type(request.getType())
-                .translation(request.getTranslation())
-                .forms(request.getForms())
-                .examples(request.getExamples())
-                .build();
+    CardData cardData = CardData.builder()
+        .word(request.getWord())
+        .type(request.getType())
+        .translation(request.getTranslation())
+        .forms(request.getForms())
+        .examples(request.getExamples())
+        .build();
 
-        // Create a new card with FSRS defaults
-        Card card = Card.builder()
-                .id(request.getId())
-                .source(source)
-                .sourcePageNumber(request.getPageNumber())
-                .data(cardData)
-                .state(request.getState())
-                .step(request.getStep())
-                .stability(request.getStability())
-                .difficulty(request.getDifficulty())  // Default difficulty from FSRS
-                .elapsedDays(request.getElapsedDays())
-                .scheduledDays(request.getScheduledDays())
-                .reps(request.getReps())
-                .lapses(request.getLapses())
-                .due(LocalDateTime.now())
-                .build();
+    // Create a new card with FSRS defaults
+    Card card = Card.builder()
+        .id(request.getId())
+        .source(source)
+        .sourcePageNumber(request.getPageNumber())
+        .data(cardData)
+        .state(request.getState())
+        .step(request.getStep())
+        .stability(request.getStability())
+        .difficulty(request.getDifficulty()) // Default difficulty from FSRS
+        .elapsedDays(request.getElapsedDays())
+        .scheduledDays(request.getScheduledDays())
+        .reps(request.getReps())
+        .lapses(request.getLapses())
+        .due(LocalDateTime.now())
+        .build();
 
-        cardRepository.save(card);
+    cardRepository.save(card);
 
-        return ResponseEntity.ok(new HashMap<>());
-    }
+    return ResponseEntity.ok(new HashMap<>());
+  }
 
-    @GetMapping("/card/{cardId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<CardData> getCard(@PathVariable String cardId) throws Exception {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+  @GetMapping("/card/{cardId}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<CardData> getCard(@PathVariable String cardId) throws Exception {
+    Card card = cardRepository.findById(cardId)
+        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-        CardData cardData = card.getData();
-        enrichExamplesWithImageUrls(card.getSource().getId(), cardId, cardData.getExamples());
+    CardData cardData = card.getData();
+    enrichExamplesWithImageUrls(cardData.getExamples());
 
-        return ResponseEntity.ok(cardData);
-    }
+    return ResponseEntity.ok(cardData);
+  }
 
-    private void enrichExamplesWithImageUrls(String sourceId, String cardId, List<ExampleData> examples) {
-        if (examples == null) {
-            return;
-        }
-
-        IntStream.range(0, examples.size()).forEach(index -> {
-            String blobName = String.format("images/%s/%s-%d.webp", sourceId, cardId, index);
-            if (blobStorageService.blobExists(blobName)) {
-                String imageUrl = blobStorageService.getDownloadUrl(blobName);
-                examples.get(index).setImageUrl(imageUrl);
-            }
+  private void enrichExamplesWithImageUrls(List<ExampleData> examples) {
+     examples.stream()
+        .forEach(example -> {
+          if (example.getImageUrls() != null && !example.getImageUrls().isEmpty()) {
+            example.setImageUrls(
+                example.getImageUrls().stream()
+                    .map(image -> blobStorageService.getDownloadUrl("images/" + image))
+                    .toList());
+          }
         });
-    }
+  }
 
-    @PutMapping("/card/{cardId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId, @RequestBody CardCreateRequest request) throws Exception {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+  @PutMapping("/card/{cardId}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
+      @RequestBody CardCreateRequest request) throws Exception {
+    Card card = cardRepository.findById(cardId)
+        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-        CardData cardData = CardData.builder()
-                .word(request.getWord())
-                .type(request.getType())
-                .translation(request.getTranslation())
-                .forms(request.getForms())
-                .examples(request.getExamples())
-                .build();
+    CardData cardData = CardData.builder()
+        .word(request.getWord())
+        .type(request.getType())
+        .translation(request.getTranslation())
+        .forms(request.getForms())
+        .examples(request.getExamples())
+        .build();
 
-        card.setData(cardData);
-        cardRepository.save(card);
+    card.setData(cardData);
+    cardRepository.save(card);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("detail", "Card updated successfully");
-        return ResponseEntity.ok(response);
-    }
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Card updated successfully");
+    return ResponseEntity.ok(response);
+  }
 
-    @DeleteMapping("/card/{cardId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+  @DeleteMapping("/card/{cardId}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
+    Card card = cardRepository.findById(cardId)
+        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-        cardRepository.delete(card);
+    cardRepository.delete(card);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("detail", "Card deleted successfully");
-        return ResponseEntity.ok(response);
-    }
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Card deleted successfully");
+    return ResponseEntity.ok(response);
+  }
 }

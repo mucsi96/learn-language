@@ -133,71 +133,56 @@ export class CardService {
       ])
     );
   });
-  readonly exampleImages = signal<ResourceRef<string | undefined>[]>([]);
-  private exampleImagesRegenerate: boolean[] = [];
+  readonly exampleImages = signal<ResourceRef<string | undefined>[][]>([]);
   readonly selectedExampleIndex = linkedSignal(
     () =>
       this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
       0
   );
 
-  regenerateExampleImage(index: number) {
-    this.exampleImagesRegenerate[index] = true;
-    this.exampleImages()[index].reload();
+  private createExampleImageResource(index: number) {
+    return resource({
+      injector: this.injector,
+      request: () => ({
+        englishTranslation: this.examplesTranslations()?.['en'][index](),
+      }),
+      loader: async ({ request: { englishTranslation } }) => {
+        if (!englishTranslation) {
+          return;
+        }
+
+        const { url } = await fetchJson<{ url: string }>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: englishTranslation,
+            },
+            method: 'POST',
+          }
+        );
+        return url;
+      },
+    });
   }
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
-    this.exampleImagesRegenerate = word.examples.map(() => false);
-    this.exampleImages.set(
-      word.examples.map((_, index) =>
-        resource<
-      string | undefined,
-          {
-            card?: Card;
-            englishTranslation?: string;
-            selectedSourceId?: string;
-          }
-          >({
-            injector: this.injector,
-            request: () => ({
-              card: this.card.value(),
-              englishTranslation: this.examplesTranslations()?.['en'][index](),
-              selectedSourceId: this.selectedSourceId(),
-            }),
-            loader: async ({
-              request: { card, englishTranslation, selectedSourceId },
-            }) => {
-            if (card?.examples?.[index]?.imageUrl && !this.exampleImagesRegenerate[index]) {
-              return card.examples[index].imageUrl;
-            }
+    if (!word.exists) {
+      this.exampleImages.set(
+        word.examples.map((_, index) => [this.createExampleImageResource(index)])
+      );
+    }
+  }
 
-            if (
-              !englishTranslation ||
-              (word.exists && !card) ||
-              !selectedSourceId
-            ) {
-              return;
-            }
-
-            const { url } = await fetchJson<{ url: string }>(
-              this.http,
-              `/api/image/${selectedSourceId}`,
-              {
-                body: {
-                  id: word.id,
-                  input: englishTranslation,
-                  index,
-                  override: this.exampleImagesRegenerate[index],
-                },
-                method: 'POST',
-              }
-            );
-            return url;
-          },
-        })
-      )
-    );
+  addExampleImage(exampleIdx: number) {
+    this.exampleImages.update((images) => {
+      if (!images[exampleIdx]) {
+        images[exampleIdx] = [];
+      }
+      images[exampleIdx].push(this.createExampleImageResource(exampleIdx));
+      return images;
+    });
   }
 
   get isLoading() {
@@ -243,7 +228,8 @@ export class CardService {
         ]),
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
-        })
+        }),
+        imageUrls: this.exampleImages()[index]?.map((image) => this.getImageFileName(image.value())),
       })),
     } satisfies Card;
     return cardData;
@@ -287,5 +273,10 @@ export class CardService {
     await fetchJson(this.http, `/api/card/${word.id}`, {
       method: 'DELETE',
     });
+  }
+
+  private getImageFileName(imageUrl?: string): string | undefined {
+    if (!imageUrl) return undefined;
+    return imageUrl.split('?')[0].split('/').pop();
   }
 }

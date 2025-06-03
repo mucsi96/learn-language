@@ -3,7 +3,6 @@ package io.github.mucsi96.learnlanguage.controller;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,17 +22,11 @@ public class ImageController {
     private final BlobStorageService blobStorageService;
     private final ImageService imageService;
 
-    @PostMapping("/api/image/{source}")
+    @PostMapping("/api/image")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ImageResponse createImage(@PathVariable String source, @RequestBody ImageSourceRequest imageSource) {
+    public ImageResponse createImage(@RequestBody ImageSourceRequest imageSource) {
        String uuid = UUID.randomUUID().toString();
         String blobName = String.format("images/%s.webp", uuid);
-
-        if (!imageSource.isOverride() && blobStorageService.blobExists(blobName)) {
-            return ImageResponse.builder()
-                    .url(blobStorageService.getDownloadUrl(blobName))
-                    .build();
-        }
 
         byte[] data = imageService.generateImage(imageSource.getInput());
         blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);

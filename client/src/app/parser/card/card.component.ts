@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -33,24 +33,16 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
   styleUrl: './card.component.css',
 })
 export class CardComponent {
-  private readonly cardService = inject(CardService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly cardData = injectQueryParams<string>('cardData');
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
-  readonly loading = this.cardService.isLoading;
-  readonly card = this.cardService.card.value;
-  readonly word = this.cardService.word;
-  readonly type = this.cardService.wordType;
-  readonly translation = this.cardService.translation;
-  readonly forms = this.cardService.forms;
-  readonly examples = this.cardService.examples;
-  readonly examplesTranslations = this.cardService.examplesTranslations;
-  readonly exampleImages = this.cardService.exampleImages;
-  readonly selectedExampleIndex = this.cardService.selectedExampleIndex;
-  readonly regenerateExampleImage = this.cardService.regenerateExampleImage.bind(
-    this.cardService
-  );
+  readonly cardService = inject(CardService);
+  readonly route = inject(ActivatedRoute);
+  readonly cardData = injectQueryParams<string>('cardData');
+  readonly dialog = inject(MatDialog);
+  readonly snackBar = inject(MatSnackBar);
+
+  exampleImageCarouselIndices = linkedSignal<number[]>(() => {
+    const examples = this.cardService.examples();
+    return examples?.map(() => 0) ?? []
+  });
 
   constructor() {
     this.route.params.subscribe((params) => {
@@ -69,16 +61,46 @@ export class CardComponent {
     });
   }
 
+  addImage(exampleIdx: number) {
+    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    this.cardService.addExampleImage(exampleIdx);
+    this.exampleImageCarouselIndices.update((indices) => {
+      indices[exampleIdx] = images.length - 1;
+      return indices;
+    });
+  }
+
+  areImagesLoading(exampleIdx: number) {
+    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    return images.some((image) => image.isLoading());
+  }
+
+  prevImage(exampleIdx: number) {
+    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    if (!images.length) return;
+    this.exampleImageCarouselIndices.update((indices) => {
+      indices[exampleIdx] =
+        (indices[exampleIdx] - 1 + images.length) % images.length;
+      return indices;
+    });
+  }
+
+  nextImage(exampleIdx: number) {
+    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    if (!images.length) return;
+    this.exampleImageCarouselIndices.update((indices) => {
+      indices[exampleIdx] =
+        (indices[exampleIdx] + 1) % images.length;
+      return indices;
+    });
+  }
+
   private showSnackBar(message: string) {
     this.snackBar
       .open(message, 'Close', {
         duration: 3000,
         verticalPosition: 'top',
         panelClass: ['success'],
-      })
-      .afterDismissed()
-      .subscribe(() => {
-        window.close();
       });
   }
 

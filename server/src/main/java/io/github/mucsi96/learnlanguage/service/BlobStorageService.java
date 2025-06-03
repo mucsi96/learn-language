@@ -67,8 +67,7 @@ public class BlobStorageService {
         new BlobSasPermission().setReadPermission(true)).setStartTime(OffsetDateTime.now().minusMinutes(1));
 
     String sasToken = blobClient.generateUserDelegationSas(sasValues, userDelegationKey);
-    String url = blobClient.getBlobUrl() + "?" + sasToken;
-
+    String url = blobClient.getBlobUrl().replace("%2F", "/") + "?" + sasToken;
     if (publicUrl != null && !publicUrl.isEmpty()) {
       url = url.replaceFirst(accountUrl, publicUrl);
     }

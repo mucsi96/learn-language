@@ -39,7 +39,7 @@ export type Card = {
   forms?: string[];
   examples?: (Record<string, string | undefined> & {
     isSelected?: boolean;
-    imageUrl?: string;
+    imageUrls?: string[];
   })[];
 };
 

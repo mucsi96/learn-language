@@ -10,8 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageSourceRequest {
-    private String id;
     private String input;
-    private int index;
-    private boolean override;
 }
