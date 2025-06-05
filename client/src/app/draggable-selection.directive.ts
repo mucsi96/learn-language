@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, Renderer2, Output, EventEmitter, inject } from '@angular/core';
+import { Directive, ElementRef, HostListener, Renderer2, inject, output } from '@angular/core';
 
 @Directive({
   standalone: true,
@@ -12,7 +12,12 @@ export class DraggableSelectionDirective {
   private startY = 0;
   private rect: HTMLElement | null = null;
 
-  @Output() selectionBox = new EventEmitter<{ x: number, y: number, width: number, height: number }>();
+  readonly selectionBox = output<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}>();
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent) {
