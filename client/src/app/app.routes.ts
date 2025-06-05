@@ -1,9 +1,5 @@
 import { Routes } from '@angular/router';
-
-
 import { MsalGuard } from '@azure/msal-angular';
-
-
 import { environment } from '../environments/environment';
 import { queryParamToObject } from './utils/queryCompression';
 import { Word } from './parser/types';
@@ -12,19 +8,22 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./home/home.component').then(m => m.HomeComponent),
+    loadComponent: () =>
+      import('./home/home.component').then((m) => m.HomeComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: '',
   },
   {
     path: 'sources',
-    loadComponent: () => import('./admin/admin.component').then(m => m.AdminComponent),
+    loadComponent: () =>
+      import('./admin/admin.component').then((m) => m.AdminComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: 'Sources',
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    loadComponent: () => import('./parser/page/page.component').then(m => m.PageComponent),
+    loadComponent: () =>
+      import('./parser/page/page.component').then((m) => m.PageComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
@@ -34,7 +33,8 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/page/:pageNumber/cards',
-    loadComponent: () => import('./parser/card/card.component').then(m => m.CardComponent),
+    loadComponent: () =>
+      import('./parser/card/card.component').then((m) => m.CardComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: async (route) => {
       const cardData = route.queryParams['cardData'];
