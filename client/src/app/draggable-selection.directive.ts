@@ -1,17 +1,18 @@
-import { Directive, ElementRef, HostListener, Renderer2, Output, EventEmitter } from '@angular/core';
+import { Directive, ElementRef, HostListener, Renderer2, Output, EventEmitter, inject } from '@angular/core';
 
 @Directive({
   standalone: true,
   selector: '[appDraggableSelection]'
 })
 export class DraggableSelectionDirective {
+  private el = inject(ElementRef);
+  private renderer = inject(Renderer2);
+
   private startX = 0;
   private startY = 0;
   private rect: HTMLElement | null = null;
 
   @Output() selectionBox = new EventEmitter<{ x: number, y: number, width: number, height: number }>();
-
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent) {

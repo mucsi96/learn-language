@@ -24,11 +24,11 @@ export class PageService {
     Page | undefined,
     { selectedSource: SelectedSource; visibility: boolean }
   >({
-    request: () => ({
+    params: () => ({
       selectedSource: this.selectedSource(),
       visibility: this.visibility(),
     }),
-    loader: async ({ request: { selectedSource, visibility } }) => {
+    loader: async ({ params: { selectedSource, visibility } }) => {
       if (!selectedSource || !visibility) {
         return;
       }
@@ -51,13 +51,13 @@ export class PageService {
       visibility: boolean;
     }
   >({
-    request: () => ({
+    params: () => ({
       selectedSource: this.selectedSource(),
       selectedRectange: this.selectedRectange(),
       visibility: this.visibility(),
     }),
     loader: async ({
-      request: { selectedSource, selectedRectange, visibility },
+      params: { selectedSource, selectedRectange, visibility },
     }) => {
       if (!selectedSource || !selectedRectange || !visibility) {
         return;

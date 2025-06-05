@@ -27,8 +27,8 @@ export class CardService {
     Card | undefined,
     { selectedWord: Word | undefined }
   >({
-    request: () => ({ selectedWord: this.selectedWord() }),
-    loader: async ({ request: { selectedWord } }) => {
+    params: () => ({ selectedWord: this.selectedWord() }),
+    loader: async ({ params: { selectedWord } }) => {
       if (!selectedWord || !selectedWord.exists) {
         return;
       }
@@ -43,8 +43,8 @@ export class CardService {
     string | undefined,
     { word?: Word; card?: Card }
   >({
-    request: () => ({ word: this.selectedWord(), card: this.card.value() }),
-    loader: async ({ request: { word, card } }) => {
+    params: () => ({ word: this.selectedWord(), card: this.card.value() }),
+    loader: async ({ params: { word, card } }) => {
       if (!word || (word.exists && !card)) {
         return;
       }
@@ -68,11 +68,11 @@ export class CardService {
     languages.map((languageCode) => [
       languageCode,
       resource<Translation | undefined, { selectedWord?: Word; card?: Card }>({
-        request: () => ({
+        params: () => ({
           selectedWord: this.selectedWord(),
           card: this.card.value(),
         }),
-        loader: async ({ request: { selectedWord, card } }) => {
+        loader: async ({ params: { selectedWord, card } }) => {
           if (!selectedWord || (selectedWord.exists && !card)) {
             return;
           }
@@ -169,10 +169,10 @@ export class CardService {
   private createExampleImageResource(index: number) {
     return resource({
       injector: this.injector,
-      request: () => ({
+      params: () => ({
         englishTranslation: this.examplesTranslations()?.['en'][index](),
       }),
-      loader: async ({ request: { englishTranslation } }) => {
+      loader: async ({ params: { englishTranslation } }) => {
         if (!englishTranslation) {
           return;
         }

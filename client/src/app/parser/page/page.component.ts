@@ -7,7 +7,6 @@ import {
   inject,
   linkedSignal,
   OnDestroy,
-  ResourceStatus,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -71,7 +70,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     );
 
     effect(() => {
-      if (this.pageService.page.status() === ResourceStatus.Resolved && this.pageService.page.value()) {
+      if (this.pageService.page.status() === 'resolved' && this.pageService.page.value()) {
         this.scrollPositionService.restoreScrollPosition();
       } else {
         this.scrollPositionService.detach();
