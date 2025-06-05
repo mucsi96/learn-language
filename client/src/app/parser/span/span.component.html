@@ -5,10 +5,10 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [class.exists]="exists"
+  [class.exists]="exists()"
   [ariaDescription]="ariaDescription"
 >
-  {{ text }}
+  {{ text() }}
 </div>
 
 } @else if (matches?.length === 1) {
@@ -21,10 +21,10 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [class.exists]="exists"
+  [class.exists]="exists()"
   [ariaDescription]="ariaDescription"
 >
-  {{ text }}
+  {{ text() }}
 </a>
 } @else {
 <button
@@ -36,10 +36,10 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [class.exists]="exists"
+  [class.exists]="exists()"
   [ariaDescription]="ariaDescription"
 >
-  {{ text }}
+  {{ text() }}
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.word) {
