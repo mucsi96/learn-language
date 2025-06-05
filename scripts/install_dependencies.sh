@@ -113,4 +113,4 @@ pip install -r requirements.txt
 cd server && mvn clean install && cd ..
 cd client && npm install && cd ..
 
-playwright install --with-deps chromium
+sudo playwright install --with-deps chromium
