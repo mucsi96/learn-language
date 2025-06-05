@@ -68,6 +68,7 @@ public class BlobStorageService {
 
     String sasToken = blobClient.generateUserDelegationSas(sasValues, userDelegationKey);
     String url = blobClient.getBlobUrl().replace("%2F", "/") + "?" + sasToken;
+
     if (publicUrl != null && !publicUrl.isEmpty()) {
       url = url.replaceFirst(accountUrl, publicUrl);
     }

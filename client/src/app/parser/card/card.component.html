@@ -1,6 +1,6 @@
 @let loading = cardService.isLoading; @let card = cardService.card.value; @let
-word = cardService.word; @let wordType = cardService.wordType; @let translation =
-cardService.translation; @let forms = cardService.forms; @let examples =
+word = cardService.word; @let wordType = cardService.wordType; @let translation
+= cardService.translation; @let forms = cardService.forms; @let examples =
 cardService.examples; @let examplesTranslations =
 cardService.examplesTranslations; @let exampleImages =
 cardService.exampleImages; @let selectedExampleIndex =
@@ -24,7 +24,12 @@ cardService.selectedExampleIndex; @if (loading()) {
 </h5>
 <mat-form-field class="field">
   <mat-label>Type</mat-label>
-  <input matInput type="text" [(ngModel)]="wordType.value" aria-label="Word type" />
+  <input
+    matInput
+    type="text"
+    [(ngModel)]="wordType.value"
+    aria-label="Word type"
+  />
 </mat-form-field>
 <div class="word">
   <mat-form-field class="field">
@@ -115,14 +120,15 @@ cardService.selectedExampleIndex; @if (loading()) {
       <img src="{{ image.value() }}" [alt]="example()" />
       } @else {
       <mat-icon>image_not_supported</mat-icon>
-      } } @else {
-      <mat-icon>image_not_supported</mat-icon>
       }
+
       <div class="carousel-controls">
         <button
           mat-icon-button
           (click)="prevImage($index)"
-          [disabled]="images.length < 2 || exampleImageCarouselIndices()[$index] === 0"
+          [disabled]="
+            images.length < 2 || exampleImageCarouselIndices()[$index] === 0
+          "
           aria-label="Previous image"
         >
           <mat-icon>chevron_left</mat-icon>
@@ -134,12 +140,16 @@ cardService.selectedExampleIndex; @if (loading()) {
         <button
           mat-icon-button
           (click)="nextImage($index)"
-          [disabled]="images.length < 2 || exampleImageCarouselIndices()[$index] === images.length - 1"
+          [disabled]="
+            images.length < 2 ||
+            exampleImageCarouselIndices()[$index] === images.length - 1
+          "
           aria-label="Next image"
         >
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
+      }
     </div>
     }
   </div>

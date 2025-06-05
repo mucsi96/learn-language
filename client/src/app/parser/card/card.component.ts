@@ -62,10 +62,9 @@ export class CardComponent {
   }
 
   addImage(exampleIdx: number) {
-    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
-    this.cardService.addExampleImage(exampleIdx);
+    const length = this.cardService.addExampleImage(exampleIdx).length;
     this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = images.length - 1;
+      indices[exampleIdx] = length - 1;
       return indices;
     });
   }

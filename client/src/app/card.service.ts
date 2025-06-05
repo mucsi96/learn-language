@@ -6,7 +6,6 @@ import {
   Injector,
   linkedSignal,
   resource,
-  ResourceRef,
   signal,
 } from '@angular/core';
 import { Card, Translation, Word } from './parser/types';
@@ -133,7 +132,34 @@ export class CardService {
       ])
     );
   });
-  readonly exampleImages = signal<ResourceRef<string | undefined>[][]>([]);
+  readonly exampleImages = linkedSignal({
+    source: () => ({ word: this.selectedWord(), card: this.card.value() }),
+    computation: ({ word, card }) => {
+      if (!word) {
+        return [];
+      }
+
+      if (!word.exists) {
+        return word.examples.map((_, index) => [
+          this.createExampleImageResource(index),
+        ]);
+      }
+
+      return []
+
+      // return (
+      //   card?.examples?.map(
+      //     (example) =>
+      //       example.imageUrls?.map((imageUrl) =>
+      //         resource({
+      //           injector: this.injector,
+      //           loader: async () => imageUrl,
+      //         })
+      //       ) ?? []
+      //   ) ?? []
+      // );
+    },
+  });
   readonly selectedExampleIndex = linkedSignal(
     () =>
       this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
@@ -168,11 +194,6 @@ export class CardService {
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
-    if (!word.exists) {
-      this.exampleImages.set(
-        word.examples.map((_, index) => [this.createExampleImageResource(index)])
-      );
-    }
   }
 
   addExampleImage(exampleIdx: number) {
@@ -183,6 +204,7 @@ export class CardService {
       images[exampleIdx].push(this.createExampleImageResource(exampleIdx));
       return images;
     });
+    return this.exampleImages()[exampleIdx];
   }
 
   get isLoading() {
@@ -229,7 +251,9 @@ export class CardService {
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
         }),
-        imageUrls: this.exampleImages()[index]?.map((image) => this.getImageFileName(image.value())),
+        imageUrls: this.exampleImages()[index]?.map((image) =>
+          this.getImageFileName(image.value())
+        ),
       })),
     } satisfies Card;
     return cardData;
