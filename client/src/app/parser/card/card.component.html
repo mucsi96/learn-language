@@ -7,7 +7,7 @@ cardService.exampleImages; @let selectedExampleIndex =
 cardService.selectedExampleIndex; @if (loading()) {
 <mat-spinner class="page-loading" />
 } @else {
-<h5 class="title">
+<h2 class="title">
   Word @if (card()) {
   <button
     mat-icon-button
@@ -21,7 +21,7 @@ cardService.selectedExampleIndex; @if (loading()) {
   } @else {
   <button type="button" mat-flat-button (click)="createCard()">Create</button>
   }
-</h5>
+</h2>
 <mat-form-field class="field">
   <mat-label>Type</mat-label>
   <input
@@ -60,7 +60,7 @@ cardService.selectedExampleIndex; @if (loading()) {
     />
   </mat-form-field>
 </div>
-<h5>Forms</h5>
+<h2>Forms</h2>
 <div class="forms">
   @for (form of forms(); track $index) {
   <mat-form-field class="field">
@@ -68,7 +68,7 @@ cardService.selectedExampleIndex; @if (loading()) {
   </mat-form-field>
   }
 </div>
-<h5>Examples</h5>
+<h2>Examples</h2>
 <mat-radio-group [(ngModel)]="selectedExampleIndex">
   @for (example of examples(); track $index) { @let images =
   exampleImages()[$index];

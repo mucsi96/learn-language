@@ -6,52 +6,39 @@ body {
 html {
   --mat-app-background-color: hsl(221, 39%, 11%);
   --mat-app-text-color: hsl(218, 11%, 65%);
-  --mat-filled-button-hover-state-layer-opacity: 1;
-  --mat-filled-button-state-layer-color: hsl(221, 79%, 48%);
-  --mat-menu-container-color: hsl(217, 19%, 27%);
-  --mat-menu-container-shape: 0.5rem;
-  --mat-outlined-button-state-layer-color: hsl(217, 93%, 72%);
-  --mat-text-button-state-layer-color: hsl(217, 93%, 72%);
-  --mdc-circular-progress-active-indicator-color: white;
-  --mdc-dialog-container-color: hsl(215, 28%, 17%);
-  --mdc-dialog-container-shape: 0.5rem;
-  --mdc-filled-button-container-color: hsl(220, 89%, 53%);
-  --mdc-filled-button-container-shape: 0.5rem;
-  --mdc-filled-button-label-text-color: white;
-  --mdc-filled-text-field-active-indicator-height: 0;
-  --mdc-filled-text-field-caret-color: hsl(217, 93%, 72%);
-  --mdc-filled-text-field-container-color: hsl(217, 19%, 27%);
-  --mdc-filled-text-field-focus-active-indicator-color: hsl(217, 93%, 72%);
-  --mdc-filled-text-field-focus-active-indicator-height: 0;
-  --mdc-filled-text-field-focus-label-text-color: white;
-  --mdc-filled-text-field-label-text-weight: 500;
-  --mdc-outlined-button-container-shape: 0.5rem;
-  --mdc-outlined-button-label-text-color: hsl(220 89.2% 52.9%);
-  --mdc-outlined-button-outline-color: transparent;
-  --mdc-outlined-card-container-color: transparent;
-  --mdc-outlined-card-container-shape: 0.5rem;
-  --mdc-text-button-container-shape: 0.5rem;
-  --mdc-text-button-label-text-color: hsl(217, 93%, 72%);
-}
+  --mat-sys-primary: hsl(220, 89%, 53%);
+  --mat-sys-on-primary: white;
+  --mat-sys-corner-full: 0.5rem;
+  --mat-sys-surface-container: hsl(217, 19%, 27%);
+  --mat-sys-on-surface: hsl(220, 13%, 91%);
+  --mat-sys-outline: transparent;
+  --mat-sys-corner-large: var(--mat-sys-corner-full);
+  --mat-sys-corner-extra-small: var(--mat-sys-corner-full);
+  --mat-sys-surface-variant: var(--mat-sys-surface-container);
+  --mat-sys-on-primary-container: var(--mat-sys-on-primary);
+  --mat-sys-primary-container: var(--mat-sys-primary);
+  --mat-sys-display-large-weight: 700;
+  --mat-sys-label-large-size: 1rem;
 
-mat-snack-bar-container {
-  --mdc-snackbar-container-shape: 0.5rem;
-  --mat-snack-bar-button-color: var(--mdc-snackbar-supporting-text-color);
+  --mat-fab-state-layer-color: hsl(221, 79%, 48%);
+  --mat-fab-hover-state-layer-opacity: 1;
+  --mat-button-filled-state-layer-color: var(--mat-fab-state-layer-color);
+  --mat-button-filled-hover-state-layer-opacity: var(
+    --mat-fab-hover-state-layer-opacity
+  );
 
-  &.success {
-    --mdc-snackbar-container-color: hsl(145, 78%, 68%);
-    --mdc-snackbar-supporting-text-color: hsl(145, 100%, 14%);
-  }
+  --mat-progress-spinner-active-indicator-color: var(--mat-sys-on-primary);
 
-  &.error {
-    --mdc-snackbar-container-color: hsl(0, 96%, 77%);
-    --mdc-snackbar-supporting-text-color: hsl(0, 74%, 16%);
-  }
-}
+  --mat-form-field-filled-caret-color: var(--mat-sys-on-primary);
+  --mat-form-field-filled-active-indicator-height: 0;
+  --mat-form-field-filled-focus-active-indicator-height: 0;
+  --mat-form-field-filled-focus-label-text-color: var(--mat-sys-on-primary);
+  --mat-form-field-hover-state-layer-opacity: 0;
 
-button[color="red"] {
-  --mdc-filled-button-container-color: hsl(0, 75%, 51%);
-  --mat-filled-button-state-layer-color: hsl(0, 74%, 45%);
+  --mat-menu-item-label-text-weight: 400;
+  --mat-menu-item-leading-spacing: 12px;
+  --mat-menu-item-trailing-spacing: 12px;
+  --mat-menu-item-label-text-size: 0.875rem;
 }
 
 body {
@@ -59,29 +46,29 @@ body {
   background-color: var(--mat-app-background-color);
 }
 
-.mat-accent.mat-mdc-fab {
-  --mdc-fab-container-color: hsl(220, 89%, 53%);
-}
-
-.mat-mdc-icon-button {
-  font-size: unset;
-}
-
-.mat-mdc-icon-button .mat-mdc-button-persistent-ripple {
-  border-radius: 0.5rem !important;
-}
-
 .mat-typography {
   font: unset;
   letter-spacing: unset;
   font-family: system-ui;
   color: var(--mat-app-text-color);
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--mat-sys-on-primary);
+  }
+}
+
+.mdc-text-field {
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .mdc-text-field--filled {
   border: 1px solid hsl(215, 14%, 34%);
   border-radius: 0.5rem !important;
-  color: white;
 }
 
 .mdc-text-field--focused {
@@ -89,19 +76,27 @@ body {
   box-shadow: hsl(218, 93%, 61%) 0 0 0 1px;
 }
 
-.multiline-tooltip {
-  > .mat-mdc-tooltip-surface {
-    white-space: pre;
-    overflow: unset;
-    max-height: unset;
-    max-width: unset;
+mat-snack-bar-container {
+  &.success {
+    --mat-snack-bar-container-color: hsl(145, 78%, 68%);
+    --mat-snack-bar-supporting-text-color: hsl(145, 100%, 14%);
+  }
+
+  &.error {
+    --mat-snack-bar-container-color: hsl(0, 96%, 77%);
+    --mat-snack-bar-supporting-text-color: hsl(0, 74%, 16%);
   }
 }
 
-.mat-accent.mat-mdc-radio-button {
-  --mdc-radio-selected-focus-icon-color: hsl(218, 93%, 61%);
-  --mdc-radio-selected-hover-icon-color: hsl(218, 93%, 61%);
-  --mdc-radio-selected-icon-color: hsl(218, 93%, 61%);
-  --mdc-radio-selected-pressed-icon-color: hsl(218, 93%, 61%);
-  --mat-radio-checked-ripple-color: hsl(218, 93%, 61%);
+[mat-menu-item] {
+  transition: background-color 0.3s;
+}
+
+[mat-flat-button]:focus-visible {
+  outline: 1px solid var(--mat-sys-on-primary);
+  outline-offset: 2px;
+}
+
+.mat-mdc-button-persistent-ripple::before {
+  transition: opacity 0.3s;
 }
