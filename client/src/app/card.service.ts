@@ -7,6 +7,7 @@ import {
   linkedSignal,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import { Card, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
@@ -132,9 +133,11 @@ export class CardService {
       ])
     );
   });
-  readonly exampleImages = linkedSignal({
-    source: () => ({ word: this.selectedWord(), card: this.card.value() }),
-    computation: ({ word, card }) => {
+  readonly exampleImages = linkedSignal(() => {
+    const word = this.selectedWord();
+    const card = this.card.value();
+
+    return untracked(() => {
       if (!word) {
         return [];
       }
@@ -145,52 +148,21 @@ export class CardService {
         ]);
       }
 
-      return []
-
-      // return (
-      //   card?.examples?.map(
-      //     (example) =>
-      //       example.imageUrls?.map((imageUrl) =>
-      //         resource({
-      //           injector: this.injector,
-      //           loader: async () => imageUrl,
-      //         })
-      //       ) ?? []
-      //   ) ?? []
-      // );
-    },
+      return (
+        card?.examples?.map(
+          (example) =>
+            example.imageUrls?.map((imageUrl) =>
+              this.getExampleImageResource(imageUrl)
+            ) ?? []
+        ) ?? []
+      );
+    });
   });
   readonly selectedExampleIndex = linkedSignal(
     () =>
       this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
       0
   );
-
-  private createExampleImageResource(index: number) {
-    return resource({
-      injector: this.injector,
-      params: () => ({
-        englishTranslation: this.examplesTranslations()?.['en'][index](),
-      }),
-      loader: async ({ params: { englishTranslation } }) => {
-        if (!englishTranslation) {
-          return;
-        }
-
-        const { url } = await fetchJson<{ url: string }>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-            },
-            method: 'POST',
-          }
-        );
-        return url;
-      },
-    });
-  }
 
   async selectWord(word: Word) {
     this.selectedWord.set(word);
@@ -302,5 +274,38 @@ export class CardService {
   private getImageFileName(imageUrl?: string): string | undefined {
     if (!imageUrl) return undefined;
     return imageUrl.split('?')[0].split('/').pop();
+  }
+
+  private getExampleImageResource(imageUrl: string) {
+    return resource({
+      injector: this.injector,
+      loader: async () => imageUrl,
+    });
+  }
+
+  private createExampleImageResource(index: number) {
+    return resource({
+      injector: this.injector,
+      params: () => ({
+        englishTranslation: this.examplesTranslations()?.['en'][index](),
+      }),
+      loader: async ({ params: { englishTranslation } }) => {
+        if (!englishTranslation) {
+          return;
+        }
+
+        const { url } = await fetchJson<{ url: string }>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: englishTranslation,
+            },
+            method: 'POST',
+          }
+        );
+        return url;
+      },
+    });
   }
 }

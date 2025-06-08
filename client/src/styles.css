@@ -9,9 +9,11 @@ html {
   --mat-sys-primary: hsl(220, 89%, 53%);
   --mat-sys-on-primary: white;
   --mat-sys-corner-full: 0.5rem;
+  --mat-sys-surface: hsl(215, 28%, 17%);
   --mat-sys-surface-container: hsl(217, 19%, 27%);
   --mat-sys-on-surface: hsl(220, 13%, 91%);
   --mat-sys-outline: transparent;
+  --mat-sys-corner-extra-large: var(--mat-sys-corner-full);
   --mat-sys-corner-large: var(--mat-sys-corner-full);
   --mat-sys-corner-extra-small: var(--mat-sys-corner-full);
   --mat-sys-surface-variant: var(--mat-sys-surface-container);
