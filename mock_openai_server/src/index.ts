@@ -92,7 +92,7 @@ app.post('/reset', (req, res) => {
 });
 
 // Add route for image generation mock
-app.post('/v1/images/generations', (req, res) => {
+app.post('/images/generations', (req, res) => {
   const { prompt } = req.body;
 
   console.log('Received image generation request with prompt:', prompt, {
@@ -124,7 +124,7 @@ app.post('/v1/images/generations', (req, res) => {
   });
 });
 
-app.post('/v1/chat/completions', (req, res) => {
+app.post('/chat/completions', (req, res) => {
   const { messages } = req.body;
 
   if (!messages || !Array.isArray(messages)) {

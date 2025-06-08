@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Card, Translation, Word } from './parser/types';
+import { Card, ExampleImage, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 
@@ -151,8 +151,8 @@ export class CardService {
       return (
         card?.examples?.map(
           (example) =>
-            example.imageUrls?.map((imageUrl) =>
-              this.getExampleImageResource(imageUrl)
+            example.images?.map((image) =>
+              this.getExampleImageResource(image)
             ) ?? []
         ) ?? []
       );
@@ -223,9 +223,7 @@ export class CardService {
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
         }),
-        imageUrls: this.exampleImages()[index]?.map((image) =>
-          this.getImageFileName(image.value())
-        ),
+        images: this.exampleImages()[index]?.map((image) => image.value()),
       })),
     } satisfies Card;
     return cardData;
@@ -271,15 +269,10 @@ export class CardService {
     });
   }
 
-  private getImageFileName(imageUrl?: string): string | undefined {
-    if (!imageUrl) return undefined;
-    return imageUrl.split('?')[0].split('/').pop();
-  }
-
-  private getExampleImageResource(imageUrl: string) {
+  private getExampleImageResource(image: ExampleImage) {
     return resource({
       injector: this.injector,
-      loader: async () => imageUrl,
+      loader: async () => image,
     });
   }
 
@@ -294,7 +287,7 @@ export class CardService {
           return;
         }
 
-        const { url } = await fetchJson<{ url: string }>(
+        const response = await fetchJson<ExampleImage>(
           this.http,
           `/api/image`,
           {
@@ -304,7 +297,7 @@ export class CardService {
             method: 'POST',
           }
         );
-        return url;
+        return response;
       },
     });
   }

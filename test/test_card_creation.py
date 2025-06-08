@@ -81,10 +81,10 @@ def test_card_creation_in_db(page: Page, context: BrowserContext):
         assert card_data["examples"][0]["isSelected"] is True, "First example should be selected"
         assert state == 0, "Card state should be 'new'"
 
-def test_image_regeneration(page: Page, context: BrowserContext):
+def test_example_image_addition(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
-    card_page.get_by_role("button").filter(has_text="refresh").first.click()
+    card_page.get_by_role("button", name="Add example image").first.click()
 
     regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     assert regenerated_image_content == mockImage3, "Regenerated image data does not match Image 2"

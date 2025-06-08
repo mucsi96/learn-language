@@ -33,6 +33,7 @@ public class ImageController {
 
         String url = blobStorageService.getDownloadUrl(blobName);
         return ImageResponse.builder()
+                .id(uuid)
                 .url(url)
                 .build();
     }

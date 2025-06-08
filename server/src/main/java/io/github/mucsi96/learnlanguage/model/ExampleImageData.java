@@ -1,7 +1,5 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ExampleData {
-  private String de;
-  private String en;
-  private String hu;
-  private String ch;
+public class ExampleImageData {
+  private String id;
   private Boolean isSelected;
-  private List<ExampleImageData> images;
+  private String url;
 }

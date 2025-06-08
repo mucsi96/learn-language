@@ -78,7 +78,7 @@ cardService.selectedExampleIndex; @if (loading()) {
       <button
         mat-icon-button
         (click)="addImage($index)"
-        aria-label="Regenerate example image"
+        aria-label="Add example image"
         [disabled]="areImagesLoading($index)"
       >
         <mat-icon>add_photo_alternate</mat-icon>
@@ -113,11 +113,13 @@ cardService.selectedExampleIndex; @if (loading()) {
       />
     </mat-form-field>
     <div class="image">
-      @if (images) { @let image = images[exampleImageCarouselIndices()[$index]];
-      @if(image.isLoading()) {
+      @if (images && images.length) { @let image = images[exampleImageCarouselIndices()[$index]];
+      @if(!image) {
+      <mat-icon>image_not_supported</mat-icon>
+      } @else if(image.isLoading()) {
       <div class="skeleton"></div>
       } @else if (image.value()) {
-      <img src="{{ image.value() }}" [alt]="example()" />
+      <img src="{{ image.value()?.url }}" [alt]="example()" />
       } @else {
       <mat-icon>image_not_supported</mat-icon>
       }

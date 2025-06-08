@@ -32,15 +32,14 @@ services:
       STORAGE_ACCOUNT_PUBLIC_URL: "https://localhost:8181/devstoreaccount1"
       STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
       OPENAI_API_KEY: "mock-key"
-      OPENAI_API_BASE_URL: "http://mock-openai:3000"
+      OPENAI_BASE_URL: "http://mock-openai:3000"
     ports:
       - "8180:8080"
     healthcheck:
       test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
       interval: 2s
-      timeout: 3s
-      retries: 5
-      start_period: 2s
+      retries: 10
+      start_period: 16s
     depends_on:
       mkcert:
         condition: service_completed_successfully

@@ -21,11 +21,13 @@ def test_card_editing_page(page: Page, context: BrowserContext):
                 {
                     "de": "Wir fahren um zwölf Uhr ab.",
                     "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
                     "ch": "Mir fahred am zwöufi ab.",
                 },
                 {
                     "de": "Wann fährt der Zug ab?",
                     "hu": "Mikor indul a vonat?",
+                    "en": "When does the train leave?",
                     "ch": "Wänn fahrt dr",
                     "isSelected": True,
                 }
@@ -76,12 +78,14 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
                 {
                     "de": "Wir fahren um zwölf Uhr ab.",
                     "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
                     "ch": "Mir fahred am zwöufi ab.",
                     "isSelected": True,
                 },
                 {
                     "de": "Wann fährt der Zug ab?",
                     "hu": "Mikor indul a vonat?",
+                    "en": "When does the train leave?",
                     "ch": "Wänn fahrt dr",
                 }
             ]
@@ -92,7 +96,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     )
     card_page = navigate_to_card_creation(page, context)
     card_page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
-    card_page.get_by_role("button").filter(has_text="refresh").nth(1).click()
+    card_page.get_by_role("button", name="Add example image").nth(1).click()
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content2 == mockImage4, "Image data does not match mock image data"

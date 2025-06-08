@@ -22,11 +22,13 @@ def test_card_deletion(page: Page, context: BrowserContext):
                 {
                     "de": "Wir fahren um zwölf Uhr ab.",
                     "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
                     "ch": "Mir fahred am zwöufi ab.",
                 },
                 {
                     "de": "Wann fährt der Zug ab?",
                     "hu": "Mikor indul a vonat?",
+                    "en": "When does the train leave?",
                     "ch": "Wänn fahrt dr",
                     "isSelected": True,
                 }

@@ -43,6 +43,8 @@ public class CardController {
         .examples(request.getExamples())
         .build();
 
+    withoutExampleImageUrls(cardData.getExamples());
+
     // Create a new card with FSRS defaults
     Card card = Card.builder()
         .id(request.getId())
@@ -72,21 +74,9 @@ public class CardController {
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     CardData cardData = card.getData();
-    enrichExamplesWithImageUrls(cardData.getExamples());
+    withExampleImageUrls(cardData.getExamples());
 
     return ResponseEntity.ok(cardData);
-  }
-
-  private void enrichExamplesWithImageUrls(List<ExampleData> examples) {
-     examples.stream()
-        .forEach(example -> {
-          if (example.getImageUrls() != null && !example.getImageUrls().isEmpty()) {
-            example.setImageUrls(
-                example.getImageUrls().stream()
-                    .map(image -> blobStorageService.getDownloadUrl("images/" + image))
-                    .toList());
-          }
-        });
   }
 
   @PutMapping("/card/{cardId}")
@@ -103,6 +93,8 @@ public class CardController {
         .forms(request.getForms())
         .examples(request.getExamples())
         .build();
+
+    withoutExampleImageUrls(cardData.getExamples());
 
     card.setData(cardData);
     cardRepository.save(card);
@@ -123,5 +115,34 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
     return ResponseEntity.ok(response);
+  }
+
+  private void withExampleImageUrls(List<ExampleData> examples) {
+    examples.stream()
+        .forEach(example -> {
+          if (example.getImages() != null) {
+            var images = example.getImages();
+
+            if (images != null) {
+              images.forEach(image -> {
+                image.setUrl(blobStorageService.getDownloadUrl("images/" + image.getId() + ".webp"));
+              });
+            }
+          }
+        });
+  }
+
+  private void withoutExampleImageUrls(List<ExampleData> examples) {
+    examples.stream()
+        .forEach(example -> {
+          if (example.getImages() != null) {
+            var images = example.getImages();
+            if (images != null) {
+              images.forEach(image -> {
+                image.setUrl(null);
+              });
+            }
+          }
+        });
   }
 }

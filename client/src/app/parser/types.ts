@@ -29,6 +29,12 @@ export type Word = {
   exists?: boolean;
 };
 
+export type ExampleImage = {
+  id: string;
+  isSelected: boolean;
+  url: string;
+};
+
 export type Card = {
   id: string;
   sourceId: string;
@@ -39,7 +45,7 @@ export type Card = {
   forms?: string[];
   examples?: (Record<string, string | undefined> & {
     isSelected?: boolean;
-    imageUrls?: string[];
+    images?: ExampleImage[];
   })[];
 };
 
