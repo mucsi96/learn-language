@@ -62,10 +62,6 @@ body {
   }
 }
 
-.mdc-text-field {
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
 .mdc-text-field--filled {
   border: 1px solid hsl(215, 14%, 34%);
   border-radius: 0.5rem !important;
@@ -88,15 +84,7 @@ mat-snack-bar-container {
   }
 }
 
-[mat-menu-item] {
-  transition: background-color 0.3s;
-}
-
 [mat-flat-button]:focus-visible {
   outline: 1px solid var(--mat-sys-on-primary);
   outline-offset: 2px;
-}
-
-.mat-mdc-button-persistent-ripple::before {
-  transition: opacity 0.3s;
 }
