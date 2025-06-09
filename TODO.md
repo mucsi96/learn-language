@@ -8,10 +8,8 @@ https://github.com/open-spaced-repetition/py-fsrs/blob/main/fsrs/fsrs.py
 - Show number of due cards
 - Assign cards
 
-- Fix image rendering on cards with and without images in examples
 - Create cached image endpoint which is responsible for resizing images to requested size and do it fast.
 - Write test for multi image support
-- Write test for page titles
 - Add support for image selection
 - deploy to Azure
 
