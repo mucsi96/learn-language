@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import json
 import base64
 import requests
+import uuid
 from playwright.sync_api import expect
 
 blob_service_client = BlobServiceClient.from_connection_string(
@@ -79,7 +80,7 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, step, due, stability=0, difficulty=0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, images=None):
+def create_card(card_id, source_id, data, state, step, due, stability=0, difficulty=0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (
@@ -89,26 +90,16 @@ def create_card(card_id, source_id, data, state, step, due, stability=0, difficu
           );
           """, (card_id, source_id, source_page_number, json.dumps(data), state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses))
 
-    if images:
-        for index, image_data in enumerate(images):
-            upload_mock_image(image_data, source_id, card_id, index)
 
 
-# 1x1 yellow pixel
-mockImage1 = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/58ABfUB/ZuFUpQAAAAASUVORK5CYII=")
-
-# 1x1 red pixel
-mockImage2 = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/axF9egAAAAASUVORK5CYII=")
-
-# 1x1 blue pixel
-mockImage3 = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z/CfHgAFqwJ/mNU2RQAAAABJRU5ErkJggg==")
-
-# 1x1 green pixel
-mockImage4 = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/xcAAwMB/fS3BscAAAAASUVORK5CYII=")
+yellow_image = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==")
+red_image = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8AARIQB46hC+ioEAGX8E/cKr6qsAAAAAElFTkSuQmCC")
+blue_image = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPj/n4EIwDiqkL4KAVIQE/f1/NxEAAAAAElFTkSuQmCC")
+green_image = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=")
 
 
 def get_image_content(image_element):
@@ -146,13 +137,16 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     return card_page
 
 
-def upload_mock_image(image_data, source_id="goethe-a1", card_id="abfahren", example_index=0):
+def upload_mock_image(image_data):
     container_client = blob_service_client.get_container_client('learn-language')
 
     if not container_client.exists():
         container_client.create_container()
 
-    blob_name = f"images/{source_id}/{card_id}-{example_index}.webp"
+    uuid_str = str(uuid.uuid4())
+    blob_name = f"images/{uuid_str}.webp"
     blob_client = container_client.get_blob_client(blob_name)
 
     blob_client.upload_blob(image_data, overwrite=True)
+
+    return uuid_str

@@ -4,7 +4,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_card, navigate_to_card_creation, with_db_connection, mockImage1, mockImage2
+from utils import create_card, navigate_to_card_creation, with_db_connection, yellow_image, red_image
 
 
 def test_card_deletion(page: Page, context: BrowserContext):
@@ -12,7 +12,7 @@ def test_card_deletion(page: Page, context: BrowserContext):
         card_id='abfahren',
         source_id="goethe-a1",
         source_page_number=9,
-        images=[mockImage1, mockImage2],
+        images=[yellow_image, red_image],
         data={
             "word": "abfahren",
             "type": "ige",

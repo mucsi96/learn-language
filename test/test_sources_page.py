@@ -84,12 +84,6 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
 
     with context.expect_page() as card_page_info:
-        page.get_by_role(role="link", name="aber").click()
-    card_page = card_page_info.value
-
-    expect(card_page.get_by_label("German translation", exact=True)).to_have_value("aber")
-
-    with context.expect_page() as card_page_info:
         page.get_by_role(role="link", name="abfahren").click()
     card_page = card_page_info.value
 

@@ -1,20 +1,11 @@
 import express from 'express';
 
 const app = express();
-// Image 1: 1x1 yellow pixel
-const image1 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/58ABfUB/ZuFUpQAAAAASUVORK5CYII=';
-// Image 2: 1x1 red pixel
-const image2 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/axF9egAAAAASUVORK5CYII=';
-
-// Image 3: 1x1 blue pixel
-const image3 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z/CfHgAFqwJ/mNU2RQAAAABJRU5ErkJggg==';
-
-// Image 4: 1x1 green pixel
-const image4 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/xcAAwMB/fS3BscAAAAASUVORK5CYII=';
+// Source: https://png-pixel.com
+const yellow_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==';
+const red_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8AARIQB46hC+ioEAGX8E/cKr6qsAAAAAElFTkSuQmCC';
+const blue_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPj/n4EIwDiqkL4KAVIQE/f1/NxEAAAAAElFTkSuQmCC';
+const green_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=';
 
 let imageCallCounter1 = 0;
 let imageCallCounter2 = 0;
@@ -100,16 +91,16 @@ app.post('/images/generations', (req, res) => {
     imageCallCounter2,
   });
 
-  let b64_json = image1;
+  let b64_json = yellow_image;
 
   if (prompt.includes("We are departing at twelve o'clock.")) {
     imageCallCounter1++;
-    b64_json = imageCallCounter1 > 1 ? image3 : image1;
+    b64_json = imageCallCounter1 > 1 ? blue_image : yellow_image;
   }
 
   if (prompt.includes('When does the train leave?')) {
     imageCallCounter2++;
-    b64_json = imageCallCounter2 > 1 ? image4 : image2;
+    b64_json = imageCallCounter2 > 1 ? green_image : red_image;
   }
 
   res.status(200).json({

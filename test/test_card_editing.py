@@ -4,14 +4,15 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import get_image_content, mockImage1, mockImage2, mockImage3, mockImage4, create_card, navigate_to_card_creation, with_db_connection
+from utils import get_image_content, yellow_image, red_image, blue_image, green_image, create_card, navigate_to_card_creation, upload_mock_image, with_db_connection
 
 def test_card_editing_page(page: Page, context: BrowserContext):
+    image1 = upload_mock_image(yellow_image)
+    image2 = upload_mock_image(red_image)
     create_card(
         card_id='abfahren',
         source_id="goethe-a1",
         source_page_number=9,
-        images=[mockImage1, mockImage2],
         data={
             "word": "abfahren",
             "type": "ige",
@@ -23,6 +24,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
                     "hu": "Tizenkét órakor indulunk.",
                     "en": "We leave at twelve o'clock.",
                     "ch": "Mir fahred am zwöufi ab.",
+                    "images": [{"id": image1}]
                 },
                 {
                     "de": "Wann fährt der Zug ab?",
@@ -30,6 +32,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
                     "en": "When does the train leave?",
                     "ch": "Wänn fahrt dr",
                     "isSelected": True,
+                    "images": [{"id": image2}]
                 }
             ]
         },
@@ -60,15 +63,16 @@ def test_card_editing_page(page: Page, context: BrowserContext):
     # Images
     image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
-    assert image_content1 == mockImage1, "Image data does not match mock image data"
-    assert image_content2 == mockImage2, "Image data does not match mock image data"
+    assert image_content1 == yellow_image, "Image data does not match mock image data"
+    assert image_content2 == red_image, "Image data does not match mock image data"
 
 def test_card_editing_in_db(page: Page, context: BrowserContext):
+    image1 = upload_mock_image(blue_image)
+    image2 = upload_mock_image(green_image)
     create_card(
         card_id='abfahren',
         source_id="goethe-a1",
         source_page_number=9,
-        images=[mockImage1, mockImage2],
         data={
             "word": "abfahren",
             "type": "ige",
@@ -80,6 +84,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
                     "hu": "Tizenkét órakor indulunk.",
                     "en": "We leave at twelve o'clock.",
                     "ch": "Mir fahred am zwöufi ab.",
+                    "images": [{"id": image1}],
                     "isSelected": True,
                 },
                 {
@@ -87,6 +92,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
                     "hu": "Mikor indul a vonat?",
                     "en": "When does the train leave?",
                     "ch": "Wänn fahrt dr",
+                    "images": [{"id": image2}]
                 }
             ]
         },
@@ -99,7 +105,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     card_page.get_by_role("button", name="Add example image").nth(1).click()
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content2 == mockImage4, "Image data does not match mock image data"
+    assert image_content2 == red_image, "Image data does not match mock image data"
 
     card_page.get_by_role("radio").nth(1).click()
     card_page.get_by_role(role="button", name="Update").click()
@@ -122,5 +128,5 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content1 == mockImage3, "First image should remain unchanged"
-    assert image_content2 == mockImage4, "Second image should have been regenerated"
+    assert image_content1 == blue_image, "First image should remain unchanged"
+    assert image_content2 == red_image, "Second image should have been regenerated"
