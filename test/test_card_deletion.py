@@ -12,7 +12,6 @@ def test_card_deletion(page: Page, context: BrowserContext):
         card_id='abfahren',
         source_id="goethe-a1",
         source_page_number=9,
-        images=[yellow_image, red_image],
         data={
             "word": "abfahren",
             "type": "ige",
