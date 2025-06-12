@@ -107,6 +107,15 @@
       "label": "Compose down",
       "command": "docker compose down",
       "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "command": "scripts/deploy.sh",
+      "label": "Deploy",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }
