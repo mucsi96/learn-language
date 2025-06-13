@@ -119,7 +119,7 @@ cardService.selectedExampleIndex; @if (loading()) {
       } @else if(image.isLoading()) {
       <div class="skeleton"></div>
       } @else if (image.value()) {
-      <img src="{{ image.value()?.url }}" [alt]="example()" />
+      <img src="/api/image/{{ image.value()?.id }}?width=600&height=600" [alt]="example()" />
       } @else {
       <mat-icon>image_not_supported</mat-icon>
       }

@@ -130,6 +130,16 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.sejda.webp-imageio</groupId>
+      <artifactId>webp-imageio-sejda</artifactId>
+      <version>0.1.0</version>
+  </dependency>
+    <dependency>
+      <groupId>net.coobird</groupId>
+      <artifactId>thumbnailator</artifactId>
+      <version>0.4.20</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>

@@ -5,9 +5,9 @@
 - Show number of due cards
 - Assign cards / multiperson
 
-- Create cached image endpoint which is responsible for resizing images to requested size and do it fast.
 - Write test for multi image support
 - Add support for image selection
+- remove autoreload from page page
 
 
 

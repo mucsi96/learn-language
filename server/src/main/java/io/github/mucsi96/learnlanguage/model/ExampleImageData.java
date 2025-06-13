@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class ExampleImageData {
   private String id;
   private Boolean isSelected;
-  private String url;
 }

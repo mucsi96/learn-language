@@ -5,10 +5,8 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
-import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
-import io.github.mucsi96.learnlanguage.service.BlobStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,7 +23,6 @@ public class CardController {
 
   private final CardRepository cardRepository;
   private final SourceRepository sourceRepository;
-  private final BlobStorageService blobStorageService;
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -42,8 +38,6 @@ public class CardController {
         .forms(request.getForms())
         .examples(request.getExamples())
         .build();
-
-    withoutExampleImageUrls(cardData.getExamples());
 
     // Create a new card with FSRS defaults
     Card card = Card.builder()
@@ -74,7 +68,6 @@ public class CardController {
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     CardData cardData = card.getData();
-    withExampleImageUrls(cardData.getExamples());
 
     return ResponseEntity.ok(cardData);
   }
@@ -93,8 +86,6 @@ public class CardController {
         .forms(request.getForms())
         .examples(request.getExamples())
         .build();
-
-    withoutExampleImageUrls(cardData.getExamples());
 
     card.setData(cardData);
     cardRepository.save(card);
@@ -115,34 +106,5 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
     return ResponseEntity.ok(response);
-  }
-
-  private void withExampleImageUrls(List<ExampleData> examples) {
-    examples.stream()
-        .forEach(example -> {
-          if (example.getImages() != null) {
-            var images = example.getImages();
-
-            if (images != null) {
-              images.forEach(image -> {
-                image.setUrl(blobStorageService.getDownloadUrl("images/" + image.getId() + ".webp"));
-              });
-            }
-          }
-        });
-  }
-
-  private void withoutExampleImageUrls(List<ExampleData> examples) {
-    examples.stream()
-        .forEach(example -> {
-          if (example.getImages() != null) {
-            var images = example.getImages();
-            if (images != null) {
-              images.forEach(image -> {
-                image.setUrl(null);
-              });
-            }
-          }
-        });
   }
 }

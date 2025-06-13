@@ -32,7 +32,6 @@ export type Word = {
 export type ExampleImage = {
   id: string;
   isSelected: boolean;
-  url: string;
 };
 
 export type Card = {
