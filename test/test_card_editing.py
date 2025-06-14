@@ -61,8 +61,8 @@ def test_card_editing_page(page: Page, context: BrowserContext):
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
 
     # Images
-    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
     assert image_content1 == get_color_image_bytes("yellow"), "Image data does not match mock image data"
     assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
@@ -103,7 +103,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
     card_page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
     card_page.get_by_role("button", name="Add example image").nth(1).click()
-    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
@@ -125,8 +125,8 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     assert card_data["translation"]["ch"] == "abfahra, verlah", "Swiss German translation was changed unexpectedly"
     assert "fährt ab" in card_data["forms"], "Form 'fährt ab' was lost"
 
-    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content1 == get_color_image_bytes("blue"), "First image should remain unchanged"
     assert image_content2 == get_color_image_bytes("red"), "Second image should have been regenerated"

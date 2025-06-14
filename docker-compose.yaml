@@ -1,22 +1,7 @@
-version: "3.8"
-
 volumes:
   postgres-data:
 
 services:
-  mkcert:
-    environment:
-      CAROOT: "/certs"
-    image: "alpine/mkcert:latest"
-    command:
-      - -cert-file
-      - /certs/blobstorage.crt
-      - -key-file
-      - /certs/blobstorage.key
-      - blobstorage
-      - localhost
-    volumes:
-      - ./.certs:/certs
 
   app:
     build: .
@@ -28,7 +13,7 @@ services:
       DB_NAME: "test"
       DB_USERNAME: "postgres"
       DB_PASSWORD: "postgres"
-      STORAGE_ACCOUNT_BLOB_URL: "https://blobstorage:10000/devstoreaccount1"
+      BLOBSTORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blobstorage:10000/devstoreaccount1;"
       STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
       OPENAI_API_KEY: "mock-key"
       OPENAI_BASE_URL: "http://mock-openai:3000"
@@ -40,29 +25,18 @@ services:
       retries: 10
       start_period: 16s
     depends_on:
-      mkcert:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
-      blobstorage:
-        condition: service_healthy
-    volumes_from:
-      - mkcert:ro
+      - db
+      - blobstorage
 
   blobstorage:
     image: "mcr.microsoft.com/azure-storage/azurite:latest"
-    command: "azurite-blob --blobHost 0.0.0.0 --oauth basic --cert /certs/blobstorage.crt --key /certs/blobstorage.key"
+    command: "azurite-blob --blobHost 0.0.0.0"
     ports:
       - "8181:10000"
     healthcheck:
       test: nc 127.0.0.1 10000 -z
       interval: 1s
       retries: 30
-    depends_on:
-      mkcert:
-        condition: service_completed_successfully
-    volumes_from:
-      - mkcert:ro
 
   db:
     image: "postgres:16.2-bullseye"

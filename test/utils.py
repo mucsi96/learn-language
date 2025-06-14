@@ -10,9 +10,9 @@ from playwright.sync_api import expect
 from urllib.parse import urljoin
 
 blob_service_client = BlobServiceClient.from_connection_string(
-    "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;"
+    "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
     + "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;"
-    + "BlobEndpoint=https://localhost:8181"
+    + "BlobEndpoint=http://localhost:8181"
     + "/devstoreaccount1;"
 )
 
@@ -103,16 +103,29 @@ green_image = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=")
 
 
-def get_image_content(page, image_element):
+def get_image_content(image_element):
     expect(image_element).to_be_visible()
     image_src = image_element.get_attribute('src')
     assert image_src is not None, "Image src attribute is None"
 
-    url = urljoin(page.url, image_src)
-    response = requests.get(url)
-    response.raise_for_status()
-
-    return response.content
+    if image_src.startswith('blob:'):
+        # Use browser context to fetch blob and return as base64
+        base64_data = image_element.evaluate('''async (el) => {
+            const response = await fetch(el.src);
+            const blob = await response.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }''')
+        return base64.b64decode(base64_data)
+    else:
+        response = requests.get(image_src)
+        response.raise_for_status()
+        return response.content
 
 
 def get_color_image_bytes(color, size=600):

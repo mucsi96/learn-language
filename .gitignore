@@ -8,6 +8,5 @@ speech/
 backend.tf
 tfplan
 .terraform/
-.certs/
 test-results/
 .ansible/
