@@ -33,7 +33,7 @@ public class ImageController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ExampleImageData createImage(@RequestBody ImageSourceRequest imageSource) {
        String uuid = UUID.randomUUID().toString();
-        String blobName = String.format("images/%s.webp", uuid);
+        String blobName = String.format("images/%s.jpg", uuid);
 
         byte[] data = imageService.generateImage(imageSource.getInput());
         blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
@@ -43,17 +43,17 @@ public class ImageController {
                 .build();
     }
 
-    @GetMapping(value = "/api/image/{id}", produces = "image/webp")
+    @GetMapping(value = "/api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<byte[]> getCachedResizedImage(
             @PathVariable String id,
             @RequestParam int width,
             @RequestParam int height) throws Exception {
-        String blobName = String.format("images/%s.webp", id);
+        String blobName = String.format("images/%s.jpg", id);
         byte[] original = blobStorageService.fetchBlob(blobName).toBytes();
         byte[] resized = imageResizeService.resizeImage(original, width, height, blobName);
         return ResponseEntity.ok()
-                .contentType(MediaType.valueOf("image/webp"))
+                .contentType(MediaType.IMAGE_JPEG)
                 .header("Cache-Control", "public, max-age=31536000, immutable")
                 .body(resized);
     }

@@ -130,7 +130,7 @@ def get_image_content(image_element):
 
 def get_color_image_bytes(color, size=600):
     images_dir = Path(__file__).parent / "images"
-    filename = f"{color}{size}.webp"
+    filename = f"{color}{size}.jpg"
     with (images_dir / filename).open("rb") as f:
         return f.read()
 
@@ -166,7 +166,7 @@ def upload_mock_image(image_data):
         container_client.create_container()
 
     uuid_str = str(uuid.uuid4())
-    blob_name = f"images/{uuid_str}.webp"
+    blob_name = f"images/{uuid_str}.jpg"
     blob_client = container_client.get_blob_client(blob_name)
 
     blob_client.upload_blob(image_data, overwrite=True)

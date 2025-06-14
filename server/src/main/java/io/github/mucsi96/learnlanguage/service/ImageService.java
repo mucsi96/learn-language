@@ -27,7 +27,7 @@ public class ImageService {
         .size(ImageGenerateParams.Size._1024X1024)
         .quality(ImageGenerateParams.Quality.HIGH)
         .n(1)
-        .outputFormat(ImageGenerateParams.OutputFormat.WEBP)
+        .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
         .outputCompression(75)
         .build();
 

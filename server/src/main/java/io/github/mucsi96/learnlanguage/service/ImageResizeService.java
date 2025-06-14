@@ -17,7 +17,7 @@ public class ImageResizeService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Thumbnails.of(bais)
             .size(width, height)
-            .outputFormat("webp")
+            .outputFormat("jpg")
             .outputQuality(0.75f)
             .keepAspectRatio(true)
             .toOutputStream(baos);
