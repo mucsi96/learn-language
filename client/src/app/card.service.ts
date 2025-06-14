@@ -12,6 +12,7 @@ import {
 import { Card, ExampleImage, Translation, Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
+import { fetchAsset } from './utils/fetchAsset';
 
 export const languages = ['hu', 'ch', 'en'] as const;
 
@@ -272,7 +273,9 @@ export class CardService {
   private getExampleImageResource(image: ExampleImage) {
     return resource({
       injector: this.injector,
-      loader: async () => image,
+      loader: async () => {
+        return { ...image, url: await this.getExampleImageUrl(image.id) };
+      },
     });
   }
 
@@ -286,7 +289,6 @@ export class CardService {
         if (!englishTranslation) {
           return;
         }
-
         const response = await fetchJson<ExampleImage>(
           this.http,
           `/api/image`,
@@ -297,8 +299,19 @@ export class CardService {
             method: 'POST',
           }
         );
-        return response;
+
+        return {
+          ...response,
+          url: await this.getExampleImageUrl(response.id),
+        };
       },
     });
+  }
+
+  private async getExampleImageUrl(imageId: string) {
+    return await fetchAsset(
+      this.http,
+      `/api/image/${imageId}?width=600&height=600`
+    );
   }
 }
