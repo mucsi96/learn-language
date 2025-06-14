@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
-import java.time.OffsetDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaTypeFactory;
@@ -11,10 +10,7 @@ import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.models.BlobHttpHeaders;
-import com.azure.storage.blob.models.UserDelegationKey;
 import com.azure.storage.blob.options.BlobParallelUploadOptions;
-import com.azure.storage.blob.sas.BlobSasPermission;
-import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,34 +41,5 @@ public class BlobStorageService {
     options.setHeaders(httpHeaders);
 
     getBlobClient(blobName).uploadWithResponse(options, Duration.ofSeconds(5), null);
-  }
-
-  public boolean blobExists(String blobName) {
-    return getBlobClient(blobName).exists();
-  }
-
-  @Value("${blobstorage.accountUrl}")
-  private String accountUrl;
-
-  @Value("${blobstorage.publicUrl:#{null}}")
-  private String publicUrl;
-
-  public String getDownloadUrl(String blobName) {
-    BlobClient blobClient = getBlobClient(blobName);
-    UserDelegationKey userDelegationKey = blobServiceClient.getUserDelegationKey(
-        OffsetDateTime.now().minusMinutes(1), OffsetDateTime.now().plusMinutes(2));
-
-    BlobServiceSasSignatureValues sasValues = new BlobServiceSasSignatureValues(
-        OffsetDateTime.now().plusMinutes(2),
-        new BlobSasPermission().setReadPermission(true)).setStartTime(OffsetDateTime.now().minusMinutes(1));
-
-    String sasToken = blobClient.generateUserDelegationSas(sasValues, userDelegationKey);
-    String url = blobClient.getBlobUrl().replace("%2F", "/") + "?" + sasToken;
-
-    if (publicUrl != null && !publicUrl.isEmpty()) {
-      url = url.replaceFirst(accountUrl, publicUrl);
-    }
-
-    return url;
   }
 }
