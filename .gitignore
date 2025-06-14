@@ -4,7 +4,6 @@ anki/
 .env
 __pycache__
 .kube/
-images/
 speech/
 backend.tf
 tfplan

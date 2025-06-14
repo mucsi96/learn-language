@@ -4,7 +4,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import with_db_connection, yellow_image, red_image, blue_image, navigate_to_card_creation, get_image_content
+from utils import get_color_image_bytes, with_db_connection, navigate_to_card_creation, get_image_content
 
 def test_card_creation_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
@@ -28,20 +28,20 @@ def test_card_creation_page(page: Page, context: BrowserContext):
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
 
     # Image
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
-    assert image_content1 == yellow_image, "Image data does not match mock image data"
-    assert image_content2 == red_image, "Image data does not match mock image data"
+    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    assert image_content1 == get_color_image_bytes("yellow"), "Image data does not match mock image data"
+    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
 
 
 def test_card_creation_in_db(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
-    assert image_content1 == yellow_image, "Image data does not match mock image data"
-    assert image_content2 == red_image, "Image data does not match mock image data"
+    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    assert image_content1 == get_color_image_bytes("yellow"), "Image data does not match mock image data"
+    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
     card_page.get_by_role(role="button", name="Create").click()
 
@@ -91,7 +91,7 @@ def test_example_image_addition(page: Page, context: BrowserContext):
 
     card_page.get_by_role("button", name="Add example image").first.click()
 
-    regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    assert regenerated_image_content == blue_image, "Regenerated image data does not match Image 2"
+    regenerated_image_content = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    assert regenerated_image_content == get_color_image_bytes("blue"), "Regenerated image data does not match Image 2"
 
 

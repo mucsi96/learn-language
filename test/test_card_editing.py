@@ -4,7 +4,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import get_image_content, yellow_image, red_image, blue_image, green_image, create_card, navigate_to_card_creation, upload_mock_image, with_db_connection
+from utils import get_color_image_bytes, get_image_content, yellow_image, red_image, blue_image, green_image, create_card, navigate_to_card_creation, upload_mock_image, with_db_connection
 
 def test_card_editing_page(page: Page, context: BrowserContext):
     image1 = upload_mock_image(yellow_image)
@@ -61,10 +61,10 @@ def test_card_editing_page(page: Page, context: BrowserContext):
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
 
     # Images
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
-    assert image_content1 == yellow_image, "Image data does not match mock image data"
-    assert image_content2 == red_image, "Image data does not match mock image data"
+    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    assert image_content1 == get_color_image_bytes("yellow"), "Image data does not match mock image data"
+    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
 def test_card_editing_in_db(page: Page, context: BrowserContext):
     image1 = upload_mock_image(blue_image)
@@ -103,9 +103,9 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
     card_page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
     card_page.get_by_role("button", name="Add example image").nth(1).click()
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content2 == red_image, "Image data does not match mock image data"
+    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
 
     card_page.get_by_role("radio").nth(1).click()
     card_page.get_by_role(role="button", name="Update").click()
@@ -125,8 +125,8 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     assert card_data["translation"]["ch"] == "abfahra, verlah", "Swiss German translation was changed unexpectedly"
     assert "fährt ab" in card_data["forms"], "Form 'fährt ab' was lost"
 
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content1 = get_image_content(card_page, card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(card_page, card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content1 == blue_image, "First image should remain unchanged"
-    assert image_content2 == red_image, "Second image should have been regenerated"
+    assert image_content1 == get_color_image_bytes("blue"), "First image should remain unchanged"
+    assert image_content2 == get_color_image_bytes("red"), "Second image should have been regenerated"

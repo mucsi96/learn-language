@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;

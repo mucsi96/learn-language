@@ -7,6 +7,7 @@ import base64
 import requests
 import uuid
 from playwright.sync_api import expect
+from urllib.parse import urljoin
 
 blob_service_client = BlobServiceClient.from_connection_string(
     "DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;"
@@ -102,15 +103,23 @@ green_image = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=")
 
 
-def get_image_content(image_element):
+def get_image_content(page, image_element):
     expect(image_element).to_be_visible()
     image_src = image_element.get_attribute('src')
     assert image_src is not None, "Image src attribute is None"
 
-    response = requests.get(image_src)
+    url = urljoin(page.url, image_src)
+    response = requests.get(url)
     response.raise_for_status()
 
     return response.content
+
+
+def get_color_image_bytes(color, size=600):
+    images_dir = Path(__file__).parent / "images"
+    filename = f"{color}{size}.webp"
+    with (images_dir / filename).open("rb") as f:
+        return f.read()
 
 
 def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="Alphabetische", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
