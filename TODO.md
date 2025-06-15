@@ -5,9 +5,9 @@
 - Show number of due cards
 - Assign cards / multiperson
 
-- Write test for multi image support
 - Add support for image selection
 - remove autoreload from page page
+- add automated dependency update
 
 
 
