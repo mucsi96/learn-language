@@ -6,7 +6,6 @@
 - Assign cards / multiperson
 
 - Add support for image selection
-- remove autoreload from page page
 - add automated dependency update
 
 
