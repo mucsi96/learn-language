@@ -50,7 +50,7 @@
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
 </div>
-} @if (loading()) {
+} @if (pageLoading()) {
 <mat-spinner class="page-loading" />
 } @else {
 <section
@@ -59,7 +59,7 @@
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
 >
-  @if (areaLoading()) {
+  @if (selectionRegionsLoading()) {
   <mat-spinner class="area-loading"></mat-spinner>
   } @for (span of spans(); track $index) {
   <app-span
@@ -72,7 +72,7 @@
     [fontSize]="span.fontSize"
     [searchTerm]="span.searchTerm"
     [exists]="span.exists"
-    [wordList]="words()"
+    [selectionRegions]="selectionRegions()"
   ></app-span>
   }
 </section>

@@ -135,22 +135,41 @@ def get_color_image_bytes(color, size=600):
         return f.read()
 
 
-def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="Alphabetische", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
+def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="aber", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name=source_name).click()
 
+    # # Simulate dragging a rectangle to select words
+    # start_element = page.get_by_text(start_text, exact=True)
+    # end_element = page.get_by_text(end_text, exact=True)
+    # start_box = start_element.bounding_box()
+    # end_box = end_element.bounding_box()
+
+    # assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
+
+    # page.mouse.move(start_box["x"] - 4, start_box["y"] - start_box["height"] - 8)
+    # page.mouse.down()
+    # page.mouse.move(end_box["x"] + end_box["width"] + 4, end_box["y"] + end_box["height"] - 4)
+    # page.mouse.up()
+
+
     # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text(start_text)
-    end_element = page.get_by_text(end_text)
+    start_element = page.get_by_text("der Absender", exact=True)
+    end_element = page.get_by_text("Können Sie mir seine Adresse sagen?", exact=True)
+
+    end_element.scroll_into_view_if_needed()
+
     start_box = start_element.bounding_box()
     end_box = end_element.bounding_box()
 
     assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
 
-    page.mouse.move(start_box["x"] + start_box["width"] / 2, start_box["y"] + start_box["height"] / 2)
+    page.mouse.move( start_box["x"] - 4, start_box["y"] - start_box["height"] - 8)
     page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"] / 2, end_box["y"] + end_box["height"] / 2)
+    page.mouse.move(end_box["x"] + end_box["width"] + 4, end_box["y"] + end_box["height"] - 4)
     page.mouse.up()
+
+    expect(page.get_by_role(role="link", name="der Absender")).to_be_visible()
 
     with context.expect_page() as card_page_info:
         page.get_by_role(role="link", name=word_name).click()
@@ -172,3 +191,19 @@ def upload_mock_image(image_data):
     blob_client.upload_blob(image_data, overwrite=True)
 
     return uuid_str
+
+
+# def scroll_aware_mouse_move(page, x, y):
+#     scroll_info = page.evaluate("""() => ({
+#         scrollX: window.pageXOffset || document.documentElement.scrollLeft,
+#         scrollY: window.pageYOffset || document.documentElement.scrollTop
+#     })""")
+
+#     adjusted_x = x #- scroll_info["scrollX"]
+#     adjusted_y = y #- scroll_info["scrollY"]
+
+#     print(scroll_info)
+#     print(f"Moving mouse to adjusted position: ({adjusted_x}, {adjusted_y})")
+
+#     page.mouse.move(adjusted_x, adjusted_y)
+

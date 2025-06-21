@@ -1,4 +1,4 @@
-import { Component, HostBinding, inject, input } from '@angular/core';
+import { Component, HostBinding, inject, input, ResourceRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BBox, WordList } from '../types';
@@ -32,25 +32,40 @@ export class SpanComponent {
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
   readonly exists = input<boolean>();
-  readonly wordList = input<WordList>();
+  readonly selectionRegions = input<ResourceRef<WordList | undefined>[]>();
   readonly dialog = inject(MatDialog);
 
   get matches() {
-    if (
-      !this.searchTerm() ||
-      (this.bbox()?.y ?? 0) < (this.wordList()?.y ?? 0) ||
-      (this.bbox()?.y ?? 0) >
-        (this.wordList()?.y ?? 0) + (this.wordList()?.height ?? 0) ||
-      (this.bbox()?.x ?? 0) < (this.wordList()?.x ?? 0) ||
-      (this.bbox()?.x ?? 0) >
-        (this.wordList()?.x ?? 0) + (this.wordList()?.width ?? 0)
-    ) {
+    const selectionRegions = this.selectionRegions();
+    if (!this.searchTerm() || !selectionRegions?.length) {
       return [];
     }
 
-    return this.wordList()?.words?.filter((word) =>
+    const spanBBox = this.bbox();
+    if (!spanBBox) {
+      return [];
+    }
+
+    const matchingRegion = selectionRegions.find(region => {
+      const regionValue = region.value();
+      if (!regionValue) {
+        return false;
+      }
+
+      const { x, y, width, height } = regionValue;
+      return spanBBox.y >= y &&
+        spanBBox.y <= y + height &&
+        spanBBox.x >= x &&
+        spanBBox.x <= x + width;
+    });
+
+    if (!matchingRegion) {
+      return [];
+    }
+
+    return matchingRegion.value()?.words?.filter((word) =>
       word.word.toLowerCase().includes(this.searchTerm()!.toLowerCase())
-    );
+    ) || [];
   }
 
   @HostBinding('style.top') get top() {

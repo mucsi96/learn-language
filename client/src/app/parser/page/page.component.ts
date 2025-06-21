@@ -55,12 +55,14 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   );
   readonly spans = computed(() => this.pageService.page.value()?.spans);
   readonly height = computed(() => this.pageService.page.value()?.height);
-  readonly words = computed(() => this.pageService.words.value());
+  readonly selectionRegions = this.pageService.selectionRegions
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
   );
-  readonly loading = this.pageService.page.isLoading;
-  readonly areaLoading = this.pageService.words.isLoading;
+  readonly pageLoading = this.pageService.page.isLoading;
+  readonly selectionRegionsLoading = computed(() =>
+    this.pageService.selectionRegions().some((w) => w.isLoading())
+  );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
 
@@ -108,6 +110,6 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onSelection(event: { x: number; y: number; width: number; height: number }) {
-    this.pageService.setSelectedRectangle(event);
+    this.pageService.addSelectedRectangle(event);
   }
 }

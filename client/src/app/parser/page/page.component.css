@@ -7,6 +7,7 @@
 
 .page-layout {
   position: relative;
+  outline: 1px solid darkslategray
 }
 
 .page-nav {

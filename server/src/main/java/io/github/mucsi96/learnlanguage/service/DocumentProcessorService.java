@@ -78,6 +78,8 @@ public class DocumentProcessorService {
               (int) Math.round(height * mediaBox.getWidth() * scale));
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       ImageIO.write(image, "png", outputStream);
+      // Write image to file for debugging purpose
+      ImageIO.write(image, "png", Path.of("image.png").toFile());
       return outputStream.toByteArray();
     }
   }

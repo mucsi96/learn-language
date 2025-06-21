@@ -1,11 +1,18 @@
 import express from 'express';
+import { writeFileSync } from 'fs';
+import { createWorker } from 'tesseract.js';
 
 const app = express();
 // Source: https://png-pixel.com
-const yellow_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==';
-const red_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8AARIQB46hC+ioEAGX8E/cKr6qsAAAAAElFTkSuQmCC';
-const blue_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPj/n4EIwDiqkL4KAVIQE/f1/NxEAAAAAElFTkSuQmCC';
-const green_image = 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=';
+const yellow_image =
+  'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==';
+const red_image =
+  'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8AARIQB46hC+ioEAGX8E/cKr6qsAAAAAElFTkSuQmCC';
+const blue_image =
+  'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPj/n4EIwDiqkL4KAVIQE/f1/NxEAAAAAElFTkSuQmCC';
+const green_image =
+  'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=';
+const worker = await createWorker('deu');
 
 let imageCallCounter1 = 0;
 let imageCallCounter2 = 0;
@@ -23,14 +30,43 @@ const messagesMatch = (
   );
 };
 
-const imageMessagesMatch = (
+const extractTextFromImageUrl = async (
+  imageUrl: string
+): Promise<string | null> => {
+  if (!imageUrl || !imageUrl.startsWith('data:image/')) {
+    return null;
+  }
+
+  const imageBuffer = Buffer.from(imageUrl.split(',')[1], 'base64');
+  // Save to file for debugging purposes
+  writeFileSync('image.png', imageBuffer);
+  const { data } = await worker.recognize(imageBuffer);
+  return data.text;
+};
+
+const imageMessagesMatch = async (
   messages: any[],
   systemPromptIncludes: string,
-  imageTextIncludes: string
-): boolean => {
+  imageTextIncludes: string,
+  imageOCRIncludes: string[]
+): Promise<boolean> => {
+  const imageUrl = messages[1]?.content[1]?.image_url?.url;
+  const extractedText = await extractTextFromImageUrl(imageUrl);
+
+  console.log('OCR text', {
+    extractedText,
+    imageOCRIncludes,
+    condition: imageOCRIncludes.every((part) => extractedText?.includes(part)),
+  });
+
+  if (!extractedText) {
+    return false;
+  }
+
   return (
     messages[0]?.content.includes(systemPromptIncludes) &&
-    messages[1]?.content[0]?.text?.includes(imageTextIncludes)
+    messages[1]?.content[0]?.text?.includes(imageTextIncludes) &&
+    imageOCRIncludes.every((part) => extractedText.includes(part))
   );
 };
 
@@ -115,7 +151,7 @@ app.post('/images/generations', (req, res) => {
   });
 });
 
-app.post('/chat/completions', (req, res) => {
+app.post('/chat/completions', async (req, res) => {
   const { messages } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
@@ -124,10 +160,11 @@ app.post('/chat/completions', (req, res) => {
   }
 
   if (
-    imageMessagesMatch(
+    await imageMessagesMatch(
       messages,
       'You task is to extract the wordlist data from provided page image.',
-      'Here is the image of the page'
+      'Here is the image of the page',
+      ['aber', 'abfahren']
     )
   ) {
     res.status(200).json(
@@ -147,6 +184,45 @@ app.post('/chat/completions', (req, res) => {
       })
     );
     return;
+  }
+
+  if (
+    await imageMessagesMatch(
+      messages,
+      'You task is to extract the wordlist data from provided page image.',
+      'Here is the image of the page',
+      ['der Absender', 'die Adresse']
+    )
+  ) {
+    res.status(200).json(
+      createAssistantResponse({
+        wordList: [
+          {
+            word: 'der Absender',
+            forms: [],
+            examples: ['Da ist ein Brief für dich ohne Absender.'],
+          },
+          {
+            word: 'Achtung',
+            forms: [],
+            examples: ['Achtung! Das dürfen Sie nicht tun.'],
+          },
+          {
+            word: 'die Adresse',
+            forms: ['die Adressen'],
+            examples: ['Können Sie mir seine Adresse sagen?'],
+          },
+        ],
+      })
+    );
+    return;
+  }
+
+  if (messages[1]?.content[1]?.image_url?.url) {
+    console.log(
+      'OCR Result:',
+      await extractTextFromImageUrl(messages[1].content[1].image_url.url)
+    );
   }
 
   if (
