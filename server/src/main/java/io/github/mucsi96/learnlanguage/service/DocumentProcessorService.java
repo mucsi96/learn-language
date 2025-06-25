@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
 
@@ -42,17 +41,18 @@ public class DocumentProcessorService {
                 .text(span.getText())
                 .searchTerm(searchTerm)
                 .bbox(PageResponse.Span.Bbox.builder()
-                    .x(span.getX() / width)
-                    .y(span.getY() / width)
-                    .width(span.getWidth() / width)
-                    .height(span.getHeight() / width)
+                    .x(span.getX())
+                    .y(span.getY())
+                    .width(span.getWidth())
+                    .height(span.getHeight())
                     .build())
                 .build();
           })
           .collect(Collectors.toList());
 
       return PageResponse.builder()
-          .height(height / width)
+          .width(width)
+          .height(height)
           .number(pageNumber)
           .sourceId(source.getId())
           .sourceName(source.getName())
@@ -67,19 +67,22 @@ public class DocumentProcessorService {
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
+      var pageWidth = mediaBox.getWidth();
+      var pageHeight = mediaBox.getHeight();
+
       PDFRenderer renderer = new PDFRenderer(document);
       float scale = 2;
       var image = renderer
-          .renderImage(pageNumber - 1, scale, ImageType.RGB)
-          .getSubimage(
-              (int) Math.round(x * mediaBox.getWidth() * scale),
-              (int) Math.round(y * mediaBox.getWidth() * scale),
-              (int) Math.round(width * mediaBox.getWidth() * scale),
-              (int) Math.round(height * mediaBox.getWidth() * scale));
+          .renderImage(pageNumber - 1, scale);
+      var croppedImage = image.getSubimage(
+          (int) Math.round((x / pageWidth) * image.getWidth()),
+          (int) Math.round((y / pageHeight) * image.getHeight()),
+          (int) Math.round((width / pageWidth) * image.getWidth()),
+          (int) Math.round((height / pageHeight) * image.getHeight()));
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      ImageIO.write(image, "png", outputStream);
+      ImageIO.write(croppedImage, "png", outputStream);
       // Write image to file for debugging purpose
-      ImageIO.write(image, "png", Path.of("image.png").toFile());
+      // ImageIO.write(croppedImage, "png", Path.of("image.png").toFile());
       return outputStream.toByteArray();
     }
   }

@@ -69,19 +69,41 @@ export class SpanComponent {
   }
 
   @HostBinding('style.top') get top() {
-    return `calc(var(--page-width) * ${this.bbox()?.y ?? 0})`;
+    const  y = this.bbox()?.y;
+
+    if (y == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${y})`;
   }
 
   @HostBinding('style.left') get left() {
-    return `calc(var(--page-width) * ${this.bbox()?.x ?? 0})`;
+    const x = this.bbox()?.x;
+
+    if (x == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${x})`;
   }
 
   @HostBinding('style.width') get width() {
-    return `calc(var(--page-width) * ${this.bbox()?.width ?? 0})`;
+    const width = this.bbox()?.width;
+
+    if (width == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${width})`;
   }
 
   @HostBinding('style.height') get height() {
-    return `calc(var(--page-width) * ${this.bbox()?.height ?? 0})`;
+    const height = this.bbox()?.height;
+    if (height == undefined) {
+      return '0px';
+    }
+    return `calc(var(--page-width) * ${height})`;
   }
 
   get cardHrefPrefix() {

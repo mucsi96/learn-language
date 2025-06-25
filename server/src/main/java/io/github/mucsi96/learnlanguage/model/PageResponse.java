@@ -9,6 +9,7 @@ import lombok.Data;
 @Builder
 public class PageResponse {
     private int number;
+    private double width;
     private double height;
     private String sourceId;
     private String sourceName;

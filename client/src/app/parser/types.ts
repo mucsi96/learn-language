@@ -53,6 +53,7 @@ export type Page = {
   spans: Span[];
   sourceId: string;
   sourceName: string;
+  width: number;
   height: number;
 };
 

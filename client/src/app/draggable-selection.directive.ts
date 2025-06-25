@@ -1,8 +1,15 @@
-import { Directive, ElementRef, HostListener, Renderer2, inject, output } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  HostListener,
+  Renderer2,
+  inject,
+  output,
+} from '@angular/core';
 
 @Directive({
   standalone: true,
-  selector: '[appDraggableSelection]'
+  selector: '[appDraggableSelection]',
 })
 export class DraggableSelectionDirective {
   private el = inject(ElementRef);
@@ -17,7 +24,7 @@ export class DraggableSelectionDirective {
     y: number;
     width: number;
     height: number;
-}>();
+  }>();
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent) {
@@ -38,8 +45,16 @@ export class DraggableSelectionDirective {
 
       this.renderer.setStyle(this.rect, 'width', `${Math.abs(width)}px`);
       this.renderer.setStyle(this.rect, 'height', `${Math.abs(height)}px`);
-      this.renderer.setStyle(this.rect, 'left', `${Math.min(event.pageX, this.startX)}px`);
-      this.renderer.setStyle(this.rect, 'top', `${Math.min(event.pageY, this.startY)}px`);
+      this.renderer.setStyle(
+        this.rect,
+        'left',
+        `${Math.min(event.pageX, this.startX)}px`
+      );
+      this.renderer.setStyle(
+        this.rect,
+        'top',
+        `${Math.min(event.pageY, this.startY)}px`
+      );
     }
   }
 
@@ -49,12 +64,12 @@ export class DraggableSelectionDirective {
       const parentRect = this.el.nativeElement.getBoundingClientRect();
       const endX = event.pageX - parentRect.left - window.scrollX;
       const endY = event.pageY - parentRect.top - window.scrollY;
-      const width = Math.abs(endX - this.startX) / parentRect.width;
-      const height = Math.abs(endY - this.startY) / parentRect.width;
-      const x = Math.min(this.startX, endX) / parentRect.width;
-      const y = Math.min(this.startY, endY) / parentRect.width;
+      const width = Math.abs(endX - this.startX);
+      const height = Math.abs(endY - this.startY);
+      const x = Math.min(this.startX, endX);
+      const y = Math.min(this.startY, endY);
 
-      if (width > 0.01 && height > 0.01) {
+      if (width > 5 && height > 5) {
         this.selectionBox.emit({ x, y, width, height });
       }
 
@@ -65,7 +80,11 @@ export class DraggableSelectionDirective {
   private createRectangle() {
     this.rect = this.renderer.createElement('div');
     this.renderer.setStyle(this.rect, 'position', 'absolute');
-    this.renderer.setStyle(this.rect, 'border', '2px dashed hsl(220, 89%, 53%)');
+    this.renderer.setStyle(
+      this.rect,
+      'border',
+      '2px dashed hsl(220, 89%, 53%)'
+    );
     this.renderer.setStyle(this.rect, 'background', 'hsla(220, 89%, 53%, 0.2)');
     this.renderer.appendChild(this.el.nativeElement, this.rect);
   }

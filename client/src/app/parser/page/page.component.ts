@@ -54,6 +54,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     () => this.pageService.page.value()?.sourceId
   );
   readonly spans = computed(() => this.pageService.page.value()?.spans);
+  readonly width = computed(() => this.pageService.page.value()?.width);
   readonly height = computed(() => this.pageService.page.value()?.height);
   readonly selectionRegions = this.pageService.selectionRegions
   readonly sourceName = computed(
@@ -85,7 +86,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
       for (let entry of entries) {
         this.elRef.nativeElement.style.setProperty(
           '--page-width',
-          `${entry.contentRect.width}px`
+          `calc(${entry.contentRect.width}px / ${this.width()})`
         );
       }
     });
@@ -106,10 +107,28 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   get heightStyle() {
-    return `calc(var(--page-width) * ${this.height() ?? 0})`;
+    const height = this.height();
+
+    if (!height) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${height})`;
   }
 
   onSelection(event: { x: number; y: number; width: number; height: number }) {
-    this.pageService.addSelectedRectangle(event);
+    const pageWidth = this.width();
+    const parentRect = this.elRef.nativeElement.getBoundingClientRect();
+    const parentWidth = parentRect.width;
+
+    if (!pageWidth) {
+      return;
+    }
+
+    const x = pageWidth * event.x / parentWidth;
+    const y = pageWidth * event.y / parentWidth;
+    const width = pageWidth * event.width / parentWidth;
+    const height = pageWidth * event.height / parentWidth;
+    this.pageService.addSelectedRectangle({ x, y, width, height });
   }
 }
