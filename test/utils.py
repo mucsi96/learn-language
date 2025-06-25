@@ -7,7 +7,6 @@ import base64
 import requests
 import uuid
 from playwright.sync_api import expect
-from urllib.parse import urljoin
 
 blob_service_client = BlobServiceClient.from_connection_string(
     "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
@@ -139,23 +138,8 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name=source_name).click()
 
-    # # Simulate dragging a rectangle to select words
-    # start_element = page.get_by_text(start_text, exact=True)
-    # end_element = page.get_by_text(end_text, exact=True)
-    # start_box = start_element.bounding_box()
-    # end_box = end_element.bounding_box()
-
-    # assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
-
-    # page.mouse.move(start_box["x"] - 4, start_box["y"] - start_box["height"] - 8)
-    # page.mouse.down()
-    # page.mouse.move(end_box["x"] + end_box["width"] + 4, end_box["y"] + end_box["height"] - 4)
-    # page.mouse.up()
-
-
-    # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text("der Absender", exact=True)
-    end_element = page.get_by_text("Können Sie mir seine Adresse sagen?", exact=True)
+    start_element = page.get_by_text(start_text, exact=True)
+    end_element = page.get_by_text(end_text, exact=True)
 
     end_element.scroll_into_view_if_needed()
 
@@ -164,12 +148,10 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
 
     assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
 
-    page.mouse.move( start_box["x"] - 4, start_box["y"] - start_box["height"] - 8)
+    page.mouse.move(start_box["x"], start_box["y"])
     page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"] + 4, end_box["y"] + end_box["height"] - 4)
+    page.mouse.move(end_box["x"] + end_box["width"], end_box["y"] + end_box["height"])
     page.mouse.up()
-
-    expect(page.get_by_role(role="link", name="der Absender")).to_be_visible()
 
     with context.expect_page() as card_page_info:
         page.get_by_role(role="link", name=word_name).click()

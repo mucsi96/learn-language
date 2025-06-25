@@ -68,11 +68,8 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     page.get_by_role(role="link", name="Goethe A1").click()
 
     # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text("Alphabetische")
-    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.")
-
-    # Use the scroll-aware drag function with center-point positioning
-    from utils import scroll_aware_mouse_move
+    start_element = page.get_by_text("aber", exact=True)
+    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.", exact=True)
 
     # Scroll elements into view and get bounding boxes
     start_element.scroll_into_view_if_needed()
@@ -82,17 +79,9 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     end_box = end_element.bounding_box()
     assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
 
-    # Move to center of start element
-    start_x = start_box["x"] + start_box["width"] / 2
-    start_y = start_box["y"] + start_box["height"] / 2
-
-    # Move to center of end element
-    end_x = end_box["x"] + end_box["width"] / 2
-    end_y = end_box["y"] + end_box["height"] / 2
-
-    scroll_aware_mouse_move(page, start_x, start_y)
+    page.mouse.move(start_box["x"], start_box["y"])
     page.mouse.down()
-    scroll_aware_mouse_move(page, end_x, end_y)
+    page.mouse.move(end_box["x"] + end_box["width"], end_box["y"] + end_box["height"])
     page.mouse.up()
 
     expect(page.get_by_role(role="link", name="aber")).to_be_visible()
