@@ -4,7 +4,7 @@ from playwright.sync_api import BrowserContext, Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_card
+from utils import create_card, select_text_range
 
 
 def test_displays_current_page(page: Page):
@@ -67,22 +67,7 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
 
-    # Simulate dragging a rectangle to select words
-    start_element = page.get_by_text("aber", exact=True)
-    end_element = page.get_by_text("Vor der Abfahrt rufe ich an.", exact=True)
-
-    # Scroll elements into view and get bounding boxes
-    start_element.scroll_into_view_if_needed()
-    end_element.scroll_into_view_if_needed()
-
-    start_box = start_element.bounding_box()
-    end_box = end_element.bounding_box()
-    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
-
-    page.mouse.move(start_box["x"], start_box["y"])
-    page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"], end_box["y"] + end_box["height"])
-    page.mouse.up()
+    select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
 
     expect(page.get_by_role(role="link", name="aber")).to_be_visible()
     expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
@@ -92,3 +77,20 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     card_page = card_page_info.value
 
     expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
+
+
+def test_drag_to_select_multiple_regions(page: Page, context: BrowserContext):
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+
+    # First region selection
+    select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
+
+    # Second region selection
+    select_text_range(page, "der Absender", "Können Sie mir seine Adresse sagen?")
+
+    # Check that links from both regions are visible
+    expect(page.get_by_role(role="link", name="aber")).to_be_visible()
+    expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
+    expect(page.get_by_role(role="link", name="der Absender")).to_be_visible()
+    expect(page.get_by_role(role="link", name="die Adresse")).to_be_visible()

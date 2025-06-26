@@ -134,10 +134,7 @@ def get_color_image_bytes(color, size=600):
         return f.read()
 
 
-def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="aber", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
-    page.goto("http://localhost:8180/sources")
-    page.get_by_role(role="link", name=source_name).click()
-
+def select_text_range(page, start_text, end_text):
     start_element = page.get_by_text(start_text, exact=True)
     end_element = page.get_by_text(end_text, exact=True)
 
@@ -152,6 +149,13 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     page.mouse.down()
     page.mouse.move(end_box["x"] + end_box["width"], end_box["y"] + end_box["height"])
     page.mouse.up()
+
+
+def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="aber", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name=source_name).click()
+
+    select_text_range(page, start_text, end_text)
 
     with context.expect_page() as card_page_info:
         page.get_by_role(role="link", name=word_name).click()
