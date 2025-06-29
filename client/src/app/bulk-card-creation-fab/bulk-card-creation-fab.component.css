@@ -1,0 +1,28 @@
+.bulk-create-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.14),
+              0 7px 10px -5px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+}
+
+.bulk-create-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.2),
+              0 10px 15px -5px rgba(0, 0, 0, 0.4);
+}
+
+.bulk-create-fab:disabled {
+  transform: none;
+  opacity: 0.6;
+}
+
+:host {
+  pointer-events: none;
+}
+
+.bulk-create-fab {
+  pointer-events: auto;
+}

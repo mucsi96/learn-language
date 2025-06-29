@@ -5,5 +5,8 @@
     "verbatimModuleSyntax": false,
     "module": "preserve",
     "target": "es2024"
-  }
+  },
+  "include": [
+    "src"
+  ]
 }

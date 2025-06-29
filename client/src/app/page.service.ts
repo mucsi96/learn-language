@@ -88,6 +88,12 @@ export class PageService {
     }),
   });
 
+  reload() {
+    this.page.reload();
+    this.selectionRegions().forEach((region) => {
+      region.reload();
+    });
+  }
 
   setPage(pageNumber: number) {
     const selectedSource = this.selectedSource();

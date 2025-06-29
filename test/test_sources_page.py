@@ -60,7 +60,7 @@ def test_highlights_existing_cards(page: Page):
     )
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A2").click()
-    expect(page.get_by_text("anfangen,")).to_have_attribute("aria-description", "Card exists")
+    expect(page.get_by_text("anfangen,")).to_have_accessible_description("Card exists")
 
 
 def test_drag_to_select_words(page: Page, context: BrowserContext):

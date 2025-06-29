@@ -91,7 +91,6 @@ def create_card(card_id, source_id, data, state, step, due, stability=0, difficu
           """, (card_id, source_id, source_page_number, json.dumps(data), state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses))
 
 
-
 yellow_image = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==")
 red_image = base64.b64decode(
@@ -163,6 +162,16 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
 
     return card_page
 
+def download_image(id):
+    container_client = blob_service_client.get_container_client('learn-language')
+    blob_name = f"images/{id}.jpg"
+    blob_client = container_client.get_blob_client(blob_name)
+
+    if not blob_client.exists():
+        raise FileNotFoundError(f"Blob {blob_name} does not exist in the container.")
+
+    download_stream = blob_client.download_blob()
+    return download_stream.readall()
 
 def upload_mock_image(image_data):
     container_client = blob_service_client.get_container_client('learn-language')
@@ -177,19 +186,3 @@ def upload_mock_image(image_data):
     blob_client.upload_blob(image_data, overwrite=True)
 
     return uuid_str
-
-
-# def scroll_aware_mouse_move(page, x, y):
-#     scroll_info = page.evaluate("""() => ({
-#         scrollX: window.pageXOffset || document.documentElement.scrollLeft,
-#         scrollY: window.pageYOffset || document.documentElement.scrollTop
-#     })""")
-
-#     adjusted_x = x #- scroll_info["scrollX"]
-#     adjusted_y = y #- scroll_info["scrollY"]
-
-#     print(scroll_info)
-#     print(f"Moving mouse to adjusted position: ({adjusted_x}, {adjusted_y})")
-
-#     page.mouse.move(adjusted_x, adjusted_y)
-

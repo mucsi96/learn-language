@@ -17,6 +17,13 @@ def browser_context_args(browser_context_args):
     }
 
 
+# @fixture(autouse=True)
+# def configure_timeouts(page):
+    # Set longer timeouts for debugging
+    # page.set_default_timeout(300000)  # 5 minutes
+    # page.set_default_navigation_timeout(300000)  # 5 minutes
+
+
 @fixture(scope="session")
 def browser_type_launch_args(browser_type_launch_args):
     return {

@@ -21,6 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ScrollPositionService } from '../../scroll-position.service';
+import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 
 @Component({
   selector: 'app-page',
@@ -36,6 +37,7 @@ import { ScrollPositionService } from '../../scroll-position.service';
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
+    BulkCardCreationFabComponent,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
