@@ -9,3 +9,5 @@ spring:
     azure:
       active-directory:
         enabled: false
+langsmith:
+  enabled: false

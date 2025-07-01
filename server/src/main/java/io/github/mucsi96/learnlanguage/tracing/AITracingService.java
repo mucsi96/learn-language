@@ -1,0 +1,76 @@
+package io.github.mucsi96.learnlanguage.tracing;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AITracingService {
+  private final RestTemplate restTemplate;
+
+  @Value("${langsmith.enabled}")
+  private boolean langsmithEnabled;
+
+  @Value("${langsmith.api-key}")
+  private String langsmithApiKey;
+
+  @Value("${langsmith.api-url}")
+  private String langsmithApiUrl;
+
+  @Value("${langsmith.project}")
+  private String langsmithProject;
+
+  void postRun(UUID runId, String name, AITracingRunType runType, Object inputs) {
+    AITracingRunRequest request = AITracingRunRequest.builder()
+        .id(runId.toString())
+        .name(name)
+        .project(langsmithProject)
+        .runType(runType)
+        .inputs(inputs)
+        .startTime(OffsetDateTime.now())
+        .build();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("x-api-key", langsmithApiKey);
+    HttpEntity<AITracingRunRequest> entity = new HttpEntity<>(request, headers);
+    restTemplate.postForEntity(langsmithApiUrl + "/runs", entity, Void.class);
+  }
+
+  void patchRun(UUID runId, Object outputs) {
+    AITracingRunPatchRequest request = AITracingRunPatchRequest.builder()
+        .outputs(outputs)
+        .endTime(OffsetDateTime.now())
+        .build();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("x-api-key", langsmithApiKey);
+    HttpEntity<AITracingRunPatchRequest> entity = new HttpEntity<>(request, headers);
+    restTemplate.patchForObject(langsmithApiUrl + "/runs/" + runId, entity, Void.class);
+  }
+
+  public <T> T traceRun(String name, AITracingRunType runType, Object inputs, java.util.function.Supplier<T> lambda) {
+    if (!langsmithEnabled) {
+      return lambda.get();
+    }
+
+    UUID runId = UUID.randomUUID();
+    postRun(runId, name, runType, inputs);
+    try {
+      T result = lambda.get();
+      patchRun(runId, result);
+      return result;
+    } catch (RuntimeException e) {
+      patchRun(runId, e.getMessage());
+      throw e;
+    }
+  }
+}

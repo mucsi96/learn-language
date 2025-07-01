@@ -31,4 +31,9 @@ management:
       show-details: always
       probes:
         enabled: true
+langsmith:
+  enabled: true
+  api-key: ${LANGSMITH_API_KEY}
+  api-url: https://api.smith.langchain.com
+  project: learn-language
 
