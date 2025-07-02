@@ -25,12 +25,12 @@
     "description": "Enable LangSmith tracing"
   },
   {
-    "name": "langsmith.api-key",
+    "name": "langsmith.apiKey",
     "type": "java.lang.String",
     "description": "API key for LangSmith"
   },
   {
-    "name": "langsmith.api-url",
+    "name": "langsmith.apiUrl",
     "type": "java.lang.String",
     "description": "Endpoint URL for LangSmith API"
   },

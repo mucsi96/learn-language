@@ -20,10 +20,10 @@ public class AITracingService {
   @Value("${langsmith.enabled}")
   private boolean langsmithEnabled;
 
-  @Value("${langsmith.api-key}")
+  @Value("${langsmith.apiKey}")
   private String langsmithApiKey;
 
-  @Value("${langsmith.api-url}")
+  @Value("${langsmith.apiUrl}")
   private String langsmithApiUrl;
 
   @Value("${langsmith.project}")
