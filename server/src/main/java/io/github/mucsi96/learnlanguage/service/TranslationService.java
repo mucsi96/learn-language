@@ -4,10 +4,12 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.models.ChatModel;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
+import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,19 @@ public class TranslationService {
   public TranslationResponse translate(WordResponse word, String languageCode) {
     String language = LANGUAGE_MAP.getOrDefault(languageCode, "English");
 
+    TranslationRequest translationRequest = TranslationRequest.builder()
+        .examples(word.getExamples())
+        .word(word.getWord())
+        .build();
+
+    var objectMapper = new ObjectMapper();
+    String translationRequestJson;
+    try {
+      translationRequestJson = objectMapper.writeValueAsString(translationRequest);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to serialize TranslationRequest to JSON", e);
+    }
+
     var createParams = ChatCompletionCreateParams.builder()
         .model(ChatModel.GPT_4_1)
         .addSystemMessage(
@@ -39,8 +54,7 @@ public class TranslationService {
                   "translation":"announcement"
                 }
                 """.formatted(language, language))
-        .addUserMessage("The word is: %s.\nThe examples are:\n%s"
-            .formatted(word.getWord(), String.join("\n", word.getExamples())))
+        .addUserMessage(translationRequestJson)
         .responseFormat(TranslationResponse.class)
         .build();
 

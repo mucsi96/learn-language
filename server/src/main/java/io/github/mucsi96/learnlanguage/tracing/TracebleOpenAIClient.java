@@ -109,7 +109,7 @@ public class TracebleOpenAIClient implements OpenAIClient {
 
   @Override
   public ImageService images() {
-    throw new UnsupportedOperationException("Unimplemented method 'images'");
+    return delegate.images();
   }
 
   @Override
@@ -173,7 +173,7 @@ class TracebleChatCompletionService implements ChatCompletionService {
         .map(AITracingMessage::from)
         .toList();
 
-    tracingService.postRun(runId, "", AITracingRunType.llm, AITracingRunInputs.builder()
+    tracingService.postRun(runId, "ChatOpenAI", AITracingRunType.llm, AITracingRunInputs.builder()
         .messages(messages)
         .model(params.model().toString())
         .temperature(params.temperature().orElse(null))
