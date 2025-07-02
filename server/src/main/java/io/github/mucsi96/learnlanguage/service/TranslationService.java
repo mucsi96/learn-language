@@ -33,6 +33,11 @@ public class TranslationService {
                 You are a %s language expert.
                 Your task is to translate the given word and examples to %s.
                 The examples are optional.
+                json_structure:
+                {
+                  "examples":["Listen to the announcements."],
+                  "translation":"announcement"
+                }
                 """.formatted(language, language))
         .addUserMessage("The word is: %s.\nThe examples are:\n%s"
             .formatted(word.getWord(), String.join("\n", word.getExamples())))

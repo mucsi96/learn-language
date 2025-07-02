@@ -29,7 +29,11 @@ public class AITracingService {
   @Value("${langsmith.project}")
   private String langsmithProject;
 
-  void postRun(UUID runId, String name, AITracingRunType runType, Object inputs) {
+  public void postRun(UUID runId, String name, AITracingRunType runType, AITracingRunInputs inputs) {
+    if (!langsmithEnabled) {
+      return;
+    }
+
     AITracingRunRequest request = AITracingRunRequest.builder()
         .id(runId.toString())
         .name(name)
@@ -45,7 +49,11 @@ public class AITracingService {
     restTemplate.postForEntity(langsmithApiUrl + "/runs", entity, Void.class);
   }
 
-  void patchRun(UUID runId, Object outputs) {
+  public void patchRun(UUID runId, AITracingRunOutputs outputs) {
+    if (!langsmithEnabled) {
+      return;
+    }
+
     AITracingRunPatchRequest request = AITracingRunPatchRequest.builder()
         .outputs(outputs)
         .endTime(OffsetDateTime.now())
@@ -55,22 +63,5 @@ public class AITracingService {
     headers.set("x-api-key", langsmithApiKey);
     HttpEntity<AITracingRunPatchRequest> entity = new HttpEntity<>(request, headers);
     restTemplate.patchForObject(langsmithApiUrl + "/runs/" + runId, entity, Void.class);
-  }
-
-  public <T> T traceRun(String name, AITracingRunType runType, Object inputs, java.util.function.Supplier<T> lambda) {
-    if (!langsmithEnabled) {
-      return lambda.get();
-    }
-
-    UUID runId = UUID.randomUUID();
-    postRun(runId, name, runType, inputs);
-    try {
-      T result = lambda.get();
-      patchRun(runId, result);
-      return result;
-    } catch (RuntimeException e) {
-      patchRun(runId, e.getMessage());
-      throw e;
-    }
   }
 }

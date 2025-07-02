@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AITracingRunPatchRequest {
-    private Object outputs;
+    private AITracingRunOutputs outputs;
     @JsonProperty("end_time")
     private OffsetDateTime endTime;
 }

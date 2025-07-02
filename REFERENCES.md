@@ -24,3 +24,7 @@ As an explanation:
 # Angular Material UI component library
 
 Material icon library: https://fonts.google.com/icons
+
+# LangSmith
+
+https://github.com/langchain-ai/langsmith-cookbook/blob/main/tracing-examples/rest/rest.ipynb#Logging-LLM-Runs

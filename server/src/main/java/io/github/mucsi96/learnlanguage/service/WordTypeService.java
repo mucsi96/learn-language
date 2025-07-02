@@ -24,10 +24,10 @@ public class WordTypeService {
             """
                 You are a linguistic expert.
                 Your task is to determine the type of the given word (e.g., noun, verb, adjective) and reply in hungarian.
-                !IMPORTANT! Please provide the word type in the following JSON structure:
+                json_structure:
                 {
-                    \"word\": \"apple\",
-                    \"type\": \"noun\"
+                    "word": "apple",
+                    "type": "noun"
                 }
                 """)
         .addUserMessage("The word is: %s.".formatted(word))

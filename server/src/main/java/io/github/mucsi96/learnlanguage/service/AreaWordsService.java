@@ -13,8 +13,6 @@ import com.openai.models.chat.completions.ChatCompletionContentPartText;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 import io.github.mucsi96.learnlanguage.model.WordResponse;
-import io.github.mucsi96.learnlanguage.tracing.AITracingRunType;
-import io.github.mucsi96.learnlanguage.tracing.AITracingService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,7 +24,6 @@ public class AreaWordsService {
 
   private final OpenAIClient openAIClient;
   private final WordIdService wordIdService;
-  private final AITracingService aiTracingService;
 
   public List<WordResponse> getAreaWords(byte[] imageData) {
     String imageBase64Url = "data:image/png;base64," + Base64.getEncoder().encodeToString(imageData);
@@ -70,13 +67,9 @@ public class AreaWordsService {
         .responseFormat(AreaWords.class)
         .build();
 
-    var result = aiTracingService.traceRun(
-        "Extract area words from image",
-        AITracingRunType.llm,
-        null,
-        () -> openAIClient.chat().completions().create(createParams).choices().stream()
+    var result = openAIClient.chat().completions().create(createParams).choices().stream()
             .flatMap(choice -> choice.message().content().stream()).findFirst()
-            .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API")));
+            .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
 
     return result.wordList.stream().map(word -> {
       word.setId(wordIdService.generateWordId(word.getWord()));
