@@ -28,6 +28,13 @@ export class DraggableSelectionDirective {
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent) {
+    if (
+      event.target instanceof HTMLElement &&
+      event.target.closest(`[exclude-selection]`)
+    ) {
+      return;
+    }
+
     const parentRect = this.el.nativeElement.getBoundingClientRect();
     this.startX = event.pageX - parentRect.left - window.scrollX;
     this.startY = event.pageY - parentRect.top - window.scrollY;

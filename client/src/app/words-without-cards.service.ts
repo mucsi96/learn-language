@@ -25,9 +25,6 @@ export class WordsWithoutCardsService {
       }
     }
 
-    console.log('All words without cards:', allWordsWithoutCards);
-    debugger;
-
     // Remove duplicates based on word ID
     const uniqueWords = allWordsWithoutCards.filter((word, index, array) =>
       array.findIndex(w => w.id === word.id) === index
