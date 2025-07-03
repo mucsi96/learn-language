@@ -121,6 +121,16 @@ cardService.selectedExampleIndex; @if (loading()) {
       <div class="skeleton"></div>
       } @else if (url) {
       <img [src]="url" [alt]="example()" />
+      <div class="image-overlay" [class.image-overlay-favorite]="imageResource.value()?.isFavorite">
+        <button
+          mat-icon-button
+          (click)="toggleFavorite($index, exampleImageCarouselIndices()[$index])"
+          aria-label="Toggle favorite"
+          [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
+        >
+          <mat-icon>{{ imageResource.value()?.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+        </button>
+      </div>
       } @else {
       <mat-icon>image_not_supported</mat-icon>
       }

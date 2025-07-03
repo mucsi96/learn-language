@@ -126,4 +126,20 @@ export class CardComponent {
       }
     });
   }
+
+  async toggleFavorite(exampleIdx: number, imageIdx: number) {
+    const images = this.cardService.exampleImages()?.[exampleIdx];
+    if (!images?.length) return;
+
+    const image = images[imageIdx];
+    if (!image || image.isLoading()) return;
+
+    const imageValue = image.value();
+    if (!imageValue) return;
+
+    image.set({
+      ...imageValue,
+      isFavorite: !imageValue.isFavorite
+    });
+  }
 }

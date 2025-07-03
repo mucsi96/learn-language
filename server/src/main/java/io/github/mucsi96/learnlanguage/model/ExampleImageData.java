@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,5 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ExampleImageData {
   private String id;
-  private Boolean isSelected;
+
+  @JsonInclude(Include.NON_DEFAULT)
+  private Boolean isFavorite;
 }

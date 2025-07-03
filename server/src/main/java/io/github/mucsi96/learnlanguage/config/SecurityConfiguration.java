@@ -16,7 +16,7 @@ import com.azure.spring.cloud.autoconfigure.implementation.aad.security.AadResou
 public class SecurityConfiguration {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http.with(AadResourceServerHttpSecurityConfigurer.aadResourceServer(),

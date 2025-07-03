@@ -25,36 +25,36 @@ import org.springframework.http.ResponseEntity;
 @RequiredArgsConstructor
 public class ImageController {
 
-    private final BlobStorageService blobStorageService;
-    private final ImageService imageService;
-    private final ImageResizeService imageResizeService;
+  private final BlobStorageService blobStorageService;
+  private final ImageService imageService;
+  private final ImageResizeService imageResizeService;
 
-    @PostMapping("/api/image")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ExampleImageData createImage(@RequestBody ImageSourceRequest imageSource) {
-       String uuid = UUID.randomUUID().toString();
-        String blobName = String.format("images/%s.jpg", uuid);
+  @PostMapping("/api/image")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ExampleImageData createImage(@RequestBody ImageSourceRequest imageSource) {
+    String uuid = UUID.randomUUID().toString();
+    String blobName = "images/%s.jpg".formatted(uuid);
 
-        byte[] data = imageService.generateImage(imageSource.getInput());
-        blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
+    byte[] data = imageService.generateImage(imageSource.getInput());
+    blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
-        return ExampleImageData.builder()
-                .id(uuid)
-                .build();
-    }
+    return ExampleImageData.builder()
+        .id(uuid)
+        .build();
+  }
 
-    @GetMapping(value = "/api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<byte[]> getCachedResizedImage(
-            @PathVariable String id,
-            @RequestParam int width,
-            @RequestParam int height) throws Exception {
-        String blobName = String.format("images/%s.jpg", id);
-        byte[] original = blobStorageService.fetchBlob(blobName).toBytes();
-        byte[] resized = imageResizeService.resizeImage(original, width, height, blobName);
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .header("Cache-Control", "public, max-age=31536000, immutable")
-                .body(resized);
-    }
+  @GetMapping(value = "/api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<byte[]> getCachedResizedImage(
+      @PathVariable String id,
+      @RequestParam int width,
+      @RequestParam int height) throws Exception {
+    String blobName = "images/%s.jpg".formatted(id);
+    byte[] original = blobStorageService.fetchBlob(blobName).toBytes();
+    byte[] resized = imageResizeService.resizeImage(original, width, height, blobName);
+    return ResponseEntity.ok()
+        .contentType(MediaType.IMAGE_JPEG)
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .body(resized);
+  }
 }

@@ -21,18 +21,18 @@ public class StorageConfiguration {
   @Value("${blobstorage.accountUrl}")
   private String accountUrl;
 
-  @Profile("test")
-  @Bean
-  public BlobServiceClient testBlobServiceClient(@Value("${blobstorage.connectionString}") String connectionString)
-      throws Exception {
+    @Profile("test")
+    @Bean
+    BlobServiceClient testBlobServiceClient(@Value("${blobstorage.connectionString}") String connectionString)
+            throws Exception {
 
     return new BlobServiceClientBuilder().connectionString(connectionString)
         .buildClient();
   }
 
-  @Profile({ "prod", "local" })
-  @Bean
-  public BlobServiceClient prodBlobServiceClient() throws Exception {
+    @Profile({"prod", "local"})
+    @Bean
+    BlobServiceClient prodBlobServiceClient() throws Exception {
 
     TokenCredential tokenCredential = new DefaultAzureCredentialBuilder()
         .build();
@@ -43,8 +43,8 @@ public class StorageConfiguration {
     return blobServiceClient;
   }
 
-  @Bean
-  public DateTimeFormatter backupDateTimeFormat() {
+    @Bean
+    DateTimeFormatter backupDateTimeFormat() {
     return DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
         .withZone(ZoneOffset.UTC);
   }

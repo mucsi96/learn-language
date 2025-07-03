@@ -16,33 +16,32 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardCreateRequest {
-    private String id;
-    private String sourceId;
-    private int pageNumber;
-    private String word;
-    private String type;
-    private String image;
-    private Map<String, String> translation;
-    private List<String> forms;
-    private List<ExampleData> examples;
+  private String id;
+  private String sourceId;
+  private int pageNumber;
+  private String word;
+  private String type;
+  private Map<String, String> translation;
+  private List<String> forms;
+  private List<ExampleData> examples;
 
-    // FSRS attributes
-    private Integer state;
+  // FSRS attributes
+  private Integer state;
 
-    @JsonProperty("learning_steps")
-    private Integer step;
+  @JsonProperty("learning_steps")
+  private Integer step;
 
-    private Float stability;
-    private Float difficulty;
+  private Float stability;
+  private Float difficulty;
 
-    @JsonProperty("elapsed_days")
-    private Float elapsedDays;
+  @JsonProperty("elapsed_days")
+  private Float elapsedDays;
 
-    @JsonProperty("scheduled_days")
-    private Float scheduledDays;
+  @JsonProperty("scheduled_days")
+  private Float scheduledDays;
 
-    private Integer reps;
-    private Integer lapses;
-    private LocalDateTime due;
-    private LocalDateTime lastReview;
+  private Integer reps;
+  private Integer lapses;
+  private LocalDateTime due;
+  private LocalDateTime lastReview;
 }

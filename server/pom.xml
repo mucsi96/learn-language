@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.4</version>
+    <version>3.5.3</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.github.mucsi96</groupId>
@@ -47,10 +47,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
       <groupId>com.azure</groupId>
@@ -100,8 +96,8 @@
     </dependency>
     <dependency>
       <groupId>io.hypersistence</groupId>
-      <artifactId>hypersistence-utils-hibernate-60</artifactId>
-      <version>3.9.4</version>
+      <artifactId>hypersistence-utils-hibernate-63</artifactId>
+      <version>3.8.3</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
