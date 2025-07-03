@@ -1,4 +1,24 @@
 @if (loading()) {
   <mat-spinner class="page-loading" />
 } @else {
+  <h1>Welcome to Learn Language</h1>
+  <p>Select a source to start learning:</p>
+  <section class="sources">
+    @for (source of sources(); track source.id) {
+    <mat-card>
+      <mat-card-content>
+        <h2>{{ source.name }}</h2>
+        <a
+          mat-fab
+          extended
+          color="primary"
+          [routerLink]="['/sources', source.id, 'page', source.startPage]"
+        >
+          <mat-icon>menu_book</mat-icon>
+          Start Learning
+        </a>
+      </mat-card-content>
+    </mat-card>
+    }
+  </section>
 }
