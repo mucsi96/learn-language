@@ -47,7 +47,7 @@ public class AreaWordsService {
                 The forms is a string array representing the different forms. In case of a noun it the plural form.
                 In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.
                 The examples property is a string array enlisting the examples provided in the document.
-                json_structure:
+                Example of the expected JSON response:
                 {
                     wordList: [
                         {

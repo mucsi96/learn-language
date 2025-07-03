@@ -48,7 +48,7 @@ public class TranslationService {
                 You are a %s language expert.
                 Your task is to translate the given word and examples to %s.
                 The examples are optional.
-                json_structure:
+                Example of the expected JSON response:
                 {
                   "examples":["Listen to the announcements."],
                   "translation":"announcement"

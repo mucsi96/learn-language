@@ -8,6 +8,3 @@
 - Add support for image selection
 - add automated dependency update
 
-- check image cutting 
-- check word type -> object
-
