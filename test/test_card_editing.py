@@ -130,3 +130,74 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
 
     assert image_content1 == get_color_image_bytes("blue"), "First image should remain unchanged"
     assert image_content2 == get_color_image_bytes("red"), "Second image should have been regenerated"
+
+def test_favorite_image_in_db(page: Page, context: BrowserContext):
+    image1 = upload_mock_image(yellow_image)
+    image2 = upload_mock_image(red_image)
+    create_card(
+        card_id='abfahren',
+        source_id="goethe-a1",
+        source_page_number=9,
+        data={
+            "word": "abfahren",
+            "type": "ige",
+            "forms": ["fährt ab", "fuhr ab", "abgefahren"],
+            "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
+            "examples": [
+                {
+                    "de": "Wir fahren um zwölf Uhr ab.",
+                    "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
+                    "ch": "Mir fahred am zwöufi ab.",
+                    "images": [{"id": image1, "isFavorite": True}]
+                },
+                {
+                    "de": "Wann fährt der Zug ab?",
+                    "hu": "Mikor indul a vonat?",
+                    "en": "When does the train leave?",
+                    "ch": "Wänn fahrt dr",
+                    "images": [{"id": image2}]
+                }
+            ]
+        },
+        state=1,
+        step=0,
+        due='2025-03-13 08:24:32.82948',
+    )
+
+    card_page = navigate_to_card_creation(page, context)
+
+    # Verify initial favorite state
+    expect(card_page.get_by_role("button", name="Toggle favorite").first).to_have_attribute("aria-pressed", "true")
+    expect(card_page.get_by_role("button", name="Toggle favorite").last).not_to_have_attribute("aria-pressed", "true")
+
+    # Toggle favorite state of second image
+    card_page.get_by_role("button", name="Toggle favorite").last.hover()
+    card_page.get_by_role("button", name="Toggle favorite").last.click()
+    card_page.get_by_role("button", name="Update").click()
+    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+
+    expect(card_page.get_by_role("button", name="Toggle favorite").last).to_have_attribute("aria-pressed", "true")
+
+    # Toggle favorite state of first image
+    card_page.get_by_role("button", name="Toggle favorite").first.click()
+    card_page.get_by_role("button", name="Update").click()
+    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+    expect(card_page.get_by_role("button", name="Toggle favorite").first).not_to_have_attribute("aria-pressed", "true")
+
+    # Verify database state
+    with with_db_connection() as cur:
+        cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
+        result = cur.fetchone()
+        assert result is not None, "Card not found in the database"
+        card_data = result[0]
+
+    # Verify the favorite states were updated correctly
+    assert "isFavorite" not in card_data["examples"][0]["images"][0]
+    assert card_data["examples"][1]["images"][0]["isFavorite"] == True
+
+    # Verify all other card data remained unchanged
+    assert card_data["word"] == "abfahren"
+    assert card_data["translation"]["hu"] == "elindulni, elhagyni"
+    assert "fährt ab" in card_data["forms"]
+

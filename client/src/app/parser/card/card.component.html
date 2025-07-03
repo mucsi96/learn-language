@@ -127,6 +127,7 @@ cardService.selectedExampleIndex; @if (loading()) {
           (click)="toggleFavorite($index, exampleImageCarouselIndices()[$index])"
           aria-label="Toggle favorite"
           [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
+          [attr.aria-pressed]="imageResource.value()?.isFavorite"
         >
           <mat-icon>{{ imageResource.value()?.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
         </button>

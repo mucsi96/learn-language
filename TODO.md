@@ -5,6 +5,5 @@
 - Show number of due cards
 - Assign cards / multiperson
 
-- Add support for image selection
 - add automated dependency update
 
