@@ -7,6 +7,7 @@ import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ public class CardController {
 
   private final CardRepository cardRepository;
   private final SourceRepository sourceRepository;
+  private final CardService cardService;
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -106,5 +108,13 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/source/{sourceId}/most-due-card")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<CardData> getMostDueCard(@PathVariable String sourceId) {
+    return cardService.getMostDueCardBySourceId(sourceId)
+        .map(card -> ResponseEntity.ok(card.getData()))
+        .orElse(ResponseEntity.notFound().build());
   }
 }

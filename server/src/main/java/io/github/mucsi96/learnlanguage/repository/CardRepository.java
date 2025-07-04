@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, String> {
@@ -24,4 +25,14 @@ public interface CardRepository extends JpaRepository<Card, String> {
         GROUP BY source_id, state
       """, nativeQuery = true)
   List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
+
+  @Query(value = """
+      SELECT *
+      FROM learn_language.cards
+      WHERE source_id = :sourceId
+        AND due <= NOW()
+      ORDER BY due ASC
+      LIMIT 1
+      """, nativeQuery = true)
+  Optional<Card> findMostDueCardBySourceId(String sourceId);
 }

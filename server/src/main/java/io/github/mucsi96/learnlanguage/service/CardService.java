@@ -41,4 +41,8 @@ public class CardService {
             .build())
         .toList();
   }
+
+  public Optional<Card> getMostDueCardBySourceId(String sourceId) {
+    return cardRepository.findMostDueCardBySourceId(sourceId);
+  }
 }
