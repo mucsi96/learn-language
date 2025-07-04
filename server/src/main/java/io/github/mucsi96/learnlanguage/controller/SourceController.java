@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
@@ -98,5 +99,11 @@ public class SourceController {
         .width(width)
         .height(height)
         .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @GetMapping("/api/sources/due-cards-count")
+  public List<SourceDueCardCountResponse> getDueCardsCountBySource() {
+    return cardService.getDueCardCountsBySource();
   }
 }

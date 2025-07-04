@@ -46,10 +46,37 @@ p {
   padding: 1.5rem;
 }
 
+.due-count {
+  color: var(--mat-app-text-color);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
 .sources a[mat-fab] {
   margin-top: 1rem;
 }
 
 .page-loading {
   margin: 150px auto;
+}
+
+.source-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.state-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: transform 0.2s ease;
 }
