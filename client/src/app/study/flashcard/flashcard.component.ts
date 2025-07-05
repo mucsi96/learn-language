@@ -49,6 +49,18 @@ export class FlashcardComponent {
   readonly selectedExample = computed(() =>
     this.card.value()?.examples?.find((ex) => ex.isSelected)
   );
+  readonly word = computed(() =>
+    this.isRevealed()
+      ? this.card.value()?.word
+      : this.card.value()?.translation?.['hu']
+  );
+  readonly forms = computed(() => this.card.value()?.forms);
+
+  readonly example = computed(() =>
+    this.isRevealed()
+      ? this.selectedExample()?.['de']
+      : this.selectedExample()?.['hu']
+  );
 
   readonly exampleImages = linkedSignal(() => {
     const example = this.selectedExample();
@@ -64,7 +76,10 @@ export class FlashcardComponent {
             loader: async () => {
               return {
                 ...image,
-                url: await fetchAsset(this.http, `/api/image/${image.id}?width=600&height=600`),
+                url: await fetchAsset(
+                  this.http,
+                  `/api/image/${image.id}?width=600&height=600`
+                ),
               };
             },
           })

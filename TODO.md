@@ -4,7 +4,6 @@
 - add automated dependency update
 
 - store in db a readbale state
-- make flashcard front and back side the same branch / code
 - add type code which is a limited word type in english
 - add gender to db
 - add card publishing / multi phase creation
@@ -21,3 +20,4 @@
 - support cross-page multi part regions
 - allow editing directly from flashcard with a button
 - generate more images for examples
+- align admin source selection with home page design
