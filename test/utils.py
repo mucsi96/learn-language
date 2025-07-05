@@ -197,9 +197,9 @@ def select_text_range(page, start_text, end_text):
 
     assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
 
-    page.mouse.move(start_box["x"], start_box["y"])
+    page.mouse.move(start_box["x"] - 5, start_box["y"] - 5)
     page.mouse.down()
-    page.mouse.move(end_box["x"] + end_box["width"], end_box["y"] + end_box["height"])
+    page.mouse.move(end_box["x"] + end_box["width"] + 5, end_box["y"] + end_box["height"] + 5)
     page.mouse.up()
 
 
