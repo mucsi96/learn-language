@@ -14,6 +14,13 @@ export const routes: Routes = [
     title: '',
   },
   {
+    path: 'sources/:sourceId/study',
+    loadComponent: () =>
+      import('./study/flashcard/flashcard.component').then((m) => m.FlashcardComponent),
+    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    title: 'Study',
+  },
+  {
     path: 'sources',
     loadComponent: () =>
       import('./admin/admin.component').then((m) => m.AdminComponent),

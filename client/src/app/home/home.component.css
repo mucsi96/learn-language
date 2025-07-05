@@ -28,8 +28,19 @@ p {
   transition: transform 0.2s ease-in-out;
 }
 
-.sources mat-card:hover {
+.sources mat-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sources mat-card:hover:not(.disabled) {
   transform: translateY(-4px);
+}
+
+.sources mat-card.disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
 }
 
 .sources mat-card h2 {
@@ -46,10 +57,49 @@ p {
   padding: 1.5rem;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.action-buttons a[mat-fab] {
+  margin: 0;
+}
+
+.action-buttons a[mat-fab].disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: default;
+}
+
+.study-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--mat-sys-primary);
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+.study-indicator mat-icon {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .due-count {
-  color: var(--mat-app-text-color);
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-size: 0.8rem;
+  margin-left: 4px;
 }
 
 .sources a[mat-fab] {

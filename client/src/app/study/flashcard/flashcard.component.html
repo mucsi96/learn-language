@@ -1,0 +1,64 @@
+@if (card.isLoading()) {
+<mat-spinner class="page-loading" />
+} @else {
+<div class="flashcard-container" (click)="toggleReveal()">
+  <div class="flashcard" [class.revealed]="isRevealed()">
+    @if (!isRevealed()) {
+    <div class="front">
+      <h2>{{ card.value()?.translation?.['hu'] }}</h2>
+      @if (card.value()?.type) {
+      <p class="type">{{ card.value()?.type }}</p>
+      } @if (selectedExample()) {
+      <div class="example">
+        <p>{{ selectedExample()?.['hu'] }}</p>
+      </div>
+      }
+
+      <div class="image-gallery">
+        @for (imageResource of exampleImages(); track $index) { @if
+        (imageResource.value()?.url) {
+        <img
+          [src]="imageResource.value()?.url"
+          [alt]="selectedExample()?.['de']"
+        />
+        } @else if (imageResource.isLoading()) {
+        <div class="image-loading">
+          <mat-spinner diameter="40" />
+        </div>
+        } }
+      </div>
+    </div>
+    } @else {
+    <div class="back">
+      <h2>{{ card.value()?.word }}</h2>
+      @if (card.value()?.type) {
+      <p class="type">{{ card.value()?.type }}</p>
+      } @if (card.value()?.translation?.['en']) {
+      <p class="translation">{{ card.value()?.translation?.['en'] }}</p>
+      } @if (card.value()?.forms?.length) {
+      <div class="forms">
+        <h3>Forms</h3>
+        <p>{{ card.value()?.forms?.join(", ") }}</p>
+      </div>
+      } @if (card.value()?.examples?.length) {
+      <div class="examples">
+        <h3>Examples</h3>
+        @for (example of card.value()?.examples; track $index) {
+        <div class="example">
+          <p>{{ example["de"] }}</p>
+          @if (example['en']) {
+          <p class="translation">{{ example["en"] }}</p>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+    <div class="hint">
+      <mat-icon>touch_app</mat-icon>
+      <span>Tap to {{ isRevealed() ? "hide" : "reveal" }}</span>
+    </div>
+  </div>
+</div>
+}

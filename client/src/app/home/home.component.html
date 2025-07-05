@@ -5,7 +5,12 @@
 <p>Select a source to start learning:</p>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <mat-card>
+  <mat-card
+    [routerLink]="['/sources', source.id, 'study']"
+    [class.disabled]="!hasDueCards(source.id)"
+    [attr.aria-disabled]="!hasDueCards(source.id)"
+    [attr.tabindex]="hasDueCards(source.id) ? 0 : -1"
+  >
     <mat-card-content>
       <h2 class="source-title">
         {{ source.name }}
@@ -19,15 +24,6 @@
         </span>
         }
       </h2>
-      <a
-        mat-fab
-        extended
-        color="primary"
-        [routerLink]="['/sources', source.id, 'page', source.startPage]"
-      >
-        <mat-icon>menu_book</mat-icon>
-        Start Learning
-      </a>
     </mat-card-content>
   </mat-card>
   }

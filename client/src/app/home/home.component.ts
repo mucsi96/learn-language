@@ -46,6 +46,10 @@ export class HomeComponent {
     );
   }
 
+  hasDueCards(sourceId: string): boolean {
+    return this.getTotalDueCount(sourceId) > 0;
+  }
+
   private readonly stateNames = new Map<State, string>([
     [State.New, 'New'],
     [State.Learning, 'Learning'],
