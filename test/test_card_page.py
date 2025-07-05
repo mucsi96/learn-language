@@ -69,7 +69,7 @@ def test_prev_click_from_last_image(page: Page, context: BrowserContext):
 def test_image_on_first_page(page: Page, context: BrowserContext):
     card_page = prepare_card(page, context)
     image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    assert image_content == get_color_image_bytes("yellow"), "First image should be the yellow image"
+    assert image_content == get_color_image_bytes("yellow")
 
 
 def test_image_content_changes_on_navigation(page: Page, context: BrowserContext):
@@ -77,4 +77,4 @@ def test_image_content_changes_on_navigation(page: Page, context: BrowserContext
     next_button = card_page.get_by_role("button", name="Next image").first
     next_button.click()
     image2 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    assert image2 == get_color_image_bytes("red"), "Second image should be the red image after navigation"
+    assert image2 == get_color_image_bytes("red")

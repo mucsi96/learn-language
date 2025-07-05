@@ -183,12 +183,12 @@ def test_bulk_card_creation_creates_cards_in_database(page: Page):
         cur.execute("SELECT id, data FROM learn_language.cards WHERE id IN ('aber', 'abfahren', 'die-abfahrt')")
         results = cur.fetchall()
 
-        assert len(results) == 3, f"Expected 2 cards to be created, got {len(results)}"
+        assert len(results) == 3
 
         card_ids = [result[0] for result in results]
-        assert 'aber' in card_ids, "Card 'aber' was not created"
-        assert 'abfahren' in card_ids, "Card 'abfahren' was not created"
-        assert 'die-abfahrt' in card_ids, "Card 'die Abfahrt' was not created"
+        assert 'aber' in card_ids
+        assert 'abfahren' in card_ids
+        assert 'die-abfahrt' in card_ids
 
 def test_bulk_card_creation_includes_word_data(page: Page):
     page.goto("http://localhost:8180/sources")
@@ -295,7 +295,7 @@ def test_bulk_card_creation_fsrs_attributes(page: Page):
         assert difficulty == 0
         assert reps == 0
         assert lapses == 0
-        assert due is not None, "Due date should not be null"
+        assert due is not None
 
 
 def test_bulk_card_creation_source_metadata(page: Page):

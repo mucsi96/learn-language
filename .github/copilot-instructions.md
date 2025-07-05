@@ -8,6 +8,7 @@
 ## Testing Code style
 - Prefer using Playwright for end-to-end tests with Python in test folder
 - exact=True should be used for exact text matching in Playwright tests
+- Don't use assertion messages
 
 # Angular Code style
 - Prefer using Angular Material components

@@ -63,8 +63,8 @@ def test_card_editing_page(page: Page, context: BrowserContext):
     # Images
     image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
-    assert image_content1 == get_color_image_bytes("yellow"), "Image data does not match mock image data"
-    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
+    assert image_content1 == get_color_image_bytes("yellow")
+    assert image_content2 == get_color_image_bytes("red")
 
 def test_card_editing_in_db(page: Page, context: BrowserContext):
     image1 = upload_mock_image(blue_image)
@@ -105,7 +105,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     card_page.get_by_role("button", name="Add example image").nth(1).click()
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content2 == get_color_image_bytes("red"), "Image data does not match mock image data"
+    assert image_content2 == get_color_image_bytes("red")
 
     card_page.get_by_role("radio").nth(1).click()
     card_page.get_by_role(role="button", name="Update").click()
@@ -115,21 +115,21 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
         cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
         result = cur.fetchone()
 
-        assert result is not None, "Card not found in the database"
+        assert result is not None
         card_data = result[0]
 
-    assert card_data["translation"]["hu"] == "elindulni, elutazni", "Hungarian translation wasn't updated"
-    assert card_data["examples"][0]["isSelected"] == None, "First example should no longer be selected"
-    assert card_data["examples"][1]["isSelected"] == True, "Second example should now be selected"
-    assert card_data["word"] == "abfahren", "German word was changed unexpectedly"
-    assert card_data["translation"]["ch"] == "abfahra, verlah", "Swiss German translation was changed unexpectedly"
-    assert "fährt ab" in card_data["forms"], "Form 'fährt ab' was lost"
+    assert card_data["translation"]["hu"] == "elindulni, elutazni"
+    assert "isSelected" not in card_data["examples"][0]
+    assert card_data["examples"][1]["isSelected"] == True
+    assert card_data["word"] == "abfahren"
+    assert card_data["translation"]["ch"] == "abfahra, verlah"
+    assert "fährt ab" in card_data["forms"]
 
     image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content1 == get_color_image_bytes("blue"), "First image should remain unchanged"
-    assert image_content2 == get_color_image_bytes("red"), "Second image should have been regenerated"
+    assert image_content1 == get_color_image_bytes("blue")
+    assert image_content2 == get_color_image_bytes("red")
 
 def test_favorite_image_in_db(page: Page, context: BrowserContext):
     image1 = upload_mock_image(yellow_image)
@@ -202,10 +202,34 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
     assert "fährt ab" in card_data["forms"]
 
 def test_example_image_addition(page: Page, context: BrowserContext):
+    image1 = upload_mock_image(blue_image)
+    create_card(
+        card_id='abfahren',
+        source_id="goethe-a1",
+        source_page_number=9,
+        data={
+            "word": "abfahren",
+            "type": "ige",
+            "forms": ["fährt ab", "fuhr ab", "abgefahren"],
+            "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
+            "examples": [
+                {
+                    "de": "Wir fahren um zwölf Uhr ab.",
+                    "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
+                    "ch": "Mir fahred am zwöufi ab.",
+                    "images": [{"id": image1}]
+                }
+            ]
+        },
+        state=1,
+        step=0,
+        due='2025-03-13 08:24:32.82948',
+    )
     card_page = navigate_to_card_creation(page, context)
 
     card_page.get_by_role("button", name="Add example image").first.click()
 
     regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    assert regenerated_image_content == get_color_image_bytes("blue"), "Regenerated image data does not match Image 2"
+    assert regenerated_image_content == get_color_image_bytes("yellow")
 

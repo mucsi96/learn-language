@@ -157,7 +157,7 @@ green_image = base64.b64decode(
 def get_image_content(image_element):
     expect(image_element).to_be_visible()
     image_src = image_element.get_attribute('src')
-    assert image_src is not None, "Image src attribute is None"
+    assert image_src is not None
 
     if image_src.startswith('blob:'):
         # Use browser context to fetch blob and return as base64
@@ -195,7 +195,7 @@ def select_text_range(page, start_text, end_text):
     start_box = start_element.bounding_box()
     end_box = end_element.bounding_box()
 
-    assert start_box is not None and end_box is not None, "Bounding boxes could not be retrieved"
+    assert start_box is not None and end_box is not None
 
     page.mouse.move(start_box["x"] - 5, start_box["y"] - 5)
     page.mouse.down()
