@@ -201,3 +201,11 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
     assert card_data["translation"]["hu"] == "elindulni, elhagyni"
     assert "fährt ab" in card_data["forms"]
 
+def test_example_image_addition(page: Page, context: BrowserContext):
+    card_page = navigate_to_card_creation(page, context)
+
+    card_page.get_by_role("button", name="Add example image").first.click()
+
+    regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    assert regenerated_image_content == get_color_image_bytes("blue"), "Regenerated image data does not match Image 2"
+

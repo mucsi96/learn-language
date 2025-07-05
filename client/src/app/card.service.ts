@@ -9,10 +9,10 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Card, ExampleImage, Translation, Word } from './parser/types';
-import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
+import { Card, ExampleImage, Word } from './parser/types';
 import { fetchAsset } from './utils/fetchAsset';
+import { fetchJson } from './utils/fetchJson';
 
 export const languages = ['hu', 'ch', 'en'] as const;
 
@@ -41,69 +41,11 @@ export class CardService {
   readonly word = linkedSignal(
     () => this.card.value()?.word ?? this.selectedWord()?.word
   );
-  readonly wordType = resource<
-    string | undefined,
-    { word?: Word; card?: Card }
-  >({
-    params: () => ({ word: this.selectedWord(), card: this.card.value() }),
-    loader: async ({ params: { word, card } }) => {
-      if (!word || (word.exists && !card)) {
-        return;
-      }
-
-      if (card) {
-        return card.type;
-      }
-
-      const { type } = await fetchJson<{ type: string }>(
-        this.http,
-        `/api/word-type`,
-        {
-          body: word,
-          method: 'POST',
-        }
-      );
-      return type;
-    },
-  });
-  readonly translationMap = Object.fromEntries(
-    languages.map((languageCode) => [
-      languageCode,
-      resource<Translation | undefined, { selectedWord?: Word; card?: Card }>({
-        params: () => ({
-          selectedWord: this.selectedWord(),
-          card: this.card.value(),
-        }),
-        loader: async ({ params: { selectedWord, card } }) => {
-          if (!selectedWord || (selectedWord.exists && !card)) {
-            return;
-          }
-
-          if (card) {
-            return {
-              translation: card.translation?.[languageCode],
-              examples: card.examples?.map((example) => example[languageCode]),
-            };
-          }
-
-          return fetchJson<Translation>(
-            this.http,
-            `/api/translate/${languageCode}`,
-            {
-              body: selectedWord,
-              method: 'POST',
-            }
-          );
-        },
-      }),
-    ])
-  );
+  readonly wordType = linkedSignal(() => this.card.value()?.type);
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
-      linkedSignal(
-        () => this.translationMap[languageCode].value()?.translation
-      ),
+      linkedSignal(() => this.card.value()?.translation?.[languageCode]),
     ])
   );
   readonly forms = linkedSignal(() =>
@@ -127,9 +69,7 @@ export class CardService {
       languages.map((languageCode) => [
         languageCode,
         examples.map((_, index) =>
-          linkedSignal(
-            () => this.translationMap[languageCode].value()?.examples?.[index]
-          )
+          linkedSignal(() => this.card.value()?.examples?.[index][languageCode])
         ),
       ])
     );
@@ -141,12 +81,6 @@ export class CardService {
     return untracked(() => {
       if (!word) {
         return [];
-      }
-
-      if (!word.exists) {
-        return word.examples.map((_, index) => [
-          this.createExampleImageResource(index),
-        ]);
       }
 
       return (
@@ -181,13 +115,7 @@ export class CardService {
   }
 
   get isLoading() {
-    return computed(
-      () =>
-        this.card.isLoading() ||
-        Object.values(this.translationMap).some((translation) =>
-          translation.isLoading()
-        )
-    );
+    return computed(() => this.card.isLoading());
   }
 
   getCardData() {
@@ -205,7 +133,7 @@ export class CardService {
       sourceId,
       pageNumber,
       word: wordText,
-      type: this.wordType.value(),
+      type: this.wordType(),
       translation: Object.fromEntries(
         languages.map((languageCode) => [
           languageCode,
