@@ -41,6 +41,8 @@ html {
   --mat-menu-item-leading-spacing: 12px;
   --mat-menu-item-trailing-spacing: 12px;
   --mat-menu-item-label-text-size: 0.875rem;
+
+  --mat-chip-label-text-weight: 400;
 }
 
 body {

@@ -1,46 +1,95 @@
-.page-loading {
-  margin: 150px auto;
-}
-
 .flashcard-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 150px);
-  padding: 2rem;
-  cursor: pointer;
-  max-width: 800px;
+  justify-content: space-between;
+  min-height: calc(100vh - 64px);
+  padding: 1rem;
   margin: 0 auto;
+  box-sizing: border-box;
+  max-width: 1200px;
 }
 
 .flashcard {
   width: 100%;
-  transition: transform 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: hsl(215, 28%, 17%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.flashcard:active {
+  transform: scale(0.98);
+}
+
+.image-section {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 Aspect Ratio */
+  overflow: hidden;
+}
+
+.image-gallery {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.flashcard-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.content-section {
+  position: relative;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.word-section {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 h2 {
-  font-size: 3rem;
-  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  margin: 0;
   color: var(--mat-sys-on-surface);
   font-weight: 500;
 }
 
-.type {
-  color: var(--mat-sys-primary);
-  font-size: 1.4rem;
-  margin-bottom: 2rem;
-  text-transform: capitalize;
+mat-chip-set {
+  justify-content: center;
 }
 
-.translation {
-  color: var(--mat-app-text-color);
-  font-size: 1.6rem;
-  margin-bottom: 2rem;
+mat-chip {
+  font-size: 0.9rem;
+  height: 24px !important;
+  background-color: transparent !important;
+  color: var(--mat-sys-on-surface-variant) !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
 }
 
 .forms {
+  margin-bottom: 1rem;
   visibility: hidden;
 }
 
@@ -48,72 +97,197 @@ h2 {
   visibility: visible;
 }
 
-.forms, .examples {
-  margin-top: 3rem;
-  text-align: left;
-}
-
-.forms h3, .examples h3 {
-  color: var(--mat-sys-primary);
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
+.forms p {
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.7;
+  font-size: 1.1rem;
+  line-height: 1.4;
 }
 
 .example {
-  margin-bottom: 2rem;
   padding: 1rem;
-  border-radius: 8px;
-  background: var(--mat-sys-surface-container);
+  padding-top: 5rem;
 }
 
 .example p {
-  font-size: 1.4rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.example .translation {
-  color: var(--mat-app-text-color);
-  font-style: italic;
   font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.image-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.image-gallery img {
-  width: 300px;
-  height: 300px;
-  border-radius: 4px;
-}
-
-.image-loading {
-  width: 300px;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--mat-sys-surface-container);
-  border-radius: 4px;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--mat-sys-on-surface);
 }
 
 .hint {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--mat-app-text-color);
-  opacity: 0.7;
-  margin-top: 2rem;
   justify-content: center;
+  gap: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 1rem;
+  opacity: 0.8;
 }
 
-.hint mat-icon {
-  font-size: 1.2rem;
-  width: 1.2rem;
-  height: 1.2rem;
+.hint.hidden {
+  display: none;
+}
+
+.grading-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
+  border-radius: 12px;
+}
+
+.grading-buttons button {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+}
+
+.grade-again {
+  background-color: #dc3545 !important;
+}
+
+.grade-hard {
+  background-color: #fd7e14 !important;
+}
+
+.grade-good {
+  background-color: #28a745 !important;
+}
+
+.grade-easy {
+  background-color: #0d6efd !important;
+}
+
+.grade-again:hover {
+  background-color: #bb2d3b !important;
+}
+
+.grade-hard:hover {
+  background-color: #dc6502 !important;
+}
+
+.grade-good:hover {
+  background-color: #208637 !important;
+}
+
+.grade-easy:hover {
+  background-color: #0a58ca !important;
+}
+
+.skeleton {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (min-width: 768px) {
+  .flashcard-container {
+    padding: 2rem;
+  }
+
+  .flashcard {
+    flex-direction: row;
+    max-height: calc(100vh - 200px);
+  }
+
+  .image-section {
+    flex: none;
+    width: 600px;
+    padding-top: 600px;
+  }
+
+  .content-section {
+    flex: 1;
+    max-width: 500px;
+    overflow-y: auto;
+    border-radius: 0 16px 16px 0;
+  }
+
+  .grading-buttons {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--mat-sys-surface-container);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+  }
+
+  .grading-buttons button {
+    flex-direction: row;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .grading-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .example p {
+    font-size: 1.1rem;
+  }
+}
+
+.type-chip {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+}
+
+.centered-text {
+  text-align: center;
+  margin: 0;
+  color: var(--mat-sys-on-surface);
 }

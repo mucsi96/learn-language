@@ -11,16 +11,17 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MostDueCardService } from '../../most-due-card.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 
 type ImageResource = ExampleImage & { url: string };
+type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 
 @Component({
   selector: 'app-flashcard',
@@ -28,15 +29,16 @@ type ImageResource = ExampleImage & { url: string };
   imports: [
     CommonModule,
     MatCardModule,
-    MatProgressSpinnerModule,
     MatButtonModule,
     MatIconModule,
+    MatChipsModule,
   ],
   templateUrl: './flashcard.component.html',
   styleUrl: './flashcard.component.css',
 })
 export class FlashcardComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
@@ -78,7 +80,7 @@ export class FlashcardComponent {
                 ...image,
                 url: await fetchAsset(
                   this.http,
-                  `/api/image/${image.id}?width=600&height=600`
+                  `/api/image/${image.id}?width=1200&height=1200`
                 ),
               };
             },
@@ -89,5 +91,23 @@ export class FlashcardComponent {
 
   toggleReveal() {
     this.isRevealed.update((revealed) => !revealed);
+  }
+
+  async gradeCard(grade: Grade) {
+    const cardId = this.card.value()?.id;
+    if (!cardId) return;
+
+    try {
+      await this.http.post(`/api/cards/${cardId}/grade`, { grade }).toPromise();
+      // Reload the page to get the next card
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { t: Date.now() },
+        queryParamsHandling: 'merge',
+      });
+      this.isRevealed.set(false);
+    } catch (error) {
+      console.error('Error grading card:', error);
+    }
   }
 }
