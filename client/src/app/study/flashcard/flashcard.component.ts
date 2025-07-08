@@ -6,7 +6,6 @@ import {
   Injector,
   resource,
   linkedSignal,
-  ResourceRef,
   untracked,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,6 +18,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
+import { State } from 'ts-fsrs';
+import { StateComponent } from '../../shared/state/state.component';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -32,6 +33,7 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
+    StateComponent,
   ],
   templateUrl: './flashcard.component.html',
   styleUrl: './flashcard.component.css',
@@ -49,14 +51,15 @@ export class FlashcardComponent {
   );
   readonly card = this.mostDueCardService.getMostDueCard(this.sourceId());
   readonly selectedExample = computed(() =>
-    this.card.value()?.examples?.find((ex) => ex.isSelected)
+    this.card.value()?.data.examples?.find((ex) => ex.isSelected)
   );
   readonly word = computed(() =>
     this.isRevealed()
-      ? this.card.value()?.word
-      : this.card.value()?.translation?.['hu']
+      ? this.card.value()?.data.word
+      : this.card.value()?.data.translation?.['hu']
   );
-  readonly forms = computed(() => this.card.value()?.forms);
+  readonly type = computed(() => this.card.value()?.data.type);
+  readonly forms = computed(() => this.card.value()?.data.forms);
 
   readonly example = computed(() =>
     this.isRevealed()

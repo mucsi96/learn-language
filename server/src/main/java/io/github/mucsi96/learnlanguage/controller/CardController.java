@@ -112,9 +112,9 @@ public class CardController {
 
   @GetMapping("/source/{sourceId}/most-due-card")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<CardData> getMostDueCard(@PathVariable String sourceId) {
+  public ResponseEntity<Card> getMostDueCard(@PathVariable String sourceId) {
     return cardService.getMostDueCardBySourceId(sourceId)
-        .map(card -> ResponseEntity.ok(card.getData()))
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 }

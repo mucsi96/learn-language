@@ -54,13 +54,12 @@
 
     <div class="content-section">
       <div class="word-section">
-        @if (card.value()?.type) {
-        <div class="type-chip">
-          <mat-chip-set>
-            <mat-chip >{{ card.value()?.type }}</mat-chip>
-          </mat-chip-set>
+        @let state = card.value()?.state; @if (state !== undefined) {
+        <div class="state-chip">
+          <app-state [state]="state" />
         </div>
         }
+        <p>{{ type() }}</p>
         <h2>{{ word() }}</h2>
       </div>
 

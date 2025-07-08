@@ -15,13 +15,7 @@
       <h2 class="source-title">
         {{ source.name }}
         @for (dueCount of getDueCounts(source.id); track dueCount.state) {
-        <span
-          class="state-chip"
-          [ngStyle]="getStateStyle(dueCount.state)"
-          [attr.title]="getStateName(dueCount.state)"
-        >
-          {{ dueCount.count }}
-        </span>
+        <app-state [state]="dueCount.state" [count]="dueCount.count" />
         }
       </h2>
     </mat-card-content>

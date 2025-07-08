@@ -286,6 +286,13 @@ mat-chip {
   z-index: 1;
 }
 
+.state-chip {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+}
+
 .centered-text {
   text-align: center;
   margin: 0;

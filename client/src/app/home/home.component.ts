@@ -9,9 +9,11 @@ import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { DueCardsService } from '../due-cards.service';
 import { State } from 'ts-fsrs';
+import { StateComponent } from '../shared/state/state.component';
 
 @Component({
   selector: 'app-home',
+  standalone: true,
   imports: [
     CommonModule,
     MatProgressSpinnerModule,
@@ -20,6 +22,7 @@ import { State } from 'ts-fsrs';
     MatIconModule,
     RouterLink,
     MatBadgeModule,
+    StateComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -48,30 +51,5 @@ export class HomeComponent {
 
   hasDueCards(sourceId: string): boolean {
     return this.getTotalDueCount(sourceId) > 0;
-  }
-
-  private readonly stateNames = new Map<State, string>([
-    [State.New, 'New'],
-    [State.Learning, 'Learning'],
-    [State.Review, 'Review'],
-    [State.Relearning, 'Relearning'],
-  ]);
-  private readonly stateColorMap = new Map<State, string>([
-    [State.New, '#2196F3'], // Blue
-    [State.Learning, '#4CAF50'], // Green
-    [State.Review, '#FFC107'], // Amber
-    [State.Relearning, '#F44336'], // Red
-  ]);
-
-  getStateStyle(state: State): { [key: string]: string } {
-    const colorInfo = this.stateColorMap.get(state);
-    return {
-      'background-color': colorInfo || '#ccc',
-      color: '#fff',
-    };
-  }
-
-  getStateName(state: State): string {
-    return this.stateNames.get(state) || 'Unknown';
   }
 }
