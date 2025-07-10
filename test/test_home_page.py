@@ -43,3 +43,37 @@ def test_due_cards_count_by_state(page: Page):
     expect(page.get_by_title("Learning", exact=True)).to_contain_text("1")
     expect(page.get_by_title("Review", exact=True)).to_contain_text("2")
     expect(page.get_by_title("Relearning", exact=True)).to_contain_text("1")
+
+
+def test_due_cards_limited_to_max_50(page: Page):
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+
+    cards_to_create = [
+        {'state': 0, 'count': 60, 'due_date': yesterday},
+    ]
+
+    create_cards_with_states('goethe-a1', cards_to_create)
+
+    page.goto('http://localhost:8180')
+    expect(page.get_by_title("New", exact=True)).to_contain_text("50")
+
+
+def test_due_cards_limited_to_max_50_mixed_states(page: Page):
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+
+    cards_to_create = [
+        {'state': 0, 'count': 20, 'due_date': yesterday},
+        {'state': 1, 'count': 15, 'due_date': yesterday},
+        {'state': 2, 'count': 10, 'due_date': yesterday},
+        {'state': 3, 'count': 25, 'due_date': yesterday},
+    ]
+
+    create_cards_with_states('goethe-a1', cards_to_create)
+
+    page.goto('http://localhost:8180')
+    expect(page.get_by_title("New", exact=True)).to_contain_text("20")
+    expect(page.get_by_title("Learning", exact=True)).to_contain_text("15")
+    expect(page.get_by_title("Review", exact=True)).to_contain_text("10")
+    expect(page.get_by_title("Relearning", exact=True)).to_contain_text("5")
