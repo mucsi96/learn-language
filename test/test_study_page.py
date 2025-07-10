@@ -6,7 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
 from utils import get_color_image_bytes, get_image_content, yellow_image, green_image, create_card, upload_mock_image, with_db_connection
 
-def test_study_page_initial_state(page: Page, context: BrowserContext):
+def test_study_page_initial_state(page: Page):
     image1 = upload_mock_image(yellow_image)
     image2 = upload_mock_image(green_image)
     create_card(
@@ -56,7 +56,7 @@ def test_study_page_initial_state(page: Page, context: BrowserContext):
     image_content = get_image_content(page.get_by_role("img", name="Mikor indul a vonat?"))
     assert image_content == get_color_image_bytes("green", 1200)
 
-def test_study_page_revealed_state(page: Page, context: BrowserContext):
+def test_study_page_revealed_state(page: Page):
     image1 = upload_mock_image(yellow_image)
     image2 = upload_mock_image(green_image)
     create_card(
@@ -113,3 +113,59 @@ def test_study_page_revealed_state(page: Page, context: BrowserContext):
     expect(page.get_by_role("button", name="Hard")).to_be_visible()
     expect(page.get_by_role("button", name="Good")).to_be_visible()
     expect(page.get_by_role("button", name="Easy")).to_be_visible()
+
+def test_study_page_card_state_new(page: Page):
+    create_card(
+        card_id='lernen',
+        source_id="goethe-a1",
+        source_page_number=15,
+        data={
+            "word": "lernen",
+            "type": "ige",
+            "forms": ["lernt", "lernte", "gelernt"],
+            "translation": {"en": "to learn", "hu": "tanulni"},
+            "examples": [
+                {
+                    "de": "Ich lerne Deutsch.",
+                    "hu": "Németül tanulok.",
+                    "en": "I learn German.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state=0,
+        step=0,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    expect(page.get_by_text("New", exact=True)).to_be_visible()
+
+def test_study_page_card_state_learning(page: Page):
+    create_card(
+        card_id='sprechen',
+        source_id="goethe-a1",
+        source_page_number=20,
+        data={
+            "word": "sprechen",
+            "type": "ige",
+            "forms": ["spricht", "sprach", "gesprochen"],
+            "translation": {"en": "to speak", "hu": "beszélni"},
+            "examples": [
+                {
+                    "de": "Ich spreche Deutsch.",
+                    "hu": "Németül beszélek.",
+                    "en": "I speak German.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state=1,
+        step=1,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    expect(page.get_by_text("Learning", exact=True)).to_be_visible()
