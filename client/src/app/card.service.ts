@@ -160,11 +160,14 @@ export class CardService {
 
   async createCard() {
     const cardData = this.getCardData();
+    const fsrsCardData = createEmptyCard();
     if (!cardData) return;
 
     const cardWithFSRS = {
       ...cardData,
-      ...createEmptyCard(),
+      ...fsrsCardData,
+      due: fsrsCardData.due.toISOString(),
+      last_review: fsrsCardData.last_review?.toISOString(),
     };
 
     await fetchJson(this.http, `/api/card`, {
