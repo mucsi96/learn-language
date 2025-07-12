@@ -15,10 +15,28 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/study',
-    loadComponent: () =>
-      import('./study/flashcard/flashcard.component').then((m) => m.FlashcardComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: 'Study',
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: {
+          mode: 'study',
+        },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./study/flashcard/flashcard.component').then(
+            (m) => m.FlashcardComponent
+          ),
+      },
+    ],
   },
   {
     path: 'sources',
@@ -29,14 +47,30 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    loadComponent: () =>
-      import('./parser/page/page.component').then((m) => m.PageComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
       const pageNumber = route.params['pageNumber'];
       return `${pageNumber} / ${sourceId}`;
     },
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: {
+          mode: 'admin',
+        },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./parser/page/page.component').then((m) => m.PageComponent),
+      },
+    ],
   },
   {
     path: 'sources/:sourceId/page/:pageNumber/cards',

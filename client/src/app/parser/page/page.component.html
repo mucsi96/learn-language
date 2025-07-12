@@ -1,21 +1,3 @@
-<div>
-  @if(sourceName()) {
-  <button mat-stroked-button [matMenuTriggerFor]="menu" class="bt-dropdown">
-    {{ sourceName() }}
-    <mat-icon>arrow_drop_down</mat-icon>
-  </button>
-  <mat-menu #menu="matMenu">
-    @for (source of sources(); track source.id) {
-    <button
-      mat-menu-item
-      [routerLink]="['/sources', source.id, 'page', source.startPage]"
-    >
-      {{ source.name }}
-    </button>
-    }
-  </mat-menu>
-  }
-</div>
 @if(pageNumber()) {
 <div class="page-nav">
   <a

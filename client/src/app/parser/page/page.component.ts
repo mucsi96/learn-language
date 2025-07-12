@@ -37,7 +37,7 @@ import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
-    BulkCardCreationFabComponent,
+    BulkCardCreationFabComponent
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',

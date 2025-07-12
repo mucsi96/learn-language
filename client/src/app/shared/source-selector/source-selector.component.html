@@ -1,0 +1,25 @@
+<div class="source-selector-container">
+  @if(loading()) {
+  <div class="loading-placeholder"></div>
+  } @else { @if(selectedSourceId() && showStats()) {
+  <div class="stats-container">
+    @for (dueCount of getDueCounts(selectedSourceId()!); track dueCount.state) {
+    <app-state [state]="dueCount.state" [count]="dueCount.count" />
+    }
+  </div>
+  }
+  <button mat-stroked-button [matMenuTriggerFor]="menu" class="source-dropdown">
+    {{ selectedSourceName() }}
+  </button>
+  <mat-menu #menu="matMenu">
+    @for (source of sources(); track source.id) {
+    <a
+      mat-menu-item
+      [routerLink]="['/sources', source.id, targetRoute(), source.startPage]"
+    >
+      {{ source.name }}
+    </a>
+    }
+  </mat-menu>
+  }
+</div>

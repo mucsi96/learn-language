@@ -1,0 +1,25 @@
+.source-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.source-dropdown {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.loading-placeholder {
+  height: 36px;
+  width: 150px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.stats-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

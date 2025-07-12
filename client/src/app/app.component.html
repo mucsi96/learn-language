@@ -2,7 +2,10 @@
   <nav>
     <a mat-button routerLink="">Learn language</a>
     @if(isAuthenticated()) {
-    <app-header></app-header>
+    <div class="header-right">
+      <router-outlet name="source-selector"></router-outlet>
+      <app-header></app-header>
+    </div>
     }
   </nav>
 </mat-toolbar>
