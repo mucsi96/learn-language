@@ -1,5 +1,13 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, resource } from '@angular/core';
+import {
+  Injectable,
+  Injector,
+  inject,
+  linkedSignal,
+  resource,
+  signal,
+  untracked,
+} from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
 import { State } from 'ts-fsrs';
 
@@ -26,15 +34,24 @@ export interface MostDueCard {
 })
 export class MostDueCardService {
   private readonly http = inject(HttpClient);
+  private readonly injector = inject(Injector);
+  readonly selectedSourceId = signal<string | undefined>(undefined);
+  readonly card = resource({
+    params: () => ({ selectedSourceId: this.selectedSourceId() }),
+    loader: async ({ params: { selectedSourceId } }) => {
+      if (!selectedSourceId) {
+        return;
+      }
 
-  getMostDueCard = (sourceId: string) =>
-    resource({
-      loader: async () => {
-        if (!sourceId) return;
-        return fetchJson<MostDueCard>(
-          this.http,
-          `/api/source/${sourceId}/most-due-card`
-        );
-      },
-    });
+      return fetchJson<MostDueCard>(
+        this.http,
+        `/api/source/${selectedSourceId}/most-due-card`
+      );
+    },
+    injector: this.injector,
+  });
+
+  setSelectedSourceId(sourceId: string) {
+    this.selectedSourceId.set(sourceId);
+  }
 }

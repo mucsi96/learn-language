@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,17 +21,22 @@ import { StateComponent } from '../state/state.component';
     StateComponent,
   ],
   templateUrl: './source-selector.component.html',
-  styleUrl: './source-selector.component.css'
+  styleUrl: './source-selector.component.css',
 })
 export class SourceSelectorComponent {
   private route = inject(ActivatedRoute);
 
-  selectedSourceId = computed(() => this.route.parent?.snapshot.params['sourceId']);
-  pageNumber = computed(() => this.route.parent?.snapshot.params['pageNumber']);
-  mode = computed(() => this.route.snapshot.data['mode'] as 'admin' | 'study');
+  readonly selectedSourceId = signal<string | undefined>(undefined);
+  readonly selectedPageNumber = signal<number | undefined>(undefined);
+  mode = computed(() => (this.selectedPageNumber() ? 'page' : 'study'));
 
-  readonly showStats = computed(() => this.mode() === 'study');
-  readonly targetRoute = computed(() => this.mode() === 'study' ? 'study' : 'page');
+  constructor() {
+    this.route.params.subscribe((params) => {
+      params['sourceId'] && this.selectedSourceId.set(params['sourceId']);
+      params['pageNumber'] &&
+        this.selectedPageNumber.set(parseInt(params['pageNumber']));
+    });
+  }
 
   private readonly sourcesService = inject(SourcesService);
   private readonly dueCardsService = inject(DueCardsService);
@@ -50,7 +55,10 @@ export class SourceSelectorComponent {
     if (!selectedId) {
       return '';
     }
-    return this.sources()?.find(source => source.id === selectedId)?.name || 'Select source';
+    return (
+      this.sources()?.find((source) => source.id === selectedId)?.name ||
+      'Select source'
+    );
   });
 
   getDueCounts(sourceId: string): { state: State; count: number }[] {

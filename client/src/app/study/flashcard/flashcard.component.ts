@@ -44,14 +44,13 @@ export class FlashcardComponent {
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
-  readonly sourceId = computed(
-    () => this.route.snapshot.paramMap.get('sourceId') ?? ''
-  );
-  readonly card = this.mostDueCardService.getMostDueCard(this.sourceId());
+
   readonly selectedExample = computed(() =>
-    this.card.value()?.data.examples?.find((ex) => ex.isSelected)
+    this.card.value()
+      ?.data.examples?.find((ex) => ex.isSelected)
   );
   readonly word = computed(() =>
     this.isRevealed()
@@ -91,6 +90,13 @@ export class FlashcardComponent {
         );
     });
   });
+
+  constructor() {
+    this.route.params.subscribe((params) => {
+      params['sourceId'] &&
+        this.mostDueCardService.setSelectedSourceId(params['sourceId']);
+    });
+  }
 
   toggleReveal() {
     this.isRevealed.update((revealed) => !revealed);
