@@ -14,7 +14,12 @@
   <mat-menu #menu="matMenu">
     @for (source of sources(); track source.id) { @if(mode() === 'study') {
     <a mat-menu-item [routerLink]="['/sources', source.id, 'study']">
-      {{ source.name }}
+      <span class="source-link">
+        {{ source.name }}
+        @for (dueCount of getDueCounts(source.id); track dueCount.state) {
+        <app-state [state]="dueCount.state" [count]="dueCount.count" />
+        }
+      </span>
     </a>
     } @else {
     <a

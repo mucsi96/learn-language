@@ -19,4 +19,4 @@
 - allow editing directly from flashcard with a button
 - generate more images for examples
 - align admin source selection with home page design
-- test the selector on study route
+- test the selector on study and page route
