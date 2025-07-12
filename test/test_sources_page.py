@@ -86,6 +86,8 @@ def test_drag_to_select_multiple_regions(page: Page, context: BrowserContext):
     # First region selection
     select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
 
+    expect(page.get_by_role(role="link", name="aber")).to_be_visible()
+
     # Second region selection
     select_text_range(page, "der Absender", "Können Sie mir seine Adresse sagen?")
 
@@ -94,3 +96,36 @@ def test_drag_to_select_multiple_regions(page: Page, context: BrowserContext):
     expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
     expect(page.get_by_role(role="link", name="der Absender")).to_be_visible()
     expect(page.get_by_role(role="link", name="die Adresse")).to_be_visible()
+
+
+def test_source_selector_routing_works(page: Page):
+    # Navigate to first source page
+    page.goto("http://localhost:8180/sources/goethe-a1/page/9")
+
+    # Check initial content is visible
+    expect(page.get_by_text("die Abfahrt")).to_be_visible()
+
+    # Open the source selector dropdown
+    page.get_by_role("button", name="Goethe A1").click()
+
+    # Select the second source
+    page.get_by_role("menuitem", name="Goethe A2").click()
+
+    # URL should change
+    expect(page).to_have_url("http://localhost:8180/sources/goethe-a2/page/8")
+
+    # Content should change to the page from the second source
+    expect(page.get_by_text("die Adresse")).not_to_be_visible()
+
+
+def test_source_selector_dropdown_content(page: Page):
+    # Navigate to sources page
+    page.goto("http://localhost:8180/sources/goethe-a1/page/9")
+
+    # Open the source selector dropdown
+    page.get_by_role("button", name="Goethe A1").click()
+
+    # Check all sources are available in the dropdown
+    expect(page.get_by_role("menuitem", name="Goethe A1")).to_be_visible()
+    expect(page.get_by_role("menuitem", name="Goethe A2")).to_be_visible()
+    expect(page.get_by_role("menuitem", name="Goethe B1")).to_be_visible()
