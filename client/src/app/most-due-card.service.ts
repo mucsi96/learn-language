@@ -9,11 +9,11 @@ import {
   untracked,
 } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
-import { State } from 'ts-fsrs';
+import { CardState } from './shared/state/card-state';
 
 export interface MostDueCard {
   id: string;
-  state: State;
+  state: CardState;
   data: {
     word: string;
     type: string;

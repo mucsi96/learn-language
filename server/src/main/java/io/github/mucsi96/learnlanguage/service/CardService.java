@@ -36,7 +36,7 @@ public class CardService {
         .stream()
         .map(record -> SourceDueCardCountResponse.builder()
             .sourceId((String) record[0])
-            .state((Integer) record[1])
+            .state((String) record[1])
             .count(((Long) record[2]))
             .build())
         .toList();

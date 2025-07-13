@@ -8,8 +8,8 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { DueCardsService } from '../due-cards.service';
-import { State } from 'ts-fsrs';
 import { StateComponent } from '../shared/state/state.component';
+import { CardState } from '../shared/state/card-state';
 
 @Component({
   selector: 'app-home',
@@ -38,7 +38,7 @@ export class HomeComponent {
       this.dueCardsService.dueCounts.isLoading()
   );
 
-  getDueCounts(sourceId: string): { state: State; count: number }[] {
+  getDueCounts(sourceId: string): { state: CardState; count: number }[] {
     return this.dueCounts()?.filter((c) => c.sourceId === sourceId) ?? [];
   }
 

@@ -6,7 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SourcesService } from '../../sources.service';
 import { DueCardsService } from '../../due-cards.service';
-import { State } from 'ts-fsrs';
+import { CardState } from '../state/card-state';
 import { StateComponent } from '../state/state.component';
 
 @Component({
@@ -61,7 +61,7 @@ export class SourceSelectorComponent {
     );
   });
 
-  getDueCounts(sourceId: string): { state: State; count: number }[] {
+  getDueCounts(sourceId: string): { state: CardState; count: number }[] {
     return this.dueCounts()?.filter((c) => c.sourceId === sourceId) ?? [];
   }
 }

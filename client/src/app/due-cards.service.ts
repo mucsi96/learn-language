@@ -1,11 +1,11 @@
 import { inject, Injectable, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { State } from 'ts-fsrs';
+import { CardState } from './shared/state/card-state';
 
 export interface SourceDueCardCount {
   sourceId: string;
-  state: State;
+  state: CardState;
   count: number;
 }
 

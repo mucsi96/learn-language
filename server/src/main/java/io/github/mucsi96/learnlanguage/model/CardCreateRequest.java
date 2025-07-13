@@ -26,7 +26,7 @@ public class CardCreateRequest {
   private List<ExampleData> examples;
 
   // FSRS attributes
-  private Integer state;
+  private String state;
 
   @JsonProperty("learning_steps")
   private Integer step;

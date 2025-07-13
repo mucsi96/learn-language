@@ -1,7 +1,7 @@
 import { Component, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
-import { State } from 'ts-fsrs';
+import { CardState } from './card-state';
 
 @Component({
   selector: 'app-state',
@@ -11,22 +11,22 @@ import { State } from 'ts-fsrs';
   styleUrls: ['./state.component.css']
 })
 export class StateComponent {
-  state = input<State>();
+  state = input<CardState>();
   count = input<number | undefined>();
 
-  private readonly stateNames = new Map<State, string>([
-    [State.New, 'New'],
-    [State.Learning, 'Learning'],
-    [State.Review, 'Review'],
-    [State.Relearning, 'Relearning'],
-  ]);
+  private readonly stateNames: Record<CardState, string> = {
+    'NEW': 'New',
+    'LEARNING': 'Learning',
+    'REVIEW': 'Review',
+    'RELEARNING': 'Relearning'
+  };
 
-  private readonly stateColorMap = new Map<State, string>([
-    [State.New, '#2196F3'], // Blue
-    [State.Learning, '#4CAF50'], // Green
-    [State.Review, '#FFC107'], // Amber
-    [State.Relearning, '#F44336'], // Red
-  ]);
+  private readonly stateColorMap: Record<CardState, string> = {
+    'NEW': '#2196F3', // Blue
+    'LEARNING': '#4CAF50', // Green
+    'REVIEW': '#FFC107', // Amber
+    'RELEARNING': '#F44336', // Red
+  };
 
   stateStyle = computed(() => {
     const state = this.state();
@@ -37,7 +37,7 @@ export class StateComponent {
       };
     }
 
-    const backgroundColor = this.stateColorMap.get(state) ?? '#000000';
+    const backgroundColor = this.stateColorMap[state] ?? '#000000';
     return {
       backgroundColor,
       color: 'white',
@@ -46,9 +46,9 @@ export class StateComponent {
 
   stateName = computed(() => {
     const state = this.state();
-    if (state == undefined) {
+    if (state === undefined) {
       return 'Unknown';
     }
-    return this.stateNames.get(state) ?? 'Unknown';
+    return this.stateNames[state] ?? 'Unknown';
   });
 }

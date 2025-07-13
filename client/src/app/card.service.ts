@@ -13,6 +13,7 @@ import { createEmptyCard } from 'ts-fsrs';
 import { Card, ExampleImage, Word } from './parser/types';
 import { fetchAsset } from './utils/fetchAsset';
 import { fetchJson } from './utils/fetchJson';
+import { mapTsfsrsStateToCardState } from './shared/state/card-state';
 
 export const languages = ['hu', 'ch', 'en'] as const;
 
@@ -166,6 +167,7 @@ export class CardService {
     const cardWithFSRS = {
       ...cardData,
       ...fsrsCardData,
+      state: mapTsfsrsStateToCardState(fsrsCardData.state),
       due: fsrsCardData.due.toISOString(),
       last_review: fsrsCardData.last_review?.toISOString(),
     };

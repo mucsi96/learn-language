@@ -40,7 +40,7 @@ public class Card {
     private CardData data;
 
     @Column(nullable = false)
-    private Integer state;
+    private String state;
 
     private Integer step;
 

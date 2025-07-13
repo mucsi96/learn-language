@@ -18,7 +18,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
-import { State } from 'ts-fsrs';
 import { StateComponent } from '../../shared/state/state.component';
 
 type ImageResource = ExampleImage & { url: string };

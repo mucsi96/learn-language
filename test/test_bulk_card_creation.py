@@ -291,7 +291,7 @@ def test_bulk_card_creation_fsrs_attributes(page: Page):
         state, step, stability, difficulty, reps, lapses, due = result
 
         # Check FSRS initial values (from createEmptyCard())
-        assert state == 0
+        assert state == 'NEW'
         assert step == 0
         assert stability == 0
         assert difficulty == 0

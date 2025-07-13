@@ -4,6 +4,7 @@ import { Word } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { languages } from './card.service';
+import { mapTsfsrsStateToCardState } from './shared/state/card-state';
 
 export interface CardCreationProgress {
   word: string;
@@ -184,9 +185,11 @@ export class BulkCardCreationService {
         }))
       };
 
+      const emptyCard = createEmptyCard();
       const cardWithFSRS = {
         ...cardData,
-        ...createEmptyCard(),
+        ...emptyCard,
+        state: mapTsfsrsStateToCardState(emptyCard.state),
       };
 
       await fetchJson(this.http, `/api/card`, {

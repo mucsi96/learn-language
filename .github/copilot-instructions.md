@@ -16,3 +16,4 @@
 - Prefer putting styles and templates to separate files
 - Use angular resources core method when necessary
 - Do  not use ::ng-deep
+- Avoid using enum in TS. Prefer using string literals

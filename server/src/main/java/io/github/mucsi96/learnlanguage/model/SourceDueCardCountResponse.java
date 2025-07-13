@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SourceDueCardCountResponse {
     private String sourceId;
-    private Integer state;
+    private String state;
     private Long count;
 }

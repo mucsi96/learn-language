@@ -35,7 +35,7 @@ public class ReviewLog {
     private Integer rating;
 
     @Column(nullable = false)
-    private Integer state;
+    private String state;
 
     @Column(nullable = false)
     private LocalDateTime due;
