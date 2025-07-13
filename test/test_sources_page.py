@@ -4,7 +4,7 @@ from playwright.sync_api import BrowserContext, Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_card, select_text_range
+from utils import create_card, select_text_range, scroll_element_to_top
 
 
 def test_displays_current_page(page: Page):
@@ -82,6 +82,8 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
 def test_drag_to_select_multiple_regions(page: Page, context: BrowserContext):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
+
+    scroll_element_to_top(page, "A", exact=True)
 
     # First region selection
     select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")

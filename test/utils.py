@@ -190,8 +190,6 @@ def select_text_range(page, start_text, end_text):
     start_element = page.get_by_text(start_text, exact=True)
     end_element = page.get_by_text(end_text, exact=True)
 
-    end_element.scroll_into_view_if_needed()
-
     start_box = start_element.bounding_box()
     end_box = end_element.bounding_box()
 
@@ -201,6 +199,11 @@ def select_text_range(page, start_text, end_text):
     page.mouse.down()
     page.mouse.move(end_box["x"] + end_box["width"] + 5, end_box["y"] + end_box["height"] + 5)
     page.mouse.up()
+
+
+def scroll_element_to_top(page, selector_text, exact=True):
+    element = page.get_by_text(selector_text, exact=exact)
+    page.evaluate("element => element.scrollIntoView({block: 'start', behavior: 'instant'})", element.element_handle())
 
 
 def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text="aber", end_text="Vor der Abfahrt rufe ich an.", word_name="abfahren"):

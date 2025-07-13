@@ -5,7 +5,7 @@ from playwright.sync_api import Page, BrowserContext, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import download_image, yellow_image, red_image, with_db_connection, select_text_range, create_card
+from utils import download_image, scroll_element_to_top, yellow_image, red_image, with_db_connection, select_text_range, create_card
 
 
 def test_bulk_create_fab_appears_when_words_without_cards_selected(page: Page):
@@ -57,6 +57,8 @@ def test_bulk_create_fab_shows_correct_count_for_multiple_regions(page: Page):
     )
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
+
+    scroll_element_to_top(page, "A", exact=True)
 
     # Select first region
     select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
