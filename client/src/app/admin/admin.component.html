@@ -1,16 +1,19 @@
 @if (loading()) {
-  <mat-spinner class="page-loading" />
+<mat-spinner class="page-loading" />
 } @else {
-<h1 class="sources-heading">Sources</h1>
+<h1>Sources</h1>
+<p>Select a source to edit:</p>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <a
-    mat-fab
-    extended
+  <mat-card
     [routerLink]="['/sources', source.id, 'page', source.startPage]"
   >
-    {{ source.name }}
-  </a>
+    <mat-card-content>
+      <h2 class="source-title">
+        {{ source.name }}
+      </h2>
+    </mat-card-content>
+  </mat-card>
   }
 </section>
 }
