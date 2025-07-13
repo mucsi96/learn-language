@@ -98,20 +98,11 @@ def create_cards_with_states(
     cards_to_create: List[dict],
     base_translations: Optional[Dict[str, str]] = None
 ):
-    state_names = {
-        0: "new",
-        1: "learning",
-        2: "review",
-        3: "relearning"
-    }
-
-    state_counts = {name: 0 for name in state_names.values()}
-
     base_translations = base_translations or {'en': 'test', 'hu': 'teszt', 'ch': 'test'}
 
-    def get_word_data(state: int, index: int):
+    def get_word_data(state: str, index: int):
         """Create unique word data for a card"""
-        state_name = state_names[state]
+        state_name = state.lower()
         word = f"{state_name}_{index}"
         return {
             "word": word,
@@ -126,22 +117,18 @@ def create_cards_with_states(
 
     for card_spec in cards_to_create:
         state = card_spec['state']
-        state_name = state_names[state]
 
         for i in range(card_spec['count']):
-            state_counts[state_name] += 1
-            card_id = f"{state_name}_{state_counts[state_name]}"
+            card_id = f"{source_id}_{state.lower()}_{i}"
 
             create_card(
                 card_id=card_id,
                 source_id=source_id,
-                data=get_word_data(state, state_counts[state_name]),
+                data=get_word_data(state, i),
                 state=state,
-                step=1 if state in [1, 3] else 0,  # Step 1 for learning/relearning
+                step=1 if state in ["LEARNING", "RELEARNING"] else 0,  # Step 1 for learning/relearning
                 due=card_spec['due_date']
             )
-
-    return {state: count for state, count in state_counts.items()}
 
 
 yellow_image = base64.b64decode(

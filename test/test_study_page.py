@@ -1,56 +1,11 @@
 from pathlib import Path
 import sys
-from playwright.sync_api import Page, BrowserContext, expect
+from playwright.sync_api import Page, expect
+from datetime import datetime, timedelta
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import get_color_image_bytes, get_image_content, yellow_image, green_image, create_card, upload_mock_image, with_db_connection
-
-
-def create_test_cards_with_states(source_id, states_counts, base_word="word"):
-    """
-    Create multiple cards for testing with specified states and counts.
-
-    Args:
-        source_id: The source ID for the cards
-        states_counts: Dict mapping state numbers to counts, e.g. {0: 3, 1: 2}
-        base_word: Base word to use for card creation
-
-    Returns:
-        Dict with counts per state name
-    """
-    state_names = {
-        0: "new",
-        1: "learning",
-        2: "review",
-        3: "relearning"
-    }
-
-    created = {state_name: 0 for state_name in state_names.values()}
-
-    for state, count in states_counts.items():
-        state_name = state_names[state]
-        for i in range(count):
-            card_id = f"{state_name}_{base_word}_{i}"
-            word = f"{state_name}_{base_word}_{i}"
-
-            create_card(
-                card_id=card_id,
-                source_id=source_id,
-                source_page_number=10,
-                data={
-                    "word": word,
-                    "type": "nomen",
-                    "translation": {"en": f"{word}_en", "hu": f"{word}_hu"},
-                    "examples": []
-                },
-                state=state,
-                step=1 if state in [1, 3] else 0,
-                due='2025-07-06 08:24:32.82948',
-            )
-            created[state_name] += 1
-
-    return created
+from utils import get_color_image_bytes, get_image_content, yellow_image, green_image, create_card, upload_mock_image, create_cards_with_states
 
 
 def test_study_page_initial_state(page: Page):
@@ -182,7 +137,7 @@ def test_study_page_card_state_new(page: Page):
                 }
             ]
         },
-        state=0,
+        state="NEW",
         step=0,
         due='2025-07-06 08:24:32.82948',
     )
@@ -211,7 +166,7 @@ def test_study_page_card_state_learning(page: Page):
                 }
             ]
         },
-        state=1,
+        state="LEARNING",
         step=1,
         due='2025-07-06 08:24:32.82948',
     )
@@ -289,11 +244,14 @@ def test_source_selector_routing_works(page: Page):
 
 
 def test_source_selector_shows_proper_stats(page: Page):
-    # Create cards with different states
-    create_test_cards_with_states(
-        source_id="goethe-a1",
-        states_counts={0: 3, 1: 2},  # 3 new and 2 learning cards
-        base_word="stats"
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+    create_cards_with_states(
+        "goethe-a1",
+        [
+            {"state": "NEW", "count": 3, 'due_date': yesterday},
+            {"state": "LEARNING", "count": 2, 'due_date': yesterday},
+        ],
     )
 
     # Navigate to the study page
@@ -304,17 +262,23 @@ def test_source_selector_shows_proper_stats(page: Page):
 
 
 def test_source_selector_stats_update_after_changing_source(page: Page):
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
     # Create cards in two different sources with different states
-    create_test_cards_with_states(
-        source_id="goethe-a1",
-        states_counts={0: 3, 1: 2},  # 3 new and 2 learning cards
-        base_word="update_a1"
+    create_cards_with_states(
+        'goethe-a1',
+        [
+            {"state": "NEW", "count": 3, 'due_date': yesterday},
+            {"state": "LEARNING", "count": 2, 'due_date': yesterday},
+        ],
     )
 
-    create_test_cards_with_states(
-        source_id="goethe-a2",
-        states_counts={0: 1, 1: 4},  # 1 new and 4 learning cards
-        base_word="update_a2"
+    create_cards_with_states(
+        'goethe-a2',
+        [
+            {"state": "NEW", "count": 1, 'due_date': yesterday},
+            {"state": "LEARNING", "count": 4, 'due_date': yesterday},
+        ],
     )
 
     # Navigate to the first source
@@ -334,17 +298,22 @@ def test_source_selector_stats_update_after_changing_source(page: Page):
 
 
 def test_source_selector_dropdown_shows_stats(page: Page):
-    # Create cards with different states in two sources
-    create_test_cards_with_states(
-        source_id="goethe-a1",
-        states_counts={0: 2, 1: 3},  # 2 new and 3 learning cards
-        base_word="dropdown_a1"
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+    create_cards_with_states(
+        'goethe-a1',
+        [
+            {"state": "NEW", "count": 2, 'due_date': yesterday},
+            {"state": "LEARNING", "count": 3, 'due_date': yesterday},
+        ],
     )
 
-    create_test_cards_with_states(
-        source_id="goethe-a2",
-        states_counts={0: 5, 1: 1},  # 5 new and 1 learning card
-        base_word="dropdown_a2"
+    create_cards_with_states(
+        'goethe-a2',
+        [
+            {"state": "NEW", "count": 5, 'due_date': yesterday},
+            {"state": "LEARNING", "count": 1, 'due_date': yesterday},
+        ],
     )
 
     # Navigate to the study page
