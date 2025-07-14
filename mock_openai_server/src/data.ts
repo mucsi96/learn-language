@@ -119,10 +119,10 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
 };
 
 export const WORD_TYPES: Record<string, string> = {
-  'aber': 'konjunkció',
-  'abfahren': 'ige',
-  'die Abfahrt': 'főnév',
-  'der Absender': 'főnév',
-  'Achtung': 'indulatszó',
-  'die Adresse': 'főnév',
+  'aber': 'CONJUNCTION',
+  'abfahren': 'VERB',
+  'die Abfahrt': 'NOUN',
+  'der Absender': 'NOUN',
+  'Achtung': 'NOUN',
+  'die Adresse': 'NOUN',
 };

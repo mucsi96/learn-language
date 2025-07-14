@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WordTypeService {
 
-  static record WordTypeResult(String word, String type) {
+  static record WordTypeResult(String type) {
   }
 
   private final OpenAIClient openAIClient;
@@ -23,11 +23,24 @@ public class WordTypeService {
         .addSystemMessage(
             """
                 You are a linguistic expert.
-                Your task is to determine the type of the given word (e.g., noun, verb, adjective) and reply in hungarian.
+                Your task is to categorize the given german word.
+                You should ignore any articles or prefixes and focus on the core meaning of the word.
+                The possible categories are:
+                - VERB
+                - ADJECTIVE
+                - ADVERB
+                - PRONOUN
+                - PREPOSITION
+                - CONJUNCTION
+                - INTERJECTION
+                - ARTICLE
+                - NUMERAL
+                - DETERMINER
+                - NOUN
+                Do not include any additional text or explanations, just the JSON response.
                 Example of the expected JSON response:
                 {
-                    "word": "apple",
-                    "type": "főnév"
+                    "type": "NOUN"
                 }
                 """)
         .addUserMessage("The word is: %s.".formatted(word))

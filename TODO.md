@@ -19,3 +19,4 @@
 - generate more images for examples
 - handle study 404 with nice empty state
 - improve image creation prompt
+- open card editing on then same page + pluss add convinient navigation back

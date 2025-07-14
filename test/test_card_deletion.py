@@ -14,7 +14,7 @@ def test_card_deletion(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [

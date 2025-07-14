@@ -15,7 +15,7 @@ def test_bulk_create_fab_appears_when_words_without_cards_selected(page: Page):
         source_page_number=9,
         data={
             "word": "aber",
-            "type": "szó",
+            "type": "CONJUNCTION",
             "translation": {"en": "but", "hu": "de", "ch": "aber"},
             "forms": [],
             "examples": []
@@ -46,7 +46,7 @@ def test_bulk_create_fab_shows_correct_count_for_multiple_regions(page: Page):
         source_page_number=9,
         data={
             "word": "aber",
-            "type": "szó",
+            "type": "CONJUNCTION",
             "translation": {"en": "but", "hu": "de", "ch": "aber"},
             "forms": [],
             "examples": []
@@ -79,7 +79,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
         source_page_number=9,
         data={
             "word": "aber",
-            "type": "szó",
+            "type": "CONJUNCTION",
             "translation": {"en": "but", "hu": "de", "ch": "aber"},
             "forms": [],
             "examples": []
@@ -94,7 +94,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "translation": {"en": "to depart", "hu": "elindulni", "ch": "abfahren"},
             "forms": [],
             "examples": []
@@ -109,7 +109,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
         source_page_number=9,
         data={
             "word": "Abfahrt",
-            "type": "főnév",
+            "type": "NOUN",
             "translation": {"en": "departure", "hu": "indulás", "ch": "die Abfahrt"},
             "forms": [],
             "examples": []
@@ -215,7 +215,7 @@ def test_bulk_card_creation_includes_word_data(page: Page):
 
         # Check word data
         assert card_data['word'] == 'abfahren'
-        assert card_data['type'] == 'ige'
+        assert card_data['type'] == 'VERB'
         assert card_data['forms'] == ['fährt ab', 'fuhr ab', 'abgefahren']
         assert card_data['translation']['en'] == 'to depart, to leave'
         assert card_data['translation']['hu'] == 'elindulni, elhagyni'

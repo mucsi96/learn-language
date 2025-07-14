@@ -106,7 +106,7 @@ def create_cards_with_states(
         word = f"{state_name}_{index}"
         return {
             "word": word,
-            "type": "nomen",
+            "type": "NOUN",
             "translation": {
                 code: f"{trans}_{word}"
                 for code, trans in base_translations.items()

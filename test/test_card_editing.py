@@ -15,7 +15,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -75,7 +75,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -140,7 +140,7 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -209,7 +209,7 @@ def test_example_image_addition(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [

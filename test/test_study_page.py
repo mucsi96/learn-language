@@ -17,7 +17,7 @@ def test_study_page_initial_state(page: Page):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -68,7 +68,7 @@ def test_study_page_revealed_state(page: Page):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -125,7 +125,7 @@ def test_study_page_card_state_new(page: Page):
         source_page_number=15,
         data={
             "word": "lernen",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["lernt", "lernte", "gelernt"],
             "translation": {"en": "to learn", "hu": "tanulni"},
             "examples": [
@@ -154,7 +154,7 @@ def test_study_page_card_state_learning(page: Page):
         source_page_number=20,
         data={
             "word": "sprechen",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["spricht", "sprach", "gesprochen"],
             "translation": {"en": "to speak", "hu": "beszélni"},
             "examples": [
@@ -184,7 +184,7 @@ def test_source_selector_routing_works(page: Page):
         source_page_number=15,
         data={
             "word": "lernen",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["lernt", "lernte", "gelernt"],
             "translation": {"en": "to learn", "hu": "tanulni"},
             "examples": [
@@ -208,7 +208,7 @@ def test_source_selector_routing_works(page: Page):
         source_page_number=10,
         data={
             "word": "schreiben",
-            "type": "ige",
+            "type": "VERB",
             "forms": ["schreibt", "schrieb", "geschrieben"],
             "translation": {"en": "to write", "hu": "írni"},
             "examples": [
