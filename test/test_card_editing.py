@@ -43,7 +43,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
     # Word section
-    expect(card_page.get_by_label("Word type", exact=True)).to_have_value("Ige")
+    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Ige")
     expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
     expect(card_page.get_by_label("Hungarian translation", exact=True)).to_have_value("elindulni, elhagyni")
     expect(card_page.get_by_label("Swiss German translation", exact=True)).to_have_value("abfahra, verlah")
@@ -174,16 +174,16 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
     # Toggle favorite state of second image
     card_page.get_by_role("button", name="Toggle favorite").last.hover()
     card_page.get_by_role("button", name="Toggle favorite").last.click()
-    card_page.get_by_role("button", name="Update").click()
-    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
-
     expect(card_page.get_by_role("button", name="Toggle favorite").last).to_have_attribute("aria-pressed", "true")
 
     # Toggle favorite state of first image
     card_page.get_by_role("button", name="Toggle favorite").first.click()
+    expect(card_page.get_by_role("button", name="Toggle favorite").first).not_to_have_attribute("aria-pressed", "true")
+
+    page.wait_for_timeout(100)
+
     card_page.get_by_role("button", name="Update").click()
     expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
-    expect(card_page.get_by_role("button", name="Toggle favorite").first).not_to_have_attribute("aria-pressed", "true")
 
     # Verify database state
     with with_db_connection() as cur:
@@ -197,6 +197,60 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
     assert card_data["examples"][1]["images"][0]["isFavorite"] == True
 
     # Verify all other card data remained unchanged
+    assert card_data["word"] == "abfahren"
+    assert card_data["translation"]["hu"] == "elindulni, elhagyni"
+    assert "fährt ab" in card_data["forms"]
+
+def test_word_type_editing(page: Page, context: BrowserContext):
+    image1 = upload_mock_image(yellow_image)
+    create_card(
+        card_id='abfahren',
+        source_id="goethe-a1",
+        source_page_number=9,
+        data={
+            "word": "abfahren",
+            "type": "VERB",
+            "forms": ["fährt ab", "fuhr ab", "abgefahren"],
+            "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
+            "examples": [
+                {
+                    "de": "Wir fahren um zwölf Uhr ab.",
+                    "hu": "Tizenkét órakor indulunk.",
+                    "en": "We leave at twelve o'clock.",
+                    "ch": "Mir fahred am zwöufi ab.",
+                    "images": [{"id": image1}]
+                }
+            ]
+        },
+        state=1,
+        step=0,
+        due='2025-03-13 08:24:32.82948',
+    )
+
+    card_page = navigate_to_card_creation(page, context)
+
+    # Verify initial word type
+    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Ige")
+
+    # Change the word type from VERB to NOUN
+    card_page.get_by_role("combobox", name="Word type").click()
+    card_page.get_by_role("option", name="Főnév").click()
+
+    # Submit the changes
+    card_page.get_by_role("button", name="Update").click()
+    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+
+    # Verify the change was saved in the database
+    with with_db_connection() as cur:
+        cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
+        result = cur.fetchone()
+        assert result is not None, "Card not found in the database"
+        card_data = result[0]
+
+    # Verify the word type was updated correctly
+    assert card_data["type"] == "NOUN"
+
+    # Verify other card data remained unchanged
     assert card_data["word"] == "abfahren"
     assert card_data["translation"]["hu"] == "elindulni, elhagyni"
     assert "fährt ab" in card_data["forms"]
