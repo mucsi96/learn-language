@@ -5,21 +5,26 @@
 <p>Select a source to start learning:</p>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <mat-card
+  <a
     [routerLink]="['/sources', source.id, 'study']"
     [class.disabled]="!hasDueCards(source.id)"
-    [attr.aria-disabled]="!hasDueCards(source.id)"
-    [attr.tabindex]="hasDueCards(source.id) ? 0 : -1"
+    class="card-link"
   >
-    <mat-card-content>
-      <h2 class="source-title">
-        {{ source.name }}
-        @for (dueCount of getDueCounts(source.id); track dueCount.state) {
-        <app-state [state]="dueCount.state" [count]="dueCount.count" />
-        }
-      </h2>
-    </mat-card-content>
-  </mat-card>
+    <mat-card
+      [class.disabled]="!hasDueCards(source.id)"
+      [attr.aria-disabled]="!hasDueCards(source.id)"
+      [attr.tabindex]="hasDueCards(source.id) ? 0 : -1"
+    >
+      <mat-card-content>
+        <h2 class="source-title">
+          {{ source.name }}
+          @for (dueCount of getDueCounts(source.id); track dueCount.state) {
+          <app-state [state]="dueCount.state" [count]="dueCount.count" />
+          }
+        </h2>
+      </mat-card-content>
+    </mat-card>
+  </a>
   }
 </section>
 }

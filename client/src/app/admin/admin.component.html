@@ -5,15 +5,18 @@
 <p>Select a source to edit:</p>
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <mat-card
+  <a
     [routerLink]="['/sources', source.id, 'page', source.startPage]"
+    class="card-link"
   >
-    <mat-card-content>
-      <h2 class="source-title">
-        {{ source.name }}
-      </h2>
-    </mat-card-content>
-  </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <h2 class="source-title">
+          {{ source.name }}
+        </h2>
+      </mat-card-content>
+    </mat-card>
+  </a>
   }
 </section>
 }

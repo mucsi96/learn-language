@@ -22,25 +22,40 @@ p {
   gap: 20px;
 }
 
-.sources mat-card {
-  background: var(--mat-sys-surface);
-  border: 1px solid var(--mat-sys-surface-container);
-  transition: transform 0.2s ease-in-out;
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.2s ease;
 }
 
-.sources mat-card {
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.sources mat-card:hover:not(.disabled) {
+.card-link:hover:not(.disabled) {
   transform: translateY(-4px);
 }
 
-.sources mat-card.disabled {
+.card-link.disabled {
   opacity: 0.5;
-  cursor: default;
   pointer-events: none;
+}
+
+.sources mat-card {
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-surface-container);
+  width: 100%;
+  height: 100%;
+}
+
+.sources mat-card {
+  transition: none;
+}
+
+.sources mat-card:hover:not(.disabled) {
+  transform: none;
+}
+
+.sources mat-card.disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .sources mat-card h2 {

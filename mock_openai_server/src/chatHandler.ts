@@ -46,11 +46,11 @@ export class ChatHandler {
 
     // Extract the target language from system message
     let targetLanguage: string | null = null;
-    if (systemMessage.includes('translate the given word and examples to English')) {
+    if (systemMessage.includes('translate the given German word and examples to English')) {
       targetLanguage = 'english';
-    } else if (systemMessage.includes('translate the given word and examples to Hungarian')) {
+    } else if (systemMessage.includes('translate the given German word and examples to Hungarian')) {
       targetLanguage = 'hungarian';
-    } else if (systemMessage.includes('translate the given word and examples to Swiss German')) {
+    } else if (systemMessage.includes('translate the given German word and examples to Swiss German')) {
       targetLanguage = 'swiss-german';
     }
 
@@ -60,7 +60,7 @@ export class ChatHandler {
 
     // Find which word is being translated
     for (const word of Object.keys(TRANSLATIONS[targetLanguage])) {
-      if (messagesMatch(messages, 'Your task is to translate the given word and examples', word)) {
+      if (messagesMatch(messages, 'translate the given German word and examples', word)) {
         const translation = TRANSLATIONS[targetLanguage][word];
         return createAssistantResponse({
           translation: translation.translation,
@@ -74,9 +74,8 @@ export class ChatHandler {
 
   handleWordType(messages: ChatMessage[]): any | null {
     for (const word of Object.keys(WORD_TYPES)) {
-      if (messagesMatch(messages, 'Your task is to determine the type of the given word', word)) {
+      if (messagesMatch(messages, 'ADJECTIVE', word)) {
         return createAssistantResponse({
-          word,
           type: WORD_TYPES[word],
         });
       }
