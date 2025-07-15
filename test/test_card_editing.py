@@ -43,7 +43,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
     # Word section
-    expect(card_page.get_by_label("Word type", exact=True)).to_have_value("ige")
+    expect(card_page.get_by_label("Word type", exact=True)).to_have_value("Ige")
     expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
     expect(card_page.get_by_label("Hungarian translation", exact=True)).to_have_value("elindulni, elhagyni")
     expect(card_page.get_by_label("Swiss German translation", exact=True)).to_have_value("abfahra, verlah")
