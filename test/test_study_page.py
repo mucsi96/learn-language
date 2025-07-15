@@ -47,7 +47,7 @@ def test_study_page_initial_state(page: Page):
 
     expect(page.get_by_role("heading", level=2, name="elindulni, elhagyni")).to_be_visible()
     expect(page.get_by_role("heading", level=2, name="abfahren")).not_to_be_visible()
-    expect(page.get_by_text("ige", exact=True)).to_be_visible()
+    expect(page.get_by_text("Ige", exact=True)).to_be_visible()
     expect(page.get_by_text("fährt ab")).not_to_be_visible()
     expect(page.get_by_text("fuhr ab")).not_to_be_visible()
     expect(page.get_by_text("abgefahren")).not_to_be_visible()
@@ -102,7 +102,7 @@ def test_study_page_revealed_state(page: Page):
     expect(page.get_by_text("abfahren", exact=True)).to_be_visible()
     expect(page.get_by_text("elindulni, elhagyni")).not_to_be_visible()
     expect(page.get_by_text("abfahra, verlah")).not_to_be_visible()
-    expect(page.get_by_text("ige", exact=True)).to_be_visible()
+    expect(page.get_by_text("Ige", exact=True)).to_be_visible()
     expect(page.get_by_text("fährt ab")).to_be_visible()
     expect(page.get_by_text("fuhr ab")).to_be_visible()
     expect(page.get_by_text("abgefahren")).to_be_visible()

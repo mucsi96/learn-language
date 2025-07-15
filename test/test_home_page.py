@@ -26,23 +26,19 @@ def test_due_cards_count_by_state(page: Page):
     tomorrow = now + timedelta(days=1)
 
     cards_to_create = [
-        {'state': 0, 'count': 2, 'due_date': yesterday},
-        {'state': 1, 'count': 1, 'due_date': yesterday},
-        {'state': 2, 'count': 2, 'due_date': yesterday},
-        {'state': 3, 'count': 1, 'due_date': yesterday},
-        {'state': 0, 'count': 1, 'due_date': tomorrow},
-        {'state': 1, 'count': 1, 'due_date': tomorrow},
-        {'state': 2, 'count': 1, 'due_date': tomorrow},
-        {'state': 3, 'count': 1, 'due_date': tomorrow},
+        {'state': 'NEW', 'count': 2, 'due_date': yesterday},
+        {'state': 'REVIEW', 'count': 2, 'due_date': yesterday},
+        {'state': 'LEARNING', 'count': 1, 'due_date': tomorrow},
+        {'state': 'RELEARNING', 'count': 1, 'due_date': tomorrow},
     ]
 
     create_cards_with_states('goethe-a1', cards_to_create)
 
     page.goto('http://localhost:8180')
     expect(page.get_by_title("New", exact=True)).to_contain_text("2")
-    expect(page.get_by_title("Learning", exact=True)).to_contain_text("1")
+    expect(page.get_by_title("Learning", exact=True)).not_to_be_visible()
     expect(page.get_by_title("Review", exact=True)).to_contain_text("2")
-    expect(page.get_by_title("Relearning", exact=True)).to_contain_text("1")
+    expect(page.get_by_title("Relearning", exact=True)).not_to_be_visible()
 
 
 def test_due_cards_limited_to_max_50(page: Page):
@@ -50,7 +46,7 @@ def test_due_cards_limited_to_max_50(page: Page):
     yesterday = now - timedelta(days=1)
 
     cards_to_create = [
-        {'state': 0, 'count': 60, 'due_date': yesterday},
+        {'state': 'NEW', 'count': 60, 'due_date': yesterday},
     ]
 
     create_cards_with_states('goethe-a1', cards_to_create)
@@ -64,10 +60,10 @@ def test_due_cards_limited_to_max_50_mixed_states(page: Page):
     yesterday = now - timedelta(days=1)
 
     cards_to_create = [
-        {'state': 0, 'count': 20, 'due_date': yesterday},
-        {'state': 1, 'count': 15, 'due_date': yesterday},
-        {'state': 2, 'count': 10, 'due_date': yesterday},
-        {'state': 3, 'count': 25, 'due_date': yesterday},
+        {'state': 'NEW', 'count': 20, 'due_date': yesterday},
+        {'state': 'LEARNING', 'count': 15, 'due_date': yesterday},
+        {'state': 'REVIEW', 'count': 10, 'due_date': yesterday},
+        {'state': 'RELEARNING', 'count': 25, 'due_date': yesterday},
     ]
 
     create_cards_with_states('goethe-a1', cards_to_create)
