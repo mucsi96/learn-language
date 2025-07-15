@@ -1,4 +1,4 @@
-import { Component, effect, inject, linkedSignal } from '@angular/core';
+import { Component, effect, inject, linkedSignal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,9 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { WORD_TYPE_TRANSLATIONS, getWordTypeInfo } from '../../shared/word-type-translations';
 import { ActivatedRoute } from '@angular/router';
 import { CardService } from '../../card.service';
 import { injectQueryParams } from '../../utils/inject-query-params';
@@ -28,6 +30,7 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
     MatProgressSpinnerModule,
     MatIcon,
     MatRadioModule,
+    MatSelectModule,
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
@@ -38,6 +41,7 @@ export class CardComponent {
   readonly cardData = injectQueryParams<string>('cardData');
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
+  readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
 
   exampleImageCarouselIndices = linkedSignal<number[]>(() => {
     const examples = this.cardService.examples();

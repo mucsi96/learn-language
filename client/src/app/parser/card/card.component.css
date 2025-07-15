@@ -124,3 +124,14 @@
   margin-bottom: 3px;
   justify-self: center;
 }
+
+.word-type-option {
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

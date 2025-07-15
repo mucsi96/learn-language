@@ -3,7 +3,6 @@
 
 - add automated dependency update
 
-- add type code which is a limited word type in english
 - add gender to db
 - add card publishing / multi phase creation
 - add prononciations

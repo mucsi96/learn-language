@@ -18,15 +18,46 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TranslationService {
 
-  private static final Map<String, String> LANGUAGE_MAP = Map.of(
-      "hu", "Hungarian",
-      "ch", "Swiss German",
-      "en", "English");
+  // Language code constants
+  private static final String ENGLISH = "en";
+  private static final String SWISS_GERMAN = "ch";
+  private static final String HUNGARIAN = "hu";
+
+  private static final Map<String, String> LANGUAGE_SPECIFIC_PROMPTS = Map.of(
+      ENGLISH, """
+            You are an English language expert.
+            Your task is to translate the given German word and examples to English.
+            Provide accurate translations that capture the meaning and context.
+            Example of the expected JSON response:
+            {
+              "translation":"announcement"
+              "examples":["Listen to the announcements."],
+            }
+            """,
+      SWISS_GERMAN, """
+            You are a Swiss German language expert.
+            Your task is to translate the given German word and examples to Swiss German.
+            Focus on authentic Swiss German expressions and dialect.
+            Example of the expected JSON response:
+            {
+              "translation":"Ankündigung"
+              "examples":["Losedu uf d'Ankündigunge."],
+            }
+            """,
+      HUNGARIAN, """
+            You are a Hungarian language expert.
+            Your task is to translate the given German word and examples to Hungarian.
+            Pay attention to proper Hungarian grammar and word forms.
+            Example of the expected JSON response:
+            {
+              "translation":"bejelentés"
+              "examples":["Figyeld a bejelentéseket."],
+            }
+            """);
 
   private final OpenAIClient openAIClient;
 
   public TranslationResponse translate(WordResponse word, String languageCode) {
-    String language = LANGUAGE_MAP.getOrDefault(languageCode, "English");
 
     TranslationRequest translationRequest = TranslationRequest.builder()
         .examples(word.getExamples())
@@ -43,17 +74,7 @@ public class TranslationService {
 
     var createParams = ChatCompletionCreateParams.builder()
         .model(ChatModel.GPT_4_1)
-        .addSystemMessage(
-            """
-                You are a %s language expert.
-                Your task is to translate the given word and examples to %s.
-                The examples are optional.
-                Example of the expected JSON response:
-                {
-                  "examples":["Listen to the announcements."],
-                  "translation":"announcement"
-                }
-                """.formatted(language, language))
+        .addSystemMessage(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
         .addUserMessage(translationRequestJson)
         .responseFormat(TranslationResponse.class)
         .build();

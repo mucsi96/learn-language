@@ -22,15 +22,20 @@ cardService.selectedExampleIndex; @if (loading()) {
   <button type="button" mat-flat-button (click)="createCard()">Create</button>
   }
 </h2>
-<mat-form-field class="field">
-  <mat-label>Type</mat-label>
-  <input
-    matInput
-    type="text"
-    [(ngModel)]="wordType"
-    aria-label="Word type"
-  />
-</mat-form-field>
+<div class="word">
+  <mat-form-field class="field">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="wordType" aria-label="Word type">
+      @for (option of wordTypeOptions; track option.type) {
+      <mat-option [value]="option.type">
+        <span class="word-type-option" [style.background-color]="option.color">
+          {{ option.translation }}
+        </span>
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
 <div class="word">
   <mat-form-field class="field">
     <mat-label>German</mat-label>
@@ -121,15 +126,22 @@ cardService.selectedExampleIndex; @if (loading()) {
       <div class="skeleton"></div>
       } @else if (url) {
       <img [src]="url" [alt]="example()" />
-      <div class="image-overlay" [class.image-overlay-favorite]="imageResource.value()?.isFavorite">
+      <div
+        class="image-overlay"
+        [class.image-overlay-favorite]="imageResource.value()?.isFavorite"
+      >
         <button
           mat-icon-button
-          (click)="toggleFavorite($index, exampleImageCarouselIndices()[$index])"
+          (click)="
+            toggleFavorite($index, exampleImageCarouselIndices()[$index])
+          "
           aria-label="Toggle favorite"
           [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
           [attr.aria-pressed]="imageResource.value()?.isFavorite"
         >
-          <mat-icon>{{ imageResource.value()?.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+          <mat-icon>{{
+            imageResource.value()?.isFavorite ? "favorite" : "favorite_border"
+          }}</mat-icon>
         </button>
       </div>
       } @else {

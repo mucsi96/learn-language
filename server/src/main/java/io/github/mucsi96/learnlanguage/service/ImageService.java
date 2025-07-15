@@ -21,7 +21,7 @@ public class ImageService {
   public byte[] generateImage(String input) {
     ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
         .prompt(
-            "Design a photorealistic, visually appealing, and modern image to illustrate the following example sentence without putting any text on the image: "
+            "Create a visually striking, photorealistic, and easy-to-remember flashcard image that clearly illustrates the situation described in the following sentence—without including any text on the image: "
                 + input)
         .model(ImageModel.GPT_IMAGE_1)
         .size(ImageGenerateParams.Size._1024X1024)

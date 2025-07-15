@@ -53,13 +53,17 @@
     </div>
 
     <div class="content-section">
-      <div class="word-section">
-        @let state = card.value()?.state; @if (state !== undefined) {
-        <div class="state-chip">
-          <app-state [state]="state" />
-        </div>
+      <div class="chips-corner">
+        @if (wordTypeInfo()) {
+          <div class="word-type-chip" [style.background-color]="wordTypeInfo()?.color">
+            {{ wordTypeInfo()?.translation }}
+          </div>
         }
-        <p>{{ type() }}</p>
+        @let state = card.value()?.state; @if (state !== undefined) {
+          <app-state [state]="state" />
+        }
+      </div>
+      <div class="word-section">
         <h2>{{ word() }}</h2>
       </div>
 

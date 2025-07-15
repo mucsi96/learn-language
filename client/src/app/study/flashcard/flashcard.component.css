@@ -62,11 +62,36 @@
 }
 
 .word-section {
+  margin-top: 5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+.chips-corner {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.word-type-chip {
+  padding: 0 8px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 24px;
 }
 
 h2 {
@@ -106,7 +131,7 @@ mat-chip {
 
 .example {
   padding: 1rem;
-  padding-top: 5rem;
+  padding-top: 2rem;
 }
 
 .example p {

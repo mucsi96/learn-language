@@ -19,6 +19,7 @@ import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
+import { getWordTypeInfo } from '../../shared/word-type-translations';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -58,6 +59,10 @@ export class FlashcardComponent {
   );
   readonly type = computed(() => this.card.value()?.data.type);
   readonly forms = computed(() => this.card.value()?.data.forms);
+  readonly wordTypeInfo = computed(() => {
+    const type = this.type();
+    return type ? getWordTypeInfo(type) : undefined;
+  });
 
   readonly example = computed(() =>
     this.isRevealed()
