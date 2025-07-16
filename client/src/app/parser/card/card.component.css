@@ -3,6 +3,10 @@
   gap: 1rem;
 }
 
+.top-actions {
+  margin-bottom: 1rem;
+}
+
 .title {
   display: grid;
   grid-template-columns: 1fr auto auto;

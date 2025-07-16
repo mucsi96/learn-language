@@ -16,8 +16,8 @@
 <a
   class="word"
   mat-flat-button
-  [href]="cardHrefPrefix + (matches[0] | compressQuery | async)"
-  target="_blank"
+  [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
+  [queryParams]="{cardData: (matches[0] | compressQuery | async)}"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
@@ -46,8 +46,8 @@
   @for (match of matches; track match.word) {
   <a
     mat-menu-item
-    [href]="cardHrefPrefix + (match | compressQuery | async)"
-    target="_blank"
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
+    [queryParams]="{cardData: (match | compressQuery | async)}"
   >
     {{ match.word }}
   </a>

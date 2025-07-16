@@ -12,9 +12,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   WORD_TYPE_TRANSLATIONS,
-  getWordTypeInfo,
 } from '../../shared/word-type-translations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CardService } from '../../card.service';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
@@ -35,6 +34,7 @@ import { GENDER_TRANSLATIONS } from '../../shared/gender-translations';
     MatIcon,
     MatRadioModule,
     MatSelectModule,
+    RouterModule,
   ],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',

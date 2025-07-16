@@ -38,11 +38,11 @@ def test_card_deletion(page: Page, context: BrowserContext):
         due='2025-03-13 08:24:32.82948',
     )
 
-    card_page = navigate_to_card_creation(page, context)
-    card_page.get_by_role(role="button", name="Delete card").click()
-    expect(card_page.get_by_text("Are you sure you want to delete this card?")).to_be_visible()
-    card_page.get_by_role(role="button", name="Yes").click()
-    expect(card_page.get_by_text("Card deleted successfully")).to_be_visible()
+    navigate_to_card_creation(page, context)
+    page.get_by_role(role="button", name="Delete card").click()
+    expect(page.get_by_text("Are you sure you want to delete this card?")).to_be_visible()
+    page.get_by_role(role="button", name="Yes").click()
+    expect(page.get_by_text("Card deleted successfully")).to_be_visible()
 
     with with_db_connection() as cur:
         cur.execute("SELECT id FROM learn_language.cards WHERE id = 'abfahren'")

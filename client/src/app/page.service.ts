@@ -112,7 +112,6 @@ export class PageService {
 
   setSource(sourceId: string, pageNumber: number) {
     this.selectedSource.set({ sourceId, pageNumber });
-    this.clearSelection();
   }
 
   addSelectedRectangle(rectangle: SelectedRectangle) {

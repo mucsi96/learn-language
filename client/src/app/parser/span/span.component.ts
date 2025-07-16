@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AsyncPipe } from '@angular/common';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-span',
@@ -18,6 +19,7 @@ import { CompressQueryPipe } from '../../utils/compress-query.pipe';
     MatDialogModule,
     AsyncPipe,
     CompressQueryPipe,
+    RouterModule,
   ],
   templateUrl: './span.component.html',
   styleUrl: './span.component.css',

@@ -7,6 +7,11 @@ cardService.exampleImages; @let selectedExampleIndex =
 cardService.selectedExampleIndex; @if (loading()) {
 <mat-spinner class="page-loading" />
 } @else {
+<div class="top-actions">
+  <a mat-icon-button [routerLink]="['/sources', cardService.selectedSourceId(), 'page', cardService.selectedPageNumber()]" aria-label="Go back">
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+</div>
 <h2 class="title">
   Word @if (card()) {
   <button

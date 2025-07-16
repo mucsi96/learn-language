@@ -23,5 +23,5 @@ def test_source_page_title(page: Page):
 
 
 def test_card_page_title(page: Page, context: BrowserContext):
-    card_page = navigate_to_card_creation(page, context)
-    expect(card_page).to_have_title("abfahren")
+    navigate_to_card_creation(page, context)
+    expect(page).to_have_title("abfahren")

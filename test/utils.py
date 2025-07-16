@@ -199,11 +199,7 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
 
     select_text_range(page, start_text, end_text)
 
-    with context.expect_page() as card_page_info:
-        page.get_by_role(role="link", name=word_name).click()
-    card_page = card_page_info.value
-
-    return card_page
+    page.get_by_role(role="link", name=word_name).click()
 
 def download_image(id):
     container_client = blob_service_client.get_container_client('learn-language')

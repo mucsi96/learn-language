@@ -41,30 +41,30 @@ def test_card_editing_page(page: Page, context: BrowserContext):
         step=0,
         due='2025-03-13 08:24:32.82948',
     )
-    card_page = navigate_to_card_creation(page, context)
+    navigate_to_card_creation(page, context)
 
     # Word section
-    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Főnév")
-    expect(card_page.get_by_role("combobox", name="Gender")).to_have_text("Feminine")
-    expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
-    expect(card_page.get_by_label("Hungarian translation", exact=True)).to_have_value("elindulni, elhagyni")
-    expect(card_page.get_by_label("Swiss German translation", exact=True)).to_have_value("abfahra, verlah")
+    expect(page.get_by_role("combobox", name="Word type")).to_have_text("Főnév")
+    expect(page.get_by_role("combobox", name="Gender")).to_have_text("Feminine")
+    expect(page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
+    expect(page.get_by_label("Hungarian translation", exact=True)).to_have_value("elindulni, elhagyni")
+    expect(page.get_by_label("Swiss German translation", exact=True)).to_have_value("abfahra, verlah")
 
     # Forms section
-    expect(card_page.get_by_label("Form", exact=True).locator('nth=0')).to_have_value("fährt ab")
-    expect(card_page.get_by_label("Form", exact=True).locator('nth=1')).to_have_value("fuhr ab")
-    expect(card_page.get_by_label("Form", exact=True).locator('nth=2')).to_have_value("abgefahren")
+    expect(page.get_by_label("Form", exact=True).locator('nth=0')).to_have_value("fährt ab")
+    expect(page.get_by_label("Form", exact=True).locator('nth=1')).to_have_value("fuhr ab")
+    expect(page.get_by_label("Form", exact=True).locator('nth=2')).to_have_value("abgefahren")
     # Examples section
-    expect(card_page.get_by_label("Example in German", exact=True).locator(
+    expect(page.get_by_label("Example in German", exact=True).locator(
         'nth=0')).to_have_value("Wir fahren um zwölf Uhr ab.")
-    expect(card_page.get_by_label("Example in Hungarian", exact=True).locator(
+    expect(page.get_by_label("Example in Hungarian", exact=True).locator(
         'nth=0')).to_have_value("Tizenkét órakor indulunk.")
-    expect(card_page.get_by_label("Example in Swiss German", exact=True).locator(
+    expect(page.get_by_label("Example in Swiss German", exact=True).locator(
         'nth=0')).to_have_value("Mir fahred am zwöufi ab.")
 
     # Images
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content1 = get_image_content(page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
     assert image_content1 == get_color_image_bytes("yellow")
     assert image_content2 == get_color_image_bytes("red")
 
@@ -102,16 +102,16 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
         step=0,
         due='2025-03-13 08:24:32.82948',
     )
-    card_page = navigate_to_card_creation(page, context)
-    card_page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
-    card_page.get_by_role("button", name="Add example image").nth(1).click()
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    navigate_to_card_creation(page, context)
+    page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
+    page.get_by_role("button", name="Add example image").nth(1).click()
+    image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content2 == get_color_image_bytes("red")
 
-    card_page.get_by_role("radio").nth(1).click()
-    card_page.get_by_role(role="button", name="Update").click()
-    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+    page.get_by_role("radio").nth(1).click()
+    page.get_by_role(role="button", name="Update").click()
+    expect(page.get_by_text("Card updated successfully")).to_be_visible()
 
     with with_db_connection() as cur:
         cur.execute("SELECT data FROM learn_language.cards WHERE id = 'abfahren'")
@@ -127,8 +127,8 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     assert card_data["translation"]["ch"] == "abfahra, verlah"
     assert "fährt ab" in card_data["forms"]
 
-    image_content1 = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(card_page.get_by_role("img", name="Wann fährt der Zug ab?"))
+    image_content1 = get_image_content(page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content1 == get_color_image_bytes("blue")
     assert image_content2 == get_color_image_bytes("red")
@@ -167,25 +167,25 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
         due='2025-03-13 08:24:32.82948',
     )
 
-    card_page = navigate_to_card_creation(page, context)
+    navigate_to_card_creation(page, context)
 
     # Verify initial favorite state
-    expect(card_page.get_by_role("button", name="Toggle favorite").first).to_have_attribute("aria-pressed", "true")
-    expect(card_page.get_by_role("button", name="Toggle favorite").last).not_to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_role("button", name="Toggle favorite").first).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_role("button", name="Toggle favorite").last).not_to_have_attribute("aria-pressed", "true")
 
     # Toggle favorite state of second image
-    card_page.get_by_role("button", name="Toggle favorite").last.hover()
-    card_page.get_by_role("button", name="Toggle favorite").last.click()
-    expect(card_page.get_by_role("button", name="Toggle favorite").last).to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Toggle favorite").last.hover()
+    page.get_by_role("button", name="Toggle favorite").last.click()
+    expect(page.get_by_role("button", name="Toggle favorite").last).to_have_attribute("aria-pressed", "true")
 
     # Toggle favorite state of first image
-    card_page.get_by_role("button", name="Toggle favorite").first.click()
-    expect(card_page.get_by_role("button", name="Toggle favorite").first).not_to_have_attribute("aria-pressed", "true")
+    page.get_by_role("button", name="Toggle favorite").first.click()
+    expect(page.get_by_role("button", name="Toggle favorite").first).not_to_have_attribute("aria-pressed", "true")
 
     page.wait_for_timeout(100)
 
-    card_page.get_by_role("button", name="Update").click()
-    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+    page.get_by_role("button", name="Update").click()
+    expect(page.get_by_text("Card updated successfully")).to_be_visible()
 
     # Verify database state
     with with_db_connection() as cur:
@@ -230,20 +230,20 @@ def test_word_type_editing(page: Page, context: BrowserContext):
         due='2025-03-13 08:24:32.82948',
     )
 
-    card_page = navigate_to_card_creation(page, context)
+    navigate_to_card_creation(page, context)
 
     # Verify initial word type
-    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Ige")
+    expect(page.get_by_role("combobox", name="Word type")).to_have_text("Ige")
 
     # Change the word type from VERB to NOUN
-    card_page.get_by_role("combobox", name="Word type").click()
-    card_page.get_by_role("option", name="Főnév").click()
-    card_page.get_by_role("combobox", name="Gender").click()
-    card_page.get_by_role("option", name="Masculine").click()
+    page.get_by_role("combobox", name="Word type").click()
+    page.get_by_role("option", name="Főnév").click()
+    page.get_by_role("combobox", name="Gender").click()
+    page.get_by_role("option", name="Masculine").click()
 
     # Submit the changes
-    card_page.get_by_role("button", name="Update").click()
-    expect(card_page.get_by_text("Card updated successfully")).to_be_visible()
+    page.get_by_role("button", name="Update").click()
+    expect(page.get_by_text("Card updated successfully")).to_be_visible()
 
     # Verify the change was saved in the database
     with with_db_connection() as cur:
@@ -286,10 +286,10 @@ def test_example_image_addition(page: Page, context: BrowserContext):
         step=0,
         due='2025-03-13 08:24:32.82948',
     )
-    card_page = navigate_to_card_creation(page, context)
+    navigate_to_card_creation(page, context)
 
-    card_page.get_by_role("button", name="Add example image").first.click()
+    page.get_by_role("button", name="Add example image").first.click()
 
-    regenerated_image_content = get_image_content(card_page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
+    regenerated_image_content = get_image_content(page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
     assert regenerated_image_content == get_color_image_bytes("yellow")
 
