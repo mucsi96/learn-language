@@ -100,8 +100,8 @@ export class BulkCardCreationService {
     progressIndex: number
   ): Promise<void> {
     try {
-      // Step 1: Get word type (20% progress)
-      this.updateProgress(progressIndex, 'word-type', 20, 'Detecting word type...');
+      // Step 1: Get word type (15% progress)
+      this.updateProgress(progressIndex, 'word-type', 15, 'Detecting word type...');
       const wordTypeResponse = await fetchJson<{ type: string }>(
         this.http,
         `/api/word-type`,
@@ -110,6 +110,21 @@ export class BulkCardCreationService {
           method: 'POST',
         }
       );
+
+      // Step 1.5: Get gender for nouns (20% progress)
+      let gender: string | undefined;
+      if (wordTypeResponse.type === 'NOUN') {
+        this.updateProgress(progressIndex, 'word-type', 20, 'Detecting gender...');
+        const genderResponse = await fetchJson<{ gender: string }>(
+          this.http,
+          `/api/gender`,
+          {
+            body: { word: word.word },
+            method: 'POST',
+          }
+        );
+        gender = genderResponse.gender;
+      }
 
       // Step 2: Get translations (40% progress)
       this.updateProgress(progressIndex, 'translating', 40, 'Translating to multiple languages...');
@@ -170,6 +185,7 @@ export class BulkCardCreationService {
         pageNumber,
         word: word.word,
         type: wordTypeResponse.type,
+        gender: gender,
         translation: translationMap,
         forms: word.forms,
         examples: word.examples.map((example, index) => ({

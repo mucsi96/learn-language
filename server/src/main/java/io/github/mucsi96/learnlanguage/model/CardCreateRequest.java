@@ -21,6 +21,7 @@ public class CardCreateRequest {
   private int pageNumber;
   private String word;
   private String type;
+  private String gender;
   private Map<String, String> translation;
   private List<String> forms;
   private List<ExampleData> examples;

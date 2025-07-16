@@ -43,6 +43,7 @@ export class CardService {
     () => this.card.value()?.word ?? this.selectedWord()?.word
   );
   readonly wordType = linkedSignal(() => this.card.value()?.type);
+  readonly gender = linkedSignal(() => this.card.value()?.gender);
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
@@ -135,6 +136,7 @@ export class CardService {
       pageNumber,
       word: wordText,
       type: this.wordType(),
+      gender: this.gender(),
       translation: Object.fromEntries(
         languages.map((languageCode) => [
           languageCode,

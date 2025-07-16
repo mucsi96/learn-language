@@ -9,6 +9,10 @@ export interface TranslationResponse {
   examples: string[];
 }
 
+export interface GenderResponse {
+  gender: string;
+}
+
 export interface WordTypeResponse {
   word: string;
   type: string;

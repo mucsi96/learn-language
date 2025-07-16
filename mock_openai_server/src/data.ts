@@ -118,6 +118,13 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
   },
 };
 
+export const GENDERS: Record<string, string> = {
+  'die Abfahrt': 'FEMININE',
+  'der Absender': 'MASCULINE',
+  'Achtung': 'FEMININE',
+  'die Adresse': 'FEMININE'
+};
+
 export const WORD_TYPES: Record<string, string> = {
   'aber': 'CONJUNCTION',
   'abfahren': 'VERB',

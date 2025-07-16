@@ -18,6 +18,7 @@ def test_study_page_initial_state(page: Page):
         data={
             "word": "abfahren",
             "type": "VERB",
+            "gender": "NEUTER",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -38,7 +39,7 @@ def test_study_page_initial_state(page: Page):
                 }
             ]
         },
-        state=1,
+        state='NEW',
         step=0,
         due='2025-07-06 08:24:32.82948',
     )
@@ -48,6 +49,8 @@ def test_study_page_initial_state(page: Page):
     expect(page.get_by_role("heading", level=2, name="elindulni, elhagyni")).to_be_visible()
     expect(page.get_by_role("heading", level=2, name="abfahren")).not_to_be_visible()
     expect(page.get_by_text("Ige", exact=True)).to_be_visible()
+    expect(page.get_by_text("New", exact=True)).to_be_visible()
+    expect(page.get_by_text("Gender: Neuter", exact=True)).not_to_be_visible()
     expect(page.get_by_text("fährt ab")).not_to_be_visible()
     expect(page.get_by_text("fuhr ab")).not_to_be_visible()
     expect(page.get_by_text("abgefahren")).not_to_be_visible()
@@ -69,6 +72,7 @@ def test_study_page_revealed_state(page: Page):
         data={
             "word": "abfahren",
             "type": "VERB",
+            "gender": "NEUTER",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -89,7 +93,7 @@ def test_study_page_revealed_state(page: Page):
                 }
             ]
         },
-        state=1,
+        state='LEARNING',
         step=0,
         due='2025-07-06 08:24:32.82948',
     )
@@ -97,12 +101,14 @@ def test_study_page_revealed_state(page: Page):
     # Navigate to study page
     page.goto("http://localhost:8180/sources/goethe-a1/study")
 
-    page.locator(".flashcard").click()
+    page.get_by_text("elindulni, elhagyni", exact=True).click()
 
     expect(page.get_by_text("abfahren", exact=True)).to_be_visible()
     expect(page.get_by_text("elindulni, elhagyni")).not_to_be_visible()
     expect(page.get_by_text("abfahra, verlah")).not_to_be_visible()
     expect(page.get_by_text("Ige", exact=True)).to_be_visible()
+    expect(page.get_by_text("Learning", exact=True)).to_be_visible()
+    expect(page.get_by_text("Gender: Neuter", exact=True)).to_be_visible()
     expect(page.get_by_text("fährt ab")).to_be_visible()
     expect(page.get_by_text("fuhr ab")).to_be_visible()
     expect(page.get_by_text("abgefahren")).to_be_visible()
@@ -116,64 +122,6 @@ def test_study_page_revealed_state(page: Page):
     expect(page.get_by_role("button", name="Hard")).to_be_visible()
     expect(page.get_by_role("button", name="Good")).to_be_visible()
     expect(page.get_by_role("button", name="Easy")).to_be_visible()
-
-
-def test_study_page_card_state_new(page: Page):
-    create_card(
-        card_id='lernen',
-        source_id="goethe-a1",
-        source_page_number=15,
-        data={
-            "word": "lernen",
-            "type": "VERB",
-            "forms": ["lernt", "lernte", "gelernt"],
-            "translation": {"en": "to learn", "hu": "tanulni"},
-            "examples": [
-                {
-                    "de": "Ich lerne Deutsch.",
-                    "hu": "Németül tanulok.",
-                    "en": "I learn German.",
-                    "isSelected": True
-                }
-            ]
-        },
-        state="NEW",
-        step=0,
-        due='2025-07-06 08:24:32.82948',
-    )
-
-    page.goto("http://localhost:8180/sources/goethe-a1/study")
-
-    expect(page.get_by_text("New", exact=True)).to_be_visible()
-
-
-def test_study_page_card_state_learning(page: Page):
-    create_card(
-        card_id='sprechen',
-        source_id="goethe-a1",
-        source_page_number=20,
-        data={
-            "word": "sprechen",
-            "type": "VERB",
-            "forms": ["spricht", "sprach", "gesprochen"],
-            "translation": {"en": "to speak", "hu": "beszélni"},
-            "examples": [
-                {
-                    "de": "Ich spreche Deutsch.",
-                    "hu": "Németül beszélek.",
-                    "en": "I speak German.",
-                    "isSelected": True
-                }
-            ]
-        },
-        state="LEARNING",
-        step=1,
-        due='2025-07-06 08:24:32.82948',
-    )
-
-    page.goto("http://localhost:8180/sources/goethe-a1/study")
-
-    expect(page.get_by_text("Learning", exact=True)).to_be_visible()
 
 
 def test_source_selector_routing_works(page: Page):

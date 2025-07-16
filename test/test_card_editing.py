@@ -15,7 +15,8 @@ def test_card_editing_page(page: Page, context: BrowserContext):
         source_page_number=9,
         data={
             "word": "abfahren",
-            "type": "VERB",
+            "type": "NOUN",
+            "gender": "FEMININE",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -43,7 +44,8 @@ def test_card_editing_page(page: Page, context: BrowserContext):
     card_page = navigate_to_card_creation(page, context)
 
     # Word section
-    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Ige")
+    expect(card_page.get_by_role("combobox", name="Word type")).to_have_text("Főnév")
+    expect(card_page.get_by_role("combobox", name="Gender")).to_have_text("Feminine")
     expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
     expect(card_page.get_by_label("Hungarian translation", exact=True)).to_have_value("elindulni, elhagyni")
     expect(card_page.get_by_label("Swiss German translation", exact=True)).to_have_value("abfahra, verlah")
@@ -210,6 +212,7 @@ def test_word_type_editing(page: Page, context: BrowserContext):
         data={
             "word": "abfahren",
             "type": "VERB",
+            "gender": "NEUTER",
             "forms": ["fährt ab", "fuhr ab", "abgefahren"],
             "translation": {"en": "to leave", "hu": "elindulni, elhagyni", "ch": "abfahra, verlah"},
             "examples": [
@@ -235,6 +238,8 @@ def test_word_type_editing(page: Page, context: BrowserContext):
     # Change the word type from VERB to NOUN
     card_page.get_by_role("combobox", name="Word type").click()
     card_page.get_by_role("option", name="Főnév").click()
+    card_page.get_by_role("combobox", name="Gender").click()
+    card_page.get_by_role("option", name="Masculine").click()
 
     # Submit the changes
     card_page.get_by_role("button", name="Update").click()
@@ -249,6 +254,7 @@ def test_word_type_editing(page: Page, context: BrowserContext):
 
     # Verify the word type was updated correctly
     assert card_data["type"] == "NOUN"
+    assert card_data["gender"] == "MASCULINE"
 
     # Verify other card data remained unchanged
     assert card_data["word"] == "abfahren"

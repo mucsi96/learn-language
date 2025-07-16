@@ -20,6 +20,7 @@ import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
+import { getGenderInfo } from '../../shared/gender-translations';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -58,6 +59,11 @@ export class FlashcardComponent {
       : this.card.value()?.data.translation?.['hu']
   );
   readonly type = computed(() => this.card.value()?.data.type);
+  readonly gender = computed(() => this.card.value()?.data.gender);
+  readonly genderInfo = computed(() => {
+    const gender = this.gender();
+    return gender && this.isRevealed() ? getGenderInfo(gender) : undefined;
+  });
   readonly forms = computed(() => this.card.value()?.data.forms);
   readonly wordTypeInfo = computed(() => {
     const type = this.type();

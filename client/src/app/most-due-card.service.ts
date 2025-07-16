@@ -3,10 +3,8 @@ import {
   Injectable,
   Injector,
   inject,
-  linkedSignal,
   resource,
   signal,
-  untracked,
 } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
 import { CardState } from './shared/state/card-state';
@@ -17,6 +15,7 @@ export interface MostDueCard {
   data: {
     word: string;
     type: string;
+    gender?: string;
     translation: Record<string, string>;
     forms?: string[];
     examples: Array<{

@@ -1,5 +1,7 @@
-import { ChatMessage, TranslationResponse, WordTypeResponse, WordListResponse } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES } from './data';
+import {
+  ChatMessage,
+} from './types';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
 import { messagesMatch, createAssistantResponse } from './utils';
 import { imageMessagesMatch, extractTextFromImageUrl } from './ocr';
 
@@ -46,11 +48,23 @@ export class ChatHandler {
 
     // Extract the target language from system message
     let targetLanguage: string | null = null;
-    if (systemMessage.includes('translate the given German word and examples to English')) {
+    if (
+      systemMessage.includes(
+        'translate the given German word and examples to English'
+      )
+    ) {
       targetLanguage = 'english';
-    } else if (systemMessage.includes('translate the given German word and examples to Hungarian')) {
+    } else if (
+      systemMessage.includes(
+        'translate the given German word and examples to Hungarian'
+      )
+    ) {
       targetLanguage = 'hungarian';
-    } else if (systemMessage.includes('translate the given German word and examples to Swiss German')) {
+    } else if (
+      systemMessage.includes(
+        'translate the given German word and examples to Swiss German'
+      )
+    ) {
       targetLanguage = 'swiss-german';
     }
 
@@ -60,11 +74,35 @@ export class ChatHandler {
 
     // Find which word is being translated
     for (const word of Object.keys(TRANSLATIONS[targetLanguage])) {
-      if (messagesMatch(messages, 'translate the given German word and examples', word)) {
+      if (
+        messagesMatch(
+          messages,
+          'translate the given German word and examples',
+          word
+        )
+      ) {
         const translation = TRANSLATIONS[targetLanguage][word];
         return createAssistantResponse({
           translation: translation.translation,
           examples: translation.examples,
+        });
+      }
+    }
+
+    return null;
+  }
+
+  handleGenderDetection(messages: ChatMessage[]): any | null {
+    for (const noun of Object.keys(GENDERS)) {
+      if (
+        messagesMatch(
+          messages,
+          'Your task is to determine the gender of the given German noun',
+          `The noun is: ${noun}.`
+        )
+      ) {
+        return createAssistantResponse({
+          gender: GENDERS[noun],
         });
       }
     }
@@ -109,13 +147,19 @@ export class ChatHandler {
     const translationResponse = await this.handleTranslation(messages);
     if (translationResponse) return translationResponse;
 
-    // Try word type determination
+    // Try gender detection
+    const genderDetectionResponse = this.handleGenderDetection(messages);
+    if (genderDetectionResponse) return genderDetectionResponse;
+
+    // Try word type
     const wordTypeResponse = this.handleWordType(messages);
     if (wordTypeResponse) return wordTypeResponse;
 
     console.log('Received unprocessed messages:', messages);
 
     // Default response
-    return createAssistantResponse('This is a mock response from the OpenAI Chat API.');
+    return createAssistantResponse(
+      'This is a mock response from the OpenAI Chat API.'
+    );
   }
 }

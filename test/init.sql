@@ -59,13 +59,15 @@ CREATE TABLE learn_language.sources (
     start_page integer,
     file_name character varying(255),
     id character varying(255) NOT NULL,
-    name character varying(255)
+    name character varying(255),
+    language_level character varying(255),
+    card_type character varying(255)
 );
 
 
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name) VALUES (NULL, 16, 'Goethe-Zertifikat_B1_Wortliste.pdf', 'goethe-b1', 'Goethe B1');
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name) VALUES (9, 9, 'A1_SD1_Wortliste_02.pdf', 'goethe-a1', 'Goethe A1');
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name) VALUES (8, 8, 'Goethe-Zertifikat_A2_Wortliste.pdf', 'goethe-a2', 'Goethe A2');
+INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (NULL, 16, 'Goethe-Zertifikat_B1_Wortliste.pdf', 'goethe-b1', 'Goethe B1', 'B1', 'VOCABULARY');
+INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (9, 9, 'A1_SD1_Wortliste_02.pdf', 'goethe-a1', 'Goethe A1', 'A1', 'VOCABULARY');
+INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (8, 8, 'Goethe-Zertifikat_A2_Wortliste.pdf', 'goethe-a2', 'Goethe A2', 'A2', 'VOCABULARY');
 
 
 SELECT pg_catalog.setval('learn_language.review_logs_id_seq', 1, false);

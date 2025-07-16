@@ -1,8 +1,8 @@
 @let loading = cardService.isLoading; @let card = cardService.card.value; @let
-word = cardService.word; @let wordType = cardService.wordType; @let translation
-= cardService.translation; @let forms = cardService.forms; @let examples =
-cardService.examples; @let examplesTranslations =
-cardService.examplesTranslations; @let exampleImages =
+word = cardService.word; @let wordType = cardService.wordType; @let gender =
+cardService.gender; @let translation = cardService.translation; @let forms =
+cardService.forms; @let examples = cardService.examples; @let
+examplesTranslations = cardService.examplesTranslations; @let exampleImages =
 cardService.exampleImages; @let selectedExampleIndex =
 cardService.selectedExampleIndex; @if (loading()) {
 <mat-spinner class="page-loading" />
@@ -35,6 +35,20 @@ cardService.selectedExampleIndex; @if (loading()) {
       }
     </mat-select>
   </mat-form-field>
+  @if (wordType() === 'NOUN') {
+  <mat-form-field class="field">
+    <mat-label>Gender</mat-label>
+    <mat-select [(ngModel)]="gender" aria-label="Gender">
+      @for (option of genderOptions; track option.gender) {
+      <mat-option [value]="option.gender">
+        <span class="word-type-option" [style.background-color]="option.color">
+          {{ option.translation }}
+        </span>
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
 </div>
 <div class="word">
   <mat-form-field class="field">

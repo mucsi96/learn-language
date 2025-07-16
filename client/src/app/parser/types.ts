@@ -40,6 +40,7 @@ export type Card = {
   pageNumber: number;
   word: string;
   type?: string;
+  gender?: string;
   translation?: Record<string, string | undefined>;
   forms?: string[];
   examples?: (Record<string, string | undefined> & {

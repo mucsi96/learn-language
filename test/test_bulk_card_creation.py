@@ -1,7 +1,6 @@
 from pathlib import Path
 import sys
-import json
-from playwright.sync_api import Page, BrowserContext, expect
+from playwright.sync_api import Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
@@ -216,6 +215,7 @@ def test_bulk_card_creation_includes_word_data(page: Page):
         # Check word data
         assert card_data['word'] == 'abfahren'
         assert card_data['type'] == 'VERB'
+        assert 'gender' not in card_data
         assert card_data['forms'] == ['fährt ab', 'fuhr ab', 'abgefahren']
         assert card_data['translation']['en'] == 'to depart, to leave'
         assert card_data['translation']['hu'] == 'elindulni, elhagyni'
@@ -232,6 +232,16 @@ def test_bulk_card_creation_includes_word_data(page: Page):
         image2 = download_image(card_data['examples'][1]['images'][0]['id'])
         assert image1 == yellow_image
         assert image2 == red_image
+
+        cur.execute("SELECT data FROM learn_language.cards WHERE id = 'die-abfahrt'")
+        result = cur.fetchone()
+        assert result is not None, "Card 'die Abfahrt' was not found"
+        card_data = result[0]
+        # Check word data
+        assert card_data['word'] == 'die Abfahrt'
+        assert card_data['type'] == 'NOUN'
+        assert card_data['gender'] == 'FEMININE'
+        assert card_data['forms'] == ['die Abfahrten']
 
 
 def test_bulk_card_creation_updates_ui_after_completion(page: Page):
