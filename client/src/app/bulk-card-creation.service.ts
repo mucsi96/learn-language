@@ -206,6 +206,7 @@ export class BulkCardCreationService {
         ...cardData,
         ...emptyCard,
         state: mapTsfsrsStateToCardState(emptyCard.state),
+        inReview: true
       };
 
       await fetchJson(this.http, `/api/card`, {

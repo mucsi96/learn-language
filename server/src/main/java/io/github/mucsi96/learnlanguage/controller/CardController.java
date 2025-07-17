@@ -57,6 +57,7 @@ public class CardController {
         .reps(request.getReps())
         .lapses(request.getLapses())
         .due(LocalDateTime.now())
+        .inReview(true)
         .build();
 
     cardRepository.save(card);

@@ -39,6 +39,9 @@ public class Card {
     @Type(JsonBinaryType.class)
     private CardData data;
 
+    @Column(name = "in_review", nullable = false)
+    private Boolean inReview;
+
     @Column(nullable = false)
     private String state;
 
