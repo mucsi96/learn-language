@@ -1,10 +1,11 @@
 from pathlib import Path
 import sys
+from datetime import datetime, timezone
 from playwright.sync_api import Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import download_image, scroll_element_to_top, yellow_image, red_image, with_db_connection, select_text_range, create_card
+from utils import download_image, ensure_timezone_aware, scroll_element_to_top, yellow_image, red_image, with_db_connection, select_text_range, create_card
 
 
 def test_bulk_create_fab_appears_when_words_without_cards_selected(page: Page):
@@ -191,6 +192,7 @@ def test_bulk_card_creation_creates_cards_in_database(page: Page):
         assert 'abfahren' in card_ids
         assert 'die-abfahrt' in card_ids
 
+
 def test_bulk_card_creation_includes_word_data(page: Page):
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
@@ -340,3 +342,50 @@ def test_bulk_card_creation_source_metadata(page: Page):
         assert source_id == 'goethe-a1'
         assert page_number == 9
         assert source_name == 'Goethe A1'
+
+
+def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
+    """Test that created cards have correct learning parameters and review state"""
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+
+    # Select a region
+    select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
+
+    # Click the FAB
+    page.locator("button:has-text('Create')").filter(has_text="Cards").click()
+
+    # Wait for creation to complete
+    expect(page.get_by_role('dialog').get_by_role('button', name='Close')).to_be_visible()
+
+    # Verify learning parameters and review state in database
+    with with_db_connection() as cur:
+        # Check all three cards
+        cur.execute("""
+            SELECT state, step, stability, difficulty, reps, lapses, due, in_review
+            FROM learn_language.cards
+            WHERE id IN ('aber', 'abfahren', 'die-abfahrt')
+        """)
+        results = cur.fetchall()
+
+        assert len(results) == 3, "Expected 3 cards to be created"
+
+        # Get current time for due date comparison
+        current_time = datetime.now(timezone.utc)
+
+        # Check that all cards have the correct initial learning parameters
+        for result in results:
+            state, step, stability, difficulty, reps, lapses, due, in_review = result
+
+            # Check FSRS initial values
+            assert state == 'NEW'
+            assert step == 0
+            assert stability == 0
+            assert difficulty == 0
+            assert reps == 0
+            assert lapses == 0
+
+            assert due is not None
+            time_difference = abs((ensure_timezone_aware(due) - current_time).total_seconds())
+            assert time_difference < 60  # Within 1 minute of test execution
+            assert in_review is True

@@ -19,7 +19,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
             SELECT *,
                   ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE in_review == FALSE AND due <= NOW()
+            WHERE in_review = FALSE AND due <= NOW()
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state

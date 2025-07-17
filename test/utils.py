@@ -6,7 +6,7 @@ import json
 import base64
 import requests
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional, List
 from playwright.sync_api import expect
 
@@ -225,3 +225,14 @@ def upload_mock_image(image_data):
     blob_client.upload_blob(image_data, overwrite=True)
 
     return uuid_str
+
+def ensure_timezone_aware(dt: datetime) -> datetime:
+    """
+    Ensures that a datetime object has timezone info.
+    If the datetime is naive (no timezone), it assumes UTC timezone.
+    """
+    if dt.tzinfo is None:
+        return datetime(dt.year, dt.month, dt.day,
+                       dt.hour, dt.minute, dt.second,
+                       microsecond=dt.microsecond, tzinfo=timezone.utc)
+    return dt
