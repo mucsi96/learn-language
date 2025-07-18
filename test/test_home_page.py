@@ -1,11 +1,13 @@
 from pathlib import Path
 import sys
-from playwright.sync_api import Page, expect
+import uuid
 from datetime import datetime, timedelta
+
+from playwright.sync_api import Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_cards_with_states
+from utils import create_card, create_cards_with_states
 
 
 def test_displays_welcome_message(page: Page):
@@ -73,3 +75,31 @@ def test_due_cards_limited_to_max_50_mixed_states(page: Page):
     expect(page.get_by_title("Learning", exact=True)).to_contain_text("15")
     expect(page.get_by_title("Review", exact=True)).to_contain_text("10")
     expect(page.get_by_title("Relearning", exact=True)).to_contain_text("5")
+
+
+def test_in_review_cards_not_on_home_page(page: Page):
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+
+    create_card(
+        card_id=str(uuid.uuid4()),
+        source_id='goethe-a1',
+        data={'en': 'test', 'hu': 'teszt', 'ch': 'test'},
+        state='NEW',
+        step=0,
+        due=yesterday,
+        in_review=True
+    )
+
+    create_card(
+        card_id=str(uuid.uuid4()),
+        source_id='goethe-a1',
+        data={'en': 'test2', 'hu': 'teszt2', 'ch': 'test2'},
+        state='NEW',
+        step=0,
+        due=yesterday,
+        in_review=False
+    )
+
+    page.goto('http://localhost:8180')
+    expect(page.get_by_title("New", exact=True)).to_contain_text("1")

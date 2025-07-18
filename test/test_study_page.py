@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import uuid
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 
@@ -279,3 +280,43 @@ def test_source_selector_dropdown_shows_stats(page: Page):
     expect(goethe_a1_menu_item.get_by_title("Learning", exact=True)).to_have_text("3")
     expect(goethe_a2_menu_item.get_by_title("New", exact=True)).to_have_text("5")
     expect(goethe_a2_menu_item.get_by_title("Learning", exact=True)).to_have_text("1")
+
+
+def test_in_review_cards_not_shown_on_study_page(page: Page):
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+
+    # Create a card that is in review
+    create_card(
+        card_id=str(uuid.uuid4()),
+        source_id='goethe-a1',
+        data={
+            'word': 'verstehen',
+            'translation': {'en': 'to understand', 'hu': 'érteni', 'ch': 'verstah'}
+        },
+        state='NEW',
+        step=0,
+        due=yesterday,
+        in_review=True
+    )
+
+    # Create a card that is not in review
+    create_card(
+        card_id=str(uuid.uuid4()),
+        source_id='goethe-a1',
+        data={
+            'word': 'lernen',
+            'translation': {'en': 'to learn', 'hu': 'tanulni', 'ch': 'lerne'}
+        },
+        state='REVIEW',
+        step=0,
+        due=yesterday,
+        in_review=False
+    )
+
+    # Navigate to the study page
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    expect(page.get_by_role("navigation").get_by_title("Review", exact=True)).to_have_text("1")
+    expect(page.get_by_role("navigation").get_by_title("New", exact=True)).not_to_be_visible()
+    expect(page.get_by_text("Review", exact=True)).to_be_visible()

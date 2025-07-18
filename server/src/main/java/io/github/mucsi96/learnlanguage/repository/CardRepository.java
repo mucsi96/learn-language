@@ -30,6 +30,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
       SELECT *
       FROM learn_language.cards
       WHERE source_id = :sourceId
+        AND in_review = FALSE
         AND due <= NOW()
       ORDER BY due ASC
       LIMIT 1
