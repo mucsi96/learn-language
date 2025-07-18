@@ -5,6 +5,7 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
@@ -57,7 +58,7 @@ public class CardController {
         .reps(request.getReps())
         .lapses(request.getLapses())
         .due(LocalDateTime.now())
-        .inReview(true)
+        .readiness(CardReadiness.IN_REVIEW)
         .build();
 
     cardRepository.save(card);

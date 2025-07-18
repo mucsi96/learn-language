@@ -82,15 +82,15 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, step, due, stability=0, difficulty=0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, in_review=False):
+def create_card(card_id, source_id, data, state, step, due, stability=0, difficulty=0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, readiness='READY'):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (
-            id, source_id, source_page_number, data, state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses, in_review
+            id, source_id, source_page_number, data, state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses, readiness
           ) VALUES (
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
           );
-          """, (card_id, source_id, source_page_number, json.dumps(data), state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses, in_review))
+          """, (card_id, source_id, source_page_number, json.dumps(data), state, step, stability, difficulty, due, last_review, elapsed_days, scheduled_days, reps, lapses, readiness))
 
 
 def create_cards_with_states(

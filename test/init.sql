@@ -22,7 +22,7 @@ CREATE TABLE learn_language.cards (
     source_id character varying(255) NOT NULL,
     source_page_number integer NOT NULL,
     data jsonb NOT NULL,
-    in_review boolean NOT NULL,
+    readiness character varying(255) NOT NULL,
     difficulty real NOT NULL,
     stability real NOT NULL,
     state character varying(255) NOT NULL,

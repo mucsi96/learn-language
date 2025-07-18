@@ -282,11 +282,11 @@ def test_source_selector_dropdown_shows_stats(page: Page):
     expect(goethe_a2_menu_item.get_by_title("Learning", exact=True)).to_have_text("1")
 
 
-def test_in_review_cards_not_shown_on_study_page(page: Page):
+def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
     now = datetime.now()
     yesterday = now - timedelta(days=1)
 
-    # Create a card that is in review
+    # Create a card that has IN_REVIEW readiness status
     create_card(
         card_id=str(uuid.uuid4()),
         source_id='goethe-a1',
@@ -297,10 +297,10 @@ def test_in_review_cards_not_shown_on_study_page(page: Page):
         state='NEW',
         step=0,
         due=yesterday,
-        in_review=True
+        readiness='IN_REVIEW'
     )
 
-    # Create a card that is not in review
+    # Create a card that is ready for review
     create_card(
         card_id=str(uuid.uuid4()),
         source_id='goethe-a1',
@@ -311,7 +311,6 @@ def test_in_review_cards_not_shown_on_study_page(page: Page):
         state='REVIEW',
         step=0,
         due=yesterday,
-        in_review=False
     )
 
     # Navigate to the study page

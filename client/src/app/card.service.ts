@@ -172,7 +172,6 @@ export class CardService {
       state: mapTsfsrsStateToCardState(fsrsCardData.state),
       due: fsrsCardData.due.toISOString(),
       last_review: fsrsCardData.last_review?.toISOString(),
-      inReview: true
     };
 
     await fetchJson(this.http, `/api/card`, {

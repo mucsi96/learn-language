@@ -362,7 +362,7 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
     with with_db_connection() as cur:
         # Check all three cards
         cur.execute("""
-            SELECT state, step, stability, difficulty, reps, lapses, due, in_review
+            SELECT state, step, stability, difficulty, reps, lapses, due, readiness
             FROM learn_language.cards
             WHERE id IN ('aber', 'abfahren', 'die-abfahrt')
         """)
@@ -388,4 +388,4 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
             assert due is not None
             time_difference = abs((ensure_timezone_aware(due) - current_time).total_seconds())
             assert time_difference < 60  # Within 1 minute of test execution
-            assert in_review is True
+            assert in_review == 'IN_REVIEW'
