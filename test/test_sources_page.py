@@ -72,11 +72,9 @@ def test_drag_to_select_words(page: Page, context: BrowserContext):
     expect(page.get_by_role(role="link", name="aber")).to_be_visible()
     expect(page.get_by_role(role="link", name="abfahren")).to_be_visible()
 
-    with context.expect_page() as card_page_info:
-        page.get_by_role(role="link", name="abfahren").click()
-    card_page = card_page_info.value
+    page.get_by_role(role="link", name="abfahren").click()
 
-    expect(card_page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
+    expect(page.get_by_label("German translation", exact=True)).to_have_value("abfahren")
 
 
 def test_drag_to_select_multiple_regions(page: Page, context: BrowserContext):

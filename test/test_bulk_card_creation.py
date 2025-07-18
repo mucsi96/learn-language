@@ -375,7 +375,7 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
 
         # Check that all cards have the correct initial learning parameters
         for result in results:
-            state, step, stability, difficulty, reps, lapses, due, in_review = result
+            state, step, stability, difficulty, reps, lapses, due, readiness = result
 
             # Check FSRS initial values
             assert state == 'NEW'
@@ -388,4 +388,4 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
             assert due is not None
             time_difference = abs((ensure_timezone_aware(due) - current_time).total_seconds())
             assert time_difference < 60  # Within 1 minute of test execution
-            assert in_review == 'IN_REVIEW'
+            assert readiness == 'IN_REVIEW'

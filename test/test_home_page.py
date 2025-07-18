@@ -88,7 +88,7 @@ def test_in_review_cards_not_on_home_page(page: Page):
         state='NEW',
         step=0,
         due=yesterday,
-        in_review=True
+        readiness='IN_REVIEW'
     )
 
     create_card(
@@ -98,7 +98,7 @@ def test_in_review_cards_not_on_home_page(page: Page):
         state='NEW',
         step=0,
         due=yesterday,
-        in_review=False
+        readiness= 'READY'
     )
 
     page.goto('http://localhost:8180')
