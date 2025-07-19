@@ -39,3 +39,14 @@ export interface ImageGenerationResponse {
     url: null;
   }>;
 }
+
+export interface AudioGenerationRequest {
+  input: string;
+}
+
+export interface AudioGenerationResponse {
+  created: number;
+  data: {
+    audio: string;
+  };
+}

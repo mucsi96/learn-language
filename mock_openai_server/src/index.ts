@@ -1,9 +1,11 @@
 import express from 'express';
 import { ImageGenerationHandler } from './imageGeneration';
+import { AudioGenerationHandler } from './audioGeneration';
 import { ChatHandler } from './chatHandler';
 
 const app = express();
 const imageHandler = new ImageGenerationHandler();
+const audioHandler = new AudioGenerationHandler();
 const chatHandler = new ChatHandler();
 
 app.use(express.json());
@@ -32,6 +34,17 @@ app.post('/images/generations', (req, res) => {
   } catch (error) {
     console.error('Image generation error:', error);
     res.status(500).json({ error: { message: 'Image generation failed' } });
+  }
+});
+
+// Add route for audio generation mock
+app.post('/audio/speech', (req, res) => {
+  try {
+    const result = audioHandler.generateAudio(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Audio generation error:', error);
+    res.status(500).json({ error: { message: 'Audio generation failed' } });
   }
 });
 

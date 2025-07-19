@@ -49,7 +49,7 @@ public class TracebleOpenAIClient implements OpenAIClient {
 
   @Override
   public AudioService audio() {
-    throw new UnsupportedOperationException("Unimplemented method 'audio'");
+    return delegate.audio();
   }
 
   @Override

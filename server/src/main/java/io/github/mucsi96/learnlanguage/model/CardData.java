@@ -23,4 +23,7 @@ public class CardData {
     private Map<String, String> translation;
     private List<String> forms;
     private List<ExampleData> examples;
+
+    @JsonInclude(Include.NON_NULL)
+    private Map<String, String> audio;
 }
