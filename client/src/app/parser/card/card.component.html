@@ -8,7 +8,7 @@ cardService.selectedExampleIndex; @if (loading()) {
 <mat-spinner class="page-loading" />
 } @else {
 <div class="top-actions">
-  <a mat-icon-button [routerLink]="['/sources', cardService.selectedSourceId(), 'page', cardService.selectedPageNumber()]" aria-label="Go back">
+  <a mat-icon-button [routerLink]="backNavigationUrl()" aria-label="Go back">
     <mat-icon>arrow_back</mat-icon>
   </a>
 </div>
@@ -22,6 +22,16 @@ cardService.selectedExampleIndex; @if (loading()) {
   >
     <mat-icon>delete</mat-icon>
   </button>
+  @if (isInReview()) {
+  <button
+    type="button"
+    mat-flat-button
+    (click)="markAsReviewed()"
+    [disabled]="!canMarkAsReviewed()"
+  >
+    Mark as reviewed
+  </button>
+  }
   <button type="button" mat-flat-button (click)="updateCard()">Update</button>
   } @else {
   <button type="button" mat-flat-button (click)="createCard()">Create</button>

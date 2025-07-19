@@ -57,11 +57,10 @@ export class CardService {
   );
   readonly examples = linkedSignal(
     () =>
-      this.card.value()?.examples?.map((example) => signal(example['de'])) ??
-      this.selectedWord()?.examples.map((example) => signal(example))
+      this.card.value()?.examples?.map((example) => signal(example['de']))
   );
   readonly examplesTranslations = linkedSignal(() => {
-    const examples = this.selectedWord()?.examples;
+    const examples = this.examples();
 
     if (!examples) {
       return;
@@ -190,6 +189,18 @@ export class CardService {
     await fetchJson(this.http, `/api/card/${word.id}`, {
       body: this.getCardData(),
       method: 'PUT',
+    });
+  }
+
+  async markAsReviewed() {
+    const word = this.selectedWord();
+
+    if (!word) {
+      return;
+    }
+
+    await fetchJson(this.http, `/api/card/${word.id}/mark-as-reviewed`, {
+      method: 'POST',
     });
   }
 

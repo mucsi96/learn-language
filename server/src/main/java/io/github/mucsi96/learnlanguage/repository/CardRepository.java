@@ -36,4 +36,6 @@ public interface CardRepository extends JpaRepository<Card, String> {
       LIMIT 1
       """, nativeQuery = true)
   Optional<Card> findMostDueCardBySourceId(String sourceId);
+
+  List<Card> findByReadinessOrderByDueAsc(String readiness);
 }

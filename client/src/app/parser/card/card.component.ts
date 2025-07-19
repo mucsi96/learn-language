@@ -53,6 +53,52 @@ export class CardComponent {
     return examples?.map(() => 0) ?? []
   });
 
+  readonly backNavigationUrl = computed(() => {
+    const card = this.cardService.card.value();
+    const readiness = card?.readiness;
+    const sourceId = this.cardService.selectedSourceId();
+    const pageNumber = this.cardService.selectedPageNumber();
+
+    if (readiness === 'IN_REVIEW' || readiness === 'REVIEWED') {
+      return ['/in-review-cards'];
+    }
+
+    return ['/sources', sourceId, 'page', pageNumber];
+  });
+
+  readonly isInReview = computed(() => {
+    const card = this.cardService.card.value();
+    return card?.readiness === 'IN_REVIEW';
+  });
+
+  readonly canMarkAsReviewed = computed(() => {
+    if (!this.isInReview()) {
+      return false;
+    }
+
+    // Check if there is a selected example
+    const selectedExampleIndex = this.cardService.selectedExampleIndex();
+    const examples = this.cardService.examples();
+
+    if (!examples || selectedExampleIndex < 0 || selectedExampleIndex >= examples.length) {
+      return false;
+    }
+
+    // Check if the selected example has a favorite image
+    const exampleImages = this.cardService.exampleImages();
+    const selectedExampleImages = exampleImages?.[selectedExampleIndex];
+
+    if (!selectedExampleImages || selectedExampleImages.length === 0) {
+      return false;
+    }
+
+    // Check if at least one image in the selected example is marked as favorite
+    return selectedExampleImages.some(imageResource => {
+      const imageValue = imageResource.value();
+      return imageValue?.isFavorite === true;
+    });
+  });
+
   constructor() {
     this.route.params.subscribe((params) => {
       this.cardService.selectedSourceId.set(params['sourceId']);
@@ -120,6 +166,15 @@ export class CardComponent {
   async updateCard() {
     await this.cardService.updateCard();
     this.showSnackBar('Card updated successfully');
+  }
+
+  async markAsReviewed() {
+    // First save any changes to the card (same as update button)
+    await this.cardService.updateCard();
+    // Then mark it as reviewed
+    await this.cardService.markAsReviewed();
+    this.cardService.card.reload();
+    this.showSnackBar('Card marked as reviewed successfully');
   }
 
   async confirmDeleteCard() {

@@ -6,6 +6,7 @@ import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
+import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -68,13 +70,14 @@ public class CardController {
 
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<CardData> getCard(@PathVariable String cardId) throws Exception {
+  public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     CardData cardData = card.getData();
+    CardResponse cardResponse = CardResponse.fromCardData(cardData, card.getReadiness());
 
-    return ResponseEntity.ok(cardData);
+    return ResponseEntity.ok(cardResponse);
   }
 
   @PutMapping("/card/{cardId}")
@@ -101,6 +104,20 @@ public class CardController {
     return ResponseEntity.ok(response);
   }
 
+  @PostMapping("/card/{cardId}/mark-as-reviewed")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> markCardAsReviewed(@PathVariable String cardId) throws Exception {
+    Card card = cardRepository.findById(cardId)
+        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+
+    card.setReadiness(CardReadiness.REVIEWED);
+    cardRepository.save(card);
+
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Card marked as reviewed successfully");
+    return ResponseEntity.ok(response);
+  }
+
   @DeleteMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
@@ -120,5 +137,12 @@ public class CardController {
     return cardService.getMostDueCardBySourceId(sourceId)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/cards/readiness/{readiness}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<List<Card>> getCardsByReadiness(@PathVariable String readiness) {
+    List<Card> cards = cardService.getCardsByReadiness(readiness);
+    return ResponseEntity.ok(cards);
   }
 }

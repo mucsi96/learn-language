@@ -1,0 +1,134 @@
+@if (loading()) {
+<div class="container">
+  <h1>Cards In Review</h1>
+  <p>
+    These cards are currently being reviewed and will be available for study
+    once approved.
+  </p>
+
+  <table mat-table [dataSource]="skeletonData" class="cards-table">
+    <!-- Word Column -->
+    <ng-container matColumnDef="word">
+      <th mat-header-cell *matHeaderCellDef>Word</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="word-cell">
+          <div class="skeleton skeleton-text-medium"></div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Type Column -->
+    <ng-container matColumnDef="type">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="skeleton skeleton-text-small"></div>
+      </td>
+    </ng-container>
+
+    <!-- Translation Column -->
+    <ng-container matColumnDef="translation">
+      <th mat-header-cell *matHeaderCellDef>Translation</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="skeleton skeleton-text-large"></div>
+      </td>
+    </ng-container>
+
+    <!-- Source Column -->
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="source-cell">
+          <div class="skeleton skeleton-text-medium"></div>
+          <div class="skeleton skeleton-text-small"></div>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>
+} @else {
+<div class="container">
+  <h1>Cards In Review</h1>
+  <p>
+    These cards are currently being reviewed and will be available for study
+    once approved.
+  </p>
+
+  @let cardsList = cards() || []; @if (cardsList.length > 0) {
+  <table mat-table [dataSource]="cardsList" class="cards-table">
+    <!-- Word Column -->
+    <ng-container matColumnDef="word">
+      <th mat-header-cell *matHeaderCellDef>Word</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="word-cell">
+          <span class="word-text">
+            {{ card.data.word }}
+          </span>
+          @if (getGenderInfo(card.data.gender); as genderInfo) {
+          <span class="gender-text"> ({{ genderInfo.translation }}) </span>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Type Column -->
+    <ng-container matColumnDef="type">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let card">
+        <span class="type-text">
+          {{ getWordTypeInfo(card.data.type)?.translation || "-" }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Translation Column -->
+    <ng-container matColumnDef="translation">
+      <th mat-header-cell *matHeaderCellDef>Translation</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="translation-cell">
+          {{ getTranslationText(card) }}
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Source Column -->
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="source-cell">
+          <span class="source-id">{{ card.source.name }}</span>
+          <span class="page-number">Page {{ card.sourcePageNumber }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      [routerLink]="[
+        '/sources',
+        row.source.id,
+        'page',
+        row.sourcePageNumber,
+        'cards'
+      ]"
+      [queryParams]="{
+        cardData: ({ id: row.id, exists: true } | compressQuery | async)
+      }"
+      class="clickable-row"
+    ></tr>
+  </table>
+  } @else {
+  <mat-card class="empty-state">
+    <mat-card-content>
+      <mat-icon class="empty-icon">check_circle</mat-icon>
+      <h2>No cards in review</h2>
+      <p>All cards have been reviewed and are ready for study.</p>
+    </mat-card-content>
+  </mat-card>
+  }
+</div>
+}

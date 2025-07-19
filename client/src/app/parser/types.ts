@@ -47,6 +47,7 @@ export type Card = {
     isSelected?: boolean;
     images?: ExampleImage[];
   })[];
+  readiness?: string;
 };
 
 export type Page = {

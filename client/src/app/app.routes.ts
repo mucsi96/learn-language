@@ -14,6 +14,13 @@ export const routes: Routes = [
     title: '',
   },
   {
+    path: 'in-review-cards',
+    loadComponent: () =>
+      import('./in-review-cards/in-review-cards.component').then((m) => m.InReviewCardsComponent),
+    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    title: 'Cards In Review',
+  },
+  {
     path: 'sources/:sourceId/study',
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: 'Study',
