@@ -25,6 +25,7 @@ public class CardCreateRequest {
   private Map<String, String> translation;
   private List<String> forms;
   private List<ExampleData> examples;
+  private Map<String, String> audio;
 
   // FSRS attributes
   private String state;

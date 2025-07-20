@@ -9,6 +9,7 @@ import { InReviewCardsService } from '../in-review-cards.service';
 import { CompressQueryPipe } from '../utils/compress-query.pipe';
 import { getWordTypeInfo } from '../shared/word-type-translations';
 import { getGenderInfo } from '../shared/gender-translations';
+import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
 
 export interface BackendCard {
   id: string;
@@ -31,6 +32,7 @@ export interface BackendCard {
       isSelected?: boolean;
       images?: Array<{ id: string; isFavorite?: boolean }>;
     }>;
+    audio?: Record<string, string>;
   };
 }
 
@@ -46,6 +48,7 @@ export interface BackendCard {
     RouterLink,
     AsyncPipe,
     CompressQueryPipe,
+    BatchAudioCreationFabComponent,
   ],
   templateUrl: './in-review-cards.component.html',
   styleUrl: './in-review-cards.component.css',

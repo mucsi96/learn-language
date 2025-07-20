@@ -154,8 +154,8 @@ export class BulkCardCreationService {
         ])
       );
 
-      // Step 3: Generate images for examples (70% progress)
-      this.updateProgress(progressIndex, 'generating-images', 70, 'Generating example images...');
+      // Step 3: Generate images for examples (60% progress)
+      this.updateProgress(progressIndex, 'generating-images', 60, 'Generating example images...');
       const exampleImages = await Promise.all(
         word.examples.map(async (example, exampleIndex) => {
           // Use English translation for image generation
@@ -214,7 +214,13 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      // Step 5: Complete (100% progress)
+      // Step 6: Update readiness to IN_REVIEW (95% progress)
+      this.updateProgress(progressIndex, 'creating-card', 95, 'Setting card as in review...');
+      await fetchJson(this.http, `/api/card/${word.id}/readiness/IN_REVIEW`, {
+        method: 'POST',
+      });
+
+      // Step 7: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);
 
     } catch (error) {

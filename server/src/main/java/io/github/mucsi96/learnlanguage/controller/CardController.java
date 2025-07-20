@@ -43,6 +43,7 @@ public class CardController {
         .translation(request.getTranslation())
         .forms(request.getForms())
         .examples(request.getExamples())
+        .audio(request.getAudio())
         .build();
 
     // Create a new card with FSRS defaults
@@ -94,6 +95,7 @@ public class CardController {
         .translation(request.getTranslation())
         .forms(request.getForms())
         .examples(request.getExamples())
+        .audio(request.getAudio())
         .build();
 
     card.setData(cardData);
@@ -104,17 +106,17 @@ public class CardController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/card/{cardId}/mark-as-reviewed")
+  @PostMapping("/card/{cardId}/readiness/{readiness}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<Map<String, String>> markCardAsReviewed(@PathVariable String cardId) throws Exception {
+  public ResponseEntity<Map<String, String>> updateCardReadiness(@PathVariable String cardId, @PathVariable String readiness) throws Exception {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    card.setReadiness(CardReadiness.REVIEWED);
+    card.setReadiness(readiness);
     cardRepository.save(card);
 
     Map<String, String> response = new HashMap<>();
-    response.put("detail", "Card marked as reviewed successfully");
+    response.put("detail", "Card readiness updated to " + readiness + " successfully");
     return ResponseEntity.ok(response);
   }
 

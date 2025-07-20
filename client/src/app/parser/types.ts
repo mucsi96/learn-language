@@ -48,6 +48,7 @@ export type Card = {
     images?: ExampleImage[];
   })[];
   readiness?: string;
+  audio?: Record<string, string>;
 };
 
 export type Page = {

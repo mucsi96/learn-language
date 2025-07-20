@@ -156,6 +156,7 @@ export class CardService {
         }),
         images: this.exampleImages()[index]?.map((image) => image.value()),
       })),
+      audio: this.card.value()?.audio || {},
     } satisfies Card;
     return cardData;
   }
