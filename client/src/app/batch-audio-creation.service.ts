@@ -95,9 +95,13 @@ export class BatchAudioCreationService {
     const audioMap = card.data.audio || {};
 
     try {
-      // Step 1: Generate audio for the German word (25% progress)
-      this.updateProgress(progressIndex, 'generating-word-audio', 25, 'Generating audio for German word...');
-      if (card.data.word && !audioMap[card.data.word]) {
+      // Step 0: Clean up unused audio entries (15% progress)
+      this.updateProgress(progressIndex, 'updating-card', 15, 'Cleaning up unused audio...');
+      const cleanedAudioMap = await this.cleanupUnusedAudioKeys(card, audioMap);
+
+      // Step 1: Generate audio for the German word (30% progress)
+      this.updateProgress(progressIndex, 'generating-word-audio', 30, 'Generating audio for German word...');
+      if (card.data.word && !cleanedAudioMap[card.data.word]) {
         const wordAudioResponse = await fetchJson<{ id: string }>(
           this.http,
           `/api/audio`,
@@ -106,12 +110,12 @@ export class BatchAudioCreationService {
             method: 'POST',
           }
         );
-        audioMap[card.data.word] = wordAudioResponse.id;
+        cleanedAudioMap[card.data.word] = wordAudioResponse.id;
       }
 
-      // Step 2: Generate audio for Hungarian translation (50% progress)
-      this.updateProgress(progressIndex, 'generating-translation-audio', 50, 'Generating audio for translation...');
-      if (card.data.translation?.['hu'] && !audioMap[card.data.translation['hu']]) {
+      // Step 2: Generate audio for Hungarian translation (55% progress)
+      this.updateProgress(progressIndex, 'generating-translation-audio', 55, 'Generating audio for translation...');
+      if (card.data.translation?.['hu'] && !cleanedAudioMap[card.data.translation['hu']]) {
         const translationAudioResponse = await fetchJson<{ id: string }>(
           this.http,
           `/api/audio`,
@@ -120,15 +124,15 @@ export class BatchAudioCreationService {
             method: 'POST',
           }
         );
-        audioMap[card.data.translation['hu']] = translationAudioResponse.id;
+        cleanedAudioMap[card.data.translation['hu']] = translationAudioResponse.id;
       }
 
-      // Step 3: Generate audio for selected example and its translation (75% progress)
-      this.updateProgress(progressIndex, 'generating-example-audio', 75, 'Generating audio for examples...');
+      // Step 3: Generate audio for selected example and its translation (80% progress)
+      this.updateProgress(progressIndex, 'generating-example-audio', 80, 'Generating audio for examples...');
       const selectedExample = card.data.examples?.find((example: any) => example.isSelected);
       if (selectedExample) {
         // German example
-        if (selectedExample.de && !audioMap[selectedExample.de]) {
+        if (selectedExample.de && !cleanedAudioMap[selectedExample.de]) {
           const exampleAudioResponse = await fetchJson<{ id: string }>(
             this.http,
             `/api/audio`,
@@ -137,11 +141,11 @@ export class BatchAudioCreationService {
               method: 'POST',
             }
           );
-          audioMap[selectedExample.de] = exampleAudioResponse.id;
+          cleanedAudioMap[selectedExample.de] = exampleAudioResponse.id;
         }
 
         // Hungarian example translation
-        if (selectedExample.hu && !audioMap[selectedExample.hu]) {
+        if (selectedExample.hu && !cleanedAudioMap[selectedExample.hu]) {
           const exampleTranslationAudioResponse = await fetchJson<{ id: string }>(
             this.http,
             `/api/audio`,
@@ -150,7 +154,7 @@ export class BatchAudioCreationService {
               method: 'POST',
             }
           );
-          audioMap[selectedExample.hu] = exampleTranslationAudioResponse.id;
+          cleanedAudioMap[selectedExample.hu] = exampleTranslationAudioResponse.id;
         }
       }
 
@@ -160,7 +164,7 @@ export class BatchAudioCreationService {
       // Create the updated card data by merging existing data with new audio
       const updatedCardData = {
         ...card.data,
-        audio: audioMap
+        audio: cleanedAudioMap
       };
 
       // Update the card
@@ -208,6 +212,67 @@ export class BatchAudioCreationService {
       }
       return newProgress;
     });
+  }
+
+  /**
+   * Clean up audio keys that are no longer needed based on current card data
+   */
+  private async cleanupUnusedAudioKeys(card: BackendCard, audioMap: Record<string, string>): Promise<Record<string, string>> {
+    // Collect all text keys that should have audio based on current card data
+    const validAudioKeys = new Set<string>();
+    
+    // Add word if exists
+    if (card.data.word) {
+      validAudioKeys.add(card.data.word);
+    }
+    
+    // Add Hungarian translation if exists
+    if (card.data.translation?.['hu']) {
+      validAudioKeys.add(card.data.translation['hu']);
+    }
+    
+    // Add selected example texts if they exist
+    const selectedExample = card.data.examples?.find((example: any) => example.isSelected);
+    if (selectedExample) {
+      if (selectedExample.de) {
+        validAudioKeys.add(selectedExample.de);
+      }
+      if (selectedExample.hu) {
+        validAudioKeys.add(selectedExample.hu);
+      }
+    }
+    
+    // Create new audio map with only valid keys
+    const cleanedAudioMap: Record<string, string> = {};
+    const audioKeysToDelete: string[] = [];
+    
+    // Check existing audio keys
+    for (const [text, audioId] of Object.entries(audioMap)) {
+      if (validAudioKeys.has(text)) {
+        // Keep this audio entry
+        cleanedAudioMap[text] = audioId;
+      } else {
+        // Mark for deletion
+        audioKeysToDelete.push(audioId);
+      }
+    }
+    
+    // Delete unused audio files from blob storage
+    if (audioKeysToDelete.length > 0) {
+      try {
+        // Call backend to delete audio files
+        for (const audioId of audioKeysToDelete) {
+          await fetchJson(this.http, `/api/audio/${audioId}`, {
+            method: 'DELETE',
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to delete some unused audio files:', error);
+        // Continue processing even if cleanup fails
+      }
+    }
+    
+    return cleanedAudioMap;
   }
 
   clearProgress(): void {

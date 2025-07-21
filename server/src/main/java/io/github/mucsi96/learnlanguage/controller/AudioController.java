@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,5 +52,13 @@ public class AudioController {
         .contentType(MediaType.parseMediaType("audio/mpeg"))
         .header("Cache-Control", "public, max-age=31536000, immutable")
         .body(audioData);
+  }
+
+  @DeleteMapping("/api/audio/{id}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Void> deleteAudio(@PathVariable String id) {
+    String blobName = "audio/%s.mp3".formatted(id);
+    blobStorageService.deleteBlob(blobName);
+    return ResponseEntity.noContent().build();
   }
 }

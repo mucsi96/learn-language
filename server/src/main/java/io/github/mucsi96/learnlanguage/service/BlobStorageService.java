@@ -42,4 +42,8 @@ public class BlobStorageService {
 
     getBlobClient(blobName).uploadWithResponse(options, Duration.ofSeconds(5), null);
   }
+
+  public void deleteBlob(String blobName) {
+    getBlobClient(blobName).deleteIfExists();
+  }
 }
