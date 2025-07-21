@@ -59,6 +59,12 @@ p {
   padding: 1.5rem;
 }
 
+.card-count {
+  color: var(--mat-app-text-color);
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+}
+
 .page-loading {
   margin: 150px auto;
 }

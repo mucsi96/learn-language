@@ -17,6 +17,7 @@ import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
+import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +34,23 @@ public class SourceController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/api/sources")
   public List<SourceResponse> getSources() {
-    return sourceService.getAllSources().stream().map(source -> SourceResponse.builder()
-        .id(source.getId())
-        .name(source.getName())
-        .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
-        .build()).collect(Collectors.toList());
+    var sources = sourceService.getAllSources();
+    var cardCounts = cardService.getCardCountsBySource();
+
+    return sources.stream().map(source -> {
+      var cardCount = cardCounts.stream()
+          .filter(count -> count.sourceId().equals(source.getId()))
+          .findFirst()
+          .map(SourceCardCount::count)
+          .orElse(0);
+
+      return SourceResponse.builder()
+          .id(source.getId())
+          .name(source.getName())
+          .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
+          .cardCount(cardCount)
+          .build();
+    }).collect(Collectors.toList());
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

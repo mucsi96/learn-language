@@ -13,6 +13,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CardService {
 
+  public static record SourceCardCount(String sourceId, Integer count) {}
+
   private final CardRepository cardRepository;
 
   public Optional<Card> getCardById(String id) {
@@ -48,5 +50,15 @@ public class CardService {
 
   public List<Card> getCardsByReadiness(String readiness) {
     return cardRepository.findByReadinessOrderByDueAsc(readiness);
+  }
+
+  public List<SourceCardCount> getCardCountsBySource() {
+    return cardRepository.countBySourceGroupBySource()
+        .stream()
+        .map(record -> new SourceCardCount(
+            (String) record[0],
+            ((Long) record[1]).intValue())
+        )
+        .toList();
   }
 }

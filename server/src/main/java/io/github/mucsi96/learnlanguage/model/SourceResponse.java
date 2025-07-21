@@ -9,4 +9,5 @@ public class SourceResponse {
     private String id;
     private String name;
     private Integer startPage;
+    private Integer cardCount;
 }

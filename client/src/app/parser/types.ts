@@ -64,6 +64,7 @@ export type Source = {
   id: string;
   name: string;
   startPage: number;
+  cardCount?: number;
 };
 
 export type WordList = {

@@ -38,4 +38,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
   Optional<Card> findMostDueCardBySourceId(String sourceId);
 
   List<Card> findByReadinessOrderByDueAsc(String readiness);
+
+  @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")
+  List<Object[]> countBySourceGroupBySource();
 }

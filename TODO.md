@@ -3,7 +3,6 @@
 
 - add automated dependency update
 
-- add card publishing / multi phase creation
 - add prononciations
 - add AI generated word forms and warn if they dont match with original
 - support for speach card type
@@ -14,4 +13,3 @@
 - generate more images for examples
 - handle study 404 with nice empty state
 - on admin page show cards count
-- introduce cards list for admins
