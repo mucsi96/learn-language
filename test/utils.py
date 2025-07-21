@@ -1,5 +1,3 @@
-from email.mime import base
-from openai import audio
 import psycopg
 from azure.storage.blob import BlobServiceClient
 from pathlib import Path
