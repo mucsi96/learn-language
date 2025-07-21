@@ -43,10 +43,3 @@ export interface ImageGenerationResponse {
 export interface AudioGenerationRequest {
   input: string;
 }
-
-export interface AudioGenerationResponse {
-  created: number;
-  data: {
-    audio: string;
-  };
-}

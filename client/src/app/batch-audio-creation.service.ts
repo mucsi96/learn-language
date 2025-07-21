@@ -97,7 +97,7 @@ export class BatchAudioCreationService {
     try {
       // Step 1: Generate audio for the German word (25% progress)
       this.updateProgress(progressIndex, 'generating-word-audio', 25, 'Generating audio for German word...');
-      if (card.data.word) {
+      if (card.data.word && !audioMap[card.data.word]) {
         const wordAudioResponse = await fetchJson<{ id: string }>(
           this.http,
           `/api/audio`,
@@ -111,7 +111,7 @@ export class BatchAudioCreationService {
 
       // Step 2: Generate audio for Hungarian translation (50% progress)
       this.updateProgress(progressIndex, 'generating-translation-audio', 50, 'Generating audio for translation...');
-      if (card.data.translation?.['hu']) {
+      if (card.data.translation?.['hu'] && !audioMap[card.data.translation['hu']]) {
         const translationAudioResponse = await fetchJson<{ id: string }>(
           this.http,
           `/api/audio`,
@@ -128,7 +128,7 @@ export class BatchAudioCreationService {
       const selectedExample = card.data.examples?.find((example: any) => example.isSelected);
       if (selectedExample) {
         // German example
-        if (selectedExample.de) {
+        if (selectedExample.de && !audioMap[selectedExample.de]) {
           const exampleAudioResponse = await fetchJson<{ id: string }>(
             this.http,
             `/api/audio`,
@@ -141,7 +141,7 @@ export class BatchAudioCreationService {
         }
 
         // Hungarian example translation
-        if (selectedExample.hu) {
+        if (selectedExample.hu && !audioMap[selectedExample.hu]) {
           const exampleTranslationAudioResponse = await fetchJson<{ id: string }>(
             this.http,
             `/api/audio`,

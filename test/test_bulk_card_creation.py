@@ -389,3 +389,21 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
             time_difference = abs((ensure_timezone_aware(due) - current_time).total_seconds())
             assert time_difference < 60  # Within 1 minute of test execution
             assert readiness == 'IN_REVIEW'
+
+
+def test_bulk_card_creation_dialog_review_link(page: Page):
+    """Test that the review link appears in the create cards dialog when creation is complete"""
+    page.goto("http://localhost:8180/sources")
+    page.get_by_role(role="link", name="Goethe A1").click()
+
+    # Select a region
+    select_text_range(page, "aber", "Vor der Abfahrt rufe ich an.")
+
+    # Click the FAB to open the dialog
+    page.locator("button:has-text('Create')").filter(has_text="Cards").click()
+
+    # Click the review link
+    page.get_by_role('dialog').get_by_role('link', name='Review').click()
+
+    # Verify that we navigate to the in-review-cards page
+    expect(page).to_have_url("http://localhost:8180/in-review-cards")

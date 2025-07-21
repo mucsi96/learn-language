@@ -13,6 +13,7 @@ import {
   CardCreationProgress,
 } from '../bulk-card-creation.service';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-bulk-creation-progress-dialog',
@@ -24,14 +25,20 @@ import { CommonModule } from '@angular/common';
     MatButtonModule,
     MatIconModule,
     MatListModule,
+    RouterLink,
   ],
   templateUrl: './bulk-creation-progress-dialog.component.html',
   styleUrl: './bulk-creation-progress-dialog.component.css',
 })
 export class BulkCreationProgressDialogComponent {
   readonly bulkCardService = inject(BulkCardCreationService);
+  private readonly dialogRef = inject(MatDialogRef<BulkCreationProgressDialogComponent>);
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: { words: string[] }) {}
+
+  closeDialog(): void {
+    this.dialogRef.close();
+  }
 
   getStatusIcon(status: CardCreationProgress['status']): string {
     switch (status) {

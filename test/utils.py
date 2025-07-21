@@ -1,3 +1,5 @@
+from email.mime import base
+from openai import audio
 import psycopg
 from azure.storage.blob import BlobServiceClient
 from pathlib import Path
@@ -139,6 +141,7 @@ blue_image = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPj/n4EIwDiqkL4KAVIQE/f1/NxEAAAAAElFTkSuQmCC")
 green_image = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=")
+audio_sample = base64.b64decode("IlNVUXpCQUFBQUFBQUkxUlRVMFVBQUFBUEFBQURUR0YyWmpVNExqYzJMakV3TUFBQUFBQUFBQUFBQUFBQS8vdEF3QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFTVzVtYndBQUFBOEFBQUFHQUFBRVNBQXpNek16TXpNek16TXpabVptWm1abVptWm1abWFabVptWm1abVptWm1aek16TXpNek16TXpNek16Ly8vLy8vLy8vLy84QUFBQUFUR0YyWXpVNExqRXpBQUFBQUFBQUFBQUFBQUFBSkFVSEFBQUFBQUFBQUFSSUU2UFp3d0FBQUFBQUFBQUFBQUFBQUFBQUFQLzdVTVFBQUFlc1RYV1VFUUFCMENON1phUWdBS3FxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXEvL3NReE1PRHdBQUJwQndBQUNBQUFEU0FBQUFFcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcSI=")
 
 
 def get_image_content(image_element):
@@ -204,6 +207,17 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
 def download_image(id):
     container_client = blob_service_client.get_container_client('learn-language')
     blob_name = f"images/{id}.jpg"
+    blob_client = container_client.get_blob_client(blob_name)
+
+    if not blob_client.exists():
+        raise FileNotFoundError(f"Blob {blob_name} does not exist in the container.")
+
+    download_stream = blob_client.download_blob()
+    return download_stream.readall()
+
+def download_audio(id):
+    container_client = blob_service_client.get_container_client('learn-language')
+    blob_name = f"audio/{id}.mp3"
     blob_client = container_client.get_blob_client(blob_name)
 
     if not blob_client.exists():
