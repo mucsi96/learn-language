@@ -12,17 +12,20 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MostDueCardService } from '../../most-due-card.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { fetchAudio } from '../../utils/fetchAudio';
+import { fetchJson } from '../../utils/fetchJson';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
+import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -36,7 +39,11 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
+    MatTooltipModule,
+    RouterModule,
     StateComponent,
+    AsyncPipe,
+    CompressQueryPipe,
   ],
   templateUrl: './flashcard.component.html',
   styleUrl: './flashcard.component.css',
@@ -108,13 +115,13 @@ export class FlashcardComponent {
       params['sourceId'] &&
         this.mostDueCardService.setSelectedSourceId(params['sourceId']);
     });
-    
+
     // Play audio based on what text is currently displayed
     effect(() => {
       const currentText = this.word();
       const currentExample = this.example();
       const audioMap = this.card.value()?.data.audio;
-      
+
       if (currentText && audioMap) {
         this.playAudioSequence(currentText, currentExample, audioMap);
       }
@@ -126,7 +133,7 @@ export class FlashcardComponent {
     if (audioMap[word]) {
       await this.playAudio(audioMap[word]);
     }
-    
+
     // Wait for delay then play example audio
     if (example && audioMap[example]) {
       await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
@@ -153,7 +160,10 @@ export class FlashcardComponent {
     if (!cardId) return;
 
     try {
-      await this.http.post(`/api/cards/${cardId}/grade`, { grade }).toPromise();
+      await fetchJson(this.http, `/api/cards/${cardId}/grade`, {
+        method: 'POST',
+        body: { grade }
+      });
       // Reload the page to get the next card
       await this.router.navigate([], {
         relativeTo: this.route,
@@ -163,6 +173,22 @@ export class FlashcardComponent {
       this.isRevealed.set(false);
     } catch (error) {
       console.error('Error grading card:', error);
+    }
+  }
+
+  async markForReview(event: Event) {
+    event.stopPropagation();
+    const cardId = this.card.value()?.id;
+    if (!cardId) return;
+
+    try {
+      await fetchJson(this.http, `/api/card/${cardId}/readiness/IN_REVIEW`, {
+        method: 'POST'
+      });
+      this.isRevealed.set(false);
+      this.card.reload();
+    } catch (error) {
+      console.error('Error marking card for review:', error);
     }
   }
 }

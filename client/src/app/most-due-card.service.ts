@@ -6,6 +6,12 @@ import { CardState } from './shared/state/card-state';
 export interface MostDueCard {
   id: string;
   state: CardState;
+  sourcePageNumber: number;
+  source: {
+    id: string;
+    name: string;
+    type: string;
+  }
   data: {
     word: string;
     type: string;

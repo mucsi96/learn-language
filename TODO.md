@@ -8,5 +8,4 @@
 - support for grammar card type
 - support multi part regions
 - support cross-page multi part regions
-- allow editing directly from flashcard with a button
 - generate more images for examples

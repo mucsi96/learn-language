@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import get_color_image_bytes, get_image_content, yellow_image, green_image, create_card, upload_mock_image, create_cards_with_states
+from utils import get_color_image_bytes, get_image_content, yellow_image, green_image, create_card, upload_mock_image, create_cards_with_states, with_db_connection
 
 
 def test_study_page_initial_state(page: Page):
@@ -319,3 +319,210 @@ def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
     expect(page.get_by_role("navigation").get_by_title("Review", exact=True)).to_have_text("1")
     expect(page.get_by_role("navigation").get_by_title("New", exact=True)).not_to_be_visible()
     expect(page.get_by_text("Review", exact=True)).to_be_visible()
+
+
+def test_mark_for_review_button_visible_on_study_page(page: Page):
+    """Test that the Mark for Review button is visible on the study flashcard"""
+    create_card(
+        card_id='testen',
+        source_id="goethe-a1",
+        source_page_number=15,
+        data={
+            "word": "testen",
+            "type": "VERB",
+            "forms": ["testet", "testete", "getestet"],
+            "translation": {"en": "to test", "hu": "tesztelni", "ch": "teste"},
+            "examples": [
+                {
+                    "de": "Wir testen das System.",
+                    "hu": "Teszteljük a rendszert.",
+                    "en": "We test the system.",
+                    "ch": "Mir tested s'System.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        step=0,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify Mark for Review button is visible
+    mark_review_button = page.get_by_role("button", name="Mark for Review")
+    expect(mark_review_button).to_be_visible()
+    expect(mark_review_button.get_by_text("flag")).to_be_visible()
+
+
+def test_edit_card_button_visible_on_study_page(page: Page):
+    """Test that the Edit Card button is visible on the study flashcard"""
+    create_card(
+        card_id='bearbeiten',
+        source_id="goethe-a1",
+        source_page_number=20,
+        data={
+            "word": "bearbeiten",
+            "type": "VERB",
+            "forms": ["bearbeitet", "bearbeitete", "bearbeitet"],
+            "translation": {"en": "to edit", "hu": "szerkeszteni", "ch": "bearbeite"},
+            "examples": [
+                {
+                    "de": "Ich bearbeite das Dokument.",
+                    "hu": "Szerkesztem a dokumentumot.",
+                    "en": "I edit the document.",
+                    "ch": "Ich bearbeite s'Dokument.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='LEARNING',
+        step=0,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify Edit Card button is visible
+    edit_button = page.get_by_role("link", name="Edit Card")
+    expect(edit_button).to_be_visible()
+    expect(edit_button.get_by_text("edit")).to_be_visible()
+
+
+def test_mark_for_review_button_functionality(page: Page):
+    """Test that clicking the Mark for Review button updates card readiness to IN_REVIEW"""
+    create_card(
+        card_id='markieren',
+        source_id="goethe-a1",
+        source_page_number=25,
+        data={
+            "word": "markieren",
+            "type": "VERB",
+            "forms": ["markiert", "markierte", "markiert"],
+            "translation": {"en": "to mark", "hu": "megjelölni", "ch": "markiere"},
+            "examples": [
+                {
+                    "de": "Ich markiere die wichtigen Stellen.",
+                    "hu": "Megjelölöm a fontos helyeket.",
+                    "en": "I mark the important places.",
+                    "ch": "Ich markiere d'wichtige Stelle.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='REVIEW',
+        step=0,
+        due='2025-07-06 08:24:32.82948',
+        readiness='READY'
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Click the Mark for Review button
+    page.get_by_role("button", name="Mark for Review").click()
+
+    # Verify the card readiness was updated in the database
+    with with_db_connection() as cur:
+        cur.execute("SELECT readiness FROM learn_language.cards WHERE id = 'markieren'")
+        result = cur.fetchone()
+        assert result is not None
+        assert result[0] == 'IN_REVIEW'
+
+
+def test_mark_for_review_button_loads_next_card(page: Page):
+    """Test that after marking a card for review, the next card is loaded"""
+    # Create two cards
+    create_card(
+        card_id='erste',
+        source_id="goethe-a1",
+        source_page_number=30,
+        data={
+            "word": "erste",
+            "type": "ADJECTIVE",
+            "translation": {"en": "first", "hu": "első", "ch": "erschti"},
+            "examples": [
+                {
+                    "de": "Das ist meine erste Karte.",
+                    "hu": "Ez az első kártyám.",
+                    "en": "This is my first card.",
+                    "ch": "Das isch mini erschti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        step=0,
+        due='2025-07-06 08:20:00.00000',
+        readiness='READY'
+    )
+
+    create_card(
+        card_id='zweite',
+        source_id="goethe-a1",
+        source_page_number=31,
+        data={
+            "word": "zweite",
+            "type": "ADJECTIVE",
+            "translation": {"en": "second", "hu": "második", "ch": "zwöiti"},
+            "examples": [
+                {
+                    "de": "Das ist meine zweite Karte.",
+                    "hu": "Ez a második kártyám.",
+                    "en": "This is my second card.",
+                    "ch": "Das isch mini zwöiti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        step=0,
+        due='2025-07-06 08:25:00.00000',
+        readiness='READY'
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify first card is showing (due earlier)
+    expect(page.get_by_text("első", exact=True)).to_be_visible()
+
+    # Click Mark for Review button
+    page.get_by_role("button", name="Mark for Review").click()
+
+    # Verify the second card is now showing
+    expect(page.get_by_text("második", exact=True)).to_be_visible()
+    expect(page.get_by_text("első", exact=True)).not_to_be_visible()
+
+
+def test_edit_card_button_navigation(page: Page):
+    """Test that clicking the Edit Card button navigates to the correct card editing page"""
+    create_card(
+        card_id='navigieren',
+        source_id="goethe-a1",
+        source_page_number=35,
+        data={
+            "word": "navigieren",
+            "type": "VERB",
+            "forms": ["navigiert", "navigierte", "navigiert"],
+            "translation": {"en": "to navigate", "hu": "navigálni", "ch": "navigiere"},
+            "examples": [
+                {
+                    "de": "Ich navigiere durch die Seiten.",
+                    "hu": "Navigálok az oldalakon.",
+                    "en": "I navigate through the pages.",
+                    "ch": "Ich navigiere dur d'Site.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='LEARNING',
+        step=1,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Click the Edit Card button
+    page.get_by_role("link", name="Edit Card").click()
+
+    # Verify we navigated to the correct card editing page
+    expect(page.get_by_label("German translation", exact=True)).to_have_value("navigieren")

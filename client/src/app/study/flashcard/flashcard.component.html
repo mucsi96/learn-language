@@ -72,6 +72,26 @@
         <app-state [state]="state" />
         }
       </div>
+      <div class="card-actions">
+        <button
+          mat-icon-button
+          class="action-button"
+          (click)="markForReview($event)"
+          title="Mark for Review"
+          matTooltip="Mark for Review">
+          <mat-icon>flag</mat-icon>
+        </button>
+        <a
+          mat-icon-button
+          class="action-button"
+          [routerLink]="['/sources', card.value()?.source?.id, 'page', card.value()?.sourcePageNumber, 'cards']"
+          [queryParams]="{cardData: ({id: card.value()?.id, exists: true} | compressQuery | async)}"
+          (click)="$event.stopPropagation()"
+          title="Edit Card"
+          matTooltip="Edit Card">
+          <mat-icon>edit</mat-icon>
+        </a>
+      </div>
       <div class="word-section">
         <h2 [style.color]="genderInfo()?.color">{{ word() }}</h2>
       </div>
