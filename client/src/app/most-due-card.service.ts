@@ -25,6 +25,7 @@ export interface MostDueCard {
       isSelected?: boolean;
       images?: Array<{ id: string; isFavorite?: boolean }>;
     }>;
+    audio?: Record<string, string>;
   };
 }
 

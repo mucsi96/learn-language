@@ -20,6 +20,7 @@ import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { GENDER_TRANSLATIONS } from '../../shared/gender-translations';
+import { InReviewCardsService } from '../../in-review-cards.service';
 
 @Component({
   selector: 'app-card',
@@ -41,6 +42,7 @@ import { GENDER_TRANSLATIONS } from '../../shared/gender-translations';
 })
 export class CardComponent {
   readonly cardService = inject(CardService);
+  readonly inReviewCardsService = inject(InReviewCardsService);
   readonly route = inject(ActivatedRoute);
   readonly cardData = injectQueryParams<string>('cardData');
   readonly dialog = inject(MatDialog);
@@ -174,6 +176,7 @@ export class CardComponent {
     // Then mark it as reviewed
     await this.cardService.markAsReviewed();
     this.cardService.card.reload();
+    this.inReviewCardsService.refetchCards();
     this.showSnackBar('Card marked as reviewed successfully');
   }
 

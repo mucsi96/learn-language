@@ -7,6 +7,7 @@ import {
   resource,
   linkedSignal,
   untracked,
+  effect,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
+import { fetchAudio } from '../../utils/fetchAudio';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
@@ -106,6 +108,40 @@ export class FlashcardComponent {
       params['sourceId'] &&
         this.mostDueCardService.setSelectedSourceId(params['sourceId']);
     });
+    
+    // Play audio based on what text is currently displayed
+    effect(() => {
+      const currentText = this.word();
+      const currentExample = this.example();
+      const audioMap = this.card.value()?.data.audio;
+      
+      if (currentText && audioMap) {
+        this.playAudioSequence(currentText, currentExample, audioMap);
+      }
+    });
+  }
+
+  private async playAudioSequence(word: string, example: string | undefined, audioMap: Record<string, string>) {
+    // Play word audio first
+    if (audioMap[word]) {
+      await this.playAudio(audioMap[word]);
+    }
+    
+    // Wait for delay then play example audio
+    if (example && audioMap[example]) {
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
+      await this.playAudio(audioMap[example]);
+    }
+  }
+
+  private async playAudio(audioId: string) {
+    try {
+      const audioUrl = await fetchAudio(this.http, `/api/audio/${audioId}`);
+      const audio = new Audio(audioUrl);
+      await audio.play().catch(error => console.warn('Audio playback failed:', error));
+    } catch (error) {
+      console.warn('Error loading audio:', error);
+    }
   }
 
   toggleReveal() {
