@@ -138,7 +138,7 @@ public class CardController {
   public ResponseEntity<Card> getMostDueCard(@PathVariable String sourceId) {
     return cardService.getMostDueCardBySourceId(sourceId)
         .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+        .orElse(ResponseEntity.noContent().build());
   }
 
   @GetMapping("/cards/readiness/{readiness}")

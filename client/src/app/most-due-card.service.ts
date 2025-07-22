@@ -1,11 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import {
-  Injectable,
-  Injector,
-  inject,
-  resource,
-  signal,
-} from '@angular/core';
+import { Injectable, Injector, inject, resource, signal } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
 import { CardState } from './shared/state/card-state';
 
@@ -43,9 +37,11 @@ export class MostDueCardService {
         return;
       }
 
-      return fetchJson<MostDueCard>(
-        this.http,
-        `/api/source/${selectedSourceId}/most-due-card`
+      return (
+        (await fetchJson<MostDueCard>(
+          this.http,
+          `/api/source/${selectedSourceId}/most-due-card`
+        )) ?? null
       );
     },
     injector: this.injector,
