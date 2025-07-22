@@ -26,4 +26,7 @@ public class CardData {
 
     @JsonInclude(Include.NON_NULL)
     private Map<String, String> audio;
+    
+    @JsonInclude(Include.NON_NULL)
+    private String audioVoice;
 }

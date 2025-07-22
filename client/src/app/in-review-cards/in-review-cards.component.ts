@@ -33,6 +33,7 @@ export interface BackendCard {
       images?: Array<{ id: string; isFavorite?: boolean }>;
     }>;
     audio?: Record<string, string>;
+    audioVoice?: string;
   };
 }
 

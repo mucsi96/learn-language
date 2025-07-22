@@ -108,6 +108,9 @@ export class BatchAudioCreationService {
     progressIndex: number
   ): Promise<void> {
     const audioMap = card.data.audio || {};
+    
+    // Pick a random voice for this card if not already set
+    const audioVoice = card.data.audioVoice || this.getRandomVoice();
 
     try {
       // Step 0: Clean up unused audio entries (15% progress)
@@ -131,7 +134,7 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { input: card.data.word },
+            body: { input: card.data.word, voice: audioVoice },
             method: 'POST',
           }
         );
@@ -153,7 +156,7 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { input: card.data.translation['hu'] },
+            body: { input: card.data.translation['hu'], voice: audioVoice },
             method: 'POST',
           }
         );
@@ -178,7 +181,7 @@ export class BatchAudioCreationService {
             this.http,
             `/api/audio`,
             {
-              body: { input: selectedExample.de },
+              body: { input: selectedExample.de, voice: audioVoice },
               method: 'POST',
             }
           );
@@ -190,7 +193,7 @@ export class BatchAudioCreationService {
           const exampleTranslationAudioResponse = await fetchJson<{
             id: string;
           }>(this.http, `/api/audio`, {
-            body: { input: selectedExample.hu },
+            body: { input: selectedExample.hu, voice: audioVoice },
             method: 'POST',
           });
           cleanedAudioMap[selectedExample.hu] =
@@ -206,10 +209,11 @@ export class BatchAudioCreationService {
         'Updating card with audio data...'
       );
 
-      // Create the updated card data by merging existing data with new audio
+      // Create the updated card data by merging existing data with new audio and voice
       const updatedCardData = {
         ...card.data,
         audio: cleanedAudioMap,
+        audioVoice: audioVoice,
       };
 
       // Update the card
@@ -327,6 +331,12 @@ export class BatchAudioCreationService {
     }
 
     return cleanedAudioMap;
+  }
+
+  private getRandomVoice(): string {
+    const voices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'onyx', 'nova', 'sage', 'shimmer', 'verse'];
+    const randomIndex = Math.floor(Math.random() * voices.length);
+    return voices[randomIndex];
   }
 
   clearProgress(): void {

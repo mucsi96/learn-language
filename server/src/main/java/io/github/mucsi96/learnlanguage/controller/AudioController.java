@@ -34,7 +34,7 @@ public class AudioController {
     String uuid = UUID.randomUUID().toString();
     String blobName = "audio/%s.mp3".formatted(uuid);
 
-    byte[] data = audioService.generateAudio(audioSource.getInput());
+    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice());
     blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
     return AudioDataReference.builder()

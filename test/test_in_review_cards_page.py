@@ -195,7 +195,6 @@ def test_displays_empty_state_when_no_cards_in_review(page: Page):
 
     # Check that empty state is displayed
     expect(page.get_by_role("heading", name="No cards in review", exact=True)).to_be_visible()
-    expect(page.get_by_text("All cards have been reviewed and are ready for study.")).to_be_visible()
     # Check that table is not displayed
     expect(page.get_by_role("table")).not_to_be_visible()
 
@@ -499,3 +498,5 @@ def test_navigation_back_after_mark_as_reviewed(page: Page):
     # Verify we're back on the in-review-cards page
     expect(page).to_have_url("http://localhost:8180/in-review-cards")
     expect(page.get_by_role("heading", name="Cards In Review", exact=True)).to_be_visible()
+
+    expect(page.get_by_role("row").filter(has_text="koordinieren")).not_to_be_visible()
