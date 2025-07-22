@@ -200,7 +200,7 @@ export class CardService {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}/mark-as-reviewed`, {
+    await fetchJson(this.http, `/api/card/${word.id}/readiness/REVIEWED`, {
       method: 'POST',
     });
   }
