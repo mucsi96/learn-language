@@ -53,7 +53,7 @@ public class CardController {
         .sourcePageNumber(request.getPageNumber())
         .data(cardData)
         .state(request.getState())
-        .step(request.getStep())
+        .learningSteps(request.getLearningSteps())
         .stability(request.getStability())
         .difficulty(request.getDifficulty()) // Default difficulty from FSRS
         .elapsedDays(request.getElapsedDays())
@@ -99,6 +99,16 @@ public class CardController {
         .build();
 
     card.setData(cardData);
+    card.setDue(request.getDue() != null ? request.getDue() : card.getDue());
+    card.setStability(request.getStability() != null ? request.getStability() : card.getStability());
+    card.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : card.getDifficulty());
+    card.setElapsedDays(request.getElapsedDays() != null ? request.getElapsedDays() : card.getElapsedDays());
+    card.setScheduledDays(request.getScheduledDays() != null ? request.getScheduledDays() : card.getScheduledDays());
+    card.setLearningSteps(request.getLearningSteps() != null ? request.getLearningSteps() : card.getLearningSteps());
+    card.setReps(request.getReps() != null ? request.getReps() : card.getReps());
+    card.setLapses(request.getLapses() != null ? request.getLapses() : card.getLapses());
+    card.setState(request.getState() != null ? request.getState() : card.getState());
+    card.setLastReview(request.getLastReview() != null ? request.getLastReview() : card.getLastReview());
     cardRepository.save(card);
 
     Map<String, String> response = new HashMap<>();

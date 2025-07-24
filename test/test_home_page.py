@@ -86,7 +86,7 @@ def test_in_review_cards_not_on_home_page(page: Page):
         source_id='goethe-a1',
         data={'en': 'test', 'hu': 'teszt', 'ch': 'test'},
         state='NEW',
-        step=0,
+        learning_steps=0,
         due=yesterday,
         readiness='IN_REVIEW'
     )
@@ -96,7 +96,7 @@ def test_in_review_cards_not_on_home_page(page: Page):
         source_id='goethe-a1',
         data={'en': 'test2', 'hu': 'teszt2', 'ch': 'test2'},
         state='NEW',
-        step=0,
+        learning_steps=0,
         due=yesterday,
         readiness= 'READY'
     )

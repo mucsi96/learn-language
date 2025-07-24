@@ -23,15 +23,15 @@ CREATE TABLE learn_language.cards (
     source_page_number integer NOT NULL,
     data jsonb NOT NULL,
     readiness character varying(255) NOT NULL,
-    difficulty real NOT NULL,
+    due timestamp(6) without time zone NOT NULL,
     stability real NOT NULL,
-    state character varying(255) NOT NULL,
-    step integer NOT NULL,
+    difficulty real NOT NULL,
     elapsed_days real NOT NULL,
     scheduled_days real NOT NULL,
+    learning_steps integer NOT NULL,
     reps integer NOT NULL,
     lapses integer NOT NULL,
-    due timestamp(6) without time zone NOT NULL,
+    state character varying(255) NOT NULL,
     last_review timestamp(6) without time zone
 );
 

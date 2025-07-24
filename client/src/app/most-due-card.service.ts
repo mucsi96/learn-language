@@ -5,7 +5,6 @@ import { CardState } from './shared/state/card-state';
 
 export interface MostDueCard {
   id: string;
-  state: CardState;
   sourcePageNumber: number;
   source: {
     id: string;
@@ -27,6 +26,17 @@ export interface MostDueCard {
     }>;
     audio?: Record<string, string>;
   };
+    // FSRS fields
+  due: string; // ISO date string
+  stability: number;
+  difficulty: number;
+  elapsedDays: number;
+  scheduledDays: number;
+  learningSteps: number;
+  reps: number;
+  lapses: number;
+  state: CardState;
+  lastReview?: string; // ISO date string
 }
 
 @Injectable({

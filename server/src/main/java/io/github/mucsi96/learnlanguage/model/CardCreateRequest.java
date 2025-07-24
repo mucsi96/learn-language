@@ -28,11 +28,7 @@ public class CardCreateRequest {
   private Map<String, String> audio;
 
   // FSRS attributes
-  private String state;
-
-  @JsonProperty("learning_steps")
-  private Integer step;
-
+  private LocalDateTime due;
   private Float stability;
   private Float difficulty;
 
@@ -42,8 +38,14 @@ public class CardCreateRequest {
   @JsonProperty("scheduled_days")
   private Float scheduledDays;
 
+  @JsonProperty("learning_steps")
+  private Integer learningSteps;
+
   private Integer reps;
   private Integer lapses;
-  private LocalDateTime due;
+  private String state;
+
+  @JsonProperty("last_review")
   private LocalDateTime lastReview;
+
 }

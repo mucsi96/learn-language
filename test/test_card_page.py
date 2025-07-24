@@ -25,7 +25,7 @@ def prepare_card(page: Page, context: BrowserContext):
             ]
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
     return navigate_to_card_creation(page, context)

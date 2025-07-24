@@ -31,7 +31,7 @@ def test_bulk_audio_fab_appears_when_cards_without_audio_exist(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -57,7 +57,7 @@ def test_bulk_audio_fab_appears_when_cards_without_audio_exist(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -98,7 +98,7 @@ def test_bulk_audio_fab_hides_when_all_cards_have_audio(page: Page):
             }
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -139,7 +139,7 @@ def test_bulk_audio_fab_shows_partial_count_for_mixed_cards(page: Page):
             }
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -166,7 +166,7 @@ def test_bulk_audio_fab_shows_partial_count_for_mixed_cards(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -193,7 +193,7 @@ def test_bulk_audio_fab_shows_partial_count_for_mixed_cards(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -229,7 +229,7 @@ def test_bulk_audio_creation_opens_progress_dialog(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -267,7 +267,7 @@ def test_bulk_audio_creation_shows_individual_progress(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -293,7 +293,7 @@ def test_bulk_audio_creation_shows_individual_progress(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -334,7 +334,7 @@ def test_bulk_audio_creation_creates_audio_in_database(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -389,7 +389,7 @@ def test_bulk_audio_creation_updates_card_readiness_to_ready(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -436,7 +436,7 @@ def test_bulk_audio_creation_updates_ui_after_completion(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -462,7 +462,7 @@ def test_bulk_audio_creation_updates_ui_after_completion(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )
@@ -513,7 +513,7 @@ def test_bulk_audio_creation_partial_audio_generation(page: Page):
             }
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='REVIEWED'
     )

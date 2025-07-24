@@ -43,9 +43,7 @@ public class Card {
     private String readiness;
 
     @Column(nullable = false)
-    private String state;
-
-    private Integer step;
+    private LocalDateTime due;
 
     @Column(nullable = false)
     private Float stability;
@@ -59,6 +57,9 @@ public class Card {
     @Column(name = "scheduled_days", nullable = false)
     private Float scheduledDays;
 
+    @Column(name = "learning_steps", nullable = false)
+    private Integer learningSteps;
+
     @Column(nullable = false)
     private Integer reps;
 
@@ -66,7 +67,7 @@ public class Card {
     private Integer lapses;
 
     @Column(nullable = false)
-    private LocalDateTime due;
+    private String state;
 
     @Column(name = "last_review")
     private LocalDateTime lastReview;

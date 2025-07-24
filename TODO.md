@@ -1,4 +1,3 @@
-- Review card
 - Assign cards / multiperson
 
 - add automated dependency update

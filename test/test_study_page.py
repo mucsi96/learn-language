@@ -41,7 +41,7 @@ def test_study_page_initial_state(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -95,7 +95,7 @@ def test_study_page_revealed_state(page: Page):
             ]
         },
         state='LEARNING',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -146,7 +146,7 @@ def test_source_selector_routing_works(page: Page):
             ]
         },
         state=0,
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -170,7 +170,7 @@ def test_source_selector_routing_works(page: Page):
             ]
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -295,7 +295,7 @@ def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
             'translation': {'en': 'to understand', 'hu': 'érteni', 'ch': 'verstah'}
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due=yesterday,
         readiness='IN_REVIEW'
     )
@@ -309,7 +309,7 @@ def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
             'translation': {'en': 'to learn', 'hu': 'tanulni', 'ch': 'lerne'}
         },
         state='REVIEW',
-        step=0,
+        learning_steps=0,
         due=yesterday,
     )
 
@@ -343,7 +343,7 @@ def test_mark_for_review_button_visible_on_study_page(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -377,7 +377,7 @@ def test_edit_card_button_visible_on_study_page(page: Page):
             ]
         },
         state='LEARNING',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -411,7 +411,7 @@ def test_mark_for_review_button_functionality(page: Page):
             ]
         },
         state='REVIEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:24:32.82948',
         readiness='READY'
     )
@@ -451,7 +451,7 @@ def test_mark_for_review_button_loads_next_card(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:20:00.00000',
         readiness='READY'
     )
@@ -475,7 +475,7 @@ def test_mark_for_review_button_loads_next_card(page: Page):
             ]
         },
         state='NEW',
-        step=0,
+        learning_steps=0,
         due='2025-07-06 08:25:00.00000',
         readiness='READY'
     )
@@ -515,7 +515,7 @@ def test_edit_card_button_navigation(page: Page):
             ]
         },
         state='LEARNING',
-        step=1,
+        learning_steps=1,
         due='2025-07-06 08:24:32.82948',
     )
 
@@ -526,3 +526,405 @@ def test_edit_card_button_navigation(page: Page):
 
     # Verify we navigated to the correct card editing page
     expect(page.get_by_label("German translation", exact=True)).to_have_value("navigieren")
+
+
+def test_grading_buttons_visibility_after_reveal(page: Page):
+    """Test that grading buttons are visible only after card is revealed"""
+    create_card(
+        card_id='grading_test',
+        source_id="goethe-a1",
+        source_page_number=40,
+        data={
+            "word": "bewerten",
+            "type": "VERB",
+            "forms": ["bewertet", "bewertete", "bewertet"],
+            "translation": {"en": "to grade", "hu": "értékelni", "ch": "bewerte"},
+            "examples": [
+                {
+                    "de": "Ich bewerte die Karte.",
+                    "hu": "Értékelem a kártyát.",
+                    "en": "I grade the card.",
+                    "ch": "Ich bewerte d'Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='LEARNING',
+        learning_steps=0,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Initially grading buttons should not be visible
+    expect(page.get_by_role("button", name="Again")).not_to_be_visible()
+    expect(page.get_by_role("button", name="Hard")).not_to_be_visible()
+    expect(page.get_by_role("button", name="Good")).not_to_be_visible()
+    expect(page.get_by_role("button", name="Easy")).not_to_be_visible()
+
+    # Click to reveal the card
+    page.get_by_text("értékelni", exact=True).click()
+
+    # Now grading buttons should be visible
+    expect(page.get_by_role("button", name="Again")).to_be_visible()
+    expect(page.get_by_role("button", name="Hard")).to_be_visible()
+    expect(page.get_by_role("button", name="Good")).to_be_visible()
+    expect(page.get_by_role("button", name="Easy")).to_be_visible()
+
+
+def test_again_button_functionality(page: Page):
+    """Test that clicking Again button grades the card and loads next card"""
+    # Create two cards for testing
+    create_card(
+        card_id='again_test',
+        source_id="goethe-a1",
+        source_page_number=42,
+        data={
+            "word": "wiederholen",
+            "type": "VERB",
+            "forms": ["wiederholt", "wiederholte", "wiederholt"],
+            "translation": {"en": "to repeat", "hu": "ismételni", "ch": "widerhole"},
+            "examples": [
+                {
+                    "de": "Ich wiederhole das Wort.",
+                    "hu": "Ismételem a szót.",
+                    "en": "I repeat the word.",
+                    "ch": "Ich widerhole s'Wort.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='LEARNING',
+        learning_steps=0,
+        due='2025-07-06 08:20:00.00000',
+    )
+
+    create_card(
+        card_id='next_card',
+        source_id="goethe-a1",
+        source_page_number=43,
+        data={
+            "word": "nächste",
+            "type": "ADJECTIVE",
+            "translation": {"en": "next", "hu": "következő", "ch": "nöchsti"},
+            "examples": [
+                {
+                    "de": "Die nächste Karte.",
+                    "hu": "A következő kártya.",
+                    "en": "The next card.",
+                    "ch": "Di nöchsti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        learning_steps=0,
+        due='2025-07-06 08:25:00.00000',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify first card is showing
+    expect(page.get_by_text("ismételni", exact=True)).to_be_visible()
+
+    # Reveal the card
+    page.get_by_text("ismételni", exact=True).click()
+
+    # Click Again button
+    page.get_by_role("button", name="Again").click()
+
+    # Verify next card is loaded and card is no longer revealed
+    expect(page.get_by_text("következő", exact=True)).to_be_visible()
+    expect(page.get_by_text("ismételni", exact=True)).not_to_be_visible()
+    expect(page.get_by_role("button", name="Again")).not_to_be_visible()
+
+
+def test_hard_button_functionality(page: Page):
+    """Test that clicking Hard button grades the card and loads next card"""
+    create_card(
+        card_id='hard_test',
+        source_id="goethe-a1",
+        source_page_number=44,
+        data={
+            "word": "schwierig",
+            "type": "ADJECTIVE",
+            "translation": {"en": "difficult", "hu": "nehéz", "ch": "schwierig"},
+            "examples": [
+                {
+                    "de": "Das ist schwierig.",
+                    "hu": "Ez nehéz.",
+                    "en": "This is difficult.",
+                    "ch": "Das isch schwierig.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='REVIEW',
+        learning_steps=0,
+        due='2025-07-06 08:20:00.00000',
+    )
+
+    create_card(
+        card_id='second_card',
+        source_id="goethe-a1",
+        source_page_number=45,
+        data={
+            "word": "zweite",
+            "type": "ADJECTIVE",
+            "translation": {"en": "second", "hu": "második", "ch": "zwöiti"},
+            "examples": [
+                {
+                    "de": "Die zweite Karte.",
+                    "hu": "A második kártya.",
+                    "en": "The second card.",
+                    "ch": "Di zwöiti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        learning_steps=0,
+        due='2025-07-06 08:25:00.00000',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify first card is showing
+    expect(page.get_by_text("nehéz", exact=True)).to_be_visible()
+
+    # Reveal the card
+    page.get_by_text("nehéz", exact=True).click()
+
+    # Click Hard button
+    page.get_by_role("button", name="Hard").click()
+
+    # Verify next card is loaded
+    expect(page.get_by_text("második", exact=True)).to_be_visible()
+    expect(page.get_by_text("nehéz", exact=True)).not_to_be_visible()
+
+
+def test_good_button_functionality(page: Page):
+    """Test that clicking Good button grades the card and loads next card"""
+    create_card(
+        card_id='good_test',
+        source_id="goethe-a1",
+        source_page_number=46,
+        data={
+            "word": "gut",
+            "type": "ADJECTIVE",
+            "translation": {"en": "good", "hu": "jó", "ch": "guet"},
+            "examples": [
+                {
+                    "de": "Das ist gut.",
+                    "hu": "Ez jó.",
+                    "en": "This is good.",
+                    "ch": "Das isch guet.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='LEARNING',
+        learning_steps=1,
+        due='2025-07-06 08:20:00.00000',
+    )
+
+    create_card(
+        card_id='third_card',
+        source_id="goethe-a1",
+        source_page_number=47,
+        data={
+            "word": "dritte",
+            "type": "ADJECTIVE",
+            "translation": {"en": "third", "hu": "harmadik", "ch": "dritti"},
+            "examples": [
+                {
+                    "de": "Die dritte Karte.",
+                    "hu": "A harmadik kártya.",
+                    "en": "The third card.",
+                    "ch": "Di dritti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        learning_steps=0,
+        due='2025-07-06 08:25:00.00000',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify first card is showing
+    expect(page.get_by_text("jó", exact=True)).to_be_visible()
+
+    # Reveal the card
+    page.get_by_text("jó", exact=True).click()
+
+    # Click Good button
+    page.get_by_role("button", name="Good").click()
+
+    # Verify next card is loaded
+    expect(page.get_by_text("harmadik", exact=True)).to_be_visible()
+    expect(page.get_by_text("jó", exact=True)).not_to_be_visible()
+
+
+def test_easy_button_functionality(page: Page):
+    """Test that clicking Easy button grades the card and loads next card"""
+    create_card(
+        card_id='easy_test',
+        source_id="goethe-a1",
+        source_page_number=48,
+        data={
+            "word": "einfach",
+            "type": "ADJECTIVE",
+            "translation": {"en": "easy", "hu": "könnyű", "ch": "eifach"},
+            "examples": [
+                {
+                    "de": "Das ist einfach.",
+                    "hu": "Ez könnyű.",
+                    "en": "This is easy.",
+                    "ch": "Das isch eifach.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='REVIEW',
+        learning_steps=0,
+        due='2025-07-06 08:20:00.00000',
+    )
+
+    create_card(
+        card_id='fourth_card',
+        source_id="goethe-a1",
+        source_page_number=49,
+        data={
+            "word": "vierte",
+            "type": "ADJECTIVE",
+            "translation": {"en": "fourth", "hu": "negyedik", "ch": "vierti"},
+            "examples": [
+                {
+                    "de": "Die vierte Karte.",
+                    "hu": "A negyedik kártya.",
+                    "en": "The fourth card.",
+                    "ch": "Di vierti Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        learning_steps=0,
+        due='2025-07-06 08:25:00.00000',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Verify first card is showing
+    expect(page.get_by_text("könnyű", exact=True)).to_be_visible()
+
+    # Reveal the card
+    page.get_by_text("könnyű", exact=True).click()
+
+    # Click Easy button
+    page.get_by_role("button", name="Easy").click()
+
+    # Verify next card is loaded
+    expect(page.get_by_text("negyedik", exact=True)).to_be_visible()
+    expect(page.get_by_text("könnyű", exact=True)).not_to_be_visible()
+
+
+def test_grading_card_updates_database(page: Page):
+    """Test that grading a card updates its FSRS data in the database"""
+    create_card(
+        card_id='database_test',
+        source_id="goethe-a1",
+        source_page_number=50,
+        data={
+            "word": "datenbank",
+            "type": "NOUN",
+            "gender": "FEMININE",
+            "translation": {"en": "database", "hu": "adatbázis", "ch": "Datebank"},
+            "examples": [
+                {
+                    "de": "Die Datenbank wird aktualisiert.",
+                    "hu": "Az adatbázis frissül.",
+                    "en": "The database is updated.",
+                    "ch": "D'Datebank wird aktualisiert.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='NEW',
+        learning_steps=0,
+        due='2025-07-06 08:24:32.82948',
+        # Initial FSRS values
+        stability=0.0,
+        difficulty=5.0,
+        reps=0,
+        lapses=0,
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Reveal the card
+    page.get_by_text("adatbázis", exact=True).click()
+
+    # Click Good button
+    page.get_by_role("button", name="Good").click()
+
+    # Wait a moment for the database update
+    page.wait_for_timeout(500)
+
+    # Verify the card's FSRS data was updated in the database
+    with with_db_connection() as cur:
+        cur.execute("""
+            SELECT state, reps, stability, difficulty
+            FROM learn_language.cards
+            WHERE id = 'database_test'
+        """)
+        result = cur.fetchone()
+        assert result is not None
+        state, reps, stability, difficulty = result
+
+        # After first Good rating from NEW state, should move to LEARNING
+        assert state == 'LEARNING'
+        assert reps == 1
+        assert float(stability) > 0.0
+        assert float(difficulty) > 0.0
+
+
+def test_grading_with_no_next_card_shows_empty_state(page: Page):
+    """Test that grading the last card shows the empty state"""
+    create_card(
+        card_id='last_card',
+        source_id="goethe-a1",
+        source_page_number=51,
+        data={
+            "word": "letzte",
+            "type": "ADJECTIVE",
+            "translation": {"en": "last", "hu": "utolsó", "ch": "letscht"},
+            "examples": [
+                {
+                    "de": "Die letzte Karte.",
+                    "hu": "Az utolsó kártya.",
+                    "en": "The last card.",
+                    "ch": "Di letscht Charte.",
+                    "isSelected": True
+                }
+            ]
+        },
+        state='REVIEW',
+        learning_steps=0,
+        due='2025-07-06 08:24:32.82948',
+    )
+
+    page.goto("http://localhost:8180/sources/goethe-a1/study")
+
+    # Reveal the card
+    page.get_by_text("utolsó", exact=True).click()
+
+    # Click Good button
+    page.get_by_role("button", name="Good").click()
+
+    # Should show empty state
+    expect(page.get_by_text("All caught up!")).to_be_visible()
+    expect(page.get_by_text("No cards are due for review right now.")).to_be_visible()
+    expect(page.get_by_text("Great job keeping up with your studies! 🎉")).to_be_visible()

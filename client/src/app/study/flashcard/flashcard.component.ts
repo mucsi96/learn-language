@@ -12,7 +12,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MostDueCardService } from '../../most-due-card.service';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -26,6 +26,7 @@ import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
+import { FsrsGradingService } from '../../fsrs-grading.service';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -50,10 +51,10 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 })
 export class FlashcardComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly fsrsGradingService = inject(FsrsGradingService);
   readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
@@ -156,20 +157,13 @@ export class FlashcardComponent {
   }
 
   async gradeCard(grade: Grade) {
-    const cardId = this.card.value()?.id;
-    if (!cardId) return;
+    const card = this.card.value();
+    if (!card) return;
 
     try {
-      await fetchJson(this.http, `/api/cards/${cardId}/grade`, {
-        method: 'POST',
-        body: { grade }
-      });
-      // Reload the page to get the next card
-      await this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { t: Date.now() },
-        queryParamsHandling: 'merge',
-      });
+      await this.fsrsGradingService.gradeCard(card, grade);
+      // Reload the card resource to get the next card
+      this.card.reload();
       this.isRevealed.set(false);
     } catch (error) {
       console.error('Error grading card:', error);

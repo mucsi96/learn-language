@@ -21,7 +21,7 @@ def test_bulk_create_fab_appears_when_words_without_cards_selected(page: Page):
             "examples": []
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
@@ -52,7 +52,7 @@ def test_bulk_create_fab_shows_correct_count_for_multiple_regions(page: Page):
             "examples": []
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
@@ -85,7 +85,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "examples": []
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
     create_card(
@@ -100,7 +100,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "examples": []
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
     create_card(
@@ -115,7 +115,7 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "examples": []
         },
         state=1,
-        step=0,
+        learning_steps=0,
         due='2025-03-13 08:24:32.82948',
     )
 
