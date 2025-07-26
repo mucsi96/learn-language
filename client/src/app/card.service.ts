@@ -10,7 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { createEmptyCard } from 'ts-fsrs';
-import { Card, ExampleImage, Word } from './parser/types';
+import { Card, CardData, ExampleImage, Word } from './parser/types';
 import { fetchAsset } from './utils/fetchAsset';
 import { fetchJson } from './utils/fetchJson';
 import { mapTsfsrsStateToCardState } from './shared/state/card-state';
@@ -40,24 +40,24 @@ export class CardService {
     },
   });
   readonly word = linkedSignal(
-    () => this.card.value()?.word ?? this.selectedWord()?.word
+    () => this.card.value()?.data.word ?? this.selectedWord()?.word
   );
-  readonly wordType = linkedSignal(() => this.card.value()?.type);
-  readonly gender = linkedSignal(() => this.card.value()?.gender);
+  readonly wordType = linkedSignal(() => this.card.value()?.data.type);
+  readonly gender = linkedSignal(() => this.card.value()?.data.gender);
   readonly translation = Object.fromEntries(
     languages.map((languageCode) => [
       languageCode,
-      linkedSignal(() => this.card.value()?.translation?.[languageCode]),
+      linkedSignal(() => this.card.value()?.data.translation?.[languageCode]),
     ])
   );
   readonly forms = linkedSignal(() =>
-    (this.card.value() ?? this.selectedWord())?.forms?.map((form) =>
+    (this.card.value()?.data ?? this.selectedWord())?.forms?.map((form) =>
       signal(form)
     )
   );
   readonly examples = linkedSignal(
     () =>
-      this.card.value()?.examples?.map((example) => signal(example['de']))
+      this.card.value()?.data.examples?.map((example) => signal(example['de']))
   );
   readonly examplesTranslations = linkedSignal(() => {
     const examples = this.examples();
@@ -70,7 +70,7 @@ export class CardService {
       languages.map((languageCode) => [
         languageCode,
         examples.map((_, index) =>
-          linkedSignal(() => this.card.value()?.examples?.[index][languageCode])
+          linkedSignal(() => this.card.value()?.data.examples?.[index][languageCode])
         ),
       ])
     );
@@ -85,7 +85,7 @@ export class CardService {
       }
 
       return (
-        card?.examples?.map(
+        card?.data.examples?.map(
           (example) =>
             example.images?.map((image) =>
               this.getExampleImageResource(image)
@@ -96,7 +96,7 @@ export class CardService {
   });
   readonly selectedExampleIndex = linkedSignal(
     () =>
-      this.card.value()?.examples?.findIndex((example) => example.isSelected) ??
+      this.card.value()?.data.examples?.findIndex((example) => example.isSelected) ??
       0
   );
 
@@ -119,7 +119,7 @@ export class CardService {
     return computed(() => this.card.isLoading());
   }
 
-  getCardData() {
+  getCardData(): Partial<Card> | undefined {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const word = this.selectedWord();
@@ -129,10 +129,7 @@ export class CardService {
       return;
     }
 
-    const cardData = {
-      id: word.id,
-      sourceId,
-      pageNumber,
+    const data: CardData = {
       word: wordText,
       type: this.wordType(),
       gender: this.gender(),
@@ -156,9 +153,15 @@ export class CardService {
         }),
         images: this.exampleImages()[index]?.map((image) => image.value()),
       })),
-      audio: this.card.value()?.audio || {},
-    } satisfies Card;
-    return cardData;
+      audio: this.card.value()?.data.audio || {},
+    };
+
+    return {
+      id: word.id,
+      source: { id: sourceId },
+      sourcePageNumber: pageNumber,
+      data,
+    };
   }
 
   async createCard() {
@@ -171,7 +174,8 @@ export class CardService {
       ...fsrsCardData,
       state: mapTsfsrsStateToCardState(fsrsCardData.state),
       due: fsrsCardData.due.toISOString(),
-      last_review: fsrsCardData.last_review?.toISOString(),
+      lastReview: fsrsCardData.last_review?.toISOString(),
+      readiness: 'IN_REVIEW',
     };
 
     await fetchJson(this.http, `/api/card`, {

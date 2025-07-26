@@ -3,10 +3,6 @@ package io.github.mucsi96.learnlanguage.controller;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
-import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
-import io.github.mucsi96.learnlanguage.model.CardData;
-import io.github.mucsi96.learnlanguage.model.CardReadiness;
-import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
@@ -15,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,85 +26,47 @@ public class CardController {
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
+  public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
     // Get the source
-    Source source = sourceRepository.findById(request.getSourceId())
-        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
+    Source source = sourceRepository.findById(request.getSource().getId())
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSource().getId()));
 
-    CardData cardData = CardData.builder()
-        .word(request.getWord())
-        .type(request.getType())
-        .gender(request.getGender())
-        .translation(request.getTranslation())
-        .forms(request.getForms())
-        .examples(request.getExamples())
-        .audio(request.getAudio())
-        .build();
+    request.setSource(source);
 
-    // Create a new card with FSRS defaults
-    Card card = Card.builder()
-        .id(request.getId())
-        .source(source)
-        .sourcePageNumber(request.getPageNumber())
-        .data(cardData)
-        .state(request.getState())
-        .learningSteps(request.getLearningSteps())
-        .stability(request.getStability())
-        .difficulty(request.getDifficulty()) // Default difficulty from FSRS
-        .elapsedDays(request.getElapsedDays())
-        .scheduledDays(request.getScheduledDays())
-        .reps(request.getReps())
-        .lapses(request.getLapses())
-        .due(LocalDateTime.now())
-        .readiness(CardReadiness.IN_REVIEW)
-        .build();
-
-    cardRepository.save(card);
+    cardRepository.save(request);
 
     return ResponseEntity.ok(new HashMap<>());
   }
 
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
+  public ResponseEntity<Card> getCard(@PathVariable String cardId) throws Exception {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    CardData cardData = card.getData();
-    CardResponse cardResponse = CardResponse.fromCardData(cardData, card.getReadiness());
-
-    return ResponseEntity.ok(cardResponse);
+    return ResponseEntity.ok(card);
   }
 
   @PutMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
-      @RequestBody CardCreateRequest request) throws Exception {
-    Card card = cardRepository.findById(cardId)
+      @RequestBody Card request) throws Exception {
+    Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    CardData cardData = CardData.builder()
-        .word(request.getWord())
-        .type(request.getType())
-        .gender(request.getGender())
-        .translation(request.getTranslation())
-        .forms(request.getForms())
-        .examples(request.getExamples())
-        .audio(request.getAudio())
-        .build();
-
-    card.setData(cardData);
-    card.setDue(request.getDue() != null ? request.getDue() : card.getDue());
-    card.setStability(request.getStability() != null ? request.getStability() : card.getStability());
-    card.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : card.getDifficulty());
-    card.setElapsedDays(request.getElapsedDays() != null ? request.getElapsedDays() : card.getElapsedDays());
-    card.setScheduledDays(request.getScheduledDays() != null ? request.getScheduledDays() : card.getScheduledDays());
-    card.setLearningSteps(request.getLearningSteps() != null ? request.getLearningSteps() : card.getLearningSteps());
-    card.setReps(request.getReps() != null ? request.getReps() : card.getReps());
-    card.setLapses(request.getLapses() != null ? request.getLapses() : card.getLapses());
-    card.setState(request.getState() != null ? request.getState() : card.getState());
-    card.setLastReview(request.getLastReview() != null ? request.getLastReview() : card.getLastReview());
-    cardRepository.save(card);
+    // Update fields from request, keeping existing values for null fields
+    if (request.getData() != null) existingCard.setData(request.getData());
+    if (request.getDue() != null) existingCard.setDue(request.getDue());
+    if (request.getStability() != null) existingCard.setStability(request.getStability());
+    if (request.getDifficulty() != null) existingCard.setDifficulty(request.getDifficulty());
+    if (request.getElapsedDays() != null) existingCard.setElapsedDays(request.getElapsedDays());
+    if (request.getScheduledDays() != null) existingCard.setScheduledDays(request.getScheduledDays());
+    if (request.getLearningSteps() != null) existingCard.setLearningSteps(request.getLearningSteps());
+    if (request.getReps() != null) existingCard.setReps(request.getReps());
+    if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
+    if (request.getState() != null) existingCard.setState(request.getState());
+    if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
+    cardRepository.save(existingCard);
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");

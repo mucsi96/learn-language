@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Word } from './parser/types';
+import { Word, Card, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { languages } from './card.service';
@@ -179,35 +179,42 @@ export class BulkCardCreationService {
 
       // Step 4: Create card (90% progress)
       this.updateProgress(progressIndex, 'creating-card', 90, 'Creating card...');
-      const cardData = {
-        id: word.id,
-        sourceId,
-        pageNumber,
+      
+      const data: CardData = {
         word: word.word,
         type: wordTypeResponse.type,
         gender: gender,
         translation: translationMap,
         forms: word.forms,
         examples: word.examples.map((example, index) => ({
-          de: example,
-          ...Object.fromEntries(
-            languages.map((languageCode) => [
+          ...Object.fromEntries([
+            ['de', example],
+            ...languages.map((languageCode) => [
               languageCode,
               exampleTranslations[languageCode]?.[index] || ''
             ])
-          ),
+          ]),
           isSelected: index === 0, // First example is selected by default
           images: exampleImages[index] || []
         }))
       };
+
+      const cardData = {
+        id: word.id,
+        source: { id: sourceId },
+        sourcePageNumber: pageNumber,
+        data
+      } satisfies Partial<Card>;
 
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
         ...cardData,
         ...emptyCard,
         state: mapTsfsrsStateToCardState(emptyCard.state),
-        inReview: true
-      };
+        due: emptyCard.due.toISOString(),
+        lastReview: emptyCard.last_review?.toISOString(),
+        readiness: 'IN_REVIEW'
+      } satisfies Partial<Card>;
 
       await fetchJson(this.http, `/api/card`, {
         body: cardWithFSRS,

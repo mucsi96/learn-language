@@ -1,3 +1,5 @@
+import { CardState } from '../shared/state/card-state';
+
 export type Profile = {
   name: string;
   initials: string;
@@ -34,10 +36,7 @@ export type ExampleImage = {
   isFavorite?: boolean;
 };
 
-export type Card = {
-  id: string;
-  sourceId: string;
-  pageNumber: number;
+export type CardData = {
   word: string;
   type?: string;
   gender?: string;
@@ -47,8 +46,30 @@ export type Card = {
     isSelected?: boolean;
     images?: ExampleImage[];
   })[];
-  readiness?: string;
   audio?: Record<string, string>;
+  audioVoice?: string;
+};
+
+export type Card = {
+  id: string;
+  source: {
+    id: string;
+    name?: string;
+    startPage?: number;
+  };
+  sourcePageNumber: number;
+  data: CardData;
+  readiness: string;
+  due: string;
+  stability: number;
+  difficulty: number;
+  elapsedDays: number;
+  scheduledDays: number;
+  learningSteps: number;
+  reps: number;
+  lapses: number;
+  state: CardState;
+  lastReview?: string;
 };
 
 export type Page = {

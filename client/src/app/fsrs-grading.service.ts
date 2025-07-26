@@ -6,7 +6,7 @@ import {
   Rating,
   RecordLog,
 } from 'ts-fsrs';
-import { MostDueCard } from './most-due-card.service';
+import { Card } from './parser/types';
 import {
   mapCardStateToTsfsrsState,
   mapTsfsrsStateToCardState,
@@ -21,9 +21,9 @@ export class FsrsGradingService {
   private readonly fsrs = new FSRS({});
 
   /**
-   * Convert MostDueCard to FSRS Card format
+   * Convert Card to FSRS Card format
    */
-  private convertToFSRSCard(card: MostDueCard): FSRSCard {
+  private convertToFSRSCard(card: Card): FSRSCard {
     return {
       due: new Date(card.due),
       stability: card.stability,
@@ -41,7 +41,7 @@ export class FsrsGradingService {
   /**
    * Convert FSRS Card back to update format
    */
-  private convertFromFSRSCard(fsrsCard: FSRSCard, originalCard: MostDueCard) {
+  private convertFromFSRSCard(fsrsCard: FSRSCard, originalCard: Card) {
     return {
       ...originalCard.data,
       due: fsrsCard.due.toISOString(),
@@ -60,7 +60,7 @@ export class FsrsGradingService {
    * Grade a card using FSRS algorithm and save the updated card
    */
   async gradeCard(
-    card: MostDueCard,
+    card: Card,
     grade: 'Again' | 'Hard' | 'Good' | 'Easy'
   ): Promise<void> {
     // Convert grade to FSRS Rating
