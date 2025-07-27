@@ -20,8 +20,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { fetchAudio } from '../../utils/fetchAudio';
-import { fetchJson } from '../../utils/fetchJson';
 import { ExampleImage } from '../../parser/types';
+import { ReadinessService } from '../../readiness.service';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
@@ -55,6 +55,7 @@ export class FlashcardComponent {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   private readonly fsrsGradingService = inject(FsrsGradingService);
+  private readonly readinessService = inject(ReadinessService);
   readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
@@ -176,9 +177,7 @@ export class FlashcardComponent {
     if (!cardId) return;
 
     try {
-      await fetchJson(this.http, `/api/card/${cardId}/readiness/IN_REVIEW`, {
-        method: 'POST'
-      });
+      await this.readinessService.updateCardReadiness(cardId, 'IN_REVIEW');
       this.isRevealed.set(false);
       this.card.reload();
     } catch (error) {

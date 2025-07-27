@@ -4,6 +4,7 @@ import { Word, Card, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { languages } from './card.service';
+import { ReadinessService } from './readiness.service';
 import { mapTsfsrsStateToCardState } from './shared/state/card-state';
 
 export interface CardCreationProgress {
@@ -26,6 +27,7 @@ export interface BulkCardCreationResult {
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
+  private readonly readinessService = inject(ReadinessService);
 
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
@@ -223,9 +225,7 @@ export class BulkCardCreationService {
 
       // Step 6: Update readiness to IN_REVIEW (95% progress)
       this.updateProgress(progressIndex, 'creating-card', 95, 'Setting card as in review...');
-      await fetchJson(this.http, `/api/card/${word.id}/readiness/IN_REVIEW`, {
-        method: 'POST',
-      });
+      await this.readinessService.updateCardReadiness(word.id, 'IN_REVIEW');
 
       // Step 7: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);

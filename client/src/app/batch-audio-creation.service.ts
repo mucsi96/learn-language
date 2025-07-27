@@ -1,8 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { Card } from './parser/types';
 import { BackendCard } from './in-review-cards/in-review-cards.component';
+import { ReadinessService } from './readiness.service';
 
 export interface AudioCreationProgress {
   cardId: string;
@@ -32,6 +32,7 @@ export interface BatchAudioCreationResult {
 })
 export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
+  private readonly readinessService = inject(ReadinessService);
 
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
@@ -230,9 +231,7 @@ export class BatchAudioCreationService {
         'Setting card readiness to ready...'
       );
 
-      await fetchJson(this.http, `/api/card/${card.id}/readiness/READY`, {
-        method: 'POST',
-      });
+      await this.readinessService.updateCardReadiness(card.id, 'READY');
 
       // Step 6: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);

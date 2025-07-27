@@ -14,6 +14,7 @@ import { Card, CardData, ExampleImage, Word } from './parser/types';
 import { fetchAsset } from './utils/fetchAsset';
 import { fetchJson } from './utils/fetchJson';
 import { mapTsfsrsStateToCardState } from './shared/state/card-state';
+import { ReadinessService } from './readiness.service';
 
 export const languages = ['hu', 'ch', 'en'] as const;
 
@@ -23,6 +24,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
 export class CardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly readinessService = inject(ReadinessService);
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
   readonly selectedWord = signal<Word | undefined>(undefined);
@@ -204,9 +206,7 @@ export class CardService {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}/readiness/REVIEWED`, {
-      method: 'POST',
-    });
+    await this.readinessService.updateCardReadiness(word.id, 'REVIEWED');
   }
 
   async deleteCard() {

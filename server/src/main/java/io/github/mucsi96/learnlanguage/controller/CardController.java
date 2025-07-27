@@ -66,24 +66,11 @@ public class CardController {
     if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
     if (request.getState() != null) existingCard.setState(request.getState());
     if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
+    if (request.getReadiness() != null) existingCard.setReadiness(request.getReadiness());
     cardRepository.save(existingCard);
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
-    return ResponseEntity.ok(response);
-  }
-
-  @PostMapping("/card/{cardId}/readiness/{readiness}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<Map<String, String>> updateCardReadiness(@PathVariable String cardId, @PathVariable String readiness) throws Exception {
-    Card card = cardRepository.findById(cardId)
-        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
-
-    card.setReadiness(readiness);
-    cardRepository.save(card);
-
-    Map<String, String> response = new HashMap<>();
-    response.put("detail", "Card readiness updated to " + readiness + " successfully");
     return ResponseEntity.ok(response);
   }
 
