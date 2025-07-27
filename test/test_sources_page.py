@@ -54,9 +54,6 @@ def test_highlights_existing_cards(page: Page):
             "word": "anfangen",
             "translation": {"en": "to start"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A2").click()

@@ -1,17 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {
-  FSRS,
-  Card as FSRSCard,
-  Rating,
-  RecordLog,
-} from 'ts-fsrs';
+import { FSRS, Card as FSRSCard, Rating, RecordLog } from 'ts-fsrs';
 import { Card } from './parser/types';
 import {
   mapCardStateToTsfsrsState,
   mapTsfsrsStateToCardState,
 } from './shared/state/card-state';
 import { fetchJson } from './utils/fetchJson';
+import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 
 @Injectable({
   providedIn: 'root',
@@ -20,12 +16,9 @@ export class FsrsGradingService {
   private readonly http = inject(HttpClient);
   private readonly fsrs = new FSRS({});
 
-  /**
-   * Convert Card to FSRS Card format
-   */
-  private convertToFSRSCard(card: Card): FSRSCard {
+  convertToFSRSCard(card: Card): FSRSCard {
     return {
-      due: new Date(card.due),
+      due: card.due,
       stability: card.stability,
       difficulty: card.difficulty,
       elapsed_days: card.elapsedDays,
@@ -34,25 +27,36 @@ export class FsrsGradingService {
       reps: card.reps,
       lapses: card.lapses,
       state: mapCardStateToTsfsrsState(card.state),
-      last_review: card.lastReview ? new Date(card.lastReview) : undefined,
+      last_review: card.lastReview,
     };
   }
 
-  /**
-   * Convert FSRS Card back to update format
-   */
-  private convertFromFSRSCard(fsrsCard: FSRSCard, originalCard: Card) {
+  convertFromFSRSCard(
+    fsrsCard: FSRSCard
+  ): Pick<
+    Card,
+    | 'due'
+    | 'stability'
+    | 'difficulty'
+    | 'elapsedDays'
+    | 'scheduledDays'
+    | 'learningSteps'
+    | 'reps'
+    | 'lapses'
+    | 'state'
+    | 'lastReview'
+  > {
     return {
-      ...originalCard.data,
-      due: fsrsCard.due.toISOString(),
+      due: fsrsCard.due,
       stability: fsrsCard.stability,
       difficulty: fsrsCard.difficulty,
       elapsedDays: fsrsCard.elapsed_days,
       scheduledDays: fsrsCard.scheduled_days,
+      learningSteps: fsrsCard.learning_steps,
       reps: fsrsCard.reps,
       lapses: fsrsCard.lapses,
       state: mapTsfsrsStateToCardState(fsrsCard.state),
-      lastReview: fsrsCard.last_review?.toISOString(),
+      lastReview: fsrsCard.last_review,
     };
   }
 
@@ -70,16 +74,17 @@ export class FsrsGradingService {
     const fsrsCard = this.convertToFSRSCard(card);
 
     // Calculate new card state using FSRS
-    const schedulingCards: RecordLog = this.fsrs.repeat(fsrsCard, new Date());
+    const now = new Date();
+    const schedulingCards: RecordLog = this.fsrs.repeat(fsrsCard, now);
     const updatedCard = schedulingCards[rating].card;
 
     // Convert back to our format
-    const cardUpdateData = this.convertFromFSRSCard(updatedCard, card);
+    const cardUpdateData = this.convertFromFSRSCard(updatedCard);
 
     // Save the updated card using existing endpoint
     await fetchJson(this.http, `/api/card/${card.id}`, {
       method: 'PUT',
-      body: cardUpdateData,
+      body: mapCardDatesToISOStrings(cardUpdateData),
     });
   }
 

@@ -40,9 +40,6 @@ def test_study_page_initial_state(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -95,8 +92,6 @@ def test_study_page_revealed_state(page: Page):
             ]
         },
         state='LEARNING',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     # Navigate to study page
@@ -145,9 +140,6 @@ def test_source_selector_routing_works(page: Page):
                 }
             ]
         },
-        state=0,
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     # Create a card in another source
@@ -169,9 +161,6 @@ def test_source_selector_routing_works(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     # Start from the first source
@@ -294,8 +283,6 @@ def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
             'word': 'verstehen',
             'translation': {'en': 'to understand', 'hu': 'érteni', 'ch': 'verstah'}
         },
-        state='NEW',
-        learning_steps=0,
         due=yesterday,
         readiness='IN_REVIEW'
     )
@@ -309,7 +296,6 @@ def test_cards_with_in_review_readiness_not_shown_on_study_page(page: Page):
             'translation': {'en': 'to learn', 'hu': 'tanulni', 'ch': 'lerne'}
         },
         state='REVIEW',
-        learning_steps=0,
         due=yesterday,
     )
 
@@ -342,9 +328,6 @@ def test_mark_for_review_button_visible_on_study_page(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -377,8 +360,6 @@ def test_edit_card_button_visible_on_study_page(page: Page):
             ]
         },
         state='LEARNING',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -410,16 +391,14 @@ def test_mark_for_review_button_functionality(page: Page):
                 }
             ]
         },
-        state='REVIEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
-        readiness='READY'
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
 
     # Click the Mark for Review button
     page.get_by_role("button", name="Mark for Review").click()
+
+    expect(page.get_by_text("All caught up!")).to_be_visible()
 
     # Verify the card readiness was updated in the database
     with with_db_connection() as cur:
@@ -450,9 +429,6 @@ def test_mark_for_review_button_loads_next_card(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:20:00.00000',
         readiness='READY'
     )
 
@@ -474,9 +450,6 @@ def test_mark_for_review_button_loads_next_card(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:25:00.00000',
         readiness='READY'
     )
 
@@ -516,7 +489,6 @@ def test_edit_card_button_navigation(page: Page):
         },
         state='LEARNING',
         learning_steps=1,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -550,8 +522,6 @@ def test_grading_buttons_visibility_after_reveal(page: Page):
             ]
         },
         state='LEARNING',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -594,9 +564,6 @@ def test_again_button_functionality(page: Page):
                 }
             ]
         },
-        state='LEARNING',
-        learning_steps=0,
-        due='2025-07-06 08:20:00.00000',
     )
 
     create_card(
@@ -617,9 +584,6 @@ def test_again_button_functionality(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:25:00.00000',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -659,9 +623,6 @@ def test_hard_button_functionality(page: Page):
                 }
             ]
         },
-        state='REVIEW',
-        learning_steps=0,
-        due='2025-07-06 08:20:00.00000',
     )
 
     create_card(
@@ -682,9 +643,6 @@ def test_hard_button_functionality(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:25:00.00000',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -723,9 +681,6 @@ def test_good_button_functionality(page: Page):
                 }
             ]
         },
-        state='LEARNING',
-        learning_steps=1,
-        due='2025-07-06 08:20:00.00000',
     )
 
     create_card(
@@ -746,9 +701,6 @@ def test_good_button_functionality(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:25:00.00000',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -787,9 +739,6 @@ def test_easy_button_functionality(page: Page):
                 }
             ]
         },
-        state='REVIEW',
-        learning_steps=0,
-        due='2025-07-06 08:20:00.00000',
     )
 
     create_card(
@@ -810,9 +759,6 @@ def test_easy_button_functionality(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:25:00.00000',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -852,14 +798,6 @@ def test_grading_card_updates_database(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
-        # Initial FSRS values
-        stability=0.0,
-        difficulty=5.0,
-        reps=0,
-        lapses=0,
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")
@@ -911,9 +849,6 @@ def test_grading_with_no_next_card_shows_empty_state(page: Page):
                 }
             ]
         },
-        state='REVIEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources/goethe-a1/study")

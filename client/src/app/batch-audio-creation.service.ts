@@ -1,8 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { BackendCard } from './in-review-cards/in-review-cards.component';
-import { ReadinessService } from './readiness.service';
+import { Card } from './parser/types';
+import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 
 export interface AudioCreationProgress {
   cardId: string;
@@ -32,8 +32,6 @@ export interface BatchAudioCreationResult {
 })
 export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
-  private readonly readinessService = inject(ReadinessService);
-
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -48,9 +46,7 @@ export class BatchAudioCreationService {
     return totalProgress / progress.length;
   });
 
-  async createAudioInBatch(
-    cards: BackendCard[]
-  ): Promise<BatchAudioCreationResult> {
+  async createAudioInBatch(cards: Card[]): Promise<BatchAudioCreationResult> {
     if (this.isCreating()) {
       throw new Error('Batch audio creation already in progress');
     }
@@ -105,11 +101,11 @@ export class BatchAudioCreationService {
   }
 
   private async createAudioForSingleCard(
-    card: BackendCard,
+    card: Card,
     progressIndex: number
   ): Promise<void> {
     const audioMap = card.data.audio || {};
-    
+
     // Pick a random voice for this card if not already set
     const audioVoice = card.data.audioVoice || this.getRandomVoice();
 
@@ -177,27 +173,27 @@ export class BatchAudioCreationService {
       );
       if (selectedExample) {
         // German example
-        if (selectedExample.de && !cleanedAudioMap[selectedExample.de]) {
+        if (selectedExample['de'] && !cleanedAudioMap[selectedExample['de']]) {
           const exampleAudioResponse = await fetchJson<{ id: string }>(
             this.http,
             `/api/audio`,
             {
-              body: { input: selectedExample.de, voice: audioVoice },
+              body: { input: selectedExample['de'], voice: audioVoice },
               method: 'POST',
             }
           );
-          cleanedAudioMap[selectedExample.de] = exampleAudioResponse.id;
+          cleanedAudioMap[selectedExample['de']] = exampleAudioResponse.id;
         }
 
         // Hungarian example translation
-        if (selectedExample.hu && !cleanedAudioMap[selectedExample.hu]) {
+        if (selectedExample['hu'] && !cleanedAudioMap[selectedExample['hu']]) {
           const exampleTranslationAudioResponse = await fetchJson<{
             id: string;
           }>(this.http, `/api/audio`, {
-            body: { input: selectedExample.hu, voice: audioVoice },
+            body: { input: selectedExample['hu'], voice: audioVoice },
             method: 'POST',
           });
-          cleanedAudioMap[selectedExample.hu] =
+          cleanedAudioMap[selectedExample['hu']] =
             exampleTranslationAudioResponse.id;
         }
       }
@@ -211,29 +207,22 @@ export class BatchAudioCreationService {
       );
 
       // Create the updated card data by merging existing data with new audio and voice
-      const updatedCardData = {
-        ...card.data,
-        audio: cleanedAudioMap,
-        audioVoice: audioVoice,
+      const updatedCardData: Partial<Card> = {
+        data: {
+          ...card.data,
+          audio: cleanedAudioMap,
+          audioVoice: audioVoice,
+        },
+        readiness: 'READY',
       };
 
       // Update the card
       await fetchJson(this.http, `/api/card/${card.id}`, {
-        body: updatedCardData,
+        body: mapCardDatesToISOStrings(updatedCardData),
         method: 'PUT',
       });
 
-      // Step 5: Set card readiness to ready (95% progress)
-      this.updateProgress(
-        progressIndex,
-        'updating-card',
-        95,
-        'Setting card readiness to ready...'
-      );
-
-      await this.readinessService.updateCardReadiness(card.id, 'READY');
-
-      // Step 6: Complete (100% progress)
+      // Step 5: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);
     } catch (error) {
       this.updateProgress(
@@ -270,7 +259,7 @@ export class BatchAudioCreationService {
    * Clean up audio keys that are no longer needed based on current card data
    */
   private async cleanupUnusedAudioKeys(
-    card: BackendCard,
+    card: Card,
     audioMap: Record<string, string>
   ): Promise<Record<string, string>> {
     // Collect all text keys that should have audio based on current card data
@@ -291,11 +280,11 @@ export class BatchAudioCreationService {
       (example: any) => example.isSelected
     );
     if (selectedExample) {
-      if (selectedExample.de) {
-        validAudioKeys.add(selectedExample.de);
+      if (selectedExample['de']) {
+        validAudioKeys.add(selectedExample['de']);
       }
-      if (selectedExample.hu) {
-        validAudioKeys.add(selectedExample.hu);
+      if (selectedExample['hu']) {
+        validAudioKeys.add(selectedExample['hu']);
       }
     }
 
@@ -333,7 +322,19 @@ export class BatchAudioCreationService {
   }
 
   private getRandomVoice(): string {
-    const voices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'onyx', 'nova', 'sage', 'shimmer', 'verse'];
+    const voices = [
+      'alloy',
+      'ash',
+      'ballad',
+      'coral',
+      'echo',
+      'fable',
+      'onyx',
+      'nova',
+      'sage',
+      'shimmer',
+      'verse',
+    ];
     const randomIndex = Math.floor(Math.random() * voices.length);
     return voices[randomIndex];
   }

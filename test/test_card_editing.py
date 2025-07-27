@@ -37,9 +37,6 @@ def test_card_editing_page(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     navigate_to_card_creation(page, context)
 
@@ -98,9 +95,6 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     navigate_to_card_creation(page, context)
     page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
@@ -162,9 +156,6 @@ def test_favorite_image_in_db(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
 
     navigate_to_card_creation(page, context)
@@ -225,9 +216,6 @@ def test_word_type_editing(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
 
     navigate_to_card_creation(page, context)
@@ -282,9 +270,6 @@ def test_example_image_addition(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     navigate_to_card_creation(page, context)
 

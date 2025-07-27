@@ -27,9 +27,6 @@ def test_displays_card_counts(page: Page):
             "word": "test1",
             "translation": {"en": "test1"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     create_card(
         card_id='test-card-2',
@@ -39,9 +36,6 @@ def test_displays_card_counts(page: Page):
             "word": "test2",
             "translation": {"en": "test2"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
     expect(page.get_by_text("2 cards")).to_be_visible()
@@ -57,9 +51,6 @@ def test_displays_card_count_for_sources(page: Page):
             "word": "lernen",
             "translation": {"en": "to learn"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-07-21 08:24:32.82948',
     )
     create_card(
         card_id='test-card-2',
@@ -69,9 +60,6 @@ def test_displays_card_count_for_sources(page: Page):
             "word": "sprechen",
             "translation": {"en": "to speak"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-07-21 08:24:32.82948',
     )
     create_card(
         card_id='test-card-3',
@@ -81,9 +69,6 @@ def test_displays_card_count_for_sources(page: Page):
             "word": "hören",
             "translation": {"en": "to hear"},
         },
-        state=1,
-        learning_steps=0,
-        due='2025-07-21 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources")

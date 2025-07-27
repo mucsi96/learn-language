@@ -14,4 +14,3 @@
 - rename flashcard to card
 - create flashcard service
 - make card data generic
-- try to simplify card PUT endpoint

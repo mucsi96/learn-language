@@ -78,16 +78,10 @@ def test_due_cards_limited_to_max_50_mixed_states(page: Page):
 
 
 def test_in_review_cards_not_on_home_page(page: Page):
-    now = datetime.now()
-    yesterday = now - timedelta(days=1)
-
     create_card(
         card_id=str(uuid.uuid4()),
         source_id='goethe-a1',
         data={'en': 'test', 'hu': 'teszt', 'ch': 'test'},
-        state='NEW',
-        learning_steps=0,
-        due=yesterday,
         readiness='IN_REVIEW'
     )
 
@@ -95,9 +89,6 @@ def test_in_review_cards_not_on_home_page(page: Page):
         card_id=str(uuid.uuid4()),
         source_id='goethe-a1',
         data={'en': 'test2', 'hu': 'teszt2', 'ch': 'test2'},
-        state='NEW',
-        learning_steps=0,
-        due=yesterday,
         readiness= 'READY'
     )
 

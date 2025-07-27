@@ -20,9 +20,6 @@ def test_bulk_create_fab_appears_when_words_without_cards_selected(page: Page):
             "forms": [],
             "examples": []
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
@@ -51,9 +48,6 @@ def test_bulk_create_fab_shows_correct_count_for_multiple_regions(page: Page):
             "forms": [],
             "examples": []
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     page.goto("http://localhost:8180/sources")
     page.get_by_role(role="link", name="Goethe A1").click()
@@ -84,9 +78,6 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "forms": [],
             "examples": []
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     create_card(
         card_id='abfahren',
@@ -99,9 +90,6 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "forms": [],
             "examples": []
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
     create_card(
         card_id='die-abfahrt',
@@ -114,9 +102,6 @@ def test_bulk_create_fab_hides_when_all_words_have_cards(page: Page):
             "forms": [],
             "examples": []
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
 
     page.goto("http://localhost:8180/sources")
@@ -293,18 +278,18 @@ def test_bulk_card_creation_fsrs_attributes(page: Page):
     # Verify FSRS attributes in database
     with with_db_connection() as cur:
         cur.execute("""
-            SELECT state, step, stability, difficulty, reps, lapses, due
+            SELECT state, learning_steps, stability, difficulty, reps, lapses, due
             FROM learn_language.cards
             WHERE id = 'abfahren'
         """)
         result = cur.fetchone()
 
         assert result is not None, "Card 'abfahren' was not found"
-        state, step, stability, difficulty, reps, lapses, due = result
+        state, learning_steps, stability, difficulty, reps, lapses, due = result
 
         # Check FSRS initial values (from createEmptyCard())
         assert state == 'NEW'
-        assert step == 0
+        assert learning_steps == 0
         assert stability == 0
         assert difficulty == 0
         assert reps == 0
@@ -362,7 +347,7 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
     with with_db_connection() as cur:
         # Check all three cards
         cur.execute("""
-            SELECT state, step, stability, difficulty, reps, lapses, due, readiness
+            SELECT state, learning_steps, stability, difficulty, reps, lapses, due, readiness
             FROM learn_language.cards
             WHERE id IN ('aber', 'abfahren', 'die-abfahrt')
         """)
@@ -375,11 +360,11 @@ def test_bulk_card_creation_learning_parameters_and_review_state(page: Page):
 
         # Check that all cards have the correct initial learning parameters
         for result in results:
-            state, step, stability, difficulty, reps, lapses, due, readiness = result
+            state, learning_steps, stability, difficulty, reps, lapses, due, readiness = result
 
             # Check FSRS initial values
             assert state == 'NEW'
-            assert step == 0
+            assert learning_steps == 0
             assert stability == 0
             assert difficulty == 0
             assert reps == 0

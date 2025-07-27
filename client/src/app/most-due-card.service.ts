@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector, inject, resource, signal } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
 import { Card } from './parser/types';
+import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 
 @Injectable({
   providedIn: 'root',
@@ -17,12 +18,11 @@ export class MostDueCardService {
         return;
       }
 
-      return (
-        (await fetchJson<Card>(
-          this.http,
-          `/api/source/${selectedSourceId}/most-due-card`
-        )) ?? null
+      const card = await fetchJson<Card>(
+        this.http,
+        `/api/source/${selectedSourceId}/most-due-card`
       );
+      return card ? mapCardDatesFromISOStrings(card) : null;
     },
     injector: this.injector,
   });

@@ -10,32 +10,7 @@ import { CompressQueryPipe } from '../utils/compress-query.pipe';
 import { getWordTypeInfo } from '../shared/word-type-translations';
 import { getGenderInfo } from '../shared/gender-translations';
 import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
-
-export interface BackendCard {
-  id: string;
-  source: {
-    id: string;
-    name: string;
-  };
-  sourcePageNumber: number;
-  data: {
-    word: string;
-    type?: string;
-    gender?: string;
-    translation?: Record<string, string>;
-    forms?: string[];
-    examples?: Array<{
-      de?: string;
-      hu?: string;
-      ch?: string;
-      en?: string;
-      isSelected?: boolean;
-      images?: Array<{ id: string; isFavorite?: boolean }>;
-    }>;
-    audio?: Record<string, string>;
-    audioVoice?: string;
-  };
-}
+import { Card } from '../parser/types';
 
 @Component({
   selector: 'app-in-review-cards',
@@ -77,7 +52,7 @@ export class InReviewCardsComponent {
     return gender ? getGenderInfo(gender) : undefined;
   }
 
-  getTranslationText(card: BackendCard): string {
+  getTranslationText(card: Card): string {
     const translations = [];
     if (card.data.translation?.['hu']) translations.push(`HU: ${card.data.translation['hu']}`);
     if (card.data.translation?.['en']) translations.push(`EN: ${card.data.translation['en']}`);

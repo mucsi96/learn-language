@@ -33,9 +33,6 @@ def test_displays_in_review_cards_in_table(page: Page):
                 }
             ]
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -50,9 +47,6 @@ def test_displays_in_review_cards_in_table(page: Page):
             "translation": {"en": "to speak", "hu": "beszélni"},
             "examples": []
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 09:30:15.12345',
         readiness='IN_REVIEW'
     )
 
@@ -66,9 +60,6 @@ def test_displays_in_review_cards_in_table(page: Page):
             "type": "VERB",
             "translation": {"en": "to learn", "hu": "tanulni"},
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:00:00.00000',
         readiness='READY'
     )
 
@@ -116,9 +107,6 @@ def test_navigation_on_row_click(page: Page):
             "translation": {"en": "to write", "hu": "írni", "ch": "schriibe"},
             "examples": []
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 10:15:30.54321',
         readiness='IN_REVIEW'
     )
 
@@ -148,9 +136,6 @@ def test_navigation_back_after_row_click(page: Page):
             "translation": {"en": "to read", "hu": "olvasni", "ch": "läse"},
             "examples": []
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 11:45:20.98765',
         readiness='IN_REVIEW'
     )
 
@@ -185,9 +170,6 @@ def test_displays_empty_state_when_no_cards_in_review(page: Page):
             "type": "ADJECTIVE",
             "translation": {"en": "ready", "hu": "kész"},
         },
-        state='NEW',
-        learning_steps=0,
-        due='2025-07-06 08:00:00.00000',
         readiness='READY'
     )
 
@@ -229,9 +211,6 @@ def test_mark_as_reviewed_button_disabled_when_no_example_selected(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -271,9 +250,6 @@ def test_mark_as_reviewed_button_disabled_when_no_favorite_image(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -314,9 +290,6 @@ def test_mark_as_reviewed_button_enabled_when_conditions_met(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -358,9 +331,6 @@ def test_mark_as_reviewed_updates_readiness_in_database(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -411,9 +381,6 @@ def test_mark_as_reviewed_saves_card_data_changes(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 
@@ -470,9 +437,6 @@ def test_navigation_back_after_mark_as_reviewed(page: Page):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
         readiness='IN_REVIEW'
     )
 

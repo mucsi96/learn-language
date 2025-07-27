@@ -4,8 +4,9 @@ import { Word, Card, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { languages } from './card.service';
-import { ReadinessService } from './readiness.service';
 import { mapTsfsrsStateToCardState } from './shared/state/card-state';
+import { FsrsGradingService } from './fsrs-grading.service';
+import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 
 export interface CardCreationProgress {
   word: string;
@@ -27,8 +28,7 @@ export interface BulkCardCreationResult {
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
-  private readonly readinessService = inject(ReadinessService);
-
+  private readonly fsrsGradingService = inject(FsrsGradingService);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -181,7 +181,7 @@ export class BulkCardCreationService {
 
       // Step 4: Create card (90% progress)
       this.updateProgress(progressIndex, 'creating-card', 90, 'Creating card...');
-      
+
       const data: CardData = {
         word: word.word,
         type: wordTypeResponse.type,
@@ -201,33 +201,22 @@ export class BulkCardCreationService {
         }))
       };
 
-      const cardData = {
+      const emptyCard = createEmptyCard();
+      const cardWithFSRS = {
         id: word.id,
         source: { id: sourceId },
         sourcePageNumber: pageNumber,
-        data
-      } satisfies Partial<Card>;
-
-      const emptyCard = createEmptyCard();
-      const cardWithFSRS = {
-        ...cardData,
-        ...emptyCard,
-        state: mapTsfsrsStateToCardState(emptyCard.state),
-        due: emptyCard.due.toISOString(),
-        lastReview: emptyCard.last_review?.toISOString(),
+        data,
+        ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
         readiness: 'IN_REVIEW'
-      } satisfies Partial<Card>;
+      } satisfies Card;
 
       await fetchJson(this.http, `/api/card`, {
-        body: cardWithFSRS,
+        body: mapCardDatesToISOStrings(cardWithFSRS),
         method: 'POST',
       });
 
-      // Step 6: Update readiness to IN_REVIEW (95% progress)
-      this.updateProgress(progressIndex, 'creating-card', 95, 'Setting card as in review...');
-      await this.readinessService.updateCardReadiness(word.id, 'IN_REVIEW');
-
-      // Step 7: Complete (100% progress)
+      // Step 6: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);
 
     } catch (error) {

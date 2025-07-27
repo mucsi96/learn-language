@@ -6,6 +6,7 @@ import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
+import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,19 +55,8 @@ public class CardController {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    // Update fields from request, keeping existing values for null fields
-    if (request.getData() != null) existingCard.setData(request.getData());
-    if (request.getDue() != null) existingCard.setDue(request.getDue());
-    if (request.getStability() != null) existingCard.setStability(request.getStability());
-    if (request.getDifficulty() != null) existingCard.setDifficulty(request.getDifficulty());
-    if (request.getElapsedDays() != null) existingCard.setElapsedDays(request.getElapsedDays());
-    if (request.getScheduledDays() != null) existingCard.setScheduledDays(request.getScheduledDays());
-    if (request.getLearningSteps() != null) existingCard.setLearningSteps(request.getLearningSteps());
-    if (request.getReps() != null) existingCard.setReps(request.getReps());
-    if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
-    if (request.getState() != null) existingCard.setState(request.getState());
-    if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
-    if (request.getReadiness() != null) existingCard.setReadiness(request.getReadiness());
+    // Copy only non-null properties from request to existing card
+    BeanUtils.copyNonNullProperties(request, existingCard);
     cardRepository.save(existingCard);
 
     Map<String, String> response = new HashMap<>();

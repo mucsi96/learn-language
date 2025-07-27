@@ -60,7 +60,7 @@ export type Card = {
   sourcePageNumber: number;
   data: CardData;
   readiness: string;
-  due: string;
+  due: Date;
   stability: number;
   difficulty: number;
   elapsedDays: number;
@@ -69,7 +69,7 @@ export type Card = {
   reps: number;
   lapses: number;
   state: CardState;
-  lastReview?: string;
+  lastReview?: Date;
 };
 
 export type Page = {

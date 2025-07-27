@@ -1,7 +1,8 @@
 import { Injectable, inject, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { BackendCard } from './in-review-cards/in-review-cards.component';
+import { Card } from './parser/types';
+import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 
 @Injectable({
   providedIn: 'root',
@@ -9,9 +10,10 @@ import { BackendCard } from './in-review-cards/in-review-cards.component';
 export class InReviewCardsService {
   private readonly http = inject(HttpClient);
 
-  readonly cards = resource<BackendCard[], unknown>({
+  readonly cards = resource<Card[], unknown>({
     loader: async () => {
-      return fetchJson<BackendCard[]>(this.http, '/api/cards/readiness/IN_REVIEW');
+      const cards = await fetchJson<Card[]>(this.http, '/api/cards/readiness/IN_REVIEW');
+      return cards.map(card => mapCardDatesFromISOStrings(card));
     },
   });
 

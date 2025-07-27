@@ -6,7 +6,7 @@ import json
 import base64
 import requests
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, List
 from playwright.sync_api import expect
 
@@ -82,7 +82,7 @@ def populate_storage():
             container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
 
 
-def create_card(card_id, source_id, data, state, learning_steps, due, stability=0.0, difficulty=0.0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, readiness='READY'):
+def create_card(card_id, source_id, data, state='NEW', learning_steps=0, due=datetime.now()-timedelta(days=1), stability=0.0, difficulty=0.0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, readiness='READY'):
     with with_db_connection() as cur:
         cur.execute("""
           INSERT INTO learn_language.cards (

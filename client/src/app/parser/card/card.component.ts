@@ -160,11 +160,6 @@ export class CardComponent {
       });
   }
 
-  async createCard() {
-    await this.cardService.createCard();
-    this.showSnackBar('Card created successfully');
-  }
-
   async updateCard() {
     await this.cardService.updateCard();
     this.showSnackBar('Card updated successfully');

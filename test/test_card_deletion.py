@@ -33,9 +33,6 @@ def test_card_deletion(page: Page, context: BrowserContext):
                 }
             ]
         },
-        state=1,
-        learning_steps=0,
-        due='2025-03-13 08:24:32.82948',
     )
 
     navigate_to_card_creation(page, context)

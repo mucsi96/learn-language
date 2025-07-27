@@ -7,9 +7,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
-import { BackendCard } from '../in-review-cards/in-review-cards.component';
+import { Card } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
+import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
 
 @Component({
   selector: 'app-batch-audio-creation-fab',
@@ -23,9 +24,10 @@ export class BatchAudioCreationFabComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
   private readonly http = inject(HttpClient);
-  readonly cards = resource<BackendCard[], unknown>({
+  readonly cards = resource<Card[], unknown>({
     loader: async () => {
-      return fetchJson<BackendCard[]>(this.http, '/api/cards/readiness/REVIEWED');
+      const cards = await fetchJson<Card[]>(this.http, '/api/cards/readiness/REVIEWED');
+      return cards.map(card => mapCardDatesFromISOStrings(card));
     },
   });
 
@@ -43,14 +45,14 @@ export class BatchAudioCreationFabComponent {
       // Check if audio is missing for any of these texts
       const audioMap = (card.data as any).audio || {};
       const needsWordAudio = hasWord && !audioMap[card.data.word];
-      const needsTranslationAudio = hasHungarianTranslation && card.data.translation && !audioMap[card.data.translation['hu']];
+      const needsTranslationAudio = hasHungarianTranslation && card.data.translation?.['hu'] && !audioMap[card.data.translation['hu']];
 
       let needsExampleAudio = false;
       if (hasSelectedExample && card.data.examples) {
         const selectedExample = card.data.examples.find(ex => ex.isSelected);
         if (selectedExample) {
-          const needsDeAudio = selectedExample.de && !audioMap[selectedExample.de];
-          const needsHuAudio = selectedExample.hu && !audioMap[selectedExample.hu];
+          const needsDeAudio = selectedExample['de'] && !audioMap[selectedExample['de']];
+          const needsHuAudio = selectedExample['hu'] && !audioMap[selectedExample['hu']];
           needsExampleAudio = Boolean(needsDeAudio || needsHuAudio);
         }
       }

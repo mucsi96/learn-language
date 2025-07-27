@@ -21,12 +21,12 @@ import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { fetchAudio } from '../../utils/fetchAudio';
 import { ExampleImage } from '../../parser/types';
-import { ReadinessService } from '../../readiness.service';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { FsrsGradingService } from '../../fsrs-grading.service';
+import { fetchJson } from '../../utils/fetchJson';
 
 type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
@@ -55,14 +55,12 @@ export class FlashcardComponent {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   private readonly fsrsGradingService = inject(FsrsGradingService);
-  private readonly readinessService = inject(ReadinessService);
   readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
 
   readonly selectedExample = computed(() =>
-    this.card.value()
-      ?.data.examples?.find((ex) => ex.isSelected)
+    this.card.value()?.data.examples?.find((ex) => ex.isSelected)
   );
   readonly word = computed(() =>
     this.isRevealed()
@@ -130,7 +128,11 @@ export class FlashcardComponent {
     });
   }
 
-  private async playAudioSequence(word: string, example: string | undefined, audioMap: Record<string, string>) {
+  private async playAudioSequence(
+    word: string,
+    example: string | undefined,
+    audioMap: Record<string, string>
+  ) {
     // Play word audio first
     if (audioMap[word]) {
       await this.playAudio(audioMap[word]);
@@ -138,7 +140,7 @@ export class FlashcardComponent {
 
     // Wait for delay then play example audio
     if (example && audioMap[example]) {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 second delay
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 second delay
       await this.playAudio(audioMap[example]);
     }
   }
@@ -147,7 +149,9 @@ export class FlashcardComponent {
     try {
       const audioUrl = await fetchAudio(this.http, `/api/audio/${audioId}`);
       const audio = new Audio(audioUrl);
-      await audio.play().catch(error => console.warn('Audio playback failed:', error));
+      await audio
+        .play()
+        .catch((error) => console.warn('Audio playback failed:', error));
     } catch (error) {
       console.warn('Error loading audio:', error);
     }
@@ -177,7 +181,10 @@ export class FlashcardComponent {
     if (!cardId) return;
 
     try {
-      await this.readinessService.updateCardReadiness(cardId, 'IN_REVIEW');
+      await fetchJson(this.http, `/api/card/${cardId}`, {
+        body: { readiness: 'IN_REVIEW' },
+        method: 'PUT',
+      });
       this.isRevealed.set(false);
       this.card.reload();
     } catch (error) {
