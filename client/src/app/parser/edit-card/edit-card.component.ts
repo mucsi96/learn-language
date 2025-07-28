@@ -37,8 +37,8 @@ import { InReviewCardsService } from '../../in-review-cards.service';
     MatSelectModule,
     RouterModule,
   ],
-  templateUrl: './editCard.component.html',
-  styleUrl: './editCard.component.css',
+  templateUrl: './edit-card.component.html',
+  styleUrl: './edit-card.component.css',
 })
 export class EditCardComponent {
   readonly editCardService = inject(EditCardService);

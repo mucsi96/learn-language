@@ -76,7 +76,7 @@ export const routes: Routes = [
   {
     path: 'sources/:sourceId/page/:pageNumber/cards',
     loadComponent: () =>
-      import('./parser/editCard/editCard.component').then((m) => m.EditCardComponent),
+      import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
     canActivate: environment.mockAuth ? [] : [MsalGuard],
     title: async (route) => {
       const cardData = route.queryParams['cardData'];
