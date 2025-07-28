@@ -14,7 +14,7 @@ import {
   WORD_TYPE_TRANSLATIONS,
 } from '../../shared/word-type-translations';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CardService } from '../../card.service';
+import { EditCardService } from '../../editCard.service';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
@@ -23,7 +23,7 @@ import { GENDER_TRANSLATIONS } from '../../shared/gender-translations';
 import { InReviewCardsService } from '../../in-review-cards.service';
 
 @Component({
-  selector: 'app-card',
+  selector: 'app-edit-card',
   imports: [
     MatButtonModule,
     FormsModule,
@@ -37,11 +37,11 @@ import { InReviewCardsService } from '../../in-review-cards.service';
     MatSelectModule,
     RouterModule,
   ],
-  templateUrl: './card.component.html',
-  styleUrl: './card.component.css',
+  templateUrl: './editCard.component.html',
+  styleUrl: './editCard.component.css',
 })
-export class CardComponent {
-  readonly cardService = inject(CardService);
+export class EditCardComponent {
+  readonly editCardService = inject(EditCardService);
   readonly inReviewCardsService = inject(InReviewCardsService);
   readonly route = inject(ActivatedRoute);
   readonly cardData = injectQueryParams<string>('cardData');
@@ -51,15 +51,15 @@ export class CardComponent {
   readonly genderOptions = GENDER_TRANSLATIONS;
 
   exampleImageCarouselIndices = linkedSignal<number[]>(() => {
-    const examples = this.cardService.examples();
+    const examples = this.editCardService.examples();
     return examples?.map(() => 0) ?? []
   });
 
   readonly backNavigationUrl = computed(() => {
-    const card = this.cardService.card.value();
+    const card = this.editCardService.card.value();
     const readiness = card?.readiness;
-    const sourceId = this.cardService.selectedSourceId();
-    const pageNumber = this.cardService.selectedPageNumber();
+    const sourceId = this.editCardService.selectedSourceId();
+    const pageNumber = this.editCardService.selectedPageNumber();
 
     if (readiness === 'IN_REVIEW' || readiness === 'REVIEWED') {
       return ['/in-review-cards'];
@@ -69,7 +69,7 @@ export class CardComponent {
   });
 
   readonly isInReview = computed(() => {
-    const card = this.cardService.card.value();
+    const card = this.editCardService.card.value();
     return card?.readiness === 'IN_REVIEW';
   });
 
@@ -79,15 +79,15 @@ export class CardComponent {
     }
 
     // Check if there is a selected example
-    const selectedExampleIndex = this.cardService.selectedExampleIndex();
-    const examples = this.cardService.examples();
+    const selectedExampleIndex = this.editCardService.selectedExampleIndex();
+    const examples = this.editCardService.examples();
 
     if (!examples || selectedExampleIndex < 0 || selectedExampleIndex >= examples.length) {
       return false;
     }
 
     // Check if the selected example has a favorite image
-    const exampleImages = this.cardService.exampleImages();
+    const exampleImages = this.editCardService.exampleImages();
     const selectedExampleImages = exampleImages?.[selectedExampleIndex];
 
     if (!selectedExampleImages || selectedExampleImages.length === 0) {
@@ -103,8 +103,8 @@ export class CardComponent {
 
   constructor() {
     this.route.params.subscribe((params) => {
-      this.cardService.selectedSourceId.set(params['sourceId']);
-      this.cardService.selectedPageNumber.set(parseInt(params['pageNumber']));
+      this.editCardService.selectedSourceId.set(params['sourceId']);
+      this.editCardService.selectedPageNumber.set(parseInt(params['pageNumber']));
     });
     effect(async () => {
       const cardData = this.cardData();
@@ -114,12 +114,12 @@ export class CardComponent {
       }
 
       const word = await queryParamToObject<Word>(cardData);
-      this.cardService.selectWord(word);
+      this.editCardService.selectWord(word);
     });
   }
 
   addImage(exampleIdx: number) {
-    const length = this.cardService.addExampleImage(exampleIdx).length;
+    const length = this.editCardService.addExampleImage(exampleIdx).length;
     this.exampleImageCarouselIndices.update((indices) => {
       indices[exampleIdx] = length - 1;
       return indices;
@@ -127,12 +127,12 @@ export class CardComponent {
   }
 
   areImagesLoading(exampleIdx: number) {
-    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
     return images.some((image) => image.isLoading());
   }
 
   prevImage(exampleIdx: number) {
-    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
     if (!images.length) return;
     this.exampleImageCarouselIndices.update((indices) => {
       indices[exampleIdx] =
@@ -142,7 +142,7 @@ export class CardComponent {
   }
 
   nextImage(exampleIdx: number) {
-    const images = this.cardService.exampleImages()?.[exampleIdx] || [];
+    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
     if (!images.length) return;
     this.exampleImageCarouselIndices.update((indices) => {
       indices[exampleIdx] =
@@ -161,16 +161,16 @@ export class CardComponent {
   }
 
   async updateCard() {
-    await this.cardService.updateCard();
+    await this.editCardService.updateCard();
     this.showSnackBar('Card updated successfully');
   }
 
   async markAsReviewed() {
     // First save any changes to the card (same as update button)
-    await this.cardService.updateCard();
+    await this.editCardService.updateCard();
     // Then mark it as reviewed
-    await this.cardService.markAsReviewed();
-    this.cardService.card.reload();
+    await this.editCardService.markAsReviewed();
+    this.editCardService.card.reload();
     this.inReviewCardsService.refetchCards();
     this.showSnackBar('Card marked as reviewed successfully');
   }
@@ -183,14 +183,14 @@ export class CardComponent {
 
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result) {
-        await this.cardService.deleteCard();
+        await this.editCardService.deleteCard();
         this.showSnackBar('Card deleted successfully');
       }
     });
   }
 
   async toggleFavorite(exampleIdx: number, imageIdx: number) {
-    const images = this.cardService.exampleImages()?.[exampleIdx];
+    const images = this.editCardService.exampleImages()?.[exampleIdx];
     if (!images?.length) return;
 
     const image = images[imageIdx];

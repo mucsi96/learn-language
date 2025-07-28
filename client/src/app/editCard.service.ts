@@ -19,7 +19,7 @@ export const languages = ['hu', 'ch', 'en'] as const;
 @Injectable({
   providedIn: 'root',
 })
-export class CardService {
+export class EditCardService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   readonly selectedSourceId = signal<string | undefined>(undefined);
