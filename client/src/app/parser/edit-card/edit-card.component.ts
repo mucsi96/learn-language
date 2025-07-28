@@ -13,8 +13,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   WORD_TYPE_TRANSLATIONS,
 } from '../../shared/word-type-translations';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { EditCardService } from '../../editCard.service';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { EditCardService } from '../../edit-card.service';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
 import { Word } from '../types';
