@@ -1,6 +1,6 @@
 @if (card.isLoading()) {
-<div class="flashcard-container">
-  <div class="flashcard">
+<div class="learn-card-container">
+  <div class="learn-card">
     <div class="image-section">
       <div class="image-gallery">
         <div class="skeleton"></div>
@@ -36,9 +36,9 @@
   <p>Great job keeping up with your studies! 🎉</p>
 </div>
 } @else {
-<div class="flashcard-container">
+<div class="learn-card-container">
   <div
-    class="flashcard"
+    class="learn-card"
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
@@ -50,7 +50,7 @@
         <img
           [src]="imageResource.value()?.url"
           [alt]="example()"
-          class="flashcard-image"
+          class="learn-card-image"
         />
         } @else if (imageResource.isLoading()) {
         <div class="skeleton"></div>

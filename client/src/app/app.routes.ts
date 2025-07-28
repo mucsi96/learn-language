@@ -36,8 +36,8 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./study/flashcard/flashcard.component').then(
-            (m) => m.FlashcardComponent
+          import('./study/learn-card/learn-card.component').then(
+            (m) => m.LearnCardComponent
           ),
       },
     ],

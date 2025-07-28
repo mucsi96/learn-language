@@ -32,7 +32,7 @@ type ImageResource = ExampleImage & { url: string };
 type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 
 @Component({
-  selector: 'app-flashcard',
+  selector: 'app-learn-card',
   standalone: true,
   imports: [
     CommonModule,
@@ -46,10 +46,10 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
     AsyncPipe,
     CompressQueryPipe,
   ],
-  templateUrl: './flashcard.component.html',
-  styleUrl: './flashcard.component.css',
+  templateUrl: './learn-card.component.html',
+  styleUrl: './learn-card.component.css',
 })
-export class FlashcardComponent {
+export class LearnCardComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);

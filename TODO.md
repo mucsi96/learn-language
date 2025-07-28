@@ -10,7 +10,5 @@
 - generate more images for examples
 
 
-- rename card, card.service to editCard and editCard service
-- rename flashcard to card
 - create flashcard service
 - make card data generic
