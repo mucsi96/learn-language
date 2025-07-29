@@ -1,0 +1,31 @@
+.card-actions {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  gap: 0.25rem;
+  z-index: 10;
+}
+
+.action-button {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: var(--mat-sys-on-surface-variant) !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.action-button:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.action-button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}

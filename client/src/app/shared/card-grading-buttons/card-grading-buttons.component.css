@@ -1,0 +1,79 @@
+.grading-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container-low);
+  border-radius: 12px;
+}
+
+.grading-buttons button {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+}
+
+.grade-again {
+  background-color: #dc3545 !important;
+}
+
+.grade-hard {
+  background-color: #fd7e14 !important;
+}
+
+.grade-good {
+  background-color: #28a745 !important;
+}
+
+.grade-easy {
+  background-color: #0d6efd !important;
+}
+
+.grade-again:hover {
+  background-color: #bb2d3b !important;
+}
+
+.grade-hard:hover {
+  background-color: #dc6502 !important;
+}
+
+.grade-good:hover {
+  background-color: #208637 !important;
+}
+
+.grade-easy:hover {
+  background-color: #0a58ca !important;
+}
+
+@media (min-width: 768px) {
+  .grading-buttons {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--mat-sys-surface-container);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+  }
+
+  .grading-buttons button {
+    flex-direction: row;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .grading-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

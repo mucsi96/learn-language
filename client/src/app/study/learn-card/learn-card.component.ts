@@ -9,14 +9,12 @@ import {
   untracked,
   effect,
 } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MostDueCardService } from '../../most-due-card.service';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { fetchAudio } from '../../utils/fetchAudio';
@@ -24,12 +22,10 @@ import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
-import { CompressQueryPipe } from '../../utils/compress-query.pipe';
-import { FsrsGradingService } from '../../fsrs-grading.service';
-import { fetchJson } from '../../utils/fetchJson';
+import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
+import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 
 type ImageResource = ExampleImage & { url: string };
-type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 
 @Component({
   selector: 'app-learn-card',
@@ -37,14 +33,11 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
   imports: [
     CommonModule,
     MatCardModule,
-    MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatTooltipModule,
-    RouterModule,
     StateComponent,
-    AsyncPipe,
-    CompressQueryPipe,
+    CardGradingButtonsComponent,
+    CardActionsComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -54,7 +47,6 @@ export class LearnCardComponent {
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly fsrsGradingService = inject(FsrsGradingService);
   readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
@@ -161,34 +153,7 @@ export class LearnCardComponent {
     this.isRevealed.update((revealed) => !revealed);
   }
 
-  async gradeCard(grade: Grade) {
-    const card = this.card.value();
-    if (!card) return;
-
-    try {
-      await this.fsrsGradingService.gradeCard(card, grade);
-      // Reload the card resource to get the next card
-      this.card.reload();
-      this.isRevealed.set(false);
-    } catch (error) {
-      console.error('Error grading card:', error);
-    }
-  }
-
-  async markForReview(event: Event) {
-    event.stopPropagation();
-    const cardId = this.card.value()?.id;
-    if (!cardId) return;
-
-    try {
-      await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { readiness: 'IN_REVIEW' },
-        method: 'PUT',
-      });
-      this.isRevealed.set(false);
-      this.card.reload();
-    } catch (error) {
-      console.error('Error marking card for review:', error);
-    }
+  onCardProcessed() {
+    this.isRevealed.set(false);
   }
 }
