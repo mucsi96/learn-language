@@ -50,6 +50,8 @@ export class LearnCardComponent {
   readonly card = this.mostDueCardService.card;
 
   readonly isRevealed = signal(false);
+  private currentAudio: HTMLAudioElement | null = null;
+  private audioTimeout: number | null = null;
 
   readonly selectedExample = computed(() =>
     this.card.value()?.data.examples?.find((ex) => ex.isSelected)
@@ -125,6 +127,9 @@ export class LearnCardComponent {
     example: string | undefined,
     audioMap: Record<string, string>
   ) {
+    // Stop any current audio playback first
+    this.stopCurrentAudio();
+
     // Play word audio first
     if (audioMap[word]) {
       await this.playAudio(audioMap[word]);
@@ -132,20 +137,34 @@ export class LearnCardComponent {
 
     // Wait for delay then play example audio
     if (example && audioMap[example]) {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 second delay
-      await this.playAudio(audioMap[example]);
+      this.audioTimeout = window.setTimeout(async () => {
+        await this.playAudio(audioMap[example]);
+      }, 1500); // 1.5 second delay
     }
   }
 
   private async playAudio(audioId: string) {
     try {
       const audioUrl = await fetchAudio(this.http, `/api/audio/${audioId}`);
-      const audio = new Audio(audioUrl);
-      await audio
+      this.currentAudio = new Audio(audioUrl);
+      await this.currentAudio
         .play()
         .catch((error) => console.warn('Audio playback failed:', error));
     } catch (error) {
       console.warn('Error loading audio:', error);
+    }
+  }
+
+  private stopCurrentAudio() {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.currentTime = 0;
+      this.currentAudio = null;
+    }
+
+    if (this.audioTimeout) {
+      clearTimeout(this.audioTimeout);
+      this.audioTimeout = null;
     }
   }
 
