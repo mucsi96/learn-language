@@ -1,12 +1,7 @@
 @if (card.isLoading()) {
 <div class="learn-card-container">
   <div class="learn-card">
-    <app-default-card-content 
-      [card]="card" 
-      [isRevealed]="isRevealed()" 
-      [isLoading]="true"
-      [onPlayAudio]="playAudioForContent.bind(this)">
-    </app-default-card-content>
+    <app-card-skeleton />
   </div>
 </div>
 } @else if (card.value() === null) {
@@ -31,7 +26,6 @@
     <app-default-card-content 
       [card]="card" 
       [isRevealed]="isRevealed()" 
-      [isLoading]="false"
       [onPlayAudio]="playAudioForContent.bind(this)">
     </app-default-card-content>
   </div>

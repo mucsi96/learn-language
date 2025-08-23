@@ -13,6 +13,7 @@ import { fetchAudio } from '../../utils/fetchAudio';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { DefaultCardContentComponent } from './default-card-content/default-card-content.component';
+import { CardSkeletonComponent } from './card-skeleton/card-skeleton.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -24,6 +25,7 @@ import { DefaultCardContentComponent } from './default-card-content/default-card
     CardGradingButtonsComponent,
     CardActionsComponent,
     DefaultCardContentComponent,
+    CardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',

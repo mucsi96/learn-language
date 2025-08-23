@@ -35,7 +35,6 @@ type ImageResource = ExampleImage & { url: string };
 export class DefaultCardContentComponent {
   card = input<ResourceRef<Card | null | undefined> | null>(null);
   isRevealed = input<boolean>(false);
-  isLoading = input<boolean>(false);
   onPlayAudio = input<((word: string, example?: string) => void) | null>(null);
 
   private readonly http = inject(HttpClient);
@@ -99,7 +98,7 @@ export class DefaultCardContentComponent {
       const currentExample = this.example();
       const playAudioFn = this.onPlayAudio();
 
-      if (currentWord && playAudioFn && !this.isLoading()) {
+      if (currentWord && playAudioFn) {
         playAudioFn(currentWord, currentExample);
       }
     });
