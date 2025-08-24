@@ -1,7 +1,7 @@
 @if (card.isLoading()) {
 <div class="learn-card-container">
   <div class="learn-card">
-    <app-card-skeleton />
+    <app-learn-card-skeleton />
   </div>
 </div>
 } @else if (card.value() === null) {
@@ -23,11 +23,11 @@
       (cardProcessed)="onCardProcessed()">
     </app-card-actions>
     
-    <app-default-card-content 
+    <app-learn-vocabulary-card 
       [card]="card" 
       [isRevealed]="isRevealed()" 
       [onPlayAudio]="playAudioForContent.bind(this)">
-    </app-default-card-content>
+    </app-learn-vocabulary-card>
   </div>
 
   @if (isRevealed()) {

@@ -13,26 +13,26 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
-import { fetchAsset } from '../../../utils/fetchAsset';
-import { Card, ExampleImage } from '../../../parser/types';
-import { StateComponent } from '../../../shared/state/state.component';
-import { getWordTypeInfo } from '../../../shared/word-type-translations';
-import { getGenderInfo } from '../../../shared/gender-translations';
+import { fetchAsset } from '../../utils/fetchAsset';
+import { Card, ExampleImage } from '../../parser/types';
+import { StateComponent } from '../../shared/state/state.component';
+import { getWordTypeInfo } from '../../shared/word-type-translations';
+import { getGenderInfo } from '../../shared/gender-translations';
 
 type ImageResource = ExampleImage & { url: string };
 
 @Component({
-  selector: 'app-default-card-content',
+  selector: 'app-learn-vocabulary-card',
   standalone: true,
   imports: [
     CommonModule,
     MatChipsModule,
     StateComponent,
   ],
-  templateUrl: './default-card-content.component.html',
-  styleUrl: './default-card-content.component.css',
+  templateUrl: './learn-vocabulary-card.component.html',
+  styleUrl: './learn-vocabulary-card.component.css',
 })
-export class DefaultCardContentComponent {
+export class LearnVocabularyCardComponent {
   card = input<ResourceRef<Card | null | undefined> | null>(null);
   isRevealed = input<boolean>(false);
   onPlayAudio = input<((word: string, example?: string) => void) | null>(null);

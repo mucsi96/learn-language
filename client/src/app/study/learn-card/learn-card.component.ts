@@ -12,8 +12,8 @@ import { HttpClient } from '@angular/common/http';
 import { fetchAudio } from '../../utils/fetchAudio';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
-import { DefaultCardContentComponent } from './default-card-content/default-card-content.component';
-import { CardSkeletonComponent } from './card-skeleton/card-skeleton.component';
+import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
+import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -24,8 +24,8 @@ import { CardSkeletonComponent } from './card-skeleton/card-skeleton.component';
     MatIconModule,
     CardGradingButtonsComponent,
     CardActionsComponent,
-    DefaultCardContentComponent,
-    CardSkeletonComponent,
+    LearnVocabularyCardComponent,
+    LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
