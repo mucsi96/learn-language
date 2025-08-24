@@ -71,20 +71,22 @@ export class LearnCardComponent {
     // Stop any current audio playback first
     this.stopCurrentAudio();
 
-    // Filter texts that have audio available
+    // Filter texts that have audio available and play them recursively
     const textsWithAudio = texts.filter(text => text && audioMap[text]);
-    if (textsWithAudio.length === 0) return;
+    await this.playNextAudio(textsWithAudio, audioMap, 0);
+  }
 
-    // Play audio sequentially, waiting for each to finish before scheduling the next
-    for (let i = 0; i < textsWithAudio.length; i++) {
-      await this.playAudio(audioMap[textsWithAudio[i]]);
+  private async playNextAudio(texts: string[], audioMap: Record<string, string>, index: number): Promise<void> {
+    if (index >= texts.length) return;
 
-      // Schedule next audio after a delay, but only if there's a next one
-      if (i < textsWithAudio.length - 1) {
-        await new Promise(resolve => {
-          this.audioTimeout = window.setTimeout(resolve, 1500); // 1.5 second delay
-        });
-      }
+    await this.playAudio(audioMap[texts[index]]);
+
+    // Schedule next audio after delay if there are more
+    if (index < texts.length - 1) {
+      await new Promise(resolve => {
+        this.audioTimeout = window.setTimeout(resolve, 1500);
+      });
+      await this.playNextAudio(texts, audioMap, index + 1);
     }
   }
 
