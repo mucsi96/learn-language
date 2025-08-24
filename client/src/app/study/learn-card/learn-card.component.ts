@@ -39,6 +39,7 @@ export class LearnCardComponent {
   readonly isRevealed = signal(false);
   private currentAudio: HTMLAudioElement | null = null;
   private audioTimeout: number | null = null;
+  private lastPlayedTexts: string[] = [];
 
   constructor() {
     this.route.params.subscribe((params) => {
@@ -49,30 +50,41 @@ export class LearnCardComponent {
 
   // Public method for child components to trigger audio playback
   playAudioForContent(texts: string[]) {
-    const audioMap = this.card.value()?.data.audio;
-    if (audioMap && texts.length > 0) {
-      // this.playAudioSequence(texts[0], texts[1], audioMap);
+    // Check if the same texts are being requested
+    const textsChanged = texts.length !== this.lastPlayedTexts.length ||
+                        texts.some((text, index) => text !== this.lastPlayedTexts[index]);
+
+    if (!textsChanged) {
+      return;
+    }
+
+    if (texts.length > 0) {
+      this.lastPlayedTexts = [...texts];
+      this.playAudioSequence(texts);
     }
   }
 
-  private async playAudioSequence(
-    word: string,
-    example: string | undefined,
-    audioMap: Record<string, string>
-  ) {
+  private async playAudioSequence(texts: string[]) {
+    const audioMap = this.card.value()?.data.audio;
+    if (!audioMap) return;
+
     // Stop any current audio playback first
     this.stopCurrentAudio();
 
-    // Play word audio first
-    if (audioMap[word]) {
-      await this.playAudio(audioMap[word]);
-    }
+    // Filter texts that have audio available
+    const textsWithAudio = texts.filter(text => text && audioMap[text]);
+    if (textsWithAudio.length === 0) return;
 
-    // Wait for delay then play example audio
-    if (example && audioMap[example]) {
-      this.audioTimeout = window.setTimeout(async () => {
-        await this.playAudio(audioMap[example]);
-      }, 1500); // 1.5 second delay
+    // Play audio sequentially, waiting for each to finish before scheduling the next
+    for (let i = 0; i < textsWithAudio.length; i++) {
+      await this.playAudio(audioMap[textsWithAudio[i]]);
+
+      // Schedule next audio after a delay, but only if there's a next one
+      if (i < textsWithAudio.length - 1) {
+        await new Promise(resolve => {
+          this.audioTimeout = window.setTimeout(resolve, 1500); // 1.5 second delay
+        });
+      }
     }
   }
 
@@ -95,6 +107,7 @@ export class LearnCardComponent {
       this.currentAudio = null;
     }
 
+    // Clear audio timeout
     if (this.audioTimeout) {
       clearTimeout(this.audioTimeout);
       this.audioTimeout = null;
@@ -107,5 +120,7 @@ export class LearnCardComponent {
 
   onCardProcessed() {
     this.isRevealed.set(false);
+    // Reset last played texts when card changes
+    this.lastPlayedTexts = [];
   }
 }

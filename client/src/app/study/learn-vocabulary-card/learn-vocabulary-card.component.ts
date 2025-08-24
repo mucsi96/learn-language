@@ -100,7 +100,6 @@ export class LearnVocabularyCardComponent {
 
       if (currentWord && playAudioFn) {
         const texts = [currentWord, currentExample].filter(Boolean) as string[];
-        console.log('Calling playAudioFn', texts)
         playAudioFn(texts);
       }
     });
