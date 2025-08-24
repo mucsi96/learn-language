@@ -48,10 +48,10 @@ export class LearnCardComponent {
   }
 
   // Public method for child components to trigger audio playback
-  playAudioForContent(word: string, example?: string) {
+  playAudioForContent(texts: string[]) {
     const audioMap = this.card.value()?.data.audio;
-    if (audioMap) {
-      // this.playAudioSequence(word, example, audioMap);
+    if (audioMap && texts.length > 0) {
+      // this.playAudioSequence(texts[0], texts[1], audioMap);
     }
   }
 

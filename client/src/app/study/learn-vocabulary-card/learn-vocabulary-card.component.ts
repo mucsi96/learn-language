@@ -35,7 +35,7 @@ type ImageResource = ExampleImage & { url: string };
 export class LearnVocabularyCardComponent {
   card = input<ResourceRef<Card | null | undefined> | null>(null);
   isRevealed = input<boolean>(false);
-  onPlayAudio = input<((word: string, example?: string) => void) | null>(null);
+  onPlayAudio = input<((texts: string[]) => void) | null>(null);
 
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
@@ -99,7 +99,9 @@ export class LearnVocabularyCardComponent {
       const playAudioFn = this.onPlayAudio();
 
       if (currentWord && playAudioFn) {
-        playAudioFn(currentWord, currentExample);
+        const texts = [currentWord, currentExample].filter(Boolean) as string[];
+        console.log('Calling playAudioFn', texts)
+        playAudioFn(texts);
       }
     });
   }
