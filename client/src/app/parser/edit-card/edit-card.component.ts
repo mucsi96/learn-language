@@ -1,65 +1,67 @@
-import { Component, effect, inject, linkedSignal, computed } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-  WORD_TYPE_TRANSLATIONS,
-} from '../../shared/word-type-translations';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { EditCardService } from '../../edit-card.service';
+import { HttpClient } from '@angular/common/http';
+import { resource } from '@angular/core';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
-import { Word } from '../types';
+import { Word, Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { GENDER_TRANSLATIONS } from '../../shared/gender-translations';
 import { InReviewCardsService } from '../../in-review-cards.service';
+import { fetchJson } from '../../utils/fetchJson';
+import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
+import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
 
 @Component({
   selector: 'app-edit-card',
   imports: [
     MatButtonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatLabel,
-    MatInputModule,
     MatCardModule,
     MatProgressSpinnerModule,
     MatIcon,
-    MatRadioModule,
-    MatSelectModule,
     RouterModule,
+    EditVocabularyCardComponent,
   ],
   templateUrl: './edit-card.component.html',
   styleUrl: './edit-card.component.css',
 })
 export class EditCardComponent {
-  readonly editCardService = inject(EditCardService);
+  private readonly http = inject(HttpClient);
   readonly inReviewCardsService = inject(InReviewCardsService);
   readonly route = inject(ActivatedRoute);
-  readonly cardData = injectQueryParams<string>('cardData');
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
-  readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
-  readonly genderOptions = GENDER_TRANSLATIONS;
+  
+  readonly cardData = injectQueryParams<string>('cardData');
+  readonly selectedSourceId = signal<string | undefined>(undefined);
+  readonly selectedPageNumber = signal<number | undefined>(undefined);
+  readonly selectedWord = signal<Word | undefined>(undefined);
+  readonly markAsReviewedAvailable = signal<boolean>(false);
 
-  exampleImageCarouselIndices = linkedSignal<number[]>(() => {
-    const examples = this.editCardService.examples();
-    return examples?.map(() => 0) ?? []
+  readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
+    params: () => ({ selectedWord: this.selectedWord() }),
+    loader: async ({ params: { selectedWord } }) => {
+      if (!selectedWord || !selectedWord.exists) {
+        return;
+      }
+
+      const card = await fetchJson<Card>(this.http, `/api/card/${selectedWord.id}`);
+      return mapCardDatesFromISOStrings(card);
+    },
   });
 
+  readonly isLoading = computed(() => this.card.isLoading());
+
   readonly backNavigationUrl = computed(() => {
-    const card = this.editCardService.card.value();
+    const card = this.card.value();
     const readiness = card?.readiness;
-    const sourceId = this.editCardService.selectedSourceId();
-    const pageNumber = this.editCardService.selectedPageNumber();
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.selectedPageNumber();
 
     if (readiness === 'IN_REVIEW' || readiness === 'REVIEWED') {
       return ['/in-review-cards'];
@@ -69,108 +71,80 @@ export class EditCardComponent {
   });
 
   readonly isInReview = computed(() => {
-    const card = this.editCardService.card.value();
+    const card = this.card.value();
     return card?.readiness === 'IN_REVIEW';
   });
 
   readonly canMarkAsReviewed = computed(() => {
-    if (!this.isInReview()) {
-      return false;
-    }
-
-    // Check if there is a selected example
-    const selectedExampleIndex = this.editCardService.selectedExampleIndex();
-    const examples = this.editCardService.examples();
-
-    if (!examples || selectedExampleIndex < 0 || selectedExampleIndex >= examples.length) {
-      return false;
-    }
-
-    // Check if the selected example has a favorite image
-    const exampleImages = this.editCardService.exampleImages();
-    const selectedExampleImages = exampleImages?.[selectedExampleIndex];
-
-    if (!selectedExampleImages || selectedExampleImages.length === 0) {
-      return false;
-    }
-
-    // Check if at least one image in the selected example is marked as favorite
-    return selectedExampleImages.some(imageResource => {
-      const imageValue = imageResource.value();
-      return imageValue?.isFavorite === true;
-    });
+    return this.isInReview() && this.markAsReviewedAvailable();
   });
 
   constructor() {
     this.route.params.subscribe((params) => {
-      this.editCardService.selectedSourceId.set(params['sourceId']);
-      this.editCardService.selectedPageNumber.set(parseInt(params['pageNumber']));
+      this.selectedSourceId.set(params['sourceId']);
+      this.selectedPageNumber.set(parseInt(params['pageNumber']));
     });
-    effect(async () => {
-      const cardData = this.cardData();
 
-      if (typeof cardData !== 'string') {
-        return;
+    this.route.queryParams.subscribe(async (params) => {
+      const cardData = params['cardData'];
+      if (typeof cardData === 'string') {
+        const word = await queryParamToObject<Word>(cardData);
+        this.selectedWord.set(word);
       }
-
-      const word = await queryParamToObject<Word>(cardData);
-      this.editCardService.selectWord(word);
     });
   }
 
-  addImage(exampleIdx: number) {
-    const length = this.editCardService.addExampleImage(exampleIdx).length;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = length - 1;
-      return indices;
-    });
+  getCardType(): string {
+    // For now, we only have vocabulary cards, but this can be extended
+    return 'vocabulary';
   }
 
-  areImagesLoading(exampleIdx: number) {
-    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
-    return images.some((image) => image.isLoading());
+  getCardTypeTitle(): string {
+    return 'Word';
   }
 
-  prevImage(exampleIdx: number) {
-    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] =
-        (indices[exampleIdx] - 1 + images.length) % images.length;
-      return indices;
-    });
+  handleCardUpdate(cardData: any) {
+    this.updateCardWithData(cardData);
   }
 
-  nextImage(exampleIdx: number) {
-    const images = this.editCardService.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] =
-        (indices[exampleIdx] + 1) % images.length;
-      return indices;
-    });
-  }
 
   private showSnackBar(message: string) {
-    this.snackBar
-      .open(message, 'Close', {
-        duration: 3000,
-        verticalPosition: 'top',
-        panelClass: ['success'],
-      });
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+      panelClass: ['success'],
+    });
   }
 
   async updateCard() {
-    await this.editCardService.updateCard();
+    // This will be called by child components through handleCardUpdate
     this.showSnackBar('Card updated successfully');
   }
 
+  private async updateCardWithData(cardData: any) {
+    const word = this.selectedWord();
+    if (!word) {
+      return;
+    }
+
+    await fetchJson(this.http, `/api/card/${word.id}`, {
+      body: cardData,
+      method: 'PUT',
+    });
+  }
+
   async markAsReviewed() {
-    // First save any changes to the card (same as update button)
-    await this.editCardService.updateCard();
-    // Then mark it as reviewed
-    await this.editCardService.markAsReviewed();
-    this.editCardService.card.reload();
+    const word = this.selectedWord();
+    if (!word) {
+      return;
+    }
+
+    await fetchJson(this.http, `/api/card/${word.id}`, {
+      body: { readiness: 'REVIEWED' },
+      method: 'PUT',
+    });
+    
+    this.card.reload();
     this.inReviewCardsService.refetchCards();
     this.showSnackBar('Card marked as reviewed successfully');
   }
@@ -183,25 +157,20 @@ export class EditCardComponent {
 
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result) {
-        await this.editCardService.deleteCard();
+        await this.deleteCard();
         this.showSnackBar('Card deleted successfully');
       }
     });
   }
 
-  async toggleFavorite(exampleIdx: number, imageIdx: number) {
-    const images = this.editCardService.exampleImages()?.[exampleIdx];
-    if (!images?.length) return;
+  private async deleteCard() {
+    const word = this.selectedWord();
+    if (!word) {
+      return;
+    }
 
-    const image = images[imageIdx];
-    if (!image || image.isLoading()) return;
-
-    const imageValue = image.value();
-    if (!imageValue) return;
-
-    image.set({
-      ...imageValue,
-      isFavorite: !imageValue.isFavorite
+    await fetchJson(this.http, `/api/card/${word.id}`, {
+      method: 'DELETE',
     });
   }
 }

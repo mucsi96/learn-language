@@ -1,211 +1,46 @@
-@let loading = editCardService.isLoading; @let card = editCardService.card.value; @let
-word = editCardService.word; @let wordType = editCardService.wordType; @let gender =
-editCardService.gender; @let translation = editCardService.translation; @let forms =
-editCardService.forms; @let examples = editCardService.examples; @let
-examplesTranslations = editCardService.examplesTranslations; @let exampleImages =
-editCardService.exampleImages; @let selectedExampleIndex =
-editCardService.selectedExampleIndex; @if (loading()) {
-<mat-spinner class="page-loading" />
+@if (isLoading()) {
+  <mat-spinner class="page-loading" />
 } @else {
-<div class="top-actions">
-  <a mat-icon-button [routerLink]="backNavigationUrl()" aria-label="Go back">
-    <mat-icon>arrow_back</mat-icon>
-  </a>
-</div>
-<h2 class="title">
-  Word @if (card()) {
-  <button
-    mat-icon-button
-    color="red"
-    (click)="confirmDeleteCard()"
-    aria-label="Delete card"
-  >
-    <mat-icon>delete</mat-icon>
-  </button>
-  @if (isInReview()) {
-  <button
-    type="button"
-    mat-flat-button
-    (click)="markAsReviewed()"
-    [disabled]="!canMarkAsReviewed()"
-  >
-    Mark as reviewed
-  </button>
-  }
-  <button type="button" mat-flat-button (click)="updateCard()">Update</button>
-  }
-</h2>
-<div class="word">
-  <mat-form-field class="field">
-    <mat-label>Type</mat-label>
-    <mat-select [(ngModel)]="wordType" aria-label="Word type">
-      @for (option of wordTypeOptions; track option.type) {
-      <mat-option [value]="option.type">
-        <span class="word-type-option" [style.background-color]="option.color">
-          {{ option.translation }}
-        </span>
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  @if (wordType() === 'NOUN') {
-  <mat-form-field class="field">
-    <mat-label>Gender</mat-label>
-    <mat-select [(ngModel)]="gender" aria-label="Gender">
-      @for (option of genderOptions; track option.gender) {
-      <mat-option [value]="option.gender">
-        <span class="word-type-option" [style.background-color]="option.color">
-          {{ option.translation }}
-        </span>
-      </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-  }
-</div>
-<div class="word">
-  <mat-form-field class="field">
-    <mat-label>German</mat-label>
-    <input
-      matInput
-      type="text"
-      [(ngModel)]="word"
-      aria-label="German translation"
-    />
-  </mat-form-field>
-  <mat-form-field class="field">
-    <mat-label>Hungarian</mat-label>
-    <input
-      matInput
-      type="text"
-      [(ngModel)]="translation['hu']"
-      aria-label="Hungarian translation"
-    />
-  </mat-form-field>
-  <mat-form-field class="field">
-    <mat-label>Swiss German</mat-label>
-    <input
-      matInput
-      type="text"
-      [(ngModel)]="translation['ch']"
-      aria-label="Swiss German translation"
-    />
-  </mat-form-field>
-</div>
-<h2>Forms</h2>
-<div class="forms">
-  @for (form of forms(); track $index) {
-  <mat-form-field class="field">
-    <input matInput type="text" [(ngModel)]="form" aria-label="Form" />
-  </mat-form-field>
-  }
-</div>
-<h2>Examples</h2>
-<mat-radio-group [(ngModel)]="selectedExampleIndex">
-  @for (example of examples(); track $index) { @let images =
-  exampleImages()[$index];
-  <div class="example">
-    <div class="actions">
-      <mat-radio-button [value]="$index"></mat-radio-button>
+  <div class="top-actions">
+    <a mat-icon-button [routerLink]="backNavigationUrl()" aria-label="Go back">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+  </div>
+  <h2 class="title">
+    {{ getCardTypeTitle() }}
+    @if (card.value()) {
       <button
         mat-icon-button
-        (click)="addImage($index)"
-        aria-label="Add example image"
-        [disabled]="areImagesLoading($index)"
+        color="red"
+        (click)="confirmDeleteCard()"
+        aria-label="Delete card"
       >
-        <mat-icon>add_photo_alternate</mat-icon>
+        <mat-icon>delete</mat-icon>
       </button>
-    </div>
-    <mat-form-field class="field">
-      <mat-label>German</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="example"
-        aria-label="Example in German"
-      />
-    </mat-form-field>
-    @if(examplesTranslations(); as examplesTranslations) {
-    <mat-form-field class="field">
-      <mat-label>Hungarian</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="examplesTranslations['hu'][$index]"
-        aria-label="Example in Hungarian"
-      />
-    </mat-form-field>
-    <mat-form-field class="field">
-      <mat-label>Swiss German</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="examplesTranslations['ch'][$index]"
-        aria-label="Example in Swiss German"
-      />
-    </mat-form-field>
-    <div class="image">
-      @if (images && images.length) { @let imageResource =
-      images[exampleImageCarouselIndices()[$index]]; @let url =
-      imageResource?.value()?.url; @if(!imageResource) {
-      <mat-icon>image_not_supported</mat-icon>
-      } @else if(imageResource.isLoading()) {
-      <div class="skeleton"></div>
-      } @else if (url) {
-      <img [src]="url" [alt]="example()" />
-      <div
-        class="image-overlay"
-        [class.image-overlay-favorite]="imageResource.value()?.isFavorite"
-      >
+      @if (isInReview()) {
         <button
-          mat-icon-button
-          (click)="
-            toggleFavorite($index, exampleImageCarouselIndices()[$index])
-          "
-          aria-label="Toggle favorite"
-          [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
-          [attr.aria-pressed]="imageResource.value()?.isFavorite"
+          type="button"
+          mat-flat-button
+          (click)="markAsReviewed()"
+          [disabled]="!canMarkAsReviewed()"
         >
-          <mat-icon>{{
-            imageResource.value()?.isFavorite ? "favorite" : "favorite_border"
-          }}</mat-icon>
+          Mark as reviewed
         </button>
-      </div>
-      } @else {
-      <mat-icon>image_not_supported</mat-icon>
       }
-
-      <div class="carousel-controls">
-        <button
-          mat-icon-button
-          (click)="prevImage($index)"
-          [disabled]="
-            images.length < 2 || exampleImageCarouselIndices()[$index] === 0
-          "
-          aria-label="Previous image"
-        >
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        <span class="carousel-indicator">
-          {{ exampleImageCarouselIndices()[$index] + 1 }} /
-          {{ images.length }}
-        </span>
-        <button
-          mat-icon-button
-          (click)="nextImage($index)"
-          [disabled]="
-            images.length < 2 ||
-            exampleImageCarouselIndices()[$index] === images.length - 1
-          "
-          aria-label="Next image"
-        >
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-      }
-    </div>
+      <button type="button" mat-flat-button (click)="updateCard()">
+        Update
+      </button>
     }
-  </div>
+  </h2>
+  
+  @if (getCardType() === 'vocabulary') {
+    <app-edit-vocabulary-card
+      [selectedWord]="selectedWord()"
+      [selectedSourceId]="selectedSourceId()"
+      [selectedPageNumber]="selectedPageNumber()"
+      [card]="card.value()"
+      (cardUpdate)="handleCardUpdate($event)"
+      (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+    />
   }
-</mat-radio-group>
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Word, Card, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
-import { languages } from './edit-card.service';
+import { languages } from './shared/constants/languages';
 import { mapTsfsrsStateToCardState } from './shared/state/card-state';
 import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
