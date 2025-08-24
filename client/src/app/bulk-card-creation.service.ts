@@ -1,27 +1,18 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Word, Card, CardData } from './parser/types';
+import { Word, Card } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
-import { languages } from './shared/constants/languages';
-import { mapTsfsrsStateToCardState } from './shared/state/card-state';
 import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
+import { VocabularyCardCreationStrategy } from './card-creation-strategies/vocabulary-card-creation.strategy';
+import { 
+  CardCreationProgress, 
+  BulkCardCreationResult, 
+  CardCreationRequest, 
+  CardType 
+} from './shared/types/card-creation.types';
 
-export interface CardCreationProgress {
-  word: string;
-  status: 'pending' | 'word-type' | 'translating' | 'generating-images' | 'creating-card' | 'completed' | 'error';
-  progress: number; // 0-100
-  error?: string;
-  currentStep?: string;
-}
-
-export interface BulkCardCreationResult {
-  totalCards: number;
-  successfulCards: number;
-  failedCards: number;
-  errors: string[];
-}
 
 @Injectable({
   providedIn: 'root',
@@ -29,6 +20,7 @@ export interface BulkCardCreationResult {
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
   private readonly fsrsGradingService = inject(FsrsGradingService);
+  private readonly vocabularyStrategy = inject(VocabularyCardCreationStrategy);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -43,7 +35,8 @@ export class BulkCardCreationService {
   async createCardsInBulk(
     words: Word[],
     sourceId: string,
-    pageNumber: number
+    pageNumber: number,
+    cardType: CardType
   ): Promise<BulkCardCreationResult> {
     if (this.isCreating()) {
       throw new Error('Bulk creation already in progress');
@@ -66,6 +59,7 @@ export class BulkCardCreationService {
     // Initialize progress tracking
     const initialProgress: CardCreationProgress[] = wordsToCreate.map(word => ({
       word: word.word,
+      cardType: cardType,
       status: 'pending',
       progress: 0,
       currentStep: 'Queued for processing'
@@ -74,9 +68,15 @@ export class BulkCardCreationService {
     this.creationProgress.set(initialProgress);
 
     const results = await Promise.allSettled(
-      wordsToCreate.map((word, index) =>
-        this.createSingleCard(word, sourceId, pageNumber, index)
-      )
+      wordsToCreate.map((word, index) => {
+        const request: CardCreationRequest = {
+          word,
+          sourceId,
+          pageNumber,
+          cardType
+        };
+        return this.createSingleCard(request, index);
+      })
     );
 
     this.isCreating.set(false);
@@ -96,117 +96,31 @@ export class BulkCardCreationService {
   }
 
   private async createSingleCard(
-    word: Word,
-    sourceId: string,
-    pageNumber: number,
+    request: CardCreationRequest,
     progressIndex: number
   ): Promise<void> {
+    const { word, sourceId, pageNumber, cardType } = request;
+    
     try {
-      // Step 1: Get word type (15% progress)
-      this.updateProgress(progressIndex, 'word-type', 15, 'Detecting word type...');
-      const wordTypeResponse = await fetchJson<{ type: string }>(
-        this.http,
-        `/api/word-type`,
-        {
-          body: { word: word.word },
-          method: 'POST',
-        }
-      );
-
-      // Step 1.5: Get gender for nouns (20% progress)
-      let gender: string | undefined;
-      if (wordTypeResponse.type === 'NOUN') {
-        this.updateProgress(progressIndex, 'word-type', 20, 'Detecting gender...');
-        const genderResponse = await fetchJson<{ gender: string }>(
-          this.http,
-          `/api/gender`,
-          {
-            body: { word: word.word },
-            method: 'POST',
-          }
-        );
-        gender = genderResponse.gender;
-      }
-
-      // Step 2: Get translations (40% progress)
-      this.updateProgress(progressIndex, 'translating', 40, 'Translating to multiple languages...');
-      const translationPromises = languages.map(async (languageCode) => {
-        const translation = await fetchJson<{ translation: string; examples: string[] }>(
-          this.http,
-          `/api/translate/${languageCode}`,
-          {
-            body: word,
-            method: 'POST',
-          }
-        );
-        return { languageCode, translation };
-      });
-
-      const translations = await Promise.all(translationPromises);
-      const translationMap = Object.fromEntries(
-        translations.map(({ languageCode, translation }) => [
-          languageCode,
-          translation.translation
-        ])
-      );
-      const exampleTranslations = Object.fromEntries(
-        translations.map(({ languageCode, translation }) => [
-          languageCode,
-          translation.examples || []
-        ])
-      );
-
-      // Step 3: Generate images for examples (60% progress)
-      this.updateProgress(progressIndex, 'generating-images', 60, 'Generating example images...');
-      const exampleImages = await Promise.all(
-        word.examples.map(async (example, exampleIndex) => {
-          // Use English translation for image generation
-          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
-          if (!englishTranslation) {
-            return [];
-          }
-
-          const imageResponse = await fetchJson<{ id: string }>(
-            this.http,
-            `/api/image`,
-            {
-              body: { input: englishTranslation },
-              method: 'POST',
-            }
-          );
-
-          return [{ id: imageResponse.id }];
-        })
-      );
-
-      // Step 4: Create card (90% progress)
-      this.updateProgress(progressIndex, 'creating-card', 90, 'Creating card...');
-
-      const data: CardData = {
-        word: word.word,
-        type: wordTypeResponse.type,
-        gender: gender,
-        translation: translationMap,
-        forms: word.forms,
-        examples: word.examples.map((example, index) => ({
-          ...Object.fromEntries([
-            ['de', example],
-            ...languages.map((languageCode) => [
-              languageCode,
-              exampleTranslations[languageCode]?.[index] || ''
-            ])
-          ]),
-          isSelected: index === 0, // First example is selected by default
-          images: exampleImages[index] || []
-        }))
+      // Get the appropriate strategy for this card type
+      const strategy = this.getStrategy(cardType);
+      
+      // Use strategy to create card data with progress callback
+      const progressCallback = (progress: number, step: string) => {
+        this.updateProgress(progressIndex, 'translating', progress, step);
       };
-
+      
+      const cardData = await strategy.createCardData(request, progressCallback);
+      
+      // Generic card creation with FSRS (90% progress)
+      this.updateProgress(progressIndex, 'creating-card', 90, 'Creating card...');
+      
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
         id: word.id,
         source: { id: sourceId },
         sourcePageNumber: pageNumber,
-        data,
+        data: cardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
         readiness: 'IN_REVIEW'
       } satisfies Card;
@@ -216,8 +130,8 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      // Step 6: Complete (100% progress)
-      this.updateProgress(progressIndex, 'completed', 100);
+      // Complete (100% progress)
+      this.updateProgress(progressIndex, 'completed', 100, 'Card created successfully!');
 
     } catch (error) {
       this.updateProgress(
@@ -227,6 +141,18 @@ export class BulkCardCreationService {
         `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       throw error;
+    }
+  }
+
+  private getStrategy(cardType: CardType) {
+    switch (cardType) {
+      case CardType.VOCABULARY:
+        return this.vocabularyStrategy;
+      // Future card types can be added here:
+      // case CardType.GRAMMAR:
+      //   return this.grammarStrategy;
+      default:
+        throw new Error(`No strategy found for card type: ${cardType}`);
     }
   }
 

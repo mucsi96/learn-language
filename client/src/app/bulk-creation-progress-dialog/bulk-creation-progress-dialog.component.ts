@@ -8,10 +8,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import {
-  BulkCardCreationService,
-  CardCreationProgress,
-} from '../bulk-card-creation.service';
+import { BulkCardCreationService } from '../bulk-card-creation.service';
+import { CardCreationProgress } from '../shared/types/card-creation.types';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 

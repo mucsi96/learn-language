@@ -9,6 +9,7 @@ import { WordsWithoutCardsService } from '../words-without-cards.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { PageService } from '../page.service';
+import { CardType } from '../shared/types/card-creation.types';
 
 @Component({
   selector: 'app-bulk-card-creation-fab',
@@ -45,7 +46,8 @@ export class BulkCardCreationFabComponent {
     const result = await this.bulkCreationService.createCardsInBulk(
       words,
       selectedSource.sourceId,
-      selectedSource.pageNumber
+      selectedSource.pageNumber,
+      CardType.VOCABULARY  // For now, default to vocabulary cards
     );
 
     if (result.successfulCards > 0) {
