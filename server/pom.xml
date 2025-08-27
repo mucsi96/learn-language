@@ -114,6 +114,11 @@
       <artifactId>thumbnailator</artifactId>
       <version>0.4.20</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.genai</groupId>
+      <artifactId>google-genai</artifactId>
+      <version>1.14.0</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>

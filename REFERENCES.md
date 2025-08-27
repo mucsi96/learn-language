@@ -28,3 +28,9 @@ Material icon library: https://fonts.google.com/icons
 # LangSmith
 
 https://github.com/langchain-ai/langsmith-cookbook/blob/main/tracing-examples/rest/rest.ipynb#Logging-LLM-Runs
+
+# Google AI
+
+- [Google AI Studio](https://aistudio.google.com)
+- [Gemini Developer API](https://ai.google.dev/gemini-api/docs)
+- [Google Gen AI Java SDK](https://github.com/googleapis/java-genai)

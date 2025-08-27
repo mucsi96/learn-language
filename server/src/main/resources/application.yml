@@ -36,4 +36,7 @@ langsmith:
   apiKey: ${LANGSMITH_API_KEY:}
   apiUrl: https://api.smith.langchain.com
   project: learn-language
+google:
+  ai:
+    apiKey: ${GOOGLE_AI_API_KEY:}
 

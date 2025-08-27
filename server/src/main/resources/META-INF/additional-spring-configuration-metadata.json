@@ -21,22 +21,30 @@
   },
   {
     "name": "langsmith.enabled",
-    "type": "java.lang.String",
-    "description": "Enable LangSmith tracing"
+    "type": "java.lang.Boolean",
+    "description": "Enable LangSmith tracing for AI operations monitoring"
   },
   {
     "name": "langsmith.apiKey",
     "type": "java.lang.String",
-    "description": "API key for LangSmith"
+    "description": "API key for LangSmith tracing service",
+    "sourceType": "io.github.mucsi96.learnlanguage.tracing.AITracingService"
   },
   {
     "name": "langsmith.apiUrl",
     "type": "java.lang.String",
-    "description": "Endpoint URL for LangSmith API"
+    "description": "Base URL for LangSmith API endpoints",
+    "defaultValue": "https://api.smith.langchain.com"
   },
   {
     "name": "langsmith.project",
     "type": "java.lang.String",
-    "description": "Name of the LangSmith project to use for tracing"
+    "description": "LangSmith project name for organizing traced operations",
+    "defaultValue": "learn-language"
+  },
+  {
+    "name": "google.ai.apiKey",
+    "type": "java.lang.String",
+    "description": "API key for Google AI services including Imagen image generation"
   }
 ]}

@@ -1,4 +1,5 @@
 import { CardData, Word } from '../../parser/types';
+import { ImageGenerationModel } from './image-generation.types';
 
 export enum CardType {
   VOCABULARY = 'vocabulary',
@@ -12,6 +13,7 @@ export interface CardCreationRequest {
   sourceId: string;
   pageNumber: number;
   cardType: CardType;
+  imageModel?: ImageGenerationModel;
 }
 
 export interface CardCreationStrategy {

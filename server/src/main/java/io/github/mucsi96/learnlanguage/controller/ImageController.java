@@ -35,7 +35,7 @@ public class ImageController {
     String uuid = UUID.randomUUID().toString();
     String blobName = "images/%s.jpg".formatted(uuid);
 
-    byte[] data = imageService.generateImage(imageSource.getInput());
+    byte[] data = imageService.generateImage(imageSource.getInput(), imageSource.getModel());
     blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
     return ExampleImageData.builder()

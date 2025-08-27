@@ -8,6 +8,11 @@ import {
   CardCreationRequest, 
   CardType 
 } from '../shared/types/card-creation.types';
+import { 
+  ImageGenerationModel, 
+  ImageSourceRequest, 
+  ImageResponse 
+} from '../shared/types/image-generation.types';
 
 @Injectable({
   providedIn: 'root',
@@ -88,16 +93,36 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
             return [];
           }
 
-          const imageResponse = await fetchJson<{ id: string }>(
-            this.http,
-            `/api/image`,
-            {
-              body: { input: englishTranslation },
-              method: 'POST',
-            }
-          );
+          // Generate images with both models
+          const [gptImageResponse, imagenImageResponse] = await Promise.all([
+            fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input: englishTranslation,
+                  model: ImageGenerationModel.GPT_IMAGE_1
+                },
+                method: 'POST',
+              }
+            ),
+            fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input: englishTranslation,
+                  model: ImageGenerationModel.IMAGEN_4_ULTRA
+                },
+                method: 'POST',
+              }
+            )
+          ]);
 
-          return [{ id: imageResponse.id }];
+          return [
+            { id: gptImageResponse.id },
+            { id: imagenImageResponse.id }
+          ];
         })
       );
 

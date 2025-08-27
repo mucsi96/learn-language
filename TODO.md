@@ -9,6 +9,4 @@
 - support cross-page multi part regions
 - generate more images for examples
 
-
-- create flashcard service
-- make card data generic
+- improve audio

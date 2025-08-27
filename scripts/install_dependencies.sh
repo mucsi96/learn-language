@@ -84,6 +84,7 @@ api_client_secret=$(az keyvault secret show --vault-name p05 --name learn-langua
 spa_client_id=$(az keyvault secret show --vault-name p05 --name learn-language-spa-client-id --query value -o tsv)
 openai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-openai-api-key --query value -o tsv)
 langsmith_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-langsmith-api-key --query value -o tsv)
+google_ai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-google-ai-api-key --query value -o tsv)
 storageAccountBlobUrl=$(az storage account show --name ibari --resource-group ibari --query "primaryEndpoints.blob" --output tsv)
 
 mkdir -p .kube
@@ -105,6 +106,7 @@ echo "OPENAI_API_KEY=$openai_api_key" >> server/.env
 echo "STORAGE_ACCOUNT_BLOB_URL=$storageAccountBlobUrl" >> server/.env
 echo "STORAGE_ACCOUNT_CONTAINER_NAME=learn-language" >> server/.env
 echo "LANGSMITH_API_KEY=$langsmith_api_key" >> server/.env
+echo "GOOGLE_AI_API_KEY=$google_ai_api_key" >> server/.env
 
 echo "NG_APP_TENANT_ID=$azure_tenant_id" > client/.env
 echo "NG_APP_CLIENT_ID=$spa_client_id" >> client/.env
