@@ -21,7 +21,7 @@ public class OpenAIImageService {
     public byte[] generateImage(String prompt) {
         try {
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
-                .prompt("Create a visually striking, photorealistic, and easy-to-remember flashcard image that clearly illustrates the situation described in the following sentence—without including any text on the image: " + prompt)
+                .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
                 .model(ImageModel.GPT_IMAGE_1)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)

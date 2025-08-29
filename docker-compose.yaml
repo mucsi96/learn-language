@@ -17,6 +17,8 @@ services:
       STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
       OPENAI_API_KEY: "mock-key"
       OPENAI_BASE_URL: "http://mock-openai:3000"
+      GOOGLE_AI_API_KEY: "mock-google-key"
+      GOOGLE_AI_BASE_URL: "http://mock-google-ai:3001"
     ports:
       - "8180:8080"
     healthcheck:
@@ -27,6 +29,8 @@ services:
     depends_on:
       - db
       - blobstorage
+      - mock-openai
+      - mock-google-ai
 
   blobstorage:
     image: "mcr.microsoft.com/azure-storage/azurite:latest"
@@ -61,6 +65,20 @@ services:
       PORT: 3000
     healthcheck:
       test: "curl --fail --silent localhost:3000/health || exit 1"
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+
+  mock-google-ai:
+    build:
+      context: mock_google_ai_server
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+    healthcheck:
+      test: "curl --fail --silent localhost:3001/health || exit 1"
       interval: 2s
       timeout: 3s
       retries: 5

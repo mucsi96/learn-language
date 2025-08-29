@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +32,7 @@ public class ImageController {
 
   @PostMapping("/api/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ExampleImageData createImage(@RequestBody ImageSourceRequest imageSource) {
+  public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     String uuid = UUID.randomUUID().toString();
     String blobName = "images/%s.jpg".formatted(uuid);
 

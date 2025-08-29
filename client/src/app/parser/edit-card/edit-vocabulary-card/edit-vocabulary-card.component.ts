@@ -27,6 +27,7 @@ import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
 import { Word, Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
+import { ImageGenerationModel } from '../../../shared/types/image-generation.types';
 
 import { languages } from '../../../shared/constants/languages';
 
@@ -174,7 +175,10 @@ export class EditVocabularyCardComponent {
       if (!images[exampleIdx]) {
         images[exampleIdx] = [];
       }
-      images[exampleIdx].push(this.createExampleImageResource(exampleIdx));
+      images[exampleIdx].push(
+        this.createExampleImageResource(exampleIdx, ImageGenerationModel.GPT_IMAGE_1),
+        this.createExampleImageResource(exampleIdx, ImageGenerationModel.IMAGEN_4_ULTRA)
+      );
       return images;
     });
 
@@ -294,8 +298,9 @@ export class EditVocabularyCardComponent {
     });
   }
 
-  private createExampleImageResource(index: number) {
+  private createExampleImageResource(index: number, model: ImageGenerationModel) {
     return resource({
+      injector: this.injector,
       params: () => ({
         englishTranslation: this.examplesTranslations()?.['en'][index](),
       }),
@@ -303,12 +308,14 @@ export class EditVocabularyCardComponent {
         if (!englishTranslation) {
           return;
         }
+
         const response = await fetchJson<ExampleImage>(
           this.http,
           `/api/image`,
           {
             body: {
               input: englishTranslation,
+              model
             },
             method: 'POST',
           }
