@@ -148,7 +148,7 @@ def test_card_editing_page(page: Page, context: BrowserContext):
 
 def test_card_editing_in_db(page: Page, context: BrowserContext):
     image1 = upload_mock_image(blue_image)
-    image2 = upload_mock_image(green_image)
+    image2 = upload_mock_image(yellow_image)
     create_card(
         card_id='abfahren',
         source_id="goethe-a1",
@@ -182,7 +182,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     page.get_by_role("button", name="Add example image").nth(1).click()
     image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content2 == get_color_image_bytes("red")
+    assert image_content2 == get_color_image_bytes("green")
 
     page.get_by_role("radio").nth(1).click()
     page.get_by_role(role="button", name="Update").click()
@@ -206,7 +206,7 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
     assert image_content1 == get_color_image_bytes("blue")
-    assert image_content2 == get_color_image_bytes("red")
+    assert image_content2 == get_color_image_bytes("green")
 
 
 def test_favorite_image_in_db(page: Page, context: BrowserContext):
