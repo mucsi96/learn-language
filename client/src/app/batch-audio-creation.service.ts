@@ -3,6 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
 import { Card } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
+import { 
+  AudioGenerationModel, 
+  AudioSourceRequest, 
+  AudioResponse, 
+  ELEVENLABS_VOICES, 
+  ElevenLabsVoiceId,
+  LANGUAGE_CODES
+} from './shared/types/audio-generation.types';
+
+const DEFAULT_AUDIO_MODEL = AudioGenerationModel.ELEVENLABS_TTS;
 
 export interface AudioCreationProgress {
   cardId: string;
@@ -127,11 +137,16 @@ export class BatchAudioCreationService {
         'Generating audio for German word...'
       );
       if (card.data.word && !cleanedAudioMap[card.data.word]) {
-        const wordAudioResponse = await fetchJson<{ id: string }>(
+        const wordAudioResponse = await fetchJson<AudioResponse>(
           this.http,
           `/api/audio`,
           {
-            body: { input: card.data.word, voice: audioVoice },
+            body: { 
+              input: card.data.word, 
+              voice: audioVoice, 
+              model: DEFAULT_AUDIO_MODEL,
+              language: LANGUAGE_CODES.GERMAN
+            } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
@@ -149,11 +164,16 @@ export class BatchAudioCreationService {
         card.data.translation?.['hu'] &&
         !cleanedAudioMap[card.data.translation['hu']]
       ) {
-        const translationAudioResponse = await fetchJson<{ id: string }>(
+        const translationAudioResponse = await fetchJson<AudioResponse>(
           this.http,
           `/api/audio`,
           {
-            body: { input: card.data.translation['hu'], voice: audioVoice },
+            body: { 
+              input: card.data.translation['hu'], 
+              voice: audioVoice, 
+              model: DEFAULT_AUDIO_MODEL,
+              language: LANGUAGE_CODES.HUNGARIAN
+            } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
@@ -174,11 +194,16 @@ export class BatchAudioCreationService {
       if (selectedExample) {
         // German example
         if (selectedExample['de'] && !cleanedAudioMap[selectedExample['de']]) {
-          const exampleAudioResponse = await fetchJson<{ id: string }>(
+          const exampleAudioResponse = await fetchJson<AudioResponse>(
             this.http,
             `/api/audio`,
             {
-              body: { input: selectedExample['de'], voice: audioVoice },
+              body: { 
+                input: selectedExample['de'], 
+                voice: audioVoice, 
+                model: DEFAULT_AUDIO_MODEL,
+                language: LANGUAGE_CODES.GERMAN
+              } satisfies AudioSourceRequest,
               method: 'POST',
             }
           );
@@ -187,10 +212,14 @@ export class BatchAudioCreationService {
 
         // Hungarian example translation
         if (selectedExample['hu'] && !cleanedAudioMap[selectedExample['hu']]) {
-          const exampleTranslationAudioResponse = await fetchJson<{
-            id: string;
-          }>(this.http, `/api/audio`, {
-            body: { input: selectedExample['hu'], voice: audioVoice },
+          const exampleTranslationAudioResponse = await fetchJson<AudioResponse>(
+            this.http, `/api/audio`, {
+            body: { 
+              input: selectedExample['hu'], 
+              voice: audioVoice, 
+              model: DEFAULT_AUDIO_MODEL,
+              language: LANGUAGE_CODES.HUNGARIAN
+            } satisfies AudioSourceRequest,
             method: 'POST',
           });
           cleanedAudioMap[selectedExample['hu']] =
@@ -321,20 +350,8 @@ export class BatchAudioCreationService {
     return cleanedAudioMap;
   }
 
-  private getRandomVoice(): string {
-    const voices = [
-      'alloy',
-      'ash',
-      'ballad',
-      'coral',
-      'echo',
-      'fable',
-      'onyx',
-      'nova',
-      'sage',
-      'shimmer',
-      'verse',
-    ];
+  private getRandomVoice(): ElevenLabsVoiceId {
+    const voices = Object.values(ELEVENLABS_VOICES);
     const randomIndex = Math.floor(Math.random() * voices.length);
     return voices[randomIndex];
   }

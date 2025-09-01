@@ -4,10 +4,6 @@ import java.io.IOException;
 
 import org.springframework.stereotype.Service;
 
-import com.openai.client.OpenAIClient;
-import com.openai.models.audio.speech.SpeechCreateParams;
-import com.openai.models.audio.speech.SpeechModel;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,44 +12,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AudioService {
 
-  private final OpenAIClient openAIClient;
+  private final OpenAIAudioService openAIAudioService;
+  private final ElevenLabsAudioService elevenLabsAudioService;
 
-  public byte[] generateAudio(String input, String voiceName) throws IOException {
-    SpeechCreateParams.Voice voice = parseVoice(voiceName);
-    
-    SpeechCreateParams speechParams = SpeechCreateParams.builder()
-        .input(input)
-        .model(SpeechModel.TTS_1_HD)
-        .voice(voice)
-        .responseFormat(SpeechCreateParams.ResponseFormat.MP3)
-        .speed(1.0)
-        .build();
-
-    var response = openAIClient.audio().speech().create(speechParams);
-    return response.body().readAllBytes();
-  }
-
-  private SpeechCreateParams.Voice parseVoice(String voiceName) {
-    if (voiceName == null || voiceName.isEmpty()) {
-      return SpeechCreateParams.Voice.ALLOY; // Default fallback
+  public byte[] generateAudio(String input, String voiceName, String model, String language) throws IOException {
+    if ("elevenlabs".equals(model)) {
+      return elevenLabsAudioService.generateAudio(input, voiceName, language);
+    } else {
+      return openAIAudioService.generateAudio(input, voiceName);
     }
-    
-    return switch (voiceName.toLowerCase()) {
-      case "alloy" -> SpeechCreateParams.Voice.ALLOY;
-      case "ash" -> SpeechCreateParams.Voice.ASH;
-      case "ballad" -> SpeechCreateParams.Voice.BALLAD;
-      case "coral" -> SpeechCreateParams.Voice.CORAL;
-      case "echo" -> SpeechCreateParams.Voice.ECHO;
-      case "fable" -> SpeechCreateParams.Voice.FABLE;
-      case "onyx" -> SpeechCreateParams.Voice.ONYX;
-      case "nova" -> SpeechCreateParams.Voice.NOVA;
-      case "sage" -> SpeechCreateParams.Voice.SAGE;
-      case "shimmer" -> SpeechCreateParams.Voice.SHIMMER;
-      case "verse" -> SpeechCreateParams.Voice.VERSE;
-      default -> {
-        log.warn("Invalid voice name provided: {}, falling back to ALLOY", voiceName);
-        yield SpeechCreateParams.Voice.ALLOY;
-      }
-    };
   }
 }

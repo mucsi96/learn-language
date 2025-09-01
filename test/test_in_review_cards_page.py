@@ -464,3 +464,53 @@ def test_navigation_back_after_mark_as_reviewed(page: Page):
     expect(page.get_by_role("heading", name="Cards In Review", exact=True)).to_be_visible()
 
     expect(page.get_by_role("row").filter(has_text="koordinieren")).not_to_be_visible()
+
+
+def test_mark_as_reviewed_button_enabled_after_toggling_favorite(page: Page):
+    """Test that Mark as reviewed button is enabled after toggling an image to favorite"""
+    image1 = upload_mock_image(yellow_image)
+
+    create_card(
+        card_id='bewerten',
+        source_id="goethe-a1",
+        source_page_number=15,
+        data={
+            "word": "bewerten",
+            "type": "VERB",
+            "forms": ["bewertet", "bewertete", "bewertet"],
+            "translation": {"en": "to evaluate", "hu": "értékelni", "ch": "bewärte"},
+            "examples": [
+                {
+                    "de": "Wir bewerten die Leistung.",
+                    "hu": "Értékeljük a teljesítményt.",
+                    "en": "We evaluate the performance.",
+                    "ch": "Mir bewärted d'Leistig.",
+                    "images": [{"id": image1}],
+                    "isSelected": True
+                }
+            ]
+        },
+        readiness='IN_REVIEW'
+    )
+
+    page.goto("http://localhost:8180/in-review-cards")
+
+    # Navigate to card page
+    row = page.get_by_role("row").filter(has_text="bewerten")
+    row.click()
+
+    # Verify the button is initially disabled (no favorite image)
+    mark_as_reviewed_btn = page.get_by_role("button", name="Mark as reviewed")
+    expect(mark_as_reviewed_btn).to_be_disabled()
+
+    # Toggle the image to favorite
+    page.get_by_role("button", name="Toggle favorite").click()
+
+    # Verify the button becomes enabled immediately after toggling favorite
+    expect(mark_as_reviewed_btn).to_be_enabled()
+
+    # Toggle back to unfavorite
+    page.get_by_role("button", name="Toggle favorite").click()
+
+    # Verify the button becomes disabled again
+    expect(mark_as_reviewed_btn).to_be_disabled()

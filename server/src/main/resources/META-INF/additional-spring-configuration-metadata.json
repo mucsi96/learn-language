@@ -52,6 +52,16 @@
       "name": "google.ai.baseUrl",
       "type": "java.lang.String",
       "description": "Base URL for Google AI API endpoints"
+    },
+    {
+      "name": "elevenlabs.apiKey",
+      "type": "java.lang.String",
+      "description": "API key for Eleven Labs text-to-speech services"
+    },
+    {
+      "name": "elevenlabs.baseUrl",
+      "type": "java.lang.String",
+      "description": "Base URL for Eleven Labs API endpoints"
     }
   ]
 }

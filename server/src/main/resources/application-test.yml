@@ -15,3 +15,6 @@ google:
   ai:
     apiKey: "dummy-test-api-key"
     baseUrl: "http://mock-google-ai:3001"
+elevenlabs:
+  apiKey: "dummy-test-api-key"
+  baseUrl: "http://mock-elevenlabs:3002"

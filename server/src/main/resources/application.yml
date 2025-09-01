@@ -38,5 +38,8 @@ langsmith:
   project: learn-language
 google:
   ai:
-    apiKey: ${GOOGLE_AI_API_KEY:}
+    apiKey: ${GOOGLE_AI_API_KEY}
+elevenlabs:
+  apiKey: ${ELEVEN_LABS_API_KEY}
+  baseUrl: https://api.elevenlabs.io
 

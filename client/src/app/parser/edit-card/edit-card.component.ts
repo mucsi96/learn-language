@@ -42,6 +42,7 @@ export class EditCardComponent {
   readonly selectedPageNumber = signal<number | undefined>(undefined);
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly markAsReviewedAvailable = signal<boolean>(false);
+  readonly pendingCardEdits = signal<any>(undefined);
 
   readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
     params: () => ({ selectedWord: this.selectedWord() }),
@@ -104,7 +105,7 @@ export class EditCardComponent {
   }
 
   handleCardUpdate(cardData: any) {
-    this.updateCardWithData(cardData);
+    this.pendingCardEdits.set(cardData);
   }
 
 
@@ -116,21 +117,22 @@ export class EditCardComponent {
     });
   }
 
-  async updateCard() {
-    // This will be called by child components through handleCardUpdate
-    this.showSnackBar('Card updated successfully');
-  }
-
-  private async updateCardWithData(cardData: any) {
+  async saveCard() {
     const word = this.selectedWord();
-    if (!word) {
+    const pendingEdits = this.pendingCardEdits();
+    
+    if (!word || !pendingEdits) {
       return;
     }
 
     await fetchJson(this.http, `/api/card/${word.id}`, {
-      body: cardData,
+      body: pendingEdits,
       method: 'PUT',
     });
+    
+    this.pendingCardEdits.set(undefined);
+    this.card.reload();
+    this.showSnackBar('Card updated successfully');
   }
 
   async markAsReviewed() {
@@ -139,11 +141,17 @@ export class EditCardComponent {
       return;
     }
 
+    const pendingEdits = this.pendingCardEdits();
+    const requestBody = pendingEdits 
+      ? { ...pendingEdits, readiness: 'REVIEWED' }
+      : { readiness: 'REVIEWED' };
+
     await fetchJson(this.http, `/api/card/${word.id}`, {
-      body: { readiness: 'REVIEWED' },
+      body: requestBody,
       method: 'PUT',
     });
     
+    this.pendingCardEdits.set(undefined);
     this.card.reload();
     this.inReviewCardsService.refetchCards();
     this.showSnackBar('Card marked as reviewed successfully');

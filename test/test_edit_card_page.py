@@ -401,3 +401,52 @@ def test_card_deletion(page: Page, context: BrowserContext):
         cur.execute("SELECT id FROM learn_language.cards WHERE id = 'abfahren'")
         result = cur.fetchone()
         assert result is None, "Card should be deleted from the database"
+
+
+def test_card_edits_stored_locally_until_save(page: Page, context: BrowserContext):
+    """Test that card edits are stored locally and not sent to API until explicitly saved"""
+    image1 = upload_mock_image(yellow_image)
+    create_card(
+        card_id='lernen',
+        source_id="goethe-a1",
+        source_page_number=5,
+        data={
+            "word": "lernen",
+            "type": "VERB",
+            "forms": ["lernt", "lernte", "gelernt"],
+            "translation": {"en": "to learn", "hu": "tanulni", "ch": "lärne"},
+            "examples": [
+                {
+                    "de": "Ich lerne Deutsch.",
+                    "hu": "Németet tanulok.",
+                    "en": "I learn German.",
+                    "ch": "Ich lärn Tüütsch.",
+                    "images": [{"id": image1}],
+                    "isSelected": True
+                }
+            ]
+        },
+        readiness='IN_REVIEW'
+    )
+
+    # Navigate to card via in-review cards page
+    page.goto("http://localhost:8180/in-review-cards")
+    row = page.get_by_role("row").filter(has_text="lernen")
+    row.click()
+
+    # Make an edit to the card
+    page.get_by_label("Hungarian translation", exact=True).fill("megtanulni")
+    
+    page.get_by_role("button", name="Toggle favorite").click()
+    page.get_by_role("button", name="Mark as reviewed").click()
+    expect(page.get_by_text("Card marked as reviewed successfully")).to_be_visible()
+
+    # Verify both the edit and readiness were saved to database
+    with with_db_connection() as cur:
+        cur.execute("SELECT readiness, data FROM learn_language.cards WHERE id = 'lernen'")
+        result = cur.fetchone()
+        assert result is not None
+        assert result[0] == 'REVIEWED'
+        
+        card_data = result[1]
+        assert card_data["translation"]["hu"] == "megtanulni"  # Updated value

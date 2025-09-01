@@ -228,6 +228,9 @@ export class EditVocabularyCardComponent {
       ...imageValue,
       isFavorite: !imageValue.isFavorite
     });
+
+    // Trigger exampleImages signal update to recompute canMarkAsReviewed
+    this.exampleImages.update((currentImages) => [...currentImages]);
   }
 
   private getCardData():
@@ -276,7 +279,7 @@ export class EditVocabularyCardComponent {
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
         }),
-        images: this.exampleImages()[index]?.map((image) => image.value()),
+        images: this.exampleImages()[index]?.map((image) => image.value()).filter(image => image != null),
       })),
       audio: this.card()?.data.audio || {},
     };

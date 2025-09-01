@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class AudioSourceRequest {
     private String input;
     private String voice;
+    private String model;
+    private String language;
 }
