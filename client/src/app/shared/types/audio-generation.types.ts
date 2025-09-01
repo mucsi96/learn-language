@@ -1,7 +1,4 @@
-export enum AudioGenerationModel {
-  OPENAI_TTS = 'openai',
-  ELEVENLABS_TTS = 'elevenlabs'
-}
+export type AudioGenerationModel = 'openai' | 'eleven_turbo_v2_5';
 
 export interface AudioSourceRequest {
   input: string;
@@ -14,35 +11,17 @@ export interface AudioResponse {
   id: string;
 }
 
-// Eleven Labs Voice IDs
-export const ELEVENLABS_VOICES = {
-  RACHEL: '21m00Tcm4TlvDq8ikWAM',
-  DOMI: 'AZnzlk1XvdvUeBnXmlld',
-  BELLA: 'EXAVITQu4vr4xnSDxMaL',
-  ANTONI: 'ErXwobaYiN019PkySvjV',
-  ELLI: 'MF3mGyEYCl7XYWbV9V6O',
-  JOSH: 'TxGEqnHWrfWFTfGW9XjX',
-  ARNOLD: 'VR6AewLTigWG4xSOukaG',
-  ADAM: 'pNInz6obpgDQGcFmaJgB'
-} as const;
+export interface AudioMapEntry {
+  id: string;
+  voice: string;
+  model: AudioGenerationModel;
+}
 
-// OpenAI Voice Names
-export const OPENAI_VOICES = {
-  ALLOY: 'alloy',
-  ASH: 'ash',
-  BALLAD: 'ballad',
-  CORAL: 'coral',
-  ECHO: 'echo',
-  FABLE: 'fable',
-  ONYX: 'onyx',
-  NOVA: 'nova',
-  SAGE: 'sage',
-  SHIMMER: 'shimmer',
-  VERSE: 'verse'
-} as const;
+export interface VoiceModelPair {
+  voice: string;
+  model: AudioGenerationModel;
+}
 
-export type ElevenLabsVoiceId = typeof ELEVENLABS_VOICES[keyof typeof ELEVENLABS_VOICES];
-export type OpenAIVoiceName = typeof OPENAI_VOICES[keyof typeof OPENAI_VOICES];
 
 // Language codes (ISO 639-1)
 export const LANGUAGE_CODES = {
@@ -53,3 +32,14 @@ export const LANGUAGE_CODES = {
 } as const;
 
 export type LanguageCode = typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES];
+
+export const LANGUAGE_SPECIFIC_VOICES = {
+  [LANGUAGE_CODES.HUNGARIAN]: [
+    { voice: 'M336tBVZHWWiWb4R54ui', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'WYg5oajoUHxVa6ikQXec', model: 'eleven_turbo_v2_5' as AudioGenerationModel }
+  ],
+  [LANGUAGE_CODES.GERMAN]: [
+    { voice: 'ghgFyr7gmpr57xyTgX9q', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'Jvf6TAXwMUVTSR20U0f9', model: 'eleven_turbo_v2_5' as AudioGenerationModel }
+  ]
+} as const;

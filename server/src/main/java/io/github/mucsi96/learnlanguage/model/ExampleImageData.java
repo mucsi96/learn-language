@@ -17,4 +17,7 @@ public class ExampleImageData {
 
   @JsonInclude(Include.NON_DEFAULT)
   private Boolean isFavorite;
+
+  @JsonInclude(Include.NON_NULL)
+  private ImageGenerationModel model;
 }

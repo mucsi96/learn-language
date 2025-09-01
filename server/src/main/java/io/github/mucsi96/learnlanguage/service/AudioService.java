@@ -16,7 +16,7 @@ public class AudioService {
   private final ElevenLabsAudioService elevenLabsAudioService;
 
   public byte[] generateAudio(String input, String voiceName, String model, String language) throws IOException {
-    if ("elevenlabs".equals(model)) {
+    if ("eleven_turbo_v2_5".equals(model)) {
       return elevenLabsAudioService.generateAudio(input, voiceName, language);
     } else {
       return openAIAudioService.generateAudio(input, voiceName);

@@ -41,6 +41,7 @@ public class ImageController {
 
     return ExampleImageData.builder()
         .id(uuid)
+        .model(imageSource.getModel())
         .build();
   }
 

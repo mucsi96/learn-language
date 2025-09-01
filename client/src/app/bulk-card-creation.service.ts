@@ -146,10 +146,10 @@ export class BulkCardCreationService {
 
   private getStrategy(cardType: CardType) {
     switch (cardType) {
-      case CardType.VOCABULARY:
+      case 'vocabulary':
         return this.vocabularyStrategy;
       // Future card types can be added here:
-      // case CardType.GRAMMAR:
+      // case 'grammar':
       //   return this.grammarStrategy;
       default:
         throw new Error(`No strategy found for card type: ${cardType}`);

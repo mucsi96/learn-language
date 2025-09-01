@@ -1,4 +1,5 @@
 import { CardState } from '../shared/state/card-state';
+import { AudioMapEntry } from '../shared/types/audio-generation.types';
 
 export type Profile = {
   name: string;
@@ -46,7 +47,7 @@ export type CardData = {
     isSelected?: boolean;
     images?: ExampleImage[];
   })[];
-  audio?: Record<string, string>;
+  audio?: Record<string, AudioMapEntry>;
   audioVoice?: string;
 };
 

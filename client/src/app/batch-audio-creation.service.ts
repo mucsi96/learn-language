@@ -4,15 +4,14 @@ import { fetchJson } from './utils/fetchJson';
 import { Card } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { 
-  AudioGenerationModel, 
   AudioSourceRequest, 
   AudioResponse, 
-  ELEVENLABS_VOICES, 
-  ElevenLabsVoiceId,
-  LANGUAGE_CODES
+  LANGUAGE_CODES,
+  LANGUAGE_SPECIFIC_VOICES,
+  VoiceModelPair,
+  AudioMapEntry
 } from './shared/types/audio-generation.types';
 
-const DEFAULT_AUDIO_MODEL = AudioGenerationModel.ELEVENLABS_TTS;
 
 export interface AudioCreationProgress {
   cardId: string;
@@ -114,10 +113,11 @@ export class BatchAudioCreationService {
     card: Card,
     progressIndex: number
   ): Promise<void> {
-    const audioMap = card.data.audio || {};
+    const audioMap: Record<string, AudioMapEntry> = (card.data.audio as unknown) as Record<string, AudioMapEntry> || {};
 
-    // Pick a random voice for this card if not already set
-    const audioVoice = card.data.audioVoice || this.getRandomVoice();
+    // Select one voice/model pair for each language for this card
+    const germanVoice = this.getVoiceForLanguage(LANGUAGE_CODES.GERMAN);
+    const hungarianVoice = this.getVoiceForLanguage(LANGUAGE_CODES.HUNGARIAN);
 
     try {
       // Step 0: Clean up unused audio entries (15% progress)
@@ -143,14 +143,18 @@ export class BatchAudioCreationService {
           {
             body: { 
               input: card.data.word, 
-              voice: audioVoice, 
-              model: DEFAULT_AUDIO_MODEL,
+              voice: germanVoice.voice, 
+              model: germanVoice.model,
               language: LANGUAGE_CODES.GERMAN
             } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
-        cleanedAudioMap[card.data.word] = wordAudioResponse.id;
+        cleanedAudioMap[card.data.word] = {
+          id: wordAudioResponse.id,
+          voice: germanVoice.voice,
+          model: germanVoice.model
+        };
       }
 
       // Step 2: Generate audio for Hungarian translation (55% progress)
@@ -170,15 +174,18 @@ export class BatchAudioCreationService {
           {
             body: { 
               input: card.data.translation['hu'], 
-              voice: audioVoice, 
-              model: DEFAULT_AUDIO_MODEL,
+              voice: hungarianVoice.voice, 
+              model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN
             } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
-        cleanedAudioMap[card.data.translation['hu']] =
-          translationAudioResponse.id;
+        cleanedAudioMap[card.data.translation['hu']] = {
+          id: translationAudioResponse.id,
+          voice: hungarianVoice.voice,
+          model: hungarianVoice.model
+        };
       }
 
       // Step 3: Generate audio for selected example and its translation (80% progress)
@@ -200,14 +207,18 @@ export class BatchAudioCreationService {
             {
               body: { 
                 input: selectedExample['de'], 
-                voice: audioVoice, 
-                model: DEFAULT_AUDIO_MODEL,
+                voice: germanVoice.voice, 
+                model: germanVoice.model,
                 language: LANGUAGE_CODES.GERMAN
               } satisfies AudioSourceRequest,
               method: 'POST',
             }
           );
-          cleanedAudioMap[selectedExample['de']] = exampleAudioResponse.id;
+          cleanedAudioMap[selectedExample['de']] = {
+            id: exampleAudioResponse.id,
+            voice: germanVoice.voice,
+            model: germanVoice.model
+          };
         }
 
         // Hungarian example translation
@@ -216,14 +227,17 @@ export class BatchAudioCreationService {
             this.http, `/api/audio`, {
             body: { 
               input: selectedExample['hu'], 
-              voice: audioVoice, 
-              model: DEFAULT_AUDIO_MODEL,
+              voice: hungarianVoice.voice, 
+              model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN
             } satisfies AudioSourceRequest,
             method: 'POST',
           });
-          cleanedAudioMap[selectedExample['hu']] =
-            exampleTranslationAudioResponse.id;
+          cleanedAudioMap[selectedExample['hu']] = {
+            id: exampleTranslationAudioResponse.id,
+            voice: hungarianVoice.voice,
+            model: hungarianVoice.model
+          };
         }
       }
 
@@ -235,12 +249,11 @@ export class BatchAudioCreationService {
         'Updating card with audio data...'
       );
 
-      // Create the updated card data by merging existing data with new audio and voice
+      // Create the updated card data by merging existing data with new audio
       const updatedCardData: Partial<Card> = {
         data: {
           ...card.data,
           audio: cleanedAudioMap,
-          audioVoice: audioVoice,
         },
         readiness: 'READY',
       };
@@ -289,8 +302,8 @@ export class BatchAudioCreationService {
    */
   private async cleanupUnusedAudioKeys(
     card: Card,
-    audioMap: Record<string, string>
-  ): Promise<Record<string, string>> {
+    audioMap: Record<string, AudioMapEntry>
+  ): Promise<Record<string, AudioMapEntry>> {
     // Collect all text keys that should have audio based on current card data
     const validAudioKeys = new Set<string>();
 
@@ -318,17 +331,17 @@ export class BatchAudioCreationService {
     }
 
     // Create new audio map with only valid keys
-    const cleanedAudioMap: Record<string, string> = {};
+    const cleanedAudioMap: Record<string, AudioMapEntry> = {};
     const audioKeysToDelete: string[] = [];
 
     // Check existing audio keys
-    for (const [text, audioId] of Object.entries(audioMap)) {
+    for (const [text, audioEntry] of Object.entries(audioMap)) {
       if (validAudioKeys.has(text)) {
         // Keep this audio entry
-        cleanedAudioMap[text] = audioId;
+        cleanedAudioMap[text] = audioEntry;
       } else {
-        // Mark for deletion
-        audioKeysToDelete.push(audioId);
+        // Mark for deletion 
+        audioKeysToDelete.push(audioEntry.id);
       }
     }
 
@@ -350,10 +363,14 @@ export class BatchAudioCreationService {
     return cleanedAudioMap;
   }
 
-  private getRandomVoice(): ElevenLabsVoiceId {
-    const voices = Object.values(ELEVENLABS_VOICES);
-    const randomIndex = Math.floor(Math.random() * voices.length);
-    return voices[randomIndex];
+  private getVoiceForLanguage(language: string): VoiceModelPair {
+    const languageVoices = LANGUAGE_SPECIFIC_VOICES[language as keyof typeof LANGUAGE_SPECIFIC_VOICES];
+    if (languageVoices && languageVoices.length > 0) {
+      const randomIndex = Math.floor(Math.random() * languageVoices.length);
+      return languageVoices[randomIndex];
+    }
+    
+    throw new Error(`No voices configured for language: ${language}`);
   }
 
   clearProgress(): void {

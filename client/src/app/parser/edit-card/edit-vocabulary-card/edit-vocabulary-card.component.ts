@@ -176,8 +176,8 @@ export class EditVocabularyCardComponent {
         images[exampleIdx] = [];
       }
       images[exampleIdx].push(
-        this.createExampleImageResource(exampleIdx, ImageGenerationModel.GPT_IMAGE_1),
-        this.createExampleImageResource(exampleIdx, ImageGenerationModel.IMAGEN_4_ULTRA)
+        this.createExampleImageResource(exampleIdx, 'gpt-image-1'),
+        this.createExampleImageResource(exampleIdx, 'google-imagen-4-ultra')
       );
       return images;
     });

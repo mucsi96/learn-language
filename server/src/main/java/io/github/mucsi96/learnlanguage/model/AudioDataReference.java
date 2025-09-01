@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AudioDataReference {
     private String id;
+    private String voice;
+    private String model;
 }

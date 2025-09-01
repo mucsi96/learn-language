@@ -19,6 +19,7 @@ import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
 import io.github.mucsi96.learnlanguage.model.AudioDataReference;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.BlobStorageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,12 +31,11 @@ public class AudioController {
 
   @PostMapping("/api/audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public AudioDataReference createAudio(@RequestBody AudioSourceRequest audioSource) throws IOException {
+  public AudioDataReference createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
     String uuid = UUID.randomUUID().toString();
     String blobName = "audio/%s.mp3".formatted(uuid);
 
-    String model = audioSource.getModel() != null ? audioSource.getModel() : "elevenlabs";
-    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), model, audioSource.getLanguage());
+    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage());
     blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
     return AudioDataReference.builder()

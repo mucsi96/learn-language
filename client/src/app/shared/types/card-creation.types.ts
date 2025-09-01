@@ -1,12 +1,8 @@
 import { CardData, Word } from '../../parser/types';
 import { ImageGenerationModel } from './image-generation.types';
 
-export enum CardType {
-  VOCABULARY = 'vocabulary',
-  // Future card types can be added here
-  // GRAMMAR = 'grammar',
-  // PHRASE = 'phrase'
-}
+export type CardType = 'vocabulary';
+// Future card types can be added here: 'grammar' | 'phrase'
 
 export interface CardCreationRequest {
   word: Word;

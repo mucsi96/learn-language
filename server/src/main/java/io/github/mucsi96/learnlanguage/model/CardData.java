@@ -25,8 +25,5 @@ public class CardData {
     private List<ExampleData> examples;
 
     @JsonInclude(Include.NON_NULL)
-    private Map<String, String> audio;
-    
-    @JsonInclude(Include.NON_NULL)
-    private String audioVoice;
+    private Map<String, AudioDataReference> audio;
 }

@@ -27,12 +27,12 @@
           Mark as reviewed
         </button>
       }
-      <button type="button" mat-flat-button (click)="updateCard()">
+      <button type="button" mat-flat-button (click)="saveCard()">
         Update
       </button>
     }
   </h2>
-  
+
   @if (getCardType() === 'vocabulary') {
     <app-edit-vocabulary-card
       [selectedWord]="selectedWord()"

@@ -14,6 +14,7 @@ import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/c
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
+import { AudioMapEntry } from '../../shared/types/audio-generation.types';
 
 @Component({
   selector: 'app-learn-card',
@@ -76,10 +77,10 @@ export class LearnCardComponent {
     await this.playNextAudio(textsWithAudio, audioMap, 0);
   }
 
-  private async playNextAudio(texts: string[], audioMap: Record<string, string>, index: number): Promise<void> {
+  private async playNextAudio(texts: string[], audioMap: Record<string, AudioMapEntry>, index: number): Promise<void> {
     if (index >= texts.length) return;
 
-    await this.playAudio(audioMap[texts[index]]);
+    await this.playAudio(audioMap[texts[index]].id);
 
     // Schedule next audio after delay if there are more
     if (index < texts.length - 1) {

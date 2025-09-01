@@ -11,8 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageSourceRequest {
-    private String input;
-    
-    @NotNull(message = "Image generation model is required")
-    private ImageGenerationModel model;
+  @NotNull
+  private String input;
+
+  @NotNull
+  private ImageGenerationModel model;
 }

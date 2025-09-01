@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AudioSourceRequest {
-    private String input;
-    private String voice;
-    private String model;
-    private String language;
+  @NotNull
+  private String input;
+  @NotNull
+  private String voice;
+  @NotNull
+  private String model;
+  private String language;
 }

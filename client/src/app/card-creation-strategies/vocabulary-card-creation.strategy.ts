@@ -18,7 +18,7 @@ import {
   providedIn: 'root',
 })
 export class VocabularyCardCreationStrategy implements CardCreationStrategy {
-  readonly cardType = CardType.VOCABULARY;
+  readonly cardType: CardType = 'vocabulary';
   
   private readonly http = inject(HttpClient);
 
@@ -101,7 +101,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
               {
                 body: {
                   input: englishTranslation,
-                  model: ImageGenerationModel.GPT_IMAGE_1
+                  model: 'gpt-image-1'
                 },
                 method: 'POST',
               }
@@ -112,7 +112,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
               {
                 body: {
                   input: englishTranslation,
-                  model: ImageGenerationModel.IMAGEN_4_ULTRA
+                  model: 'google-imagen-4-ultra'
                 },
                 method: 'POST',
               }
