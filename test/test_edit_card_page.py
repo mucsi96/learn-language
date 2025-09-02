@@ -1,5 +1,5 @@
 from playwright.sync_api import Page, BrowserContext, expect
-from utils import create_card, get_color_image_bytes, get_image_content, with_db_connection, yellow_image, red_image, blue_image, green_image, navigate_to_card_creation, upload_mock_image
+from utils import create_card, download_image, get_color_image_bytes, get_image_content, with_db_connection, yellow_image, red_image, blue_image, green_image, navigate_to_card_creation, upload_mock_image
 
 
 def prepare_card(page: Page, context: BrowserContext):
@@ -180,9 +180,10 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     navigate_to_card_creation(page, context)
     page.get_by_label("Hungarian translation").fill("elindulni, elutazni")
     page.get_by_role("button", name="Add example image").nth(1).click()
+    expect(page.get_by_text("3 / 3")).to_be_visible()
     image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
 
-    assert image_content2 == get_color_image_bytes("green")
+    assert image_content2 == get_color_image_bytes("red")
 
     page.get_by_role("radio").nth(1).click()
     page.get_by_role(role="button", name="Update").click()
@@ -202,11 +203,12 @@ def test_card_editing_in_db(page: Page, context: BrowserContext):
     assert card_data["translation"]["ch"] == "abfahra, verlah"
     assert "fährt ab" in card_data["forms"]
 
-    image_content1 = get_image_content(page.get_by_role("img", name="Wir fahren um zwölf Uhr ab."))
-    image_content2 = get_image_content(page.get_by_role("img", name="Wann fährt der Zug ab?"))
-
-    assert image_content1 == get_color_image_bytes("blue")
-    assert image_content2 == get_color_image_bytes("green")
+    image1 = download_image(card_data['examples'][1]['images'][0]['id'])
+    image2 = download_image(card_data['examples'][1]['images'][1]['id'])
+    image3 = download_image(card_data['examples'][1]['images'][2]['id'])
+    assert image1 == yellow_image
+    assert image2 == red_image
+    assert image3 == red_image
 
 
 def test_favorite_image_in_db(page: Page, context: BrowserContext):
@@ -436,7 +438,7 @@ def test_card_edits_stored_locally_until_save(page: Page, context: BrowserContex
 
     # Make an edit to the card
     page.get_by_label("Hungarian translation", exact=True).fill("megtanulni")
-    
+
     page.get_by_role("button", name="Toggle favorite").click()
     page.get_by_role("button", name="Mark as reviewed").click()
     expect(page.get_by_text("Card marked as reviewed successfully")).to_be_visible()
@@ -447,6 +449,6 @@ def test_card_edits_stored_locally_until_save(page: Page, context: BrowserContex
         result = cur.fetchone()
         assert result is not None
         assert result[0] == 'REVIEWED'
-        
+
         card_data = result[1]
         assert card_data["translation"]["hu"] == "megtanulni"  # Updated value

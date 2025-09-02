@@ -19,6 +19,8 @@ services:
       OPENAI_BASE_URL: "http://mock-openai:3000"
       GOOGLE_AI_API_KEY: "mock-google-key"
       GOOGLE_AI_BASE_URL: "http://mock-google-ai:3001"
+      ELEVENLABS_API_KEY: "mock-elevenlabs-key"
+      ELEVENLABS_BASE_URL: "http://mock-elevenlabs:3002"
     ports:
       - "8180:8080"
     healthcheck:
@@ -31,6 +33,7 @@ services:
       - blobstorage
       - mock-openai
       - mock-google-ai
+      - mock-elevenlabs
 
   blobstorage:
     image: "mcr.microsoft.com/azure-storage/azurite:latest"
@@ -79,6 +82,20 @@ services:
       PORT: 3001
     healthcheck:
       test: "curl --fail --silent localhost:3001/health || exit 1"
+      interval: 2s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+
+  mock-elevenlabs:
+    build:
+      context: mock_elevenlabs_server
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+    healthcheck:
+      test: "curl --fail --silent localhost:3002/health || exit 1"
       interval: 2s
       timeout: 3s
       retries: 5

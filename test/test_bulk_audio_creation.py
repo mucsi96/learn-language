@@ -4,7 +4,7 @@ from playwright.sync_api import Page, expect
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))  # noqa
 
-from utils import create_card, with_db_connection, audio_sample, download_audio
+from utils import create_card, with_db_connection, german_audio_sample, hungarian_audio_sample, download_audio
 
 
 def test_bulk_audio_fab_appears_when_cards_without_audio_exist(page: Page):
@@ -123,10 +123,10 @@ def test_bulk_audio_fab_shows_partial_count_for_mixed_cards(page: Page):
                 }
             ],
             "audio": {
-                "verstehen": "audio-id-1",
-                "érteni": "audio-id-2",
-                "Ich verstehe Deutsch.": "audio-id-3",
-                "Értem a németet.": "audio-id-4"
+                "verstehen": { "id": "audio-id-1" },
+                "érteni": { "id": "audio-id-2" },
+                "Ich verstehe Deutsch.": { "id": "audio-id-3" },
+                "Értem a németet.": { "id": "audio-id-4" }
             }
         },
         readiness='REVIEWED'
@@ -329,11 +329,13 @@ def test_bulk_audio_creation_creates_audio_in_database(page: Page):
         assert 'audio' in card_data
         audio_data = card_data['audio']
 
-        # Should have audio for German word
-        assert download_audio(audio_data['verstehen']) == audio_sample
-        assert download_audio(audio_data['érteni']) == audio_sample
-        assert download_audio(audio_data['Ich verstehe Deutsch.']) == audio_sample
-        assert download_audio(audio_data['Értem a németet.']) == audio_sample
+        # Should have audio for German word (German samples)
+        assert download_audio(audio_data['verstehen']['id']) == german_audio_sample
+        assert download_audio(audio_data['Ich verstehe Deutsch.']['id']) == german_audio_sample
+
+        # Should have audio for Hungarian translations (Hungarian samples)
+        assert download_audio(audio_data['érteni']['id']) == hungarian_audio_sample
+        assert download_audio(audio_data['Értem a németet.']['id']) == hungarian_audio_sample
 
 
 def test_bulk_audio_creation_updates_card_readiness_to_ready(page: Page):
@@ -469,7 +471,7 @@ def test_bulk_audio_creation_partial_audio_generation(page: Page):
                 }
             ],
             "audio": {
-                "verstehen": "existing-audio-id-1",  # Already has word audio
+                "verstehen": { "id": "existing-audio-id-1" },  # Already has word audio
                 # Missing translation and example audio
             }
         },
@@ -495,9 +497,9 @@ def test_bulk_audio_creation_partial_audio_generation(page: Page):
         audio_data = card_data['audio']
 
         # Should preserve existing audio
-        assert audio_data['verstehen'] == 'existing-audio-id-1'
+        assert audio_data['verstehen']['id'] == 'existing-audio-id-1'
 
-        # Should have added missing audio
-        assert download_audio(audio_data['érteni']) == audio_sample
-        assert download_audio(audio_data['Ich verstehe Deutsch.']) == audio_sample
-        assert download_audio(audio_data['Értem a németet.']) == audio_sample
+        # Should have added missing audio (language-specific samples)
+        assert download_audio(audio_data['érteni']['id']) == hungarian_audio_sample
+        assert download_audio(audio_data['Ich verstehe Deutsch.']['id']) == german_audio_sample
+        assert download_audio(audio_data['Értem a németet.']['id']) == hungarian_audio_sample

@@ -41,6 +41,7 @@ def cleanup():
     populate_storage()
     try:
         requests.post("http://localhost:3000/reset", timeout=5)
+        requests.post("http://localhost:3001/reset", timeout=5)
     except requests.RequestException as e:
         print(f"Warning: Could not reset mock OpenAI server: {e}")
 
