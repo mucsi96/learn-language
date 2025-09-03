@@ -6,10 +6,10 @@ import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { 
   AudioSourceRequest, 
   AudioResponse, 
+  AudioData,
   LANGUAGE_CODES,
   LANGUAGE_SPECIFIC_VOICES,
-  VoiceModelPair,
-  AudioMapEntry
+  VoiceModelPair
 } from './shared/types/audio-generation.types';
 
 
@@ -113,7 +113,7 @@ export class BatchAudioCreationService {
     card: Card,
     progressIndex: number
   ): Promise<void> {
-    const audioMap: Record<string, AudioMapEntry> = (card.data.audio as unknown) as Record<string, AudioMapEntry> || {};
+    const audioList: AudioData[] = card.data.audio || [];
 
     // Select one voice/model pair for each language for this card
     const germanVoice = this.getVoiceForLanguage(LANGUAGE_CODES.GERMAN);
@@ -127,7 +127,7 @@ export class BatchAudioCreationService {
         15,
         'Cleaning up unused audio...'
       );
-      const cleanedAudioMap = await this.cleanupUnusedAudioKeys(card, audioMap);
+      const cleanedAudioList = await this.cleanupUnusedAudioKeys(card, audioList);
 
       // Step 1: Generate audio for the German word (30% progress)
       this.updateProgress(
@@ -136,8 +136,8 @@ export class BatchAudioCreationService {
         30,
         'Generating audio for German word...'
       );
-      if (card.data.word && !cleanedAudioMap[card.data.word]) {
-        const wordAudioResponse = await fetchJson<AudioResponse>(
+      if (card.data.word && !this.hasAudioForText(cleanedAudioList, card.data.word)) {
+        const wordAudioResponse = await fetchJson<AudioData>(
           this.http,
           `/api/audio`,
           {
@@ -145,16 +145,13 @@ export class BatchAudioCreationService {
               input: card.data.word, 
               voice: germanVoice.voice, 
               model: germanVoice.model,
-              language: LANGUAGE_CODES.GERMAN
+              language: LANGUAGE_CODES.GERMAN,
+              selected: true
             } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
-        cleanedAudioMap[card.data.word] = {
-          id: wordAudioResponse.id,
-          voice: germanVoice.voice,
-          model: germanVoice.model
-        };
+        cleanedAudioList.push(wordAudioResponse);
       }
 
       // Step 2: Generate audio for Hungarian translation (55% progress)
@@ -166,9 +163,9 @@ export class BatchAudioCreationService {
       );
       if (
         card.data.translation?.['hu'] &&
-        !cleanedAudioMap[card.data.translation['hu']]
+        !this.hasAudioForText(cleanedAudioList, card.data.translation['hu'])
       ) {
-        const translationAudioResponse = await fetchJson<AudioResponse>(
+        const translationAudioResponse = await fetchJson<AudioData>(
           this.http,
           `/api/audio`,
           {
@@ -176,16 +173,13 @@ export class BatchAudioCreationService {
               input: card.data.translation['hu'], 
               voice: hungarianVoice.voice, 
               model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN
+              language: LANGUAGE_CODES.HUNGARIAN,
+              selected: true
             } satisfies AudioSourceRequest,
             method: 'POST',
           }
         );
-        cleanedAudioMap[card.data.translation['hu']] = {
-          id: translationAudioResponse.id,
-          voice: hungarianVoice.voice,
-          model: hungarianVoice.model
-        };
+        cleanedAudioList.push(translationAudioResponse);
       }
 
       // Step 3: Generate audio for selected example and its translation (80% progress)
@@ -200,8 +194,8 @@ export class BatchAudioCreationService {
       );
       if (selectedExample) {
         // German example
-        if (selectedExample['de'] && !cleanedAudioMap[selectedExample['de']]) {
-          const exampleAudioResponse = await fetchJson<AudioResponse>(
+        if (selectedExample['de'] && !this.hasAudioForText(cleanedAudioList, selectedExample['de'])) {
+          const exampleAudioResponse = await fetchJson<AudioData>(
             this.http,
             `/api/audio`,
             {
@@ -209,35 +203,29 @@ export class BatchAudioCreationService {
                 input: selectedExample['de'], 
                 voice: germanVoice.voice, 
                 model: germanVoice.model,
-                language: LANGUAGE_CODES.GERMAN
+                language: LANGUAGE_CODES.GERMAN,
+                selected: true
               } satisfies AudioSourceRequest,
               method: 'POST',
             }
           );
-          cleanedAudioMap[selectedExample['de']] = {
-            id: exampleAudioResponse.id,
-            voice: germanVoice.voice,
-            model: germanVoice.model
-          };
+          cleanedAudioList.push(exampleAudioResponse);
         }
 
         // Hungarian example translation
-        if (selectedExample['hu'] && !cleanedAudioMap[selectedExample['hu']]) {
-          const exampleTranslationAudioResponse = await fetchJson<AudioResponse>(
+        if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
+          const exampleTranslationAudioResponse = await fetchJson<AudioData>(
             this.http, `/api/audio`, {
             body: { 
               input: selectedExample['hu'], 
               voice: hungarianVoice.voice, 
               model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN
+              language: LANGUAGE_CODES.HUNGARIAN,
+              selected: true
             } satisfies AudioSourceRequest,
             method: 'POST',
           });
-          cleanedAudioMap[selectedExample['hu']] = {
-            id: exampleTranslationAudioResponse.id,
-            voice: hungarianVoice.voice,
-            model: hungarianVoice.model
-          };
+          cleanedAudioList.push(exampleTranslationAudioResponse);
         }
       }
 
@@ -253,7 +241,7 @@ export class BatchAudioCreationService {
       const updatedCardData: Partial<Card> = {
         data: {
           ...card.data,
-          audio: cleanedAudioMap,
+          audio: cleanedAudioList,
         },
         readiness: 'READY',
       };
@@ -302,8 +290,8 @@ export class BatchAudioCreationService {
    */
   private async cleanupUnusedAudioKeys(
     card: Card,
-    audioMap: Record<string, AudioMapEntry>
-  ): Promise<Record<string, AudioMapEntry>> {
+    audioList: AudioData[]
+  ): Promise<AudioData[]> {
     // Collect all text keys that should have audio based on current card data
     const validAudioKeys = new Set<string>();
 
@@ -330,15 +318,15 @@ export class BatchAudioCreationService {
       }
     }
 
-    // Create new audio map with only valid keys
-    const cleanedAudioMap: Record<string, AudioMapEntry> = {};
+    // Create new audio list with only valid keys
+    const cleanedAudioList: AudioData[] = [];
     const audioKeysToDelete: string[] = [];
 
-    // Check existing audio keys
-    for (const [text, audioEntry] of Object.entries(audioMap)) {
-      if (validAudioKeys.has(text)) {
+    // Check existing audio entries
+    for (const audioEntry of audioList) {
+      if (audioEntry.text && validAudioKeys.has(audioEntry.text)) {
         // Keep this audio entry
-        cleanedAudioMap[text] = audioEntry;
+        cleanedAudioList.push(audioEntry);
       } else {
         // Mark for deletion 
         audioKeysToDelete.push(audioEntry.id);
@@ -360,7 +348,11 @@ export class BatchAudioCreationService {
       }
     }
 
-    return cleanedAudioMap;
+    return cleanedAudioList;
+  }
+
+  private hasAudioForText(audioList: AudioData[], text: string): boolean {
+    return audioList.some(audio => audio.text === text);
   }
 
   private getVoiceForLanguage(language: string): VoiceModelPair {

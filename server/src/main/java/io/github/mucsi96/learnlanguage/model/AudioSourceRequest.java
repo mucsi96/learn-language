@@ -18,4 +18,5 @@ public class AudioSourceRequest {
   @NotNull
   private String model;
   private String language;
+  private Boolean selected;
 }

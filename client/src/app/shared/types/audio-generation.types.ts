@@ -5,16 +5,20 @@ export interface AudioSourceRequest {
   voice: string;
   model?: AudioGenerationModel;
   language?: string;
+  selected?: boolean;
 }
 
 export interface AudioResponse {
   id: string;
 }
 
-export interface AudioMapEntry {
+export interface AudioData {
   id: string;
   voice: string;
   model: AudioGenerationModel;
+  language?: string;
+  text?: string;
+  selected?: boolean;
 }
 
 export interface VoiceModelPair {

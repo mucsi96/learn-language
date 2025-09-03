@@ -281,7 +281,7 @@ export class EditVocabularyCardComponent {
         }),
         images: this.exampleImages()[index]?.map((image) => image.value()).filter(image => image != null),
       })),
-      audio: this.card()?.data.audio || {},
+      audio: this.card()?.data.audio || [],
     };
 
     return {

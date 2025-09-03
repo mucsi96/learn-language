@@ -14,7 +14,7 @@ import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/c
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
-import { AudioMapEntry } from '../../shared/types/audio-generation.types';
+import { AudioData } from '../../shared/types/audio-generation.types';
 
 @Component({
   selector: 'app-learn-card',
@@ -66,28 +66,31 @@ export class LearnCardComponent {
   }
 
   private async playAudioSequence(texts: string[]) {
-    const audioMap = this.card.value()?.data.audio;
-    if (!audioMap) return;
+    const audioList = this.card.value()?.data.audio;
+    if (!audioList || audioList.length === 0) return;
 
     // Stop any current audio playback first
     this.stopCurrentAudio();
 
     // Filter texts that have audio available and play them recursively
-    const textsWithAudio = texts.filter(text => text && audioMap[text]);
-    await this.playNextAudio(textsWithAudio, audioMap, 0);
+    const textsWithAudio = texts.filter(text => text && this.getAudioForText(audioList, text));
+    await this.playNextAudio(textsWithAudio, audioList, 0);
   }
 
-  private async playNextAudio(texts: string[], audioMap: Record<string, AudioMapEntry>, index: number): Promise<void> {
+  private async playNextAudio(texts: string[], audioList: AudioData[], index: number): Promise<void> {
     if (index >= texts.length) return;
 
-    await this.playAudio(audioMap[texts[index]].id);
+    const audioEntry = this.getAudioForText(audioList, texts[index]);
+    if (audioEntry) {
+      await this.playAudio(audioEntry.id);
+    }
 
     // Schedule next audio after delay if there are more
     if (index < texts.length - 1) {
       await new Promise(resolve => {
         this.audioTimeout = window.setTimeout(resolve, 1500);
       });
-      await this.playNextAudio(texts, audioMap, index + 1);
+      await this.playNextAudio(texts, audioList, index + 1);
     }
   }
 
@@ -101,6 +104,10 @@ export class LearnCardComponent {
     } catch (error) {
       console.warn('Error loading audio:', error);
     }
+  }
+
+  private getAudioForText(audioList: AudioData[], text: string): AudioData | undefined {
+    return audioList.find(audio => audio.text === text && audio.selected);
   }
 
   private stopCurrentAudio() {

@@ -43,16 +43,18 @@ export class BatchAudioCreationFabComponent {
       const hasSelectedExample = Boolean(card.data.examples?.some(ex => ex.isSelected));
 
       // Check if audio is missing for any of these texts
-      const audioMap = (card.data as any).audio || {};
-      const needsWordAudio = hasWord && !audioMap[card.data.word];
-      const needsTranslationAudio = hasHungarianTranslation && card.data.translation?.['hu'] && !audioMap[card.data.translation['hu']];
+      const audioList = card.data.audio || [];
+      const hasAudioForText = (text: string) => audioList.some(audio => audio.text === text);
+      
+      const needsWordAudio = hasWord && !hasAudioForText(card.data.word);
+      const needsTranslationAudio = hasHungarianTranslation && card.data.translation?.['hu'] && !hasAudioForText(card.data.translation['hu']);
 
       let needsExampleAudio = false;
       if (hasSelectedExample && card.data.examples) {
         const selectedExample = card.data.examples.find(ex => ex.isSelected);
         if (selectedExample) {
-          const needsDeAudio = selectedExample['de'] && !audioMap[selectedExample['de']];
-          const needsHuAudio = selectedExample['hu'] && !audioMap[selectedExample['hu']];
+          const needsDeAudio = selectedExample['de'] && !hasAudioForText(selectedExample['de']);
+          const needsHuAudio = selectedExample['hu'] && !hasAudioForText(selectedExample['hu']);
           needsExampleAudio = Boolean(needsDeAudio || needsHuAudio);
         }
       }

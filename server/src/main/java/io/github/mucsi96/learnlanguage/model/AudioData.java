@@ -9,8 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AudioDataReference {
+public class AudioData {
     private String id;
+    private String text;
+    private String language;
     private String voice;
     private String model;
+    private Boolean selected;
 }

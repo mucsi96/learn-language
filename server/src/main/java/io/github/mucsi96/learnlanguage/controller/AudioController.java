@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.azure.core.util.BinaryData;
 
 import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
-import io.github.mucsi96.learnlanguage.model.AudioDataReference;
+import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.BlobStorageService;
 import jakarta.validation.Valid;
@@ -31,15 +31,20 @@ public class AudioController {
 
   @PostMapping("/api/audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public AudioDataReference createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
+  public AudioData createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
     String uuid = UUID.randomUUID().toString();
     String blobName = "audio/%s.mp3".formatted(uuid);
 
     byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage());
     blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
 
-    return AudioDataReference.builder()
+    return AudioData.builder()
         .id(uuid)
+        .voice(audioSource.getVoice())
+        .model(audioSource.getModel() != null ? audioSource.getModel().toString() : null)
+        .language(audioSource.getLanguage())
+        .text(audioSource.getInput())
+        .selected(audioSource.getSelected())
         .build();
   }
 
