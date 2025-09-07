@@ -17,8 +17,12 @@ import com.azure.core.util.BinaryData;
 
 import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
 import io.github.mucsi96.learnlanguage.model.AudioData;
+import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.BlobStorageService;
+import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
+
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +32,7 @@ public class AudioController {
 
   private final BlobStorageService blobStorageService;
   private final AudioService audioService;
+  private final ElevenLabsAudioService elevenLabsAudioService;
 
   @PostMapping("/api/audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -66,5 +71,11 @@ public class AudioController {
     String blobName = "audio/%s.mp3".formatted(id);
     blobStorageService.deleteBlob(blobName);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/api/voices")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public List<VoiceResponse> getVoices() {
+    return elevenLabsAudioService.getVoices();
   }
 }

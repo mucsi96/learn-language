@@ -2,6 +2,14 @@
   <button
     mat-icon-button
     class="action-button"
+    (click)="openVoiceSelection($event)"
+    title="Voice Selection"
+    matTooltip="Voice Selection">
+    <mat-icon>record_voice_over</mat-icon>
+  </button>
+  <button
+    mat-icon-button
+    class="action-button"
     (click)="markForReview($event)"
     title="Mark for Review"
     matTooltip="Mark for Review">
