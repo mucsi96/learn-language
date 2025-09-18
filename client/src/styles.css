@@ -21,6 +21,7 @@ html {
   --mat-sys-primary-container: var(--mat-sys-primary);
   --mat-sys-display-large-weight: 700;
   --mat-sys-label-large-size: 1rem;
+  --mat-dialog-container-max-width: 100vw;
 
   --mat-fab-state-layer-color: hsl(221, 79%, 48%);
   --mat-fab-hover-state-layer-opacity: 1;

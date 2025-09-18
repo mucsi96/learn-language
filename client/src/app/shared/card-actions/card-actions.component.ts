@@ -63,7 +63,7 @@ export class CardActionsComponent {
     const cardAudio = cardData.data?.audio || [];
 
     const dialogRef = this.dialog.open(VoiceSelectionDialogComponent, {
-      width: '600px',
+      width: '1000px',
     });
 
     // Set the input values on the component instance
@@ -73,7 +73,7 @@ export class CardActionsComponent {
     const result = await new Promise<any>(resolve => {
       dialogRef.afterClosed().subscribe(resolve);
     });
-    
+
     if (result?.type === 'voice_selected') {
       await this.updateSelectedVoice(result.audioId);
     } else if (result?.type === 'audio_generated') {
@@ -83,15 +83,15 @@ export class CardActionsComponent {
 
   private getCardTexts(cardData: any): string[] {
     const texts: string[] = [];
-    
+
     if (cardData.data?.word) {
       texts.push(cardData.data.word);
     }
-    
+
     if (cardData.data?.translation?.hu) {
       texts.push(cardData.data.translation.hu);
     }
-    
+
     const selectedExample = cardData.data?.examples?.find((ex: any) => ex.isSelected);
     if (selectedExample?.de) {
       texts.push(selectedExample.de);
@@ -99,7 +99,7 @@ export class CardActionsComponent {
     if (selectedExample?.hu) {
       texts.push(selectedExample.hu);
     }
-    
+
     return texts.filter(Boolean);
   }
 

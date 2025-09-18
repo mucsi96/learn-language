@@ -45,38 +45,21 @@
       </div>
     } @else {
       <div class="voices-grid-container">
-        <!-- Language Headers -->
-        <div class="language-headers">
-          <div class="voice-label-header">Voices</div>
+        <!-- Language Columns -->
+        <div class="language-columns">
           @for (language of supportedLanguages(); track language) {
-            <div class="language-header">
-              <mat-chip class="language-header-chip">{{ language }}</mat-chip>
-            </div>
-          }
-        </div>
-
-        <!-- Voice Grid -->
-        <div class="voices-grid">
-          @for (voice of availableVoices.value(); track voice.id) {
-            <div class="voice-row">
-              <!-- Voice Name -->
-              <div class="voice-name-cell">
-                <mat-card class="voice-name-card" appearance="outlined">
-                  <mat-card-content>
-                    <div class="voice-name-content">
-                      <mat-icon class="voice-icon">person</mat-icon>
-                      <span class="voice-display-name">{{ voice.displayName }}</span>
-                    </div>
-                  </mat-card-content>
-                </mat-card>
+            <div class="language-column">
+              <!-- Language Header -->
+              <div class="language-header">
+                <mat-chip class="language-header-chip">{{ language }}</mat-chip>
               </div>
-
-              <!-- Voice Grid Cells -->
-              @for (language of supportedLanguages(); track language) {
-                <div class="voice-cell">
+              
+              <!-- Voice Cards in this Language -->
+              <div class="voice-cards">
+                @for (voice of availableVoices.value(); track voice.id) {
                   @if (getVoiceAudioForLanguage(voice.id, language); as audioInfo) {
                     <mat-card 
-                      class="voice-cell-card"
+                      class="voice-card"
                       [class.has-audio]="audioInfo.hasAudio"
                       [class.selected]="audioInfo.isSelected"
                       [class.generating]="audioInfo.isGenerating"
@@ -88,31 +71,34 @@
                       [matTooltip]="getTooltipText(voice, language, audioInfo)"
                       matTooltipPosition="above">
                       
-                      <mat-card-content class="cell-content">
-                        @if (audioInfo.isGenerating) {
-                          <div class="generating-state">
-                            <mat-spinner diameter="24"></mat-spinner>
-                            <span class="generating-text">Generating</span>
+                      <mat-card-content class="voice-card-content">
+                        <div class="voice-content-wrapper">
+                          <div class="voice-title-section">
+                            <span class="voice-name">{{ voice.displayName }}</span>
                           </div>
-                        } @else if (audioInfo.hasAudio) {
-                          <div class="audio-state">
-                            @if (audioInfo.isSelected) {
-                              <mat-icon class="selected-indicator">check_circle</mat-icon>
-                            }
-                            <mat-icon class="play-icon">play_arrow</mat-icon>
-                            <span class="audio-text">{{ audioInfo.isSelected ? 'Selected' : 'Available' }}</span>
-                          </div>
-                        } @else {
-                          <div class="generate-state">
-                            <mat-icon class="generate-icon">add_circle_outline</mat-icon>
-                            <span class="generate-text">Generate</span>
-                          </div>
-                        }
+                          @if (audioInfo.isGenerating) {
+                            <div class="generating-state">
+                              <mat-spinner diameter="20"></mat-spinner>
+                              <span class="generating-text">Generating</span>
+                            </div>
+                          } @else if (audioInfo.hasAudio) {
+                            <div class="audio-state">
+                              @if (audioInfo.isSelected) {
+                                <mat-icon class="selected-indicator">check_circle</mat-icon>
+                              }
+                              <mat-icon class="play-icon">play_arrow</mat-icon>
+                              <span class="audio-text">{{ audioInfo.isSelected ? 'Selected' : 'Available' }}</span>
+                            </div>
+                          } @else {
+                            <div class="generate-state">
+                            </div>
+                          }
+                        </div>
                       </mat-card-content>
                     </mat-card>
                   }
-                </div>
-              }
+                }
+              </div>
             </div>
           }
         </div>

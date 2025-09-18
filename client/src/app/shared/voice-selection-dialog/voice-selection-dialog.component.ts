@@ -167,6 +167,7 @@ export class VoiceSelectionDialogComponent {
         body: {
           input: this.cardTexts().join('. '),
           voice: voice.id,
+          model: 'eleven_turbo_v2_5',
           language: language.name,
           selected: false
         }
@@ -191,17 +192,26 @@ export class VoiceSelectionDialogComponent {
     const languageCode = Array.from(this.languageNames.entries())
       .find(([_, name]) => name === languageName)?.[0];
     
-    if (!languageCode) return null;
+    if (!languageCode) {
+      console.log('No language code found for language name:', languageName);
+      return null;
+    }
 
     const voice = this.availableVoices.value()?.find(v => v.id === voiceId);
     if (!voice || !voice.languages.some(l => l.name === languageCode)) {
+      console.log('Voice not found or does not support language:', voiceId, languageCode);
       return null;
     }
 
     const cardAudio = this.cardAudio();
+    console.log('Looking for audio with voice:', voiceId, 'and language:', languageCode);
+    console.log('Available card audio:', cardAudio.map(a => ({ voice: a.voice, language: a.language, id: a.id, selected: a.selected })));
+    
     const existingAudio = cardAudio.find(audio => 
       audio.voice === voiceId && audio.language === languageCode
     );
+
+    console.log('Found existing audio:', existingAudio);
 
     const isGenerating = this.generatingVoices().has(`${voiceId}-${languageCode}`);
 

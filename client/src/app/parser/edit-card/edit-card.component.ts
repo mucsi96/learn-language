@@ -36,7 +36,7 @@ export class EditCardComponent {
   readonly route = inject(ActivatedRoute);
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
-  
+
   readonly cardData = injectQueryParams<string>('cardData');
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
@@ -120,7 +120,7 @@ export class EditCardComponent {
   async saveCard() {
     const word = this.selectedWord();
     const pendingEdits = this.pendingCardEdits();
-    
+
     if (!word || !pendingEdits) {
       return;
     }
@@ -129,9 +129,8 @@ export class EditCardComponent {
       body: pendingEdits,
       method: 'PUT',
     });
-    
+
     this.pendingCardEdits.set(undefined);
-    this.card.reload();
     this.showSnackBar('Card updated successfully');
   }
 
@@ -142,7 +141,7 @@ export class EditCardComponent {
     }
 
     const pendingEdits = this.pendingCardEdits();
-    const requestBody = pendingEdits 
+    const requestBody = pendingEdits
       ? { ...pendingEdits, readiness: 'REVIEWED' }
       : { readiness: 'REVIEWED' };
 
@@ -150,7 +149,7 @@ export class EditCardComponent {
       body: requestBody,
       method: 'PUT',
     });
-    
+
     this.pendingCardEdits.set(undefined);
     this.card.reload();
     this.inReviewCardsService.refetchCards();
