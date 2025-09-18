@@ -1,87 +1,120 @@
-<div class="voice-selection-dialog" [attr.data-theme]="'dark'">
+<div class="dialog-root">
   <h2 mat-dialog-title class="dialog-title">
-    <mat-icon class="title-icon">record_voice_over</mat-icon>
-    Voice Selection
+    <mat-icon class="dialog-icon">record_voice_over</mat-icon>
+    Choose a Voice
   </h2>
 
   <mat-dialog-content class="dialog-content">
-    @if (availableVoices.isLoading()) {
-      <div class="loading-state">
-        <mat-spinner diameter="40"></mat-spinner>
-        <p class="loading-text">Loading available voices...</p>
-      </div>
-    } @else if (availableVoices.error()) {
-      <div class="error-state">
-        <mat-icon class="error-icon">error_outline</mat-icon>
-        <p class="error-text">Failed to load voices. Please try again.</p>
+    <p class="dialog-description">
+      Pick a voice for this card. Generate a preview, listen, and confirm the one that fits best.
+    </p>
+
+    @if (isLoading()) {
+      <div class="state state--loading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p>Loading available voices...</p>
       </div>
     } @else {
-      <div class="voices-grid-container">
-        <!-- Language Columns -->
-        <div class="language-columns">
-          @for (language of supportedLanguages(); track language) {
-            <div class="language-column">
-              <!-- Language Header -->
-              <div class="language-header">
-                <mat-chip class="language-header-chip">{{ language }}</mat-chip>
-              </div>
+      @if (loadError(); as error) {
+        <div class="state state--error">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ error }}</p>
+          <button mat-stroked-button color="primary" type="button" (click)="retry()">
+            Try again
+          </button>
+        </div>
+      } @else if (!voiceGroups().length) {
+        <div class="state state--empty">
+          <mat-icon>voice_over_off</mat-icon>
+          <p>No compatible voices found right now.</p>
+        </div>
+      } @else {
+        <div class="language-groups">
+          @for (group of voiceGroups(); track group.languageCode) {
+            <section class="language-group">
+              <header class="language-header">
+                <mat-icon>translate</mat-icon>
+                <span>{{ group.languageLabel }}</span>
+              </header>
 
-              <!-- Voice Cards in this Language -->
               <div class="voice-cards">
-                @for (voice of availableVoices.value(); track voice.id) {
-                  @if (getVoiceAudioForLanguage(voice.id, language); as audioInfo) {
-                    <mat-card
-                      class="voice-card"
-                      [class.has-audio]="audioInfo.hasAudio"
-                      [class.selected]="audioInfo.isSelected"
-                      [class.generating]="audioInfo.isGenerating"
-                      [class.available]="!audioInfo.hasAudio && !audioInfo.isGenerating"
-                      appearance="outlined"
-                      matRipple
-                      [matRippleDisabled]="audioInfo.isGenerating"
-                      (click)="onCellClick(voice, language, audioInfo)"
-                      [matTooltip]="getTooltipText(voice, language, audioInfo)"
-                      matTooltipPosition="above">
+                @for (option of group.options; track option.key) {
+                  <article
+                    class="voice-card"
+                    [class.voice-card--selected]="option.isSelected"
+                    [class.voice-card--playing]="isPlaying(option)"
+                    [class.voice-card--disabled]="option.isGenerating"
+                  >
+                    <div class="voice-card__header">
+                      <span class="voice-name">{{ option.displayName }}</span>
+                      <div class="voice-badges">
+                        @if (option.isSelected) {
+                          <span class="voice-chip voice-chip--success">Selected</span>
+                        }
+                        @if (isPlaying(option)) {
+                          <span class="voice-chip voice-chip--info">Playing</span>
+                        }
+                      </div>
+                    </div>
 
-                      <mat-card-content class="voice-card-content">
-                        <div class="voice-content-wrapper">
-                          <div class="voice-title-section">
-                            <span class="voice-name">{{ voice.displayName }}</span>
+                    @if (option.isGenerating) {
+                      <div class="voice-card__body voice-card__body--center">
+                        <mat-spinner diameter="20"></mat-spinner>
+                        <span>Generating preview...</span>
+                      </div>
+                    } @else {
+                      <div class="voice-card__body">
+                        @if (option.hasAudio) {
+                          <div class="voice-actions">
+                            <button
+                              mat-icon-button
+                              type="button"
+                              (click)="play(option, $event)"
+                              [attr.aria-label]="isPlaying(option) ? 'Stop preview' : 'Play preview'"
+                              matTooltip="{{ isPlaying(option) ? 'Stop preview' : 'Play preview' }}"
+                            >
+                              <mat-icon>{{ isPlaying(option) ? 'stop' : 'play_arrow' }}</mat-icon>
+                            </button>
+
+                            <button
+                              mat-stroked-button
+                              color="primary"
+                              type="button"
+                              (click)="select(option, $event)"
+                              [disabled]="option.isSelected"
+                            >
+                              {{ option.isSelected ? 'Already selected' : 'Use this voice' }}
+                            </button>
                           </div>
-                          @if (audioInfo.isGenerating) {
-                            <div class="generating-state">
-                              <mat-spinner diameter="20"></mat-spinner>
-                              <span class="generating-text">Generating</span>
-                            </div>
-                          } @else if (audioInfo.hasAudio) {
-                            <div class="audio-state">
-                              @if (audioInfo.isSelected) {
-                                <mat-icon class="selected-indicator">check_circle</mat-icon>
-                              }
-                              <mat-icon class="play-icon">play_arrow</mat-icon>
-                              <span class="audio-text">{{ audioInfo.isSelected ? 'Selected' : 'Available' }}</span>
-                            </div>
-                          } @else {
-                            <div class="generate-state">
-                            </div>
+                        } @else {
+                          <div class="voice-actions">
+                            <button
+                              mat-flat-button
+                              color="primary"
+                              type="button"
+                              (click)="generate(option, $event)"
+                              [disabled]="!hasInputTexts()"
+                            >
+                              Generate preview
+                            </button>
+                          </div>
+                          @if (!hasInputTexts()) {
+                            <p class="voice-hint">Add text to the card to enable preview generation.</p>
                           }
-                        </div>
-                      </mat-card-content>
-                    </mat-card>
-                  }
+                        }
+                      </div>
+                    }
+                  </article>
                 }
               </div>
-            </div>
+            </section>
           }
         </div>
-      </div>
+      }
     }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end" class="dialog-actions">
-    <button mat-stroked-button (click)="close()" class="close-button">
-      <mat-icon>close</mat-icon>
-      Close
-    </button>
+    <button mat-button type="button" (click)="close()">Close</button>
   </mat-dialog-actions>
 </div>
