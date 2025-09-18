@@ -5,34 +5,6 @@
   </h2>
 
   <mat-dialog-content class="dialog-content">
-    @if (currentlySelectedVoiceDisplay(); as selectedVoice) {
-      <mat-card class="current-selection-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title class="selection-title">
-            <mat-icon class="selected-icon">check_circle</mat-icon>
-            Currently Selected
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="selected-voice-info">
-            <div class="voice-details">
-              <span class="voice-name">{{ selectedVoice.voiceName }}</span>
-              <mat-chip class="language-chip">{{ selectedVoice.languageName }}</mat-chip>
-            </div>
-            <button
-              mat-fab
-              color="primary"
-              class="play-fab"
-              (click)="playAudio(selectedVoice.id)"
-              matTooltip="Play current audio"
-              matTooltipPosition="above">
-              <mat-icon>play_arrow</mat-icon>
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    }
-
     @if (availableVoices.isLoading()) {
       <div class="loading-state">
         <mat-spinner diameter="40"></mat-spinner>
@@ -53,12 +25,12 @@
               <div class="language-header">
                 <mat-chip class="language-header-chip">{{ language }}</mat-chip>
               </div>
-              
+
               <!-- Voice Cards in this Language -->
               <div class="voice-cards">
                 @for (voice of availableVoices.value(); track voice.id) {
                   @if (getVoiceAudioForLanguage(voice.id, language); as audioInfo) {
-                    <mat-card 
+                    <mat-card
                       class="voice-card"
                       [class.has-audio]="audioInfo.hasAudio"
                       [class.selected]="audioInfo.isSelected"
@@ -70,7 +42,7 @@
                       (click)="onCellClick(voice, language, audioInfo)"
                       [matTooltip]="getTooltipText(voice, language, audioInfo)"
                       matTooltipPosition="above">
-                      
+
                       <mat-card-content class="voice-card-content">
                         <div class="voice-content-wrapper">
                           <div class="voice-title-section">

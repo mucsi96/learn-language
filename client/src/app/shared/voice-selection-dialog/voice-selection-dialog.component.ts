@@ -72,7 +72,6 @@ export class VoiceSelectionDialogComponent {
   });
   cardAudio = signal<AudioData[]>([]);
   cardTexts = signal<string[]>([]);
-  selectedVoiceId = signal<string | null>(null);
   generatingVoices = signal<Set<string>>(new Set());
 
   private readonly http = inject(HttpClient);
@@ -125,27 +124,6 @@ export class VoiceSelectionDialogComponent {
     return grouped;
   });
 
-  readonly currentlySelectedVoice = computed(() => {
-    const cardAudio = this.cardAudio();
-    return cardAudio.find(audio => audio.selected);
-  });
-
-  readonly currentlySelectedVoiceDisplay = computed(() => {
-    const selectedAudio = this.currentlySelectedVoice();
-    const voices = this.availableVoices.value();
-
-    if (!selectedAudio || !voices) return null;
-
-    const voice = voices.find(v => v.id === selectedAudio.voice);
-    const language = voice?.languages.find(l => l.name === selectedAudio.language);
-
-    return {
-      ...selectedAudio,
-      voiceName: voice?.displayName || selectedAudio.voice,
-      languageName: language?.name || selectedAudio.language
-    };
-  });
-
   async playAudio(audioId: string) {
     try {
       const audio = new Audio(`/api/audio/${audioId}`);
@@ -191,7 +169,7 @@ export class VoiceSelectionDialogComponent {
   getVoiceAudioForLanguage(voiceId: string, languageName: string): VoiceAudioInfo | null {
     const languageCode = Array.from(this.languageNames.entries())
       .find(([_, name]) => name === languageName)?.[0];
-    
+
     if (!languageCode) {
       console.log('No language code found for language name:', languageName);
       return null;
@@ -206,8 +184,8 @@ export class VoiceSelectionDialogComponent {
     const cardAudio = this.cardAudio();
     console.log('Looking for audio with voice:', voiceId, 'and language:', languageCode);
     console.log('Available card audio:', cardAudio.map(a => ({ voice: a.voice, language: a.language, id: a.id, selected: a.selected })));
-    
-    const existingAudio = cardAudio.find(audio => 
+
+    const existingAudio = cardAudio.find(audio =>
       audio.voice === voiceId && audio.language === languageCode
     );
 
@@ -230,7 +208,7 @@ export class VoiceSelectionDialogComponent {
     if (audioInfo.hasAudio && audioInfo.audioId) {
       // If audio exists, play it and optionally select it
       await this.playAudio(audioInfo.audioId);
-      
+
       // If not selected, select this voice
       if (!audioInfo.isSelected) {
         this.selectVoice(audioInfo.audioId);
