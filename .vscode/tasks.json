@@ -98,6 +98,16 @@
     },
     {
       "type": "shell",
+      "command": "bash",
+      "label": "Update dependencies",
+      "args": ["scripts/update_dependencies.sh"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
       "label": "Compose up",
       "command": "docker compose up --build --force-recreate --wait --remove-orphans --pull always",
       "problemMatcher": []
