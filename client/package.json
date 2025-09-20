@@ -27,13 +27,14 @@
     "zone.js": "~0.15.1"
   },
   "devDependencies": {
+    "@azure/identity": "^4.3.0",
+    "@azure/keyvault-secrets": "^4.9.0",
     "@angular-devkit/build-angular": "^20.0.1",
     "@angular-devkit/core": "^20.0.1",
     "@angular/build": "^20.0.1",
     "@angular/cli": "^20.0.1",
     "@angular/compiler-cli": "^20.0.1",
-    "@ngx-env/builder": "^19.0.4",
-    "@types/pako": "^2.0.3",
     "typescript": "~5.8.3"
-  }
+  },
+  "builders": "builders.json"
 }
