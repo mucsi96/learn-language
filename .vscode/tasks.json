@@ -6,9 +6,12 @@
     {
       "label": "Start DB Connection Proxy",
       "type": "shell",
-      "command": "export $(grep DB_PORT server/.env | xargs) && kubectl port-forward services/postgres1 ${DB_PORT}:http --kubeconfig .kube/db-config --namespace db",
+      "command": "scripts/start_db_proxy.sh",
       "problemMatcher": [],
-      "isBackground": true
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     },
     {
       "type": "shell",

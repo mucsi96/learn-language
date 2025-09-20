@@ -61,12 +61,6 @@ if command -v snap >/dev/null 2>&1; then
         echo "Helm is not installed, skipping."
     fi
 
-    if command -v node >/dev/null 2>&1; then
-        refresh_snap_package node "NodeJS"
-    else
-        echo "NodeJS is not installed, skipping."
-    fi
-
     if command -v kubectl >/dev/null 2>&1; then
         refresh_snap_package kubectl "kubectl"
     else

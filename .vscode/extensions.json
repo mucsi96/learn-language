@@ -5,9 +5,7 @@
         "angular.ng-template",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
-        "donjayamanne.python-extension-pack",
         "anweber.vscode-httpyac",
-        "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "formulahendry.code-runner"
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
     ]
 }

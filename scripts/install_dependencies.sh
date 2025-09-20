@@ -50,14 +50,6 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "JDK is already installed."
         fi
 
-        # Check and install NodeJS
-        if ! command -v node >/dev/null 2>&1; then
-            echo "Installing NodeJS..."
-            sudo snap install node --classic
-        else
-            echo "NodeJS is already installed."
-        fi
-
         # Check and install Maven
         if ! command -v mvn >/dev/null 2>&1; then
             echo "Installing Maven..."
@@ -149,11 +141,6 @@ echo "STORAGE_ACCOUNT_CONTAINER_NAME=learn-language" >> server/.env
 echo "LANGSMITH_API_KEY=$langsmith_api_key" >> server/.env
 echo "GOOGLE_AI_API_KEY=$google_ai_api_key" >> server/.env
 echo "ELEVEN_LABS_API_KEY=$eleven_labs_api_key" >> server/.env
-
-echo "Generating client/.env configuration..."
-echo "NG_APP_TENANT_ID=$azure_tenant_id" > client/.env
-echo "NG_APP_CLIENT_ID=$spa_client_id" >> client/.env
-echo "NG_APP_API_CLIENT_ID=$api_client_id" >> client/.env
 
 echo "Installing Python dependencies..."
 pip install -r requirements.txt

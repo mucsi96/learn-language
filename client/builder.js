@@ -3,124 +3,49 @@ import {
   executeDevServerBuilder,
   buildApplication,
 } from "@angular-devkit/build-angular";
-import { DefaultAzureCredential } from "@azure/identity";
-import { SecretClient } from "@azure/keyvault-secrets";
 
 const TH_ENV_PATTERN =
   /<th:block[^>]*th:insert="~\{fragments\s*::\s*env\}"[^>]*>\s*<\/th:block>/i;
 
-const KEY_VAULT_NAME = process.env.AZURE_KEY_VAULT_NAME ?? "p05";
-const KEY_VAULT_URI = KEY_VAULT_NAME
-  ? `https://${KEY_VAULT_NAME}.vault.azure.net`
-  : undefined;
+const SERVER_ENV_URL = process.env.SERVER_ENV_URL ?? "http://localhost:8080/";
 
-const SECRET_SOURCES = [
-  {
-    key: "tenantId",
-    secretName: "tenant-id",
-    fallbackEnv: "AZURE_TENANT_ID",
-  },
-  {
-    key: "clientId",
-    secretName: "learn-language-spa-client-id",
-    fallbackEnv: "UI_CLIENT_ID",
-  },
-  {
-    key: "apiClientId",
-    secretName: "learn-language-api-client-id",
-    fallbackEnv: "AZURE_CLIENT_ID",
-  },
-];
-
-const BASE_ENV_VALUES = {
-  mockAuth: false,
-  production: false,
-  apiContextPath: "/api",
-};
-
-let secretClient;
-let envValuesPromise;
-
-function getSecretClient(logger) {
-  if (!KEY_VAULT_URI) {
-    logger.warn(
-      "Azure Key Vault name is not configured; falling back to environment variables."
-    );
-    return undefined;
-  }
-
-  if (!secretClient) {
-    secretClient = new SecretClient(
-      KEY_VAULT_URI,
-      new DefaultAzureCredential()
-    );
-  }
-
-  return secretClient;
+function indentScript(script) {
+  return script
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => `    ${line}`)
+    .join("\n");
 }
 
-async function resolveSecretValue(client, source, logger) {
-  const fallback = process.env[source.fallbackEnv] ?? "";
+let envScriptPromise;
 
-  if (!client) {
-    return fallback;
-  }
+async function loadEnvScript(logger) {
+  if (!envScriptPromise) {
+    envScriptPromise = (async () => {
+      try {
+        const response = await fetch(SERVER_ENV_URL, {
+          headers: { Accept: "text/html" },
+        });
 
-  try {
-    const secret = await client.getSecret(source.secretName);
+        if (!response.ok) {
+          throw new Error(`Unexpected status ${response.status}`);
+        }
 
-    if (secret?.value) {
-      return secret.value;
-    }
-
-    logger.warn(
-      `Azure secret "${source.secretName}" is empty; falling back to ${source.fallbackEnv}.`
-    );
-  } catch (error) {
-    logger.warn(
-      `Failed to read Azure secret "${source.secretName}"; falling back to ${source.fallbackEnv}. Reason: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-
-  return fallback;
-}
-
-async function loadEnvValues(logger) {
-  if (!envValuesPromise) {
-    envValuesPromise = (async () => {
-      const client = getSecretClient(logger);
-      const secretEntries = await Promise.all(
-        SECRET_SOURCES.map(async (source) => [
-          source.key,
-          await resolveSecretValue(client, source, logger),
-        ])
-      );
-
-      const secrets = Object.fromEntries(secretEntries);
-
-      return {
-        ...BASE_ENV_VALUES,
-        ...secrets,
-      };
+        return indentScript(await response.text());
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        logger.error(
+          `Unable to load environment script from ${SERVER_ENV_URL}. Reason: ${reason}`
+        );
+        throw error instanceof Error ? error : new Error(reason);
+      }
     })().catch((error) => {
-      envValuesPromise = undefined;
+      envScriptPromise = undefined;
       throw error;
     });
   }
 
-  return envValuesPromise;
-}
-
-async function buildEnvScript(logger) {
-  const envValues = await loadEnvValues(logger);
-
-  const indent = "    ";
-  const serializedEnv = JSON.stringify(envValues, null, 2).replace(
-    /\n/g,
-    `\n${indent}    `
-  );
-
-  return `${indent}<script type="module">\n${indent}  window.__env = ${serializedEnv};\n${indent}</script>`;
+  return envScriptPromise;
 }
 
 function createIndexTransform(logger) {
@@ -132,7 +57,7 @@ function createIndexTransform(logger) {
       return content;
     }
 
-    const envScript = await buildEnvScript(logger);
+    const envScript = await loadEnvScript(logger);
 
     return content.replace(TH_ENV_PATTERN, envScript);
   };
