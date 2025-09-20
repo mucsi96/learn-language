@@ -6,8 +6,6 @@
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "donjayamanne.python-extension-pack",
-        "mtxr.sqltools",
-        "mtxr.sqltools-driver-pg",
         "anweber.vscode-httpyac",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
         "formulahendry.code-runner"

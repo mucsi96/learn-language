@@ -24,6 +24,14 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "Helm is already installed."
         fi
 
+        # Check and install kubectl
+        if ! command -v kubectl >/dev/null 2>&1; then
+            echo "Installing kubectl..."
+            sudo snap install kubectl --classic
+        else
+            echo "kubectl is already installed."
+        fi
+
         # Check and install JDK
         if ! command -v java >/dev/null 2>&1; then
             echo "Installing JDK..."

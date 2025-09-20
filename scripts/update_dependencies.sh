@@ -66,6 +66,12 @@ if command -v snap >/dev/null 2>&1; then
     else
         echo "NodeJS is not installed, skipping."
     fi
+
+    if command -v kubectl >/dev/null 2>&1; then
+        refresh_snap_package kubectl "kubectl"
+    else
+        echo "kubectl is not installed, skipping."
+    fi
 fi
 
 if command -v pip3 >/dev/null 2>&1; then
