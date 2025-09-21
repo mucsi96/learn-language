@@ -14,9 +14,6 @@ import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
