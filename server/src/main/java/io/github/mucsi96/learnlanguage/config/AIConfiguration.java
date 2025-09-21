@@ -14,6 +14,12 @@ import io.github.mucsi96.learnlanguage.tracing.TracebleOpenAIClient;
 @Configuration
 public class AIConfiguration {
 
+  @Value("${openai.apiKey}")
+  private String openAiApiKey;
+
+  @Value("${openai.baseUrl:#{null}}")
+  private String openAiBaseUrl;
+
   @Value("${google.ai.apiKey}")
   private String googleAiApiKey;
 
@@ -22,7 +28,13 @@ public class AIConfiguration {
 
   @Bean
   OpenAIClient openAIClient(AITracingService aiTracingService) {
-    return new TracebleOpenAIClient(OpenAIOkHttpClient.fromEnv(), aiTracingService);
+    var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
+
+    if (openAiBaseUrl != null && !openAiBaseUrl.isEmpty()) {
+      clientBuilder.baseUrl(openAiBaseUrl);
+    }
+
+    return new TracebleOpenAIClient(clientBuilder.build(), aiTracingService);
   }
 
   @Bean

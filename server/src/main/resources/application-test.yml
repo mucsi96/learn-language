@@ -11,10 +11,13 @@ spring:
         enabled: false
 langsmith:
   enabled: false
+openai:
+  apiKey: ${OPENAI_API_KEY}
+  baseUrl: ${OPENAI_API_URL}
 google:
   ai:
-    apiKey: "dummy-test-api-key"
-    baseUrl: "http://mock-google-ai:3001"
+    apiKey: ${GOOGLE_AI_API_KEY}
+    baseUrl: ${GOOGLE_AI_BASE_URL}
 elevenlabs:
-  apiKey: "dummy-test-api-key"
-  baseUrl: "http://mock-elevenlabs:3002"
+  apiKey: ${ELEVEN_LABS_API_KEY}
+  baseUrl: ${ELEVEN_LABS_BASE_URL}

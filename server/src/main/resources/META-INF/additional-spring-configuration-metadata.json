@@ -62,6 +62,16 @@
       "name": "elevenlabs.baseUrl",
       "type": "java.lang.String",
       "description": "Base URL for Eleven Labs API endpoints"
+    },
+    {
+      "name": "openai.api-key",
+      "type": "java.lang.String",
+      "description": "API key for OpenAI services"
+    },
+    {
+      "name": "openai.baseUrl",
+      "type": "java.lang.String",
+      "description": "Base URL for OpenAI API endpoints"
     }
   ]
 }

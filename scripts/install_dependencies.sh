@@ -92,56 +92,6 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     fi
 fi
 
-echo "Fetching Azure secrets required for the local environment..."
-echo "Retrieving Key Vault secret 'db-namespace-k8s-user-config'..."
-db_k8s_config=$(az keyvault secret show --vault-name p05 --name db-namespace-k8s-user-config --query value -o tsv)
-echo "Retrieving Key Vault secret 'db-username'..."
-db_username=$(az keyvault secret show --vault-name p05 --name db-username --query value -o tsv)
-echo "Retrieving Key Vault secret 'db-password'..."
-db_password=$(az keyvault secret show --vault-name p05 --name db-password --query value -o tsv)
-azure_subscription_id=$(az account show --query id --output tsv)
-echo "Retrieving Key Vault secret 'tenant-id'..."
-azure_tenant_id=$(az keyvault secret show --vault-name p05 --name tenant-id --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-api-client-id'..."
-api_client_id=$(az keyvault secret show --vault-name p05 --name learn-language-api-client-id --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-api-client-secret'..."
-api_client_secret=$(az keyvault secret show --vault-name p05 --name learn-language-api-client-secret --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-spa-client-id'..."
-spa_client_id=$(az keyvault secret show --vault-name p05 --name learn-language-spa-client-id --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-openai-api-key'..."
-openai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-openai-api-key --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-langsmith-api-key'..."
-langsmith_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-langsmith-api-key --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-google-ai-api-key'..."
-google_ai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-google-ai-api-key --query value -o tsv)
-echo "Retrieving Key Vault secret 'learn-language-eleven-labs-api-key'..."
-eleven_labs_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-eleven-labs-api-key --query value -o tsv)
-storageAccountBlobUrl=$(az storage account show --name ibari --resource-group ibari --query "primaryEndpoints.blob" --output tsv)
-
-echo "Writing Kubernetes configuration for database access..."
-mkdir -p .kube
-echo "$db_k8s_config" > .kube/db-config
-
-echo "Generating server/.env configuration..."
-echo "SPRING_ACTUATOR_PORT=8082" > server/.env
-echo "SPRING_PROFILES_ACTIVE=local" >> server/.env
-echo "DB_USERNAME=$db_username" >> server/.env
-echo "DB_PASSWORD=$db_password" >> server/.env
-echo "DB_HOSTNAME=localhost" >> server/.env
-echo "DB_PORT=5461" >> server/.env
-echo "DB_NAME=postgres1" >> server/.env
-echo "AZURE_SUBSCRIPTION_ID=$azure_subscription_id" >> server/.env
-echo "AZURE_TENANT_ID=$azure_tenant_id" >> server/.env
-echo "AZURE_CLIENT_ID=$api_client_id" >> server/.env
-echo "AZURE_CLIENT_SECRET=$api_client_secret" >> server/.env
-echo "UI_CLIENT_ID=$spa_client_id" >> server/.env
-echo "OPENAI_API_KEY=$openai_api_key" >> server/.env
-echo "STORAGE_ACCOUNT_BLOB_URL=$storageAccountBlobUrl" >> server/.env
-echo "STORAGE_ACCOUNT_CONTAINER_NAME=learn-language" >> server/.env
-echo "LANGSMITH_API_KEY=$langsmith_api_key" >> server/.env
-echo "GOOGLE_AI_API_KEY=$google_ai_api_key" >> server/.env
-echo "ELEVEN_LABS_API_KEY=$eleven_labs_api_key" >> server/.env
-
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 

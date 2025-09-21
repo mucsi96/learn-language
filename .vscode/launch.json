@@ -24,8 +24,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/server",
       "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
-      "args": "",
-      "envFile": "${workspaceFolder}/server/.env"
+      "args": "--spring.profiles.active=local",
     },
     {
       "name": "Python: Unittest",
