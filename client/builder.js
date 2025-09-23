@@ -77,12 +77,5 @@ export default createBuilder((options, context) => {
     );
   }
 
-  if (context.target?.target === "build") {
-    context.logger.info("Custom builder is running in build mode.");
-    return buildApplication(options, context, {
-      indexHtmlTransformer: transform,
-    });
-  }
-
   return buildApplication(options, context);
 });
