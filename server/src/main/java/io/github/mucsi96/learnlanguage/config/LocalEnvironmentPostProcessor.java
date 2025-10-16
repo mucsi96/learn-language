@@ -25,7 +25,7 @@ public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
     DefaultAzureCredential credential = new DefaultAzureCredentialBuilder().build();
     SecretClient secretClient = new SecretClientBuilder()
-        .vaultUrl("https://p05.vault.azure.net/")
+        .vaultUrl("https://p06.vault.azure.net/")
         .credential(credential)
         .buildClient();
 

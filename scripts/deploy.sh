@@ -18,13 +18,13 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     fi
 fi
 
-host=$(az keyvault secret show --vault-name p05 --name hostname --query value --output tsv)
+host=$(az keyvault secret show --vault-name p06 --name hostname --query value --output tsv)
 storageAccountBlobUrl=$(az storage account show --name ibari --resource-group ibari --query "primaryEndpoints.blob" --output tsv)
-apiClientId=$(az keyvault secret show --vault-name p05 --name learn-language-api-client-id --query value --output tsv)
-spaClientId=$(az keyvault secret show --vault-name p05 --name learn-language-spa-client-id --query value --output tsv)
-db_username=$(az keyvault secret show --vault-name p05 --name db-username --query value -o tsv)
-db_password=$(az keyvault secret show --vault-name p05 --name db-password --query value -o tsv)
-openai_api_key=$(az keyvault secret show --vault-name p05 --name learn-language-openai-api-key --query value -o tsv)
+apiClientId=$(az keyvault secret show --vault-name p06 --name learn-language-api-client-id --query value --output tsv)
+spaClientId=$(az keyvault secret show --vault-name p06 --name learn-language-spa-client-id --query value --output tsv)
+db_username=$(az keyvault secret show --vault-name p06 --name db-username --query value -o tsv)
+db_password=$(az keyvault secret show --vault-name p06 --name db-password --query value -o tsv)
+openai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-openai-api-key --query value -o tsv)
 latestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language/tags/" | jq -r '.results |  map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 
 echo "Deploying mucsi96/learn-language:$latestTag to language.$host"

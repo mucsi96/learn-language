@@ -92,6 +92,8 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     fi
 fi
 
+source .venv/bin/activate
+
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
