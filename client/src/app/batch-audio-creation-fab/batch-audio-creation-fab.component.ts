@@ -26,41 +26,14 @@ export class BatchAudioCreationFabComponent {
   private readonly http = inject(HttpClient);
   readonly cards = resource<Card[], unknown>({
     loader: async () => {
-      const cards = await fetchJson<Card[]>(this.http, '/api/cards/readiness/REVIEWED');
+      const cards = await fetchJson<Card[]>(this.http, '/api/cards/missing-audio');
       return cards.map(card => mapCardDatesFromISOStrings(card));
     },
   });
 
   readonly cardsForAudio = computed(() => {
     const cards = this.cards.value();
-    if (!cards) return [];
-
-    // Filter cards that need audio generation
-    return cards.filter(card => {
-      // Check if card has the required data and needs audio
-      const hasWord = Boolean(card.data.word);
-      const hasHungarianTranslation = Boolean(card.data.translation?.['hu']);
-      const hasSelectedExample = Boolean(card.data.examples?.some(ex => ex.isSelected));
-
-      // Check if audio is missing for any of these texts
-      const audioList = card.data.audio || [];
-      const hasAudioForText = (text: string) => audioList.some(audio => audio.text === text);
-      
-      const needsWordAudio = hasWord && !hasAudioForText(card.data.word);
-      const needsTranslationAudio = hasHungarianTranslation && card.data.translation?.['hu'] && !hasAudioForText(card.data.translation['hu']);
-
-      let needsExampleAudio = false;
-      if (hasSelectedExample && card.data.examples) {
-        const selectedExample = card.data.examples.find(ex => ex.isSelected);
-        if (selectedExample) {
-          const needsDeAudio = selectedExample['de'] && !hasAudioForText(selectedExample['de']);
-          const needsHuAudio = selectedExample['hu'] && !hasAudioForText(selectedExample['hu']);
-          needsExampleAudio = Boolean(needsDeAudio || needsHuAudio);
-        }
-      }
-
-      return needsWordAudio || needsTranslationAudio || needsExampleAudio;
-    });
+    return cards ?? [];
   });
 
   readonly cardsForAudioCount = computed(() => this.cardsForAudio().length);

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.Type;
 
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -71,4 +72,24 @@ public class Card {
 
     @Column(name = "last_review")
     private LocalDateTime lastReview;
+
+    public boolean hasReadiness(String readiness) {
+        if (readiness == null) {
+            return false;
+        }
+
+        return readiness.equals(this.readiness);
+    }
+
+    public boolean isInReview() {
+        return hasReadiness(CardReadiness.IN_REVIEW);
+    }
+
+    public boolean isReady() {
+        return hasReadiness(CardReadiness.READY);
+    }
+
+    public boolean isReviewed() {
+        return hasReadiness(CardReadiness.REVIEWED);
+    }
 }

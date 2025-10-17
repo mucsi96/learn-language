@@ -1,6 +1,21 @@
 {
   "properties": [
     {
+      "name": "blobstorage.clientId",
+      "type": "java.lang.String",
+      "description": "Azure Blob Storage client ID for authentication"
+    },
+    {
+      "name": "blobstorage.tenantId",
+      "type": "java.lang.String",
+      "description": "Azure Blob Storage tenant ID for authentication"
+    },
+    {
+      "name": "blobstorage.clientSecret",
+      "type": "java.lang.String",
+      "description": "Azure Blob Storage client secret for authentication"
+    },
+    {
       "name": "blobstorage.accountUrl",
       "type": "java.lang.String",
       "description": "Azure Blob Storage account URL"

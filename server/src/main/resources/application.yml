@@ -1,4 +1,7 @@
 blobstorage:
+  clientId: ${AZURE_CLIENT_ID}
+  tenantId: ${AZURE_TENANT_ID}
+  clientSecret: ${AZURE_CLIENT_SECRET:}
   accountUrl: ${STORAGE_ACCOUNT_BLOB_URL:}
   containerName: ${STORAGE_ACCOUNT_CONTAINER_NAME:}
 spring:

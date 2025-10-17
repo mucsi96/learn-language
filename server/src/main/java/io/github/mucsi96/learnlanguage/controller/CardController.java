@@ -94,6 +94,13 @@ public class CardController {
     return ResponseEntity.ok(cards);
   }
 
+  @GetMapping("/cards/missing-audio")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<List<Card>> getCardsMissingAudio() {
+    List<Card> cards = cardService.getCardsMissingAudio();
+    return ResponseEntity.ok(cards);
+  }
+
   @PutMapping("/card/{cardId}/audio/{audioId}/select")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> selectVoiceForCard(@PathVariable String cardId, @PathVariable String audioId) {
