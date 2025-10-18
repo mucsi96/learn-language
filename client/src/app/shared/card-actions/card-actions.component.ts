@@ -8,7 +8,7 @@ import { AsyncPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { fetchJson } from '../../utils/fetchJson';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
-import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { AudioData } from '../types/audio-generation.types';
 
 @Component({
   selector: 'app-card-actions',
@@ -52,33 +52,7 @@ export class CardActionsComponent {
   }
 
   async openVoiceSelection(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-
-    const cardData = this.card()?.value();
-    if (!cardData) return;
-
-    const cardTexts = this.getCardTexts(cardData);
-    const cardAudio = cardData.data?.audio || [];
-
-    const dialogRef = this.dialog.open(VoiceSelectionDialogComponent, {
-      width: '1000px',
-    });
-
-    // Set the input values on the component instance
-    dialogRef.componentInstance.cardAudio.set(cardAudio as any);
-    dialogRef.componentInstance.cardTexts.set(cardTexts);
-
-    const result = await new Promise<any>(resolve => {
-      dialogRef.afterClosed().subscribe(resolve);
-    });
-
-    if (result?.type === 'voice_selected') {
-      await this.updateSelectedVoice(result.audioId);
-    } else if (result?.type === 'audio_generated') {
-      await this.addNewAudio(result.audioData);
-    }
+    // TODO: implement the voice selection dialog using Angular Material dialog with resource-based state
   }
 
   private getCardTexts(cardData: any): string[] {
@@ -103,34 +77,62 @@ export class CardActionsComponent {
     return texts.filter(Boolean);
   }
 
-  private async updateSelectedVoice(audioId: string) {
-    const cardId = this.card()?.value()?.id;
-    if (!cardId) return;
+  private getLanguageTexts(cardData: any): Record<string, string[]> {
+    const languageTexts: Record<string, Set<string>> = {};
 
-    try {
-      await fetchJson(this.http, `/api/card/${cardId}/audio/${audioId}/select`, {
-        method: 'PUT',
-      });
-      this.card()?.reload();
-      this.cardProcessed.emit();
-    } catch (error) {
-      console.error('Error updating selected voice:', error);
-    }
+    const addText = (language: string, value?: string) => {
+      if (!value) {
+        return;
+      }
+      const bucket = languageTexts[language] ?? new Set<string>();
+      bucket.add(value);
+      languageTexts[language] = bucket;
+    };
+
+    addText('de', cardData?.word);
+    addText('hu', cardData?.translation?.hu);
+
+    const selectedExample = cardData?.examples?.find((example: any) => example.isSelected);
+    addText('de', selectedExample?.de);
+    addText('hu', selectedExample?.hu);
+
+    const audioEntries: AudioData[] = cardData?.audio ?? [];
+    audioEntries.forEach((audio) => {
+      if (audio.language && audio.text) {
+        addText(audio.language, audio.text);
+      }
+    });
+
+    return Object.fromEntries(
+      Object.entries(languageTexts).map(([language, values]) => [language, Array.from(values)])
+    );
   }
 
-  private async addNewAudio(audioData: any) {
-    const cardId = this.card()?.value()?.id;
-    if (!cardId) return;
+  private async updateCardAudio(audio: AudioData[]) {
+    const card = this.card()?.value();
+    if (!card) {
+      return;
+    }
+
+    const sanitizedAudio = audio.map((entry) => ({
+      ...entry,
+      selected: Boolean(entry.selected),
+    }));
 
     try {
-      await fetchJson(this.http, `/api/card/${cardId}/audio`, {
-        method: 'POST',
-        body: audioData
+      await fetchJson(this.http, `/api/card/${card.id}`, {
+        method: 'PUT',
+        body: {
+          data: {
+            ...card.data,
+            audio: sanitizedAudio,
+          },
+        },
       });
       this.card()?.reload();
       this.cardProcessed.emit();
     } catch (error) {
-      console.error('Error adding new audio:', error);
+      console.error('Error saving voice selection:', error);
     }
   }
 }

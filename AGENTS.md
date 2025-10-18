@@ -14,11 +14,13 @@
 
 ## Angular Code style
 - Prefer using Angular Material components
-- Prefer using Angular signal for state management
+- Prefer using Angular signal / resource for state management
 - Prefer putting styles and templates to separate files
 - Use angular resources core method when necessary
 - Do  not use ::ng-deep
 - Avoid using enum in TS. Prefer using string literals
+- Always using new Angular templates
+- Using rxjs is not allowed
 
 ## Project Overview
 
