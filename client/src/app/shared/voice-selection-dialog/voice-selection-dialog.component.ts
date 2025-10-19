@@ -37,10 +37,17 @@ interface VoiceCardData {
   isPlaying?: boolean;
 }
 
-interface DialogData {
-  cardAudio: AudioData[];
-  cardData: any;
+export interface LanguageTexts {
+  language: string;
+  texts: string[];
 }
+
+export interface VoiceSelectionDialogData {
+  audioData: AudioData[];
+  languageTexts: LanguageTexts[];
+}
+
+interface DialogData extends VoiceSelectionDialogData {}
 
 @Component({
   selector: 'app-voice-selection-dialog',
@@ -67,7 +74,7 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
   private readonly audioPlaybackService = inject(AudioPlaybackService);
 
   // Local copy of audio data for modifications
-  readonly localAudioData = signal<AudioData[]>([...this.data.cardAudio]);
+  readonly localAudioData = signal<AudioData[]>([...this.data.audioData]);
 
   // Track generating and playing states
   readonly generatingVoices = signal<Set<string>>(new Set());
@@ -310,32 +317,12 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     this.playingVoices.set(new Set());
   }
 
-  // Get texts for a specific language from card data
+  // Get texts for a specific language from language texts data
   private getTextsForLanguage(language: string): string[] {
-    const texts: string[] = [];
-    const cardData = this.data.cardData;
-
-    if (language === 'de' && cardData?.word) {
-      texts.push(cardData.word);
-    }
-
-    if (language === 'hu' && cardData?.translation?.hu) {
-      texts.push(cardData.translation.hu);
-    }
-
-    const selectedExample = cardData?.examples?.find(
-      (ex: any) => ex.isSelected
+    const languageData = this.data.languageTexts.find(
+      (lt) => lt.language === language
     );
-    if (selectedExample) {
-      if (language === 'de' && selectedExample.de) {
-        texts.push(selectedExample.de);
-      }
-      if (language === 'hu' && selectedExample.hu) {
-        texts.push(selectedExample.hu);
-      }
-    }
-
-    return texts.filter(Boolean);
+    return languageData?.texts || [];
   }
 
   // Save and close dialog

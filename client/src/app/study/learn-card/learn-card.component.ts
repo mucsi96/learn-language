@@ -15,6 +15,7 @@ import { CardActionsComponent } from '../../shared/card-actions/card-actions.com
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
+import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -40,6 +41,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly isRevealed = signal(false);
   private lastPlayedTexts: string[] = [];
+  readonly languageTexts = signal<LanguageTexts[]>([]);
 
   constructor() {
     this.route.params.subscribe((params) => {
@@ -91,5 +93,9 @@ export class LearnCardComponent implements OnDestroy {
     this.lastPlayedTexts = [];
     // Stop any ongoing audio playback
     this.audioPlaybackService.stopPlayback();
+  }
+
+  onLanguageTextsReady(texts: LanguageTexts[]) {
+    this.languageTexts.set(texts);
   }
 }

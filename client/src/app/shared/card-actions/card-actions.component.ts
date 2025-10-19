@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { fetchJson } from '../../utils/fetchJson';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { AudioData } from '../types/audio-generation.types';
-import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection-dialog/voice-selection-dialog.component';
 
 @Component({
   selector: 'app-card-actions',
@@ -27,6 +27,7 @@ import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-s
 })
 export class CardActionsComponent {
   card = input<ResourceRef<any>>();
+  languageTexts = input<LanguageTexts[]>([]);
   markedForReview = output<void>();
   cardProcessed = output<void>();
 
@@ -60,14 +61,21 @@ export class CardActionsComponent {
     const card = this.card()?.value();
     if (!card) return;
 
+    // Use provided language texts
+    const languageTexts = this.languageTexts();
+    if (languageTexts.length === 0) {
+      console.warn('No language texts provided for voice selection');
+      return;
+    }
+
     const dialogRef = this.dialog.open(VoiceSelectionDialogComponent, {
       width: 'auto',
       maxWidth: '90vw',
       maxHeight: '90vh',
       panelClass: 'voice-selection-dialog',
       data: {
-        cardAudio: card.data?.audio || [],
-        cardData: card.data
+        audioData: card.data?.audio || [],
+        languageTexts: languageTexts
       }
     });
 
@@ -76,59 +84,6 @@ export class CardActionsComponent {
         await this.updateCardAudio(updatedAudio);
       }
     });
-  }
-
-  private getCardTexts(cardData: any): string[] {
-    const texts: string[] = [];
-
-    if (cardData.data?.word) {
-      texts.push(cardData.data.word);
-    }
-
-    if (cardData.data?.translation?.hu) {
-      texts.push(cardData.data.translation.hu);
-    }
-
-    const selectedExample = cardData.data?.examples?.find((ex: any) => ex.isSelected);
-    if (selectedExample?.de) {
-      texts.push(selectedExample.de);
-    }
-    if (selectedExample?.hu) {
-      texts.push(selectedExample.hu);
-    }
-
-    return texts.filter(Boolean);
-  }
-
-  private getLanguageTexts(cardData: any): Record<string, string[]> {
-    const languageTexts: Record<string, Set<string>> = {};
-
-    const addText = (language: string, value?: string) => {
-      if (!value) {
-        return;
-      }
-      const bucket = languageTexts[language] ?? new Set<string>();
-      bucket.add(value);
-      languageTexts[language] = bucket;
-    };
-
-    addText('de', cardData?.word);
-    addText('hu', cardData?.translation?.hu);
-
-    const selectedExample = cardData?.examples?.find((example: any) => example.isSelected);
-    addText('de', selectedExample?.de);
-    addText('hu', selectedExample?.hu);
-
-    const audioEntries: AudioData[] = cardData?.audio ?? [];
-    audioEntries.forEach((audio) => {
-      if (audio.language && audio.text) {
-        addText(audio.language, audio.text);
-      }
-    });
-
-    return Object.fromEntries(
-      Object.entries(languageTexts).map(([language, values]) => [language, Array.from(values)])
-    );
   }
 
   private async updateCardAudio(audio: AudioData[]) {
