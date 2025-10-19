@@ -5,6 +5,7 @@ Implement a voice slection dialog on triggered from existing openVoiceSelection 
 Acceptance Criteria
 
 - Use a latest standalone Angular dialog component with resource-based state for fetched data.
+- For implementation patterns take inspiration from edit-vocabulary-card.component.ts
 - As input data use the current card audio map.
 - Fetch /api/voices on init, show skeleton during load
 - Group voices by supported languages (German then Hungarian) using the provided language labels, sort options alphabetically per group, and render headers with Material translate icon
