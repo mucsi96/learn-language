@@ -13,6 +13,7 @@
 - Don't use assertion messages
 
 ## Angular Code style
+- Prefer functional code over procedural
 - Prefer using Angular Material components
 - Prefer using Angular signal / resource for state management
 - Prefer putting styles and templates to separate files
