@@ -2,9 +2,25 @@
 
 <mat-dialog-content>
   @if (voices.isLoading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>Loading voices...</p>
+    <div class="voice-groups">
+      @for (lang of ['hu', 'de']; track lang) {
+        <div class="language-group">
+          <div class="language-header">
+            <mat-icon>translate</mat-icon>
+            <h3>{{ getLanguageLabel(lang) }}</h3>
+          </div>
+          <div class="voice-grid">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <mat-card class="voice-card skeleton">
+                <mat-card-content>
+                  <div class="skeleton-name"></div>
+                  <div class="skeleton-hint"></div>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </div>
+      }
     </div>
   } @else if (voices.error()) {
     <div class="error-container">
@@ -26,58 +42,55 @@
                 <mat-card
                   class="voice-card"
                   [class.selected]="isSelected(voiceCard)"
-                  [class.generating]="isGenerating(voiceCard)">
+                  [class.generating]="isGenerating(voiceCard)"
+                  [class.has-audio]="!!voiceCard.audioData"
+                  (click)="onCardClick(voiceCard)"
+                  role="button"
+                  tabindex="0">
 
-                  <mat-card-header>
-                    <mat-card-title>{{ voiceCard.voice.displayName }}</mat-card-title>
-                  </mat-card-header>
+                  <!-- Selection indicator in corner -->
+                  @if (isSelected(voiceCard)) {
+                    <button
+                      mat-icon-button
+                      class="selection-indicator"
+                      (click)="selectVoice(voiceCard); $event.stopPropagation()"
+                      matTooltip="Selected">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                  } @else {
+                    <button
+                      mat-icon-button
+                      class="selection-indicator unselected"
+                      (click)="selectVoice(voiceCard); $event.stopPropagation()"
+                      matTooltip="Select this voice">
+                      <mat-icon>radio_button_unchecked</mat-icon>
+                    </button>
+                  }
+
+                  <!-- Playing indicator -->
+                  @if (isPlaying(voiceCard)) {
+                    <div class="playing-indicator">
+                      <mat-icon class="pulse">volume_up</mat-icon>
+                    </div>
+                  }
+
+                  <!-- Generating skeleton overlay -->
+                  @if (isGenerating(voiceCard)) {
+                    <div class="generating-overlay">
+                      <div class="skeleton-pulse"></div>
+                    </div>
+                  }
 
                   <mat-card-content>
-                    <div class="voice-status">
-                      @if (isSelected(voiceCard)) {
-                        <mat-chip class="status-chip selected">
-                          <mat-icon class="chip-icon">check_circle</mat-icon>
-                          SELECTED
-                        </mat-chip>
-                      }
-
+                    <div class="voice-name">{{ voiceCard.voice.displayName }}</div>
+                    <div class="voice-hint">
                       @if (!voiceCard.audioData && !isGenerating(voiceCard)) {
-                        <mat-chip class="status-chip new">
-                          <mat-icon class="chip-icon">fiber_new</mat-icon>
-                          NEW
-                        </mat-chip>
+                        <span class="hint-text">Click to preview</span>
+                      } @else if (voiceCard.audioData && !isGenerating(voiceCard) && !isPlaying(voiceCard)) {
+                        <span class="hint-text">Click to play</span>
                       }
                     </div>
                   </mat-card-content>
-
-                  <mat-card-actions>
-                    <div class="action-buttons">
-                      @if (isGenerating(voiceCard)) {
-                        <button
-                          mat-icon-button
-                          disabled
-                          class="generating-button">
-                          <mat-spinner diameter="24"></mat-spinner>
-                        </button>
-                      } @else {
-                        <button
-                          mat-icon-button
-                          (click)="togglePlayback(voiceCard)"
-                          [matTooltip]="isPlaying(voiceCard) ? 'Stop' : 'Preview'"
-                          class="play-button">
-                          <mat-icon>{{ isPlaying(voiceCard) ? 'stop' : 'play_arrow' }}</mat-icon>
-                        </button>
-                      }
-
-                      <button
-                        mat-stroked-button
-                        (click)="selectVoice(voiceCard)"
-                        [disabled]="isGenerating(voiceCard) || isSelected(voiceCard)"
-                        class="select-button">
-                        {{ isSelected(voiceCard) ? 'Selected' : 'Use this voice' }}
-                      </button>
-                    </div>
-                  </mat-card-actions>
                 </mat-card>
               }
             </div>

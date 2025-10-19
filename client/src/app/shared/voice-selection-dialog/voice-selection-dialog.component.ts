@@ -18,7 +18,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { fetchJson } from '../../utils/fetchJson';
 import { AudioData, AudioResponse } from '../types/audio-generation.types';
@@ -53,7 +52,6 @@ interface DialogData {
     MatIconModule,
     MatChipsModule,
     MatTooltipModule,
-    MatProgressSpinnerModule,
     MatCardModule,
   ],
   templateUrl: './voice-selection-dialog.component.html',
@@ -238,19 +236,23 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     }
   }
 
-  // Play or stop audio preview
-  async togglePlayback(voiceCard: VoiceCardData) {
-    const key = `${voiceCard.voice.id}-${voiceCard.language}`;
+  // Handle card click - generate and play audio
+  async onCardClick(voiceCard: VoiceCardData) {
+    // Don't do anything if currently generating
+    if (this.isGenerating(voiceCard)) {
+      return;
+    }
 
+    // If playing, stop playback
     if (this.isPlaying(voiceCard)) {
       this.stopPlayback();
       return;
     }
 
-    // Stop any current playback
+    // Stop any other playback first
     this.stopPlayback();
 
-    // Get audio entries for this voice and language
+    // Get or generate audio, then play
     const audioEntries = this.localAudioData().filter(
       (audio) =>
         audio.voice === voiceCard.voice.id &&
@@ -267,11 +269,16 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
           audio.language === voiceCard.language
       );
       if (newAudioEntries.length > 0) {
-        await this.playAudioSequence(newAudioEntries, key);
+        await this.playAudioSequence(newAudioEntries, `${voiceCard.voice.id}-${voiceCard.language}`);
       }
     } else {
-      await this.playAudioSequence(audioEntries, key);
+      await this.playAudioSequence(audioEntries, `${voiceCard.voice.id}-${voiceCard.language}`);
     }
+  }
+
+  // Play or stop audio preview (kept for backward compatibility if needed)
+  async togglePlayback(voiceCard: VoiceCardData) {
+    await this.onCardClick(voiceCard);
   }
 
   // Play audio sequence with delay
