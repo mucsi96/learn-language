@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +18,7 @@ public class AudioData {
     private String language;
     private String voice;
     private String model;
+
+    @JsonInclude(Include.NON_DEFAULT)
     private Boolean selected;
 }

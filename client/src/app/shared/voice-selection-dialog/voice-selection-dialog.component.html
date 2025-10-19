@@ -1,0 +1,99 @@
+<h2 mat-dialog-title>Voice Selection</h2>
+
+<mat-dialog-content>
+  @if (voices.isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading voices...</p>
+    </div>
+  } @else if (voices.error()) {
+    <div class="error-container">
+      <mat-icon>error</mat-icon>
+      <p>Failed to load voices. Please try again.</p>
+    </div>
+  } @else if (groupedVoices()) {
+    <div class="voice-groups">
+      @for (lang of ['hu', 'de']; track lang) {
+        @if (groupedVoices()![lang].length) {
+          <div class="language-group">
+            <div class="language-header">
+              <mat-icon>translate</mat-icon>
+              <h3>{{ getLanguageLabel(lang) }}</h3>
+            </div>
+
+            <div class="voice-grid">
+              @for (voiceCard of groupedVoices()![lang]; track voiceCard.voice.id) {
+                <mat-card
+                  class="voice-card"
+                  [class.selected]="isSelected(voiceCard)"
+                  [class.generating]="isGenerating(voiceCard)">
+
+                  <mat-card-header>
+                    <mat-card-title>{{ voiceCard.voice.displayName }}</mat-card-title>
+                  </mat-card-header>
+
+                  <mat-card-content>
+                    <div class="voice-status">
+                      @if (isSelected(voiceCard)) {
+                        <mat-chip class="status-chip selected">
+                          <mat-icon class="chip-icon">check_circle</mat-icon>
+                          SELECTED
+                        </mat-chip>
+                      }
+
+                      @if (!voiceCard.audioData && !isGenerating(voiceCard)) {
+                        <mat-chip class="status-chip new">
+                          <mat-icon class="chip-icon">fiber_new</mat-icon>
+                          NEW
+                        </mat-chip>
+                      }
+                    </div>
+                  </mat-card-content>
+
+                  <mat-card-actions>
+                    <div class="action-buttons">
+                      @if (isGenerating(voiceCard)) {
+                        <button
+                          mat-icon-button
+                          disabled
+                          class="generating-button">
+                          <mat-spinner diameter="24"></mat-spinner>
+                        </button>
+                      } @else {
+                        <button
+                          mat-icon-button
+                          (click)="togglePlayback(voiceCard)"
+                          [matTooltip]="isPlaying(voiceCard) ? 'Stop' : 'Preview'"
+                          class="play-button">
+                          <mat-icon>{{ isPlaying(voiceCard) ? 'stop' : 'play_arrow' }}</mat-icon>
+                        </button>
+                      }
+
+                      <button
+                        mat-stroked-button
+                        (click)="selectVoice(voiceCard)"
+                        [disabled]="isGenerating(voiceCard) || isSelected(voiceCard)"
+                        class="select-button">
+                        {{ isSelected(voiceCard) ? 'Selected' : 'Use this voice' }}
+                      </button>
+                    </div>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cancel</button>
+  <button
+    mat-flat-button
+    (click)="save()"
+    [disabled]="voices.isLoading()">
+    Save
+  </button>
+</mat-dialog-actions>

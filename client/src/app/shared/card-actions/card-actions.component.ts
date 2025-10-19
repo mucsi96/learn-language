@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { fetchJson } from '../../utils/fetchJson';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { AudioData } from '../types/audio-generation.types';
+import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
 
 @Component({
   selector: 'app-card-actions',
@@ -52,7 +53,29 @@ export class CardActionsComponent {
   }
 
   async openVoiceSelection(event?: Event) {
-    // TODO: implement the voice selection dialog using Angular Material dialog with resource-based state
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const card = this.card()?.value();
+    if (!card) return;
+
+    const dialogRef = this.dialog.open(VoiceSelectionDialogComponent, {
+      width: 'auto',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      panelClass: 'voice-selection-dialog',
+      data: {
+        cardAudio: card.data?.audio || [],
+        cardData: card.data
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (updatedAudio: AudioData[] | undefined) => {
+      if (updatedAudio) {
+        await this.updateCardAudio(updatedAudio);
+      }
+    });
   }
 
   private getCardTexts(cardData: any): string[] {
