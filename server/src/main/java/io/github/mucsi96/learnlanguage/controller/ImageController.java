@@ -15,7 +15,7 @@ import com.azure.core.util.BinaryData;
 
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
-import io.github.mucsi96.learnlanguage.service.BlobStorageService;
+import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.ImageResizeService;
 import io.github.mucsi96.learnlanguage.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.http.ResponseEntity;
 @RequiredArgsConstructor
 public class ImageController {
 
-  private final BlobStorageService blobStorageService;
+  private final FileStorageService fileStorageService;
   private final ImageService imageService;
   private final ImageResizeService imageResizeService;
 
@@ -34,10 +34,10 @@ public class ImageController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     String uuid = UUID.randomUUID().toString();
-    String blobName = "images/%s.jpg".formatted(uuid);
+    String filePath = "images/%s.jpg".formatted(uuid);
 
     byte[] data = imageService.generateImage(imageSource.getInput(), imageSource.getModel());
-    blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
+    fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
 
     return ExampleImageData.builder()
         .id(uuid)
@@ -51,9 +51,9 @@ public class ImageController {
       @PathVariable String id,
       @RequestParam int width,
       @RequestParam int height) throws Exception {
-    String blobName = "images/%s.jpg".formatted(id);
-    byte[] original = blobStorageService.fetchBlob(blobName).toBytes();
-    byte[] resized = imageResizeService.resizeImage(original, width, height, blobName);
+    String filePath = "images/%s.jpg".formatted(id);
+    byte[] original = fileStorageService.fetchFile(filePath).toBytes();
+    byte[] resized = imageResizeService.resizeImage(original, width, height, filePath);
     return ResponseEntity.ok()
         .contentType(MediaType.IMAGE_JPEG)
         .header("Cache-Control", "public, max-age=31536000, immutable")

@@ -13,8 +13,7 @@ services:
       DB_NAME: "test"
       DB_USERNAME: "postgres"
       DB_PASSWORD: "postgres"
-      BLOBSTORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://blobstorage:10000/devstoreaccount1;"
-      STORAGE_ACCOUNT_CONTAINER_NAME: "learn-language"
+      STORAGE_DIRECTORY: "/app/storage"
       OPENAI_API_KEY: "mock-key"
       OPENAI_BASE_URL: "http://mock-openai:3000"
       GOOGLE_AI_API_KEY: "mock-google-key"
@@ -23,6 +22,8 @@ services:
       ELEVENLABS_BASE_URL: "http://mock-elevenlabs:3002"
     ports:
       - "8180:8080"
+    volumes:
+      - /tmp/learn-language-test-storage:/app/storage
     healthcheck:
       test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
       interval: 2s
@@ -30,20 +31,9 @@ services:
       start_period: 16s
     depends_on:
       - db
-      - blobstorage
       - mock-openai
       - mock-google-ai
       - mock-elevenlabs
-
-  blobstorage:
-    image: "mcr.microsoft.com/azure-storage/azurite:latest"
-    command: "azurite-blob --blobHost 0.0.0.0"
-    ports:
-      - "8181:10000"
-    healthcheck:
-      test: nc 127.0.0.1 10000 -z
-      interval: 1s
-      retries: 30
 
   db:
     image: "postgres:16.2-bullseye"

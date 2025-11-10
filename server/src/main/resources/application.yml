@@ -1,9 +1,5 @@
-blobstorage:
-  clientId: ${AZURE_CLIENT_ID}
-  tenantId: ${AZURE_TENANT_ID}
-  clientSecret: ${AZURE_CLIENT_SECRET:}
-  accountUrl: ${STORAGE_ACCOUNT_BLOB_URL:}
-  containerName: ${STORAGE_ACCOUNT_CONTAINER_NAME:}
+storage:
+  directory: ${STORAGE_DIRECTORY}
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOSTNAME}:${DB_PORT}/${DB_NAME}
@@ -20,8 +16,11 @@ spring:
     azure:
       active-directory:
         enabled: true
+        profile:
+          tenant-id: ${AZURE_TENANT_ID}
         credential:
           client-id: ${AZURE_CLIENT_ID}
+          client-secret: ${AZURE_CLIENT_SECRET}
 management:
   server:
     port: ${SPRING_ACTUATOR_PORT}

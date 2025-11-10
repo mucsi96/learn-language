@@ -1,0 +1,15 @@
+storage:
+  directory: ./storage
+spring:
+  docker:
+    compose:
+      enabled: true
+      file: ./compose.yaml
+  datasource:
+    url: jdbc:postgresql://localhost:5433/learnlanguage
+    username: postgres
+    password: postgres
+
+management:
+  server:
+    port: 8082

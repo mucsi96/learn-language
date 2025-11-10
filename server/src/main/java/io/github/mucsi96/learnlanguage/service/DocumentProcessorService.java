@@ -22,11 +22,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DocumentProcessorService {
 
-  private final BlobStorageService blobStorageService;
+  private final FileStorageService fileStorageService;
   private final WordIdService wordIdService;
 
   public PageResponse processDocument(Source source, int pageNumber) throws IOException {
-    byte[] bytes = fetchAndCacheBlob("sources/" + source.getFileName());
+    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -63,7 +63,7 @@ public class DocumentProcessorService {
 
   public byte[] getPageArea(Source source, int pageNumber, double x, double y, double width, double height)
       throws IOException {
-    byte[] bytes = fetchAndCacheBlob("sources/" + source.getFileName());
+    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -87,15 +87,15 @@ public class DocumentProcessorService {
     }
   }
 
-  private byte[] fetchAndCacheBlob(String blobName) throws IOException {
-    Path cachePath = Path.of(System.getProperty("java.io.tmpdir"), blobName);
+  private byte[] fetchAndCacheFile(String filePath) throws IOException {
+    Path cachePath = Path.of(System.getProperty("java.io.tmpdir"), filePath);
     if (Files.exists(cachePath)) {
       return Files.readAllBytes(cachePath);
     }
 
-    byte[] blobData = blobStorageService.fetchBlob(blobName).toBytes();
+    byte[] fileData = fileStorageService.fetchFile(filePath).toBytes();
     Files.createDirectories(cachePath.getParent());
-    Files.write(cachePath, blobData);
-    return blobData;
+    Files.write(cachePath, fileData);
+    return fileData;
   }
 }

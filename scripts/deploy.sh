@@ -19,7 +19,6 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
 fi
 
 host=$(az keyvault secret show --vault-name p06 --name hostname --query value --output tsv)
-storageAccountBlobUrl=$(az storage account show --name ibari --resource-group ibari --query "primaryEndpoints.blob" --output tsv)
 apiClientId=$(az keyvault secret show --vault-name p06 --name learn-language-api-client-id --query value --output tsv)
 spaClientId=$(az keyvault secret show --vault-name p06 --name learn-language-spa-client-id --query value --output tsv)
 db_username=$(az keyvault secret show --vault-name p06 --name db-username --query value -o tsv)
@@ -40,8 +39,7 @@ helm upgrade learn-language mucsi96/spring-app \
     --set host=language.$host \
     --set clientId=$apiClientId \
     --set serviceAccountName=learn-language-api-workload-identity \
-    --set env.STORAGE_ACCOUNT_BLOB_URL=$storageAccountBlobUrl \
-    --set env.STORAGE_ACCOUNT_CONTAINER_NAME=learn-language \
+    --set env.STORAGE_DIRECTORY=/app/storage \
     --set env.DB_HOSTNAME=postgres1.db \
     --set env.DB_PORT=5432 \
     --set env.DB_NAME=postgres1 \

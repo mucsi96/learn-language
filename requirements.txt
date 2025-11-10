@@ -1,6 +1,4 @@
 # To update: pip list --outdated
-azure-identity==1.21.0
-azure-storage-blob==12.25.0
 mucsi96.publish-tools == 41.0.0
 playwright == 1.52.0
 psycopg[binary]==3.2.6

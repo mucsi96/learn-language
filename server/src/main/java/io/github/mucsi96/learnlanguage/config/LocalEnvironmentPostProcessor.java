@@ -31,19 +31,11 @@ public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put("SPRING_ACTUATOR_PORT", "8082");
-    properties.put("DB_USERNAME", getSecretValue(secretClient, "db-username"));
-    properties.put("DB_PASSWORD", getSecretValue(secretClient, "db-password"));
-    properties.put("DB_HOSTNAME", "localhost");
-    properties.put("DB_PORT", "5461");
-    properties.put("DB_NAME", "postgres1");
     properties.put("AZURE_TENANT_ID", getSecretValue(secretClient, "tenant-id"));
     properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "learn-language-api-client-id"));
     properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "learn-language-api-client-secret"));
     properties.put("UI_CLIENT_ID", getSecretValue(secretClient, "learn-language-spa-client-id"));
     properties.put("OPENAI_API_KEY", getSecretValue(secretClient, "learn-language-openai-api-key"));
-    properties.put("STORAGE_ACCOUNT_BLOB_URL", "https://ibari.blob.core.windows.net/");
-    properties.put("STORAGE_ACCOUNT_CONTAINER_NAME", "learn-language");
     properties.put("LANGSMITH_API_KEY", getSecretValue(secretClient, "learn-language-langsmith-api-key"));
     properties.put("GOOGLE_AI_API_KEY", getSecretValue(secretClient, "learn-language-google-ai-api-key"));
     properties.put("ELEVEN_LABS_API_KEY", getSecretValue(secretClient, "learn-language-eleven-labs-api-key"));

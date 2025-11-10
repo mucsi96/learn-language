@@ -1,21 +1,17 @@
 import psycopg
-from azure.storage.blob import BlobServiceClient
 from pathlib import Path
 from contextlib import contextmanager
 import json
 import base64
 import requests
 import uuid
+import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, List
 from playwright.sync_api import expect
 
-blob_service_client = BlobServiceClient.from_connection_string(
-    "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
-    + "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;"
-    + "BlobEndpoint=http://localhost:8181"
-    + "/devstoreaccount1;"
-)
+# Storage directory path (matches docker-compose.yaml configuration)
+STORAGE_DIR = Path("/tmp/learn-language-test-storage")
 
 
 @contextmanager
@@ -51,22 +47,14 @@ def populate_db():
 
 
 def cleanup_storage():
-    container_client = blob_service_client.get_container_client('learn-language')
-
-    if not container_client.exists():
-        container_client.create_container()
-        return
-
-    for blob in container_client.list_blobs():
-        blob_client = container_client.get_blob_client(blob.name)
-        blob_client.delete_blob()
+    if STORAGE_DIR.exists():
+        shutil.rmtree(STORAGE_DIR)
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def populate_storage():
-    container_client = blob_service_client.get_container_client('learn-language')
-
-    if not container_client.exists():
-        container_client.create_container()
+    sources_dir = STORAGE_DIR / "sources"
+    sources_dir.mkdir(parents=True, exist_ok=True)
 
     pdf_files = [
         "A1_SD1_Wortliste_02.pdf",
@@ -77,9 +65,9 @@ def populate_storage():
     current_dir = Path(__file__).parent
 
     for filename in pdf_files:
-        file_path = current_dir / filename
-        with file_path.open("rb") as file_data:
-            container_client.get_blob_client("sources/" + filename).upload_blob(file_data, overwrite=True)
+        source_path = current_dir / filename
+        dest_path = sources_dir / filename
+        shutil.copy2(source_path, dest_path)
 
 
 def create_card(card_id, source_id, data, state='NEW', learning_steps=0, due=datetime.now()-timedelta(days=1), stability=0.0, difficulty=0.0, source_page_number=1, last_review=None, elapsed_days=0, scheduled_days=0, reps=0, lapses=0, readiness='READY'):
@@ -203,38 +191,29 @@ def navigate_to_card_creation(page, context, source_name="Goethe A1", start_text
     page.get_by_role(role="link", name=word_name).click()
 
 def download_image(id):
-    container_client = blob_service_client.get_container_client('learn-language')
-    blob_name = f"images/{id}.jpg"
-    blob_client = container_client.get_blob_client(blob_name)
+    image_path = STORAGE_DIR / "images" / f"{id}.jpg"
 
-    if not blob_client.exists():
-        raise FileNotFoundError(f"Blob {blob_name} does not exist in the container.")
+    if not image_path.exists():
+        raise FileNotFoundError(f"Image {id}.jpg does not exist in storage.")
 
-    download_stream = blob_client.download_blob()
-    return download_stream.readall()
+    return image_path.read_bytes()
 
 def download_audio(id):
-    container_client = blob_service_client.get_container_client('learn-language')
-    blob_name = f"audio/{id}.mp3"
-    blob_client = container_client.get_blob_client(blob_name)
+    audio_path = STORAGE_DIR / "audio" / f"{id}.mp3"
 
-    if not blob_client.exists():
-        raise FileNotFoundError(f"Blob {blob_name} does not exist in the container.")
+    if not audio_path.exists():
+        raise FileNotFoundError(f"Audio {id}.mp3 does not exist in storage.")
 
-    download_stream = blob_client.download_blob()
-    return download_stream.readall()
+    return audio_path.read_bytes()
 
 def upload_mock_image(image_data):
-    container_client = blob_service_client.get_container_client('learn-language')
-
-    if not container_client.exists():
-        container_client.create_container()
+    images_dir = STORAGE_DIR / "images"
+    images_dir.mkdir(parents=True, exist_ok=True)
 
     uuid_str = str(uuid.uuid4())
-    blob_name = f"images/{uuid_str}.jpg"
-    blob_client = container_client.get_blob_client(blob_name)
+    image_path = images_dir / f"{uuid_str}.jpg"
 
-    blob_client.upload_blob(image_data, overwrite=True)
+    image_path.write_bytes(image_data)
 
     return uuid_str
 

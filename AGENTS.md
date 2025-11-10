@@ -29,13 +29,13 @@ This is a language learning application that uses spaced repetition to help user
 
 ## Architecture
 
-**Backend**: Spring Boot 3.5.3 with Java 21, PostgreSQL database, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
+**Backend**: Spring Boot 3.5.3 with Java 21, PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
 **Frontend**: Angular 20 with Material UI, Azure MSAL authentication, TypeScript
 
 ### Key Technologies
 - **Spaced Repetition**: Uses FSRS (Free Spaced Repetition Scheduler) algorithm via ts-fsrs library
-- **AI Integration**: OpenAI GPT-4.1 for translations, ElevenLabs Voices for audio, Google Gemini API for example images  
-- **Cloud Services**: Azure Blob Storage for PDFs/assets, Azure AD for authentication
+- **AI Integration**: OpenAI GPT-4.1 for translations, ElevenLabs Voices for audio, Google Gemini API for example images
+- **Cloud Services**: Local file system for PDFs/assets storage, Azure AD for authentication
 - **PDF Processing**: Apache PDFBox for text extraction and document processing
 
 ## Development Commands
@@ -93,7 +93,7 @@ Tracks review history and performance metrics for spaced repetition
 - **TranslationService**: OpenAI-powered multilingual translations with context awareness
 - **AudioService**: TTS audio generation and management  
 - **DocumentProcessorService**: PDF text extraction and processing
-- **BlobStorageService**: Azure Storage integration for PDFs and assets
+- **FileStorageService**: Local file system storage for PDFs and assets
 
 ### Frontend Services
 - **CardService**: Angular service for card state management and API interactions

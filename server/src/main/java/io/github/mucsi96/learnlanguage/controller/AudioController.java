@@ -19,7 +19,7 @@ import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
-import io.github.mucsi96.learnlanguage.service.BlobStorageService;
+import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AudioController {
 
-  private final BlobStorageService blobStorageService;
+  private final FileStorageService fileStorageService;
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
 
@@ -38,10 +38,10 @@ public class AudioController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public AudioData createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
     String uuid = UUID.randomUUID().toString();
-    String blobName = "audio/%s.mp3".formatted(uuid);
+    String filePath = "audio/%s.mp3".formatted(uuid);
 
     byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage());
-    blobStorageService.uploadBlob(BinaryData.fromBytes(data), blobName);
+    fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
 
     return AudioData.builder()
         .id(uuid)
@@ -56,8 +56,8 @@ public class AudioController {
   @GetMapping(value = "/api/audio/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<byte[]> getAudio(@PathVariable String id) {
-    String blobName = "audio/%s.mp3".formatted(id);
-    byte[] audioData = blobStorageService.fetchBlob(blobName).toBytes();
+    String filePath = "audio/%s.mp3".formatted(id);
+    byte[] audioData = fileStorageService.fetchFile(filePath).toBytes();
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType("audio/mpeg"))
@@ -68,8 +68,8 @@ public class AudioController {
   @DeleteMapping("/api/audio/{id}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Void> deleteAudio(@PathVariable String id) {
-    String blobName = "audio/%s.mp3".formatted(id);
-    blobStorageService.deleteBlob(blobName);
+    String filePath = "audio/%s.mp3".formatted(id);
+    fileStorageService.deleteFile(filePath);
     return ResponseEntity.noContent().build();
   }
 

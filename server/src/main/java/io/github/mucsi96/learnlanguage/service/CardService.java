@@ -95,7 +95,7 @@ public class CardService {
 
     if (cardData.getExamples() != null) {
       var selectedExample = cardData.getExamples().stream()
-          .filter(ExampleData::getIsSelected)
+          .filter(example -> Boolean.TRUE.equals(example.getIsSelected()))
           .findFirst();
 
       if (selectedExample.isPresent()) {
