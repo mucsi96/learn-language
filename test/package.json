@@ -1,0 +1,23 @@
+{
+  "name": "learn-language-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E tests for Learn Language application",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.10.1",
+    "@types/pg": "^8.15.6",
+    "@types/uuid": "^10.0.0",
+    "pg": "^8.13.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "uuid": "^13.0.0"
+  }
+}

@@ -58,22 +58,6 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "Maven is already installed."
         fi
 
-        # Check and install Python3
-        if ! command -v python3 >/dev/null 2>&1; then
-            echo "Installing Python3..."
-            sudo apt-get install -y python3
-        else
-            echo "Python3 is already installed."
-        fi
-
-        # Check and install pip
-        if ! command -v pip3 >/dev/null 2>&1; then
-            echo "Installing pip..."
-            sudo apt-get install -y python3-pip
-        else
-            echo "pip is already installed."
-        fi
-
         # Check and install angular-cli
         if ! command -v ng >/dev/null 2>&1; then
             echo "Installing Angular CLI..."
@@ -81,27 +65,14 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
         else
             echo "Angular CLI is already installed."
         fi
-
-        # Check and install Playwright CLI
-        if ! command -v playwright >/dev/null 2>&1; then
-            echo "Installing Playwright CLI..."
-            sudo npm install -g playwright
-        else
-            echo "Playwright CLI is already installed."
-        fi
     fi
 fi
 
-source .venv/bin/activate
-
-echo "Installing Python dependencies..."
-pip install -r requirements.txt
-
-echo "Building Spring Boot server..."
+echo "Building server..."
 cd server && mvn clean install && cd ..
 
-echo "Installing Angular client dependencies..."
+echo "Installing client dependencies..."
 cd client && npm install && cd ..
 
-echo "Installing Playwright Chromium dependencies..."
-sudo playwright install --with-deps chromium
+echo "Installing test dependencies..."
+cd test && npm install && npx playwright install --with-deps chromium && cd ..

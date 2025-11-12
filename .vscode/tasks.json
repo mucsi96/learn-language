@@ -112,7 +112,7 @@
     {
       "type": "shell",
       "label": "Compose up",
-      "command": "docker compose up --build --force-recreate --wait --remove-orphans --pull always",
+      "command": "scripts/compose_up.sh",
       "problemMatcher": []
     },
     {

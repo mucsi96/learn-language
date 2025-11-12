@@ -11,7 +11,7 @@ langsmith:
   enabled: false
 openai:
   apiKey: ${OPENAI_API_KEY}
-  baseUrl: ${OPENAI_API_URL}
+  baseUrl: ${OPENAI_BASE_URL}
 google:
   ai:
     apiKey: ${GOOGLE_AI_API_KEY}

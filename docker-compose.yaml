@@ -1,10 +1,8 @@
-volumes:
-  postgres-data:
-
 services:
 
   app:
     build: .
+    user: "${USER_ID}:${GROUP_ID}"
     environment:
       SPRING_ACTUATOR_PORT: "8082"
       SPRING_PROFILES_ACTIVE: "test"
@@ -18,12 +16,12 @@ services:
       OPENAI_BASE_URL: "http://mock-openai:3000"
       GOOGLE_AI_API_KEY: "mock-google-key"
       GOOGLE_AI_BASE_URL: "http://mock-google-ai:3001"
-      ELEVENLABS_API_KEY: "mock-elevenlabs-key"
-      ELEVENLABS_BASE_URL: "http://mock-elevenlabs:3002"
+      ELEVEN_LABS_API_KEY: "mock-elevenlabs-key"
+      ELEVEN_LABS_BASE_URL: "http://mock-elevenlabs:3002"
     ports:
       - "8180:8080"
     volumes:
-      - /tmp/learn-language-test-storage:/app/storage
+      - ./test/storage:/app/storage
     healthcheck:
       test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
       interval: 2s
