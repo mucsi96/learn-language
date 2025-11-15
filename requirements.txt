@@ -1,6 +1,2 @@
 # To update: pip list --outdated
 mucsi96.publish-tools == 41.0.0
-playwright == 1.52.0
-psycopg[binary]==3.2.6
-pytest == 8.3.5
-pytest-playwright == 0.7.0

@@ -35,6 +35,26 @@ export async function cleanupDb(): Promise<void> {
   });
 }
 
+export async function cleanupDbRecords(): Promise<void> {
+  await withDbConnection(async (client) => {
+    // Delete records in order to respect foreign key constraints
+    await client.query('DELETE FROM learn_language.review_logs');
+    await client.query('DELETE FROM learn_language.cards');
+
+    // Reset the review_logs sequence
+    await client.query("SELECT setval('learn_language.review_logs_id_seq', 1, false)");
+
+    // Reset sources to initial state from init.sql
+    await client.query('DELETE FROM learn_language.sources');
+    await client.query(`
+      INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES
+      (NULL, 16, 'Goethe-Zertifikat_B1_Wortliste.pdf', 'goethe-b1', 'Goethe B1', 'B1', 'VOCABULARY'),
+      (9, 9, 'A1_SD1_Wortliste_02.pdf', 'goethe-a1', 'Goethe A1', 'A1', 'VOCABULARY'),
+      (8, 8, 'Goethe-Zertifikat_A2_Wortliste.pdf', 'goethe-a2', 'Goethe A2', 'A2', 'VOCABULARY')
+    `);
+  });
+}
+
 export async function populateDb(): Promise<void> {
   await withDbConnection(async (client) => {
     const initSqlPath = path.join(__dirname, '..', 'test', 'init.sql');

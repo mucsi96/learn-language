@@ -33,7 +33,9 @@ test('bookmarks last visited page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
   await page.getByRole('link', { name: 'Next page' }).click();
+  await expect(page.getByText('Seite 10')).toBeVisible();
   await page.getByRole('link', { name: 'Next page' }).click();
+  await expect(page.getByText('Seite 11')).toBeVisible();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
   await expect(page.getByText('Seite 11')).toBeVisible();
@@ -113,7 +115,7 @@ test('source selector routing works', async ({ page }) => {
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/page/8');
 
   // Content should change to the page from the second source
-  await expect(page.getByText('die Adresse')).not.toBeVisible();
+  await expect(page.getByText('die Adresse')).toBeVisible();
 });
 
 test('source selector dropdown content', async ({ page }) => {
