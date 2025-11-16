@@ -42,7 +42,9 @@ export async function cleanupDbRecords(): Promise<void> {
     await client.query('DELETE FROM learn_language.cards');
 
     // Reset the review_logs sequence
-    await client.query("SELECT setval('learn_language.review_logs_id_seq', 1, false)");
+    await client.query(
+      "SELECT setval('learn_language.review_logs_id_seq', 1, false)"
+    );
 
     // Reset sources to initial state from init.sql
     await client.query('DELETE FROM learn_language.sources');
@@ -184,7 +186,11 @@ interface CardSpec {
 export async function createCardsWithStates(
   sourceId: string,
   cardsToCreate: CardSpec[],
-  baseTranslations: Record<string, string> = { en: 'test', hu: 'teszt', ch: 'test' }
+  baseTranslations: Record<string, string> = {
+    en: 'test',
+    hu: 'teszt',
+    ch: 'test',
+  }
 ): Promise<void> {
   function getWordData(state: string, index: number): CardData {
     const stateName = state.toLowerCase();
@@ -254,6 +260,9 @@ export const hungarianAudioSample = Buffer.from(
 
 export async function getImageContent(imageElement: Locator): Promise<Buffer> {
   await expect(imageElement).toBeVisible();
+  await expect(imageElement).toHaveJSProperty('complete', true);
+  await expect(imageElement).toHaveAttribute('src', /blob:/);
+
   const imageSrc = await imageElement.getAttribute('src');
 
   if (!imageSrc) {
@@ -262,17 +271,19 @@ export async function getImageContent(imageElement: Locator): Promise<Buffer> {
 
   if (imageSrc.startsWith('blob:')) {
     // Use browser context to fetch blob and return as base64
-    const base64Data = await imageElement.evaluate(async (el: HTMLImageElement) => {
-      const response = await fetch(el.src);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+    const base64Data = await imageElement.evaluate(
+      async (el: HTMLImageElement) => {
+        const response = await fetch(el.src);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
       }
-      return btoa(binary);
-    });
+    );
     return Buffer.from(base64Data, 'base64');
   } else {
     const response = await fetch(imageSrc);
@@ -371,7 +382,16 @@ export function uploadMockImage(imageData: Buffer): string {
 }
 
 export function ensureTimezoneAware(dt: Date): Date {
-  // JavaScript Date objects are always timezone-aware (they store UTC time)
-  // This function is here for compatibility with Python version
-  return dt;
+  // PostgreSQL stores dates as timestamp (without timezone)
+  // The pg library interprets these as local time, but they are actually stored in UTC
+  // We need to create a new Date treating the components as UTC
+  return new Date(Date.UTC(
+    dt.getFullYear(),
+    dt.getMonth(),
+    dt.getDate(),
+    dt.getHours(),
+    dt.getMinutes(),
+    dt.getSeconds(),
+    dt.getMilliseconds()
+  ));
 }

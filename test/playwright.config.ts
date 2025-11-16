@@ -34,7 +34,7 @@ export default defineConfig({
         // HAR recording
         contextOptions: {
           recordHar: {
-            path: 'test-results/test.har',
+            path: 'tests/test-results/test.har',
             mode: 'minimal',
           },
         },
