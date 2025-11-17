@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { injectQueryParams } from '../../utils/inject-query-params';
@@ -32,6 +32,7 @@ import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabul
 })
 export class EditCardComponent {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   readonly inReviewCardsService = inject(InReviewCardsService);
   readonly route = inject(ActivatedRoute);
   readonly dialog = inject(MatDialog);
@@ -166,6 +167,8 @@ export class EditCardComponent {
       if (result) {
         await this.deleteCard();
         this.showSnackBar('Card deleted successfully');
+        // Navigate back to the appropriate page after deletion
+        await this.router.navigate(this.backNavigationUrl());
       }
     });
   }
@@ -179,5 +182,10 @@ export class EditCardComponent {
     await fetchJson(this.http, `/api/card/${word.id}`, {
       method: 'DELETE',
     });
+
+    // Refresh the in-review cards if we deleted an in-review card
+    if (this.isInReview()) {
+      this.inReviewCardsService.refetchCards();
+    }
   }
 }

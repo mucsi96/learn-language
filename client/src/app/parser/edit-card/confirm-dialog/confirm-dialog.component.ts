@@ -3,7 +3,6 @@ import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
-  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
@@ -17,7 +16,6 @@ import {
     MatDialogActions,
     MatDialogTitle,
     MatButton,
-    MatDialogClose,
   ],
 })
 export class ConfirmDialogComponent {
@@ -25,6 +23,10 @@ export class ConfirmDialogComponent {
   dialogRef: MatDialogRef<ConfirmDialogComponent> = inject(MatDialogRef);
 
   onNoClick(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(false);
+  }
+
+  onYesClick(): void {
+    this.dialogRef.close(true);
   }
 }
