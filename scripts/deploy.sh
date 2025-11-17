@@ -28,14 +28,17 @@ langsmith_api_key=$(az keyvault secret show --vault-name p06 --name learn-langua
 google_ai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-google-ai-api-key --query value -o tsv)
 eleven_labs_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-eleven-labs-api-key --query value -o tsv)
 latestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language/tags/" | jq -r '.results |  map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
+chartVersion=20.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
 
-echo "Deploying mucsi96/learn-language:$latestTag to language.$dnsZone"
+echo "Updating Helm repositories..."
 
 helm repo update
 
+echo "Deploying mucsi96/learn-language:$latestTag to language.$dnsZone using spring-app chart $chartVersion"
+
 helm upgrade learn-language mucsi96/spring-app \
     --install \
-    --force-replace \
+    --version $chartVersion \
     --kubeconfig .kube/config \
     --namespace learn-language \
     --set image=mucsi96/learn-language:$latestTag \
@@ -54,8 +57,6 @@ helm upgrade learn-language mucsi96/spring-app \
     --set env.GOOGLE_AI_API_KEY=$google_ai_api_key \
     --set env.ELEVEN_LABS_API_KEY=$eleven_labs_api_key \
     --set env.UI_CLIENT_ID=$spaClientId \
-    --set persistentVolumeClaims[0].name=learn-language \
+    --set persistentVolumeClaims[0].name=learn-language-pvc \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
-    --set persistentVolumeClaims[0].accessMode=ReadWriteMany \
-    --set persistentVolumeClaims[0].storage=5Gi \
     --wait
