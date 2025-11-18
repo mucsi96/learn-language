@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import {
@@ -15,10 +15,15 @@ import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
+import { ConfigService } from './services/config.service';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
+
+function initializeApp(configService: ConfigService) {
+  return () => configService.loadConfig();
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +35,12 @@ export const appConfig: ApplicationConfig = {
     ),
     { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
     provideAnimationsAsync(),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [ConfigService],
+      multi: true
+    },
     ...(environment.mockAuth ? [] : provideMsalConfig()),
   ],
 };
