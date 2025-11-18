@@ -1,21 +1,22 @@
+export interface AppConfig {
+  apiContextPath: string;
+  tenantId: string;
+  clientId: string;
+  apiClientId: string;
+  mockAuth: boolean;
+}
+
 declare global {
   interface Window {
-    __env: {
-      apiContextPath: string;
-      tenantId: string;
-      clientId: string;
-      apiClientId: string;
-      mockAuth: boolean;
-    };
+    __appConfig: AppConfig;
   }
 }
 
-
 export const environment = {
   production: true,
-  apiContextPath: window.__env.apiContextPath,
-  tenantId: window.__env.tenantId,
-  clientId: window.__env.clientId,
-  apiClientId: window.__env.apiClientId,
-  mockAuth: window.__env.mockAuth,
+  get apiContextPath() { return window.__appConfig.apiContextPath; },
+  get tenantId() { return window.__appConfig.tenantId; },
+  get clientId() { return window.__appConfig.clientId; },
+  get apiClientId() { return window.__appConfig.apiClientId; },
+  get mockAuth() { return window.__appConfig.mockAuth; },
 };

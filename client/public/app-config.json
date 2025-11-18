@@ -1,0 +1,7 @@
+{
+  "apiContextPath": "/api",
+  "tenantId": "",
+  "clientId": "",
+  "apiClientId": "",
+  "mockAuth": true
+}

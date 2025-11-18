@@ -1,12 +1,17 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -35,5 +40,18 @@ public class SPAController {
       model.addAttribute("apiClientId", clientId);
       model.addAttribute("mockAuth", environment.matchesProfiles("test"));
       return "index";
+    }
+
+    @GetMapping(value = "/app-config.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAppConfig(HttpServletRequest request) {
+      Map<String, Object> config = new HashMap<>();
+      String baseHref = request.getContextPath() + "/";
+      config.put("apiContextPath", baseHref.replaceAll("/$", "") + "/api");
+      config.put("tenantId", tenantId);
+      config.put("clientId", uiClientId);
+      config.put("apiClientId", clientId);
+      config.put("mockAuth", environment.matchesProfiles("test"));
+      return ResponseEntity.ok(config);
     }
 }
