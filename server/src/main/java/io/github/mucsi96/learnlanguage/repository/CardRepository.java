@@ -1,8 +1,10 @@
 package io.github.mucsi96.learnlanguage.repository;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
+import io.github.mucsi96.learnlanguage.entity.Source;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -41,4 +43,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
 
   @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")
   List<Object[]> countBySourceGroupBySource();
+
+  @Modifying
+  void deleteBySource(Source source);
 }

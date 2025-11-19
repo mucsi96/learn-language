@@ -1,0 +1,127 @@
+<h2 mat-dialog-title>{{ getTitle() }}</h2>
+<mat-dialog-content>
+  <form>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Source ID</mat-label>
+      <input
+        matInput
+        [(ngModel)]="formData.id"
+        name="id"
+        [disabled]="data.mode === 'edit'"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Name</mat-label>
+      <input matInput [(ngModel)]="formData.name" name="name" required />
+    </mat-form-field>
+
+    @if (data.mode === 'create') {
+    <!-- File Upload Dropzone -->
+    <div
+      class="dropzone"
+      [class.dragging]="isDragging()"
+      [class.has-file]="uploadedFile()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      @if (!uploadedFile()) {
+      <div class="dropzone-content">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <p class="dropzone-text">
+          Drag and drop a PDF file here or
+          <label class="file-input-label">
+            browse
+            <input
+              type="file"
+              accept=".pdf"
+              (change)="onFileSelected($event)"
+              class="file-input"
+            />
+          </label>
+        </p>
+        <p class="dropzone-hint">PDF files only</p>
+      </div>
+      } @else {
+      <div class="file-info">
+        <mat-icon class="file-icon">description</mat-icon>
+        <div class="file-details">
+          <p class="file-name">{{ uploadedFile()!.name }}</p>
+          <p class="file-size">
+            {{ (uploadedFile()!.size / 1024 / 1024).toFixed(2) }} MB
+          </p>
+        </div>
+        <button
+          mat-icon-button
+          (click)="removeFile()"
+          type="button"
+          aria-label="Remove file"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+      } @if (uploading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      } @if (uploadError()) {
+      <p class="error-message">{{ uploadError() }}</p>
+      }
+    </div>
+    } @else {
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>File Name (PDF)</mat-label>
+      <input
+        matInput
+        [(ngModel)]="formData.fileName"
+        name="fileName"
+        placeholder="example.pdf"
+        required
+        [disabled]="true"
+      />
+    </mat-form-field>
+    }
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Start Page</mat-label>
+      <input
+        matInput
+        type="number"
+        [(ngModel)]="formData.startPage"
+        name="startPage"
+        min="1"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Language Level</mat-label>
+      <mat-select
+        [(ngModel)]="formData.languageLevel"
+        name="languageLevel"
+        required
+      >
+        @for (level of languageLevels; track level) {
+        <mat-option [value]="level">{{ level }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Card Type</mat-label>
+      <mat-select [(ngModel)]="formData.cardType" name="cardType" disabled>
+        <mat-option value="vocabulary">Vocabulary</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancelClick()">Cancel</button>
+  <button
+    mat-flat-button
+    (click)="onSaveClick()"
+    [disabled]="!isValid()"
+  >
+    {{ getSaveButtonLabel() }}
+  </button>
+</mat-dialog-actions>

@@ -82,11 +82,17 @@ export type Page = {
   height: number;
 };
 
+export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+export type CardType = 'vocabulary';
+
 export type Source = {
   id: string;
   name: string;
+  fileName?: string;
   startPage: number;
   cardCount?: number;
+  languageLevel?: LanguageLevel;
+  cardType?: CardType;
 };
 
 export type WordList = {

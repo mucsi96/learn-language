@@ -27,7 +27,6 @@ openai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-
 langsmith_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-langsmith-api-key --query value -o tsv)
 google_ai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-google-ai-api-key --query value -o tsv)
 eleven_labs_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-eleven-labs-api-key --query value -o tsv)
-
 # Get latest tags for both server and client
 serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
@@ -61,7 +60,11 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set env.ELEVEN_LABS_API_KEY=$eleven_labs_api_key \
     --set env.UI_CLIENT_ID=$spaClientId \
     --set persistentVolumeClaims[0].name=learn-language-pvc \
+    --set persistentVolumeClaims[0].accessMode=ReadWriteOnce \
+    --set persistentVolumeClaims[0].volumeName=learn-language-app \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
+    --set persistentVolumeClaims[0].storageClassName="" \
+    --set persistentVolumeClaims[0].storage=5Gi \
     --wait
 
 echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to language.$dnsZone using nginx chart $nginxChartVersion"

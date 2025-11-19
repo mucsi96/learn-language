@@ -1,26 +1,40 @@
 package io.github.mucsi96.learnlanguage.controller;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
+import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
+import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
+import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.azure.core.util.BinaryData;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +44,7 @@ public class SourceController {
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
+  private final FileStorageService fileStorageService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/api/sources")
@@ -118,5 +133,86 @@ public class SourceController {
   @GetMapping("/api/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource() {
     return cardService.getDueCardCountsBySource();
+  }
+
+  @PostMapping("/api/source")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> createSource(@RequestBody SourceRequest request) {
+    Source source = Source.builder()
+        .id(request.getId())
+        .name(request.getName())
+        .fileName(request.getFileName())
+        .startPage(request.getStartPage())
+        .languageLevel(request.getLanguageLevel())
+        .cardType(request.getCardType())
+        .build();
+
+    sourceService.saveSource(source);
+
+    return ResponseEntity.ok(new HashMap<>());
+  }
+
+  @PutMapping("/api/source/{sourceId}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> updateSource(
+      @PathVariable String sourceId,
+      @RequestBody SourceRequest request) {
+    Source existingSource = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    // Copy only non-null properties from request to existing source
+    Source updates = Source.builder()
+        .name(request.getName())
+        .fileName(request.getFileName())
+        .startPage(request.getStartPage())
+        .languageLevel(request.getLanguageLevel())
+        .cardType(request.getCardType())
+        .build();
+
+    BeanUtils.copyNonNullProperties(updates, existingSource);
+    sourceService.saveSource(existingSource);
+
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Source updated successfully");
+    return ResponseEntity.ok(response);
+  }
+
+  @DeleteMapping("/api/source/{sourceId}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> deleteSource(@PathVariable String sourceId) {
+    Source source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    sourceService.deleteSource(source);
+
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Source deleted successfully");
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/api/source/upload")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> uploadSourceFile(@RequestParam("file") MultipartFile file) {
+    try {
+      // Validate file type
+      String originalFilename = file.getOriginalFilename();
+      if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Only PDF files are allowed");
+        return ResponseEntity.badRequest().body(errorResponse);
+      }
+
+      BinaryData fileData = BinaryData.fromBytes(file.getBytes());
+      fileStorageService.saveFile(fileData, "sources/" + originalFilename);
+
+      Map<String, String> response = new HashMap<>();
+      response.put("fileName", originalFilename);
+      response.put("detail", "File uploaded successfully");
+      return ResponseEntity.ok(response);
+    } catch (IOException e) {
+      Map<String, String> errorResponse = new HashMap<>();
+      errorResponse.put("error", "Failed to upload file: " + e.getMessage());
+      return ResponseEntity.internalServerError().body(errorResponse);
+    }
   }
 }
