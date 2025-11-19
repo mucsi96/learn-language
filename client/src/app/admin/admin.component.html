@@ -1,25 +1,68 @@
 @if (loading()) {
 <mat-spinner class="page-loading" />
 } @else {
-<h1>Sources</h1>
-<p>Select a source to edit:</p>
+<div class="header">
+  <div>
+    <h1>Sources</h1>
+    <p>Select a source to edit or create a new one:</p>
+  </div>
+  <button
+    mat-flat-button
+    (click)="openAddSourceDialog()"
+    class="add-button"
+  >
+    <mat-icon>add</mat-icon>
+    Add Source
+  </button>
+</div>
+@if (sources()?.length) {
 <section class="sources">
   @for (source of sources(); track source.id) {
-  <a
-    [routerLink]="['/sources', source.id, 'page', source.startPage]"
-    class="card-link"
-  >
-    <mat-card>
-      <mat-card-content>
-        <h2 class="source-title">
-          {{ source.name }}
-        </h2>
-        <p class="card-count">
-          {{ source.cardCount || 0 }} cards
-        </p>
-      </mat-card-content>
-    </mat-card>
-  </a>
+  <div class="card-wrapper">
+    <a
+      [routerLink]="['/sources', source.id, 'page', source.startPage]"
+      class="card-link"
+    >
+      <mat-card>
+        <mat-card-content>
+          <h2 class="source-title">
+            {{ source.name }}
+          </h2>
+          @if (source.languageLevel) {
+          <p class="language-level">{{ source.languageLevel }}</p>
+          }
+          <p class="card-count">
+            {{ source.cardCount || 0 }} cards
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </a>
+    <div class="card-actions">
+      <button
+        mat-icon-button
+        (click)="openEditSourceDialog(source, $event)"
+        aria-label="Edit source"
+        class="action-button"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="openDeleteConfirmDialog(source, $event)"
+        aria-label="Delete source"
+        class="action-button delete-button"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
   }
 </section>
+} @else {
+<div class="empty-state">
+  <mat-icon class="empty-icon">library_books</mat-icon>
+  <h2>No sources yet</h2>
+  <p>Create your first source to start adding cards.</p>
+</div>
+}
 }

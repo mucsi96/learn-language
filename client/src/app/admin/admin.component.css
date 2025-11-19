@@ -12,7 +12,22 @@ h1 {
 
 p {
   color: var(--mat-app-text-color);
+  margin-bottom: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .sources {
@@ -20,6 +35,10 @@ p {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+}
+
+.card-wrapper {
+  position: relative;
 }
 
 .card-link {
@@ -31,6 +50,33 @@ p {
 
 .card-link:hover {
   transform: translateY(-4px);
+}
+
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.card-wrapper:hover .card-actions {
+  opacity: 1;
+}
+
+.action-button {
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-surface-container);
+}
+
+.action-button:hover {
+  background: var(--mat-sys-surface-container);
+}
+
+.delete-button:hover {
+  color: var(--mat-sys-error);
 }
 
 .sources mat-card {
@@ -59,6 +105,13 @@ p {
   padding: 1.5rem;
 }
 
+.language-level {
+  color: var(--mat-sys-primary);
+  font-weight: 500;
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+}
+
 .card-count {
   color: var(--mat-app-text-color);
   margin: 0.5rem 0 0 0;
@@ -67,4 +120,39 @@ p {
 
 .page-loading {
   margin: 150px auto;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  margin-top: 2rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty-icon {
+  font-size: 5rem;
+  width: 5rem;
+  height: 5rem;
+  color: var(--mat-sys-primary);
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--mat-app-text-color);
+  max-width: 400px;
 }

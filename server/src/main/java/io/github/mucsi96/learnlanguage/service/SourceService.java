@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class SourceService {
 
     private final SourceRepository sourceRepository;
+    private final CardRepository cardRepository;
 
     public List<Source> getAllSources() {
         return sourceRepository.findAllByOrderByIdAsc();
@@ -25,5 +28,11 @@ public class SourceService {
 
     public Source saveSource(Source source) {
         return sourceRepository.save(source);
+    }
+
+    @Transactional
+    public void deleteSource(Source source) {
+        cardRepository.deleteBySource(source);
+        sourceRepository.delete(source);
     }
 }

@@ -66,11 +66,6 @@ CREATE TABLE learn_language.sources (
 );
 
 
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (NULL, 16, 'Goethe-Zertifikat_B1_Wortliste.pdf', 'goethe-b1', 'Goethe B1', 'B1', 'VOCABULARY');
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (9, 9, 'A1_SD1_Wortliste_02.pdf', 'goethe-a1', 'Goethe A1', 'A1', 'VOCABULARY');
-INSERT INTO learn_language.sources (bookmarked_page, start_page, file_name, id, name, language_level, card_type) VALUES (8, 8, 'Goethe-Zertifikat_A2_Wortliste.pdf', 'goethe-a2', 'Goethe A2', 'A2', 'VOCABULARY');
-
-
 SELECT pg_catalog.setval('learn_language.review_logs_id_seq', 1, false);
 
 
