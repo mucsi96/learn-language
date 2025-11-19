@@ -17,13 +17,13 @@ import {
   PublicClientApplication,
 } from '@azure/msal-browser';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AppConfig, APP_CONFIG } from './app.tokens';
+import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './app.tokens';
 
 function loggerCallback(_logLevel: LogLevel, message: string) {
   console.log(message);
 }
 
-export function MSALInstanceFactory(config: AppConfig): IPublicClientApplication {
+export function MSALInstanceFactory(config: EnvironmentConfig): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: config.clientId,
@@ -45,7 +45,7 @@ export function MSALInstanceFactory(config: AppConfig): IPublicClientApplication
   });
 }
 
-export function MSALInterceptorConfigFactory(config: AppConfig): MsalInterceptorConfiguration {
+export function MSALInterceptorConfigFactory(config: EnvironmentConfig): MsalInterceptorConfiguration {
   const apiScopes = [
     `${config.apiClientId}/readDecks`,
     `${config.apiClientId}/createDeck`,
@@ -66,7 +66,7 @@ export function MSALInterceptorConfigFactory(config: AppConfig): MsalInterceptor
   };
 }
 
-export function MSALGuardConfigFactory(config: AppConfig): MsalGuardConfiguration {
+export function MSALGuardConfigFactory(config: EnvironmentConfig): MsalGuardConfiguration {
   const apiScopes = [
     `${config.apiClientId}/readDecks`,
     `${config.apiClientId}/createDeck`,
@@ -90,17 +90,17 @@ export function provideMsalConfig() {
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory,
-      deps: [APP_CONFIG],
+      deps: [ENVIRONMENT_CONFIG],
     },
     {
       provide: MSAL_GUARD_CONFIG,
       useFactory: MSALGuardConfigFactory,
-      deps: [APP_CONFIG],
+      deps: [ENVIRONMENT_CONFIG],
     },
     {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useFactory: MSALInterceptorConfigFactory,
-      deps: [APP_CONFIG],
+      deps: [ENVIRONMENT_CONFIG],
     },
     MsalService,
     MsalGuard,

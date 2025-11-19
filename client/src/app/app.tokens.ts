@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 
-export interface AppConfig {
+export interface EnvironmentConfig {
   apiContextPath: string;
   tenantId: string;
   clientId: string;
@@ -8,4 +8,4 @@ export interface AppConfig {
   mockAuth: boolean;
 }
 
-export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
+export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

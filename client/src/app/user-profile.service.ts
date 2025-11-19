@@ -1,14 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, resource } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
-import { APP_CONFIG } from './app.tokens';
+import { ENVIRONMENT_CONFIG } from './app.tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserProfileService {
   private readonly http = inject(HttpClient);
-  private readonly config = inject(APP_CONFIG);
+  private readonly config = inject(ENVIRONMENT_CONFIG);
 
   profile = resource<{ name: string; initials: string } | undefined, {}>({
     loader: async () => {

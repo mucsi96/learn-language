@@ -14,13 +14,13 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
-import { AppConfig, APP_CONFIG } from './app.tokens';
+import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './app.tokens';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
-export function getAppConfig(config: AppConfig): ApplicationConfig {
+export function getAppConfig(config: EnvironmentConfig): ApplicationConfig {
   const providers = [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
@@ -30,7 +30,7 @@ export function getAppConfig(config: AppConfig): ApplicationConfig {
     ),
     { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
     provideAnimationsAsync(),
-    { provide: APP_CONFIG, useValue: config },
+    { provide: ENVIRONMENT_CONFIG, useValue: config },
   ];
 
   // Conditionally add MSAL providers before DI initialization
