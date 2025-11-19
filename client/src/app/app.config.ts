@@ -11,7 +11,6 @@ import {
   RippleGlobalOptions,
 } from '@angular/material/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
@@ -22,7 +21,13 @@ const globalRippleConfig: RippleGlobalOptions = {
 };
 
 function initializeApp(configService: ConfigService) {
-  return () => configService.loadConfig();
+  return async () => {
+    await configService.loadConfig();
+    // After config is loaded, conditionally add MSAL providers if needed
+    if (!configService.getConfig().mockAuth) {
+      appConfig.providers.push(...provideMsalConfig());
+    }
+  };
 }
 
 export const appConfig: ApplicationConfig = {
@@ -41,6 +46,5 @@ export const appConfig: ApplicationConfig = {
       deps: [ConfigService],
       multi: true
     },
-    ...(environment.mockAuth ? [] : provideMsalConfig()),
   ],
 };

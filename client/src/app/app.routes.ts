@@ -1,8 +1,22 @@
-import { Routes } from '@angular/router';
+import { Routes, CanActivateFn } from '@angular/router';
+import { inject } from '@angular/core';
 import { MsalGuard } from '@azure/msal-angular';
-import { environment } from '../environments/environment';
 import { queryParamToObject } from './utils/queryCompression';
 import { Word } from './parser/types';
+import { ConfigService } from './services/config.service';
+
+// Guard factory that checks if auth is needed
+const conditionalAuthGuard: CanActivateFn = () => {
+  const configService = inject(ConfigService);
+  const mockAuth = configService.getConfig().mockAuth;
+
+  if (mockAuth) {
+    return true;
+  }
+
+  const msalGuard = inject(MsalGuard);
+  return msalGuard.canActivate();
+};
 
 export const routes: Routes = [
   {
@@ -10,19 +24,19 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () =>
       import('./home/home.component').then((m) => m.HomeComponent),
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: '',
   },
   {
     path: 'in-review-cards',
     loadComponent: () =>
       import('./in-review-cards/in-review-cards.component').then((m) => m.InReviewCardsComponent),
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: 'Cards In Review',
   },
   {
     path: 'sources/:sourceId/study',
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: 'Study',
     children: [
       {
@@ -46,12 +60,12 @@ export const routes: Routes = [
     path: 'sources',
     loadComponent: () =>
       import('./admin/admin.component').then((m) => m.AdminComponent),
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: 'Sources',
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
       const pageNumber = route.params['pageNumber'];
@@ -77,7 +91,7 @@ export const routes: Routes = [
     path: 'sources/:sourceId/page/:pageNumber/cards',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
-    canActivate: environment.mockAuth ? [] : [MsalGuard],
+    canActivate: [conditionalAuthGuard],
     title: async (route) => {
       const cardData = route.queryParams['cardData'];
       const word = await queryParamToObject<Word>(cardData);

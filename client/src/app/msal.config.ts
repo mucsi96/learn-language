@@ -16,23 +16,19 @@ import {
   LogLevel,
   PublicClientApplication,
 } from '@azure/msal-browser';
-import { environment } from '../environments/environment';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-
-const apiScopes = [
-  `${environment.apiClientId}/readDecks`,
-  `${environment.apiClientId}/createDeck`,
-];
+import { ConfigService } from './services/config.service';
 
 function loggerCallback(_logLevel: LogLevel, message: string) {
   console.log(message);
 }
 
-export function MSALInstanceFactory(): IPublicClientApplication {
+export function MSALInstanceFactory(configService: ConfigService): IPublicClientApplication {
+  const config = configService.getConfig();
   return new PublicClientApplication({
     auth: {
-      clientId: environment.clientId,
-      authority: `https://login.microsoftonline.com/${environment.tenantId}`,
+      clientId: config.clientId,
+      authority: `https://login.microsoftonline.com/${config.tenantId}`,
       redirectUri: '/auth',
       postLogoutRedirectUri: '/',
     },
@@ -50,13 +46,19 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+export function MSALInterceptorConfigFactory(configService: ConfigService): MsalInterceptorConfiguration {
+  const config = configService.getConfig();
+  const apiScopes = [
+    `${config.apiClientId}/readDecks`,
+    `${config.apiClientId}/createDeck`,
+  ];
+
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', [
     'user.read',
   ]);
   protectedResourceMap.set(
-    `${new URL(environment.apiContextPath, window.location.origin).href}/*`,
+    `${new URL(config.apiContextPath, window.location.origin).href}/*`,
     apiScopes
   );
 
@@ -66,7 +68,13 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   };
 }
 
-export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+export function MSALGuardConfigFactory(configService: ConfigService): MsalGuardConfiguration {
+  const config = configService.getConfig();
+  const apiScopes = [
+    `${config.apiClientId}/readDecks`,
+    `${config.apiClientId}/createDeck`,
+  ];
+
   return {
     interactionType: InteractionType.Popup,
     authRequest: {
@@ -85,14 +93,17 @@ export function provideMsalConfig() {
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory,
+      deps: [ConfigService],
     },
     {
       provide: MSAL_GUARD_CONFIG,
       useFactory: MSALGuardConfigFactory,
+      deps: [ConfigService],
     },
     {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useFactory: MSALInterceptorConfigFactory,
+      deps: [ConfigService],
     },
     MsalService,
     MsalGuard,
