@@ -107,8 +107,16 @@ test('can create a new source', async ({ page }) => {
 
   // Fill in the form
   await page.getByLabel('Source ID').fill('test-source');
-  await page.getByLabel('Name').fill('Test Source');
-  await page.getByLabel('File Name (PDF)').fill('test-file.pdf');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
+
+  // Upload a PDF file via the file input
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'test-file.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('PDF content')
+  });
+
   await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
@@ -134,11 +142,12 @@ test('can edit an existing source', async ({ page }) => {
   // Verify the dialog opened with pre-filled data
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
   await expect(page.getByLabel('Source ID')).toBeDisabled();
-  await expect(page.getByLabel('Name')).toHaveValue('Goethe A1');
+  await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Goethe A1');
 
   // Update the name
-  await page.getByLabel('Name').clear();
-  await page.getByLabel('Name').fill('Goethe A1 Updated');
+  const nameField = page.getByRole('textbox', { name: 'Name', exact: true });
+  await nameField.clear();
+  await nameField.fill('Goethe A1 Updated');
 
   // Click Update button
   await page.getByRole('button', { name: 'Update' }).click();
@@ -201,7 +210,7 @@ test('can cancel source creation', async ({ page }) => {
 
   // Fill in partial data
   await page.getByLabel('Source ID').fill('test-cancelled');
-  await page.getByLabel('Name').fill('Test Cancelled');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Cancelled');
 
   // Click Cancel button
   await page.getByRole('button', { name: 'Cancel' }).click();
@@ -226,8 +235,16 @@ test('validates required fields when creating source', async ({ page }) => {
   await expect(createButton).toBeDisabled();
 
   // Fill in all required fields
-  await page.getByLabel('Name').fill('Test Name');
-  await page.getByLabel('File Name (PDF)').fill('test.pdf');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Name');
+
+  // Upload a PDF file
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'test.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('PDF content')
+  });
+
   await page.getByLabel('Start Page').fill('1');
 
   // Create button should now be enabled
