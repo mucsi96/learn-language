@@ -6,7 +6,7 @@ import { Word } from './parser/types';
 import { ConfigService } from './services/config.service';
 
 // Guard factory that checks if auth is needed
-const conditionalAuthGuard: CanActivateFn = () => {
+const conditionalAuthGuard: CanActivateFn = (route, state) => {
   const configService = inject(ConfigService);
   const mockAuth = configService.getConfig().mockAuth;
 
@@ -15,7 +15,7 @@ const conditionalAuthGuard: CanActivateFn = () => {
   }
 
   const msalGuard = inject(MsalGuard);
-  return msalGuard.canActivate();
+  return msalGuard.canActivate(route, state);
 };
 
 export const routes: Routes = [
