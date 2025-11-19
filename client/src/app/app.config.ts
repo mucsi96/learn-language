@@ -14,7 +14,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
-import { AppConfig, ConfigService } from './services/config.service';
+import { AppConfig, APP_CONFIG } from './app.tokens';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
@@ -30,8 +30,7 @@ export function getAppConfig(config: AppConfig): ApplicationConfig {
     ),
     { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
     provideAnimationsAsync(),
-    // Provide the config as a value so ConfigService can use it
-    { provide: 'APP_CONFIG', useValue: config },
+    { provide: APP_CONFIG, useValue: config },
   ];
 
   // Conditionally add MSAL providers before DI initialization

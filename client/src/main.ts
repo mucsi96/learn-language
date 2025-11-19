@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { getAppConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
-import { AppConfig } from './app/services/config.service';
+import { AppConfig } from './app/app.tokens';
 
 // Load configuration before bootstrapping
 async function loadConfig(): Promise<AppConfig> {

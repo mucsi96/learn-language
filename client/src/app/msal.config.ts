@@ -17,14 +17,13 @@ import {
   PublicClientApplication,
 } from '@azure/msal-browser';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { ConfigService } from './services/config.service';
+import { AppConfig, APP_CONFIG } from './app.tokens';
 
 function loggerCallback(_logLevel: LogLevel, message: string) {
   console.log(message);
 }
 
-export function MSALInstanceFactory(configService: ConfigService): IPublicClientApplication {
-  const config = configService.getConfig();
+export function MSALInstanceFactory(config: AppConfig): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: config.clientId,
@@ -46,8 +45,7 @@ export function MSALInstanceFactory(configService: ConfigService): IPublicClient
   });
 }
 
-export function MSALInterceptorConfigFactory(configService: ConfigService): MsalInterceptorConfiguration {
-  const config = configService.getConfig();
+export function MSALInterceptorConfigFactory(config: AppConfig): MsalInterceptorConfiguration {
   const apiScopes = [
     `${config.apiClientId}/readDecks`,
     `${config.apiClientId}/createDeck`,
@@ -68,8 +66,7 @@ export function MSALInterceptorConfigFactory(configService: ConfigService): Msal
   };
 }
 
-export function MSALGuardConfigFactory(configService: ConfigService): MsalGuardConfiguration {
-  const config = configService.getConfig();
+export function MSALGuardConfigFactory(config: AppConfig): MsalGuardConfiguration {
   const apiScopes = [
     `${config.apiClientId}/readDecks`,
     `${config.apiClientId}/createDeck`,
@@ -93,17 +90,17 @@ export function provideMsalConfig() {
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory,
-      deps: [ConfigService],
+      deps: [APP_CONFIG],
     },
     {
       provide: MSAL_GUARD_CONFIG,
       useFactory: MSALGuardConfigFactory,
-      deps: [ConfigService],
+      deps: [APP_CONFIG],
     },
     {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useFactory: MSALInterceptorConfigFactory,
-      deps: [ConfigService],
+      deps: [APP_CONFIG],
     },
     MsalService,
     MsalGuard,

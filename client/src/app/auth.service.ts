@@ -7,14 +7,14 @@ import {
   InteractionStatus,
 } from '@azure/msal-browser';
 import { filter } from 'rxjs';
-import { ConfigService } from './services/config.service';
+import { APP_CONFIG } from './app.tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly configService = inject(ConfigService);
-  readonly mockAuth = this.configService.getConfig().mockAuth;
+  private readonly config = inject(APP_CONFIG);
+  readonly mockAuth = this.config.mockAuth;
   readonly isAuthenticated = signal(this.mockAuth);
   readonly msalService = !this.mockAuth
     ? inject(MsalService)

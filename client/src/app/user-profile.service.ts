@@ -1,18 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, resource } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
-import { ConfigService } from './services/config.service';
+import { APP_CONFIG } from './app.tokens';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserProfileService {
   private readonly http = inject(HttpClient);
-  private readonly configService = inject(ConfigService);
+  private readonly config = inject(APP_CONFIG);
 
   profile = resource<{ name: string; initials: string } | undefined, {}>({
     loader: async () => {
-      if (this.configService.getConfig().mockAuth) {
+      if (this.config.mockAuth) {
         return { name: 'Test User', initials: 'TU' };
       }
 
