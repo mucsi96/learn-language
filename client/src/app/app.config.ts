@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import {
@@ -20,16 +20,6 @@ const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
-function initializeApp(configService: ConfigService) {
-  return async () => {
-    await configService.loadConfig();
-    // After config is loaded, conditionally add MSAL providers if needed
-    if (!configService.getConfig().mockAuth) {
-      appConfig.providers.push(...provideMsalConfig());
-    }
-  };
-}
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -40,11 +30,13 @@ export const appConfig: ApplicationConfig = {
     ),
     { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
     provideAnimationsAsync(),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeApp,
-      deps: [ConfigService],
-      multi: true
-    },
+    provideAppInitializer(async () => {
+      const configService = inject(ConfigService);
+      await configService.loadConfig();
+      // After config is loaded, conditionally add MSAL providers if needed
+      if (!configService.getConfig().mockAuth) {
+        appConfig.providers.push(...provideMsalConfig());
+      }
+    }),
   ],
 };
