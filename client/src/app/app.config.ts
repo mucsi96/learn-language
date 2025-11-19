@@ -14,29 +14,28 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
-import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './app.tokens';
+import {
+  EnvironmentConfig,
+  ENVIRONMENT_CONFIG,
+} from './environment/environment.config';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
 export function getAppConfig(config: EnvironmentConfig): ApplicationConfig {
-  const providers = [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
-    provideHttpClient(
-      withInterceptorsFromDi(),
-      withInterceptors([errorInterceptor])
-    ),
-    { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
-    provideAnimationsAsync(),
-    { provide: ENVIRONMENT_CONFIG, useValue: config },
-  ];
-
-  // Conditionally add MSAL providers before DI initialization
-  if (!config.mockAuth) {
-    providers.push(...provideMsalConfig());
-  }
-
-  return { providers };
+  return {
+    providers: [
+      provideZoneChangeDetection({ eventCoalescing: true }),
+      provideRouter(routes),
+      provideHttpClient(
+        withInterceptorsFromDi(),
+        withInterceptors([errorInterceptor])
+      ),
+      { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
+      provideAnimationsAsync(),
+      { provide: ENVIRONMENT_CONFIG, useValue: config },
+      ...(config.mockAuth ? [] : provideMsalConfig()),
+    ],
+  };
 }

@@ -17,7 +17,7 @@ import {
   PublicClientApplication,
 } from '@azure/msal-browser';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './app.tokens';
+import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 function loggerCallback(_logLevel: LogLevel, message: string) {
   console.log(message);

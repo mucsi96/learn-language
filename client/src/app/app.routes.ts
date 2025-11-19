@@ -3,12 +3,11 @@ import { inject } from '@angular/core';
 import { MsalGuard } from '@azure/msal-angular';
 import { queryParamToObject } from './utils/queryCompression';
 import { Word } from './parser/types';
-import { ENVIRONMENT_CONFIG } from './app.tokens';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 // Guard factory that checks if auth is needed
 const conditionalAuthGuard: CanActivateFn = (route, state) => {
-  const config = inject(ENVIRONMENT_CONFIG);
-  const mockAuth = config.mockAuth;
+  const { mockAuth } = inject(ENVIRONMENT_CONFIG);
 
   if (mockAuth) {
     return true;

@@ -7,7 +7,7 @@ import {
   InteractionStatus,
 } from '@azure/msal-browser';
 import { filter } from 'rxjs';
-import { ENVIRONMENT_CONFIG } from './app.tokens';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 @Injectable({
   providedIn: 'root',

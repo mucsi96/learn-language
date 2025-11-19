@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, resource } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from './app.tokens';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 @Injectable({
   providedIn: 'root',
