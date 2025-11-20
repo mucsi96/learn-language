@@ -23,6 +23,7 @@ import com.openai.services.blocking.BetaService;
 import com.openai.services.blocking.ChatService;
 import com.openai.services.blocking.CompletionService;
 import com.openai.services.blocking.ContainerService;
+import com.openai.services.blocking.ConversationService;
 import com.openai.services.blocking.EmbeddingService;
 import com.openai.services.blocking.EvalService;
 import com.openai.services.blocking.FileService;
@@ -31,9 +32,11 @@ import com.openai.services.blocking.GraderService;
 import com.openai.services.blocking.ImageService;
 import com.openai.services.blocking.ModelService;
 import com.openai.services.blocking.ModerationService;
+import com.openai.services.blocking.RealtimeService;
 import com.openai.services.blocking.ResponseService;
 import com.openai.services.blocking.UploadService;
 import com.openai.services.blocking.VectorStoreService;
+import com.openai.services.blocking.VideoService;
 import com.openai.services.blocking.WebhookService;
 import com.openai.services.blocking.chat.ChatCompletionService;
 import com.openai.services.blocking.chat.completions.MessageService;
@@ -153,6 +156,21 @@ public class TracebleOpenAIClient implements OpenAIClient {
   @Override
   public OpenAIClient withOptions(Consumer<Builder> arg0) {
     throw new UnsupportedOperationException("Unimplemented method 'withOptions'");
+  }
+
+  @Override
+  public ConversationService conversations() {
+    throw new UnsupportedOperationException("Unimplemented method 'conversations'");
+  }
+
+  @Override
+  public RealtimeService realtime() {
+    throw new UnsupportedOperationException("Unimplemented method 'realtime'");
+  }
+
+  @Override
+  public VideoService videos() {
+    throw new UnsupportedOperationException("Unimplemented method 'videos'");
   }
 
 }

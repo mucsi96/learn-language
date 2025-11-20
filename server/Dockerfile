@@ -14,7 +14,7 @@ RUN mvn package -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 # Stage 2: Runtime image
-FROM bellsoft/liberica-openjre-alpine-musl:22
+FROM bellsoft/liberica-openjre-alpine-musl:25
 
 VOLUME /tmp
 
@@ -22,7 +22,7 @@ ARG DEPENDENCY=/workspace/target/dependency
 ARG SPRING_PROFILES_ACTIVE=prod
 
 # Install PostgreSQL client and curl for health checks
-RUN apk add postgresql16-client curl
+RUN apk add postgresql17-client curl
 
 # Copy application layers
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
