@@ -22,7 +22,7 @@ ARG DEPENDENCY=/workspace/target/dependency
 ARG SPRING_PROFILES_ACTIVE=prod
 
 # Install PostgreSQL client and curl for health checks
-RUN apk add postgresql16-client curl
+RUN apk add postgresql17-client curl
 
 # Copy application layers
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib

@@ -75,10 +75,10 @@ echo "Installing client dependencies..."
 cd client && npm install && cd ..
 
 echo "Installing mock ElevenLabs server dependencies..."
-cd mock_elevenlands_server && npm install && cd ..
+cd mock_elevenlabs_server && npm install && cd ..
 
 echo "Installing mock Google AI server dependencies..."
-cd mock_googleai_server && npm install && cd ..
+cd mock_google_ai_server && npm install && cd ..
 
 echo "Installing mock OpenAI server dependencies..."
 cd mock_openai_server && npm install && cd ..
