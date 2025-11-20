@@ -27,23 +27,25 @@ openai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-
 langsmith_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-langsmith-api-key --query value -o tsv)
 google_ai_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-google-ai-api-key --query value -o tsv)
 eleven_labs_api_key=$(az keyvault secret show --vault-name p06 --name learn-language-eleven-labs-api-key --query value -o tsv)
-latestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language/tags/" | jq -r '.results |  map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
-chartVersion=24.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
+# Get latest tags for both server and client
+serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
+clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
+
+springAppChartVersion=20.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
+nginxChartVersion=2.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
 
 echo "Updating Helm repositories..."
 
 helm repo update
 
-echo "Deploying mucsi96/learn-language:$latestTag to language.$dnsZone using spring-app chart $chartVersion"
+echo "Deploying server: mucsi96/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
 
-helm upgrade learn-language mucsi96/spring-app \
+helm upgrade learn-language-server mucsi96/spring-app \
     --install \
-    --version $chartVersion \
+    --version $springAppChartVersion \
     --kubeconfig .kube/config \
     --namespace learn-language \
-    --set image=mucsi96/learn-language:$latestTag \
-    --set host=language.$dnsZone \
-    --set entryPoint=web \
+    --set image=mucsi96/learn-language-server:$serverLatestTag \
     --set clientId=$apiClientId \
     --set serviceAccountName=learn-language-api-workload-identity \
     --set env.STORAGE_DIRECTORY=/app/storage \
@@ -63,4 +65,16 @@ helm upgrade learn-language mucsi96/spring-app \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
     --set persistentVolumeClaims[0].storageClassName="" \
     --set persistentVolumeClaims[0].storage=5Gi \
+    --wait
+
+echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to language.$dnsZone using nginx chart $nginxChartVersion"
+
+helm upgrade learn-language-client mucsi96/nginx \
+    --install \
+    --version $nginxChartVersion \
+    --kubeconfig .kube/config \
+    --namespace learn-language \
+    --set image=mucsi96/learn-language-client:$clientLatestTag \
+    --set host=language.$dnsZone \
+    --set entryPoint=web \
     --wait

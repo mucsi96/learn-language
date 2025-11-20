@@ -63,7 +63,30 @@ export async function createSource(params: {
   });
 }
 
-export async function cleanupDbRecords(): Promise<void> {
+export async function getSource(id: string): Promise<{
+  id: string;
+  name: string;
+  fileName: string;
+  startPage: number;
+  languageLevel: string;
+  cardType: string;
+  bookmarkedPage: number | null;
+} | null> {
+  return withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, name, file_name as "fileName", start_page as "startPage",
+              language_level as "languageLevel", card_type as "cardType",
+              bookmarked_page as "bookmarkedPage"
+       FROM learn_language.sources
+       WHERE id = $1`,
+      [id]
+    );
+
+    return result.rows.length > 0 ? result.rows[0] : null;
+  });
+}
+
+export async function cleanupDbRecords({ withSources }: { withSources?: boolean } = {}): Promise<void> {
   await withDbConnection(async (client) => {
     // Delete records in order to respect foreign key constraints
     await client.query('DELETE FROM learn_language.review_logs');
@@ -78,36 +101,38 @@ export async function cleanupDbRecords(): Promise<void> {
     await client.query('DELETE FROM learn_language.sources');
   });
 
-  // Create test sources
-  await createSource({
-    id: 'goethe-a1',
-    name: 'Goethe A1',
-    fileName: 'A1_SD1_Wortliste_02.pdf',
-    startPage: 9,
-    languageLevel: 'A1',
-    cardType: 'VOCABULARY',
-    bookmarkedPage: 9,
-  });
+  if (!withSources) {
+    // Create test sources
+    await createSource({
+      id: 'goethe-a1',
+      name: 'Goethe A1',
+      fileName: 'A1_SD1_Wortliste_02.pdf',
+      startPage: 9,
+      languageLevel: 'A1',
+      cardType: 'VOCABULARY',
+      bookmarkedPage: 9,
+    });
 
-  await createSource({
-    id: 'goethe-a2',
-    name: 'Goethe A2',
-    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
-    startPage: 8,
-    languageLevel: 'A2',
-    cardType: 'VOCABULARY',
-    bookmarkedPage: 8,
-  });
+    await createSource({
+      id: 'goethe-a2',
+      name: 'Goethe A2',
+      fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+      startPage: 8,
+      languageLevel: 'A2',
+      cardType: 'VOCABULARY',
+      bookmarkedPage: 8,
+    });
 
-  await createSource({
-    id: 'goethe-b1',
-    name: 'Goethe B1',
-    fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
-    startPage: 16,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    bookmarkedPage: null,
-  });
+    await createSource({
+      id: 'goethe-b1',
+      name: 'Goethe B1',
+      fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
+      startPage: 16,
+      languageLevel: 'B1',
+      cardType: 'VOCABULARY',
+      bookmarkedPage: null,
+    });
+  }
 }
 
 export async function populateDb(): Promise<void> {

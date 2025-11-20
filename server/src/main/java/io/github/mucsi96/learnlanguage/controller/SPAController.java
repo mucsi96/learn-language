@@ -2,17 +2,14 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
-@Controller
-@RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
+@RestController
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SPAController {
     private final Environment environment;
@@ -26,14 +23,22 @@ public class SPAController {
     @Value("${UI_CLIENT_ID:}")
     private String uiClientId;
 
-
-    @GetMapping("/")
-    public String index(HttpServletRequest request, Model model) {
-      model.addAttribute("baseHref", request.getContextPath() + "/");
-      model.addAttribute("tenantId", tenantId);
-      model.addAttribute("clientId", uiClientId);
-      model.addAttribute("apiClientId", clientId);
-      model.addAttribute("mockAuth", environment.matchesProfiles("test"));
-      return "index";
+    @GetMapping("/config")
+    public ConfigResponse getConfig() {
+        return new ConfigResponse(
+            "/api",
+            tenantId,
+            uiClientId,
+            clientId,
+            environment.matchesProfiles("test")
+        );
     }
+
+    public record ConfigResponse(
+        String apiContextPath,
+        String tenantId,
+        String clientId,
+        String apiClientId,
+        boolean mockAuth
+    ) {}
 }

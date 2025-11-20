@@ -11,25 +11,31 @@ import {
   RippleGlobalOptions,
 } from '@angular/material/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
 import { provideMsalConfig } from './msal.config';
+import {
+  EnvironmentConfig,
+  ENVIRONMENT_CONFIG,
+} from './environment/environment.config';
 
 const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
-    provideHttpClient(
-      withInterceptorsFromDi(),
-      withInterceptors([errorInterceptor])
-    ),
-    { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
-    provideAnimationsAsync(),
-    ...(environment.mockAuth ? [] : provideMsalConfig()),
-  ],
-};
+export function getAppConfig(config: EnvironmentConfig): ApplicationConfig {
+  return {
+    providers: [
+      provideZoneChangeDetection({ eventCoalescing: true }),
+      provideRouter(routes),
+      provideHttpClient(
+        withInterceptorsFromDi(),
+        withInterceptors([errorInterceptor])
+      ),
+      { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
+      provideAnimationsAsync(),
+      { provide: ENVIRONMENT_CONFIG, useValue: config },
+      ...(config.mockAuth ? [] : provideMsalConfig()),
+    ],
+  };
+}

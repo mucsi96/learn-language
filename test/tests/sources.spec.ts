@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords } from '../utils';
+import { createCard, cleanupDbRecords, getSource } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -107,8 +107,16 @@ test('can create a new source', async ({ page }) => {
 
   // Fill in the form
   await page.getByLabel('Source ID').fill('test-source');
-  await page.getByLabel('Name').fill('Test Source');
-  await page.getByLabel('File Name (PDF)').fill('test-file.pdf');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
+
+  // Upload a PDF file via the file input
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'test-file.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('PDF content')
+  });
+
   await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
@@ -116,13 +124,28 @@ test('can create a new source', async ({ page }) => {
   // Click Create button
   await page.getByRole('button', { name: 'Create' }).click();
 
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+
   // Verify the new source appears in the list
   await expect(page.getByText('Test Source')).toBeVisible();
-  await expect(page.getByText('B2')).toBeVisible();
+
+  // Verify the source was created in the database
+  const createdSource = await getSource('test-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.name).toBe('Test Source');
+  expect(createdSource?.fileName).toBe('test-file.pdf');
+  expect(createdSource?.startPage).toBe(1);
+  expect(createdSource?.languageLevel).toBe('B2');
+  expect(createdSource?.cardType).toBe('VOCABULARY');
 });
 
 test('can edit an existing source', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
+
+  // Verify initial state in database
+  const initialSource = await getSource('goethe-a1');
+  expect(initialSource?.name).toBe('Goethe A1');
 
   // Hover over a source card to reveal action buttons
   const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
@@ -134,17 +157,71 @@ test('can edit an existing source', async ({ page }) => {
   // Verify the dialog opened with pre-filled data
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
   await expect(page.getByLabel('Source ID')).toBeDisabled();
-  await expect(page.getByLabel('Name')).toHaveValue('Goethe A1');
+  await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Goethe A1');
 
   // Update the name
-  await page.getByLabel('Name').clear();
-  await page.getByLabel('Name').fill('Goethe A1 Updated');
+  const nameField = page.getByRole('textbox', { name: 'Name', exact: true });
+  await nameField.fill('Goethe A1 Updated');
 
   // Click Update button
   await page.getByRole('button', { name: 'Update' }).click();
 
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
   // Verify the updated source appears
   await expect(page.getByText('Goethe A1 Updated')).toBeVisible();
+
+  // Verify the source was updated in the database
+  const updatedSource = await getSource('goethe-a1');
+  expect(updatedSource?.name).toBe('Goethe A1 Updated');
+  expect(updatedSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
+});
+
+test('can replace PDF file when editing source', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  // Verify the initial file name in the database
+  const initialSource = await getSource('goethe-a1');
+  expect(initialSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
+
+  // Hover over a source card to reveal action buttons
+  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
+  await sourceCard.hover();
+
+  // Click the edit button
+  await sourceCard.getByRole('button', { name: 'Edit source' }).click();
+
+  // Verify the dialog opened and shows the current file
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+  await expect(page.getByText('A1_SD1_Wortliste_02.pdf')).toBeVisible();
+
+  // Remove the current file
+  await page.getByRole('button', { name: 'Remove file' }).click();
+
+  // Verify dropzone is empty after removal
+  await expect(page.getByText('Drag and drop a PDF file here')).toBeVisible();
+
+  // Upload a new PDF file
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'new-document.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('New PDF content')
+  });
+
+  // Verify the new file is shown
+  await expect(page.getByText('new-document.pdf')).toBeVisible();
+
+  // Click Update button
+  await page.getByRole('button', { name: 'Update' }).click();
+
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  // Verify the fileName is updated in the database
+  const updatedSource = await getSource('goethe-a1');
+  expect(updatedSource?.fileName).toBe('new-document.pdf');
 });
 
 test('can delete a source and its cards', async ({ page }) => {
@@ -170,6 +247,11 @@ test('can delete a source and its cards', async ({ page }) => {
     },
   });
 
+  // Verify the source exists in the database
+  const sourceBeforeDelete = await getSource('goethe-b1');
+  expect(sourceBeforeDelete).not.toBeNull();
+  expect(sourceBeforeDelete?.name).toBe('Goethe B1');
+
   await page.goto('http://localhost:8180/sources');
 
   // Verify source has cards
@@ -189,8 +271,16 @@ test('can delete a source and its cards', async ({ page }) => {
   await expect(page.getByText(/All associated cards will also be deleted/)).toBeVisible();
   await page.getByRole('button', { name: 'Yes' }).click();
 
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Confirmation' })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
   // Verify the source is no longer visible
   await expect(page.getByText('Goethe B1')).not.toBeVisible();
+
+  // Verify the source was deleted from the database
+  const sourceAfterDelete = await getSource('goethe-b1');
+  expect(sourceAfterDelete).toBeNull();
 });
 
 test('can cancel source creation', async ({ page }) => {
@@ -201,14 +291,20 @@ test('can cancel source creation', async ({ page }) => {
 
   // Fill in partial data
   await page.getByLabel('Source ID').fill('test-cancelled');
-  await page.getByLabel('Name').fill('Test Cancelled');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Cancelled');
 
   // Click Cancel button
   await page.getByRole('button', { name: 'Cancel' }).click();
 
   // Verify the dialog closed and source was not created
   await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Confirmation' })).not.toBeVisible();
+
   await expect(page.getByText('Test Cancelled')).not.toBeVisible();
+
+  // Verify the source was NOT created in the database
+  const cancelledSource = await getSource('test-cancelled');
+  expect(cancelledSource).toBeNull();
 });
 
 test('validates required fields when creating source', async ({ page }) => {
@@ -226,8 +322,16 @@ test('validates required fields when creating source', async ({ page }) => {
   await expect(createButton).toBeDisabled();
 
   // Fill in all required fields
-  await page.getByLabel('Name').fill('Test Name');
-  await page.getByLabel('File Name (PDF)').fill('test.pdf');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Name');
+
+  // Upload a PDF file
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles({
+    name: 'test.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('PDF content')
+  });
+
   await page.getByLabel('Start Page').fill('1');
 
   // Create button should now be enabled
@@ -235,8 +339,7 @@ test('validates required fields when creating source', async ({ page }) => {
 });
 
 test('displays empty state when no sources exist', async ({ page }) => {
-  // Clear all sources from the database
-  await cleanupDbRecords();
+  await cleanupDbRecords({ withSources: true });
 
   await page.goto('http://localhost:8180/sources');
 

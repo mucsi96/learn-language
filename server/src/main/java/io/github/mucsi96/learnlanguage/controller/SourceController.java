@@ -62,6 +62,7 @@ public class SourceController {
       return SourceResponse.builder()
           .id(source.getId())
           .name(source.getName())
+          .fileName(source.getFileName())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .cardCount(cardCount)
           .build();

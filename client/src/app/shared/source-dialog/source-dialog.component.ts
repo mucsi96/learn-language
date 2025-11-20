@@ -62,11 +62,11 @@ export class SourceDialogComponent {
 
   async onSaveClick(): Promise<void> {
     if (this.isValid()) {
-      // If in create mode and a file was uploaded, upload it first
-      if (this.data.mode === 'create' && this.uploadedFile()) {
+      // If a new file was uploaded, upload it first
+      if (this.uploadedFile()) {
         await this.uploadFile();
         if (this.uploadError()) {
-          return; // Don't close dialog if upload failed
+          return;
         }
       }
       this.dialogRef.close(this.formData);
@@ -77,18 +77,16 @@ export class SourceDialogComponent {
     const hasRequiredFields = !!(
       this.formData.id &&
       this.formData.name &&
-      this.formData.fileName &&
       this.formData.startPage &&
       this.formData.startPage > 0 &&
       this.formData.languageLevel
     );
 
-    // In create mode, require file upload
-    if (this.data.mode === 'create') {
-      return hasRequiredFields && !!this.uploadedFile();
+    if (!hasRequiredFields) {
+      return false;
     }
 
-    return hasRequiredFields;
+    return this.hasFile();
   }
 
   onDragOver(event: DragEvent): void {
@@ -137,6 +135,14 @@ export class SourceDialogComponent {
     this.uploadedFile.set(null);
     this.formData.fileName = '';
     this.uploadError.set(null);
+  }
+
+  hasFile(): boolean {
+    return !!this.uploadedFile() || !!this.formData.fileName;
+  }
+
+  getFileName(): string {
+    return this.uploadedFile()?.name || this.formData.fileName || '';
   }
 
   async uploadFile(): Promise<void> {

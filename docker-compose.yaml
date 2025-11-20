@@ -1,9 +1,46 @@
 name: learn-language-test-stack
 services:
 
-  app:
-    build: .
+  traefik:
+    image: traefik:v3.2
+    ports:
+      - "8180:80"
+      - "8080:8080"  # Traefik dashboard http://localhost:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./test/traefik.yaml:/etc/traefik/traefik.yaml:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 2s
+      retries: 5
+      start_period: 2s
+
+  client:
+    build:
+      context: client
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.client.priority=1"
+      - "traefik.http.services.client.loadbalancer.server.port=80"
+    healthcheck:
+      test: "wget --quiet --tries=1 --spider http://localhost/health || exit 1"
+      interval: 2s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      server:
+        condition: service_healthy
+
+  server:
+    build:
+      context: server
     user: "${USER_ID}:${GROUP_ID}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.server.priority=2"
+      - "traefik.http.services.server.loadbalancer.server.port=8080"
     environment:
       SPRING_ACTUATOR_PORT: "8082"
       SPRING_PROFILES_ACTIVE: "test"
@@ -19,8 +56,6 @@ services:
       GOOGLE_AI_BASE_URL: "http://mock-google-ai:3001"
       ELEVEN_LABS_API_KEY: "mock-elevenlabs-key"
       ELEVEN_LABS_BASE_URL: "http://mock-elevenlabs:3002"
-    ports:
-      - "8180:8080"
     volumes:
       - ./test/storage:/app/storage
     healthcheck:
@@ -29,10 +64,14 @@ services:
       retries: 10
       start_period: 16s
     depends_on:
-      - db
-      - mock-openai
-      - mock-google-ai
-      - mock-elevenlabs
+      db:
+        condition: service_healthy
+      mock-openai:
+        condition: service_healthy
+      mock-google-ai:
+        condition: service_healthy
+      mock-elevenlabs:
+        condition: service_healthy
 
   db:
     image: "postgres:16.2-bullseye"
