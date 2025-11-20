@@ -17,17 +17,16 @@
       <input matInput [(ngModel)]="formData.name" name="name" required />
     </mat-form-field>
 
-    @if (data.mode === 'create') {
     <!-- File Upload Dropzone -->
     <div
       class="dropzone"
       [class.dragging]="isDragging()"
-      [class.has-file]="uploadedFile()"
+      [class.has-file]="hasFile()"
       (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)"
     >
-      @if (!uploadedFile()) {
+      @if (!hasFile()) {
       <div class="dropzone-content">
         <mat-icon class="upload-icon">cloud_upload</mat-icon>
         <p class="dropzone-text">
@@ -48,10 +47,12 @@
       <div class="file-info">
         <mat-icon class="file-icon">description</mat-icon>
         <div class="file-details">
-          <p class="file-name">{{ uploadedFile()!.name }}</p>
+          <p class="file-name">{{ getFileName() }}</p>
+          @if (uploadedFile()) {
           <p class="file-size">
             {{ (uploadedFile()!.size / 1024 / 1024).toFixed(2) }} MB
           </p>
+          }
         </div>
         <button
           mat-icon-button
@@ -68,19 +69,6 @@
       <p class="error-message">{{ uploadError() }}</p>
       }
     </div>
-    } @else {
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>File Name (PDF)</mat-label>
-      <input
-        matInput
-        [(ngModel)]="formData.fileName"
-        name="fileName"
-        placeholder="example.pdf"
-        required
-        [disabled]="true"
-      />
-    </mat-form-field>
-    }
 
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Start Page</mat-label>
