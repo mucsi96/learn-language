@@ -1,10 +1,10 @@
-FROM node:23-slim AS build-deps
+FROM node:25-slim AS build-deps
 WORKDIR /usr/src/app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . ./
 
-FROM node:23-slim
+FROM node:25-slim
 RUN apt-get update && apt-get install -y curl
 # Apt cleanup
 RUN apt-get autoremove -y; \
