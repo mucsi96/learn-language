@@ -1,7 +1,7 @@
 name: learn-language-db
 services:
   postgres:
-    image: postgres:16.2-bullseye
+    image: postgres:16.9-bullseye
     environment:
       POSTGRES_DB: learnlanguage
       POSTGRES_USER: postgres
