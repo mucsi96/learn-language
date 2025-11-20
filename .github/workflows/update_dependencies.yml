@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write # Requires also "Allow GitHub Actions to create and approve pull requests" to be enabled in the repository settings
+      issues: write
+      statuses: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
