@@ -77,6 +77,4 @@ helm upgrade learn-language-client mucsi96/nginx \
     --set image=mucsi96/learn-language-client:$clientLatestTag \
     --set host=language.$dnsZone \
     --set entryPoint=web \
-    --set upstreams[0].name=learn-language-server \
-    --set upstreams[0].port=8080 \
     --wait

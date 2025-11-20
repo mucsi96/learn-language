@@ -5,10 +5,10 @@ services:
     image: traefik:v3.2
     ports:
       - "8180:80"
-      - "8080:8080"  # Traefik dashboard
+      - "8080:8080"  # Traefik dashboard http://localhost:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./test/traefik.yaml:/etc/traefik/traefik.yaml:ro
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 2s
