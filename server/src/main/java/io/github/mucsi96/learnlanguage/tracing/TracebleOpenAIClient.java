@@ -1,9 +1,11 @@
 package io.github.mucsi96.learnlanguage.tracing;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import com.openai.client.OpenAIClient;
 import com.openai.client.OpenAIClientAsync;
+import com.openai.core.ClientOptions.Builder;
 import com.openai.core.RequestOptions;
 import com.openai.core.http.StreamResponse;
 import com.openai.models.chat.completions.ChatCompletion;
@@ -32,6 +34,7 @@ import com.openai.services.blocking.ModerationService;
 import com.openai.services.blocking.ResponseService;
 import com.openai.services.blocking.UploadService;
 import com.openai.services.blocking.VectorStoreService;
+import com.openai.services.blocking.WebhookService;
 import com.openai.services.blocking.chat.ChatCompletionService;
 import com.openai.services.blocking.chat.completions.MessageService;
 
@@ -142,6 +145,16 @@ public class TracebleOpenAIClient implements OpenAIClient {
     throw new UnsupportedOperationException("Unimplemented method 'withRawResponse'");
   }
 
+  @Override
+  public WebhookService webhooks() {
+    throw new UnsupportedOperationException("Unimplemented method 'webhooks'");
+  }
+
+  @Override
+  public OpenAIClient withOptions(Consumer<Builder> arg0) {
+    throw new UnsupportedOperationException("Unimplemented method 'withOptions'");
+  }
+
 }
 
 @RequiredArgsConstructor
@@ -157,6 +170,11 @@ class TracebleChatService implements ChatService {
   @Override
   public WithRawResponse withRawResponse() {
     throw new UnsupportedOperationException("Unimplemented method 'withRawResponse'");
+  }
+
+  @Override
+  public ChatService withOptions(Consumer<Builder> arg0) {
+    throw new UnsupportedOperationException("Unimplemented method 'withOptions'");
   }
 }
 
@@ -222,5 +240,10 @@ class TracebleChatCompletionService implements ChatCompletionService {
   @Override
   public WithRawResponse withRawResponse() {
     throw new UnsupportedOperationException("Unimplemented method 'withRawResponse'");
+  }
+
+  @Override
+  public ChatCompletionService withOptions(Consumer<Builder> arg0) {
+    throw new UnsupportedOperationException("Unimplemented method 'withOptions'");
   }
 }

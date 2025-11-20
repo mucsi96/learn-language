@@ -74,5 +74,14 @@ cd server && mvn clean install && cd ..
 echo "Installing client dependencies..."
 cd client && npm install && cd ..
 
+echo "Installing mock ElevenLabs server dependencies..."
+cd mock_elevenlands_server && npm install && cd ..
+
+echo "Installing mock Google AI server dependencies..."
+cd mock_googleai_server && npm install && cd ..
+
+echo "Installing mock OpenAI server dependencies..."
+cd mock_openai_server && npm install && cd ..
+
 echo "Installing test dependencies..."
 cd test && npm install && npx playwright install --with-deps chromium && cd ..

@@ -14,7 +14,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.6",
     "pg": "^8.13.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "uuid": "^13.0.0"
