@@ -124,6 +124,9 @@ test('can create a new source', async ({ page }) => {
   // Click Create button
   await page.getByRole('button', { name: 'Create' }).click();
 
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+
   // Verify the new source appears in the list
   await expect(page.getByText('Test Source')).toBeVisible();
   await expect(page.getByText('B2')).toBeVisible();
@@ -146,11 +149,13 @@ test('can edit an existing source', async ({ page }) => {
 
   // Update the name
   const nameField = page.getByRole('textbox', { name: 'Name', exact: true });
-  await nameField.clear();
   await nameField.fill('Goethe A1 Updated');
 
   // Click Update button
   await page.getByRole('button', { name: 'Update' }).click();
+
+  // Wait for dialog to close
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
 
   // Verify the updated source appears
   await expect(page.getByText('Goethe A1 Updated')).toBeVisible();
