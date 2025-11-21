@@ -1,3 +1,31 @@
+@if (card()?.data.validation; as validation) {
+<div class="validation-info">
+  <h3>AI Validation Results</h3>
+  @if (validation.extractedText) {
+  <div class="validation-item">
+    <strong>Extracted from PDF:</strong> {{ validation.extractedText }}
+  </div>
+  }
+  @if (validation.suggestedGender && wordType() === 'NOUN') {
+  <div class="validation-item" [class.validation-mismatch]="validation.suggestedGender !== gender()">
+    <strong>Suggested Gender:</strong> {{ validation.suggestedGender }}
+    @if (validation.suggestedGender !== gender()) {
+    <span class="current-value">(Current: {{ gender() || 'not set' }})</span>
+    }
+  </div>
+  }
+  @if (validation.suggestedForms && validation.suggestedForms.length > 0) {
+  <div class="validation-item">
+    <strong>Suggested Forms:</strong>
+    <ul class="suggested-forms">
+      @for (form of validation.suggestedForms; track $index) {
+      <li>{{ form }}</li>
+      }
+    </ul>
+  </div>
+  }
+</div>
+}
 <div class="word">
   <mat-form-field class="field">
     <mat-label>Type</mat-label>

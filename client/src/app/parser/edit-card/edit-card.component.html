@@ -27,6 +27,14 @@
           Mark as reviewed
         </button>
       }
+      <button
+        type="button"
+        mat-flat-button
+        (click)="validateCard()"
+        [disabled]="isValidating()"
+      >
+        {{ isValidating() ? 'Validating...' : 'AI Validate' }}
+      </button>
       <button type="button" mat-flat-button (click)="saveCard()">
         Update
       </button>

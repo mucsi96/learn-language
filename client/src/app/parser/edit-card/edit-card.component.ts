@@ -44,6 +44,7 @@ export class EditCardComponent {
   readonly selectedWord = signal<Word | undefined>(undefined);
   readonly markAsReviewedAvailable = signal<boolean>(false);
   readonly pendingCardEdits = signal<any>(undefined);
+  readonly isValidating = signal<boolean>(false);
 
   readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
     params: () => ({ selectedWord: this.selectedWord() }),
@@ -133,6 +134,31 @@ export class EditCardComponent {
 
     this.pendingCardEdits.set(undefined);
     this.showSnackBar('Card updated successfully');
+  }
+
+  async validateCard() {
+    const word = this.selectedWord();
+    if (!word || !word.exists) {
+      return;
+    }
+
+    this.isValidating.set(true);
+    try {
+      await fetchJson(this.http, `/api/card/${word.id}/validate`, {
+        method: 'POST',
+      });
+
+      this.card.reload();
+      this.showSnackBar('Card validated successfully');
+    } catch (error) {
+      this.snackBar.open('Validation failed. Make sure the card has PDF text.', 'Close', {
+        duration: 5000,
+        verticalPosition: 'top',
+        panelClass: ['error'],
+      });
+    } finally {
+      this.isValidating.set(false);
+    }
   }
 
   async markAsReviewed() {

@@ -26,4 +26,10 @@ public class CardData {
 
     @JsonInclude(Include.NON_NULL)
     private List<AudioData> audio;
+
+    @JsonInclude(Include.NON_NULL)
+    private String pdfText;
+
+    @JsonInclude(Include.NON_NULL)
+    private ValidationData validation;
 }

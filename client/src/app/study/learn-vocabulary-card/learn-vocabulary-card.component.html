@@ -40,6 +40,22 @@
       <p class="centered-text">{{ forms()?.join(", ") }}</p>
     </div>
     }
+
+    @if (card()?.value()?.data?.validation; as validation) {
+    <div class="validation-hints">
+      @if (validation.suggestedForms && validation.suggestedForms.length > 0) {
+      <div class="validation-hint">
+        <small>📚 PDF: {{ validation.suggestedForms.join(", ") }}</small>
+      </div>
+      }
+      @if (validation.extractedText) {
+      <div class="validation-hint">
+        <small>📖 Original: {{ validation.extractedText }}</small>
+      </div>
+      }
+    </div>
+    }
+
     <div class="example">
       <p class="centered-text">{{ example() }}</p>
     </div>
