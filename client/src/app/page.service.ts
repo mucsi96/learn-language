@@ -8,7 +8,7 @@ import {
   Injector,
   untracked,
 } from '@angular/core';
-import { Page, WordList } from './parser/types';
+import { Page, WordList, Region } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 
@@ -20,6 +20,7 @@ type SelectedRectangle = {
   height: number;
 };
 type SelectedRectangles = SelectedRectangle[];
+type SelectionMode = 'immediate' | 'grouped';
 
 @Injectable({
   providedIn: 'root',
@@ -29,6 +30,9 @@ export class PageService {
   private readonly injector = inject(Injector);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectangles = signal<SelectedRectangles>([]);
+  readonly selectionMode = signal<SelectionMode>('immediate');
+  readonly regionGroup = signal<Region[]>([]);
+  readonly groupedWordsResource = signal<ResourceRef<WordList | undefined> | undefined>(undefined);
 
   readonly page = resource({
     params: () => ({
@@ -53,7 +57,9 @@ export class PageService {
     source: this.selectedRectangles,
     computation: (selectedRectangles, previous) => untracked(() =>{
       const selectedSource = this.selectedSource();
-      if (!selectedSource || selectedRectangles.length === 0) {
+      const mode = this.selectionMode();
+
+      if (!selectedSource || selectedRectangles.length === 0 || mode === 'grouped') {
         return [];
       }
 
@@ -115,17 +121,44 @@ export class PageService {
   }
 
   addSelectedRectangle(rectangle: SelectedRectangle) {
-    this.selectedRectangles.update((rectangles) => {
-      const hasOverlap = rectangles.some(existing =>
-        this.rectanglesOverlap(existing, rectangle)
-      );
+    const mode = this.selectionMode();
+    const selectedSource = this.selectedSource();
 
-      if (hasOverlap) {
-        return rectangles;
-      }
+    if (!selectedSource) {
+      return;
+    }
 
-      return [...rectangles, rectangle];
-    });
+    if (mode === 'grouped') {
+      this.regionGroup.update((regions) => {
+        const region: Region = {
+          pageNumber: selectedSource.pageNumber,
+          ...rectangle,
+        };
+
+        const hasOverlap = regions.some(existing =>
+          existing.pageNumber === region.pageNumber &&
+          this.rectanglesOverlap(existing, region)
+        );
+
+        if (hasOverlap) {
+          return regions;
+        }
+
+        return [...regions, region];
+      });
+    } else {
+      this.selectedRectangles.update((rectangles) => {
+        const hasOverlap = rectangles.some(existing =>
+          this.rectanglesOverlap(existing, rectangle)
+        );
+
+        if (hasOverlap) {
+          return rectangles;
+        }
+
+        return [...rectangles, rectangle];
+      });
+    }
   }
 
   private rectanglesOverlap(rect1: SelectedRectangle, rect2: SelectedRectangle): boolean {
@@ -139,5 +172,42 @@ export class PageService {
 
   clearSelection() {
     this.selectedRectangles.set([]);
+    this.clearRegionGroup();
+  }
+
+  toggleSelectionMode() {
+    const currentMode = this.selectionMode();
+    this.selectionMode.set(currentMode === 'immediate' ? 'grouped' : 'immediate');
+    this.clearSelection();
+  }
+
+  clearRegionGroup() {
+    this.regionGroup.set([]);
+    this.groupedWordsResource.set(undefined);
+  }
+
+  processRegionGroup() {
+    const selectedSource = this.selectedSource();
+    const regions = this.regionGroup();
+
+    if (!selectedSource || regions.length === 0) {
+      return;
+    }
+
+    const wordListResource = resource({
+      injector: this.injector,
+      loader: async () => {
+        return fetchJson<WordList>(
+          this.http,
+          `/api/source/${selectedSource.sourceId}/words/multi-region`,
+          {
+            method: 'POST',
+            body: { regions },
+          }
+        );
+      },
+    });
+
+    this.groupedWordsResource.set(wordListResource);
   }
 }

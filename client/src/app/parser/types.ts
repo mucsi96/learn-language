@@ -103,6 +103,18 @@ export type WordList = {
   height: number;
 };
 
+export type Region = {
+  pageNumber: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type RegionGroup = {
+  regions: Region[];
+};
+
 export type Translation = {
   translation?: string;
   examples?: (string | undefined)[];
