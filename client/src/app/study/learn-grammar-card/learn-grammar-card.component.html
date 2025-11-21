@@ -1,0 +1,21 @@
+@if (card()?.value(); as currentCard) {
+  <div class="card-container">
+    <div class="card-header">
+      <app-state [card]="currentCard" />
+      <div class="card-type-badge">Grammar</div>
+    </div>
+
+    <div class="sentence-display">
+      <p class="sentence" [class.revealed]="isRevealed()">
+        {{ displaySentence() }}
+      </p>
+    </div>
+
+    @if (isRevealed() && translation()) {
+      <div class="translation-section">
+        <p class="translation-label">Hungarian:</p>
+        <p class="translation-text">{{ translation() }}</p>
+      </div>
+    }
+  </div>
+}

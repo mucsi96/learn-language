@@ -38,7 +38,8 @@ export type ExampleImage = {
 };
 
 export type CardData = {
-  word: string;
+  cardType?: CardType;
+  word?: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;
@@ -47,6 +48,8 @@ export type CardData = {
     isSelected?: boolean;
     images?: ExampleImage[];
   })[];
+  sentence?: string;
+  maskedIndices?: number[];
   audio?: AudioData[];
   audioVoice?: string;
 };
@@ -83,7 +86,7 @@ export type Page = {
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary';
+export type CardType = 'vocabulary' | 'grammar';
 
 export type Source = {
   id: string;

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.SentenceTranslationResponse;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import io.github.mucsi96.learnlanguage.service.TranslationService;
@@ -21,5 +22,11 @@ public class TranslationController {
     @PostMapping("/api/translate/{languageCode}")
     public TranslationResponse translate(@RequestBody WordResponse word, @PathVariable String languageCode) {
         return translationService.translate(word, languageCode);
+    }
+
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PostMapping("/api/translate-sentence")
+    public SentenceTranslationResponse translateSentence(@RequestBody String sentence) {
+        return translationService.translateSentence(sentence);
     }
 }

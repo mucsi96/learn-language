@@ -13,9 +13,11 @@ import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
+import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
+import { CardType } from '../../parser/types';
 
 @Component({
   selector: 'app-learn-card',
@@ -27,6 +29,7 @@ import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selecti
     CardGradingButtonsComponent,
     CardActionsComponent,
     LearnVocabularyCardComponent,
+    LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
@@ -42,11 +45,16 @@ export class LearnCardComponent implements OnDestroy {
   readonly isRevealed = signal(false);
   private lastPlayedTexts: string[] = [];
   readonly languageTexts = signal<LanguageTexts[]>([]);
+  readonly cardType = signal<CardType | undefined>(undefined);
 
   constructor() {
     this.route.params.subscribe((params) => {
       params['sourceId'] &&
         this.mostDueCardService.setSelectedSourceId(params['sourceId']);
+    });
+
+    this.card.subscribe(() => {
+      this.cardType.set(this.card.value()?.data.cardType);
     });
   }
 

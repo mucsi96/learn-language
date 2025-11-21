@@ -1,11 +1,11 @@
 import { CardData, Word } from '../../parser/types';
 import { ImageGenerationModel } from './image-generation.types';
 
-export type CardType = 'vocabulary';
-// Future card types can be added here: 'grammar' | 'phrase'
+export type CardType = 'vocabulary' | 'grammar';
 
 export interface CardCreationRequest {
-  word: Word;
+  word?: Word;
+  sentence?: string;
   sourceId: string;
   pageNumber: number;
   cardType: CardType;

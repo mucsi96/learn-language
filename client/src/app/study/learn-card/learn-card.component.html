@@ -24,12 +24,21 @@
       (cardProcessed)="onCardProcessed()">
     </app-card-actions>
 
-    <app-learn-vocabulary-card
-      [card]="card"
-      [isRevealed]="isRevealed()"
-      [onPlayAudio]="playAudioForContent.bind(this)"
-      (languageTextsReady)="onLanguageTextsReady($event)">
-    </app-learn-vocabulary-card>
+    @if (cardType() === 'vocabulary') {
+      <app-learn-vocabulary-card
+        [card]="card"
+        [isRevealed]="isRevealed()"
+        [onPlayAudio]="playAudioForContent.bind(this)"
+        (languageTextsReady)="onLanguageTextsReady($event)">
+      </app-learn-vocabulary-card>
+    } @else if (cardType() === 'grammar') {
+      <app-learn-grammar-card
+        [card]="card"
+        [isRevealed]="isRevealed()"
+        [onPlayAudio]="playAudioForContent.bind(this)"
+        (languageTextsReady)="onLanguageTextsReady($event)">
+      </app-learn-grammar-card>
+    }
   </div>
 
   @if (isRevealed()) {

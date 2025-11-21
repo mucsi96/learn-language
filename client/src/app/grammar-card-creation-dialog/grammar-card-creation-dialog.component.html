@@ -1,0 +1,51 @@
+<h2 mat-dialog-title>Create Grammar Card</h2>
+
+<mat-dialog-content>
+  <div class="sentence-preview">
+    <h3>Select words to mask:</h3>
+    <div class="word-chips">
+      @for (word of words; track $index) {
+        <mat-chip
+          [class.masked]="isWordMasked($index)"
+          (click)="toggleWordMask($index)"
+          [disabled]="isCreating"
+        >
+          {{ word }}
+        </mat-chip>
+      }
+    </div>
+  </div>
+
+  <div class="preview-section">
+    <h3>Preview:</h3>
+    <div class="preview-box">
+      <div class="masked-preview">
+        <strong>Study view:</strong> {{ maskedSentence }}
+      </div>
+      <div class="full-preview">
+        <strong>Revealed view:</strong> {{ fullSentence }}
+      </div>
+    </div>
+  </div>
+
+  @if (isCreating) {
+    <div class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+      <p>{{ currentStep }}</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      {{ error }}
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isCreating">Cancel</button>
+  <button mat-raised-button color="primary" (click)="createCard()" [disabled]="isCreating || maskedIndices.size === 0">
+    Create Card
+  </button>
+</mat-dialog-actions>

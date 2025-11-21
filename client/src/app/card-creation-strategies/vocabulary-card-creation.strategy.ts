@@ -130,6 +130,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
       progressCallback(80, 'Preparing vocabulary card data...');
 
       return {
+        cardType: 'vocabulary',
         word: word.word,
         type: wordTypeResponse.type,
         gender: gender,
@@ -143,7 +144,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
               exampleTranslations[languageCode]?.[index] || ''
             ])
           ]),
-          isSelected: index === 0, // First example is selected by default
+          isSelected: index === 0,
           images: exampleImages[index] || []
         }))
       };

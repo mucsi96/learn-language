@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum CardType {
-    VOCABULARY("vocabulary");
+    VOCABULARY("vocabulary"),
+    GRAMMAR("grammar");
 
     private final String typeName;
 

@@ -16,6 +16,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardData {
+    private CardType cardType;
+
     private String word;
     private String type;
     @JsonInclude(Include.NON_DEFAULT)
@@ -23,6 +25,11 @@ public class CardData {
     private Map<String, String> translation;
     private List<String> forms;
     private List<ExampleData> examples;
+
+    @JsonInclude(Include.NON_NULL)
+    private String sentence;
+    @JsonInclude(Include.NON_NULL)
+    private List<Integer> maskedIndices;
 
     @JsonInclude(Include.NON_NULL)
     private List<AudioData> audio;

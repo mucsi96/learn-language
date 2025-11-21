@@ -9,6 +9,8 @@ import com.openai.client.OpenAIClient;
 import com.openai.models.ChatModel;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
+import io.github.mucsi96.learnlanguage.model.SentenceTranslationRequest;
+import io.github.mucsi96.learnlanguage.model.SentenceTranslationResponse;
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
@@ -55,6 +57,17 @@ public class TranslationService {
             }
             """);
 
+  private static final String SENTENCE_TRANSLATION_PROMPT = """
+      You are a Hungarian language expert.
+      Your task is to translate the given German sentence to Hungarian.
+      Pay attention to proper Hungarian grammar and natural phrasing.
+      Provide an accurate translation that captures the meaning and context.
+      Example of the expected JSON response:
+      {
+        "translation": "Ma moziba megyek."
+      }
+      """;
+
   private final OpenAIClient openAIClient;
 
   public TranslationResponse translate(WordResponse word, String languageCode) {
@@ -77,6 +90,33 @@ public class TranslationService {
         .addSystemMessage(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
         .addUserMessage(translationRequestJson)
         .responseFormat(TranslationResponse.class)
+        .build();
+
+    var result = openAIClient.chat().completions().create(createParams).choices().stream()
+        .flatMap(choice -> choice.message().content().stream()).findFirst()
+        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+
+    return result;
+  }
+
+  public SentenceTranslationResponse translateSentence(String sentence) {
+    SentenceTranslationRequest request = SentenceTranslationRequest.builder()
+        .sentence(sentence)
+        .build();
+
+    var objectMapper = new ObjectMapper();
+    String requestJson;
+    try {
+      requestJson = objectMapper.writeValueAsString(request);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to serialize SentenceTranslationRequest to JSON", e);
+    }
+
+    var createParams = ChatCompletionCreateParams.builder()
+        .model(ChatModel.GPT_4_1)
+        .addSystemMessage(SENTENCE_TRANSLATION_PROMPT)
+        .addUserMessage(requestJson)
+        .responseFormat(SentenceTranslationResponse.class)
         .build();
 
     var result = openAIClient.chat().completions().create(createParams).choices().stream()
