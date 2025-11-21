@@ -15,11 +15,12 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class AzureKeyVaultEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-    if (!"local".equals(environment.getProperty("spring.profiles.active"))) {
+    String activeProfile = environment.getProperty("spring.profiles.active");
+    if ("test".equals(activeProfile)) {
       return;
     }
 
