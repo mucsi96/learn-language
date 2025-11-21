@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.MultiRegionRequest;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
@@ -127,6 +128,38 @@ public class SourceController {
         .y(y)
         .width(width)
         .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/api/source/{sourceId}/words/multi-region")
+  public WordListResponse getMultiRegionWords(
+      @PathVariable String sourceId,
+      @RequestBody MultiRegionRequest request) throws IOException {
+
+    var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    byte[] imageData = documentProcessorService.getCombinedRegions(source, request.getRegions());
+
+    var areaWords = areaWordsService.getAreaWords(imageData);
+    List<String> ids = areaWords.stream()
+        .map(word -> word.getId())
+        .toList();
+
+    var cards = cardService.getCardsByIds(ids);
+
+    var words = areaWords.stream().map(word -> {
+      word.setExists(cards.stream().anyMatch(card -> card.getId().equals(word.getId())));
+      return word;
+    }).collect(Collectors.toList());
+
+    return WordListResponse.builder()
+        .words(words)
+        .x(0)
+        .y(0)
+        .width(0)
+        .height(0)
         .build();
   }
 

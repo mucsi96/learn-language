@@ -1,9 +1,12 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.RegionRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -83,6 +87,53 @@ public class DocumentProcessorService {
       ImageIO.write(croppedImage, "png", outputStream);
       // Write image to file for debugging purpose
       // ImageIO.write(croppedImage, "png", Path.of("image.png").toFile());
+      return outputStream.toByteArray();
+    }
+  }
+
+  public byte[] getCombinedRegions(Source source, List<RegionRequest> regions) throws IOException {
+    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
+
+    try (PDDocument document = Loader.loadPDF(bytes)) {
+      PDFRenderer renderer = new PDFRenderer(document);
+      float scale = 2;
+
+      BufferedImage[] regionImages = new BufferedImage[regions.size()];
+      int totalHeight = 0;
+      int maxWidth = 0;
+
+      for (int i = 0; i < regions.size(); i++) {
+        RegionRequest region = regions.get(i);
+        int pageIndex = region.getPageNumber() - 1;
+
+        var mediaBox = document.getPage(pageIndex).getMediaBox();
+        var pageWidth = mediaBox.getWidth();
+        var pageHeight = mediaBox.getHeight();
+
+        var pageImage = renderer.renderImage(pageIndex, scale);
+        var croppedImage = pageImage.getSubimage(
+            (int) Math.round((region.getX() / pageWidth) * pageImage.getWidth()),
+            (int) Math.round((region.getY() / pageHeight) * pageImage.getHeight()),
+            (int) Math.round((region.getWidth() / pageWidth) * pageImage.getWidth()),
+            (int) Math.round((region.getHeight() / pageHeight) * pageImage.getHeight()));
+
+        regionImages[i] = croppedImage;
+        totalHeight += croppedImage.getHeight();
+        maxWidth = Math.max(maxWidth, croppedImage.getWidth());
+      }
+
+      BufferedImage combinedImage = new BufferedImage(maxWidth, totalHeight, BufferedImage.TYPE_INT_RGB);
+      Graphics2D g2d = combinedImage.createGraphics();
+
+      int currentY = 0;
+      for (BufferedImage regionImage : regionImages) {
+        g2d.drawImage(regionImage, 0, currentY, null);
+        currentY += regionImage.getHeight();
+      }
+      g2d.dispose();
+
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      ImageIO.write(combinedImage, "png", outputStream);
       return outputStream.toByteArray();
     }
   }
