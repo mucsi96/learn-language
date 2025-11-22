@@ -137,9 +137,9 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
 
 export async function populateDb(): Promise<void> {
   await withDbConnection(async (client) => {
-    const initSqlPath = path.join(__dirname, '..', 'test', 'init.sql');
-    const initSql = fs.readFileSync(initSqlPath, 'utf-8');
-    await client.query(initSql);
+    const schemaSqlPath = path.join(__dirname, '..', 'server', 'src', 'main', 'resources', 'schema.sql');
+    const schemaSql = fs.readFileSync(schemaSqlPath, 'utf-8');
+    await client.query(schemaSql);
   });
 }
 
