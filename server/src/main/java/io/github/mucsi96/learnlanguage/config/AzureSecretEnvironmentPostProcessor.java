@@ -1,5 +1,5 @@
-package io.github.mucsi96.learnlanguage.config;
 
+package io.github.mucsi96.learnlanguage.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
@@ -15,11 +15,12 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class AzureSecretEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-    if (!"local".equals(environment.getProperty("spring.profiles.active"))) {
+    String activeProfile = environment.getProperty("spring.profiles.active");
+    if (!"local".equals(activeProfile) && !"prod".equals(activeProfile)) {
       return;
     }
 
@@ -31,9 +32,11 @@ public class LocalEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
     Map<String, Object> properties = new LinkedHashMap<>();
 
-    properties.put("AZURE_TENANT_ID", getSecretValue(secretClient, "tenant-id"));
-    properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "learn-language-api-client-id"));
-    properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "learn-language-api-client-secret"));
+    if ("local".equals(activeProfile)) {
+      properties.put("AZURE_TENANT_ID", getSecretValue(secretClient, "tenant-id"));
+      properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "learn-language-api-client-id"));
+      properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "learn-language-api-client-secret"));
+    }
     properties.put("UI_CLIENT_ID", getSecretValue(secretClient, "learn-language-spa-client-id"));
     properties.put("OPENAI_API_KEY", getSecretValue(secretClient, "learn-language-openai-api-key"));
     properties.put("LANGSMITH_API_KEY", getSecretValue(secretClient, "learn-language-langsmith-api-key"));
