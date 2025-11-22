@@ -6,9 +6,11 @@ import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
+import io.github.mucsi96.learnlanguage.service.CardValidationService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.ValidationData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,7 @@ public class CardController {
   private final CardRepository cardRepository;
   private final SourceRepository sourceRepository;
   private final CardService cardService;
+  private final CardValidationService cardValidationService;
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -148,5 +151,27 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Audio added successfully");
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/card/{cardId}/validate")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<ValidationData> validateCard(@PathVariable String cardId) {
+    Card card = cardRepository.findById(cardId)
+        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
+
+    CardData cardData = card.getData();
+    if (cardData == null || cardData.getPdfText() == null) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    ValidationData validationData = cardValidationService.validateCard(
+        cardData.getPdfText(),
+        cardData.getType()
+    );
+
+    cardData.setValidation(validationData);
+    cardRepository.save(card);
+
+    return ResponseEntity.ok(validationData);
   }
 }

@@ -17,4 +17,5 @@ public class WordResponse {
     private String word;
     private List<String> forms;
     private List<String> examples;
+    private String pdfText;
 }
