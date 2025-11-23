@@ -57,4 +57,4 @@ jobs:
           cache: "pip"
       - run: pip install -r requirements.txt
 
-      - run: python scripts/publish_image.py "${{ secrets.GITHUB_TOKEN }}" "${{ secrets.ANSIBLE_VAULT_KEY }}"
+      - run: python scripts/publish_images.py "${{ secrets.GITHUB_TOKEN }}" "${{ secrets.ANSIBLE_VAULT_KEY }}"
