@@ -56,7 +56,7 @@ export function MSALInterceptorConfigFactory(config: EnvironmentConfig): MsalInt
     'user.read',
   ]);
   protectedResourceMap.set(
-    `${new URL(config.apiContextPath, window.location.origin).href}/*`,
+    `${new URL('/api', window.location.origin).href}/*`,
     apiScopes
   );
 

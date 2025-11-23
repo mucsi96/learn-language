@@ -4,8 +4,8 @@ import { AppComponent } from './app/app.component';
 import { EnvironmentConfig } from './app/environment/environment.config';
 
 // Load configuration before bootstrapping
-async function loadConfig(): Promise<EnvironmentConfig> {
-  const response = await fetch('/api/config');
+async function loadEnvironmentConfig(): Promise<EnvironmentConfig> {
+  const response = await fetch('/api/environment');
   if (!response.ok) {
     throw new Error(`Failed to load config: ${response.status}`);
   }
@@ -13,7 +13,7 @@ async function loadConfig(): Promise<EnvironmentConfig> {
 }
 
 // Bootstrap the application after config is loaded
-loadConfig().then(config => {
-  bootstrapApplication(AppComponent, getAppConfig(config))
+loadEnvironmentConfig().then(environment => {
+  bootstrapApplication(AppComponent, getAppConfig(environment))
     .catch((err) => console.error(err));
 });

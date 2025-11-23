@@ -23,7 +23,7 @@ const globalRippleConfig: RippleGlobalOptions = {
   disabled: true,
 };
 
-export function getAppConfig(config: EnvironmentConfig): ApplicationConfig {
+export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig {
   return {
     providers: [
       provideZoneChangeDetection({ eventCoalescing: true }),
@@ -34,8 +34,8 @@ export function getAppConfig(config: EnvironmentConfig): ApplicationConfig {
       ),
       { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
       provideAnimationsAsync(),
-      { provide: ENVIRONMENT_CONFIG, useValue: config },
-      ...(config.mockAuth ? [] : provideMsalConfig()),
+      { provide: ENVIRONMENT_CONFIG, useValue: environment },
+      ...(environment.mockAuth ? [] : provideMsalConfig()),
     ],
   };
 }
