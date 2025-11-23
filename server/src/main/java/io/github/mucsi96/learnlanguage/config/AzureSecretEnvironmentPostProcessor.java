@@ -36,6 +36,9 @@ public class AzureSecretEnvironmentPostProcessor implements EnvironmentPostProce
       properties.put("AZURE_TENANT_ID", getSecretValue(secretClient, "tenant-id"));
       properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "learn-language-api-client-id"));
       properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "learn-language-api-client-secret"));
+    } else if ("prod".equals(activeProfile)) {
+      properties.put("DB_USERNAME", getSecretValue(secretClient, "db-username"));
+      properties.put("DB_PASSWORD", getSecretValue(secretClient, "db-password"));
     }
     properties.put("UI_CLIENT_ID", getSecretValue(secretClient, "learn-language-spa-client-id"));
     properties.put("OPENAI_API_KEY", getSecretValue(secretClient, "learn-language-openai-api-key"));
