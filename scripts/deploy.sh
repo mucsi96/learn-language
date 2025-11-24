@@ -18,8 +18,19 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     fi
 fi
 
-dnsZone=$(az keyvault secret show --vault-name p06 --name dns-zone --query value --output tsv)
-apiClientId=$(az keyvault secret show --vault-name p06 --name learn-language-api-client-id --query value --output tsv)
+KUBE_CONTENT=$(az keyvault secret show --vault-name p06-learn-language --name k8s-config --query value -o tsv)
+
+# Create a temporary file in /dev/shm (RAM) to avoid writing to disk
+KUBECONFIG_FILE=$(mktemp /dev/shm/kubeconfig.XXXXXX)
+chmod 600 "$KUBECONFIG_FILE"
+echo "$KUBE_CONTENT" > "$KUBECONFIG_FILE"
+export KUBECONFIG="$KUBECONFIG_FILE"
+
+# Ensure the temporary file is deleted when the script exits
+trap 'rm -f "$KUBECONFIG_FILE"' EXIT
+
+hostname=$(az keyvault secret show --vault-name p06-learn-language --name hostname --query value --output tsv)
+apiClientId=$(az keyvault secret show --vault-name p06-learn-language --name api-client-id --query value --output tsv)
 # Get latest tags for both server and client
 serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
@@ -31,20 +42,19 @@ echo "Updating Helm repositories..."
 
 helm repo update
 
-echo "Deploying server: mucsi96/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
+echo "Deploying server: mucsi96/learn-language-server:$serverLatestTag to $hostname using spring-app chart $springAppChartVersion"
 
 helm upgrade learn-language-server mucsi96/spring-app \
     --install \
     --version $springAppChartVersion \
-    --kubeconfig .kube/config \
     --namespace learn-language \
     --set image=mucsi96/learn-language-server:$serverLatestTag \
+    --set entryPoint=web \
+    --set host=$hostname \
+    --set basePath=/api \
     --set clientId=$apiClientId \
     --set serviceAccountName=learn-language-api-workload-identity \
     --set env.STORAGE_DIRECTORY=/app/storage \
-    --set env.DB_HOSTNAME=postgres1.db \
-    --set env.DB_PORT=5432 \
-    --set env.DB_NAME=postgres1 \
     --set persistentVolumeClaims[0].name=learn-language-pvc \
     --set persistentVolumeClaims[0].accessMode=ReadWriteOnce \
     --set persistentVolumeClaims[0].volumeName=learn-language-app \
@@ -53,14 +63,13 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set persistentVolumeClaims[0].storage=5Gi \
     --wait
 
-echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to language.$dnsZone using client-app chart $clientAppChartVersion"
+echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to $hostname using client-app chart $clientAppChartVersion"
 
 helm upgrade learn-language-client mucsi96/client-app \
     --install \
     --version $clientAppChartVersion \
-    --kubeconfig .kube/config \
     --namespace learn-language \
     --set image=mucsi96/learn-language-client:$clientLatestTag \
-    --set host=language.$dnsZone \
+    --set host=$hostname \
     --set entryPoint=web \
     --wait

@@ -26,7 +26,7 @@ public class AzureSecretEnvironmentPostProcessor implements EnvironmentPostProce
 
     DefaultAzureCredential credential = new DefaultAzureCredentialBuilder().build();
     SecretClient secretClient = new SecretClientBuilder()
-        .vaultUrl("https://p06.vault.azure.net/")
+        .vaultUrl("https://p06-learn-language.vault.azure.net/")
         .credential(credential)
         .buildClient();
 
@@ -34,17 +34,18 @@ public class AzureSecretEnvironmentPostProcessor implements EnvironmentPostProce
 
     if ("local".equals(activeProfile)) {
       properties.put("AZURE_TENANT_ID", getSecretValue(secretClient, "tenant-id"));
-      properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "learn-language-api-client-id"));
-      properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "learn-language-api-client-secret"));
+      properties.put("AZURE_CLIENT_ID", getSecretValue(secretClient, "api-client-id"));
+      properties.put("AZURE_CLIENT_SECRET", getSecretValue(secretClient, "api-client-secret"));
     } else if ("prod".equals(activeProfile)) {
+      properties.put("DB_URL", getSecretValue(secretClient, "db-url"));
       properties.put("DB_USERNAME", getSecretValue(secretClient, "db-username"));
       properties.put("DB_PASSWORD", getSecretValue(secretClient, "db-password"));
     }
-    properties.put("UI_CLIENT_ID", getSecretValue(secretClient, "learn-language-spa-client-id"));
-    properties.put("OPENAI_API_KEY", getSecretValue(secretClient, "learn-language-openai-api-key"));
-    properties.put("LANGSMITH_API_KEY", getSecretValue(secretClient, "learn-language-langsmith-api-key"));
-    properties.put("GOOGLE_AI_API_KEY", getSecretValue(secretClient, "learn-language-google-ai-api-key"));
-    properties.put("ELEVEN_LABS_API_KEY", getSecretValue(secretClient, "learn-language-eleven-labs-api-key"));
+    properties.put("UI_CLIENT_ID", getSecretValue(secretClient, "spa-client-id"));
+    properties.put("OPENAI_API_KEY", getSecretValue(secretClient, "openai-api-key"));
+    properties.put("LANGSMITH_API_KEY", getSecretValue(secretClient, "langsmith-api-key"));
+    properties.put("GOOGLE_AI_API_KEY", getSecretValue(secretClient, "google-ai-api-key"));
+    properties.put("ELEVEN_LABS_API_KEY", getSecretValue(secretClient, "eleven-labs-api-key"));
 
     environment.getPropertySources().addFirst(new MapPropertySource("myProps", properties));
   }
