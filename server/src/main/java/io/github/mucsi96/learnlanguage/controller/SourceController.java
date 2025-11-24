@@ -47,7 +47,7 @@ public class SourceController {
   private final FileStorageService fileStorageService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  @GetMapping("/api/sources")
+  @GetMapping("/sources")
   public List<SourceResponse> getSources() {
     var sources = sourceService.getAllSources();
     var cardCounts = cardService.getCardCountsBySource();
@@ -70,7 +70,7 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @GetMapping("/api/source/{sourceId}/page/{pageNumber}")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}")
   public PageResponse getPage(@PathVariable String sourceId, @PathVariable int pageNumber) throws IOException {
     var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
@@ -95,7 +95,7 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @GetMapping("/api/source/{sourceId}/page/{pageNumber}/words")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/words")
   public WordListResponse getWords(
       @PathVariable String sourceId,
       @PathVariable int pageNumber,
@@ -131,12 +131,12 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  @GetMapping("/api/sources/due-cards-count")
+  @GetMapping("/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource() {
     return cardService.getDueCardCountsBySource();
   }
 
-  @PostMapping("/api/source")
+  @PostMapping("/source")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createSource(@RequestBody SourceRequest request) {
     Source source = Source.builder()
@@ -153,7 +153,7 @@ public class SourceController {
     return ResponseEntity.ok(new HashMap<>());
   }
 
-  @PutMapping("/api/source/{sourceId}")
+  @PutMapping("/source/{sourceId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
@@ -178,7 +178,7 @@ public class SourceController {
     return ResponseEntity.ok(response);
   }
 
-  @DeleteMapping("/api/source/{sourceId}")
+  @DeleteMapping("/source/{sourceId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteSource(@PathVariable String sourceId) {
     Source source = sourceService.getSourceById(sourceId)
@@ -191,7 +191,7 @@ public class SourceController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/api/source/upload")
+  @PostMapping("/source/upload")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> uploadSourceFile(@RequestParam("file") MultipartFile file) {
     try {

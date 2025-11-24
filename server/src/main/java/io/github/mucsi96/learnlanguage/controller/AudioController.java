@@ -34,7 +34,7 @@ public class AudioController {
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
 
-  @PostMapping("/api/audio")
+  @PostMapping("/audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public AudioData createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
     String uuid = UUID.randomUUID().toString();
@@ -53,7 +53,7 @@ public class AudioController {
         .build();
   }
 
-  @GetMapping(value = "/api/audio/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+  @GetMapping(value = "/audio/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<byte[]> getAudio(@PathVariable String id) {
     String filePath = "audio/%s.mp3".formatted(id);
@@ -65,7 +65,7 @@ public class AudioController {
         .body(audioData);
   }
 
-  @DeleteMapping("/api/audio/{id}")
+  @DeleteMapping("/audio/{id}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Void> deleteAudio(@PathVariable String id) {
     String filePath = "audio/%s.mp3".formatted(id);
@@ -73,7 +73,7 @@ public class AudioController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/api/voices")
+  @GetMapping("/voices")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public List<VoiceResponse> getVoices() {
     return elevenLabsAudioService.getVoices();

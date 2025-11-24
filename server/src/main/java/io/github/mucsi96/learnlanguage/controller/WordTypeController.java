@@ -9,13 +9,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/word-type")
 @RequiredArgsConstructor
 public class WordTypeController {
 
     private final WordTypeService wordTypeService;
 
-    @PostMapping
+    @PostMapping("/word-type")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<WordTypeResponse> getWordType(@RequestBody WordRequest word) {
         String type = wordTypeService.detectWordType(word.getWord());

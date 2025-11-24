@@ -20,7 +20,6 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
 public class CardController {
 
   private final CardRepository cardRepository;
@@ -111,13 +110,13 @@ public class CardController {
     if (cardData != null && cardData.getAudio() != null) {
       // Set all audio as not selected first
       cardData.getAudio().forEach(audio -> audio.setSelected(false));
-      
+
       // Find and select the specified audio
       cardData.getAudio().stream()
           .filter(audio -> audioId.equals(audio.getId()))
           .findFirst()
           .ifPresent(audio -> audio.setSelected(true));
-      
+
       cardRepository.save(card);
     }
 
@@ -137,11 +136,11 @@ public class CardController {
       cardData = new CardData();
       card.setData(cardData);
     }
-    
+
     if (cardData.getAudio() == null) {
       cardData.setAudio(new java.util.ArrayList<>());
     }
-    
+
     cardData.getAudio().add(audioData);
     cardRepository.save(card);
 

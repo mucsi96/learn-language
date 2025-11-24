@@ -30,7 +30,7 @@ public class ImageController {
   private final ImageService imageService;
   private final ImageResizeService imageResizeService;
 
-  @PostMapping("/api/image")
+  @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     String uuid = UUID.randomUUID().toString();
@@ -45,7 +45,7 @@ public class ImageController {
         .build();
   }
 
-  @GetMapping(value = "/api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+  @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<byte[]> getCachedResizedImage(
       @PathVariable String id,

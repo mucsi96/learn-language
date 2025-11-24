@@ -22,6 +22,9 @@ spring:
           tenant-id: ${AZURE_TENANT_ID}
         credential:
           client-id: ${AZURE_CLIENT_ID}
+server:
+  servlet:
+    context-path: /api
 management:
   server:
     port: ${SPRING_ACTUATOR_PORT}

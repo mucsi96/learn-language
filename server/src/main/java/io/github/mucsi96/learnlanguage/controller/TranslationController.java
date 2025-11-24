@@ -18,7 +18,7 @@ public class TranslationController {
     private final TranslationService translationService;
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    @PostMapping("/api/translate/{languageCode}")
+    @PostMapping("/translate/{languageCode}")
     public TranslationResponse translate(@RequestBody WordResponse word, @PathVariable String languageCode) {
         return translationService.translate(word, languageCode);
     }

@@ -23,7 +23,7 @@ public class SecurityConfiguration {
                 Customizer.withDefaults());
 
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/environment").permitAll()
+                .requestMatchers("/environment").permitAll()
                 .anyRequest().authenticated());
 
         return http.build();
