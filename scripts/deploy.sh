@@ -36,7 +36,7 @@ serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi
 clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 
 springAppChartVersion=24.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
-clientAppChartVersion=12.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
+clientAppChartVersion=13.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
 
 echo "Updating Helm repositories..."
 
