@@ -22,6 +22,10 @@ public class SecurityConfiguration {
         http.with(AadResourceServerHttpSecurityConfigurer.aadResourceServer(),
                 Customizer.withDefaults());
 
+        http.authorizeHttpRequests(requests -> requests
+                .requestMatchers("/api/environment").permitAll()
+                .anyRequest().authenticated());
+
         return http.build();
     }
 }
