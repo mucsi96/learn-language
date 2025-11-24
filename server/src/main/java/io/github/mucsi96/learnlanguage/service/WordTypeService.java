@@ -2,9 +2,15 @@ package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.stereotype.Service;
 
-import com.openai.client.OpenAIClient;
-import com.openai.models.ChatModel;
-import com.openai.models.chat.completions.ChatCompletionCreateParams;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.google.genai.Client;
+import com.google.genai.types.Content;
+import com.google.genai.types.GenerateContentConfig;
+import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.Part;
+import com.google.genai.types.Schema;
+import com.google.genai.types.Type;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,16 +18,28 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WordTypeService {
 
+  private static final String GEMINI_MODEL = "gemini-3-pro-preview-11-2025";
+
   static record WordTypeResult(String type) {
   }
 
-  private final OpenAIClient openAIClient;
+  private final Client googleAiClient;
 
   public String detectWordType(String word) {
-    var createParams = ChatCompletionCreateParams.builder()
-        .model(ChatModel.GPT_4_1)
-        .addSystemMessage(
-            """
+    Schema responseSchema = Schema.builder()
+        .type(Type.Known.OBJECT)
+        .properties(ImmutableMap.of(
+            "type", Schema.builder().type(Type.Known.STRING).build()))
+        .required("type")
+        .build();
+
+    GenerateContentConfig config = GenerateContentConfig.builder()
+        .responseMimeType("application/json")
+        .candidateCount(1)
+        .responseSchema(responseSchema)
+        .systemInstruction(Content.builder()
+            .role("user")
+            .parts(Part.text("""
                 You are a linguistic expert.
                 Your task is to categorize the given german word.
                 You should ignore any articles or prefixes and focus on the core meaning of the word.
@@ -42,15 +60,23 @@ public class WordTypeService {
                 {
                     "type": "NOUN"
                 }
-                """)
-        .addUserMessage("The word is: %s.".formatted(word))
-        .responseFormat(WordTypeResult.class)
+                """))
+            .build())
         .build();
 
-    var result = openAIClient.chat().completions().create(createParams).choices().stream()
-        .flatMap(choice -> choice.message().content().stream()).findFirst()
-        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+    GenerateContentResponse response = googleAiClient.models.generateContent(
+        GEMINI_MODEL,
+        "The word is: %s.".formatted(word),
+        config);
 
-    return result.type();
+    String responseText = response.text();
+
+    try {
+      var objectMapper = new ObjectMapper();
+      var result = objectMapper.readValue(responseText, WordTypeResult.class);
+      return result.type();
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to deserialize response from Gemini API: " + responseText, e);
+    }
   }
 }
