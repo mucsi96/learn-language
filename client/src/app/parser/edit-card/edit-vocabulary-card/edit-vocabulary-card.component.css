@@ -139,3 +139,48 @@
   align-items: center;
   justify-content: center;
 }
+
+.validation-info {
+  background-color: rgba(33, 150, 243, 0.1);
+  border-left: 4px solid #2196f3;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+}
+
+.validation-info h3 {
+  margin: 0 0 0.75rem 0;
+  color: #2196f3;
+  font-size: 1rem;
+}
+
+.validation-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.validation-item:last-child {
+  margin-bottom: 0;
+}
+
+.validation-mismatch {
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid #ff9800;
+}
+
+.current-value {
+  color: #ff9800;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+.suggested-forms {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+}
+
+.suggested-forms li {
+  margin-bottom: 0.25rem;
+}

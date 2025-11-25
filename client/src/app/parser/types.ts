@@ -30,11 +30,18 @@ export type Word = {
   forms: string[];
   examples: string[];
   exists?: boolean;
+  pdfText?: string;
 };
 
 export type ExampleImage = {
   id: string;
   isFavorite?: boolean;
+};
+
+export type ValidationData = {
+  suggestedGender?: string;
+  suggestedForms?: string[];
+  extractedText?: string;
 };
 
 export type CardData = {
@@ -49,6 +56,8 @@ export type CardData = {
   })[];
   audio?: AudioData[];
   audioVoice?: string;
+  pdfText?: string;
+  validation?: ValidationData;
 };
 
 export type Card = {
