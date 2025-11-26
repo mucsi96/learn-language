@@ -45,12 +45,8 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.azure</groupId>
-      <artifactId>azure-identity</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.azure</groupId>
-      <artifactId>azure-security-keyvault-secrets</artifactId>
+      <groupId>com.azure.spring</groupId>
+      <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
     </dependency>
     <dependency>
       <groupId>com.openai</groupId>

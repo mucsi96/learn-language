@@ -5,6 +5,10 @@ spring:
       - "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
   cloud:
     azure:
+      keyvault:
+        secret:
+          property-sources:
+            - enabled: false
       active-directory:
         enabled: false
 langsmith:
