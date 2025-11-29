@@ -5,7 +5,7 @@ services:
     image: traefik:v3.6
     ports:
       - "8180:80"
-      - "8080:8080"  # Traefik dashboard http://localhost:8080
+      - "8181:8080"  # Traefik dashboard http://localhost:8181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./test/traefik.yaml:/etc/traefik/traefik.yaml:ro
@@ -42,7 +42,7 @@ services:
       - "traefik.http.routers.server.priority=2"
       - "traefik.http.services.server.loadbalancer.server.port=8080"
     environment:
-      SPRING_ACTUATOR_PORT: "8082"
+      SPRING_ACTUATOR_PORT: "8182"
       SPRING_PROFILES_ACTIVE: "test"
       DB_URL: "jdbc:postgresql://db:5432/test"
       DB_USERNAME: "postgres"
@@ -57,7 +57,7 @@ services:
     volumes:
       - ./test/storage:/app/storage
     healthcheck:
-      test: "curl --fail --silent localhost:8082/actuator/health/readiness | grep UP || exit 1"
+      test: "curl --fail --silent localhost:8182/actuator/health/readiness | grep UP || exit 1"
       interval: 2s
       retries: 10
       start_period: 16s
