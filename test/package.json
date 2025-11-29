@@ -10,13 +10,13 @@
     "test:debug": "playwright test --debug"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
-    "@types/node": "^24.0.0",
-    "@types/pg": "^8.15.6",
-    "pg": "^8.16.3",
-    "typescript": "^5.9.3"
+    "@playwright/test": "1.56.1",
+    "@types/node": "24.0.0",
+    "@types/pg": "8.15.6",
+    "pg": "8.16.3",
+    "typescript": "5.9.3"
   },
   "dependencies": {
-    "uuid": "^13.0.0"
+    "uuid": "13.0.0"
   }
 }
