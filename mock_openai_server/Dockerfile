@@ -15,5 +15,5 @@ COPY --from=build-deps /usr/src/app/package.json ./package.json
 COPY --from=build-deps /usr/src/app/tsconfig.json ./tsconfig.json
 COPY --from=build-deps /usr/src/app/node_modules ./node_modules
 COPY --from=build-deps /usr/src/app/src ./src
-EXPOSE 8080
+
 CMD ["npm", "start"]
