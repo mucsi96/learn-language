@@ -31,6 +31,26 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
+  <mat-button-toggle-group
+    [value]="selectionMode()"
+    (change)="toggleSelectionMode()"
+  >
+    <mat-button-toggle value="immediate">Immediate</mat-button-toggle>
+    <mat-button-toggle value="grouped">Grouped</mat-button-toggle>
+  </mat-button-toggle-group>
+  @if (selectionMode() === 'grouped') {
+    <mat-chip-set>
+      <mat-chip>{{ regionGroup().length }} regions</mat-chip>
+    </mat-chip-set>
+    @if (regionGroup().length > 0) {
+      <button mat-raised-button color="primary" (click)="processRegionGroup()">
+        Process Group
+      </button>
+      <button mat-button (click)="clearRegionGroup()">
+        Clear Group
+      </button>
+    }
+  }
 </div>
 } @if (pageLoading()) {
 <mat-spinner class="page-loading" />
@@ -41,7 +61,7 @@
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
 >
-  @if (selectionRegionsLoading()) {
+  @if (selectionRegionsLoading() || groupedWordsLoading()) {
   <mat-spinner class="area-loading"></mat-spinner>
   } @for (span of spans(); track $index) {
   <app-span
@@ -56,6 +76,19 @@
     [exists]="span.exists"
     [selectionRegions]="selectionRegions()"
   ></app-span>
+  }
+  @if (groupedWordsResource()?.value(); as groupedWords) {
+    @for (word of groupedWords.words; track word.id) {
+      <div class="grouped-word">
+        <strong>{{ word.word }}</strong>
+        @if (word.forms.length > 0) {
+          <div>Forms: {{ word.forms.join(', ') }}</div>
+        }
+        @if (word.examples.length > 0) {
+          <div>Examples: {{ word.examples.join(', ') }}</div>
+        }
+      </div>
+    }
   }
 </section>
 

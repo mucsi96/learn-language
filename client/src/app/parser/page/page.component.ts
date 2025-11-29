@@ -20,6 +20,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 
@@ -37,6 +39,8 @@ import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
+    MatChipsModule,
+    MatButtonToggleModule,
     BulkCardCreationFabComponent
   ],
   templateUrl: './page.component.html',
@@ -65,6 +69,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly pageLoading = this.pageService.page.isLoading;
   readonly selectionRegionsLoading = computed(() =>
     this.pageService.selectionRegions().some((w) => w.isLoading())
+  );
+  readonly selectionMode = this.pageService.selectionMode;
+  readonly regionGroup = this.pageService.regionGroup;
+  readonly groupedWordsResource = this.pageService.groupedWordsResource;
+  readonly groupedWordsLoading = computed(() =>
+    this.groupedWordsResource()?.isLoading() ?? false
   );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
@@ -132,5 +142,17 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     const width = pageWidth * event.width / parentWidth;
     const height = pageWidth * event.height / parentWidth;
     this.pageService.addSelectedRectangle({ x, y, width, height });
+  }
+
+  toggleSelectionMode() {
+    this.pageService.toggleSelectionMode();
+  }
+
+  processRegionGroup() {
+    this.pageService.processRegionGroup();
+  }
+
+  clearRegionGroup() {
+    this.pageService.clearRegionGroup();
   }
 }
