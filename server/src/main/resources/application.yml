@@ -20,7 +20,7 @@ spring:
         secret:
           property-sources:
             - endpoint: https://p06-learn-language.vault.azure.net/
-              enabled: false
+              enabled: true
       active-directory:
         enabled: true
         profile:

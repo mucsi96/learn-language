@@ -11,17 +11,9 @@ spring:
     password: postgres
   cloud:
     azure:
-      keyvault:
-        secret:
-          property-sources:
-            - endpoint: https://p06-learn-language.vault.azure.net/
-              enabled: true
       active-directory:
-        profile:
-          tenant-id: ${tenant-id}
         credential:
-          client-id: ${api-client-id}
           client-secret: ${api-client-secret}
 management:
   server:
-    port: 8082
+    port: 8182
