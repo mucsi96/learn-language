@@ -5,9 +5,14 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.openai.client.OpenAIClient;
-import com.openai.models.ChatModel;
-import com.openai.models.chat.completions.ChatCompletionCreateParams;
+import com.google.common.collect.ImmutableMap;
+import com.google.genai.Client;
+import com.google.genai.types.Content;
+import com.google.genai.types.GenerateContentConfig;
+import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.Part;
+import com.google.genai.types.Schema;
+import com.google.genai.types.Type;
 
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
@@ -18,7 +23,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TranslationService {
 
-  // Language code constants
+  private static final String GEMINI_MODEL = "gemini-3-pro-preview-11-2025";
+
   private static final String ENGLISH = "en";
   private static final String SWISS_GERMAN = "ch";
   private static final String HUNGARIAN = "hu";
@@ -55,7 +61,7 @@ public class TranslationService {
             }
             """);
 
-  private final OpenAIClient openAIClient;
+  private final Client googleAiClient;
 
   public TranslationResponse translate(WordResponse word, String languageCode) {
 
@@ -72,17 +78,38 @@ public class TranslationService {
       throw new RuntimeException("Failed to serialize TranslationRequest to JSON", e);
     }
 
-    var createParams = ChatCompletionCreateParams.builder()
-        .model(ChatModel.GPT_4_1)
-        .addSystemMessage(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
-        .addUserMessage(translationRequestJson)
-        .responseFormat(TranslationResponse.class)
+    Schema responseSchema = Schema.builder()
+        .type(Type.Known.OBJECT)
+        .properties(ImmutableMap.of(
+            "translation", Schema.builder().type(Type.Known.STRING).build(),
+            "examples", Schema.builder()
+                .type(Type.Known.ARRAY)
+                .items(Schema.builder().type(Type.Known.STRING).build())
+                .build()))
+        .required("translation", "examples")
         .build();
 
-    var result = openAIClient.chat().completions().create(createParams).choices().stream()
-        .flatMap(choice -> choice.message().content().stream()).findFirst()
-        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+    GenerateContentConfig config = GenerateContentConfig.builder()
+        .responseMimeType("application/json")
+        .candidateCount(1)
+        .responseSchema(responseSchema)
+        .systemInstruction(Content.builder()
+            .role("user")
+            .parts(Part.text(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH))))
+            .build())
+        .build();
 
-    return result;
+    GenerateContentResponse response = googleAiClient.models.generateContent(
+        GEMINI_MODEL,
+        translationRequestJson,
+        config);
+
+    String responseText = response.text();
+
+    try {
+      return objectMapper.readValue(responseText, TranslationResponse.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to deserialize response from Gemini API: " + responseText, e);
+    }
   }
 }
