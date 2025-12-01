@@ -29,6 +29,7 @@ spring:
           client-id: ${api-client-id}
   ai:
     elevenlabs:
+      base-url: https://api.elevenlabs.io
       api-key: ${eleven-labs-api-key}
       tts:
         options:

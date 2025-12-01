@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import org.springframework.ai.audio.tts.TextToSpeechPrompt;
 import org.springframework.ai.elevenlabs.ElevenLabsTextToSpeechModel;
 import org.springframework.ai.elevenlabs.ElevenLabsTextToSpeechOptions;
 import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
@@ -25,12 +26,14 @@ public class ElevenLabsAudioService {
 
   public byte[] generateAudio(String input, String voiceId, String language) {
     try {
-      ElevenLabsTextToSpeechOptions options = ElevenLabsTextToSpeechOptions.builder()
+      var speechOptions = ElevenLabsTextToSpeechOptions.builder()
           .voiceId(voiceId)
           .languageCode(language)
           .build();
 
-      return textToSpeechModel.call(input, options);
+      var speechPrompt = new TextToSpeechPrompt(input, speechOptions);
+
+      return textToSpeechModel.call(speechPrompt).getResult().getOutput();
 
     } catch (Exception e) {
       log.error("Failed to generate audio with Eleven Labs", e);
@@ -47,21 +50,20 @@ public class ElevenLabsAudioService {
       }
 
       return response.getBody().voices().stream()
-          .filter(voice -> voice.sharing() != null && "copied".equals(voice.sharing().status()))
+          .filter(voice -> voice.sharing() != null
+              && ElevenLabsVoicesApi.VoiceSharing.StatusEnum.COPIED.equals(voice.sharing().status()))
           .map(voice -> VoiceResponse.builder()
               .id(voice.voiceId())
               .displayName(voice.name())
               .languages(Stream.concat(
-                  voice.verifiedLanguages() != null ?
-                      voice.verifiedLanguages().stream()
-                          .map(lang -> LanguageResponse.builder()
-                              .name(lang.language())
-                              .build()) :
-                      Stream.empty(),
-                  extractLanguageFromLabels(voice.labels())
-              )
-              .distinct()
-              .collect(Collectors.toList()))
+                  voice.verifiedLanguages() != null ? voice.verifiedLanguages().stream()
+                      .map(lang -> LanguageResponse.builder()
+                          .name(lang.language())
+                          .build())
+                      : Stream.empty(),
+                  extractLanguageFromLabels(voice.labels()))
+                  .distinct()
+                  .collect(Collectors.toList()))
               .build())
           .collect(Collectors.toList());
 
