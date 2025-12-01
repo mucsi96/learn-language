@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,9 @@ public class AIConfiguration {
   @Value("${google.ai.baseUrl:#{null}}")
   private String googleAiBaseUrl;
 
+  @Value("${spring.ai.elevenlabs.api-key}")
+  private String elevenLabsApiKey;
+
   @Bean
   OpenAIClient openAIClient(AITracingService aiTracingService) {
     var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
@@ -46,5 +50,12 @@ public class AIConfiguration {
     }
 
     return clientBuilder.build();
+  }
+
+  @Bean
+  ElevenLabsVoicesApi elevenLabsVoicesApi() {
+    return ElevenLabsVoicesApi.builder()
+        .apiKey(elevenLabsApiKey)
+        .build();
   }
 }

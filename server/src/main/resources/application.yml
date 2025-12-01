@@ -27,6 +27,13 @@ spring:
           tenant-id: ${tenant-id}
         credential:
           client-id: ${api-client-id}
+  ai:
+    elevenlabs:
+      api-key: ${eleven-labs-api-key}
+      tts:
+        options:
+          model: eleven_turbo_v2_5
+          output-format: mp3_44100_128
 server:
   servlet:
     context-path: /api
@@ -52,6 +59,3 @@ openai:
 google:
   ai:
     apiKey: ${google-ai-api-key}
-elevenlabs:
-  apiKey: ${eleven-labs-api-key}
-  baseUrl: https://api.elevenlabs.io
