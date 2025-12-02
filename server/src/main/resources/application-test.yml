@@ -11,8 +11,10 @@ spring:
             - enabled: false
       active-directory:
         enabled: false
-langsmith:
-  enabled: false
+  ai:
+    elevenlabs:
+      base-url: ${ELEVEN_LABS_BASE_URL}
+      api-key: ${ELEVEN_LABS_API_KEY}
 openai:
   apiKey: ${OPENAI_API_KEY}
   baseUrl: ${OPENAI_BASE_URL}
@@ -20,6 +22,3 @@ google:
   ai:
     apiKey: ${GOOGLE_AI_API_KEY}
     baseUrl: ${GOOGLE_AI_BASE_URL}
-elevenlabs:
-  apiKey: ${ELEVEN_LABS_API_KEY}
-  baseUrl: ${ELEVEN_LABS_BASE_URL}
