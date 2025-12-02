@@ -9,9 +9,6 @@ import com.google.genai.types.HttpOptions;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 
-import io.github.mucsi96.learnlanguage.tracing.AITracingService;
-import io.github.mucsi96.learnlanguage.tracing.TracebleOpenAIClient;
-
 @Configuration
 public class AIConfiguration {
 
@@ -31,14 +28,14 @@ public class AIConfiguration {
   private String elevenLabsApiKey;
 
   @Bean
-  OpenAIClient openAIClient(AITracingService aiTracingService) {
+  OpenAIClient openAIClient() {
     var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
 
     if (openAiBaseUrl != null && !openAiBaseUrl.isEmpty()) {
       clientBuilder.baseUrl(openAiBaseUrl);
     }
 
-    return new TracebleOpenAIClient(clientBuilder.build(), aiTracingService);
+    return clientBuilder.build();
   }
 
   @Bean

@@ -29,7 +29,6 @@ spring:
           client-id: ${api-client-id}
   ai:
     elevenlabs:
-      base-url: https://api.elevenlabs.io
       api-key: ${eleven-labs-api-key}
       tts:
         options:
@@ -50,11 +49,6 @@ management:
       show-details: always
       probes:
         enabled: true
-langsmith:
-  enabled: true
-  apiKey: ${langsmith-api-key:}
-  apiUrl: https://api.smith.langchain.com
-  project: learn-language
 openai:
   apiKey: ${openai-api-key}
 google:
