@@ -2,7 +2,6 @@ package io.github.mucsi96.learnlanguage.service;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.AudioData;
-import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import lombok.RequiredArgsConstructor;

@@ -25,10 +25,6 @@ As an explanation:
 
 Material icon library: https://fonts.google.com/icons
 
-# LangSmith
-
-https://github.com/langchain-ai/langsmith-cookbook/blob/main/tracing-examples/rest/rest.ipynb#Logging-LLM-Runs
-
 # Google AI
 
 - [Google AI Studio](https://aistudio.google.com)
