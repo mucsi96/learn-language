@@ -6,29 +6,6 @@
       "description": "Local file system directory for storing application files (images, audio, documents)"
     },
     {
-      "name": "langsmith.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enable LangSmith tracing for AI operations monitoring"
-    },
-    {
-      "name": "langsmith.apiKey",
-      "type": "java.lang.String",
-      "description": "API key for LangSmith tracing service",
-      "sourceType": "io.github.mucsi96.learnlanguage.tracing.AITracingService"
-    },
-    {
-      "name": "langsmith.apiUrl",
-      "type": "java.lang.String",
-      "description": "Base URL for LangSmith API endpoints",
-      "defaultValue": "https://api.smith.langchain.com"
-    },
-    {
-      "name": "langsmith.project",
-      "type": "java.lang.String",
-      "description": "LangSmith project name for organizing traced operations",
-      "defaultValue": "learn-language"
-    },
-    {
       "name": "google.ai.apiKey",
       "type": "java.lang.String",
       "description": "API key for Google AI services including Imagen image generation"
@@ -37,16 +14,6 @@
       "name": "google.ai.baseUrl",
       "type": "java.lang.String",
       "description": "Base URL for Google AI API endpoints"
-    },
-    {
-      "name": "elevenlabs.apiKey",
-      "type": "java.lang.String",
-      "description": "API key for Eleven Labs text-to-speech services"
-    },
-    {
-      "name": "elevenlabs.baseUrl",
-      "type": "java.lang.String",
-      "description": "Base URL for Eleven Labs API endpoints"
     },
     {
       "name": "openai.api-key",

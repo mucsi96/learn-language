@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,9 +8,6 @@ import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
-
-import io.github.mucsi96.learnlanguage.tracing.AITracingService;
-import io.github.mucsi96.learnlanguage.tracing.TracebleOpenAIClient;
 
 @Configuration
 public class AIConfiguration {
@@ -26,15 +24,18 @@ public class AIConfiguration {
   @Value("${google.ai.baseUrl:#{null}}")
   private String googleAiBaseUrl;
 
+  @Value("${spring.ai.elevenlabs.api-key}")
+  private String elevenLabsApiKey;
+
   @Bean
-  OpenAIClient openAIClient(AITracingService aiTracingService) {
+  OpenAIClient openAIClient() {
     var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
 
     if (openAiBaseUrl != null && !openAiBaseUrl.isEmpty()) {
       clientBuilder.baseUrl(openAiBaseUrl);
     }
 
-    return new TracebleOpenAIClient(clientBuilder.build(), aiTracingService);
+    return clientBuilder.build();
   }
 
   @Bean
@@ -46,5 +47,12 @@ public class AIConfiguration {
     }
 
     return clientBuilder.build();
+  }
+
+  @Bean
+  ElevenLabsVoicesApi elevenLabsVoicesApi() {
+    return ElevenLabsVoicesApi.builder()
+        .apiKey(elevenLabsApiKey)
+        .build();
   }
 }
