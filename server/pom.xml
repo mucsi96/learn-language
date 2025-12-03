@@ -138,7 +138,7 @@
       <dependency>
         <groupId>com.azure.spring</groupId>
         <artifactId>spring-cloud-azure-dependencies</artifactId>
-        <version>6.0.0</version>
+        <version>6.0.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>
