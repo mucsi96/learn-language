@@ -145,7 +145,8 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
           ]),
           isSelected: index === 0, // First example is selected by default
           images: exampleImages[index] || []
-        }))
+        })),
+        pdfText: word.pdfText
       };
 
     } catch (error) {

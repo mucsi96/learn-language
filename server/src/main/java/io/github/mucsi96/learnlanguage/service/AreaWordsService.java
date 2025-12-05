@@ -73,6 +73,7 @@ public class AreaWordsService {
 
     return result.wordList.stream().map(word -> {
       word.setId(wordIdService.generateWordId(word.getWord()));
+      word.setPdfText(word.getWord());
       return word;
     }).toList();
   }

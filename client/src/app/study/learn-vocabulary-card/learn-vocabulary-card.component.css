@@ -92,6 +92,25 @@ h2 {
   line-height: 1.4;
 }
 
+.validation-hints {
+  visibility: hidden;
+}
+
+:host-context(.revealed) .validation-hints {
+  visibility: visible;
+}
+
+.validation-hint {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.validation-hint small {
+  color: var(--mat-sys-primary);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
 .example {
   padding: 1rem;
   padding-top: 2rem;
