@@ -17,7 +17,7 @@ public class ImageService {
     if (model == ImageGenerationModel.GPT_IMAGE_1) {
       return openAIImageService.generateImage(input);
     } else {
-      return googleImageService.generateImage(input);
+      return googleImageService.generateImage(input, model);
     }
   }
 }
