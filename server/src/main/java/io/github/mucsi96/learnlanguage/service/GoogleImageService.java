@@ -8,7 +8,7 @@ import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.GenerateImagesConfig;
 import com.google.genai.types.GenerateImagesResponse;
 import com.google.genai.types.Image;
-import com.google.genai.types.Modality;
+import com.google.genai.types.ImageConfig;
 import com.google.genai.types.Part;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +53,11 @@ public class GoogleImageService {
   public byte[] generateImageWithNanoBananaPro(String prompt) {
     try {
       GenerateContentConfig config = GenerateContentConfig.builder()
-          .responseModalities(Modality.Known.IMAGE)
+          .responseModalities("TEXT", "IMAGE")
+          .imageConfig(ImageConfig.builder()
+              .aspectRatio("1:1")
+              .imageSize("1K")
+              .build())
           .build();
 
       GenerateContentResponse response = googleAiClient.models.generateContent(
