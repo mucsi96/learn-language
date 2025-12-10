@@ -2,9 +2,9 @@ storage:
   directory: ${STORAGE_DIRECTORY}
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${db-url}
+    username: ${db-username}
+    password: ${db-password}
     driver-class-name: org.postgresql.Driver
   jpa:
     properties:
@@ -16,12 +16,24 @@ spring:
       schema-locations: classpath:schema.sql
   cloud:
     azure:
+      keyvault:
+        secret:
+          property-sources:
+            - endpoint: https://p06-learn-language.vault.azure.net/
+              enabled: true
       active-directory:
         enabled: true
         profile:
-          tenant-id: ${AZURE_TENANT_ID}
+          tenant-id: ${tenant-id}
         credential:
-          client-id: ${AZURE_CLIENT_ID}
+          client-id: ${api-client-id}
+  ai:
+    elevenlabs:
+      api-key: ${eleven-labs-api-key}
+      tts:
+        options:
+          model: eleven_turbo_v2_5
+          output-format: mp3_44100_128
 server:
   servlet:
     context-path: /api
@@ -37,17 +49,8 @@ management:
       show-details: always
       probes:
         enabled: true
-langsmith:
-  enabled: true
-  apiKey: ${LANGSMITH_API_KEY:}
-  apiUrl: https://api.smith.langchain.com
-  project: learn-language
 openai:
-  apiKey: ${OPENAI_API_KEY}
+  apiKey: ${openai-api-key}
 google:
   ai:
-    apiKey: ${GOOGLE_AI_API_KEY}
-elevenlabs:
-  apiKey: ${ELEVEN_LABS_API_KEY}
-  baseUrl: https://api.elevenlabs.io
-
+    apiKey: ${google-ai-api-key}

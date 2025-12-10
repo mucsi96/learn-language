@@ -1,22 +1,18 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.ai.audio.tts.TextToSpeechPrompt;
+import org.springframework.ai.elevenlabs.ElevenLabsTextToSpeechModel;
+import org.springframework.ai.elevenlabs.ElevenLabsTextToSpeechOptions;
+import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import io.github.mucsi96.learnlanguage.model.ElevenLabsTextToSpeechRequest;
-import io.github.mucsi96.learnlanguage.model.ElevenLabsVoicesResponse;
-import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageResponse;
+import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,43 +21,19 @@ import java.util.stream.Stream;
 @Slf4j
 public class ElevenLabsAudioService {
 
-  private final RestTemplate restTemplate;
-
-  @Value("${elevenlabs.apiKey}")
-  private String apiKey;
-
-  @Value("${elevenlabs.baseUrl}")
-  private String baseUrl;
+  private final ElevenLabsTextToSpeechModel textToSpeechModel;
+  private final ElevenLabsVoicesApi voicesApi;
 
   public byte[] generateAudio(String input, String voiceId, String language) {
     try {
-      String url = baseUrl + "/v1/text-to-speech/" + voiceId;
-
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_JSON);
-      headers.set("xi-api-key", apiKey);
-      headers.set("Content-Type", "application/json");
-
-      ElevenLabsTextToSpeechRequest requestBody = ElevenLabsTextToSpeechRequest.builder()
-          .text(input)
-          .modelId("eleven_turbo_v2_5")
+      var speechOptions = ElevenLabsTextToSpeechOptions.builder()
+          .voiceId(voiceId)
           .languageCode(language)
           .build();
 
-      HttpEntity<ElevenLabsTextToSpeechRequest> requestEntity = new HttpEntity<>(requestBody, headers);
+      var speechPrompt = new TextToSpeechPrompt(input, speechOptions);
 
-      ResponseEntity<byte[]> response = restTemplate.exchange(
-        url,
-        HttpMethod.POST,
-        requestEntity,
-        byte[].class
-      );
-
-      if (response.getBody() == null) {
-        throw new RuntimeException("No audio generated from Eleven Labs API");
-      }
-
-      return response.getBody();
+      return textToSpeechModel.call(speechPrompt).getResult().getOutput();
 
     } catch (Exception e) {
       log.error("Failed to generate audio with Eleven Labs", e);
@@ -71,46 +43,27 @@ public class ElevenLabsAudioService {
 
   public List<VoiceResponse> getVoices() {
     try {
-      String url = baseUrl + "/v1/voices";
+      var response = voicesApi.getVoices();
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("xi-api-key", apiKey);
-
-      HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-
-      ResponseEntity<ElevenLabsVoicesResponse> response = restTemplate.exchange(
-        url,
-        HttpMethod.GET,
-        requestEntity,
-        ElevenLabsVoicesResponse.class
-      );
-
-      if (response.getBody() == null || response.getBody().getVoices() == null) {
+      if (response.getBody() == null || response.getBody().voices() == null) {
         throw new RuntimeException("No voices returned from Eleven Labs API");
       }
 
-      return response.getBody().getVoices().stream()
-          .filter(voice -> voice.getSharing() != null && "copied".equals(voice.getSharing().getStatus()))
+      return response.getBody().voices().stream()
+          .filter(voice -> voice.sharing() != null
+              && ElevenLabsVoicesApi.VoiceSharing.StatusEnum.COPIED.equals(voice.sharing().status()))
           .map(voice -> VoiceResponse.builder()
-              .id(voice.getVoiceId())
-              .displayName(voice.getName())
+              .id(voice.voiceId())
+              .displayName(voice.name())
               .languages(Stream.concat(
-                  // Stream from verified languages
-                  voice.getVerifiedLanguages() != null ? 
-                      voice.getVerifiedLanguages().stream()
-                          .map(lang -> LanguageResponse.builder()
-                              .name(lang.getLanguage())
-                              .build()) : 
-                      Stream.empty(),
-                  // Stream from labels language
-                  voice.getLabels() != null && voice.getLabels().getLanguage() != null ?
-                      Stream.of(LanguageResponse.builder()
-                          .name(voice.getLabels().getLanguage())
-                          .build()) :
-                      Stream.empty()
-              )
-              .distinct()
-              .collect(Collectors.toList()))
+                  voice.verifiedLanguages() != null ? voice.verifiedLanguages().stream()
+                      .map(lang -> LanguageResponse.builder()
+                          .name(lang.language())
+                          .build())
+                      : Stream.empty(),
+                  extractLanguageFromLabels(voice.labels()))
+                  .distinct()
+                  .collect(Collectors.toList()))
               .build())
           .collect(Collectors.toList());
 
@@ -118,5 +71,14 @@ public class ElevenLabsAudioService {
       log.error("Failed to fetch voices from Eleven Labs", e);
       throw new RuntimeException("Failed to fetch voices from Eleven Labs: " + e.getMessage(), e);
     }
+  }
+
+  private Stream<LanguageResponse> extractLanguageFromLabels(Map<String, String> labels) {
+    if (labels != null && labels.get("language") != null) {
+      return Stream.of(LanguageResponse.builder()
+          .name(labels.get("language"))
+          .build());
+    }
+    return Stream.empty();
   }
 }

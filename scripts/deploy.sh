@@ -35,12 +35,11 @@ apiClientId=$(az keyvault secret show --vault-name p06-learn-language --name api
 serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 
-springAppChartVersion=24.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
-clientAppChartVersion=13.0.0 #https://github.com/mucsi96/k8s-helm-charts/releases
-
 echo "Updating Helm repositories..."
+helm repo add mucsi96 https://mucsi96.github.io/k8s-helm-charts --force-update
 
-helm repo update
+springAppChartVersion=$(helm search repo mucsi96/spring-app --output json | jq -r '.[0].version')
+clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -r '.[0].version')
 
 echo "Deploying server: mucsi96/learn-language-server:$serverLatestTag to $hostname using spring-app chart $springAppChartVersion"
 
