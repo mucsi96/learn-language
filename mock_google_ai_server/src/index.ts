@@ -27,15 +27,53 @@ app.post('/reset', (req, res) => {
 app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
   try {
     const prompt = req.body.instances[0].prompt;
-    console.log({prompt});
-    const result = imageHandler.generateImage(prompt);
-    res.status(200).json(result);
-    console.log({result});
+    console.log({ prompt });
+    const imageBytes = imageHandler.generateImage(prompt);
+    res.status(200).json({
+      predictions: [
+        {
+          mimeType: 'image/jpeg',
+          bytesBase64Encoded: imageBytes,
+        },
+      ],
+    });
+    console.log({ imageBytes });
   } catch (error) {
     console.error('Image generation error:', error);
     res.status(500).json({ error: { message: 'Image generation failed' } });
   }
 });
+
+app.post(
+  '/v1beta/models/gemini-3-pro-image-preview:generateContent',
+  (req, res) => {
+    try {
+      const prompt = req.body.contents[0].parts[0].text;
+      console.log({ prompt });
+      const imageBytes = imageHandler.generateImage(prompt);
+      res.status(200).json({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: 'image/png',
+                    data: imageBytes,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+      console.log({ imageBytes });
+    } catch (error) {
+      console.error('Image generation error:', error);
+      res.status(500).json({ error: { message: 'Image generation failed' } });
+    }
+  }
+);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
