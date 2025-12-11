@@ -1,7 +1,9 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import org.springframework.ai.audio.tts.TextToSpeechPrompt;
 import org.springframework.ai.openai.OpenAiAudioSpeechModel;
 import org.springframework.ai.openai.OpenAiAudioSpeechOptions;
+import org.springframework.ai.openai.api.OpenAiAudioApi;
 import org.springframework.ai.openai.api.OpenAiAudioApi.SpeechRequest.AudioResponseFormat;
 import org.springframework.ai.openai.api.OpenAiAudioApi.SpeechRequest.Voice;
 import org.springframework.stereotype.Service;
@@ -20,13 +22,13 @@ public class OpenAIAudioService {
     Voice voice = parseVoice(voiceName);
 
     var options = OpenAiAudioSpeechOptions.builder()
-        .model("tts-1-hd")
+        .model(OpenAiAudioApi.TtsModel.TTS_1_HD.getValue())
         .voice(voice)
         .responseFormat(AudioResponseFormat.MP3)
-        .speed(1.0f)
+        .speed(1.0)
         .build();
-
-    return speechModel.call(input, options);
+    TextToSpeechPrompt prompt = new TextToSpeechPrompt(input, options);
+    return speechModel.call(prompt).getResult().getOutput();
   }
 
   private Voice parseVoice(String voiceName) {

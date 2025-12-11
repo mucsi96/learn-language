@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class GenderDetectionService {
 
   public String detectGender(String noun) {
     var result = chatClientBuilder
-        .defaultOptions(OpenAiChatOptions.builder().model("gpt-4.1").build())
+        .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
         .build()
         .prompt()
         .system("""

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,7 +56,7 @@ public class TranslationService {
     }
 
     return chatClientBuilder
-        .defaultOptions(OpenAiChatOptions.builder().model("gpt-4.1").build())
+        .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
         .build()
         .prompt()
         .system(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
