@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GeminiComparisonService {
 
-  private static final String GEMINI_MODEL = "gemini-2.5-pro-preview-06-05";
+  private static final String GEMINI_MODEL = "gemini-3-pro-preview";
 
   private final Client googleAiClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
