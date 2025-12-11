@@ -213,7 +213,7 @@ test('card editing in db', async ({ page }) => {
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' })
   );
 
-  expect(imageContent2.equals(getColorImageBytes('red'))).toBeTruthy();
+  expect(imageContent2.equals(getColorImageBytes('green'))).toBeTruthy();
 
   await page.getByRole('radio').nth(1).click();
   await page.getByRole('button', { name: 'Update' }).click();
