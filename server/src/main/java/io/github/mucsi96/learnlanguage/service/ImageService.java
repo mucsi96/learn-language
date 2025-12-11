@@ -14,10 +14,10 @@ public class ImageService {
   private final GoogleImageService googleImageService;
 
   public byte[] generateImage(String input, ImageGenerationModel model) {
-    if (model == ImageGenerationModel.GPT_IMAGE_1) {
-      return openAIImageService.generateImage(input);
-    } else {
-      return googleImageService.generateImage(input);
-    }
+    return switch (model) {
+      case GPT_IMAGE_1 -> openAIImageService.generateImage(input);
+      case IMAGEN_4_ULTRA -> googleImageService.generateImageWithImagen(input);
+      case NANO_BANANA_PRO -> googleImageService.generateImageWithNanoBananaPro(input);
+    };
   }
 }

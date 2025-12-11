@@ -29,13 +29,6 @@ export class ImageGenerationHandler {
       imageBytes = this.imageCallCounter2 > 1 ? IMAGES.green : IMAGES.red;
     }
 
-    return {
-      predictions: [
-        {
-          mimeType: 'image/jpeg',
-          bytesBase64Encoded: imageBytes
-        }
-      ]
-    };
+    return imageBytes;
   }
 }

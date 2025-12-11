@@ -93,8 +93,8 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
             return [];
           }
 
-          // Generate images with both models
-          const [gptImageResponse, imagenImageResponse] = await Promise.all([
+          // Generate images with all models
+          const [gptImageResponse, imagenImageResponse, nanoBananaProResponse] = await Promise.all([
             fetchJson<ImageResponse>(
               this.http,
               `/api/image`,
@@ -116,12 +116,24 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
                 },
                 method: 'POST',
               }
+            ),
+            fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input: englishTranslation,
+                  model: 'google-nano-banana-pro'
+                },
+                method: 'POST',
+              }
             )
           ]);
 
           return [
             { id: gptImageResponse.id },
-            { id: imagenImageResponse.id }
+            { id: imagenImageResponse.id },
+            { id: nanoBananaProResponse.id }
           ];
         })
       );
