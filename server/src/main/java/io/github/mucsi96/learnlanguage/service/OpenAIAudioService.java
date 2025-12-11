@@ -1,12 +1,12 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.io.IOException;
-
+import org.springframework.ai.audio.tts.TextToSpeechPrompt;
+import org.springframework.ai.openai.OpenAiAudioSpeechModel;
+import org.springframework.ai.openai.OpenAiAudioSpeechOptions;
+import org.springframework.ai.openai.api.OpenAiAudioApi;
+import org.springframework.ai.openai.api.OpenAiAudioApi.SpeechRequest.AudioResponseFormat;
+import org.springframework.ai.openai.api.OpenAiAudioApi.SpeechRequest.Voice;
 import org.springframework.stereotype.Service;
-
-import com.openai.client.OpenAIClient;
-import com.openai.models.audio.speech.SpeechCreateParams;
-import com.openai.models.audio.speech.SpeechModel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,40 +16,38 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OpenAIAudioService {
 
-  private final OpenAIClient openAIClient;
+  private final OpenAiAudioSpeechModel speechModel;
 
-  public byte[] generateAudio(String input, String voiceName) throws IOException {
-    SpeechCreateParams.Voice voice = parseVoice(voiceName);
+  public byte[] generateAudio(String input, String voiceName) {
+    Voice voice = parseVoice(voiceName);
 
-    SpeechCreateParams speechParams = SpeechCreateParams.builder()
-        .input(input)
-        .model(SpeechModel.TTS_1_HD)
+    var options = OpenAiAudioSpeechOptions.builder()
+        .model(OpenAiAudioApi.TtsModel.TTS_1_HD.getValue())
         .voice(voice)
-        .responseFormat(SpeechCreateParams.ResponseFormat.MP3)
+        .responseFormat(AudioResponseFormat.MP3)
         .speed(1.0)
         .build();
-
-    var response = openAIClient.audio().speech().create(speechParams);
-    return response.body().readAllBytes();
+    TextToSpeechPrompt prompt = new TextToSpeechPrompt(input, options);
+    return speechModel.call(prompt).getResult().getOutput();
   }
 
-  private SpeechCreateParams.Voice parseVoice(String voiceName) {
+  private Voice parseVoice(String voiceName) {
     if (voiceName == null || voiceName.isEmpty()) {
-      return SpeechCreateParams.Voice.ALLOY; // Default fallback
+      return Voice.ALLOY;
     }
 
     return switch (voiceName.toLowerCase()) {
-      case "alloy" -> SpeechCreateParams.Voice.ALLOY;
-      case "ash" -> SpeechCreateParams.Voice.ASH;
-      case "ballad" -> SpeechCreateParams.Voice.BALLAD;
-      case "coral" -> SpeechCreateParams.Voice.CORAL;
-      case "echo" -> SpeechCreateParams.Voice.ECHO;
-      case "sage" -> SpeechCreateParams.Voice.SAGE;
-      case "shimmer" -> SpeechCreateParams.Voice.SHIMMER;
-      case "verse" -> SpeechCreateParams.Voice.VERSE;
+      case "alloy" -> Voice.ALLOY;
+      case "ash" -> Voice.ASH;
+      case "ballad" -> Voice.BALLAD;
+      case "coral" -> Voice.CORAL;
+      case "echo" -> Voice.ECHO;
+      case "sage" -> Voice.SAGE;
+      case "shimmer" -> Voice.SHIMMER;
+      case "verse" -> Voice.VERSE;
       default -> {
         log.warn("Invalid voice name provided: {}, falling back to ALLOY", voiceName);
-        yield SpeechCreateParams.Voice.ALLOY;
+        yield Voice.ALLOY;
       }
     };
   }

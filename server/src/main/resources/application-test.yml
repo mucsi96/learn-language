@@ -12,12 +12,12 @@ spring:
       active-directory:
         enabled: false
   ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL}
     elevenlabs:
       base-url: ${ELEVEN_LABS_BASE_URL}
       api-key: ${ELEVEN_LABS_API_KEY}
-openai:
-  apiKey: ${OPENAI_API_KEY}
-  baseUrl: ${OPENAI_BASE_URL}
 google:
   ai:
     apiKey: ${GOOGLE_AI_API_KEY}

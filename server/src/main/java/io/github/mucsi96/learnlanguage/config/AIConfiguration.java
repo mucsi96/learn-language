@@ -12,10 +12,10 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 @Configuration
 public class AIConfiguration {
 
-  @Value("${openai.apiKey}")
+  @Value("${spring.ai.openai.api-key}")
   private String openAiApiKey;
 
-  @Value("${openai.baseUrl:#{null}}")
+  @Value("${spring.ai.openai.base-url:#{null}}")
   private String openAiBaseUrl;
 
   @Value("${google.ai.apiKey}")

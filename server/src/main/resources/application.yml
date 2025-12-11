@@ -28,6 +28,8 @@ spring:
         credential:
           client-id: ${api-client-id}
   ai:
+    openai:
+      api-key: ${openai-api-key}
     elevenlabs:
       api-key: ${eleven-labs-api-key}
       tts:
@@ -49,8 +51,6 @@ management:
       show-details: always
       probes:
         enabled: true
-openai:
-  apiKey: ${openai-api-key}
 google:
   ai:
     apiKey: ${google-ai-api-key}
