@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TranslationService {
 
-  // Language code constants
   private static final String ENGLISH = "en";
   private static final String SWISS_GERMAN = "ch";
   private static final String HUNGARIAN = "hu";
@@ -56,6 +55,7 @@ public class TranslationService {
             """);
 
   private final OpenAIClient openAIClient;
+  private final GeminiComparisonService geminiComparisonService;
 
   public TranslationResponse translate(WordResponse word, String languageCode) {
 
@@ -72,17 +72,25 @@ public class TranslationService {
       throw new RuntimeException("Failed to serialize TranslationRequest to JSON", e);
     }
 
-    var createParams = ChatCompletionCreateParams.builder()
-        .model(ChatModel.GPT_4_1)
-        .addSystemMessage(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
-        .addUserMessage(translationRequestJson)
-        .responseFormat(TranslationResponse.class)
-        .build();
+    String systemPrompt = LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH));
 
-    var result = openAIClient.chat().completions().create(createParams).choices().stream()
-        .flatMap(choice -> choice.message().content().stream()).findFirst()
-        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+    return geminiComparisonService.executeWithComparison(
+        "Translation (" + languageCode + ") for: " + word.getWord(),
+        () -> {
+          var createParams = ChatCompletionCreateParams.builder()
+              .model(ChatModel.GPT_4_1)
+              .addSystemMessage(systemPrompt)
+              .addUserMessage(translationRequestJson)
+              .responseFormat(TranslationResponse.class)
+              .build();
 
-    return result;
+          return openAIClient.chat().completions().create(createParams).choices().stream()
+              .flatMap(choice -> choice.message().content().stream()).findFirst()
+              .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+        },
+        systemPrompt,
+        translationRequestJson,
+        TranslationResponse.class
+    );
   }
 }

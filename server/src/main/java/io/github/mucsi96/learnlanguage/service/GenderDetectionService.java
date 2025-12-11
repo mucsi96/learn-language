@@ -12,32 +12,44 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GenderDetectionService {
 
-  static record GenderResult(String gender) {
+  public static record GenderResult(String gender) {
   }
 
+  private static final String SYSTEM_PROMPT = """
+      You are a German language expert.
+      Your task is to determine the gender of the given German noun.
+      Return the grammatical gender in capitalized form: MASCULINE, FEMININE, or NEUTER.
+      Do not include any additional text or explanations, just the JSON response.
+      Example of the expected JSON response:
+      {
+          "gender": "MASCULINE"
+      }
+      """;
+
   private final OpenAIClient openAIClient;
+  private final GeminiComparisonService geminiComparisonService;
 
   public String detectGender(String noun) {
-    var createParams = ChatCompletionCreateParams.builder()
-        .model(ChatModel.GPT_4_1)
-        .addSystemMessage(
-            """
-                You are a German language expert.
-                Your task is to determine the gender of the given German noun.
-                Return the grammatical gender in capitalized form: MASCULINE, FEMININE, or NEUTER.
-                Do not include any additional text or explanations, just the JSON response.
-                Example of the expected JSON response:
-                {
-                    "gender": "MASCULINE"
-                }
-                """)
-        .addUserMessage("The noun is: %s.".formatted(noun))
-        .responseFormat(GenderResult.class)
-        .build();
+    String userPrompt = "The noun is: %s.".formatted(noun);
 
-    var result = openAIClient.chat().completions().create(createParams).choices().stream()
-        .flatMap(choice -> choice.message().content().stream()).findFirst()
-        .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+    GenderResult result = geminiComparisonService.executeWithComparison(
+        "Gender detection for: " + noun,
+        () -> {
+          var createParams = ChatCompletionCreateParams.builder()
+              .model(ChatModel.GPT_4_1)
+              .addSystemMessage(SYSTEM_PROMPT)
+              .addUserMessage(userPrompt)
+              .responseFormat(GenderResult.class)
+              .build();
+
+          return openAIClient.chat().completions().create(createParams).choices().stream()
+              .flatMap(choice -> choice.message().content().stream()).findFirst()
+              .orElseThrow(() -> new RuntimeException("No content returned from OpenAI API"));
+        },
+        SYSTEM_PROMPT,
+        userPrompt,
+        GenderResult.class
+    );
 
     return result.gender();
   }
