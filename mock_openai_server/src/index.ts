@@ -48,7 +48,7 @@ app.post('/audio/speech', (req, res) => {
   }
 });
 
-app.post('/chat/completions', async (req, res) => {
+app.post('/v1/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;
     const result = await chatHandler.processMessages(messages);

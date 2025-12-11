@@ -6,9 +6,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
+import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
 
 @Configuration
 public class AIConfiguration {
+
+  @Value("${spring.ai.openai.api-key}")
+  private String openAiApiKey;
+
+  @Value("${spring.ai.openai.base-url:#{null}}")
+  private String openAiBaseUrl;
 
   @Value("${google.ai.apiKey}")
   private String googleAiApiKey;
@@ -18,6 +26,17 @@ public class AIConfiguration {
 
   @Value("${spring.ai.elevenlabs.api-key}")
   private String elevenLabsApiKey;
+
+  @Bean
+  OpenAIClient openAIClient() {
+    var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
+
+    if (openAiBaseUrl != null && !openAiBaseUrl.isEmpty()) {
+      clientBuilder.baseUrl(openAiBaseUrl);
+    }
+
+    return clientBuilder.build();
+  }
 
   @Bean
   Client googleAiClient() {

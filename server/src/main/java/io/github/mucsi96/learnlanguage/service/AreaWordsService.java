@@ -7,6 +7,7 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
 
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class AreaWordsService {
             .text("Here is the image of the page")
             .media(Media.builder()
                 .data(imageData)
+                .mimeType(MimeTypeUtils.IMAGE_PNG)
                 .build()))
         .call()
         .entity(AreaWords.class);
