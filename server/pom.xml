@@ -119,8 +119,8 @@
     </dependency>
     <dependency>
       <groupId>com.google.genai</groupId>
-      <artifactId>google-genai</artifactId>
-      <version>1.28.0</version>
+      <artifactId>google-genai</artifactId> <!-- https://github.com/googleapis/java-genai -->
+      <version>1.29.0</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>

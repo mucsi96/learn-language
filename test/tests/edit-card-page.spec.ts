@@ -208,12 +208,12 @@ test('card editing in db', async ({ page }) => {
   await navigateToCardCreation(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(page.getByText('3 / 3')).toBeVisible();
+  await expect(page.getByText('4 / 4')).toBeVisible();
   const imageContent2 = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' })
   );
 
-  expect(imageContent2.equals(getColorImageBytes('red'))).toBeTruthy();
+  expect(imageContent2.equals(getColorImageBytes('green'))).toBeTruthy();
 
   await page.getByRole('radio').nth(1).click();
   await page.getByRole('button', { name: 'Update' }).click();
