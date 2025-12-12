@@ -4,8 +4,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import io.github.mucsi96.learnlanguage.service.TranslationService;
@@ -19,7 +21,10 @@ public class TranslationController {
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PostMapping("/translate/{languageCode}")
-    public TranslationResponse translate(@RequestBody WordResponse word, @PathVariable String languageCode) {
-        return translationService.translate(word, languageCode);
+    public TranslationResponse translate(
+            @RequestBody WordResponse word,
+            @PathVariable String languageCode,
+            @RequestParam(defaultValue = "gpt-5") ChatModel model) {
+        return translationService.translate(word, languageCode, model);
     }
 }

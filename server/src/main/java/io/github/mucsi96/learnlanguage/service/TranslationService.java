@@ -2,20 +2,22 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.Map;
 
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.anthropic.api.AnthropicApi;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class TranslationService {
 
   private static final String ENGLISH = "en";
@@ -39,9 +41,17 @@ public class TranslationService {
             Pay attention to proper Hungarian grammar and word forms.
             """);
 
-  private final ChatClient.Builder chatClientBuilder;
+  private final ChatClient.Builder openAiChatClientBuilder;
+  private final ChatClient.Builder anthropicChatClientBuilder;
 
-  public TranslationResponse translate(WordResponse word, String languageCode) {
+  public TranslationService(
+      @Qualifier("openAiChatClient") ChatClient.Builder openAiChatClientBuilder,
+      @Qualifier("anthropicChatClient") ChatClient.Builder anthropicChatClientBuilder) {
+    this.openAiChatClientBuilder = openAiChatClientBuilder;
+    this.anthropicChatClientBuilder = anthropicChatClientBuilder;
+  }
+
+  public TranslationResponse translate(WordResponse word, String languageCode, ChatModel model) {
     TranslationRequest translationRequest = TranslationRequest.builder()
         .examples(word.getExamples())
         .word(word.getWord())
@@ -55,13 +65,25 @@ public class TranslationService {
       throw new RuntimeException("Failed to serialize TranslationRequest to JSON", e);
     }
 
-    return chatClientBuilder
-        .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
-        .build()
-        .prompt()
-        .system(LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH)))
-        .user(translationRequestJson)
-        .call()
-        .entity(TranslationResponse.class);
+    String systemPrompt = LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH));
+
+    return switch (model) {
+      case GPT_5 -> openAiChatClientBuilder
+          .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
+          .build()
+          .prompt()
+          .system(systemPrompt)
+          .user(translationRequestJson)
+          .call()
+          .entity(TranslationResponse.class);
+      case CLAUDE_SONNET_4_5 -> anthropicChatClientBuilder
+          .defaultOptions(AnthropicChatOptions.builder().model(AnthropicApi.ChatModel.CLAUDE_SONNET_4_5_LATEST).build())
+          .build()
+          .prompt()
+          .system(systemPrompt)
+          .user(translationRequestJson)
+          .call()
+          .entity(TranslationResponse.class);
+    };
   }
 }
