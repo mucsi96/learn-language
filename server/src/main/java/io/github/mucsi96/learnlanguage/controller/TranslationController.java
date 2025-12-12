@@ -24,7 +24,7 @@ public class TranslationController {
     public TranslationResponse translate(
             @RequestBody WordResponse word,
             @PathVariable String languageCode,
-            @RequestParam(defaultValue = "gpt-5") ChatModel model) {
-        return translationService.translate(word, languageCode, model);
+            @RequestParam ChatModel model) {
+        return translationService.translate(word, languageCode, model.toChatModel());
     }
 }
