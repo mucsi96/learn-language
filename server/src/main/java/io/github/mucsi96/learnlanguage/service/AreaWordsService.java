@@ -3,9 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.content.Media;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
@@ -19,13 +17,10 @@ public class AreaWordsService {
   record AreaWords(List<WordResponse> wordList) {
   }
 
-  private final ChatClient.Builder chatClientBuilder;
   private final WordIdService wordIdService;
 
-  public List<WordResponse> getAreaWords(byte[] imageData) {
-    var result = chatClientBuilder
-        .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
-        .build()
+  public List<WordResponse> getAreaWords(byte[] imageData, ChatClient chatClient) {
+    var result = chatClient
         .prompt()
         .system(
             """

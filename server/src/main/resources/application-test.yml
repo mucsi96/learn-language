@@ -18,10 +18,10 @@ spring:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       base-url: ${ANTHROPIC_BASE_URL}
+    google:
+      genai:
+        api-key: ${GOOGLE_AI_API_KEY}
+        base-url: ${GOOGLE_AI_BASE_URL}
     elevenlabs:
       base-url: ${ELEVEN_LABS_BASE_URL}
       api-key: ${ELEVEN_LABS_API_KEY}
-google:
-  ai:
-    apiKey: ${GOOGLE_AI_API_KEY}
-    baseUrl: ${GOOGLE_AI_BASE_URL}

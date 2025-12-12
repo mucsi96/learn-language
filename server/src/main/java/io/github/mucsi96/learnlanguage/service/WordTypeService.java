@@ -1,8 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -14,12 +12,8 @@ public class WordTypeService {
   record WordTypeResult(String type) {
   }
 
-  private final ChatClient.Builder chatClientBuilder;
-
-  public String detectWordType(String word) {
-    var result = chatClientBuilder
-        .defaultOptions(OpenAiChatOptions.builder().model(OpenAiApi.ChatModel.GPT_5_CHAT_LATEST).build())
-        .build()
+  public String detectWordType(String word, ChatClient chatClient) {
+    var result = chatClient
         .prompt()
         .system("""
             You are a linguistic expert.

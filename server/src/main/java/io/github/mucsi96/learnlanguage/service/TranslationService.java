@@ -3,7 +3,6 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +39,7 @@ public class TranslationService {
 
   private final ObjectMapper objectMapper;
 
-  public TranslationResponse translate(WordResponse word, String languageCode, ChatModel model) {
+  public TranslationResponse translate(WordResponse word, String languageCode, ChatClient chatClient) {
     TranslationRequest translationRequest = TranslationRequest.builder()
         .examples(word.getExamples())
         .word(word.getWord())
@@ -55,8 +54,7 @@ public class TranslationService {
 
     String systemPrompt = LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH));
 
-    return ChatClient.builder(model)
-          .build()
+    return chatClient
           .prompt()
           .system(systemPrompt)
           .user(translationRequestJson)

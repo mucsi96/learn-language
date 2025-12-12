@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
@@ -27,6 +28,7 @@ import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
+import io.github.mucsi96.learnlanguage.service.ChatClientService;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
@@ -45,6 +47,7 @@ public class SourceController {
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
   private final FileStorageService fileStorageService;
+  private final ChatClientService chatClientService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -102,14 +105,15 @@ public class SourceController {
       @RequestParam Double x,
       @RequestParam Double y,
       @RequestParam Double width,
-      @RequestParam Double height) throws IOException {
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
 
     var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
     byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    var areaWords = areaWordsService.getAreaWords(imageData);
+    var areaWords = areaWordsService.getAreaWords(imageData, chatClientService.getChatClient(model));
     List<String> ids = areaWords.stream()
         .map(word -> word.getId())
         .toList();

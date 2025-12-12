@@ -28,10 +28,16 @@ spring:
         credential:
           client-id: ${api-client-id}
   ai:
+    chat:
+      client:
+        enabled: false # Disable default chat client auto-configuration as we have multiple chat models
     openai:
       api-key: ${openai-api-key}
     anthropic:
       api-key: ${anthropic-api-key}
+    google:
+      genai:
+        api-key: ${google-ai-api-key}
     elevenlabs:
       api-key: ${eleven-labs-api-key}
       tts:
@@ -53,6 +59,3 @@ management:
       show-details: always
       probes:
         enabled: true
-google:
-  ai:
-    apiKey: ${google-ai-api-key}

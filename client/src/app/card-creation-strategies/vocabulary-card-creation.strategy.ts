@@ -33,7 +33,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
       progressCallback(15, 'Detecting word type...');
       const wordTypeResponse = await fetchJson<{ type: string }>(
         this.http,
-        `/api/word-type`,
+        `/api/word-type?model=gpt-4.1`,
         {
           body: { word: word.word },
           method: 'POST',
@@ -46,7 +46,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         progressCallback(20, 'Detecting gender...');
         const genderResponse = await fetchJson<{ gender: string }>(
           this.http,
-          `/api/gender`,
+          `/api/gender?model=gpt-4.1`,
           {
             body: { word: word.word },
             method: 'POST',
@@ -60,7 +60,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
       const translationPromises = languages.map(async (languageCode) => {
         const translation = await fetchJson<{ translation: string; examples: string[] }>(
           this.http,
-          `/api/translate/${languageCode}`,
+          `/api/translate/${languageCode}?model=gpt-4.1`,
           {
             body: word,
             method: 'POST',

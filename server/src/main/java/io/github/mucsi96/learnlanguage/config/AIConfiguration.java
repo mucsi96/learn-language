@@ -1,15 +1,12 @@
 package io.github.mucsi96.learnlanguage.config;
 
-import org.springframework.ai.anthropic.AnthropicChatModel;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.ai.model.elevenlabs.autoconfigure.ElevenLabsConnectionProperties;
+import org.springframework.ai.model.google.genai.autoconfigure.chat.GoogleGenAiConnectionProperties;
+import org.springframework.ai.model.openai.autoconfigure.OpenAiConnectionProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
 import com.openai.client.OpenAIClient;
@@ -18,35 +15,23 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 @Configuration
 public class AIConfiguration {
 
-  @Value("${spring.ai.openai.api-key}")
-  private String openAiApiKey;
-
-  @Value("${spring.ai.openai.base-url:#{null}}")
-  private String openAiBaseUrl;
-
-  @Value("${google.ai.apiKey}")
-  private String googleAiApiKey;
-
-  @Value("${google.ai.baseUrl:#{null}}")
+  @Value("${spring.ai.google.genai.base-url:#{null}}")
   private String googleAiBaseUrl;
 
-  @Value("${spring.ai.elevenlabs.api-key}")
-  private String elevenLabsApiKey;
-
   @Bean
-  OpenAIClient openAIClient() {
-    var clientBuilder = OpenAIOkHttpClient.builder().apiKey(openAiApiKey);
+  OpenAIClient openAIClient(OpenAiConnectionProperties connectionProperties) {
+    var clientBuilder = OpenAIOkHttpClient.builder().apiKey(connectionProperties.getApiKey());
 
-    if (openAiBaseUrl != null && !openAiBaseUrl.isEmpty()) {
-      clientBuilder.baseUrl(openAiBaseUrl);
+    if (connectionProperties.getBaseUrl() != null && !connectionProperties.getBaseUrl().isEmpty()) {
+      clientBuilder.baseUrl(connectionProperties.getBaseUrl());
     }
 
     return clientBuilder.build();
   }
 
   @Bean
-  Client googleAiClient() {
-    Client.Builder clientBuilder = Client.builder().apiKey(googleAiApiKey);
+  Client googleAiClient(GoogleGenAiConnectionProperties connectionProperties) {
+    Client.Builder clientBuilder = Client.builder().apiKey(connectionProperties.getApiKey());
 
     if (googleAiBaseUrl != null && !googleAiBaseUrl.isEmpty()) {
       clientBuilder.httpOptions(HttpOptions.builder().baseUrl(googleAiBaseUrl).build());
@@ -56,22 +41,9 @@ public class AIConfiguration {
   }
 
   @Bean
-  ElevenLabsVoicesApi elevenLabsVoicesApi() {
+  ElevenLabsVoicesApi elevenLabsVoicesApi(ElevenLabsConnectionProperties connectionProperties) {
     return ElevenLabsVoicesApi.builder()
-        .apiKey(elevenLabsApiKey)
+        .apiKey(connectionProperties.getApiKey())
         .build();
-  }
-
-  @Bean
-  @Primary
-  @Qualifier("openAiChatClient")
-  ChatClient.Builder openAiChatClientBuilder(OpenAiChatModel openAiChatModel) {
-    return ChatClient.builder(openAiChatModel);
-  }
-
-  @Bean
-  @Qualifier("anthropicChatClient")
-  ChatClient.Builder anthropicChatClientBuilder(AnthropicChatModel anthropicChatModel) {
-    return ChatClient.builder(anthropicChatModel);
   }
 }
