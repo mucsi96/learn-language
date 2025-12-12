@@ -30,6 +30,8 @@ spring:
   ai:
     openai:
       api-key: ${openai-api-key}
+    anthropic:
+      api-key: ${anthropic-api-key}
     elevenlabs:
       api-key: ${eleven-labs-api-key}
       tts:
