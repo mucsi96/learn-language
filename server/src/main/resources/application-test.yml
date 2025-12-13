@@ -12,7 +12,7 @@ spring:
       active-directory:
         enabled: false
   ai:
-    openai:
+    openai-sdk:
       api-key: ${OPENAI_API_KEY}
       base-url: ${OPENAI_BASE_URL}
     anthropic:

@@ -28,10 +28,7 @@ spring:
         credential:
           client-id: ${api-client-id}
   ai:
-    chat:
-      client:
-        enabled: false # Disable default chat client auto-configuration as we have multiple chat models
-    openai:
+    openai-sdk:
       api-key: ${openai-api-key}
     anthropic:
       api-key: ${anthropic-api-key}

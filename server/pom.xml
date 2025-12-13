@@ -48,15 +48,6 @@
       <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.openai</groupId>
-      <artifactId>openai-java</artifactId>
-      <version>4.9.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-model-openai</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
       <version>3.0.6</version>
@@ -122,15 +113,8 @@
       <version>0.4.21</version>
     </dependency>
     <dependency>
-      <groupId>com.google.genai</groupId>
-      <artifactId>google-genai</artifactId> <!-- https://github.com/googleapis/java-genai -->
-      <version>1.29.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai-sdk</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.ai</groupId>

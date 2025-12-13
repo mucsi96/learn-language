@@ -12,14 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AudioService {
 
-  private final OpenAIAudioService openAIAudioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
 
   public byte[] generateAudio(String input, String voiceName, String model, String language) throws IOException {
     if ("eleven_turbo_v2_5".equals(model)) {
       return elevenLabsAudioService.generateAudio(input, voiceName, language);
     } else {
-      return openAIAudioService.generateAudio(input, voiceName);
+      throw new IllegalArgumentException("Unsupported audio model: " + model);
     }
   }
 }
