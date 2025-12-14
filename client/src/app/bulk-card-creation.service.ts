@@ -67,17 +67,22 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const results = await Promise.allSettled(
-      wordsToCreate.map((word, index) => {
-        const request: CardCreationRequest = {
-          word,
-          sourceId,
-          pageNumber,
-          cardType
-        };
-        return this.createSingleCard(request, index);
-      })
-    );
+    const results: PromiseSettledResult<void>[] = [];
+    for (let index = 0; index < wordsToCreate.length; index++) {
+      const word = wordsToCreate[index];
+      const request: CardCreationRequest = {
+        word,
+        sourceId,
+        pageNumber,
+        cardType
+      };
+      try {
+        await this.createSingleCard(request, index);
+        results.push({ status: 'fulfilled', value: undefined });
+      } catch (error) {
+        results.push({ status: 'rejected', reason: error });
+      }
+    }
 
     this.isCreating.set(false);
 
