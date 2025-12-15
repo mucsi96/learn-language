@@ -31,7 +31,7 @@ spring:
     openai-sdk:
       api-key: ${openai-api-key}
     anthropic:
-      api-key: ${anthropic-api-key}
+      api-key: ${claude-api-key}
     google:
       genai:
         api-key: ${google-ai-api-key}
