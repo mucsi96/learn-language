@@ -7,18 +7,24 @@ export const test = base.extend({
     cleanupStorage();
     populateStorage();
 
-    // Reset mock OpenAI servers
+    // Reset mock AI servers
     try {
-      await fetch('http://localhost:3000/reset', {
-        method: 'POST',
-        signal: AbortSignal.timeout(5000),
-      });
-      await fetch('http://localhost:3001/reset', {
-        method: 'POST',
-        signal: AbortSignal.timeout(5000),
-      });
+      await Promise.all([
+        fetch('http://localhost:3000/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
+        fetch('http://localhost:3001/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
+        fetch('http://localhost:3003/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
+      ]);
     } catch (error) {
-      console.warn('Warning: Could not reset mock OpenAI server:', error);
+      console.warn('Warning: Could not reset mock AI servers:', error);
     }
 
     // Now expose the page to tests
