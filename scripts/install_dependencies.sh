@@ -45,11 +45,11 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
         [ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ] && . "$SDKMAN_DIR/bin/sdkman-init.sh"
 
         # Check and install JDK via SDKMAN
-        if ! sdk list java | grep -q "21.*tem.*installed"; then
-            echo "Installing JDK 21 via SDKMAN..."
-            sdk install java 21-tem
+        if ! sdk list java | grep -q "21\.0\.[0-9]*.*tem.*installed"; then
+            echo "Installing JDK 21.0.x via SDKMAN..."
+            sdk install java 21.0.9-tem
         else
-            echo "JDK 21 is already installed."
+            echo "JDK 21.0.x is already installed."
         fi
 
         # Check and install Maven via SDKMAN
