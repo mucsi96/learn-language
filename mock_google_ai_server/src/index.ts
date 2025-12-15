@@ -1,14 +1,14 @@
 import express from 'express';
 import { ImageGenerationHandler } from './imageGeneration';
+import { ChatHandler } from './chatHandler';
 
 const app = express();
 const imageHandler = new ImageGenerationHandler();
+const chatHandler = new ChatHandler();
 
 app.use(express.json());
 
-// Middleware to log access details
 app.use((req, res, next) => {
-  // Skip logging for health endpoint
   if (req.url !== '/health') {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   }
@@ -16,14 +16,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add route to reset state for tests
 app.post('/reset', (req, res) => {
   imageHandler.reset();
   console.log('Reset image counter to 0');
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
 });
 
-// Google AI Imagen API endpoint - mock response
 app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
   try {
     const prompt = req.body.instances[0].prompt;
@@ -74,6 +72,21 @@ app.post(
     }
   }
 );
+
+app.post(/\/v1beta\/models\/([^/]+):generateContent/, (req, res) => {
+  try {
+    const model = req.params[0];
+    if (model === 'gemini-3-pro-image-preview') {
+      return res.status(404).json({ error: { message: 'Use specific image endpoint' } });
+    }
+    console.log(`Gemini chat request for model: ${model}`);
+    const result = chatHandler.processRequest(req.body);
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.error('Chat completion error:', error);
+    res.status(400).json({ error: { message: error.message || 'Invalid request format' } });
+  }
+});
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
