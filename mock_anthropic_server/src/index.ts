@@ -18,10 +18,10 @@ app.post('/reset', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Reset complete' });
 });
 
-app.post('/v1/messages', (req, res) => {
+app.post('/v1/messages', async (req, res) => {
   try {
     console.log('Claude messages request:', JSON.stringify(req.body, null, 2));
-    const result = chatHandler.processRequest(req.body);
+    const result = await chatHandler.processRequest(req.body);
     res.status(200).json(result);
   } catch (error: any) {
     console.error('Chat completion error:', error);

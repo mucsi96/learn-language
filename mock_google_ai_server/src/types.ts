@@ -1,6 +1,19 @@
+export interface GeminiTextPart {
+  text: string;
+}
+
+export interface GeminiImagePart {
+  inlineData: {
+    mimeType: string;
+    data: string;
+  };
+}
+
+export type GeminiPart = GeminiTextPart | GeminiImagePart;
+
 export interface GeminiMessage {
   role: string;
-  parts: Array<{ text: string }>;
+  parts: GeminiPart[];
 }
 
 export interface GeminiRequest {

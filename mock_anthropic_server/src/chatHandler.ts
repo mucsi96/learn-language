@@ -1,8 +1,39 @@
 import { ClaudeRequest } from './types';
-import { TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
 import { messagesMatch, createClaudeResponse } from './utils';
+import { imageRequestMatch } from './ocr';
 
 export class ChatHandler {
+  async handleWordListExtraction(request: ClaudeRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['aber', 'abfahren']
+      )
+    ) {
+      return createClaudeResponse({
+        wordList: WORD_LISTS['aber_abfahren'],
+      });
+    }
+
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['der Absender', 'die Adresse']
+      )
+    ) {
+      return createClaudeResponse({
+        wordList: WORD_LISTS['absender_adresse'],
+      });
+    }
+
+    return null;
+  }
+
   handleTranslation(request: ClaudeRequest): any | null {
     const systemContent = request.system || '';
 
@@ -84,10 +115,13 @@ export class ChatHandler {
     return null;
   }
 
-  processRequest(request: ClaudeRequest): any {
+  async processRequest(request: ClaudeRequest): Promise<any> {
     if (!request.messages || !Array.isArray(request.messages)) {
       throw new Error('Invalid request format');
     }
+
+    const wordListResponse = await this.handleWordListExtraction(request);
+    if (wordListResponse) return wordListResponse;
 
     const translationResponse = this.handleTranslation(request);
     if (translationResponse) return translationResponse;

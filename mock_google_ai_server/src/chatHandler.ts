@@ -1,11 +1,52 @@
-import { GeminiRequest } from './types';
-import { TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
+import { GeminiRequest, GeminiPart, GeminiTextPart } from './types';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
+import { imageRequestMatch } from './ocr';
+
+const isTextPart = (part: GeminiPart): part is GeminiTextPart => {
+  return 'text' in part;
+};
+
+const getTextContent = (request: GeminiRequest): string => {
+  const userParts = request.contents?.[0]?.parts || [];
+  const textPart = userParts.find(isTextPart);
+  return textPart?.text || '';
+};
 
 export class ChatHandler {
+  async handleWordListExtraction(request: GeminiRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['aber', 'abfahren']
+      )
+    ) {
+      return createGeminiResponse({
+        wordList: WORD_LISTS['aber_abfahren'],
+      });
+    }
+
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['der Absender', 'die Adresse']
+      )
+    ) {
+      return createGeminiResponse({
+        wordList: WORD_LISTS['absender_adresse'],
+      });
+    }
+
+    return null;
+  }
+
   handleTranslation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
-    const userContent = request.contents?.[0]?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
 
     if (!systemContent || !userContent) {
       return null;
@@ -85,10 +126,13 @@ export class ChatHandler {
     return null;
   }
 
-  processRequest(request: GeminiRequest): any {
+  async processRequest(request: GeminiRequest): Promise<any> {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
     }
+
+    const wordListResponse = await this.handleWordListExtraction(request);
+    if (wordListResponse) return wordListResponse;
 
     const translationResponse = this.handleTranslation(request);
     if (translationResponse) return translationResponse;

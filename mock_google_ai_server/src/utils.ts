@@ -1,4 +1,8 @@
-import { GeminiRequest } from './types';
+import { GeminiRequest, GeminiPart, GeminiTextPart } from './types';
+
+const isTextPart = (part: GeminiPart): part is GeminiTextPart => {
+  return 'text' in part;
+};
 
 export const messagesMatch = (
   request: GeminiRequest,
@@ -6,7 +10,9 @@ export const messagesMatch = (
   userMessageIncludes: string
 ): boolean => {
   const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
-  const userContent = request.contents?.[0]?.parts?.[0]?.text || '';
+  const userParts = request.contents?.[0]?.parts || [];
+  const textPart = userParts.find(isTextPart);
+  const userContent = textPart?.text || '';
 
   return (
     systemContent.includes(systemPromptIncludes) &&

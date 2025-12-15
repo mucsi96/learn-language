@@ -1,10 +1,17 @@
-import { ClaudeRequest, ClaudeMessage } from './types';
+import { ClaudeRequest, ClaudeMessage, ClaudeContentBlock, ClaudeTextBlock } from './types';
+
+const isTextBlock = (block: ClaudeContentBlock): block is ClaudeTextBlock => {
+  return block.type === 'text';
+};
 
 export const getMessageContent = (message: ClaudeMessage): string => {
   if (typeof message.content === 'string') {
     return message.content;
   }
-  return message.content.map(block => block.text || '').join(' ');
+  return message.content
+    .filter(isTextBlock)
+    .map(block => block.text)
+    .join(' ');
 };
 
 export const messagesMatch = (

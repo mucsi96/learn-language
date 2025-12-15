@@ -73,14 +73,14 @@ app.post(
   }
 );
 
-app.post(/\/v1beta\/models\/([^/]+):generateContent/, (req, res) => {
+app.post(/\/v1beta\/models\/([^/]+):generateContent/, async (req, res) => {
   try {
     const model = req.params[0];
     if (model === 'gemini-3-pro-image-preview') {
       return res.status(404).json({ error: { message: 'Use specific image endpoint' } });
     }
     console.log(`Gemini chat request for model: ${model}`);
-    const result = chatHandler.processRequest(req.body);
+    const result = await chatHandler.processRequest(req.body);
     res.status(200).json(result);
   } catch (error: any) {
     console.error('Chat completion error:', error);

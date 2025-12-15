@@ -1,6 +1,22 @@
+export interface ClaudeTextBlock {
+  type: 'text';
+  text: string;
+}
+
+export interface ClaudeImageBlock {
+  type: 'image';
+  source: {
+    type: 'base64';
+    media_type: string;
+    data: string;
+  };
+}
+
+export type ClaudeContentBlock = ClaudeTextBlock | ClaudeImageBlock;
+
 export interface ClaudeMessage {
   role: 'user' | 'assistant';
-  content: string | Array<{ type: string; text: string }>;
+  content: string | ClaudeContentBlock[];
 }
 
 export interface ClaudeRequest {
