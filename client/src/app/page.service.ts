@@ -12,7 +12,6 @@ import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { MultiModelConsensusService } from './multi-model-consensus.service';
-import { ChatModel } from './shared/constants/chat-models';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -85,7 +84,7 @@ export class PageService {
             return this.consensusService.callWithConsensus<WordList>(
               'word_extraction',
               JSON.stringify({ sourceId, pageNumber, x, y, width, height }),
-              (model: ChatModel) => fetchJson<WordList>(
+              (model: string) => fetchJson<WordList>(
                 this.http,
                 `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
               ),

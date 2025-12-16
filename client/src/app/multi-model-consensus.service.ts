@@ -1,18 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { chatModels, ChatModel } from './shared/constants/chat-models';
 import { fetchJson } from './utils/fetchJson';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 interface ModelResponse<T> {
-  model: ChatModel;
+  model: string;
   response: T;
   error?: string;
-}
-
-interface ConsensusResult<T> {
-  result: T;
-  consensusReached: boolean;
-  responses: ModelResponse<T>[];
 }
 
 interface ModelResponseLogRequest {
@@ -27,13 +21,16 @@ interface ModelResponseLogRequest {
 })
 export class MultiModelConsensusService {
   private readonly http = inject(HttpClient);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   async callWithConsensus<T>(
     operationType: string,
     input: string,
-    apiCall: (model: ChatModel) => Promise<T>,
+    apiCall: (model: string) => Promise<T>,
     responseToString: (response: T) => string
   ): Promise<T> {
+    const chatModels = this.environmentConfig.chatModels;
+
     const modelResponses = await Promise.allSettled(
       chatModels.map(async (model) => {
         const response = await apiCall(model);
@@ -55,7 +52,7 @@ export class MultiModelConsensusService {
     const sortedGroups = Array.from(responseGroups.entries())
       .sort((a, b) => b[1].length - a[1].length);
 
-    const [majorityResponse, majorityModels] = sortedGroups[0];
+    const [, majorityModels] = sortedGroups[0];
     const consensusReached = sortedGroups.length === 1 ||
       majorityModels.length > successfulResponses.length / 2;
 

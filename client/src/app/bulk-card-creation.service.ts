@@ -6,12 +6,14 @@ import { createEmptyCard } from 'ts-fsrs';
 import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { VocabularyCardCreationStrategy } from './card-creation-strategies/vocabulary-card-creation.strategy';
-import { 
-  CardCreationProgress, 
-  BulkCardCreationResult, 
-  CardCreationRequest, 
-  CardType 
+import {
+  CardCreationProgress,
+  BulkCardCreationResult,
+  CardCreationRequest,
+  CardType
 } from './shared/types/card-creation.types';
+
+const MAX_CONCURRENT_CARD_CREATIONS = 3;
 
 
 @Injectable({
@@ -67,22 +69,19 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const results: PromiseSettledResult<void>[] = [];
-    for (let index = 0; index < wordsToCreate.length; index++) {
-      const word = wordsToCreate[index];
-      const request: CardCreationRequest = {
-        word,
-        sourceId,
-        pageNumber,
-        cardType
-      };
-      try {
+    const results = await this.processWithLimitedConcurrency(
+      wordsToCreate,
+      async (word, index) => {
+        const request: CardCreationRequest = {
+          word,
+          sourceId,
+          pageNumber,
+          cardType
+        };
         await this.createSingleCard(request, index);
-        results.push({ status: 'fulfilled', value: undefined });
-      } catch (error) {
-        results.push({ status: 'rejected', reason: error });
-      }
-    }
+      },
+      MAX_CONCURRENT_CARD_CREATIONS
+    );
 
     this.isCreating.set(false);
 
@@ -183,5 +182,34 @@ export class BulkCardCreationService {
 
   clearProgress(): void {
     this.creationProgress.set([]);
+  }
+
+  private async processWithLimitedConcurrency<T>(
+    items: T[],
+    processor: (item: T, index: number) => Promise<void>,
+    maxConcurrent: number
+  ): Promise<PromiseSettledResult<void>[]> {
+    const results: PromiseSettledResult<void>[] = new Array(items.length);
+    let currentIndex = 0;
+
+    const processNext = async (): Promise<void> => {
+      while (currentIndex < items.length) {
+        const index = currentIndex++;
+        try {
+          await processor(items[index], index);
+          results[index] = { status: 'fulfilled', value: undefined };
+        } catch (error) {
+          results[index] = { status: 'rejected', reason: error };
+        }
+      }
+    };
+
+    const workers = Array.from(
+      { length: Math.min(maxConcurrent, items.length) },
+      () => processNext()
+    );
+
+    await Promise.all(workers);
+    return results;
   }
 }

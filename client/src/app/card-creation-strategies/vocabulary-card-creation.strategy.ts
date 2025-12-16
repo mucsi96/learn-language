@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { CardData } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
-import { ChatModel } from '../shared/constants/chat-models';
 import { MultiModelConsensusService } from '../multi-model-consensus.service';
 import {
   CardCreationStrategy,
@@ -47,7 +46,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
       const wordType = await this.consensusService.callWithConsensus<WordTypeResponse>(
         'word_type',
         word.word,
-        (model: ChatModel) => fetchJson<WordTypeResponse>(
+        (model: string) => fetchJson<WordTypeResponse>(
           this.http,
           `/api/word-type?model=${model}`,
           {
@@ -64,7 +63,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         const genderResponse = await this.consensusService.callWithConsensus<GenderResponse>(
           'gender',
           word.word,
-          (model: ChatModel) => fetchJson<GenderResponse>(
+          (model: string) => fetchJson<GenderResponse>(
             this.http,
             `/api/gender?model=${model}`,
             {
@@ -83,7 +82,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
           const translation = await this.consensusService.callWithConsensus<TranslationResponse>(
             `translation_${languageCode}`,
             JSON.stringify({ word: word.word, examples: word.examples, forms: word.forms }),
-            (model: ChatModel) => fetchJson<TranslationResponse>(
+            (model: string) => fetchJson<TranslationResponse>(
               this.http,
               `/api/translate/${languageCode}?model=${model}`,
               {
