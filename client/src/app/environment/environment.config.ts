@@ -6,6 +6,7 @@ export interface EnvironmentConfig {
   apiClientId: string;
   mockAuth: boolean;
   chatModels: string[];
+  imageModels: string[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

@@ -13,19 +13,16 @@ import {
   CardType,
   ImageGenerationInfo
 } from './shared/types/card-creation.types';
-import {
-  ImageGenerationModel,
-  ImageResponse
-} from './shared/types/image-generation.types';
+import { ImageResponse } from './shared/types/image-generation.types';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 const MAX_CONCURRENT_CARD_CREATIONS = 3;
-const IMAGE_MODELS: ImageGenerationModel[] = ['gpt-image-1', 'google-imagen-4-ultra', 'google-nano-banana-pro'];
 
 interface ImageGenerationTask {
   cardId: string;
   exampleIndex: number;
   englishTranslation: string;
-  model: ImageGenerationModel;
+  model: string;
 }
 
 interface ImageGenerationResult {
@@ -41,6 +38,7 @@ export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly vocabularyStrategy = inject(VocabularyCardCreationStrategy);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
   readonly imageGenerationProgress = signal<{ total: number; completed: number }>({ total: 0, completed: 0 });
@@ -172,7 +170,7 @@ export class BulkCardCreationService {
 
   private async generateAllImagesInParallel(imageInfos: ImageGenerationInfo[]): Promise<void> {
     const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
-      IMAGE_MODELS.map(model => ({
+      this.environmentConfig.imageModels.map(model => ({
         cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,

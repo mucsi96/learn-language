@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,7 +33,8 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         environment.matchesProfiles("test"),
-        Arrays.stream(ChatModel.values()).map(ChatModel::getModelName).toList());
+        Arrays.stream(ChatModel.values()).map(ChatModel::getModelName).toList(),
+        Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList());
   }
 
   public record ConfigResponse(
@@ -40,6 +42,7 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       boolean mockAuth,
-      List<String> chatModels) {
+      List<String> chatModels,
+      List<String> imageModels) {
   }
 }
