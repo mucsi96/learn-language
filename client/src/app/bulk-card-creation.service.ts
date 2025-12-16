@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Word, Card } from './parser/types';
+import { Word, Card, ExampleImage } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { FsrsGradingService } from './fsrs-grading.service';
@@ -10,11 +10,29 @@ import {
   CardCreationProgress,
   BulkCardCreationResult,
   CardCreationRequest,
-  CardType
+  CardType,
+  ImageGenerationInfo
 } from './shared/types/card-creation.types';
+import {
+  ImageGenerationModel,
+  ImageResponse
+} from './shared/types/image-generation.types';
 
 const MAX_CONCURRENT_CARD_CREATIONS = 3;
+const IMAGE_MODELS: ImageGenerationModel[] = ['gpt-image-1', 'google-imagen-4-ultra', 'google-nano-banana-pro'];
 
+interface ImageGenerationTask {
+  cardId: string;
+  exampleIndex: number;
+  englishTranslation: string;
+  model: ImageGenerationModel;
+}
+
+interface ImageGenerationResult {
+  cardId: string;
+  exampleIndex: number;
+  image: ExampleImage;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +43,7 @@ export class BulkCardCreationService {
   private readonly vocabularyStrategy = inject(VocabularyCardCreationStrategy);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
+  readonly imageGenerationProgress = signal<{ total: number; completed: number }>({ total: 0, completed: 0 });
 
   readonly totalProgress = computed(() => {
     const progress = this.creationProgress();
@@ -44,7 +63,6 @@ export class BulkCardCreationService {
       throw new Error('Bulk creation already in progress');
     }
 
-    // Filter out words that already have cards
     const wordsToCreate = words.filter(word => !word.exists);
 
     if (wordsToCreate.length === 0) {
@@ -58,7 +76,6 @@ export class BulkCardCreationService {
 
     this.isCreating.set(true);
 
-    // Initialize progress tracking
     const initialProgress: CardCreationProgress[] = wordsToCreate.map(word => ({
       word: word.word,
       cardType: cardType,
@@ -69,6 +86,8 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
+    const allImageInfos: ImageGenerationInfo[] = [];
+
     const results = await this.processWithLimitedConcurrency(
       wordsToCreate,
       async (word, index) => {
@@ -78,18 +97,23 @@ export class BulkCardCreationService {
           pageNumber,
           cardType
         };
-        await this.createSingleCard(request, index);
+        const imageInfos = await this.createSingleCard(request, index);
+        allImageInfos.push(...imageInfos);
       },
       MAX_CONCURRENT_CARD_CREATIONS
     );
-
-    this.isCreating.set(false);
 
     const successfulCards = results.filter(result => result.status === 'fulfilled').length;
     const failedCards = results.filter(result => result.status === 'rejected').length;
     const errors = results
       .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
       .map(result => result.reason?.message || 'Unknown error');
+
+    if (allImageInfos.length > 0) {
+      await this.generateAllImagesInParallel(allImageInfos);
+    }
+
+    this.isCreating.set(false);
 
     return {
       totalCards: wordsToCreate.length,
@@ -102,23 +126,20 @@ export class BulkCardCreationService {
   private async createSingleCard(
     request: CardCreationRequest,
     progressIndex: number
-  ): Promise<void> {
+  ): Promise<ImageGenerationInfo[]> {
     const { word, sourceId, pageNumber, cardType } = request;
-    
+
     try {
-      // Get the appropriate strategy for this card type
       const strategy = this.getStrategy(cardType);
-      
-      // Use strategy to create card data with progress callback
+
       const progressCallback = (progress: number, step: string) => {
-        this.updateProgress(progressIndex, 'translating', progress, step);
+        this.updateProgress(progressIndex, 'translating', progress * 0.8, step);
       };
-      
-      const cardData = await strategy.createCardData(request, progressCallback);
-      
-      // Generic card creation with FSRS (90% progress)
-      this.updateProgress(progressIndex, 'creating-card', 90, 'Creating card...');
-      
+
+      const { cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
+
+      this.updateProgress(progressIndex, 'creating-card', 85, 'Creating card...');
+
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
         id: word.id,
@@ -134,8 +155,9 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      // Complete (100% progress)
-      this.updateProgress(progressIndex, 'completed', 100, 'Card created successfully!');
+      this.updateProgress(progressIndex, 'completed', 100, 'Card created! Images pending...');
+
+      return imageGenerationInfos;
 
     } catch (error) {
       this.updateProgress(
@@ -148,13 +170,84 @@ export class BulkCardCreationService {
     }
   }
 
+  private async generateAllImagesInParallel(imageInfos: ImageGenerationInfo[]): Promise<void> {
+    const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
+      IMAGE_MODELS.map(model => ({
+        cardId: info.cardId,
+        exampleIndex: info.exampleIndex,
+        englishTranslation: info.englishTranslation,
+        model
+      }))
+    );
+
+    this.imageGenerationProgress.set({ total: tasks.length, completed: 0 });
+
+    const imageResults = await Promise.all(
+      tasks.map(async (task): Promise<ImageGenerationResult | null> => {
+        try {
+          const response = await fetchJson<ImageResponse>(
+            this.http,
+            `/api/image`,
+            {
+              body: {
+                input: task.englishTranslation,
+                model: task.model
+              },
+              method: 'POST',
+            }
+          );
+
+          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+
+          return {
+            cardId: task.cardId,
+            exampleIndex: task.exampleIndex,
+            image: { id: response.id }
+          };
+        } catch {
+          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+          return null;
+        }
+      })
+    );
+
+    const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
+
+    const imagesByCard = new Map<string, Map<number, ExampleImage[]>>();
+    for (const result of successfulResults) {
+      if (!imagesByCard.has(result.cardId)) {
+        imagesByCard.set(result.cardId, new Map());
+      }
+      const exampleImages = imagesByCard.get(result.cardId)!;
+      if (!exampleImages.has(result.exampleIndex)) {
+        exampleImages.set(result.exampleIndex, []);
+      }
+      exampleImages.get(result.exampleIndex)!.push(result.image);
+    }
+
+    await Promise.all(
+      Array.from(imagesByCard.entries()).map(async ([cardId, exampleImagesMap]) => {
+        const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+
+        if (card.data.examples) {
+          const updatedExamples = card.data.examples.map((example, idx) => ({
+            ...example,
+            images: [...(example.images || []), ...(exampleImagesMap.get(idx) || [])]
+          }));
+
+          await fetchJson(this.http, `/api/card/${cardId}`, {
+            body: { data: { ...card.data, examples: updatedExamples } },
+            method: 'PUT',
+          });
+        }
+      })
+    );
+  }
+
   private getStrategy(cardType: CardType) {
     switch (cardType) {
       case 'vocabulary':
         return this.vocabularyStrategy;
-      // Future card types can be added here:
-      // case 'grammar':
-      //   return this.grammarStrategy;
       default:
         throw new Error(`No strategy found for card type: ${cardType}`);
     }
@@ -182,6 +275,7 @@ export class BulkCardCreationService {
 
   clearProgress(): void {
     this.creationProgress.set([]);
+    this.imageGenerationProgress.set({ total: 0, completed: 0 });
   }
 
   private async processWithLimitedConcurrency<T>(
