@@ -1,12 +1,16 @@
 import { InjectionToken } from '@angular/core';
 
+export interface ChatModelInfo {
+  modelName: string;
+  primary: boolean;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
   apiClientId: string;
   mockAuth: boolean;
-  chatModels: string[];
-  primaryChatModel: string;
+  chatModels: ChatModelInfo[];
   imageModels: string[];
 }
 

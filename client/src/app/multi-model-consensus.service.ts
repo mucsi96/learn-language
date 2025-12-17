@@ -29,12 +29,13 @@ export class MultiModelConsensusService {
     responseToString: (response: T) => string
   ): Promise<T> {
     const chatModels = this.environmentConfig.chatModels;
-    const primaryModel = this.environmentConfig.primaryChatModel;
+    const primaryModelInfo = chatModels.find(m => m.primary);
+    const primaryModelName = primaryModelInfo?.modelName;
 
     const modelResponses = await Promise.allSettled(
-      chatModels.map(async (model) => {
-        const response = await apiCall(model);
-        return { model, response } as ModelResponse<T>;
+      chatModels.map(async (modelInfo) => {
+        const response = await apiCall(modelInfo.modelName);
+        return { model: modelInfo.modelName, response } as ModelResponse<T>;
       })
     );
 
@@ -44,13 +45,13 @@ export class MultiModelConsensusService {
       )
       .map(result => result.value);
 
-    const primaryResponse = successfulResponses.find(r => r.model === primaryModel);
+    const primaryResponse = successfulResponses.find(r => r.model === primaryModelName);
 
     if (!primaryResponse) {
       if (successfulResponses.length === 0) {
         throw new Error(`All models failed for ${operationType}`);
       }
-      console.warn(`Primary model ${primaryModel} failed, falling back to first successful response`);
+      console.warn(`Primary model ${primaryModelName} failed, falling back to first successful response`);
       await this.logResponses(operationType, input, successfulResponses, responseToString);
       return successfulResponses[0].response;
     }

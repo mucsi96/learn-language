@@ -9,13 +9,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ChatModel {
-  GPT_4O("gpt-4o"),
-  GPT_4_1("gpt-4.1"),
-  GPT_5("gpt-5"),
-  CLAUDE_SONNET_4_5("claude-sonnet-4-5"),
-  GEMINI_2_5_PRO_PREVIEW("gemini-3-pro-preview");
+  GPT_4O("gpt-4o", false),
+  GPT_4_1("gpt-4.1", false),
+  GPT_5("gpt-5", false),
+  CLAUDE_SONNET_4_5("claude-sonnet-4-5", false),
+  GEMINI_2_5_PRO_PREVIEW("gemini-3-pro-preview", true);
 
   private final String modelName;
+  private final boolean primary;
 
   @JsonValue
   public String getModelName() {

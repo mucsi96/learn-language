@@ -33,9 +33,13 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         environment.matchesProfiles("test"),
-        Arrays.stream(ChatModel.values()).map(ChatModel::getModelName).toList(),
-        ChatModel.GEMINI_2_5_PRO_PREVIEW.getModelName(),
+        Arrays.stream(ChatModel.values())
+            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary()))
+            .toList(),
         Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList());
+  }
+
+  public record ChatModelInfo(String modelName, boolean primary) {
   }
 
   public record ConfigResponse(
@@ -43,8 +47,7 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       boolean mockAuth,
-      List<String> chatModels,
-      String primaryChatModel,
+      List<ChatModelInfo> chatModels,
       List<String> imageModels) {
   }
 }
