@@ -85,10 +85,12 @@ export class BulkCardCreationService {
     this.creationProgress.set(initialProgress);
 
     const allImageInfos: ImageGenerationInfo[] = [];
+    const cardIdToProgressIndex = new Map<string, number>();
 
     const results = await this.processWithLimitedConcurrency(
       wordsToCreate,
       async (word, index) => {
+        cardIdToProgressIndex.set(word.id, index);
         const request: CardCreationRequest = {
           word,
           sourceId,
@@ -108,7 +110,14 @@ export class BulkCardCreationService {
       .map(result => result.reason?.message || 'Unknown error');
 
     if (allImageInfos.length > 0) {
-      await this.generateAllImagesInParallel(allImageInfos);
+      await this.generateAllImagesInParallel(allImageInfos, cardIdToProgressIndex);
+    } else {
+      this.creationProgress.update(progressList =>
+        progressList.map(p => p.status === 'generating-images'
+          ? { ...p, status: 'completed' as const, progress: 100, currentStep: 'Completed' }
+          : p
+        )
+      );
     }
 
     this.isCreating.set(false);
@@ -153,7 +162,7 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      this.updateProgress(progressIndex, 'completed', 100, 'Card created! Images pending...');
+      this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
 
       return imageGenerationInfos;
 
@@ -168,9 +177,21 @@ export class BulkCardCreationService {
     }
   }
 
-  private async generateAllImagesInParallel(imageInfos: ImageGenerationInfo[]): Promise<void> {
+  private async generateAllImagesInParallel(
+    imageInfos: ImageGenerationInfo[],
+    cardIdToProgressIndex: Map<string, number>
+  ): Promise<void> {
+    const imageModels = this.environmentConfig.imageModels;
+    const tasksPerCard = new Map<string, number>();
+    const completedPerCard = new Map<string, number>();
+
+    for (const info of imageInfos) {
+      tasksPerCard.set(info.cardId, (tasksPerCard.get(info.cardId) || 0) + imageModels.length);
+      completedPerCard.set(info.cardId, 0);
+    }
+
     const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
-      this.environmentConfig.imageModels.map(model => ({
+      imageModels.map(model => ({
         cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,
@@ -197,6 +218,20 @@ export class BulkCardCreationService {
 
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
 
+          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+          completedPerCard.set(task.cardId, completed);
+          const total = tasksPerCard.get(task.cardId) || 1;
+          const progressIndex = cardIdToProgressIndex.get(task.cardId);
+          if (progressIndex !== undefined) {
+            const imageProgress = (completed / total) * 10;
+            this.updateProgress(
+              progressIndex,
+              'generating-images',
+              90 + imageProgress,
+              `Generating images (${completed}/${total})...`
+            );
+          }
+
           return {
             cardId: task.cardId,
             exampleIndex: task.exampleIndex,
@@ -204,6 +239,10 @@ export class BulkCardCreationService {
           };
         } catch {
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+
+          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+          completedPerCard.set(task.cardId, completed);
+
           return null;
         }
       })
@@ -238,8 +277,22 @@ export class BulkCardCreationService {
             method: 'PUT',
           });
         }
+
+        const progressIndex = cardIdToProgressIndex.get(cardId);
+        if (progressIndex !== undefined) {
+          this.updateProgress(progressIndex, 'completed', 100, 'Completed');
+        }
       })
     );
+
+    for (const [cardId] of cardIdToProgressIndex) {
+      if (!imagesByCard.has(cardId)) {
+        const progressIndex = cardIdToProgressIndex.get(cardId);
+        if (progressIndex !== undefined) {
+          this.updateProgress(progressIndex, 'completed', 100, 'Completed (no images)');
+        }
+      }
+    }
   }
 
   private getStrategy(cardType: CardType) {
