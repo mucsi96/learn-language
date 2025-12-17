@@ -13,7 +13,7 @@ public enum ChatModel {
   GPT_4_1("gpt-4.1", false),
   GPT_5("gpt-5", false),
   CLAUDE_SONNET_4_5("claude-sonnet-4-5", false),
-  GEMINI_2_5_PRO_PREVIEW("gemini-3-pro-preview", true);
+  GEMINI_3_PRO_PREVIEW("gemini-3-pro-preview", true);
 
   private final String modelName;
   private final boolean primary;

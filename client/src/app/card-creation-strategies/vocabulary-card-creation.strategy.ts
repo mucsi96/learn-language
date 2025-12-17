@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
-import { MultiModelConsensusService } from '../multi-model-consensus.service';
+import { MultiModelService } from '../multi-model.service';
 import {
   CardCreationStrategy,
   CardCreationRequest,
@@ -31,7 +31,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
   readonly cardType: CardType = 'vocabulary';
 
   private readonly http = inject(HttpClient);
-  private readonly consensusService = inject(MultiModelConsensusService);
+  private readonly multiModelService = inject(MultiModelService);
 
   async createCardData(
     request: CardCreationRequest,
@@ -40,8 +40,8 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     const { word } = request;
 
     try {
-      progressCallback(10, 'Detecting word type with multiple models...');
-      const wordType = await this.consensusService.callWithConsensus<WordTypeResponse>(
+      progressCallback(10, 'Detecting word type...');
+      const wordType = await this.multiModelService.call<WordTypeResponse>(
         'word_type',
         word.word,
         (model: string) => fetchJson<WordTypeResponse>(
@@ -57,8 +57,8 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       let gender: string | undefined;
       if (wordType.type === 'NOUN') {
-        progressCallback(30, 'Detecting gender with multiple models...');
-        const genderResponse = await this.consensusService.callWithConsensus<GenderResponse>(
+        progressCallback(30, 'Detecting gender...');
+        const genderResponse = await this.multiModelService.call<GenderResponse>(
           'gender',
           word.word,
           (model: string) => fetchJson<GenderResponse>(
@@ -74,10 +74,10 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         gender = genderResponse.gender;
       }
 
-      progressCallback(50, 'Translating to multiple languages with multiple models...');
+      progressCallback(50, 'Translating to multiple languages...');
       const translations = await Promise.all(
         languages.map(async (languageCode) => {
-          const translation = await this.consensusService.callWithConsensus<TranslationResponse>(
+          const translation = await this.multiModelService.call<TranslationResponse>(
             `translation_${languageCode}`,
             JSON.stringify({ word: word.word, examples: word.examples, forms: word.forms }),
             (model: string) => fetchJson<TranslationResponse>(

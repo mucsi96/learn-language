@@ -18,11 +18,11 @@ interface ModelResponseLogRequest {
 @Injectable({
   providedIn: 'root',
 })
-export class MultiModelConsensusService {
+export class MultiModelService {
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
-  async callWithConsensus<T>(
+  async call<T>(
     operationType: string,
     input: string,
     apiCall: (model: string) => Promise<T>,

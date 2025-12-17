@@ -11,7 +11,7 @@ import {
 import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
-import { MultiModelConsensusService } from './multi-model-consensus.service';
+import { MultiModelService } from './multi-model.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -28,7 +28,7 @@ type SelectedRectangles = SelectedRectangle[];
 export class PageService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly consensusService = inject(MultiModelConsensusService);
+  private readonly multiModelService = inject(MultiModelService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectangles = signal<SelectedRectangles>([]);
 
@@ -81,7 +81,7 @@ export class PageService {
             const { sourceId, pageNumber } = selectedSource;
             const { x, y, width, height } = rectangle;
 
-            return this.consensusService.callWithConsensus<WordList>(
+            return this.multiModelService.call<WordList>(
               'word_extraction',
               JSON.stringify({ sourceId, pageNumber, x, y, width, height }),
               (model: string) => fetchJson<WordList>(
