@@ -6,7 +6,6 @@ import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 interface ModelResponse<T> {
   model: string;
   response: T;
-  error?: string;
 }
 
 interface ModelResponseLogRequest {
@@ -30,6 +29,7 @@ export class MultiModelConsensusService {
     responseToString: (response: T) => string
   ): Promise<T> {
     const chatModels = this.environmentConfig.chatModels;
+    const primaryModel = this.environmentConfig.primaryChatModel;
 
     const modelResponses = await Promise.allSettled(
       chatModels.map(async (model) => {
@@ -44,29 +44,53 @@ export class MultiModelConsensusService {
       )
       .map(result => result.value);
 
-    if (successfulResponses.length === 0) {
-      throw new Error(`All models failed for ${operationType}`);
+    const primaryResponse = successfulResponses.find(r => r.model === primaryModel);
+
+    if (!primaryResponse) {
+      if (successfulResponses.length === 0) {
+        throw new Error(`All models failed for ${operationType}`);
+      }
+      console.warn(`Primary model ${primaryModel} failed, falling back to first successful response`);
+      await this.logResponses(operationType, input, successfulResponses, responseToString);
+      return successfulResponses[0].response;
     }
 
-    const responseGroups = this.groupByResponse(successfulResponses, responseToString);
+    await this.logResponses(operationType, input, successfulResponses, responseToString);
+
+    return primaryResponse.response;
+  }
+
+  private async logResponses<T>(
+    operationType: string,
+    input: string,
+    responses: ModelResponse<T>[],
+    responseToString: (response: T) => string
+  ): Promise<void> {
+    const logResponses = responses.map(r => ({
+      modelName: r.model,
+      output: responseToString(r.response)
+    }));
+
+    const responseGroups = this.groupByResponse(responses, responseToString);
     const sortedGroups = Array.from(responseGroups.entries())
       .sort((a, b) => b[1].length - a[1].length);
+    const diffSummary = this.buildDiffSummary(sortedGroups);
 
-    const [, majorityModels] = sortedGroups[0];
-    const consensusReached = sortedGroups.length === 1 ||
-      majorityModels.length > successfulResponses.length / 2;
+    const logRequest: ModelResponseLogRequest = {
+      operationType,
+      input,
+      responses: logResponses,
+      diffSummary
+    };
 
-    if (!consensusReached || sortedGroups.length > 1) {
-      await this.logDivergentResponses(
-        operationType,
-        input,
-        successfulResponses,
-        responseToString,
-        sortedGroups
-      );
+    try {
+      await fetchJson(this.http, '/api/model-response-logs', {
+        method: 'POST',
+        body: logRequest
+      });
+    } catch (error) {
+      console.error('Failed to log model responses:', error);
     }
-
-    return majorityModels[0].response;
   }
 
   private groupByResponse<T>(
@@ -83,37 +107,6 @@ export class MultiModelConsensusService {
     }
 
     return groups;
-  }
-
-  private async logDivergentResponses<T>(
-    operationType: string,
-    input: string,
-    responses: ModelResponse<T>[],
-    responseToString: (response: T) => string,
-    sortedGroups: [string, ModelResponse<T>[]][]
-  ): Promise<void> {
-    const logResponses = responses.map(r => ({
-      modelName: r.model,
-      output: responseToString(r.response)
-    }));
-
-    const diffSummary = this.buildDiffSummary(sortedGroups);
-
-    const logRequest: ModelResponseLogRequest = {
-      operationType,
-      input,
-      responses: logResponses,
-      diffSummary
-    };
-
-    try {
-      await fetchJson(this.http, '/api/model-response-logs', {
-        method: 'POST',
-        body: logRequest
-      });
-    } catch (error) {
-      console.error('Failed to log model response divergence:', error);
-    }
   }
 
   private buildDiffSummary<T>(

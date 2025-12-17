@@ -34,6 +34,7 @@ public class EnvironmentController {
         clientId,
         environment.matchesProfiles("test"),
         Arrays.stream(ChatModel.values()).map(ChatModel::getModelName).toList(),
+        ChatModel.GEMINI_2_5_PRO_PREVIEW.getModelName(),
         Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList());
   }
 
@@ -43,6 +44,7 @@ public class EnvironmentController {
       String apiClientId,
       boolean mockAuth,
       List<String> chatModels,
+      String primaryChatModel,
       List<String> imageModels) {
   }
 }

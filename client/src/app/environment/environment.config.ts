@@ -6,6 +6,7 @@ export interface EnvironmentConfig {
   apiClientId: string;
   mockAuth: boolean;
   chatModels: string[];
+  primaryChatModel: string;
   imageModels: string[];
 }
 
