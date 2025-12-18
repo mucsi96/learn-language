@@ -1,18 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import { ChatModelInfo, ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 interface ModelResponse<T> {
   model: string;
   response: T;
+  executionTimeMs: number;
 }
 
 interface ModelResponseLogRequest {
   operationType: string;
   input: string;
-  responses: { modelName: string; output: string }[];
-  diffSummary: string;
+  responses: { modelName: string; output: string; priceUsd: number; executionTimeMs: number }[];
 }
 
 @Injectable({
@@ -34,8 +34,10 @@ export class MultiModelService {
 
     const modelResponses = await Promise.allSettled(
       chatModels.map(async (modelInfo) => {
+        const startTime = performance.now();
         const response = await apiCall(modelInfo.modelName);
-        return { model: modelInfo.modelName, response } as ModelResponse<T>;
+        const executionTimeMs = Math.round(performance.now() - startTime);
+        return { model: modelInfo.modelName, response, executionTimeMs } as ModelResponse<T>;
       })
     );
 
@@ -48,12 +50,7 @@ export class MultiModelService {
     const primaryResponse = successfulResponses.find(r => r.model === primaryModelName);
 
     if (!primaryResponse) {
-      if (successfulResponses.length === 0) {
-        throw new Error(`All models failed for ${operationType}`);
-      }
-      console.warn(`Primary model ${primaryModelName} failed, falling back to first successful response`);
-      await this.logResponses(operationType, input, successfulResponses, responseToString);
-      return successfulResponses[0].response;
+      throw new Error(`Primary model ${primaryModelName} failed for ${operationType}`);
     }
 
     await this.logResponses(operationType, input, successfulResponses, responseToString);
@@ -67,21 +64,24 @@ export class MultiModelService {
     responses: ModelResponse<T>[],
     responseToString: (response: T) => string
   ): Promise<void> {
-    const logResponses = responses.map(r => ({
-      modelName: r.model,
-      output: responseToString(r.response)
-    }));
+    const chatModels = this.environmentConfig.chatModels;
 
-    const responseGroups = this.groupByResponse(responses, responseToString);
-    const sortedGroups = Array.from(responseGroups.entries())
-      .sort((a, b) => b[1].length - a[1].length);
-    const diffSummary = this.buildDiffSummary(sortedGroups);
+    const logResponses = responses.map(r => {
+      const output = responseToString(r.response);
+      const modelInfo = chatModels.find(m => m.modelName === r.model);
+      const priceUsd = modelInfo ? this.estimatePrice(input, output, modelInfo) : 0;
+      return {
+        modelName: r.model,
+        output,
+        priceUsd,
+        executionTimeMs: r.executionTimeMs
+      };
+    });
 
     const logRequest: ModelResponseLogRequest = {
       operationType,
       input,
-      responses: logResponses,
-      diffSummary
+      responses: logResponses
     };
 
     try {
@@ -94,29 +94,15 @@ export class MultiModelService {
     }
   }
 
-  private groupByResponse<T>(
-    responses: ModelResponse<T>[],
-    responseToString: (response: T) => string
-  ): Map<string, ModelResponse<T>[]> {
-    const groups = new Map<string, ModelResponse<T>[]>();
-
-    for (const modelResponse of responses) {
-      const key = responseToString(modelResponse.response);
-      const existing = groups.get(key) || [];
-      existing.push(modelResponse);
-      groups.set(key, existing);
-    }
-
-    return groups;
+  private estimatePrice(input: string, output: string, modelInfo: ChatModelInfo): number {
+    const inputTokens = this.estimateTokens(input);
+    const outputTokens = this.estimateTokens(output);
+    const inputCost = (inputTokens / 1_000_000) * modelInfo.inputPricePerMillionTokens;
+    const outputCost = (outputTokens / 1_000_000) * modelInfo.outputPricePerMillionTokens;
+    return inputCost + outputCost;
   }
 
-  private buildDiffSummary<T>(
-    sortedGroups: [string, ModelResponse<T>[]][]
-  ): string {
-    const lines = sortedGroups.map(([response, models]) => {
-      const modelNames = models.map(m => m.model).join(', ');
-      return `[${modelNames}]: ${response}`;
-    });
-    return lines.join('\n');
+  private estimateTokens(text: string): number {
+    return Math.ceil(text.length / 4);
   }
 }

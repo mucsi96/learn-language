@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class ModelResponse {
     private String modelName;
     private String output;
+    private Double priceUsd;
+    private Long executionTimeMs;
 }

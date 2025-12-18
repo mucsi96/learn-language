@@ -40,9 +40,6 @@ public class ModelResponseLog {
     @Type(JsonBinaryType.class)
     private List<ModelResponse> responses;
 
-    @Column(name = "diff_summary", columnDefinition = "text")
-    private String diffSummary;
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

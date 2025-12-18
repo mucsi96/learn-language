@@ -29,7 +29,6 @@ public class ModelResponseLogController {
                 .operationType(request.getOperationType())
                 .input(request.getInput())
                 .responses(request.getResponses())
-                .diffSummary(request.getDiffSummary())
                 .createdAt(LocalDateTime.now())
                 .build();
 
