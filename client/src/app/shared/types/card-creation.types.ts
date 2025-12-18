@@ -2,7 +2,6 @@ import { CardData, Word } from '../../parser/types';
 import { ImageGenerationModel } from './image-generation.types';
 
 export type CardType = 'vocabulary';
-// Future card types can be added here: 'grammar' | 'phrase'
 
 export interface CardCreationRequest {
   word: Word;
@@ -12,9 +11,20 @@ export interface CardCreationRequest {
   imageModel?: ImageGenerationModel;
 }
 
+export interface ImageGenerationInfo {
+  cardId: string;
+  exampleIndex: number;
+  englishTranslation: string;
+}
+
+export interface CardCreationResult {
+  cardData: CardData;
+  imageGenerationInfos: ImageGenerationInfo[];
+}
+
 export interface CardCreationStrategy {
   cardType: CardType;
-  createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardData>;
+  createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
 }
 
 export interface CardCreationProgress {

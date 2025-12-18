@@ -1,75 +1,99 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CardData } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
-import { 
-  CardCreationStrategy, 
-  CardCreationRequest, 
-  CardType 
+import { MultiModelService } from '../multi-model.service';
+import {
+  CardCreationStrategy,
+  CardCreationRequest,
+  CardCreationResult,
+  CardType,
+  ImageGenerationInfo
 } from '../shared/types/card-creation.types';
-import { 
-  ImageGenerationModel, 
-  ImageSourceRequest, 
-  ImageResponse 
-} from '../shared/types/image-generation.types';
+
+interface WordTypeResponse {
+  type: string;
+}
+
+interface GenderResponse {
+  gender: string;
+}
+
+interface TranslationResponse {
+  translation: string;
+  examples: string[];
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class VocabularyCardCreationStrategy implements CardCreationStrategy {
   readonly cardType: CardType = 'vocabulary';
-  
+
   private readonly http = inject(HttpClient);
+  private readonly multiModelService = inject(MultiModelService);
 
   async createCardData(
-    request: CardCreationRequest, 
+    request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
-  ): Promise<CardData> {
+  ): Promise<CardCreationResult> {
     const { word } = request;
 
     try {
-      // Step 1: Get word type (15% progress)
-      progressCallback(15, 'Detecting word type...');
-      const wordTypeResponse = await fetchJson<{ type: string }>(
-        this.http,
-        `/api/word-type?model=gpt-4.1`,
-        {
-          body: { word: word.word },
-          method: 'POST',
-        }
-      );
-
-      // Step 1.5: Get gender for nouns (20% progress)
-      let gender: string | undefined;
-      if (wordTypeResponse.type === 'NOUN') {
-        progressCallback(20, 'Detecting gender...');
-        const genderResponse = await fetchJson<{ gender: string }>(
+      progressCallback(10, 'Detecting word type...');
+      const wordType = await this.multiModelService.call<WordTypeResponse>(
+        'word_type',
+        word.word,
+        (model: string) => fetchJson<WordTypeResponse>(
           this.http,
-          `/api/gender?model=gpt-4.1`,
+          `/api/word-type?model=${model}`,
           {
             body: { word: word.word },
             method: 'POST',
           }
+        ),
+        (response: WordTypeResponse) => response.type
+      );
+
+      let gender: string | undefined;
+      if (wordType.type === 'NOUN') {
+        progressCallback(30, 'Detecting gender...');
+        const genderResponse = await this.multiModelService.call<GenderResponse>(
+          'gender',
+          word.word,
+          (model: string) => fetchJson<GenderResponse>(
+            this.http,
+            `/api/gender?model=${model}`,
+            {
+              body: { word: word.word },
+              method: 'POST',
+            }
+          ),
+          (response: GenderResponse) => response.gender
         );
         gender = genderResponse.gender;
       }
 
-      // Step 2: Get translations (40% progress)
-      progressCallback(40, 'Translating to multiple languages...');
-      const translationPromises = languages.map(async (languageCode) => {
-        const translation = await fetchJson<{ translation: string; examples: string[] }>(
-          this.http,
-          `/api/translate/${languageCode}?model=gpt-4.1`,
-          {
-            body: word,
-            method: 'POST',
-          }
-        );
-        return { languageCode, translation };
-      });
+      progressCallback(50, 'Translating to multiple languages...');
+      const translations = await Promise.all(
+        languages.map(async (languageCode) => {
+          const translation = await this.multiModelService.call<TranslationResponse>(
+            `translation_${languageCode}`,
+            JSON.stringify({ word: word.word, examples: word.examples, forms: word.forms }),
+            (model: string) => fetchJson<TranslationResponse>(
+              this.http,
+              `/api/translate/${languageCode}?model=${model}`,
+              {
+                body: word,
+                method: 'POST',
+              }
+            ),
+            (response: TranslationResponse) => JSON.stringify({ translation: response.translation, examples: response.examples })
+          );
+          return { languageCode, translation };
+        })
+      );
 
-      const translations = await Promise.all(translationPromises);
       const translationMap = Object.fromEntries(
         translations.map(({ languageCode, translation }) => [
           languageCode,
@@ -83,67 +107,25 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         ])
       );
 
-      // Step 3: Generate images for examples (60% progress)
-      progressCallback(60, 'Generating example images...');
-      const exampleImages = await Promise.all(
-        word.examples.map(async (example, exampleIndex) => {
-          // Use English translation for image generation
-          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
-          if (!englishTranslation) {
-            return [];
-          }
-
-          // Generate images with all models
-          const [gptImageResponse, imagenImageResponse, nanoBananaProResponse] = await Promise.all([
-            fetchJson<ImageResponse>(
-              this.http,
-              `/api/image`,
-              {
-                body: {
-                  input: englishTranslation,
-                  model: 'gpt-image-1'
-                },
-                method: 'POST',
-              }
-            ),
-            fetchJson<ImageResponse>(
-              this.http,
-              `/api/image`,
-              {
-                body: {
-                  input: englishTranslation,
-                  model: 'google-imagen-4-ultra'
-                },
-                method: 'POST',
-              }
-            ),
-            fetchJson<ImageResponse>(
-              this.http,
-              `/api/image`,
-              {
-                body: {
-                  input: englishTranslation,
-                  model: 'google-nano-banana-pro'
-                },
-                method: 'POST',
-              }
-            )
-          ]);
-
-          return [
-            { id: gptImageResponse.id },
-            { id: imagenImageResponse.id },
-            { id: nanoBananaProResponse.id }
-          ];
-        })
-      );
-
-      // Step 4: Prepare card data (80% progress)
       progressCallback(80, 'Preparing vocabulary card data...');
 
-      return {
+      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
+        .map((_, exampleIndex) => {
+          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
+          if (!englishTranslation) {
+            return null;
+          }
+          return {
+            cardId: word.id,
+            exampleIndex,
+            englishTranslation
+          };
+        })
+        .filter((info): info is ImageGenerationInfo => info !== null);
+
+      const cardData = {
         word: word.word,
-        type: wordTypeResponse.type,
+        type: wordType.type,
         gender: gender,
         translation: translationMap,
         forms: word.forms,
@@ -155,10 +137,12 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
               exampleTranslations[languageCode]?.[index] || ''
             ])
           ]),
-          isSelected: index === 0, // First example is selected by default
-          images: exampleImages[index] || []
+          isSelected: index === 0,
+          images: []
         }))
       };
+
+      return { cardData, imageGenerationInfos };
 
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);

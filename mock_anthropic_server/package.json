@@ -1,7 +1,7 @@
 {
-  "name": "mock-google-ai-server",
+  "name": "mock-anthropic-server",
   "version": "1.0.0",
-  "description": "A mock server for Google AI API",
+  "description": "A mock server for Anthropic Claude API",
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts"

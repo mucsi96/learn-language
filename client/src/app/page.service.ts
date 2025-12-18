@@ -11,6 +11,7 @@ import {
 import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
+import { MultiModelService } from './multi-model.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -27,6 +28,7 @@ type SelectedRectangles = SelectedRectangle[];
 export class PageService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly multiModelService = inject(MultiModelService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectangles = signal<SelectedRectangles>([]);
 
@@ -78,9 +80,20 @@ export class PageService {
           loader: async () => {
             const { sourceId, pageNumber } = selectedSource;
             const { x, y, width, height } = rectangle;
-            return fetchJson<WordList>(
-              this.http,
-              `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=gpt-4.1`
+
+            return this.multiModelService.call<WordList>(
+              'word_extraction',
+              JSON.stringify({ sourceId, pageNumber, x, y, width, height }),
+              (model: string) => fetchJson<WordList>(
+                this.http,
+                `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+              ),
+              (response: WordList) => {
+                const sortedWords = [...response.words]
+                  .sort((a, b) => a.word.localeCompare(b.word))
+                  .map(w => w.word);
+                return JSON.stringify(sortedWords);
+              }
             );
           },
         });

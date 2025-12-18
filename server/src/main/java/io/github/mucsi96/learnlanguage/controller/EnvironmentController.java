@@ -1,10 +1,15 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -27,13 +32,22 @@ public class EnvironmentController {
         tenantId,
         uiClientId,
         clientId,
-        environment.matchesProfiles("test"));
+        environment.matchesProfiles("test"),
+        Arrays.stream(ChatModel.values())
+            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary()))
+            .toList(),
+        Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList());
+  }
+
+  public record ChatModelInfo(String modelName, boolean primary) {
   }
 
   public record ConfigResponse(
       String tenantId,
       String clientId,
       String apiClientId,
-      boolean mockAuth) {
+      boolean mockAuth,
+      List<ChatModelInfo> chatModels,
+      List<String> imageModels) {
   }
 }
