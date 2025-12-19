@@ -91,10 +91,14 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     // Delete records in order to respect foreign key constraints
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
+    await client.query('DELETE FROM learn_language.model_usage_logs');
 
-    // Reset the review_logs sequence
+    // Reset sequences
     await client.query(
       "SELECT setval('learn_language.review_logs_id_seq', 1, false)"
+    );
+    await client.query(
+      "SELECT setval('learn_language.model_usage_logs_id_seq', 1, false)"
     );
 
     // Delete all sources
@@ -472,4 +476,48 @@ export function ensureTimezoneAware(dt: Date): Date {
     dt.getSeconds(),
     dt.getMilliseconds()
   ));
+}
+
+export async function createModelUsageLog(params: {
+  modelName: string;
+  modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
+  operationType: string;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  inputCharacters?: number | null;
+  imageCount?: number | null;
+  costUsd: number;
+  processingTimeMs: number;
+}): Promise<void> {
+  const {
+    modelName,
+    modelType,
+    operationType,
+    inputTokens = null,
+    outputTokens = null,
+    inputCharacters = null,
+    imageCount = null,
+    costUsd,
+    processingTimeMs,
+  } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.model_usage_logs (
+        model_name, model_type, operation_type, input_tokens, output_tokens,
+        input_characters, image_count, cost_usd, processing_time_ms, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+      [
+        modelName,
+        modelType,
+        operationType,
+        inputTokens,
+        outputTokens,
+        inputCharacters,
+        imageCount,
+        costUsd,
+        processingTimeMs,
+      ]
+    );
+  });
 }

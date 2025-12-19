@@ -1,0 +1,156 @@
+:host {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container {
+  padding: 2rem 0;
+}
+
+h1 {
+  color: var(--mat-sys-on-surface);
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: var(--mat-app-text-color);
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.summary-label {
+  color: var(--mat-app-text-color);
+}
+
+.summary-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+}
+
+.usage-table {
+  width: 100%;
+}
+
+.type-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+  color: var(--mat-sys-primary);
+}
+
+.type-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--mat-app-text-color);
+}
+
+.model-name {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.cost-value {
+  font-family: monospace;
+  color: var(--mat-sys-tertiary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  margin-top: 2rem;
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-surface-container);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: var(--mat-sys-primary);
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  color: var(--mat-sys-on-surface);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--mat-app-text-color);
+  margin: 0;
+}
+
+/* Skeleton loading styles */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-small {
+  height: 16px;
+  width: 60px;
+}
+
+.skeleton-text-medium {
+  height: 18px;
+  width: 120px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Table styling */
+.mat-mdc-table {
+  background-color: hsl(215, 28%, 17%);
+}
+
+.mat-mdc-header-row {
+  background: var(--mat-sys-surface-container);
+}
+
+.mat-mdc-header-cell {
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.mat-mdc-cell {
+  color: var(--mat-sys-on-surface);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  :host {
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 1rem 0;
+  }
+
+  .usage-table {
+    font-size: 0.875rem;
+  }
+}
