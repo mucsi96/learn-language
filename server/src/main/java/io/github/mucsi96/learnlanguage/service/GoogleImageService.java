@@ -22,8 +22,10 @@ public class GoogleImageService {
   private static final String NANO_BANANA_PRO_MODEL = "gemini-3-pro-image-preview";
 
   private final Client googleAiClient;
+  private final ModelUsageLoggingService usageLoggingService;
 
   public byte[] generateImageWithImagen(String prompt) {
+    long startTime = System.currentTimeMillis();
     try {
       GenerateImagesConfig generateImagesConfig = GenerateImagesConfig.builder()
           .numberOfImages(1)
@@ -42,6 +44,9 @@ public class GoogleImageService {
 
       Image generatedImage = generatedImagesResponse.generatedImages().get().get(0).image().get();
 
+      long processingTime = System.currentTimeMillis() - startTime;
+      usageLoggingService.logImageUsage("google-imagen-4-ultra", "image_generation", 1, processingTime);
+
       return generatedImage.imageBytes().get();
 
     } catch (Exception e) {
@@ -51,6 +56,7 @@ public class GoogleImageService {
   }
 
   public byte[] generateImageWithNanoBananaPro(String prompt) {
+    long startTime = System.currentTimeMillis();
     try {
       GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
@@ -71,6 +77,8 @@ public class GoogleImageService {
 
       for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
         if (part.inlineData().isPresent()) {
+          long processingTime = System.currentTimeMillis() - startTime;
+          usageLoggingService.logImageUsage("google-nano-banana-pro", "image_generation", 1, processingTime);
           return part.inlineData().get().data().get();
         }
       }

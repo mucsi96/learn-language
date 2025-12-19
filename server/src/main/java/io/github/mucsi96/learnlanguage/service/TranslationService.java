@@ -2,11 +2,11 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.Map;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
@@ -32,14 +32,15 @@ public class TranslationService {
           Focus on authentic Swiss German expressions and dialect.
           """,
       HUNGARIAN, """
-            You are a Hungarian language expert.
-            Your task is to translate the given German word and examples to Hungarian.
-            Pay attention to proper Hungarian grammar and word forms.
+          You are a Hungarian language expert.
+          Your task is to translate the given German word and examples to Hungarian.
+          Pay attention to proper Hungarian grammar and word forms.
           """);
 
   private final ObjectMapper objectMapper;
+  private final ChatService chatService;
 
-  public TranslationResponse translate(WordResponse word, String languageCode, ChatClient chatClient) {
+  public TranslationResponse translate(WordResponse word, String languageCode, ChatModel model) {
     TranslationRequest translationRequest = TranslationRequest.builder()
         .examples(word.getExamples())
         .word(word.getWord())
@@ -54,11 +55,11 @@ public class TranslationService {
 
     String systemPrompt = LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH));
 
-    return chatClient
-          .prompt()
-          .system(systemPrompt)
-          .user(translationRequestJson)
-          .call()
-          .entity(TranslationResponse.class);
+    return chatService.callWithLogging(
+        model,
+        "translation_" + languageCode,
+        systemPrompt,
+        translationRequestJson,
+        TranslationResponse.class);
   }
 }

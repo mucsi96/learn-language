@@ -17,16 +17,18 @@ import lombok.extern.slf4j.Slf4j;
 public class OpenAIImageService {
 
     private final OpenAIClient openAIClient;
+    private final ModelUsageLoggingService usageLoggingService;
 
     public byte[] generateImage(String prompt) {
-        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1);
+        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1, "gpt-image-1");
     }
 
     public byte[] generateImageWithModel15(String prompt) {
-        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1_5);
+        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1_5, "gpt-image-1.5");
     }
 
-    private byte[] generateImageWithModel(String prompt, ImageModel model) {
+    private byte[] generateImageWithModel(String prompt, ImageModel model, String modelName) {
+        long startTime = System.currentTimeMillis();
         try {
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
@@ -42,6 +44,9 @@ public class OpenAIImageService {
                 .flatMap(image -> image.b64Json().stream())
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
+
+            long processingTime = System.currentTimeMillis() - startTime;
+            usageLoggingService.logImageUsage(modelName, "image_generation", 1, processingTime);
 
             return Base64.getDecoder().decode(imageB64Json);
 
