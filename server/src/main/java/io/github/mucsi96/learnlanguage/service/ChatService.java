@@ -67,15 +67,17 @@ public class ChatService {
                 .call();
 
         var chatResponse = callResponse.responseEntity(responseType);
+        String responseContent = callResponse.content();
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, chatResponse.getResponse(), processingTime);
+        logUsage(model, operationType, systemPrompt, responseContent, chatResponse.getResponse(), processingTime);
 
         return chatResponse.getEntity();
     }
 
-    private void logUsage(ChatModel model, String operationType, ChatResponse chatResponse, long processingTime) {
+    private void logUsage(ChatModel model, String operationType, String requestContent,
+            String responseContent, ChatResponse chatResponse, long processingTime) {
         try {
             var usage = chatResponse.getMetadata().getUsage();
             long inputTokens = usage.getPromptTokens();
@@ -86,7 +88,9 @@ public class ChatService {
                     operationType,
                     inputTokens,
                     outputTokens,
-                    processingTime);
+                    processingTime,
+                    requestContent,
+                    responseContent);
         } catch (Exception e) {
             log.warn("Failed to log chat usage: {}", e.getMessage());
         }
