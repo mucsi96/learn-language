@@ -35,11 +35,7 @@ export class MultiModelService {
     const primaryResponse = successfulResponses.find(r => r.model === primaryModelName);
 
     if (!primaryResponse) {
-      if (successfulResponses.length === 0) {
-        throw new Error('All models failed');
-      }
-      console.warn(`Primary model ${primaryModelName} failed, falling back to first successful response`);
-      return successfulResponses[0].response;
+      throw new Error(`Primary model ${primaryModelName} failed`);
     }
 
     return primaryResponse.response;
