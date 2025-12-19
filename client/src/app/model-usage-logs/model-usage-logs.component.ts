@@ -1,9 +1,10 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
 import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service';
 
 @Component({
@@ -15,6 +16,7 @@ import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service
     MatCardModule,
     MatIconModule,
     MatChipsModule,
+    MatButtonModule,
     DatePipe,
     DecimalPipe,
   ],
@@ -26,8 +28,10 @@ export class ModelUsageLogsComponent {
 
   readonly logs = this.service.logs.value;
   readonly loading = computed(() => this.service.logs.isLoading());
+  readonly expandedLogId = signal<number | null>(null);
 
   readonly displayedColumns: string[] = [
+    'expand',
     'createdAt',
     'modelType',
     'modelName',
@@ -63,5 +67,18 @@ export class ModelUsageLogsComponent {
       case 'AUDIO': return 'volume_up';
       default: return 'help';
     }
+  }
+
+  toggleExpand(log: ModelUsageLog): void {
+    if (log.modelType !== 'CHAT') return;
+    this.expandedLogId.update(current => current === log.id ? null : log.id);
+  }
+
+  isExpanded(log: ModelUsageLog): boolean {
+    return this.expandedLogId() === log.id;
+  }
+
+  hasContent(log: ModelUsageLog): boolean {
+    return log.modelType === 'CHAT' && !!(log.requestContent || log.responseContent);
   }
 }

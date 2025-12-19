@@ -4,6 +4,13 @@
   <p>Track AI model usage and costs across chat, image, and audio services.</p>
 
   <table mat-table [dataSource]="skeletonData" class="usage-table">
+    <ng-container matColumnDef="expand">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let log">
+        <div class="skeleton skeleton-icon"></div>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="createdAt">
       <th mat-header-cell *matHeaderCellDef>Time</th>
       <td mat-cell *matCellDef="let log">
@@ -70,7 +77,18 @@
     <span class="summary-value">${{ totalCost() | number: '1.4-4' }}</span>
   </div>
 
-  <table mat-table [dataSource]="logsList" class="usage-table">
+  <table mat-table [dataSource]="logsList" multiTemplateDataRows class="usage-table">
+    <ng-container matColumnDef="expand">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let log">
+        @if (hasContent(log)) {
+        <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()">
+          <mat-icon>{{ isExpanded(log) ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        }
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="createdAt">
       <th mat-header-cell *matHeaderCellDef>Time</th>
       <td mat-cell *matCellDef="let log">
@@ -121,8 +139,32 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="expandedDetail">
+      <td mat-cell *matCellDef="let log" [attr.colspan]="displayedColumns.length">
+        @if (isExpanded(log)) {
+        <div class="expanded-content">
+          @if (log.requestContent) {
+          <div class="content-section">
+            <h3>Request</h3>
+            <pre class="content-pre">{{ log.requestContent }}</pre>
+          </div>
+          }
+          @if (log.responseContent) {
+          <div class="content-section">
+            <h3>Response</h3>
+            <pre class="content-pre">{{ log.responseContent }}</pre>
+          </div>
+          }
+        </div>
+        }
+      </td>
+    </ng-container>
+
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"
+        [class.expandable-row]="hasContent(row)"
+        (click)="toggleExpand(row)"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
   </table>
   } @else {
   <mat-card class="empty-state">

@@ -108,3 +108,27 @@ test('displays audio model usage logs', async ({ page }) => {
   await expect(page.getByText('audio_generation', { exact: true })).toBeVisible();
   await expect(page.getByText('250 chars')).toBeVisible();
 });
+
+test('expands chat log to show request and response', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    requestContent: 'Translate "Hund" to English',
+    responseContent: '{"translation": "dog"}',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByText('Translate "Hund" to English')).not.toBeVisible();
+  await expect(page.getByText('{"translation": "dog"}')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'expand_more' }).click();
+
+  await expect(page.getByText('Translate "Hund" to English')).toBeVisible();
+  await expect(page.getByText('{"translation": "dog"}')).toBeVisible();
+});
