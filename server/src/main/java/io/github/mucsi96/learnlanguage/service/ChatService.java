@@ -7,6 +7,9 @@ import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ public class ChatService {
 
     private final ChatClientService chatClientService;
     private final ModelUsageLoggingService usageLoggingService;
+    private final ObjectMapper objectMapper;
 
     public <T> T callWithLogging(
             ChatModel model,
@@ -67,17 +71,21 @@ public class ChatService {
                 .call();
 
         var chatResponse = callResponse.responseEntity(responseType);
-        String responseContent = callResponse.content();
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, systemPrompt, responseContent, chatResponse.getResponse(), processingTime);
+        var entity = chatResponse.getEntity();
 
-        return chatResponse.getEntity();
+        try {
+          logUsage(model, operationType, chatResponse.getResponse(), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
+        } catch (JsonProcessingException e) {
+          e.printStackTrace();
+        }
+
+        return entity;
     }
 
-    private void logUsage(ChatModel model, String operationType, String requestContent,
-            String responseContent, ChatResponse chatResponse, long processingTime) {
+    private void logUsage(ChatModel model, String operationType, ChatResponse chatResponse, String text, long processingTime) {
         try {
             var usage = chatResponse.getMetadata().getUsage();
             long inputTokens = usage.getPromptTokens();
@@ -89,8 +97,7 @@ public class ChatService {
                     inputTokens,
                     outputTokens,
                     processingTime,
-                    requestContent,
-                    responseContent);
+                    text);
         } catch (Exception e) {
             log.warn("Failed to log chat usage: {}", e.getMessage());
         }

@@ -501,7 +501,6 @@ export async function createModelUsageLog(params: {
     imageCount = null,
     costUsd,
     processingTimeMs,
-    requestContent = null,
     responseContent = null,
   } = params;
 
@@ -510,8 +509,8 @@ export async function createModelUsageLog(params: {
       `INSERT INTO learn_language.model_usage_logs (
         model_name, model_type, operation_type, input_tokens, output_tokens,
         input_characters, image_count, cost_usd, processing_time_ms,
-        request_content, response_content, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())`,
+        response_content, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
       [
         modelName,
         modelType,
@@ -522,7 +521,6 @@ export async function createModelUsageLog(params: {
         imageCount,
         costUsd,
         processingTimeMs,
-        requestContent,
         responseContent,
       ]
     );

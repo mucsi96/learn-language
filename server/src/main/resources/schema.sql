@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS learn_language.model_usage_logs (
     image_count integer,
     cost_usd numeric(10, 6),
     processing_time_ms bigint,
-    request_content text,
     response_content text,
     created_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT model_usage_logs_pkey PRIMARY KEY (id)

@@ -26,7 +26,6 @@ public class ModelUsageLoggingService {
             long inputTokens,
             long outputTokens,
             long processingTimeMs,
-            String requestContent,
             String responseContent) {
 
         BigDecimal cost = pricingConfig.calculateChatCost(modelName, inputTokens, outputTokens);
@@ -39,7 +38,6 @@ public class ModelUsageLoggingService {
                 .outputTokens(outputTokens)
                 .costUsd(cost)
                 .processingTimeMs(processingTimeMs)
-                .requestContent(requestContent)
                 .responseContent(responseContent)
                 .createdAt(LocalDateTime.now())
                 .build();

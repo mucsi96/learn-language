@@ -57,9 +57,6 @@ public class ModelUsageLog {
     @Column(name = "processing_time_ms")
     private Long processingTimeMs;
 
-    @Column(name = "request_content", columnDefinition = "text")
-    private String requestContent;
-
     @Column(name = "response_content", columnDefinition = "text")
     private String responseContent;
 
