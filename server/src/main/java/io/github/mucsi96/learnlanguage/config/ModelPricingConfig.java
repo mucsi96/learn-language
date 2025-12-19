@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 // Pricing sources:
 // OpenAI: https://platform.openai.com/docs/pricing
 // Google: https://ai.google.dev/gemini-api/docs/pricing
-// Anthropic: https://docs.anthropic.com/en/docs/about-claude/pricing
+// Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
 // ElevenLabs: https://elevenlabs.io/pricing/api
 @Configuration
 public class ModelPricingConfig {
@@ -19,7 +19,7 @@ public class ModelPricingConfig {
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
         // OpenAI GPT-4o family
-        Map.entry("gpt-4o", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("15.00"))),
+        Map.entry("gpt-4o", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("10.00"))),
         Map.entry("gpt-4o-mini", new ChatModelPricing(new BigDecimal("0.15"), new BigDecimal("0.60"))),
         // OpenAI GPT-4.1 family
         Map.entry("gpt-4.1", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("8.00"))),
@@ -27,7 +27,7 @@ public class ModelPricingConfig {
         Map.entry("gpt-4.1-nano", new ChatModelPricing(new BigDecimal("0.10"), new BigDecimal("0.40"))),
         // OpenAI GPT-5 family
         Map.entry("gpt-5", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
-        Map.entry("gpt-5.2", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("12.00"))),
+        Map.entry("gpt-5.2", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
         Map.entry("gpt-5-mini", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
         Map.entry("gpt-5-nano", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
         // Anthropic Claude
@@ -39,11 +39,11 @@ public class ModelPricingConfig {
 
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.of(
         // OpenAI image models (1024x1024 high quality)
-        "gpt-image-1", new ImageModelPricing(new BigDecimal("0.17")),
+        "gpt-image-1", new ImageModelPricing(new BigDecimal("0.25")),
         "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.20")),
         // Google image models
-        "google-imagen-4-ultra", new ImageModelPricing(new BigDecimal("0.06")),
-        "google-nano-banana-pro", new ImageModelPricing(new BigDecimal("0.04"))
+        "imagen-4.0-ultra", new ImageModelPricing(new BigDecimal("0.06")),
+        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(

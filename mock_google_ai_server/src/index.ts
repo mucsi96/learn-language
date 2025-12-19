@@ -22,7 +22,7 @@ app.post('/reset', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
 });
 
-app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
+app.post('/v1beta/models/imagen-4.0-ultra:predict', (req, res) => {
   try {
     const prompt = req.body.instances[0].prompt;
     console.log({ prompt });

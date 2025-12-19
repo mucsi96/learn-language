@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 public enum ImageGenerationModel {
     GPT_IMAGE_1("gpt-image-1"),
     GPT_IMAGE_1_5("gpt-image-1.5"),
-    IMAGEN_4_ULTRA("google-imagen-4-ultra"),
-    NANO_BANANA_PRO("google-nano-banana-pro");
+    IMAGEN_4_ULTRA("imagen-4.0-ultra"),
+    NANO_BANANA_PRO("gemini-3-pro-image-preview");
 
     private final String modelName;
 

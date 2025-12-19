@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.openai.client.OpenAIClient;
 import com.openai.models.images.ImageGenerateParams;
-import com.openai.models.images.ImageModel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,19 +19,19 @@ public class OpenAIImageService {
     private final ModelUsageLoggingService usageLoggingService;
 
     public byte[] generateImage(String prompt) {
-        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1, "gpt-image-1");
+        return generateImageWithModel(prompt, "gpt-image-1");
     }
 
     public byte[] generateImageWithModel15(String prompt) {
-        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1_5, "gpt-image-1.5");
+        return generateImageWithModel(prompt, "gpt-image-1.5");
     }
 
-    private byte[] generateImageWithModel(String prompt, ImageModel model, String modelName) {
+    private byte[] generateImageWithModel(String prompt, String modelName) {
         long startTime = System.currentTimeMillis();
         try {
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
-                .model(model)
+                .model(modelName)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
                 .n(1)

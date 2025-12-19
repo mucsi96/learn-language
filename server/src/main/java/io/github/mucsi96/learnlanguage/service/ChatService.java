@@ -66,40 +66,13 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
-        ChatResponse chatResponse = callResponse.chatResponse();
-        T result = callResponse.entity(responseType);
+        var chatResponse = callResponse.responseEntity(responseType);
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, chatResponse, processingTime);
+        logUsage(model, operationType, chatResponse.getResponse(), processingTime);
 
-        return result;
-    }
-
-    public String callWithLoggingRaw(
-            ChatModel model,
-            String operationType,
-            String systemPrompt,
-            String userMessage) {
-
-        long startTime = System.currentTimeMillis();
-
-        ChatClient chatClient = chatClientService.getChatClient(model);
-
-        ChatClient.CallResponseSpec callResponse = chatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(userMessage)
-                .call();
-
-        ChatResponse chatResponse = callResponse.chatResponse();
-        String content = callResponse.content();
-
-        long processingTime = System.currentTimeMillis() - startTime;
-
-        logUsage(model, operationType, chatResponse, processingTime);
-
-        return content;
+        return chatResponse.getEntity();
     }
 
     private void logUsage(ChatModel model, String operationType, ChatResponse chatResponse, long processingTime) {
