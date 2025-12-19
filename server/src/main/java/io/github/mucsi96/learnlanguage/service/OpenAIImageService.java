@@ -19,10 +19,18 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
 
     public byte[] generateImage(String prompt) {
+        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1);
+    }
+
+    public byte[] generateImageWithModel15(String prompt) {
+        return generateImageWithModel(prompt, ImageModel.GPT_IMAGE_1_5);
+    }
+
+    private byte[] generateImageWithModel(String prompt, ImageModel model) {
         try {
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
-                .model(ImageModel.GPT_IMAGE_1)
+                .model(model)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
                 .n(1)
