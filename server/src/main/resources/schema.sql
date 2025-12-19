@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS learn_language.model_response_logs (
     operation_type character varying(255) NOT NULL,
     input text NOT NULL,
     responses jsonb NOT NULL,
-    diff_summary text,
     created_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT model_response_logs_pkey PRIMARY KEY (id)
 );

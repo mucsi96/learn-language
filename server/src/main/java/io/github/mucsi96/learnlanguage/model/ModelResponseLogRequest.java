@@ -15,5 +15,4 @@ public class ModelResponseLogRequest {
     private String operationType;
     private String input;
     private List<ModelResponse> responses;
-    private String diffSummary;
 }
