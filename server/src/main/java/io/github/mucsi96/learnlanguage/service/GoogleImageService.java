@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GoogleImageService {
 
   private static final String IMAGEN_MODEL = "imagen-4.0-ultra";
-  private static final String NANO_BANANA_PRO_MODEL = "gemini-3-pro-image-preview";
+  private static final String GEMINI_3_PRO_IMAGE_PREVIEW_MODEL = "gemini-3-pro-image-preview";
 
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
@@ -67,7 +67,7 @@ public class GoogleImageService {
           .build();
 
       GenerateContentResponse response = googleAiClient.models.generateContent(
-          NANO_BANANA_PRO_MODEL,
+          GEMINI_3_PRO_IMAGE_PREVIEW_MODEL,
           prompt + ". Avoid using text.",
           config);
 

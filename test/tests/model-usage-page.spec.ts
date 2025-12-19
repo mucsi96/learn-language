@@ -118,7 +118,6 @@ test('expands chat log to show request and response', async ({ page }) => {
     outputTokens: 50,
     costUsd: 0.002,
     processingTimeMs: 1000,
-    requestContent: 'Translate "Hund" to English',
     responseContent: '{"translation": "dog"}',
   });
 

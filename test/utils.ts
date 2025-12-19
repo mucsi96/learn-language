@@ -488,7 +488,6 @@ export async function createModelUsageLog(params: {
   imageCount?: number | null;
   costUsd: number;
   processingTimeMs: number;
-  requestContent?: string | null;
   responseContent?: string | null;
 }): Promise<void> {
   const {

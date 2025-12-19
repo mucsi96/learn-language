@@ -79,6 +79,6 @@ export class ModelUsageLogsComponent {
   }
 
   hasContent(log: ModelUsageLog): boolean {
-    return log.modelType === 'CHAT' && !!(log.requestContent || log.responseContent);
+    return log.modelType === 'CHAT' && !!log.responseContent;
   }
 }

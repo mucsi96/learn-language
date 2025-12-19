@@ -143,12 +143,6 @@
       <td mat-cell *matCellDef="let log" [attr.colspan]="displayedColumns.length">
         @if (isExpanded(log)) {
         <div class="expanded-content">
-          @if (log.requestContent) {
-          <div class="content-section">
-            <h3>Request</h3>
-            <pre class="content-pre">{{ log.requestContent }}</pre>
-          </div>
-          }
           @if (log.responseContent) {
           <div class="content-section">
             <h3>Response</h3>

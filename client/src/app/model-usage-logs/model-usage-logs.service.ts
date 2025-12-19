@@ -13,7 +13,6 @@ export interface ModelUsageLog {
   imageCount: number | null;
   costUsd: number;
   processingTimeMs: number;
-  requestContent: string | null;
   responseContent: string | null;
   createdAt: string;
 }
