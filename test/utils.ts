@@ -489,7 +489,8 @@ export async function createModelUsageLog(params: {
   costUsd: number;
   processingTimeMs: number;
   responseContent?: string | null;
-}): Promise<void> {
+  rating?: number | null;
+}): Promise<number> {
   const {
     modelName,
     modelType,
@@ -501,15 +502,17 @@ export async function createModelUsageLog(params: {
     costUsd,
     processingTimeMs,
     responseContent = null,
+    rating = null,
   } = params;
 
-  await withDbConnection(async (client) => {
-    await client.query(
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
       `INSERT INTO learn_language.model_usage_logs (
         model_name, model_type, operation_type, input_tokens, output_tokens,
         input_characters, image_count, cost_usd, processing_time_ms,
-        response_content, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+        response_content, rating, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+      RETURNING id`,
       [
         modelName,
         modelType,
@@ -521,7 +524,30 @@ export async function createModelUsageLog(params: {
         costUsd,
         processingTimeMs,
         responseContent,
+        rating,
       ]
     );
+    return result.rows[0].id;
+  });
+}
+
+export async function getModelUsageLogs(): Promise<Array<{
+  id: number;
+  modelName: string;
+  modelType: string;
+  operationType: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  rating: number | null;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, model_name as "modelName", model_type as "modelType",
+              operation_type as "operationType", input_tokens as "inputTokens",
+              output_tokens as "outputTokens", rating
+       FROM learn_language.model_usage_logs
+       ORDER BY created_at DESC`
+    );
+    return result.rows;
   });
 }

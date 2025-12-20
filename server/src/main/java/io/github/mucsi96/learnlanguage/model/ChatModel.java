@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 // Pricing: https://platform.openai.com/docs/pricing
 //          https://ai.google.dev/gemini-api/docs/pricing
+//          https://docs.anthropic.com/en/docs/about-claude/pricing
 @RequiredArgsConstructor
 @Getter
 public enum ChatModel {
@@ -21,6 +22,7 @@ public enum ChatModel {
   GPT_5_MINI("gpt-5-mini", false),
   GPT_5_NANO("gpt-5-nano", false),
   CLAUDE_SONNET_4_5("claude-sonnet-4-5", false),
+  CLAUDE_HAIKU_4_5("claude-haiku-4-5", false),
   GEMINI_3_PRO_PREVIEW("gemini-3-pro-preview", true),
   GEMINI_3_FLASH_PREVIEW("gemini-3-flash-preview", false);
 

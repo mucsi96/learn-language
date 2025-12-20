@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs';
 import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service';
 
 @Component({
@@ -17,6 +18,7 @@ import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service
     MatIconModule,
     MatChipsModule,
     MatButtonModule,
+    MatTabsModule,
     DatePipe,
     DecimalPipe,
   ],
@@ -27,8 +29,10 @@ export class ModelUsageLogsComponent {
   private readonly service = inject(ModelUsageLogsService);
 
   readonly logs = this.service.logs.value;
+  readonly summary = this.service.summary.value;
   readonly loading = computed(() => this.service.logs.isLoading());
   readonly expandedLogId = signal<number | null>(null);
+  readonly ratingStars = [1, 2, 3, 4, 5];
 
   readonly displayedColumns: string[] = [
     'expand',
@@ -39,6 +43,15 @@ export class ModelUsageLogsComponent {
     'usage',
     'cost',
     'time',
+    'rating',
+  ];
+
+  readonly summaryColumns: string[] = [
+    'modelName',
+    'totalCalls',
+    'ratedCalls',
+    'averageRating',
+    'totalCost',
   ];
 
   readonly skeletonData = Array(5).fill({});
@@ -80,5 +93,18 @@ export class ModelUsageLogsComponent {
 
   hasContent(log: ModelUsageLog): boolean {
     return log.modelType === 'CHAT' && !!log.responseContent;
+  }
+
+  async setRating(log: ModelUsageLog, rating: number, event: Event): Promise<void> {
+    event.stopPropagation();
+    const newRating = log.rating === rating ? null : rating;
+    await this.service.updateRating(log.id, newRating);
+  }
+
+  getStarClass(log: ModelUsageLog, star: number): string {
+    if (log.rating && star <= log.rating) {
+      return 'star-filled';
+    }
+    return 'star-empty';
   }
 }

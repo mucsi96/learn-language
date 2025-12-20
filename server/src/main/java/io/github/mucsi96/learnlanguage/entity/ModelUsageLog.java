@@ -60,6 +60,9 @@ public class ModelUsageLog {
     @Column(name = "response_content", columnDefinition = "text")
     private String responseContent;
 
+    @Column(name = "rating")
+    private Integer rating;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

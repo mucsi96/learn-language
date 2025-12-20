@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createModelUsageLog } from '../utils';
+import { createModelUsageLog, getModelUsageLogs, selectTextRange } from '../utils';
 
 test('page title', async ({ page }) => {
   await page.goto('http://localhost:8180/model-usage');
@@ -64,6 +64,7 @@ test('displays chat model usage logs', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'Cost' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Time' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Duration' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Rating' })).toBeVisible();
 
   await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3-pro-preview', { exact: true })).toBeVisible();
@@ -129,4 +130,105 @@ test('expands chat log to show request and response', async ({ page }) => {
   await page.getByRole('button', { name: 'Expand' }).click();
 
   await expect(page.getByText('{"translation": "dog"}')).toBeVisible();
+});
+
+test('allows rating usage logs', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const ratingButtons = page.getByRole('button', { name: /Rate \d stars/ });
+  await expect(ratingButtons).toHaveCount(5);
+
+  await page.getByRole('button', { name: 'Rate 4 stars' }).click();
+
+  await page.waitForTimeout(500);
+
+  const logs = await getModelUsageLogs();
+  expect(logs[0].rating).toBe(4);
+
+  await page.getByRole('button', { name: 'Rate 4 stars' }).click();
+
+  await page.waitForTimeout(500);
+
+  const logsAfterClear = await getModelUsageLogs();
+  expect(logsAfterClear[0].rating).toBeNull();
+});
+
+test('displays model summary tab', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    rating: 5,
+  });
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 150,
+    outputTokens: 75,
+    costUsd: 0.003,
+    processingTimeMs: 1500,
+    rating: 3,
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    rating: 4,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('tab', { name: 'Model Summary' }).click();
+
+  await expect(page.getByRole('columnheader', { name: 'Model' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Total Calls' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Rated Calls' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Avg Rating' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Total Cost' })).toBeVisible();
+
+  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
+  await expect(page.getByText('gemini-3-pro-preview', { exact: true })).toBeVisible();
+
+  await expect(page.getByText('4.00')).toBeVisible();
+});
+
+test('creates model usage logs when using real services through card creation', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  await page.getByRole('link', { name: 'abfahren' }).click();
+
+  await expect(page.getByRole('heading', { name: 'abfahren' })).toBeVisible();
+
+  await page.waitForTimeout(2000);
+
+  const logs = await getModelUsageLogs();
+  expect(logs.length).toBeGreaterThan(0);
+
+  const chatLogs = logs.filter((log) => log.modelType === 'CHAT');
+  expect(chatLogs.length).toBeGreaterThan(0);
+  expect(chatLogs[0].inputTokens).toBeGreaterThan(0);
+  expect(chatLogs[0].outputTokens).toBeGreaterThan(0);
 });

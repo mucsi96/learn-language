@@ -60,6 +60,13 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="rating">
+      <th mat-header-cell *matHeaderCellDef>Rating</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="skeleton skeleton-text-medium"></div>
+      </td>
+    </ng-container>
+
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
@@ -70,104 +77,186 @@
   <p>Track AI model usage and costs across chat, image, and audio services.</p>
 
   @let logsList = logs() || [];
+  @let summaryList = summary() || [];
 
-  @if (logsList.length > 0) {
-  <div class="summary-card">
-    <span class="summary-label">Total Cost:</span>
-    <span class="summary-value">${{ totalCost() | number: '1.4-4' }}</span>
-  </div>
-
-  <table mat-table [dataSource]="logsList" multiTemplateDataRows class="usage-table">
-    <ng-container matColumnDef="expand">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let log">
-        @if (hasContent(log)) {
-        <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()" [aria-label]="isExpanded(log) ? 'Collapse' : 'Expand'">
-          <mat-icon>{{ isExpanded(log) ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </button>
-        }
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="createdAt">
-      <th mat-header-cell *matHeaderCellDef>Time</th>
-      <td mat-cell *matCellDef="let log">
-        {{ log.createdAt | date: 'short' }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="modelType">
-      <th mat-header-cell *matHeaderCellDef>Type</th>
-      <td mat-cell *matCellDef="let log">
-        <mat-icon class="type-icon">{{ getModelTypeIcon(log.modelType) }}</mat-icon>
-        <span class="type-label">{{ log.modelType }}</span>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="modelName">
-      <th mat-header-cell *matHeaderCellDef>Model</th>
-      <td mat-cell *matCellDef="let log">
-        <span class="model-name">{{ log.modelName }}</span>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="operationType">
-      <th mat-header-cell *matHeaderCellDef>Operation</th>
-      <td mat-cell *matCellDef="let log">
-        {{ log.operationType }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="usage">
-      <th mat-header-cell *matHeaderCellDef>Usage</th>
-      <td mat-cell *matCellDef="let log">
-        {{ getUsageDisplay(log) }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="cost">
-      <th mat-header-cell *matHeaderCellDef>Cost</th>
-      <td mat-cell *matCellDef="let log">
-        <span class="cost-value">${{ log.costUsd | number: '1.6-6' }}</span>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="time">
-      <th mat-header-cell *matHeaderCellDef>Duration</th>
-      <td mat-cell *matCellDef="let log">
-        {{ log.processingTimeMs }}ms
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="expandedDetail">
-      <td mat-cell *matCellDef="let log" [attr.colspan]="displayedColumns.length">
-        @if (isExpanded(log)) {
-        <div class="expanded-content">
-          @if (log.responseContent) {
-          <div class="content-section">
-            <h3>Response</h3>
-            <pre class="content-pre">{{ log.responseContent }}</pre>
-          </div>
-          }
+  <mat-tab-group>
+    <mat-tab label="Usage Logs">
+      @if (logsList.length > 0) {
+      <div class="tab-content">
+        <div class="summary-card">
+          <span class="summary-label">Total Cost:</span>
+          <span class="summary-value">${{ totalCost() | number: '1.4-4' }}</span>
         </div>
-        }
-      </td>
-    </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"
-        [class.expandable-row]="hasContent(row)"
-        (click)="toggleExpand(row)"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
-  </table>
-  } @else {
-  <mat-card class="empty-state">
-    <mat-card-content>
-      <mat-icon class="empty-icon">analytics</mat-icon>
-      <h2>No usage logs yet</h2>
-      <p>Usage logs will appear here once AI models are used.</p>
-    </mat-card-content>
-  </mat-card>
-  }
+        <table mat-table [dataSource]="logsList" multiTemplateDataRows class="usage-table">
+          <ng-container matColumnDef="expand">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let log">
+              @if (hasContent(log)) {
+              <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()" [aria-label]="isExpanded(log) ? 'Collapse' : 'Expand'">
+                <mat-icon>{{ isExpanded(log) ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Time</th>
+            <td mat-cell *matCellDef="let log">
+              {{ log.createdAt | date: 'short' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="modelType">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let log">
+              <mat-icon class="type-icon">{{ getModelTypeIcon(log.modelType) }}</mat-icon>
+              <span class="type-label">{{ log.modelType }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="modelName">
+            <th mat-header-cell *matHeaderCellDef>Model</th>
+            <td mat-cell *matCellDef="let log">
+              <span class="model-name">{{ log.modelName }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="operationType">
+            <th mat-header-cell *matHeaderCellDef>Operation</th>
+            <td mat-cell *matCellDef="let log">
+              {{ log.operationType }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="usage">
+            <th mat-header-cell *matHeaderCellDef>Usage</th>
+            <td mat-cell *matCellDef="let log">
+              {{ getUsageDisplay(log) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="cost">
+            <th mat-header-cell *matHeaderCellDef>Cost</th>
+            <td mat-cell *matCellDef="let log">
+              <span class="cost-value">${{ log.costUsd | number: '1.6-6' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="time">
+            <th mat-header-cell *matHeaderCellDef>Duration</th>
+            <td mat-cell *matCellDef="let log">
+              {{ log.processingTimeMs }}ms
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="rating">
+            <th mat-header-cell *matHeaderCellDef>Rating</th>
+            <td mat-cell *matCellDef="let log">
+              <div class="rating-stars">
+                @for (star of ratingStars; track star) {
+                  <button mat-icon-button
+                          class="star-button"
+                          (click)="setRating(log, star, $event)"
+                          [attr.aria-label]="'Rate ' + star + ' stars'">
+                    <mat-icon [class]="getStarClass(log, star)">
+                      {{ log.rating && star <= log.rating ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let log" [attr.colspan]="displayedColumns.length">
+              @if (isExpanded(log)) {
+              <div class="expanded-content">
+                @if (log.responseContent) {
+                <div class="content-section">
+                  <h3>Response</h3>
+                  <pre class="content-pre">{{ log.responseContent }}</pre>
+                </div>
+                }
+              </div>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"
+              [class.expandable-row]="hasContent(row)"
+              (click)="toggleExpand(row)"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+        </table>
+      </div>
+      } @else {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">analytics</mat-icon>
+          <h2>No usage logs yet</h2>
+          <p>Usage logs will appear here once AI models are used.</p>
+        </mat-card-content>
+      </mat-card>
+      }
+    </mat-tab>
+
+    <mat-tab label="Model Summary">
+      <div class="tab-content">
+        @if (summaryList.length > 0) {
+        <table mat-table [dataSource]="summaryList" class="summary-table">
+          <ng-container matColumnDef="modelName">
+            <th mat-header-cell *matHeaderCellDef>Model</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="model-name">{{ row.modelName }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="totalCalls">
+            <th mat-header-cell *matHeaderCellDef>Total Calls</th>
+            <td mat-cell *matCellDef="let row">{{ row.totalCalls }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="ratedCalls">
+            <th mat-header-cell *matHeaderCellDef>Rated Calls</th>
+            <td mat-cell *matCellDef="let row">{{ row.ratedCalls }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="averageRating">
+            <th mat-header-cell *matHeaderCellDef>Avg Rating</th>
+            <td mat-cell *matCellDef="let row">
+              @if (row.ratedCalls > 0) {
+                <div class="avg-rating">
+                  <mat-icon class="star-filled">star</mat-icon>
+                  <span>{{ row.averageRating | number: '1.2-2' }}</span>
+                </div>
+              } @else {
+                <span class="no-rating">-</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="totalCost">
+            <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="cost-value">${{ row.totalCost | number: '1.4-4' }}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="summaryColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: summaryColumns"></tr>
+        </table>
+        } @else {
+        <mat-card class="empty-state">
+          <mat-card-content>
+            <mat-icon class="empty-icon">analytics</mat-icon>
+            <h2>No model data yet</h2>
+            <p>Model summaries will appear here once AI models are used and rated.</p>
+          </mat-card-content>
+        </mat-card>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>
 }

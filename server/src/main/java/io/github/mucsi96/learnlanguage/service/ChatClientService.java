@@ -53,6 +53,9 @@ public class ChatClientService {
       case CLAUDE_SONNET_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(AnthropicApi.ChatModel.CLAUDE_SONNET_4_5).build())
           .build();
+      case CLAUDE_HAIKU_4_5 -> ChatClient.builder(anthropicChatModel)
+          .defaultOptions(AnthropicChatOptions.builder().model(AnthropicApi.ChatModel.CLAUDE_HAIKU_4_5).build())
+          .build();
       case GEMINI_3_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
           .defaultOptions(GoogleGenAiChatOptions.builder().model(GoogleGenAiChatModel.ChatModel.GEMINI_3_PRO_PREVIEW).build())
           .build();

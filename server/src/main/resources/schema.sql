@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS learn_language.model_usage_logs (
     cost_usd numeric(10, 6),
     processing_time_ms bigint,
     response_content text,
+    rating integer,
     created_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT model_usage_logs_pkey PRIMARY KEY (id)
 );
+
+ALTER TABLE learn_language.model_usage_logs ADD COLUMN IF NOT EXISTS rating integer;

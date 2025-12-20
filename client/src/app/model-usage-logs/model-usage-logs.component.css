@@ -200,6 +200,58 @@ p {
   overflow-y: auto;
 }
 
+/* Tab content */
+.tab-content {
+  padding-top: 1rem;
+}
+
+/* Rating stars */
+.rating-stars {
+  display: flex;
+  gap: 0;
+}
+
+.star-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.star-button .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.star-filled {
+  color: #ffc107;
+}
+
+.star-empty {
+  color: var(--mat-sys-outline);
+}
+
+/* Summary table */
+.summary-table {
+  width: 100%;
+}
+
+.avg-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.avg-rating .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.no-rating {
+  color: var(--mat-sys-outline);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   :host {
