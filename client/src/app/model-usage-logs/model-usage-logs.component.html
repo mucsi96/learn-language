@@ -82,7 +82,7 @@
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let log">
         @if (hasContent(log)) {
-        <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()">
+        <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()" [aria-label]="isExpanded(log) ? 'Collapse' : 'Expand'">
           <mat-icon>{{ isExpanded(log) ? 'expand_less' : 'expand_more' }}</mat-icon>
         </button>
         }

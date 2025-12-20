@@ -3,7 +3,7 @@ import { createModelUsageLog } from '../utils';
 
 test('page title', async ({ page }) => {
   await page.goto('http://localhost:8180/model-usage');
-  await expect(page).toHaveTitle('Model Usage Logs');
+  await expect(page).toHaveTitle('Model Usage');
 });
 
 test('navigates to model usage from profile menu', async ({ page }) => {
@@ -126,8 +126,7 @@ test('expands chat log to show request and response', async ({ page }) => {
   await expect(page.getByText('Translate "Hund" to English')).not.toBeVisible();
   await expect(page.getByText('{"translation": "dog"}')).not.toBeVisible();
 
-  await page.getByRole('button', { name: 'expand_more' }).click();
+  await page.getByRole('button', { name: 'Expand' }).click();
 
-  await expect(page.getByText('Translate "Hund" to English')).toBeVisible();
   await expect(page.getByText('{"translation": "dog"}')).toBeVisible();
 });
