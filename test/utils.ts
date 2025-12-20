@@ -551,3 +551,39 @@ export async function getModelUsageLogs(): Promise<Array<{
     return result.rows;
   });
 }
+
+export async function getTableData<T extends Record<string, string>>(
+  table: Locator,
+  options: { excludeRowSelector?: string } = {}
+): Promise<T[]> {
+  const { excludeRowSelector } = options;
+
+  await expect(table).toBeVisible();
+
+  return await table.evaluate(
+    (tableEl, excludeSelector) => {
+      const headers = Array.from(tableEl.querySelectorAll('thead th')).map(
+        (th) => th.textContent?.trim() || ''
+      );
+
+      const rowSelector = excludeSelector
+        ? `tbody tr:not(${excludeSelector})`
+        : 'tbody tr';
+      const rows = Array.from(tableEl.querySelectorAll(rowSelector));
+
+      return rows.map((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        const rowData: Record<string, string> = {};
+
+        headers.forEach((header, index) => {
+          if (header) {
+            rowData[header] = cells[index]?.textContent?.trim() || '';
+          }
+        });
+
+        return rowData;
+      });
+    },
+    excludeRowSelector
+  ) as T[];
+}

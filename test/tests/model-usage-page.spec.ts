@@ -1,5 +1,28 @@
 import { test, expect } from '../fixtures';
-import { createModelUsageLog, getModelUsageLogs, selectTextRange } from '../utils';
+import {
+  createModelUsageLog,
+  getModelUsageLogs,
+  getTableData,
+  selectTextRange,
+} from '../utils';
+
+type UsageLogRow = {
+  Model: string;
+  Type: string;
+  Operation: string;
+  Usage: string;
+  Cost: string;
+  Duration: string;
+  Rating: string;
+};
+
+type ModelSummaryRow = {
+  Model: string;
+  'Total Calls': string;
+  'Rated Calls': string;
+  'Avg Rating': string;
+  'Total Cost': string;
+};
 
 test('page title', async ({ page }) => {
   await page.goto('http://localhost:8180/model-usage');
@@ -57,21 +80,29 @@ test('displays chat model usage logs', async ({ page }) => {
     page.getByRole('heading', { name: 'Model Usage Logs', exact: true })
   ).toBeVisible();
 
-  await expect(page.getByRole('columnheader', { name: 'Model' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Type' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Operation' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Usage' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Cost' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Time' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Duration' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Rating' })).toBeVisible();
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
 
-  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
-  await expect(page.getByText('gemini-3-pro-preview', { exact: true })).toBeVisible();
-  await expect(page.getByText('translation', { exact: true })).toBeVisible();
-  await expect(page.getByText('word_type_detection', { exact: true })).toBeVisible();
-  await expect(page.getByText('150 / 50 tokens')).toBeVisible();
-  await expect(page.getByText('100 / 25 tokens')).toBeVisible();
+  expect(tableData).toEqual([
+    {
+      Model: 'gemini-3-pro-preview',
+      Type: 'CHAT',
+      Operation: 'word_type_detection',
+      Usage: '100 / 25 tokens',
+      Cost: '$0.001200',
+      Duration: '800ms',
+      Rating: '',
+    },
+    {
+      Model: 'gpt-4o',
+      Type: 'CHAT',
+      Operation: 'translation',
+      Usage: '150 / 50 tokens',
+      Cost: '$0.002500',
+      Duration: '1200ms',
+      Rating: '',
+    },
+  ]);
 });
 
 test('displays image model usage logs', async ({ page }) => {
@@ -86,10 +117,20 @@ test('displays image model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await expect(page.getByText('gpt-image-1', { exact: true })).toBeVisible();
-  await expect(page.getByText('IMAGE', { exact: true })).toBeVisible();
-  await expect(page.getByText('image_generation', { exact: true })).toBeVisible();
-  await expect(page.getByText('1 image(s)')).toBeVisible();
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
+
+  expect(tableData).toEqual([
+    {
+      Model: 'gpt-image-1',
+      Type: 'IMAGE',
+      Operation: 'image_generation',
+      Usage: '1 image(s)',
+      Cost: '$0.040000',
+      Duration: '5000ms',
+      Rating: '',
+    },
+  ]);
 });
 
 test('displays audio model usage logs', async ({ page }) => {
@@ -104,10 +145,20 @@ test('displays audio model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await expect(page.getByText('eleven_multilingual_v2', { exact: true })).toBeVisible();
-  await expect(page.getByText('AUDIO', { exact: true })).toBeVisible();
-  await expect(page.getByText('audio_generation', { exact: true })).toBeVisible();
-  await expect(page.getByText('250 chars')).toBeVisible();
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
+
+  expect(tableData).toEqual([
+    {
+      Model: 'eleven_multilingual_v2',
+      Type: 'AUDIO',
+      Operation: 'audio_generation',
+      Usage: '250 chars',
+      Cost: '$0.005000',
+      Duration: '3000ms',
+      Rating: '',
+    },
+  ]);
 });
 
 test('expands chat log to show request and response', async ({ page }) => {
@@ -183,7 +234,7 @@ test('displays model summary tab', async ({ page }) => {
     outputTokens: 75,
     costUsd: 0.003,
     processingTimeMs: 1500,
-    rating: 3,
+    rating: 2,
   });
 
   await createModelUsageLog({
@@ -201,16 +252,27 @@ test('displays model summary tab', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(page.getByRole('columnheader', { name: 'Model' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Total Calls' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Rated Calls' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Avg Rating' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Total Cost' })).toBeVisible();
+  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
 
-  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
-  await expect(page.getByText('gemini-3-pro-preview', { exact: true })).toBeVisible();
+  const table = page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table');
+  const summaryData = await getTableData<ModelSummaryRow>(table);
 
-  await expect(page.getByText('4.00')).toBeVisible();
+  expect(summaryData).toEqual([
+    {
+      Model: 'gemini-3-pro-preview',
+      'Total Calls': '1',
+      'Rated Calls': '1',
+      'Avg Rating': 'star4.00',
+      'Total Cost': '$0.0010',
+    },
+    {
+      Model: 'gpt-4o',
+      'Total Calls': '2',
+      'Rated Calls': '2',
+      'Avg Rating': 'star3.50',
+      'Total Cost': '$0.0050',
+    },
+  ]);
 });
 
 test('creates model usage logs when using real services through card creation', async ({ page }) => {

@@ -208,7 +208,7 @@ test('card editing in db', async ({ page }) => {
   await navigateToCardCreation(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(page.getByText('4 / 4')).toBeVisible();
+  await expect(page.getByText('5 / 5')).toBeVisible();
   const imageContent2 = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' })
   );
@@ -238,7 +238,7 @@ test('card editing in db', async ({ page }) => {
     const img2 = downloadImage(cardData.examples[1].images[1].id);
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
-    expect(img2.equals(redImage)).toBeTruthy();
+    expect(img2.equals(greenImage)).toBeTruthy();
     expect(img3.equals(redImage)).toBeTruthy();
   });
 });
