@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
@@ -13,4 +14,14 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
     List<ModelUsageLog> findAllByOrderByCreatedAtDesc();
     List<ModelUsageLog> findByModelTypeOrderByCreatedAtDesc(ModelType modelType);
     List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(String operationType);
+
+    @Query("""
+        SELECT m.modelName, COUNT(m), COUNT(m.rating),
+               COALESCE(AVG(CAST(m.rating AS double)), 0),
+               COALESCE(SUM(m.costUsd), 0)
+        FROM ModelUsageLog m
+        GROUP BY m.modelName
+        ORDER BY COALESCE(AVG(CAST(m.rating AS double)), 0) DESC
+        """)
+    List<Object[]> getModelSummary();
 }

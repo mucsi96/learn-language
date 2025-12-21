@@ -3,8 +3,6 @@ package io.github.mucsi96.learnlanguage.controller;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,38 +47,14 @@ public class ModelUsageLogController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @GetMapping("/model-usage-logs/summary")
     public List<ModelSummary> getModelSummary() {
-        List<ModelUsageLog> allLogs = repository.findAll();
-
-        Map<String, List<ModelUsageLog>> byModel = allLogs.stream()
-            .collect(Collectors.groupingBy(ModelUsageLog::getModelName));
-
-        return byModel.entrySet().stream()
-            .map(entry -> {
-                String modelName = entry.getKey();
-                List<ModelUsageLog> logs = entry.getValue();
-
-                long totalCalls = logs.size();
-                List<ModelUsageLog> ratedLogs = logs.stream()
-                    .filter(log -> log.getRating() != null)
-                    .toList();
-                long ratedCalls = ratedLogs.size();
-
-                BigDecimal averageRating = BigDecimal.ZERO;
-                if (!ratedLogs.isEmpty()) {
-                    double sum = ratedLogs.stream()
-                        .mapToInt(ModelUsageLog::getRating)
-                        .sum();
-                    averageRating = BigDecimal.valueOf(sum / ratedCalls)
-                        .setScale(2, RoundingMode.HALF_UP);
-                }
-
-                BigDecimal totalCost = logs.stream()
-                    .map(log -> log.getCostUsd() != null ? log.getCostUsd() : BigDecimal.ZERO)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                return new ModelSummary(modelName, totalCalls, ratedCalls, averageRating, totalCost);
-            })
-            .sorted((a, b) -> b.averageRating().compareTo(a.averageRating()))
+        return repository.getModelSummary().stream()
+            .map(row -> new ModelSummary(
+                (String) row[0],
+                (Long) row[1],
+                (Long) row[2],
+                BigDecimal.valueOf((Double) row[3]).setScale(2, RoundingMode.HALF_UP),
+                (BigDecimal) row[4]
+            ))
             .toList();
     }
 }
