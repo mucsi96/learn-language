@@ -79,6 +79,7 @@ test('drag to select multiple regions', async ({ page }) => {
 
   await scrollElementToTop(page, 'A', true);
 
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
   await page.waitForLoadState('networkidle');
 
   // First region selection

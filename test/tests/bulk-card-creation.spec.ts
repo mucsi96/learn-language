@@ -26,6 +26,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
   await page.waitForLoadState('networkidle');
 
   // Initially no FAB should be visible
@@ -64,6 +65,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
   await page.waitForLoadState('networkidle');
 
   await scrollElementToTop(page, 'A', true);
