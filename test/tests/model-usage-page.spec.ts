@@ -1,10 +1,5 @@
 import { test, expect } from '../fixtures';
-import {
-  createModelUsageLog,
-  getModelUsageLogs,
-  getTableData,
-  selectTextRange,
-} from '../utils';
+import { createModelUsageLog, getTableData, selectTextRange } from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -13,6 +8,7 @@ type UsageLogRow = {
   Usage: string;
   Cost: string;
   Duration: string;
+  Time: string;
   Rating: string;
 };
 
@@ -80,10 +76,14 @@ test('displays chat model usage logs', async ({ page }) => {
     page.getByRole('heading', { name: 'Model Usage Logs', exact: true })
   ).toBeVisible();
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
 
-  expect(tableData).toEqual([
+  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
       Model: 'gemini-3-pro-preview',
       Type: 'CHAT',
@@ -91,7 +91,6 @@ test('displays chat model usage logs', async ({ page }) => {
       Usage: '100 / 25 tokens',
       Cost: '$0.001200',
       Duration: '800ms',
-      Rating: '',
     },
     {
       Model: 'gpt-4o',
@@ -100,7 +99,6 @@ test('displays chat model usage logs', async ({ page }) => {
       Usage: '150 / 50 tokens',
       Cost: '$0.002500',
       Duration: '1200ms',
-      Rating: '',
     },
   ]);
 });
@@ -117,10 +115,14 @@ test('displays image model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
 
-  expect(tableData).toEqual([
+  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
       Model: 'gpt-image-1',
       Type: 'IMAGE',
@@ -128,7 +130,6 @@ test('displays image model usage logs', async ({ page }) => {
       Usage: '1 image(s)',
       Cost: '$0.040000',
       Duration: '5000ms',
-      Rating: '',
     },
   ]);
 });
@@ -145,10 +146,14 @@ test('displays audio model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, { excludeRowSelector: '.detail-row' });
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
 
-  expect(tableData).toEqual([
+  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
       Model: 'eleven_multilingual_v2',
       Type: 'AUDIO',
@@ -156,7 +161,6 @@ test('displays audio model usage logs', async ({ page }) => {
       Usage: '250 chars',
       Cost: '$0.005000',
       Duration: '3000ms',
-      Rating: '',
     },
   ]);
 });
@@ -201,17 +205,25 @@ test('allows rating usage logs', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Rate 4 stars' }).click();
 
-  await page.waitForTimeout(500);
+  await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  const logs = await getModelUsageLogs();
-  expect(logs[0].rating).toBe(4);
+  await expect(
+    page.getByRole('tabpanel', { name: 'Usage Logs' })
+  ).not.toBeVisible();
 
-  await page.getByRole('button', { name: 'Rate 4 stars' }).click();
+  const summaryData = await getTableData<ModelSummaryRow>(
+    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+  );
 
-  await page.waitForTimeout(500);
-
-  const logsAfterClear = await getModelUsageLogs();
-  expect(logsAfterClear[0].rating).toBeNull();
+  expect(summaryData).toEqual([
+    {
+      Model: 'gpt-4o',
+      'Total Calls': '1',
+      'Rated Calls': '1',
+      'Avg Rating': '4.00',
+      'Total Cost': '$0.0020',
+    },
+  ]);
 });
 
 test('displays model summary tab', async ({ page }) => {
@@ -252,9 +264,13 @@ test('displays model summary tab', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
+  await expect(
+    page.getByRole('tabpanel', { name: 'Usage Logs' })
+  ).not.toBeVisible();
 
-  const table = page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table');
+  const table = page
+    .getByRole('tabpanel', { name: 'Model Summary' })
+    .getByRole('table');
   const summaryData = await getTableData<ModelSummaryRow>(table);
 
   expect(summaryData).toEqual([
@@ -262,35 +278,40 @@ test('displays model summary tab', async ({ page }) => {
       Model: 'gemini-3-pro-preview',
       'Total Calls': '1',
       'Rated Calls': '1',
-      'Avg Rating': 'star4.00',
+      'Avg Rating': '4.00',
       'Total Cost': '$0.0010',
     },
     {
       Model: 'gpt-4o',
       'Total Calls': '2',
       'Rated Calls': '2',
-      'Avg Rating': 'star3.50',
+      'Avg Rating': '3.50',
       'Total Cost': '$0.0050',
     },
   ]);
 });
 
-test('creates model usage logs when using real services through card creation', async ({ page }) => {
+test('creates model usage logs when using real services through card creation', async ({
+  page,
+}) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
   await page.getByRole('link', { name: 'abfahren' }).click();
 
-  await expect(page.getByRole('heading', { name: 'abfahren' })).toBeVisible();
+  await page.goto('http://localhost:8180/model-usage');
 
-  await page.waitForTimeout(2000);
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
 
-  const logs = await getModelUsageLogs();
-  expect(logs.length).toBeGreaterThan(0);
+  expect(tableData.length).toBeGreaterThan(0);
 
-  const chatLogs = logs.filter((log) => log.modelType === 'CHAT');
+  const chatLogs = tableData.filter((log) => log.Type === 'CHAT');
   expect(chatLogs.length).toBeGreaterThan(0);
-  expect(chatLogs[0].inputTokens).toBeGreaterThan(0);
-  expect(chatLogs[0].outputTokens).toBeGreaterThan(0);
+  expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
 });

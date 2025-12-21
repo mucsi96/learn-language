@@ -562,8 +562,23 @@ export async function getTableData<T extends Record<string, string>>(
 
   return await table.evaluate(
     (tableEl, excludeSelector) => {
+      function getTextContent(element: Element): string {
+        let text = '';
+        for (const node of Array.from(element.childNodes)) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.textContent || '';
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node as Element;
+            if (el.getAttribute('role') !== 'img') {
+              text += getTextContent(el);
+            }
+          }
+        }
+        return text.trim().replace(/\s+/g, ' ');
+      }
+
       const headers = Array.from(tableEl.querySelectorAll('thead th')).map(
-        (th) => th.textContent?.trim() || ''
+        (th) => getTextContent(th)
       );
 
       const rowSelector = excludeSelector
@@ -577,7 +592,7 @@ export async function getTableData<T extends Record<string, string>>(
 
         headers.forEach((header, index) => {
           if (header) {
-            rowData[header] = cells[index]?.textContent?.trim() || '';
+            rowData[header] = cells[index] ? getTextContent(cells[index]) : '';
           }
         });
 
