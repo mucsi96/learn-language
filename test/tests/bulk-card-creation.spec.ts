@@ -34,6 +34,8 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await expect(page.getByText('Create 2 Cards')).toBeVisible();
+
   // FAB should now be visible with correct count
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
   await expect(fab).toBeVisible();
