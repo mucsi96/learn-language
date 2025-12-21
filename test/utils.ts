@@ -391,6 +391,11 @@ export async function selectTextRange(
   const startElement = page.getByText(startText, { exact: true });
   const endElement = page.getByText(endText, { exact: true });
 
+  await expect(startElement).toBeVisible();
+  await expect(endElement).toBeVisible();
+
+  await page.waitForLoadState('networkidle');
+
   const startBox = await startElement.boundingBox();
   const endBox = await endElement.boundingBox();
 
@@ -413,9 +418,11 @@ export async function scrollElementToTop(
   exact: boolean = true
 ): Promise<void> {
   const element = page.getByText(selectorText, { exact });
+  await expect(element).toBeVisible();
   await element.evaluate((el) =>
     el.scrollIntoView({ block: 'start', behavior: 'instant' })
   );
+  await page.waitForLoadState('networkidle');
 }
 
 export async function navigateToCardCreation(
