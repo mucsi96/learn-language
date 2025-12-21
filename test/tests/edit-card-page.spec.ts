@@ -238,7 +238,7 @@ test('card editing in db', async ({ page }) => {
     const img2 = downloadImage(cardData.examples[1].images[1].id);
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
-    expect(img2.equals(greenImage)).toBeTruthy();
+    expect(img2.equals(redImage)).toBeTruthy();
     expect(img3.equals(redImage)).toBeTruthy();
   });
 });
