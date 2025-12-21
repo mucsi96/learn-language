@@ -84,6 +84,8 @@ test('drag to select multiple regions', async ({ page }) => {
   // First region selection
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  // Wait for selection region to finish loading
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByText('Create 3 Cards')).toBeVisible();
@@ -97,6 +99,8 @@ test('drag to select multiple regions', async ({ page }) => {
     'Können Sie mir seine Adresse sagen?'
   );
 
+  // Wait for selection region to finish loading
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByText('Create 6 Cards')).toBeVisible();
