@@ -92,16 +92,6 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
     await client.query('DELETE FROM learn_language.model_usage_logs');
-
-    // Reset sequences
-    await client.query(
-      "SELECT setval('learn_language.review_logs_id_seq', 1, false)"
-    );
-    await client.query(
-      "SELECT setval('learn_language.model_usage_logs_id_seq', 1, false)"
-    );
-
-    // Delete all sources
     await client.query('DELETE FROM learn_language.sources');
   });
 

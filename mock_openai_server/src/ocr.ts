@@ -29,7 +29,6 @@ export const imageMessagesMatch = async (
 
   console.log('OCR text', {
     extractedText,
-    imageOCRIncludes,
     condition: imageOCRIncludes.every((part) => extractedText?.includes(part)),
   });
 
