@@ -86,6 +86,8 @@ test('drag to select multiple regions', async ({ page }) => {
 
   await page.waitForLoadState('networkidle');
 
+  await expect(page.getByText('Create 3 Cards')).toBeVisible();
+
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
 
   // Second region selection
@@ -96,6 +98,8 @@ test('drag to select multiple regions', async ({ page }) => {
   );
 
   await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText('Create 6 Cards')).toBeVisible();
 
   // Check that links from both regions are visible
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
