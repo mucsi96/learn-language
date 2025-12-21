@@ -407,7 +407,10 @@ test('example image addition', async ({ page }) => {
   });
   await navigateToCardCreation(page);
 
+  const imageLocator = page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' });
+  const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).first().click();
+  await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
 
   const regeneratedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })

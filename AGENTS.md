@@ -8,8 +8,7 @@
 - Prefer constructor injection with lombok
 
 ## Testing Code style
-- Prefer using Playwright for end-to-end tests with Python in test folder
-- exact=True should be used for exact text matching in Playwright tests
+- Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages
 
 ## Angular Code style
@@ -58,11 +57,11 @@ cd server/
 
 ### Testing
 ```bash
-# Run end-to-end tests (Playwright)
-pytest test/
-
-# Run specific test file
-pytest test/test_bulk_card_creation.py
+cd test/
+npm test                    # Run all Playwright tests
+npm run test:headed         # Run tests with browser visible
+npm run test:ui             # Run tests with Playwright UI
+npm run test:debug          # Run tests in debug mode
 ```
 
 ### Docker Development
@@ -144,7 +143,7 @@ The test suite uses Playwright for end-to-end testing covering:
 - Study mode and spaced repetition logic
 - User profile and authentication flows
 
-Tests are located in the `test/` directory with supporting utilities in `test/utils.py`.
+Tests are located in the `test/tests/` directory with supporting utilities in `test/utils.ts`.
 
 ## Language Learning Features
 

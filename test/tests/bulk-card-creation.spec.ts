@@ -61,8 +61,12 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await expect(page.getByText('Create 2 Cards')).toBeVisible();
+
   // Select second region
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
+
+  await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // FAB should show total count from both regions
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
