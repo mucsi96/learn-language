@@ -1,7 +1,6 @@
 import { Injectable, inject, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
-import { firstValueFrom } from 'rxjs';
 
 export interface ModelUsageLog {
   id: number;
@@ -50,9 +49,10 @@ export class ModelUsageLogsService {
       currentLogs?.map((log) => (log.id === id ? { ...log, rating } : log))
     );
 
-    await firstValueFrom(
-      this.http.patch(`/api/model-usage-logs/${id}/rating`, { rating })
-    );
+    await fetchJson(this.http, `/api/model-usage-logs/${id}/rating`, {
+      method: 'patch',
+      body: { rating },
+    });
   }
 
   refetch() {
