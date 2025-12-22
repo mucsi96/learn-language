@@ -221,14 +221,15 @@ p {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  opacity: 1;
 }
 
-.star-filled {
+.star-button .mat-icon.star-empty {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.star-button .mat-icon.star-filled {
   color: #ffc107;
-}
-
-.star-empty {
-  color: var(--mat-sys-outline);
 }
 
 /* Summary table */
@@ -246,6 +247,7 @@ p {
   font-size: 18px;
   width: 18px;
   height: 18px;
+  color: #ffc107;
 }
 
 .no-rating {
