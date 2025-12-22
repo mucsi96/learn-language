@@ -77,14 +77,12 @@ test('drag to select multiple regions', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await scrollElementToTop(page, 'A', true);
-
   await page.locator('section[data-ready="true"]').waitFor();
+
+  await scrollElementToTop(page, 'A', true);
 
   // First region selection
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-
-  await page.locator('section[data-ready="true"]').waitFor();
 
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
 
@@ -94,8 +92,6 @@ test('drag to select multiple regions', async ({ page }) => {
     'der Absender',
     'Können Sie mir seine Adresse sagen?'
   );
-
-  await page.locator('section[data-ready="true"]').waitFor();
 
   await expect(page.getByText('Create 6 Cards')).toBeVisible();
 

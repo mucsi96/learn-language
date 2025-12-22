@@ -393,13 +393,12 @@ export async function selectTextRange(
 
   await page.mouse.move(startBox.x - 5, startBox.y - 5);
   await page.mouse.down();
-  await page.waitForTimeout(500);
   await page.mouse.move(
     endBox.x + endBox.width + 5,
     endBox.y + endBox.height + 5
   );
   await page.mouse.up();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1500);
 }
 
 export async function scrollElementToTop(
