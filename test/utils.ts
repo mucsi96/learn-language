@@ -384,8 +384,6 @@ export async function selectTextRange(
   await expect(startElement).toBeVisible();
   await expect(endElement).toBeVisible();
 
-  await page.waitForLoadState('networkidle');
-
   const startBox = await startElement.boundingBox();
   const endBox = await endElement.boundingBox();
 
