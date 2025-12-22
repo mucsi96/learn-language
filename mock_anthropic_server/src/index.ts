@@ -15,7 +15,6 @@ app.use((req, res, next) => {
 });
 
 app.post('/reset', (req, res) => {
-  console.log('Reset called');
   res.status(200).json({ status: 'ok', message: 'Reset complete' });
 });
 
