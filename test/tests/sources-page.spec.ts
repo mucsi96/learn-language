@@ -79,6 +79,8 @@ test('drag to select multiple regions', async ({ page }) => {
 
   await scrollElementToTop(page, 'A', true);
 
+  await page.waitForTimeout(2000);
+
   await page.locator('section[data-ready="true"]').waitFor();
 
   // First region selection
@@ -90,6 +92,8 @@ test('drag to select multiple regions', async ({ page }) => {
   await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
+
+  await page.waitForTimeout(2000);
 
   // Second region selection
   await selectTextRange(

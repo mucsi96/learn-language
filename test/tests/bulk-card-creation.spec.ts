@@ -26,12 +26,18 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await page.waitForTimeout(2000);
+
   await page.locator('section[data-ready="true"]').waitFor();
 
   // Initially no FAB should be visible
   await expect(
     page.locator("button:has-text('Create')").filter({ hasText: 'Cards' })
   ).not.toBeVisible();
+
+  await page.waitForTimeout(2000);
+
+  await page.locator('section[data-ready="true"]').waitFor();
 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -63,6 +69,8 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await page.waitForTimeout(2000);
+
   await page.locator('section[data-ready="true"]').waitFor();
 
   await scrollElementToTop(page, 'A', true);
@@ -70,8 +78,12 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await page.waitForTimeout(2000);
+
   // Wait for selection region to finish loading
   await page.locator('section[data-ready="true"]').waitFor();
+
+  await expect(page.getByRole('progressbar')).not.toBeVisible();
 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
