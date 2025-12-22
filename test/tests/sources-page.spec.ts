@@ -81,7 +81,6 @@ test('drag to select multiple regions', async ({ page }) => {
 
   // First region selection
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  await page.waitForTimeout(2000);
 
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
 
@@ -91,7 +90,6 @@ test('drag to select multiple regions', async ({ page }) => {
     'der Absender',
     'Können Sie mir seine Adresse sagen?'
   );
-  await page.waitForTimeout(2000);
 
   await expect(page.getByText('Create 6 Cards')).toBeVisible();
 

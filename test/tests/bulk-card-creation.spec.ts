@@ -33,7 +33,6 @@ test('bulk create fab appears when words without cards selected', async ({ page 
 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  await page.waitForTimeout(2000);
 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
@@ -63,13 +62,9 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
 
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  await page.waitForTimeout(2000);
-
-  await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
   // Select second region
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
-  await page.waitForTimeout(2000);
 
   await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
