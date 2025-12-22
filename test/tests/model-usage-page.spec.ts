@@ -226,6 +226,39 @@ test('allows rating usage logs', async ({ page }) => {
   ]);
 });
 
+test('allows clearing rating by clicking the same star', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    rating: 4,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Rate 4 stars' }).click();
+
+  await page.getByRole('tab', { name: 'Model Summary' }).click();
+
+  const summaryData = await getTableData<ModelSummaryRow>(
+    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+  );
+
+  expect(summaryData).toEqual([
+    {
+      Model: 'gpt-4o',
+      'Total Calls': '1',
+      'Rated Calls': '0',
+      'Avg Rating': '-',
+      'Total Cost': '$0.0020',
+    },
+  ]);
+});
+
 test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
