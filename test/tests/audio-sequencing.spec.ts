@@ -65,9 +65,6 @@ test('audio plays sequentially', async ({ page }) => {
     await revealButton2.click();
   }
 
-  // Wait for potential audio errors
-  await page.waitForTimeout(2000);
-
   // Check for audio-related errors
   const audioErrors = consoleMessages.filter(
     (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'

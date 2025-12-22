@@ -18,12 +18,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleImageService {
 
-  private static final String IMAGEN_MODEL = "imagen-4.0-ultra-generate-001";
-  private static final String NANO_BANANA_PRO_MODEL = "gemini-3-pro-image-preview";
+  private static final String IMAGEN_MODEL = "imagen-4.0-ultra";
+  private static final String GEMINI_3_PRO_IMAGE_PREVIEW_MODEL = "gemini-3-pro-image-preview";
 
   private final Client googleAiClient;
+  private final ModelUsageLoggingService usageLoggingService;
 
   public byte[] generateImageWithImagen(String prompt) {
+    long startTime = System.currentTimeMillis();
     try {
       GenerateImagesConfig generateImagesConfig = GenerateImagesConfig.builder()
           .numberOfImages(1)
@@ -42,6 +44,9 @@ public class GoogleImageService {
 
       Image generatedImage = generatedImagesResponse.generatedImages().get().get(0).image().get();
 
+      long processingTime = System.currentTimeMillis() - startTime;
+      usageLoggingService.logImageUsage("imagen-4.0-ultra", "image_generation", 1, processingTime);
+
       return generatedImage.imageBytes().get();
 
     } catch (Exception e) {
@@ -51,6 +56,7 @@ public class GoogleImageService {
   }
 
   public byte[] generateImageWithNanoBananaPro(String prompt) {
+    long startTime = System.currentTimeMillis();
     try {
       GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
@@ -61,7 +67,7 @@ public class GoogleImageService {
           .build();
 
       GenerateContentResponse response = googleAiClient.models.generateContent(
-          NANO_BANANA_PRO_MODEL,
+          GEMINI_3_PRO_IMAGE_PREVIEW_MODEL,
           prompt + ". Avoid using text.",
           config);
 
@@ -71,6 +77,8 @@ public class GoogleImageService {
 
       for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
         if (part.inlineData().isPresent()) {
+          long processingTime = System.currentTimeMillis() - startTime;
+          usageLoggingService.logImageUsage("gemini-3-pro-image-preview", "image_generation", 1, processingTime);
           return part.inlineData().get().data().get();
         }
       }

@@ -31,12 +31,12 @@ jobs:
       - name: Run Playwright tests
         working-directory: test
         run: npm test
-      - name: Upload screenshots
+      - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: test-results
-          path: test-results
+          path: test/test-results
       - run: docker compose logs
         if: always()
 

@@ -5,11 +5,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import lombok.RequiredArgsConstructor;
 
+// Pricing: https://platform.openai.com/docs/pricing
+//          https://ai.google.dev/gemini-api/docs/pricing
 @RequiredArgsConstructor
 public enum ImageGenerationModel {
     GPT_IMAGE_1("gpt-image-1"),
-    IMAGEN_4_ULTRA("google-imagen-4-ultra"),
-    NANO_BANANA_PRO("google-nano-banana-pro");
+    GPT_IMAGE_1_5("gpt-image-1.5"),
+    IMAGEN_4_ULTRA("imagen-4.0-ultra"),
+    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview");
 
     private final String modelName;
 

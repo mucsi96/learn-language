@@ -2,13 +2,13 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +21,7 @@ public class AreaWordsService {
 
   private final ObjectMapper objectMapper;
   private final WordIdService wordIdService;
+  private final ChatService chatService;
 
   private String buildSystemPrompt() {
     String basePrompt = """
@@ -52,18 +53,18 @@ public class AreaWordsService {
     }
   }
 
-  public List<WordResponse> getAreaWords(byte[] imageData, ChatClient chatClient) {
-    var result = chatClient
-        .prompt()
-        .system(buildSystemPrompt())
-        .user(u -> u
+  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model) {
+    var result = chatService.callWithLoggingAndMedia(
+        model,
+        "word_extraction",
+        buildSystemPrompt(),
+        u -> u
             .text("Here is the image of the page")
             .media(Media.builder()
                 .data(imageData)
                 .mimeType(MimeTypeUtils.IMAGE_PNG)
-                .build()))
-        .call()
-        .entity(AreaWords.class);
+                .build()),
+        AreaWords.class);
 
     return result.wordList.stream().map(word -> {
       word.setId(wordIdService.generateWordId(word.getWord()));

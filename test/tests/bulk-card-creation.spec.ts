@@ -34,6 +34,8 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await expect(page.getByText('Create 2 Cards')).toBeVisible();
+
   // FAB should now be visible with correct count
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
   await expect(fab).toBeVisible();
@@ -56,13 +58,19 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
   await scrollElementToTop(page, 'A', true);
 
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
   // Select second region
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
+
+  await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // FAB should show total count from both regions
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });

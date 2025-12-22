@@ -77,6 +77,8 @@ test('drag to select multiple regions', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
   await scrollElementToTop(page, 'A', true);
 
   // First region selection
@@ -90,6 +92,8 @@ test('drag to select multiple regions', async ({ page }) => {
     'der Absender',
     'Können Sie mir seine Adresse sagen?'
   );
+
+  await expect(page.getByText('Create 6 Cards')).toBeVisible();
 
   // Check that links from both regions are visible
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();

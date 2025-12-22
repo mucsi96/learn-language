@@ -66,6 +66,9 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly selectionRegionsLoading = computed(() =>
     this.pageService.selectionRegions().some((w) => w.isLoading())
   );
+  readonly isReady = computed(
+    () => !this.pageLoading() && !this.selectionRegionsLoading()
+  );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
 

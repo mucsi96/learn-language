@@ -12,9 +12,9 @@ export const extractTextFromImageUrl = async (
 
   const worker = await createWorker('deu');
   const imageBuffer = Buffer.from(imageUrl.split(',')[1], 'base64');
-  // Save to file for debugging purposes
   writeFileSync('image.png', imageBuffer);
   const { data } = await worker.recognize(imageBuffer);
+  await worker.terminate();
   return data.text;
 };
 
@@ -29,7 +29,6 @@ export const imageMessagesMatch = async (
 
   console.log('OCR text', {
     extractedText,
-    imageOCRIncludes,
     condition: imageOCRIncludes.every((part) => extractedText?.includes(part)),
   });
 

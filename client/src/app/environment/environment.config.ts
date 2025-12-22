@@ -3,8 +3,6 @@ import { InjectionToken } from '@angular/core';
 export interface ChatModelInfo {
   modelName: string;
   primary: boolean;
-  inputPricePerMillionTokens: number;
-  outputPricePerMillionTokens: number;
 }
 
 export interface EnvironmentConfig {

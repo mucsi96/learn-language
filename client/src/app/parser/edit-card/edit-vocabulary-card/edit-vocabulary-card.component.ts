@@ -20,16 +20,14 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
-import {
-  WORD_TYPE_TRANSLATIONS,
-} from '../../../shared/word-type-translations';
+import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
 import { Word, Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
-import { ImageGenerationModel } from '../../../shared/types/image-generation.types';
 
 import { languages } from '../../../shared/constants/languages';
+import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -57,6 +55,7 @@ export class EditVocabularyCardComponent {
 
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
@@ -90,9 +89,7 @@ export class EditVocabularyCardComponent {
       languages.map((languageCode) => [
         languageCode,
         examples.map((_, index: number) =>
-          linkedSignal(
-            () => this.card()?.data.examples?.[index][languageCode]
-          )
+          linkedSignal(() => this.card()?.data.examples?.[index][languageCode])
         ),
       ])
     );
@@ -115,12 +112,13 @@ export class EditVocabularyCardComponent {
   });
   readonly selectedExampleIndex = linkedSignal(
     () =>
-      this.card()?.data.examples?.findIndex((example) => example.isSelected) ?? 0
+      this.card()?.data.examples?.findIndex((example) => example.isSelected) ??
+      0
   );
 
   exampleImageCarouselIndices = linkedSignal<number[]>(() => {
     const examples = this.examples();
-    return examples?.map(() => 0) ?? []
+    return examples?.map(() => 0) ?? [];
   });
 
   readonly canMarkAsReviewed = computed(() => {
@@ -131,7 +129,11 @@ export class EditVocabularyCardComponent {
     const selectedExampleIndex = this.selectedExampleIndex();
     const examples = this.examples();
 
-    if (!examples || selectedExampleIndex < 0 || selectedExampleIndex >= examples.length) {
+    if (
+      !examples ||
+      selectedExampleIndex < 0 ||
+      selectedExampleIndex >= examples.length
+    ) {
       return false;
     }
 
@@ -169,17 +171,15 @@ export class EditVocabularyCardComponent {
     });
   }
 
-
   addImage(exampleIdx: number) {
+    const imageModels = this.environmentConfig.imageModels;
     this.exampleImages.update((images) => {
-      if (!images[exampleIdx]) {
-        images[exampleIdx] = [];
-      }
-      images[exampleIdx].push(
-        this.createExampleImageResource(exampleIdx, 'gpt-image-1'),
-        this.createExampleImageResource(exampleIdx, 'google-imagen-4-ultra'),
-        this.createExampleImageResource(exampleIdx, 'google-nano-banana-pro')
-      );
+      images[exampleIdx] = [
+        ...images[exampleIdx],
+        ...imageModels.map((modelName) =>
+          this.createExampleImageResource(exampleIdx, modelName)
+        ),
+      ];
       return images;
     });
 
@@ -209,8 +209,7 @@ export class EditVocabularyCardComponent {
     const images = this.exampleImages()?.[exampleIdx] || [];
     if (!images.length) return;
     this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] =
-        (indices[exampleIdx] + 1) % images.length;
+      indices[exampleIdx] = (indices[exampleIdx] + 1) % images.length;
       return indices;
     });
   }
@@ -227,7 +226,7 @@ export class EditVocabularyCardComponent {
 
     image.set({
       ...imageValue,
-      isFavorite: !imageValue.isFavorite
+      isFavorite: !imageValue.isFavorite,
     });
 
     // Trigger exampleImages signal update to recompute canMarkAsReviewed
@@ -280,7 +279,9 @@ export class EditVocabularyCardComponent {
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
         }),
-        images: this.exampleImages()[index]?.map((image) => image.value()).filter(image => image != null),
+        images: this.exampleImages()
+          [index]?.map((image) => image.value())
+          .filter((image) => image != null),
       })),
       audio: this.card()?.data.audio || [],
     };
@@ -302,7 +303,7 @@ export class EditVocabularyCardComponent {
     });
   }
 
-  private createExampleImageResource(index: number, model: ImageGenerationModel) {
+  private createExampleImageResource(index: number, model: string) {
     return resource({
       injector: this.injector,
       params: () => ({
@@ -319,7 +320,7 @@ export class EditVocabularyCardComponent {
           {
             body: {
               input: englishTranslation,
-              model
+              model,
             },
             method: 'POST',
           }

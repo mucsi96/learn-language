@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.openai.client.OpenAIClient;
 import com.openai.models.images.ImageGenerateParams;
-import com.openai.models.images.ImageModel;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +16,22 @@ import lombok.extern.slf4j.Slf4j;
 public class OpenAIImageService {
 
     private final OpenAIClient openAIClient;
+    private final ModelUsageLoggingService usageLoggingService;
 
     public byte[] generateImage(String prompt) {
+        return generateImageWithModel(prompt, "gpt-image-1");
+    }
+
+    public byte[] generateImageWithModel15(String prompt) {
+        return generateImageWithModel(prompt, "gpt-image-1.5");
+    }
+
+    private byte[] generateImageWithModel(String prompt, String modelName) {
+        long startTime = System.currentTimeMillis();
         try {
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
-                .model(ImageModel.GPT_IMAGE_1)
+                .model(modelName)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
                 .n(1)
@@ -34,6 +43,9 @@ public class OpenAIImageService {
                 .flatMap(image -> image.b64Json().stream())
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
+
+            long processingTime = System.currentTimeMillis() - startTime;
+            usageLoggingService.logImageUsage(modelName, "image_generation", 1, processingTime);
 
             return Base64.getDecoder().decode(imageB64Json);
 

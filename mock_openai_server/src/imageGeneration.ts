@@ -8,33 +8,47 @@ export const IMAGES = {
   green: 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=',
 };
 
+type PromptConfig = {
+  pattern: string;
+  firstImage: string;
+  secondImage: string;
+};
+
+const PROMPT_CONFIGS: PromptConfig[] = [
+  {
+    pattern: "We are departing at twelve o'clock.",
+    firstImage: IMAGES.yellow,
+    secondImage: IMAGES.blue,
+  },
+  {
+    pattern: 'When does the train leave?',
+    firstImage: IMAGES.red,
+    secondImage: IMAGES.green,
+  },
+];
+
 export class ImageGenerationHandler {
-  private imageCallCounter1 = 0;
-  private imageCallCounter2 = 0;
+  private counters = new Map<string, number>();
 
   reset(): void {
-    this.imageCallCounter1 = 0;
-    this.imageCallCounter2 = 0;
+    this.counters.clear();
   }
 
   generateImage(request: ImageGenerationRequest): ImageGenerationResponse {
-    const { prompt } = request;
+    const { prompt, model } = request;
 
-    console.log('Received image generation request with prompt:', prompt, {
-      imageCallCounter1: this.imageCallCounter1,
-      imageCallCounter2: this.imageCallCounter2,
-    });
+    console.log('Received image generation request with prompt:', prompt);
 
     let b64_json = IMAGES.yellow;
 
-    if (prompt.includes("We are departing at twelve o'clock.")) {
-      this.imageCallCounter1++;
-      b64_json = this.imageCallCounter1 > 1 ? IMAGES.blue : IMAGES.yellow;
-    }
-
-    if (prompt.includes('When does the train leave?')) {
-      this.imageCallCounter2++;
-      b64_json = this.imageCallCounter2 > 1 ? IMAGES.green : IMAGES.red;
+    for (const promptConfig of PROMPT_CONFIGS) {
+      if (prompt.includes(promptConfig.pattern)) {
+        const counterKey = `${model}:${promptConfig.pattern}`;
+        const count = (this.counters.get(counterKey) ?? 0) + 1;
+        this.counters.set(counterKey, count);
+        b64_json = count > 1 ? promptConfig.secondImage : promptConfig.firstImage;
+        break;
+      }
     }
 
     return {

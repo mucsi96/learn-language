@@ -6,19 +6,28 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+// Pricing: https://platform.openai.com/docs/pricing
+//          https://ai.google.dev/gemini-api/docs/pricing
+//          https://docs.anthropic.com/en/docs/about-claude/pricing
 @RequiredArgsConstructor
 @Getter
 public enum ChatModel {
-  GPT_4O("gpt-4o", false, 3.00, 10.00),
-  GPT_4_1("gpt-4.1", false, 2.00, 8.00),
-  GPT_5("gpt-5", false, 1.25, 10.00),
-  CLAUDE_SONNET_4_5("claude-sonnet-4-5", false, 3.00, 15.00),
-  GEMINI_3_PRO_PREVIEW("gemini-3-pro-preview", true, 1.25, 10.00);
+  GPT_4O("gpt-4o", false),
+  GPT_4O_MINI("gpt-4o-mini", false),
+  GPT_4_1("gpt-4.1", false),
+  GPT_4_1_MINI("gpt-4.1-mini", false),
+  GPT_4_1_NANO("gpt-4.1-nano", false),
+  GPT_5("gpt-5", false),
+  GPT_5_2("gpt-5.2", false),
+  GPT_5_MINI("gpt-5-mini", false),
+  GPT_5_NANO("gpt-5-nano", false),
+  CLAUDE_SONNET_4_5("claude-sonnet-4-5", false),
+  CLAUDE_HAIKU_4_5("claude-haiku-4-5", false),
+  GEMINI_3_PRO_PREVIEW("gemini-3-pro-preview", true),
+  GEMINI_3_FLASH_PREVIEW("gemini-3-flash-preview", false);
 
   private final String modelName;
   private final boolean primary;
-  private final double inputPricePerMillionTokens;
-  private final double outputPricePerMillionTokens;
 
   @JsonValue
   public String getModelName() {

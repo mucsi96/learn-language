@@ -1,8 +1,6 @@
-export type ImageGenerationModel = 'gpt-image-1' | 'google-imagen-4-ultra' | 'google-nano-banana-pro';
-
 export interface ImageSourceRequest {
   input: string;
-  model?: ImageGenerationModel;
+  model?: string;
 }
 
 export interface ImageResponse {

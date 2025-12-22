@@ -34,20 +34,12 @@ public class EnvironmentController {
         clientId,
         environment.matchesProfiles("test"),
         Arrays.stream(ChatModel.values())
-            .map(model -> new ChatModelInfo(
-                model.getModelName(),
-                model.isPrimary(),
-                model.getInputPricePerMillionTokens(),
-                model.getOutputPricePerMillionTokens()))
+            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary()))
             .toList(),
         Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList());
   }
 
-  public record ChatModelInfo(
-      String modelName,
-      boolean primary,
-      double inputPricePerMillionTokens,
-      double outputPricePerMillionTokens) {
+  public record ChatModelInfo(String modelName, boolean primary) {
   }
 
   public record ConfigResponse(

@@ -21,6 +21,7 @@ export const extractTextFromBase64 = async (
   const imageBuffer = Buffer.from(base64Data, 'base64');
   writeFileSync('image.png', imageBuffer);
   const { data } = await worker.recognize(imageBuffer);
+  await worker.terminate();
   return data.text;
 };
 
@@ -43,7 +44,6 @@ export const imageRequestMatch = async (
 
   console.log('OCR text', {
     extractedText,
-    imageOCRIncludes,
     condition: imageOCRIncludes.every((part) => extractedText?.includes(part)),
   });
 

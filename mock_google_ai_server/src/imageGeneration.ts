@@ -1,4 +1,3 @@
-
 // Source: https://png-pixel.com - simple 10x10 pixel images
 export const IMAGES = {
   yellow: 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8/5/hPwMRgHFUIX0VAgAYyB3tBFoR2wAAAABJRU5ErkJggg==',
@@ -7,28 +6,40 @@ export const IMAGES = {
   green: 'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=',
 };
 
+type ImageModelConfig = {
+  pattern: string;
+  firstImage: string;
+  secondImage: string;
+};
+
+const IMAGE_MODELS: ImageModelConfig[] = [
+  {
+    pattern: "We are departing at twelve o'clock.",
+    firstImage: IMAGES.yellow,
+    secondImage: IMAGES.blue,
+  },
+  {
+    pattern: 'When does the train leave?',
+    firstImage: IMAGES.red,
+    secondImage: IMAGES.green,
+  },
+];
+
 export class ImageGenerationHandler {
-  private imageCallCounter1 = 0;
-  private imageCallCounter2 = 0;
+  private counters = new Map<string, number>();
 
   reset(): void {
-    this.imageCallCounter1 = 0;
-    this.imageCallCounter2 = 0;
+    this.counters.clear();
   }
 
   generateImage(prompt: string) {
-    let imageBytes = IMAGES.yellow;
-
-    if (prompt.includes("We are departing at twelve o'clock.")) {
-      this.imageCallCounter1++;
-      imageBytes = this.imageCallCounter1 > 1 ? IMAGES.blue : IMAGES.yellow;
+    for (const model of IMAGE_MODELS) {
+      if (prompt.includes(model.pattern)) {
+        const count = (this.counters.get(model.pattern) ?? 0) + 1;
+        this.counters.set(model.pattern, count);
+        return count > 1 ? model.secondImage : model.firstImage;
+      }
     }
-
-    if (prompt.includes('When does the train leave?')) {
-      this.imageCallCounter2++;
-      imageBytes = this.imageCallCounter2 > 1 ? IMAGES.green : IMAGES.red;
-    }
-
-    return imageBytes;
+    return IMAGES.yellow;
   }
 }

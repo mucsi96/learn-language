@@ -12,8 +12,7 @@ app.use(express.json());
 
 // Middleware to log access details
 app.use((req, res, next) => {
-  // Skip logging for health endpoint
-  if (req.url !== '/health') {
+  if (req.url !== '/health' && req.url !== '/reset') {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   }
   next();
@@ -22,7 +21,6 @@ app.use((req, res, next) => {
 // Add route to reset state for tests
 app.post('/reset', (req, res) => {
   imageHandler.reset();
-  console.log('Reset image counter to 0');
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
 });
 
