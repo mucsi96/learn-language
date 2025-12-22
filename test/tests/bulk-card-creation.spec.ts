@@ -26,8 +26,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await expect(page.getByRole('progressbar')).not.toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.locator('section[data-ready="true"]').waitFor();
 
   // Initially no FAB should be visible
   await expect(
@@ -38,8 +37,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Wait for selection region to finish loading
-  await expect(page.getByRole('progressbar')).not.toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.locator('section[data-ready="true"]').waitFor();
 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
@@ -65,8 +63,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await expect(page.getByRole('progressbar')).not.toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.locator('section[data-ready="true"]').waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
@@ -74,8 +71,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Wait for selection region to finish loading
-  await expect(page.getByRole('progressbar')).not.toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.locator('section[data-ready="true"]').waitFor();
 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
@@ -83,8 +79,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
   // Wait for selection region to finish loading
-  await expect(page.getByRole('progressbar')).not.toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.locator('section[data-ready="true"]').waitFor();
 
   await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
