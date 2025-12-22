@@ -46,11 +46,13 @@ export class ModelUsageLogsService {
   });
 
   async updateRating(id: number, rating: number | null): Promise<void> {
+    this.logs.update((currentLogs) =>
+      currentLogs?.map((log) => (log.id === id ? { ...log, rating } : log))
+    );
+
     await firstValueFrom(
       this.http.patch(`/api/model-usage-logs/${id}/rating`, { rating })
     );
-    this.logs.reload();
-    this.summary.reload();
   }
 
   refetch() {
