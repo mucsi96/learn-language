@@ -53,6 +53,8 @@ export class ModelUsageLogsService {
       method: 'patch',
       body: { rating },
     });
+
+    this.summary.reload();
   }
 
   refetch() {
