@@ -25,11 +25,12 @@ public class ElevenLabsAudioService {
   private final ElevenLabsVoicesApi voicesApi;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateAudio(String input, String voiceId, String language) {
+  public byte[] generateAudio(String input, String voiceId, String model, String language) {
     long startTime = System.currentTimeMillis();
     try {
       var speechOptions = ElevenLabsTextToSpeechOptions.builder()
           .voiceId(voiceId)
+          .model(model)
           .languageCode(language)
           .build();
 
@@ -38,7 +39,7 @@ public class ElevenLabsAudioService {
       byte[] result = textToSpeechModel.call(speechPrompt).getResult().getOutput();
 
       long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logAudioUsage("eleven_turbo_v2_5", "audio_generation", input.length(), processingTime);
+      usageLoggingService.logAudioUsage(model, "audio_generation", input.length(), processingTime);
 
       return result;
 

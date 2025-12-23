@@ -1,4 +1,4 @@
-export type AudioGenerationModel = 'openai' | 'eleven_turbo_v2_5';
+export type AudioGenerationModel = 'openai' | 'eleven_turbo_v2_5' | 'eleven_v3';
 
 export interface AudioSourceRequest {
   input: string;
@@ -39,13 +39,15 @@ export type LanguageCode = typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES];
 
 export const LANGUAGE_SPECIFIC_VOICES = {
   [LANGUAGE_CODES.HUNGARIAN]: [
-    { voice: 'TumdjBNWanlT3ysvclWh', model: 'eleven_turbo_v2_5' as AudioGenerationModel }, // Magyar Férfi - Hungarian Male
-    { voice: 'xQ7QVYmweeFQQ6autam7', model: 'eleven_turbo_v2_5' as AudioGenerationModel }, // Balazs - Calm
-    { voice: 'Dme3o25EiC1DfrBQd73f', model: 'eleven_turbo_v2_5' as AudioGenerationModel }, // Aggie
+    { voice: 'TumdjBNWanlT3ysvclWh', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'xQ7QVYmweeFQQ6autam7', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'Dme3o25EiC1DfrBQd73f', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'BIvP0GN1cAtSRTxNHnWS', model: 'eleven_v3' as AudioGenerationModel },
   ],
   [LANGUAGE_CODES.GERMAN]: [
-    { voice: 'ghgFyr7gmpr57xyTgX9q', model: 'eleven_turbo_v2_5' as AudioGenerationModel }, // Emilia - Sweet German Soul
-    { voice: 'Jvf6TAXwMUVTSR20U0f9', model: 'eleven_turbo_v2_5' as AudioGenerationModel }, // Klaus - English with German accent
-    { voice: 'ZQFCSsF1tIcjtMZJ6VCA', model: 'eleven_turbo_v2_5' as AudioGenerationModel } // Louisa
+    { voice: 'ghgFyr7gmpr57xyTgX9q', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'Jvf6TAXwMUVTSR20U0f9', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'ZQFCSsF1tIcjtMZJ6VCA', model: 'eleven_turbo_v2_5' as AudioGenerationModel },
+    { voice: 'BIvP0GN1cAtSRTxNHnWS', model: 'eleven_v3' as AudioGenerationModel },
   ]
 } as const;
