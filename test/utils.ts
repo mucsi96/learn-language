@@ -398,7 +398,7 @@ export async function selectTextRange(
     endBox.y + endBox.height + 5
   );
   await page.mouse.up();
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
 }
 
 export async function scrollElementToTop(
