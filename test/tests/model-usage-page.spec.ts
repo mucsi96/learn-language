@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createModelUsageLog, getTableData, selectTextRange } from '../utils';
+import { createCard, createModelUsageLog, getTableData, selectTextRange } from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -387,20 +387,30 @@ test('creates image model usage logs when using bulk card creation', async ({
 test('creates audio model usage logs when using bulk audio creation', async ({
   page,
 }) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await createCard({
+      cardId: 'verstehen',
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 15,
+      data: {
+        word: 'verstehen',
+        type: 'VERB',
+        translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+        forms: ['versteht', 'verstand', 'verstanden'],
+        examples: [
+          {
+            de: 'Ich verstehe Deutsch.',
+            hu: 'Értem a németet.',
+            en: 'I understand German.',
+            ch: 'Ich verstoh Tüütsch.',
+            isSelected: true,
+            images: [{ id: 'test-image-id' }],
+          },
+        ],
+      },
+      readiness: 'REVIEWED',
+    });
 
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
-
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
-
-  await page.getByRole('dialog').getByRole('link', { name: 'Review' }).click();
-
-  await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8180/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
