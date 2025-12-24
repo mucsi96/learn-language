@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createModelUsageLog, getTableData, selectTextRange } from '../utils';
+import { createCard, createModelUsageLog, getTableData, selectTextRange } from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -324,14 +324,19 @@ test('displays model summary tab', async ({ page }) => {
   ]);
 });
 
-test('creates model usage logs when using real services through card creation', async ({
+test('creates chat model usage logs when using bulk card creation', async ({
   page,
 }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  await page.getByRole('link', { name: 'abfahren' }).click();
+
+  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible();
 
   await page.goto('http://localhost:8180/model-usage');
 
@@ -347,4 +352,84 @@ test('creates model usage logs when using real services through card creation', 
   const chatLogs = tableData.filter((log) => log.Type === 'CHAT');
   expect(chatLogs.length).toBeGreaterThan(0);
   expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
+});
+
+test('creates image model usage logs when using bulk card creation', async ({
+  page,
+}) => {
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible();
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
+
+  expect(tableData.length).toBeGreaterThan(0);
+
+  const imageLogs = tableData.filter((log) => log.Type === 'IMAGE');
+  expect(imageLogs.length).toBeGreaterThan(0);
+  expect(imageLogs[0].Usage).toMatch(/\d+ image\(s\)/);
+});
+
+test('creates audio model usage logs when using bulk audio creation', async ({
+  page,
+}) => {
+  await createCard({
+      cardId: 'verstehen',
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 15,
+      data: {
+        word: 'verstehen',
+        type: 'VERB',
+        translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+        forms: ['versteht', 'verstand', 'verstanden'],
+        examples: [
+          {
+            de: 'Ich verstehe Deutsch.',
+            hu: 'Értem a németet.',
+            en: 'I understand German.',
+            ch: 'Ich verstoh Tüütsch.',
+            isSelected: true,
+            images: [{ id: 'test-image-id' }],
+          },
+        ],
+      },
+      readiness: 'REVIEWED',
+    });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(
+    page.getByText(/Audio generated successfully for \d+ cards?!/)
+  ).toBeVisible();
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page
+    .getByRole('tabpanel', { name: 'Usage Logs' })
+    .getByRole('table');
+  const tableData = await getTableData<UsageLogRow>(table, {
+    excludeRowSelector: '.detail-row',
+  });
+
+  expect(tableData.length).toBeGreaterThan(0);
+
+  const audioLogs = tableData.filter((log) => log.Type === 'AUDIO');
+  expect(audioLogs.length).toBeGreaterThan(0);
+  expect(audioLogs[0].Usage).toMatch(/\d+ chars/);
 });
