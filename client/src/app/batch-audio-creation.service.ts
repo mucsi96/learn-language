@@ -3,14 +3,22 @@ import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
 import { Card } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import { 
-  AudioSourceRequest, 
-  AudioResponse, 
+import {
+  AudioSourceRequest,
+  AudioResponse,
   AudioData,
   LANGUAGE_CODES,
-  LANGUAGE_SPECIFIC_VOICES,
   VoiceModelPair
 } from './shared/types/audio-generation.types';
+
+interface VoiceConfiguration {
+  id: number;
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName: string | null;
+  isEnabled: boolean;
+}
 
 
 export interface AudioCreationProgress {
@@ -43,6 +51,7 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
+  private voiceConfigsCache: VoiceConfiguration[] = [];
 
   readonly totalProgress = computed(() => {
     const progress = this.creationProgress();
@@ -70,6 +79,17 @@ export class BatchAudioCreationService {
     }
 
     this.isCreating.set(true);
+
+    // Fetch enabled voice configurations from database
+    try {
+      this.voiceConfigsCache = await fetchJson<VoiceConfiguration[]>(
+        this.http,
+        '/api/voice-configurations/enabled'
+      );
+    } catch (error) {
+      this.isCreating.set(false);
+      throw new Error('Failed to fetch voice configurations');
+    }
 
     // Initialize progress tracking
     const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
@@ -356,12 +376,16 @@ export class BatchAudioCreationService {
   }
 
   private getVoiceForLanguage(language: string): VoiceModelPair {
-    const languageVoices = LANGUAGE_SPECIFIC_VOICES[language as keyof typeof LANGUAGE_SPECIFIC_VOICES];
-    if (languageVoices && languageVoices.length > 0) {
+    const languageVoices = this.voiceConfigsCache.filter(
+      (config) => config.language === language && config.isEnabled
+    );
+
+    if (languageVoices.length > 0) {
       const randomIndex = Math.floor(Math.random() * languageVoices.length);
-      return languageVoices[randomIndex];
+      const config = languageVoices[randomIndex];
+      return { voice: config.voiceId, model: config.model };
     }
-    
+
     throw new Error(`No voices configured for language: ${language}`);
   }
 

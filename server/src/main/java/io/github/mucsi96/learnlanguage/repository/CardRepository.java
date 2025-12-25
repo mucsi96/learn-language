@@ -16,6 +16,14 @@ public interface CardRepository extends JpaRepository<Card, String> {
   List<Card> findByIdIn(List<String> ids);
 
   @Query(value = """
+      SELECT * FROM learn_language.cards
+      WHERE readiness = 'READY'
+      ORDER BY RANDOM()
+      LIMIT :limit
+      """, nativeQuery = true)
+  List<Card> findRandomReadyCards(int limit);
+
+  @Query(value = """
         SELECT source_id, state, COUNT(*) AS cardCount
         FROM (
             SELECT *,

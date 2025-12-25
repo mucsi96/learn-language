@@ -1,4 +1,4 @@
-import { Component, inject, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -31,8 +31,7 @@ import { RouterLink } from '@angular/router';
 export class BulkCreationProgressDialogComponent {
   readonly bulkCardService = inject(BulkCardCreationService);
   private readonly dialogRef = inject(MatDialogRef<BulkCreationProgressDialogComponent>);
-
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { words: string[] }) {}
+  readonly data = inject<{ words: string[] }>(MAT_DIALOG_DATA);
 
   closeDialog(): void {
     this.dialogRef.close();

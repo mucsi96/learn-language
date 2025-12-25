@@ -1,0 +1,61 @@
+.card-preview {
+  padding: 16px;
+  background: var(--mat-sys-surface-container-low);
+  border-radius: 12px;
+}
+
+.header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.language-section {
+  padding: 16px;
+  background: var(--mat-sys-surface);
+  border-radius: 8px;
+}
+
+.language-label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.forms {
+  margin: 0 0 8px 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+}
+
+.example {
+  margin: 0;
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.divider {
+  height: 1px;
+  background: var(--mat-sys-outline-variant);
+  margin: 0 16px;
+}

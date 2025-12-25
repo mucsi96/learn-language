@@ -100,6 +100,13 @@ public class CardController {
     return ResponseEntity.ok(cards);
   }
 
+  @GetMapping("/cards/sample")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<List<Card>> getSampleCards() {
+    List<Card> cards = cardService.getRandomReadyCards(10);
+    return ResponseEntity.ok(cards);
+  }
+
   @PutMapping("/card/{cardId}/audio/{audioId}/select")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> selectVoiceForCard(@PathVariable String cardId, @PathVariable String audioId) {
