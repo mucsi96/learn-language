@@ -9,6 +9,7 @@
 - give more space for the voice config name in voice configuration
 - display model friendly name in voice configuration and don't display it as tag
 - display voice category in voice configuration
+- during creation of voice configuration suggets only German and Hungarian as suggested languages. I think such list should already exist somewehere on UI.
 
 
 - add AI generated word forms and warn if they dont match with original
