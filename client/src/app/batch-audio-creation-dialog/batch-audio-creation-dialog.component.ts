@@ -1,9 +1,5 @@
-import { Component, inject, Inject } from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogModule,
-} from '@angular/material/dialog';
+import { Component, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,8 +26,7 @@ import { CommonModule } from '@angular/common';
 })
 export class BatchAudioCreationDialogComponent {
   readonly batchAudioService = inject(BatchAudioCreationService);
-
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { cards: Array<{ id: string; data: any }> }) {}
+  readonly data = inject<{ cards: Array<{ id: string; data: any }> }>(MAT_DIALOG_DATA);
 
   getStatusIcon(status: AudioCreationProgress['status']): string {
     switch (status) {
