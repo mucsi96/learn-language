@@ -41,6 +41,13 @@ export const routes: Routes = [
     title: 'Model Usage',
   },
   {
+    path: 'voice-config',
+    loadComponent: () =>
+      import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
+    canActivate: [conditionalAuthGuard],
+    title: 'Voice Configuration',
+  },
+  {
     path: 'sources/:sourceId/study',
     canActivate: [conditionalAuthGuard],
     title: 'Study',

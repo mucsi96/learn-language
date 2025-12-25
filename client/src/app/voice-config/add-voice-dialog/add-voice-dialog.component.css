@@ -1,0 +1,19 @@
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 400px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.voice-languages {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+}
+
+mat-slide-toggle {
+  margin-top: 8px;
+}

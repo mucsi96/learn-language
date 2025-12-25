@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>Add Voice Configuration</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline">
+    <mat-label>Voice</mat-label>
+    <mat-select
+      [value]="selectedVoice()"
+      (selectionChange)="selectedVoice.set($event.value); onVoiceChange()"
+    >
+      @for (voice of filteredVoices(); track voice.id) {
+        <mat-option [value]="voice">
+          {{ voice.displayName }}
+          <span class="voice-languages">
+            ({{ voice.languages.map(l => l.name).join(', ') }})
+          </span>
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (selectedVoice()) {
+    <mat-form-field appearance="outline">
+      <mat-label>Language</mat-label>
+      <mat-select
+        [value]="selectedLanguage()"
+        (selectionChange)="selectedLanguage.set($event.value)"
+      >
+        @for (lang of availableLanguages(); track lang) {
+          <mat-option [value]="lang">
+            {{ getLanguageLabel(lang) }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Model</mat-label>
+      <mat-select
+        [value]="selectedModel()"
+        (selectionChange)="selectedModel.set($event.value)"
+      >
+        @for (model of models; track model) {
+          <mat-option [value]="model">{{ model }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Display Name (optional)</mat-label>
+      <input
+        matInput
+        [value]="displayName()"
+        (input)="displayName.set($any($event.target).value)"
+      />
+    </mat-form-field>
+
+    <mat-slide-toggle
+      [checked]="isEnabled()"
+      (change)="isEnabled.set($event.checked)"
+    >
+      Enabled
+    </mat-slide-toggle>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="!isValid()">
+    Add
+  </button>
+</mat-dialog-actions>
