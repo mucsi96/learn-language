@@ -16,6 +16,9 @@ import {
   VoiceConfigurationRequest,
 } from '../voice-config.service';
 import { Voice, AudioModel } from '../../environment/environment.config';
+import { LANGUAGE_CODES } from '../../shared/types/audio-generation.types';
+
+const SUPPORTED_LANGUAGES = [LANGUAGE_CODES.GERMAN, LANGUAGE_CODES.HUNGARIAN];
 
 interface DialogData {
   availableVoices: Voice[];
@@ -63,7 +66,9 @@ export class AddVoiceDialogComponent {
 
     return this.data.availableVoices.filter((voice) =>
       voice.languages.some(
-        (lang) => !configuredPairs.has(`${voice.id}-${lang.name}`)
+        (lang) =>
+          SUPPORTED_LANGUAGES.includes(lang.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]) &&
+          !configuredPairs.has(`${voice.id}-${lang.name}`)
       )
     );
   });
@@ -77,6 +82,7 @@ export class AddVoiceDialogComponent {
     );
 
     return voice.languages
+      .filter((lang) => SUPPORTED_LANGUAGES.includes(lang.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]))
       .filter((lang) => !configuredPairs.has(`${voice.id}-${lang.name}`))
       .map((lang) => lang.name);
   });
@@ -110,7 +116,10 @@ export class AddVoiceDialogComponent {
   }
 
   getVoiceLanguages(voice: Voice): string {
-    return voice.languages.map((l) => this.getLanguageLabel(l.name)).join(', ');
+    return voice.languages
+      .filter((l) => SUPPORTED_LANGUAGES.includes(l.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]))
+      .map((l) => this.getLanguageLabel(l.name))
+      .join(', ');
   }
 
   save(): void {

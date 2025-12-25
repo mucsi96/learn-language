@@ -49,21 +49,20 @@ export class VoiceConfigComponent {
   private readonly http = inject(HttpClient);
   private readonly audioPlayback = inject(AudioPlaybackService);
 
+  private readonly audioCache = new Map<string, AudioData>();
+
   readonly configurations = this.service.configurations;
   readonly availableVoices = this.service.availableVoices;
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
 
-  // Helper to check if voices/models are loaded (they come from environment now)
-  readonly isReady = this.availableVoices.length > 0;
   readonly selectedCardIndex = signal(0);
   readonly previewingVoiceId = signal<string | null>(null);
   readonly generatingVoiceId = signal<string | null>(null);
 
   readonly displayedColumns = [
-    'language',
     'displayName',
-    'voiceId',
+    'category',
     'model',
     'enabled',
     'actions',
@@ -118,6 +117,16 @@ export class VoiceConfigComponent {
     if (config.displayName) return config.displayName;
     const voice = this.availableVoices.find((v) => v.id === config.voiceId);
     return voice?.displayName ?? config.voiceId;
+  }
+
+  getModelDisplayName(modelId: string): string {
+    const model = this.audioModels.find((m) => m.id === modelId);
+    return model?.displayName ?? modelId;
+  }
+
+  getVoiceCategory(config: VoiceConfiguration): string | null {
+    const voice = this.availableVoices.find((v) => v.id === config.voiceId);
+    return voice?.category ?? null;
   }
 
   async toggleEnabled(config: VoiceConfiguration): Promise<void> {
@@ -179,26 +188,35 @@ export class VoiceConfigComponent {
 
       const audioData: AudioData[] = [];
       for (const text of textsToSpeak) {
-        const response = await fetchJson<AudioResponse>(
-          this.http,
-          '/api/audio',
-          {
-            method: 'POST',
-            body: {
-              input: text,
-              voice: config.voiceId,
-              model: config.model,
-              language: config.language,
-            },
-          }
-        );
-        audioData.push({
-          id: response.id,
-          voice: config.voiceId,
-          model: config.model,
-          language: config.language,
-          text,
-        });
+        const cacheKey = this.getAudioCacheKey(text, config);
+        const cached = this.audioCache.get(cacheKey);
+
+        if (cached) {
+          audioData.push(cached);
+        } else {
+          const response = await fetchJson<AudioResponse>(
+            this.http,
+            '/api/audio',
+            {
+              method: 'POST',
+              body: {
+                input: text,
+                voice: config.voiceId,
+                model: config.model,
+                language: config.language,
+              },
+            }
+          );
+          const audio: AudioData = {
+            id: response.id,
+            voice: config.voiceId,
+            model: config.model,
+            language: config.language,
+            text,
+          };
+          this.audioCache.set(cacheKey, audio);
+          audioData.push(audio);
+        }
       }
 
       this.generatingVoiceId.set(null);
@@ -209,6 +227,10 @@ export class VoiceConfigComponent {
       this.generatingVoiceId.set(null);
       this.previewingVoiceId.set(null);
     }
+  }
+
+  private getAudioCacheKey(text: string, config: VoiceConfiguration): string {
+    return `${text}|${config.voiceId}|${config.model}|${config.language}`;
   }
 
   private getTextsForLanguage(card: any, language: string): string[] {
