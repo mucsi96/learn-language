@@ -24,6 +24,7 @@ export interface Voice {
   id: string;
   displayName: string;
   languages: { name: string }[];
+  category: 'premade' | 'cloned' | 'generated' | 'professional' | null;
 }
 
 export interface AudioModel {

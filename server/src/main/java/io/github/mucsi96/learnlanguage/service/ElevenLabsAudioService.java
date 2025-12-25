@@ -49,6 +49,8 @@ public class ElevenLabsAudioService {
     }
   }
 
+  private static final List<String> SUPPORTED_LANGUAGES = List.of("de", "hu");
+
   public List<VoiceResponse> getVoices() {
     try {
       var response = voicesApi.getVoices();
@@ -58,10 +60,8 @@ public class ElevenLabsAudioService {
       }
 
       return response.getBody().voices().stream()
-          .map(voice -> VoiceResponse.builder()
-              .id(voice.voiceId())
-              .displayName(voice.name())
-              .languages(Stream.concat(
+          .map(voice -> {
+              List<LanguageResponse> languages = Stream.concat(
                   voice.verifiedLanguages() != null ? voice.verifiedLanguages().stream()
                       .map(lang -> LanguageResponse.builder()
                           .name(lang.language())
@@ -69,8 +69,17 @@ public class ElevenLabsAudioService {
                       : Stream.empty(),
                   extractLanguageFromLabels(voice.labels()))
                   .distinct()
-                  .collect(Collectors.toList()))
-              .build())
+                  .collect(Collectors.toList());
+
+              return VoiceResponse.builder()
+                  .id(voice.voiceId())
+                  .displayName(voice.name())
+                  .languages(languages)
+                  .category(voice.category() != null ? voice.category().value() : null)
+                  .build();
+          })
+          .filter(voice -> voice.getLanguages().stream()
+              .anyMatch(lang -> SUPPORTED_LANGUAGES.contains(lang.getName())))
           .collect(Collectors.toList());
 
     } catch (Exception e) {

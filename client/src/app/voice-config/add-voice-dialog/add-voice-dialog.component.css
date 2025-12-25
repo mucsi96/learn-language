@@ -14,6 +14,25 @@ mat-form-field {
   font-size: 12px;
 }
 
+.voice-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.default-tag {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.favorite-tag {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
 .default-badge {
   color: var(--mat-sys-primary);
   font-size: 12px;

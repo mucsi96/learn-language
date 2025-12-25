@@ -10,6 +10,12 @@
       @for (voice of filteredVoices(); track voice.id) {
         <mat-option [value]="voice">
           {{ voice.displayName }}
+          @if (voice.category === 'premade') {
+            <span class="voice-tag default-tag">default</span>
+          }
+          @if (voice.category === 'cloned') {
+            <span class="voice-tag favorite-tag">favorite</span>
+          }
           <span class="voice-languages">
             ({{ getVoiceLanguages(voice) }})
           </span>
