@@ -75,7 +75,7 @@ public class ElevenLabsAudioService {
                   .id(voice.voiceId())
                   .displayName(voice.name())
                   .languages(languages)
-                  .category(voice.category() != null ? voice.category().value() : null)
+                  .category(voice.category() != null ? voice.category().getValue() : null)
                   .build();
           })
           .filter(voice -> voice.getLanguages().stream()

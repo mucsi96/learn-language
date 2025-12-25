@@ -4,6 +4,12 @@
 - improve model loging tests
 - if a model log is rated. Automatically rate all other logs with the same response
 - for eleven labs model v3 please use tags [spoken in German]
+- display image model name on image
+- introduce audio cache for audio preview in voice configuration to avoid generating the same audio multiple times
+- give more space for the voice config name in voice configuration
+- display model friendly name in voice configuration and don't display it as tag
+- display voice category in voice configuration
+
 
 - add AI generated word forms and warn if they dont match with original
 - support for speach card type
