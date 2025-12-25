@@ -5,6 +5,19 @@ export interface ChatModelInfo {
   primary: boolean;
 }
 
+export interface AudioModel {
+  id: string;
+  displayName: string;
+  isDefault: boolean;
+}
+
+export interface Voice {
+  id: string;
+  displayName: string;
+  languages: { name: string }[];
+  category: 'premade' | 'cloned' | 'generated' | 'professional' | null;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -12,6 +25,8 @@ export interface EnvironmentConfig {
   mockAuth: boolean;
   chatModels: ChatModelInfo[];
   imageModels: string[];
+  audioModels: AudioModel[];
+  voices: Voice[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

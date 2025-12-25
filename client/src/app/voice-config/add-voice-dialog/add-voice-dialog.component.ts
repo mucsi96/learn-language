@@ -12,11 +12,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {
-  Voice,
   VoiceConfiguration,
   VoiceConfigurationRequest,
-  AudioModel,
 } from '../voice-config.service';
+import { Voice, AudioModel } from '../../environment/environment.config';
 
 interface DialogData {
   availableVoices: Voice[];

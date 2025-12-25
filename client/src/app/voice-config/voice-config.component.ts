@@ -53,6 +53,9 @@ export class VoiceConfigComponent {
   readonly availableVoices = this.service.availableVoices;
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
+
+  // Helper to check if voices/models are loaded (they come from environment now)
+  readonly isReady = this.availableVoices.length > 0;
   readonly selectedCardIndex = signal(0);
   readonly previewingVoiceId = signal<string | null>(null);
   readonly generatingVoiceId = signal<string | null>(null);
@@ -87,9 +90,8 @@ export class VoiceConfigComponent {
   });
 
   readonly availableVoicesForAdd = computed(() => {
-    const voices = this.availableVoices.value();
+    const voices = this.availableVoices;
     const configs = this.configurations.value();
-    if (!voices) return [];
 
     const configuredVoiceIds = new Set(
       configs?.map((c) => `${c.voiceId}-${c.language}`) ?? []
@@ -114,9 +116,7 @@ export class VoiceConfigComponent {
 
   getVoiceDisplayName(config: VoiceConfiguration): string {
     if (config.displayName) return config.displayName;
-    const voice = this.availableVoices.value()?.find(
-      (v) => v.id === config.voiceId
-    );
+    const voice = this.availableVoices.find((v) => v.id === config.voiceId);
     return voice?.displayName ?? config.voiceId;
   }
 
@@ -128,9 +128,9 @@ export class VoiceConfigComponent {
     const dialogRef = this.dialog.open(AddVoiceDialogComponent, {
       width: '500px',
       data: {
-        availableVoices: this.availableVoices.value() ?? [],
+        availableVoices: this.availableVoices,
         existingConfigs: this.configurations.value() ?? [],
-        audioModels: this.audioModels.value() ?? [],
+        audioModels: this.audioModels,
       },
     });
 

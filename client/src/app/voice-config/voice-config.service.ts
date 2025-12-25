@@ -1,7 +1,8 @@
-import { Injectable, inject, resource, Injector, signal } from '@angular/core';
+import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { Card } from '../parser/types';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 
 export interface VoiceConfiguration {
   id: number;
@@ -20,25 +21,16 @@ export interface VoiceConfigurationRequest {
   isEnabled?: boolean;
 }
 
-export interface Voice {
-  id: string;
-  displayName: string;
-  languages: { name: string }[];
-  category: 'premade' | 'cloned' | 'generated' | 'professional' | null;
-}
-
-export interface AudioModel {
-  id: string;
-  displayName: string;
-  isDefault: boolean;
-}
-
 @Injectable({
   providedIn: 'root',
 })
 export class VoiceConfigService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly config = inject(ENVIRONMENT_CONFIG);
+
+  readonly audioModels = this.config.audioModels;
+  readonly availableVoices = this.config.voices;
 
   readonly configurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,
@@ -47,20 +39,6 @@ export class VoiceConfigService {
         this.http,
         '/api/voice-configurations'
       );
-    },
-  });
-
-  readonly availableVoices = resource<Voice[], never>({
-    injector: this.injector,
-    loader: async () => {
-      return await fetchJson<Voice[]>(this.http, '/api/voices');
-    },
-  });
-
-  readonly audioModels = resource<AudioModel[], never>({
-    injector: this.injector,
-    loader: async () => {
-      return await fetchJson<AudioModel[]>(this.http, '/api/audio-models');
     },
   });
 
