@@ -14,6 +14,12 @@ mat-form-field {
   font-size: 12px;
 }
 
+.default-badge {
+  color: var(--mat-sys-primary);
+  font-size: 12px;
+  margin-left: 4px;
+}
+
 mat-slide-toggle {
   margin-top: 8px;
 }

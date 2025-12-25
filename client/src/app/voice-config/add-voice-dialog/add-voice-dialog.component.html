@@ -39,8 +39,13 @@
         [value]="selectedModel()"
         (selectionChange)="selectedModel.set($event.value)"
       >
-        @for (model of models; track model) {
-          <mat-option [value]="model">{{ model }}</mat-option>
+        @for (model of models; track model.id) {
+          <mat-option [value]="model.id">
+            {{ model.displayName }}
+            @if (model.isDefault) {
+              <span class="default-badge">(default)</span>
+            }
+          </mat-option>
         }
       </mat-select>
     </mat-form-field>

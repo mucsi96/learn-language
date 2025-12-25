@@ -17,6 +17,7 @@ import com.azure.core.util.BinaryData;
 
 import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
 import io.github.mucsi96.learnlanguage.model.AudioData;
+import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
@@ -77,5 +78,11 @@ public class AudioController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public List<VoiceResponse> getVoices() {
     return elevenLabsAudioService.getVoices();
+  }
+
+  @GetMapping("/audio-models")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public List<AudioModelResponse> getAudioModels() {
+    return audioService.getAvailableModels();
   }
 }

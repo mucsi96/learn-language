@@ -26,6 +26,12 @@ export interface Voice {
   languages: { name: string }[];
 }
 
+export interface AudioModel {
+  id: string;
+  displayName: string;
+  isDefault: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -47,6 +53,13 @@ export class VoiceConfigService {
     injector: this.injector,
     loader: async () => {
       return await fetchJson<Voice[]>(this.http, '/api/voices');
+    },
+  });
+
+  readonly audioModels = resource<AudioModel[], never>({
+    injector: this.injector,
+    loader: async () => {
+      return await fetchJson<AudioModel[]>(this.http, '/api/audio-models');
     },
   });
 

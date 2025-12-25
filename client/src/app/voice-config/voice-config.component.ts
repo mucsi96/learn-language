@@ -51,6 +51,7 @@ export class VoiceConfigComponent {
 
   readonly configurations = this.service.configurations;
   readonly availableVoices = this.service.availableVoices;
+  readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
   readonly selectedCardIndex = signal(0);
   readonly previewingVoiceId = signal<string | null>(null);
@@ -129,6 +130,7 @@ export class VoiceConfigComponent {
       data: {
         availableVoices: this.availableVoices.value() ?? [],
         existingConfigs: this.configurations.value() ?? [],
+        audioModels: this.audioModels.value() ?? [],
       },
     });
 

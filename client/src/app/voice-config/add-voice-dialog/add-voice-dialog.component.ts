@@ -15,11 +15,13 @@ import {
   Voice,
   VoiceConfiguration,
   VoiceConfigurationRequest,
+  AudioModel,
 } from '../voice-config.service';
 
 interface DialogData {
   availableVoices: Voice[];
   existingConfigs: VoiceConfiguration[];
+  audioModels: AudioModel[];
 }
 
 @Component({
@@ -44,11 +46,16 @@ export class AddVoiceDialogComponent {
 
   readonly selectedVoice = signal<Voice | null>(null);
   readonly selectedLanguage = signal<string>('');
-  readonly selectedModel = signal<string>('eleven_turbo_v2_5');
+  readonly selectedModel = signal<string>(this.getDefaultModelId());
   readonly displayName = signal<string>('');
   readonly isEnabled = signal<boolean>(true);
 
-  readonly models = ['eleven_turbo_v2_5', 'eleven_v3'];
+  readonly models = this.data.audioModels;
+
+  private getDefaultModelId(): string {
+    const defaultModel = this.data.audioModels.find((m) => m.isDefault);
+    return defaultModel?.id ?? this.data.audioModels[0]?.id ?? '';
+  }
 
   readonly filteredVoices = computed(() => {
     const configuredPairs = new Set(
