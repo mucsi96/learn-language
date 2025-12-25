@@ -19,7 +19,7 @@ import { AddVoiceDialogComponent } from './add-voice-dialog/add-voice-dialog.com
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { AudioPlaybackService } from '../shared/services/audio-playback.service';
 import { fetchJson } from '../utils/fetchJson';
-import { AudioData, AudioGenerationModel, AudioResponse } from '../shared/types/audio-generation.types';
+import { AudioData, AudioResponse } from '../shared/types/audio-generation.types';
 
 @Component({
   selector: 'app-voice-config',
@@ -193,7 +193,7 @@ export class VoiceConfigComponent {
         audioData.push({
           id: response.id,
           voice: config.voiceId,
-          model: config.model as AudioGenerationModel,
+          model: config.model,
           language: config.language,
           text,
         });

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.github.mucsi96.learnlanguage.entity.VoiceConfiguration;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationRequest;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationResponse;
 import io.github.mucsi96.learnlanguage.service.VoiceConfigurationService;

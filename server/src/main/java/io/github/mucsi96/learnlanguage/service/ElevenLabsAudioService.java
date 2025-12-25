@@ -58,8 +58,6 @@ public class ElevenLabsAudioService {
       }
 
       return response.getBody().voices().stream()
-          .filter(voice -> voice.sharing() != null
-              && ElevenLabsVoicesApi.VoiceSharing.StatusEnum.COPIED.equals(voice.sharing().status()))
           .map(voice -> VoiceResponse.builder()
               .id(voice.voiceId())
               .displayName(voice.name())

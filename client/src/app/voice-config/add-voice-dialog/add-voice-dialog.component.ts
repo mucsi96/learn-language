@@ -103,6 +103,10 @@ export class AddVoiceDialogComponent {
     return labels[lang] || lang;
   }
 
+  getVoiceLanguages(voice: Voice): string {
+    return voice.languages.map((l) => this.getLanguageLabel(l.name)).join(', ');
+  }
+
   save(): void {
     if (!this.isValid()) return;
 

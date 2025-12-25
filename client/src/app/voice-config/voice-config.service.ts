@@ -32,10 +32,8 @@ export interface Voice {
 export class VoiceConfigService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly refreshTrigger = signal(0);
 
   readonly configurations = resource<VoiceConfiguration[], never>({
-    request: () => this.refreshTrigger(),
     injector: this.injector,
     loader: async () => {
       return await fetchJson<VoiceConfiguration[]>(
@@ -112,6 +110,6 @@ export class VoiceConfigService {
   }
 
   private refresh(): void {
-    this.refreshTrigger.update((v) => v + 1);
+    this.configurations.reload();
   }
 }

@@ -1,9 +1,7 @@
-export type AudioGenerationModel = 'openai' | 'eleven_turbo_v2_5' | 'eleven_v3';
-
 export interface AudioSourceRequest {
   input: string;
   voice: string;
-  model?: AudioGenerationModel;
+  model?: string;
   language?: string;
   selected?: boolean;
 }
@@ -15,7 +13,7 @@ export interface AudioResponse {
 export interface AudioData {
   id: string;
   voice: string;
-  model: AudioGenerationModel;
+  model: string;
   language?: string;
   text?: string;
   selected?: boolean;

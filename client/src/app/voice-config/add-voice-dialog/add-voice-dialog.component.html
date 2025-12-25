@@ -11,7 +11,7 @@
         <mat-option [value]="voice">
           {{ voice.displayName }}
           <span class="voice-languages">
-            ({{ voice.languages.map(l => l.name).join(', ') }})
+            ({{ getVoiceLanguages(voice) }})
           </span>
         </mat-option>
       }
