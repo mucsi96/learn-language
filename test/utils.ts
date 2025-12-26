@@ -92,6 +92,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
     await client.query('DELETE FROM learn_language.model_usage_logs');
+    await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.sources');
   });
 
@@ -543,6 +544,51 @@ export async function getModelUsageLogs(): Promise<Array<{
               output_tokens as "outputTokens", rating
        FROM learn_language.model_usage_logs
        ORDER BY created_at DESC`
+    );
+    return result.rows;
+  });
+}
+
+export async function createVoiceConfiguration(params: {
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName?: string | null;
+  isEnabled?: boolean;
+}): Promise<number> {
+  const {
+    voiceId,
+    model,
+    language,
+    displayName = null,
+    isEnabled = true,
+  } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.voice_configurations (voice_id, model, language, display_name, is_enabled)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [voiceId, model, language, displayName, isEnabled]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getVoiceConfigurations(): Promise<Array<{
+  id: number;
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName: string | null;
+  isEnabled: boolean;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, voice_id as "voiceId", model, language,
+              display_name as "displayName", is_enabled as "isEnabled"
+       FROM learn_language.voice_configurations
+       ORDER BY id`
     );
     return result.rows;
   });

@@ -69,10 +69,52 @@ table {
   color: var(--mat-sys-on-tertiary-container);
 }
 
-.loading {
-  padding: 24px;
-  text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-small {
+  height: 16px;
+  width: 60px;
+}
+
+.skeleton-text-medium {
+  height: 18px;
+  width: 120px;
+}
+
+.skeleton-text-large {
+  height: 18px;
+  width: 180px;
+}
+
+.skeleton-toggle {
+  height: 20px;
+  width: 36px;
+  border-radius: 10px;
+}
+
+.skeleton-button {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+}
+
+.skeleton-card-preview {
+  height: 250px;
+  width: 100%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .empty-state {

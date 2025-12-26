@@ -69,6 +69,8 @@ export class VoiceConfigComponent {
     'actions',
   ];
 
+  readonly skeletonRows = [{}, {}, {}];
+
   readonly selectedCard = computed(() => {
     const cards = this.sampleCards.value();
     const index = this.selectedCardIndex();
