@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard } from '../utils';
+import { createCard, createVoiceConfiguration } from '../utils';
 
 test('audio plays sequentially', async ({ page }) => {
   // Create a card with audio for testing
@@ -90,4 +90,101 @@ test('voice selection dialog audio', async ({ page }) => {
       msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
   );
   expect(serviceErrors.length).toBe(0);
+});
+
+test('voice selection dialog shows only enabled voice configurations', async ({ page }) => {
+  // Create enabled voice configurations
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-de',
+    model: 'eleven_multilingual_v2',
+    language: 'de',
+    displayName: 'Enabled German Voice',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-hu',
+    model: 'eleven_multilingual_v2',
+    language: 'hu',
+    displayName: 'Enabled Hungarian Voice',
+    isEnabled: true,
+  });
+  // Create disabled voice configuration that should NOT appear
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-multilang',
+    model: 'eleven_turbo_v2_5',
+    language: 'de',
+    displayName: 'Disabled German Voice',
+    isEnabled: false,
+  });
+
+  // Create a card with translations for both languages
+  await createCard({
+    cardId: 'voice-selection-test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Haus',
+      type: 'NOUN',
+      translation: { hu: 'ház', en: 'house' },
+      examples: [
+        {
+          de: 'Das ist ein Haus.',
+          hu: 'Ez egy ház.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  // Navigate to study page
+  await page.goto('/sources/goethe-a1/study');
+  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+
+  // Click the voice selection button
+  await page.getByRole('button', { name: 'Voice Selection' }).click();
+
+  // Wait for dialog to open
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+
+  // Verify enabled voices are visible
+  await expect(page.getByText('Enabled German Voice')).toBeVisible();
+  await expect(page.getByText('Enabled Hungarian Voice')).toBeVisible();
+
+  // Verify disabled voice is NOT visible
+  await expect(page.getByText('Disabled German Voice')).not.toBeVisible();
+});
+
+test('voice selection dialog shows no voices when no configurations exist', async ({ page }) => {
+  // Create a card without audio configurations
+  await createCard({
+    cardId: 'voice-selection-empty-test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Auto',
+      type: 'NOUN',
+      translation: { hu: 'autó' },
+      examples: [
+        {
+          de: 'Das ist ein Auto.',
+          hu: 'Ez egy autó.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  // Navigate to study page
+  await page.goto('/sources/goethe-a1/study');
+  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+
+  // Click the voice selection button
+  await page.getByRole('button', { name: 'Voice Selection' }).click();
+
+  // Wait for dialog to open
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+
+  // Verify no voice cards are visible (both language groups should be empty)
+  const voiceCards = page.locator('.voice-card:not(.skeleton)');
+  await expect(voiceCards).toHaveCount(0);
 });
