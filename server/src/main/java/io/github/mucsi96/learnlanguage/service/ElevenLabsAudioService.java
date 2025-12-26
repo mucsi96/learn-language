@@ -61,7 +61,7 @@ public class ElevenLabsAudioService {
 
       return response.getBody().voices().stream()
           .map(voice -> {
-              List<LanguageResponse> languages = Stream.concat(
+              List<LanguageResponse> allLanguages = Stream.concat(
                   voice.verifiedLanguages() != null ? voice.verifiedLanguages().stream()
                       .map(lang -> LanguageResponse.builder()
                           .name(lang.language())
@@ -71,15 +71,18 @@ public class ElevenLabsAudioService {
                   .distinct()
                   .collect(Collectors.toList());
 
+              List<LanguageResponse> supportedLanguages = allLanguages.stream()
+                  .filter(lang -> SUPPORTED_LANGUAGES.contains(lang.getName()))
+                  .collect(Collectors.toList());
+
               return VoiceResponse.builder()
                   .id(voice.voiceId())
                   .displayName(voice.name())
-                  .languages(languages)
+                  .languages(supportedLanguages)
                   .category(voice.category() != null ? voice.category().getValue() : null)
                   .build();
           })
-          .filter(voice -> voice.getLanguages().stream()
-              .anyMatch(lang -> SUPPORTED_LANGUAGES.contains(lang.getName())))
+          .filter(voice -> !voice.getLanguages().isEmpty())
           .collect(Collectors.toList());
 
     } catch (Exception e) {

@@ -16,9 +16,6 @@ import {
   VoiceConfigurationRequest,
 } from '../voice-config.service';
 import { Voice, AudioModel } from '../../environment/environment.config';
-import { LANGUAGE_CODES } from '../../shared/types/audio-generation.types';
-
-const SUPPORTED_LANGUAGES = [LANGUAGE_CODES.GERMAN, LANGUAGE_CODES.HUNGARIAN];
 
 interface DialogData {
   availableVoices: Voice[];
@@ -59,49 +56,37 @@ export class AddVoiceDialogComponent {
     return defaultModel?.id ?? this.data.audioModels[0]?.id ?? '';
   }
 
-  readonly filteredVoices = computed(() => {
-    const configuredPairs = new Set(
-      this.data.existingConfigs.map((c) => `${c.voiceId}-${c.language}`)
-    );
+  private readonly configuredPairs = new Set(
+    this.data.existingConfigs.map((c) => `${c.voiceId}-${c.language}`)
+  );
 
-    return this.data.availableVoices.filter((voice) =>
+  readonly filteredVoices = computed(() =>
+    this.data.availableVoices.filter((voice) =>
       voice.languages.some(
-        (lang) =>
-          SUPPORTED_LANGUAGES.includes(lang.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]) &&
-          !configuredPairs.has(`${voice.id}-${lang.name}`)
+        (lang) => !this.configuredPairs.has(`${voice.id}-${lang.name}`)
       )
-    );
-  });
+    )
+  );
 
   readonly availableLanguages = computed(() => {
     const voice = this.selectedVoice();
     if (!voice) return [];
 
-    const configuredPairs = new Set(
-      this.data.existingConfigs.map((c) => `${c.voiceId}-${c.language}`)
-    );
-
     return voice.languages
-      .filter((lang) => SUPPORTED_LANGUAGES.includes(lang.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]))
-      .filter((lang) => !configuredPairs.has(`${voice.id}-${lang.name}`))
+      .filter((lang) => !this.configuredPairs.has(`${voice.id}-${lang.name}`))
       .map((lang) => lang.name);
   });
 
-  readonly isValid = computed(() => {
-    return (
+  readonly isValid = computed(
+    () =>
       this.selectedVoice() !== null &&
       this.selectedLanguage() !== '' &&
       this.selectedModel() !== ''
-    );
-  });
+  );
 
   onVoiceChange(): void {
     const langs = this.availableLanguages();
-    if (langs.length === 1) {
-      this.selectedLanguage.set(langs[0]);
-    } else {
-      this.selectedLanguage.set('');
-    }
+    this.selectedLanguage.set(langs.length === 1 ? langs[0] : '');
     this.displayName.set(this.selectedVoice()?.displayName ?? '');
   }
 
@@ -109,17 +94,12 @@ export class AddVoiceDialogComponent {
     const labels: Record<string, string> = {
       de: 'German',
       hu: 'Hungarian',
-      en: 'English',
-      'de-CH': 'Swiss German',
     };
     return labels[lang] || lang;
   }
 
   getVoiceLanguages(voice: Voice): string {
-    return voice.languages
-      .filter((l) => SUPPORTED_LANGUAGES.includes(l.name as typeof LANGUAGE_CODES[keyof typeof LANGUAGE_CODES]))
-      .map((l) => this.getLanguageLabel(l.name))
-      .join(', ');
+    return voice.languages.map((l) => this.getLanguageLabel(l.name)).join(', ');
   }
 
   save(): void {
