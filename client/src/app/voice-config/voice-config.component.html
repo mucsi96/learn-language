@@ -66,12 +66,12 @@
                       <button
                         mat-icon-button
                         (click)="previewVoice(config)"
-                        [disabled]="!selectedCard() || generatingVoiceId() === config.voiceId"
+                        [disabled]="!selectedCard() || generatingConfigId() === config.id"
                         matTooltip="Preview voice"
                       >
-                        @if (generatingVoiceId() === config.voiceId) {
+                        @if (generatingConfigId() === config.id) {
                           <mat-icon>hourglass_empty</mat-icon>
-                        } @else if (previewingVoiceId() === config.voiceId) {
+                        } @else if (previewingConfigId() === config.id) {
                           <mat-icon>stop</mat-icon>
                         } @else {
                           <mat-icon>play_arrow</mat-icon>
