@@ -31,6 +31,7 @@ export class VoiceConfigService {
 
   readonly audioModels = this.config.audioModels;
   readonly availableVoices = this.config.voices;
+  readonly supportedLanguages = this.config.supportedLanguages;
 
   readonly configurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,

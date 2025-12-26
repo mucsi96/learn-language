@@ -55,6 +55,7 @@ export class VoiceConfigComponent {
   readonly availableVoices = this.service.availableVoices;
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
+  readonly supportedLanguages = this.service.supportedLanguages;
 
   readonly selectedCardIndex = signal(0);
   readonly previewingVoiceId = signal<string | null>(null);
@@ -103,14 +104,9 @@ export class VoiceConfigComponent {
     );
   });
 
-  getLanguageLabel(lang: string): string {
-    const labels: Record<string, string> = {
-      de: 'German',
-      hu: 'Hungarian',
-      en: 'English',
-      'de-CH': 'Swiss German',
-    };
-    return labels[lang] || lang;
+  getLanguageLabel(code: string): string {
+    const lang = this.supportedLanguages.find((l) => l.code === code);
+    return lang?.displayName ?? code;
   }
 
   getVoiceDisplayName(config: VoiceConfiguration): string {
@@ -140,6 +136,7 @@ export class VoiceConfigComponent {
         availableVoices: this.availableVoices,
         existingConfigs: this.configurations.value() ?? [],
         audioModels: this.audioModels,
+        supportedLanguages: this.supportedLanguages,
       },
     });
 

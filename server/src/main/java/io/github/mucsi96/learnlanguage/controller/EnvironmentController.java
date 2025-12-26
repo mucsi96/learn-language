@@ -32,6 +32,11 @@ public class EnvironmentController {
   @Value("${spa-client-id:}")
   private String uiClientId;
 
+  private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
+      new SupportedLanguage("de", "German"),
+      new SupportedLanguage("hu", "Hungarian")
+  );
+
   @GetMapping("/environment")
   public ConfigResponse getConfig() {
     return new ConfigResponse(
@@ -44,10 +49,14 @@ public class EnvironmentController {
             .toList(),
         Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList(),
         audioService.getAvailableModels(),
-        elevenLabsAudioService.getVoices());
+        elevenLabsAudioService.getVoices(),
+        SUPPORTED_LANGUAGES);
   }
 
   public record ChatModelInfo(String modelName, boolean primary) {
+  }
+
+  public record SupportedLanguage(String code, String displayName) {
   }
 
   public record ConfigResponse(
@@ -58,6 +67,7 @@ public class EnvironmentController {
       List<ChatModelInfo> chatModels,
       List<String> imageModels,
       List<AudioModelResponse> audioModels,
-      List<VoiceResponse> voices) {
+      List<VoiceResponse> voices,
+      List<SupportedLanguage> supportedLanguages) {
   }
 }

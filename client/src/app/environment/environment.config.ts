@@ -18,6 +18,11 @@ export interface Voice {
   category: 'premade' | 'cloned' | 'generated' | 'professional' | null;
 }
 
+export interface SupportedLanguage {
+  code: string;
+  displayName: string;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -27,6 +32,7 @@ export interface EnvironmentConfig {
   imageModels: string[];
   audioModels: AudioModel[];
   voices: Voice[];
+  supportedLanguages: SupportedLanguage[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');
