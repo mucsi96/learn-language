@@ -20,11 +20,11 @@
             </button>
           </div>
         } @else {
-          @for (lang of ['hu', 'de']; track lang) {
-            @if (groupedConfigurations()?.[lang]?.length) {
+          @for (lang of supportedLanguages; track lang.code) {
+            @if (groupedConfigurations()?.[lang.code]?.length) {
               <div class="language-group">
-                <h3>{{ getLanguageLabel(lang) }}</h3>
-                <table mat-table [dataSource]="groupedConfigurations()![lang]">
+                <h3>{{ lang.displayName }}</h3>
+                <table mat-table [dataSource]="groupedConfigurations()![lang.code]">
                   <ng-container matColumnDef="displayName">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let config" class="voice-name-cell">
@@ -66,12 +66,12 @@
                       <button
                         mat-icon-button
                         (click)="previewVoice(config)"
-                        [disabled]="!selectedCard() || generatingVoiceId() === config.voiceId"
+                        [disabled]="!selectedCard() || generatingConfigId() === config.id"
                         matTooltip="Preview voice"
                       >
-                        @if (generatingVoiceId() === config.voiceId) {
+                        @if (generatingConfigId() === config.id) {
                           <mat-icon>hourglass_empty</mat-icon>
-                        } @else if (previewingVoiceId() === config.voiceId) {
+                        } @else if (previewingConfigId() === config.id) {
                           <mat-icon>stop</mat-icon>
                         } @else {
                           <mat-icon>play_arrow</mat-icon>

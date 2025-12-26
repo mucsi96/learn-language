@@ -55,10 +55,11 @@ export class VoiceConfigComponent {
   readonly availableVoices = this.service.availableVoices;
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
+  readonly supportedLanguages = this.service.supportedLanguages;
 
   readonly selectedCardIndex = signal(0);
-  readonly previewingVoiceId = signal<string | null>(null);
-  readonly generatingVoiceId = signal<string | null>(null);
+  readonly previewingConfigId = signal<number | null>(null);
+  readonly generatingConfigId = signal<number | null>(null);
 
   readonly displayedColumns = [
     'displayName',
@@ -103,14 +104,9 @@ export class VoiceConfigComponent {
     );
   });
 
-  getLanguageLabel(lang: string): string {
-    const labels: Record<string, string> = {
-      de: 'German',
-      hu: 'Hungarian',
-      en: 'English',
-      'de-CH': 'Swiss German',
-    };
-    return labels[lang] || lang;
+  getLanguageLabel(code: string): string {
+    const lang = this.supportedLanguages.find((l) => l.code === code);
+    return lang?.displayName ?? code;
   }
 
   getVoiceDisplayName(config: VoiceConfiguration): string {
@@ -140,6 +136,7 @@ export class VoiceConfigComponent {
         availableVoices: this.availableVoices,
         existingConfigs: this.configurations.value() ?? [],
         audioModels: this.audioModels,
+        supportedLanguages: this.supportedLanguages,
       },
     });
 
@@ -168,21 +165,21 @@ export class VoiceConfigComponent {
     const card = this.selectedCard();
     if (!card) return;
 
-    if (this.previewingVoiceId() === config.voiceId) {
+    if (this.previewingConfigId() === config.id) {
       this.audioPlayback.stopPlayback();
-      this.previewingVoiceId.set(null);
+      this.previewingConfigId.set(null);
       return;
     }
 
     this.audioPlayback.stopPlayback();
-    this.previewingVoiceId.set(config.voiceId);
-    this.generatingVoiceId.set(config.voiceId);
+    this.previewingConfigId.set(config.id);
+    this.generatingConfigId.set(config.id);
 
     try {
       const textsToSpeak = this.getTextsForLanguage(card, config.language);
       if (textsToSpeak.length === 0) {
-        this.generatingVoiceId.set(null);
-        this.previewingVoiceId.set(null);
+        this.generatingConfigId.set(null);
+        this.previewingConfigId.set(null);
         return;
       }
 
@@ -219,13 +216,13 @@ export class VoiceConfigComponent {
         }
       }
 
-      this.generatingVoiceId.set(null);
+      this.generatingConfigId.set(null);
       await this.audioPlayback.playAudioSequence(this.http, audioData);
     } catch (error) {
       console.error('Error previewing voice:', error);
     } finally {
-      this.generatingVoiceId.set(null);
-      this.previewingVoiceId.set(null);
+      this.generatingConfigId.set(null);
+      this.previewingConfigId.set(null);
     }
   }
 

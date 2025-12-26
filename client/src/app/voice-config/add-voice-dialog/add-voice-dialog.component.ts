@@ -15,12 +15,13 @@ import {
   VoiceConfiguration,
   VoiceConfigurationRequest,
 } from '../voice-config.service';
-import { Voice, AudioModel } from '../../environment/environment.config';
+import { Voice, AudioModel, SupportedLanguage } from '../../environment/environment.config';
 
 interface DialogData {
   availableVoices: Voice[];
   existingConfigs: VoiceConfiguration[];
   audioModels: AudioModel[];
+  supportedLanguages: SupportedLanguage[];
 }
 
 @Component({
@@ -78,12 +79,9 @@ export class AddVoiceDialogComponent {
     this.displayName.set(this.selectedVoice()?.displayName ?? '');
   }
 
-  getLanguageLabel(lang: string): string {
-    const labels: Record<string, string> = {
-      de: 'German',
-      hu: 'Hungarian',
-    };
-    return labels[lang] || lang;
+  getLanguageLabel(code: string): string {
+    const lang = this.data.supportedLanguages.find((l) => l.code === code);
+    return lang?.displayName ?? code;
   }
 
   getVoiceLanguages(voice: Voice): string {
