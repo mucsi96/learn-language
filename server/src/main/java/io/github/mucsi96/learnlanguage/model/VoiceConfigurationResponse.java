@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class VoiceConfigurationResponse {
     private Integer id;
     private String voiceId;
+    private String voiceName;
     private String model;
     private String language;
     private String displayName;
     private Boolean isEnabled;
+    private String category;
 }

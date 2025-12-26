@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Voice Selection</h2>
 
 <mat-dialog-content>
-  @if (voices.isLoading()) {
+  @if (voiceConfigurations.isLoading()) {
     <div class="voice-groups">
       @for (lang of ['hu', 'de']; track lang) {
         <div class="language-group">
@@ -22,10 +22,10 @@
         </div>
       }
     </div>
-  } @else if (voices.error()) {
+  } @else if (voiceConfigurations.error()) {
     <div class="error-container">
       <mat-icon>error</mat-icon>
-      <p>Failed to load voices. Please try again.</p>
+      <p>Failed to load voice configurations. Please try again.</p>
     </div>
   } @else if (groupedVoices()) {
     <div class="voice-groups">
@@ -38,7 +38,7 @@
             </div>
 
             <div class="voice-grid">
-              @for (voiceCard of groupedVoices()![lang]; track voiceCard.voice.id) {
+              @for (voiceCard of groupedVoices()![lang]; track voiceCard.config.id) {
                 <mat-card
                   class="voice-card"
                   [class.selected]="isSelected(voiceCard)"
@@ -82,7 +82,7 @@
                   }
 
                   <mat-card-content>
-                    <div class="voice-name">{{ voiceCard.voice.displayName }}</div>
+                    <div class="voice-name">{{ voiceCard.config.displayName || voiceCard.config.voiceName }}</div>
                     <div class="voice-hint">
                       @if (!voiceCard.audioData && !isGenerating(voiceCard)) {
                         <span class="hint-text">Click to preview</span>
@@ -106,7 +106,7 @@
   <button
     mat-flat-button
     (click)="save()"
-    [disabled]="voices.isLoading()">
+    [disabled]="voiceConfigurations.isLoading()">
     Save
   </button>
 </mat-dialog-actions>

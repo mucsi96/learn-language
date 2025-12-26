@@ -1,12 +1,15 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.entity.VoiceConfiguration;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationRequest;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationResponse;
+import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.repository.VoiceConfigurationRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -15,23 +18,36 @@ import lombok.RequiredArgsConstructor;
 public class VoiceConfigurationService {
 
     private final VoiceConfigurationRepository voiceConfigurationRepository;
+    private final ElevenLabsAudioService elevenLabsAudioService;
 
     public List<VoiceConfigurationResponse> getAllVoiceConfigurations() {
+        Map<String, VoiceResponse> voicesMap = getVoicesMap();
         return voiceConfigurationRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(config -> toResponse(config, voicesMap))
                 .toList();
     }
 
     public List<VoiceConfigurationResponse> getEnabledVoiceConfigurations() {
+        Map<String, VoiceResponse> voicesMap = getVoicesMap();
         return voiceConfigurationRepository.findByIsEnabledTrue().stream()
-                .map(this::toResponse)
+                .map(config -> toResponse(config, voicesMap))
                 .toList();
     }
 
     public List<VoiceConfigurationResponse> getEnabledVoiceConfigurationsByLanguage(String language) {
+        Map<String, VoiceResponse> voicesMap = getVoicesMap();
         return voiceConfigurationRepository.findByLanguageAndIsEnabledTrue(language).stream()
-                .map(this::toResponse)
+                .map(config -> toResponse(config, voicesMap))
                 .toList();
+    }
+
+    private Map<String, VoiceResponse> getVoicesMap() {
+        try {
+            return elevenLabsAudioService.getVoices().stream()
+                    .collect(Collectors.toMap(VoiceResponse::getId, v -> v, (v1, v2) -> v1));
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
     public VoiceConfigurationResponse createVoiceConfiguration(VoiceConfigurationRequest request) {
@@ -43,7 +59,8 @@ public class VoiceConfigurationService {
                 .isEnabled(request.getIsEnabled() != null ? request.getIsEnabled() : true)
                 .build();
 
-        return toResponse(voiceConfigurationRepository.save(config));
+        Map<String, VoiceResponse> voicesMap = getVoicesMap();
+        return toResponse(voiceConfigurationRepository.save(config), voicesMap);
     }
 
     public VoiceConfigurationResponse updateVoiceConfiguration(Integer id, VoiceConfigurationRequest request) {
@@ -58,21 +75,25 @@ public class VoiceConfigurationService {
             config.setIsEnabled(request.getIsEnabled());
         }
 
-        return toResponse(voiceConfigurationRepository.save(config));
+        Map<String, VoiceResponse> voicesMap = getVoicesMap();
+        return toResponse(voiceConfigurationRepository.save(config), voicesMap);
     }
 
     public void deleteVoiceConfiguration(Integer id) {
         voiceConfigurationRepository.deleteById(id);
     }
 
-    private VoiceConfigurationResponse toResponse(VoiceConfiguration config) {
+    private VoiceConfigurationResponse toResponse(VoiceConfiguration config, Map<String, VoiceResponse> voicesMap) {
+        VoiceResponse voice = voicesMap.get(config.getVoiceId());
         return VoiceConfigurationResponse.builder()
                 .id(config.getId())
                 .voiceId(config.getVoiceId())
+                .voiceName(voice != null ? voice.getDisplayName() : null)
                 .model(config.getModel())
                 .language(config.getLanguage())
                 .displayName(config.getDisplayName())
                 .isEnabled(config.getIsEnabled())
+                .category(voice != null ? voice.getCategory() : null)
                 .build();
     }
 }
