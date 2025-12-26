@@ -56,25 +56,13 @@ export class AddVoiceDialogComponent {
     return defaultModel?.id ?? this.data.audioModels[0]?.id ?? '';
   }
 
-  private readonly configuredPairs = new Set(
-    this.data.existingConfigs.map((c) => `${c.voiceId}-${c.language}`)
-  );
-
-  readonly filteredVoices = computed(() =>
-    this.data.availableVoices.filter((voice) =>
-      voice.languages.some(
-        (lang) => !this.configuredPairs.has(`${voice.id}-${lang.name}`)
-      )
-    )
-  );
+  readonly filteredVoices = computed(() => this.data.availableVoices);
 
   readonly availableLanguages = computed(() => {
     const voice = this.selectedVoice();
     if (!voice) return [];
 
-    return voice.languages
-      .filter((lang) => !this.configuredPairs.has(`${voice.id}-${lang.name}`))
-      .map((lang) => lang.name);
+    return voice.languages.map((lang) => lang.name);
   });
 
   readonly isValid = computed(

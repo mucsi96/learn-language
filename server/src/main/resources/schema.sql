@@ -66,5 +66,5 @@ CREATE TABLE IF NOT EXISTS learn_language.voice_configurations (
     display_name character varying(255),
     is_enabled boolean NOT NULL DEFAULT true,
     CONSTRAINT voice_configurations_pkey PRIMARY KEY (id),
-    CONSTRAINT voice_configurations_unique UNIQUE (voice_id, language)
+    CONSTRAINT voice_configurations_unique UNIQUE (voice_id, language, model)
 );

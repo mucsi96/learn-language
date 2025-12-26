@@ -1,9 +1,3 @@
-.card-preview {
-  padding: 16px;
-  background: var(--mat-sys-surface-container-low);
-  border-radius: 12px;
-}
-
 .header {
   display: flex;
   gap: 8px;
