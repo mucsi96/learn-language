@@ -10,6 +10,7 @@
 ## Testing Code style
 - Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages
+- Test every feature using E2E tests with playwright inline with existing tests
 
 ## Angular Code style
 - Prefer functional code over procedural
@@ -21,6 +22,10 @@
 - Avoid using enum in TS. Prefer using string literals
 - Always using new Angular templates
 - Using rxjs is not allowed
+
+## Design guidelines
+- Prefer using Angular Material components
+- Avoid using "Loading..." in favor of skeleton loaders
 
 ## Project Overview
 

@@ -37,8 +37,8 @@
                     <td mat-cell *matCellDef="let config">
                       @if (getVoiceCategory(config) === 'premade') {
                         <span class="category-tag default-tag">default</span>
-                      } @else if (getVoiceCategory(config) === 'cloned') {
-                        <span class="category-tag favorite-tag">favorite</span>
+                      } @else {
+                        <span class="category-tag favorite-tag">{{getVoiceCategory(config)}}</span>
                       }
                     </td>
                   </ng-container>
