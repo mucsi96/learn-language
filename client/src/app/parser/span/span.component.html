@@ -1,4 +1,4 @@
-@if (!matches.length) {
+@if (!existingMatches.length) {
 <div
   class="word"
   exclude-selection
@@ -12,12 +12,12 @@
   {{ text() }}
 </div>
 
-} @else if (matches.length === 1) {
+} @else if (existingMatches.length === 1) {
 <a
   class="word"
   mat-flat-button
   [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
-  [queryParams]="{cardData: (matches[0] | compressQuery | async)}"
+  [queryParams]="{cardData: (existingMatches[0] | compressQuery | async)}"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
@@ -43,7 +43,7 @@
   {{ text() }}
 </button>
 <mat-menu #menu="matMenu">
-  @for (match of matches; track match.word) {
+  @for (match of existingMatches; track match.word) {
   <a
     mat-menu-item
     [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"

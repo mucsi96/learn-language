@@ -70,6 +70,10 @@ export class SpanComponent {
     ) || [];
   }
 
+  get existingMatches() {
+    return this.matches.filter((word) => word.exists);
+  }
+
   @HostBinding('style.top') get top() {
     const  y = this.bbox()?.y;
 

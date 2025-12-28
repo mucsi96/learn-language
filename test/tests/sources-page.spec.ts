@@ -57,20 +57,13 @@ test('highlights existing cards', async ({ page }) => {
   await expect(page.getByText('anfangen,')).toHaveAccessibleDescription('Card exists');
 });
 
-test('drag to select words', async ({ page }) => {
+test('drag to select words shows create cards fab', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'abfahren' })).toBeVisible();
-
-  await page.getByRole('link', { name: 'abfahren' }).click();
-
-  await expect(
-    page.getByLabel('German translation', { exact: true })
-  ).toHaveValue('abfahren');
+  await expect(page.getByText('Create 3 Cards')).toBeVisible();
 });
 
 test('drag to select multiple regions', async ({ page }) => {
@@ -84,7 +77,7 @@ test('drag to select multiple regions', async ({ page }) => {
   // First region selection
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
+  await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   // Second region selection
   await selectTextRange(
@@ -94,12 +87,6 @@ test('drag to select multiple regions', async ({ page }) => {
   );
 
   await expect(page.getByText('Create 6 Cards')).toBeVisible();
-
-  // Check that links from both regions are visible
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'abfahren' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'der Absender' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'die Adresse' })).toBeVisible();
 });
 
 test('source selector routing works', async ({ page }) => {
