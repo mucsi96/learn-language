@@ -35,6 +35,7 @@ export type Word = {
 export type ExampleImage = {
   id: string;
   isFavorite?: boolean;
+  model?: string;
 };
 
 export type CardData = {

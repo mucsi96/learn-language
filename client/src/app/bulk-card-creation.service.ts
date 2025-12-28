@@ -195,7 +195,7 @@ export class BulkCardCreationService {
         cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,
-        model
+        model: model.id
       }))
     );
 
