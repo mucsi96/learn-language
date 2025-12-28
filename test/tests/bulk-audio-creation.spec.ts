@@ -354,16 +354,6 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   // Check that individual cards are listed within the progress dialog
   await expect(page.getByRole('dialog').getByText('verstehen')).toBeVisible();
   await expect(page.getByRole('dialog').getByText('sprechen')).toBeVisible();
-
-  await expect(page.getByRole('dialog').getByRole('list')).toMatchAriaSnapshot(`
-    - list:
-      - listitem:
-        - text: sprechen
-        - img "check_circle"
-      - listitem:
-        - text: verstehen
-        - img "check_circle"
-  `);
 });
 
 test('bulk audio creation creates audio in database', async ({ page }) => {

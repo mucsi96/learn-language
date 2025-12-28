@@ -235,6 +235,9 @@ test('card editing in db', async ({ page }) => {
   });
   await navigateToCardCreation(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
+
+  await page.waitForLoadState('networkidle');
+
   const imageLocator = page.getByRole('img', {
     name: 'Wann fährt der Zug ab?',
   });
