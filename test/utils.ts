@@ -385,6 +385,8 @@ export async function selectTextRange(
   await expect(startElement).toBeVisible();
   await expect(endElement).toBeVisible();
 
+  await page.waitForLoadState('networkidle');
+
   const startBox = await startElement.boundingBox();
   const endBox = await endElement.boundingBox();
 
@@ -399,7 +401,7 @@ export async function selectTextRange(
     endBox.y + endBox.height + 5
   );
   await page.mouse.up();
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
 }
 
 export async function scrollElementToTop(
