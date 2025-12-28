@@ -146,9 +146,10 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   // Wait for dialog to open
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
-  // Verify enabled voices are visible
+  // Verify enabled voices are visible with their models
   await expect(page.getByText('Enabled German Voice')).toBeVisible();
   await expect(page.getByText('Enabled Hungarian Voice')).toBeVisible();
+  await expect(page.getByText('eleven_multilingual_v2').first()).toBeVisible();
 
   // Verify disabled voice is NOT visible
   await expect(page.getByText('Disabled German Voice')).not.toBeVisible();
@@ -187,4 +188,46 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
   // Verify no voice cards are visible (both language groups should be empty)
   const voiceCards = page.locator('.voice-card:not(.skeleton)');
   await expect(voiceCards).toHaveCount(0);
+});
+
+test('voice selection dialog displays model for each voice configuration', async ({ page }) => {
+  // Create voice configurations with different models
+  await createVoiceConfiguration({
+    voiceId: 'voice-1',
+    model: 'eleven_multilingual_v2',
+    language: 'de',
+    displayName: 'German V2 Voice',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'voice-2',
+    model: 'eleven_turbo_v2_5',
+    language: 'de',
+    displayName: 'German Turbo Voice',
+    isEnabled: true,
+  });
+
+  await createCard({
+    cardId: 'model-display-test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Test',
+      type: 'NOUN',
+      translation: { hu: 'teszt' },
+      examples: [{ de: 'Ein Test.', hu: 'Egy teszt.', isSelected: true }],
+    },
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+
+  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+
+  // Verify both voices with their respective models are displayed
+  await expect(page.getByText('German V2 Voice')).toBeVisible();
+  await expect(page.getByText('German Turbo Voice')).toBeVisible();
+  await expect(page.getByText('eleven_multilingual_v2')).toBeVisible();
+  await expect(page.getByText('eleven_turbo_v2_5')).toBeVisible();
 });
