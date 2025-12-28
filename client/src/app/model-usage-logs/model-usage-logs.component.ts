@@ -95,9 +95,13 @@ export class ModelUsageLogsComponent {
     return log.modelType === 'CHAT' && !!log.responseContent;
   }
 
+  isRatable(log: ModelUsageLog): boolean {
+    return log.modelType === 'CHAT';
+  }
+
   async setRating(log: ModelUsageLog, rating: number, event: Event): Promise<void> {
     event.stopPropagation();
-    if (log.modelType !== 'CHAT') return;
+    if (!this.isRatable(log)) return;
     const newRating = log.rating === rating ? null : rating;
     await this.service.updateRating(log.id, newRating);
   }
