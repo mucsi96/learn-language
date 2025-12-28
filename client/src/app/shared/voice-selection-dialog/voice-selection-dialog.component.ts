@@ -106,7 +106,10 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
         .sort((a, b) => (a.displayName || a.voiceName).localeCompare(b.displayName || b.voiceName))
         .map((config) => {
           const existingAudio = this.localAudioData().find(
-            (audio) => audio.voice === config.voiceId && audio.language === lang
+            (audio) =>
+              audio.voice === config.voiceId &&
+              audio.model === config.model &&
+              audio.language === lang
           );
           return {
             config,
@@ -137,6 +140,7 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     return this.localAudioData().some(
       (audio) =>
         audio.voice === voiceCard.config.voiceId &&
+        audio.model === voiceCard.config.model &&
         audio.language === voiceCard.config.language &&
         audio.selected
     );
@@ -145,14 +149,14 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
   // Check if voice is currently generating
   isGenerating(voiceCard: VoiceCardData): boolean {
     return this.generatingVoices().has(
-      `${voiceCard.config.voiceId}-${voiceCard.config.language}`
+      `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`
     );
   }
 
   // Check if voice is currently playing
   isPlaying(voiceCard: VoiceCardData): boolean {
     return this.playingVoices().has(
-      `${voiceCard.config.voiceId}-${voiceCard.config.language}`
+      `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`
     );
   }
 
@@ -177,10 +181,11 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
         }
       });
 
-      // Select ALL audio entries for this voice/language combination
+      // Select ALL audio entries for this voice/model/language combination
       audioList.forEach((audio) => {
         if (
           audio.voice === voiceCard.config.voiceId &&
+          audio.model === voiceCard.config.model &&
           audio.language === voiceCard.config.language
         ) {
           audio.selected = true;
@@ -193,7 +198,7 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
 
   // Generate audio for a voice configuration
   async generateAudio(voiceCard: VoiceCardData) {
-    const key = `${voiceCard.config.voiceId}-${voiceCard.config.language}`;
+    const key = `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`;
 
     // Prevent duplicate generation
     if (this.generatingVoices().has(key)) return;
@@ -266,8 +271,11 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     const audioEntries = this.localAudioData().filter(
       (audio) =>
         audio.voice === voiceCard.config.voiceId &&
+        audio.model === voiceCard.config.model &&
         audio.language === voiceCard.config.language
     );
+
+    const key = `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`;
 
     if (audioEntries.length === 0) {
       // Generate audio first if not available
@@ -276,13 +284,14 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
       const newAudioEntries = this.localAudioData().filter(
         (audio) =>
           audio.voice === voiceCard.config.voiceId &&
+          audio.model === voiceCard.config.model &&
           audio.language === voiceCard.config.language
       );
       if (newAudioEntries.length > 0) {
-        await this.playAudioSequence(newAudioEntries, `${voiceCard.config.voiceId}-${voiceCard.config.language}`);
+        await this.playAudioSequence(newAudioEntries, key);
       }
     } else {
-      await this.playAudioSequence(audioEntries, `${voiceCard.config.voiceId}-${voiceCard.config.language}`);
+      await this.playAudioSequence(audioEntries, key);
     }
   }
 
