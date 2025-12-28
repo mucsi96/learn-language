@@ -96,14 +96,14 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   // Create enabled voice configurations
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'Enabled German Voice',
     isEnabled: true,
   });
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     displayName: 'Enabled Hungarian Voice',
     isEnabled: true,
@@ -149,7 +149,7 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   // Verify enabled voices are visible with their models
   await expect(page.getByText('Enabled German Voice')).toBeVisible();
   await expect(page.getByText('Enabled Hungarian Voice')).toBeVisible();
-  await expect(page.getByText('eleven_multilingual_v2').first()).toBeVisible();
+  await expect(page.getByText('eleven_v3').first()).toBeVisible();
 
   // Verify disabled voice is NOT visible
   await expect(page.getByText('Disabled German Voice')).not.toBeVisible();
@@ -194,7 +194,7 @@ test('voice selection dialog displays model for each voice configuration', async
   // Create voice configurations with different models
   await createVoiceConfiguration({
     voiceId: 'voice-1',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'German V2 Voice',
     isEnabled: true,
@@ -228,6 +228,6 @@ test('voice selection dialog displays model for each voice configuration', async
   // Verify both voices with their respective models are displayed
   await expect(page.getByText('German V2 Voice')).toBeVisible();
   await expect(page.getByText('German Turbo Voice')).toBeVisible();
-  await expect(page.getByText('eleven_multilingual_v2')).toBeVisible();
+  await expect(page.getByText('eleven_v3')).toBeVisible();
   await expect(page.getByText('eleven_turbo_v2_5')).toBeVisible();
 });

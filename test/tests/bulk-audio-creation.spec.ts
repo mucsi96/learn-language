@@ -2,7 +2,6 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createVoiceConfiguration,
-  getVoiceConfigurations,
   withDbConnection,
   germanAudioSample,
   hungarianAudioSample,
@@ -12,14 +11,14 @@ import {
 async function setupVoiceConfigurations() {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'Test Voice DE',
     isEnabled: true,
   });
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     displayName: 'Test Voice HU',
     isEnabled: true,
@@ -640,7 +639,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
   // Create enabled German voice
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'Enabled German Voice',
     isEnabled: true,
@@ -648,7 +647,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
   // Create disabled Hungarian voice
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     displayName: 'Disabled Hungarian Voice',
     isEnabled: false,
@@ -679,21 +678,21 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
 
   // Should show error because Hungarian voice is disabled
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByText(/No voices configured for language/)).toBeVisible();
+  await expect(page.getByText('No enabled voice configurations for Hungarian language')).toBeVisible();
 });
 
 test('bulk audio creation succeeds with all enabled voice configurations', async ({ page }) => {
   // Create enabled voices for both languages
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'German Voice',
     isEnabled: true,
   });
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     displayName: 'Hungarian Voice',
     isEnabled: true,
@@ -745,12 +744,12 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
 
     germanAudios.forEach((audio: any) => {
       expect(audio.voice).toBe('test-voice-de');
-      expect(audio.model).toBe('eleven_multilingual_v2');
+      expect(audio.model).toBe('eleven_v3');
     });
 
     hungarianAudios.forEach((audio: any) => {
       expect(audio.voice).toBe('test-voice-hu');
-      expect(audio.model).toBe('eleven_multilingual_v2');
+      expect(audio.model).toBe('eleven_v3');
     });
   });
 });

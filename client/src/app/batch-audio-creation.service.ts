@@ -91,6 +91,24 @@ export class BatchAudioCreationService {
       throw new Error('Failed to fetch voice configurations');
     }
 
+    // Check if we have at least one voice for each language
+    const hasGermanVoice = this.voiceConfigs.some(
+      (config) => config.language === LANGUAGE_CODES.GERMAN
+    );
+    const hasHungarianVoice = this.voiceConfigs.some(
+      (config) => config.language === LANGUAGE_CODES.HUNGARIAN
+    );
+
+    if (!hasGermanVoice ) {
+      this.isCreating.set(false);
+      throw new Error('No enabled voice configurations for German language');
+    }
+
+    if (!hasHungarianVoice ) {
+      this.isCreating.set(false);
+      throw new Error('No enabled voice configurations for Hungarian language');
+    }
+
     // Initialize progress tracking
     const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
       cardId: card.id,

@@ -2,137 +2,149 @@
   <div class="config-section">
     <mat-card>
       <mat-card-header>
-        <mat-card-title>Voice Configurations</mat-card-title>
-        <button mat-icon-button (click)="openAddDialog()" matTooltip="Add voice">
+        <mat-card-title><h2>Voice Configurations</h2></mat-card-title>
+        <button
+          mat-icon-button
+          (click)="openAddDialog()"
+          matTooltip="Add voice"
+          aria-label="Add voice"
+        >
           <mat-icon>add</mat-icon>
         </button>
       </mat-card-header>
       <mat-card-content>
         @if (configurations.isLoading()) {
-          <div class="language-group">
-            <div class="skeleton skeleton-text-medium" style="margin-bottom: 12px;"></div>
-            <table mat-table [dataSource]="skeletonRows">
-              <ng-container matColumnDef="displayName">
-                <th mat-header-cell *matHeaderCellDef>Name</th>
-                <td mat-cell *matCellDef="let row">
-                  <div class="skeleton skeleton-text-large"></div>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="category">
-                <th mat-header-cell *matHeaderCellDef>Type</th>
-                <td mat-cell *matCellDef="let row">
-                  <div class="skeleton skeleton-text-small"></div>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="model">
-                <th mat-header-cell *matHeaderCellDef>Model</th>
-                <td mat-cell *matCellDef="let row">
-                  <div class="skeleton skeleton-text-medium"></div>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="enabled">
-                <th mat-header-cell *matHeaderCellDef>Enabled</th>
-                <td mat-cell *matCellDef="let row">
-                  <div class="skeleton skeleton-toggle"></div>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let row">
-                  <div style="display: flex; gap: 8px;">
-                    <div class="skeleton skeleton-button"></div>
-                    <div class="skeleton skeleton-button"></div>
-                  </div>
-                </td>
-              </ng-container>
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-            </table>
-          </div>
+        <div class="language-group">
+          <div
+            class="skeleton skeleton-text-medium"
+            style="margin-bottom: 12px"
+          ></div>
+          <table mat-table [dataSource]="skeletonRows">
+            <ng-container matColumnDef="displayName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="skeleton skeleton-text-large"></div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="skeleton skeleton-text-small"></div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="model">
+              <th mat-header-cell *matHeaderCellDef>Model</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="skeleton skeleton-text-medium"></div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="enabled">
+              <th mat-header-cell *matHeaderCellDef>Enabled</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="skeleton skeleton-toggle"></div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                <div style="display: flex; gap: 8px">
+                  <div class="skeleton skeleton-button"></div>
+                  <div class="skeleton skeleton-button"></div>
+                </div>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
         } @else if (configurations.value()?.length === 0) {
-          <div class="empty-state">
-            <mat-icon>mic_off</mat-icon>
-            <p>No voice configurations yet</p>
-            <button mat-stroked-button (click)="openAddDialog()">
-              <mat-icon>add</mat-icon>
-              Add Voice
-            </button>
-          </div>
-        } @else {
-          @for (lang of supportedLanguages; track lang.code) {
-            @if (groupedConfigurations()?.[lang.code]?.length) {
-              <div class="language-group">
-                <h3>{{ lang.displayName }}</h3>
-                <table mat-table [dataSource]="groupedConfigurations()![lang.code]">
-                  <ng-container matColumnDef="displayName">
-                    <th mat-header-cell *matHeaderCellDef>Name</th>
-                    <td mat-cell *matCellDef="let config" class="voice-name-cell">
-                      {{ getVoiceDisplayName(config) }}
-                    </td>
-                  </ng-container>
+        <div class="empty-state">
+          <mat-icon>mic_off</mat-icon>
+          <p>No voice configurations yet</p>
+          <button mat-stroked-button (click)="openAddDialog()">
+            <mat-icon>add</mat-icon>
+            Add Voice
+          </button>
+        </div>
+        } @else { @for (lang of supportedLanguages; track lang.code) { @if
+        (groupedConfigurations()?.[lang.code]?.length) {
+        <div class="language-group">
+          <h3>{{ lang.displayName }}</h3>
+          <table mat-table [dataSource]="groupedConfigurations()![lang.code]">
+            <ng-container matColumnDef="displayName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let config" class="voice-name-cell">
+                {{ getVoiceDisplayName(config) }}
+              </td>
+            </ng-container>
 
-                  <ng-container matColumnDef="category">
-                    <th mat-header-cell *matHeaderCellDef>Type</th>
-                    <td mat-cell *matCellDef="let config">
-                      @if (getVoiceCategory(config) === 'premade') {
-                        <span class="category-tag default-tag">default</span>
-                      } @else {
-                        <span class="category-tag favorite-tag">{{getVoiceCategory(config)}}</span>
-                      }
-                    </td>
-                  </ng-container>
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let config">
+                @if (getVoiceCategory(config) === 'premade') {
+                <span class="category-tag default-tag">default</span>
+                } @else {
+                <span class="category-tag favorite-tag">{{
+                  getVoiceCategory(config)
+                }}</span>
+                }
+              </td>
+            </ng-container>
 
-                  <ng-container matColumnDef="model">
-                    <th mat-header-cell *matHeaderCellDef>Model</th>
-                    <td mat-cell *matCellDef="let config" class="model-cell">
-                      {{ getModelDisplayName(config.model) }}
-                    </td>
-                  </ng-container>
+            <ng-container matColumnDef="model">
+              <th mat-header-cell *matHeaderCellDef>Model</th>
+              <td mat-cell *matCellDef="let config" class="model-cell">
+                {{ getModelDisplayName(config.model) }}
+              </td>
+            </ng-container>
 
-                  <ng-container matColumnDef="enabled">
-                    <th mat-header-cell *matHeaderCellDef>Enabled</th>
-                    <td mat-cell *matCellDef="let config">
-                      <mat-slide-toggle
-                        [checked]="config.isEnabled"
-                        (change)="toggleEnabled(config)"
-                      ></mat-slide-toggle>
-                    </td>
-                  </ng-container>
+            <ng-container matColumnDef="enabled">
+              <th mat-header-cell *matHeaderCellDef>Enabled</th>
+              <td mat-cell *matCellDef="let config">
+                <mat-slide-toggle
+                  [checked]="config.isEnabled"
+                  (change)="toggleEnabled(config)"
+                  [aria-label]="config.isEnabled ? 'Disable voice' : 'Enable voice'"
+                ></mat-slide-toggle>
+              </td>
+            </ng-container>
 
-                  <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef></th>
-                    <td mat-cell *matCellDef="let config">
-                      <button
-                        mat-icon-button
-                        (click)="previewVoice(config)"
-                        [disabled]="!selectedCard() || generatingConfigId() === config.id"
-                        matTooltip="Preview voice"
-                      >
-                        @if (generatingConfigId() === config.id) {
-                          <mat-icon>hourglass_empty</mat-icon>
-                        } @else if (previewingConfigId() === config.id) {
-                          <mat-icon>stop</mat-icon>
-                        } @else {
-                          <mat-icon>play_arrow</mat-icon>
-                        }
-                      </button>
-                      <button
-                        mat-icon-button
-                        (click)="deleteConfiguration(config)"
-                        matTooltip="Delete"
-                      >
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </td>
-                  </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let config">
+                <button
+                  mat-icon-button
+                  (click)="previewVoice(config)"
+                  [disabled]="
+                    !selectedCard() || generatingConfigId() === config.id
+                  "
+                  matTooltip="Preview voice"
+                  aria-label="Preview voice"
+                >
+                  @if (generatingConfigId() === config.id) {
+                  <mat-icon>hourglass_empty</mat-icon>
+                  } @else if (previewingConfigId() === config.id) {
+                  <mat-icon>stop</mat-icon>
+                  } @else {
+                  <mat-icon>play_arrow</mat-icon>
+                  }
+                </button>
+                <button
+                  mat-icon-button
+                  (click)="deleteConfiguration(config)"
+                  aria-label="Delete voice"
+                  matTooltip="Delete"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
 
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-                </table>
-              </div>
-            }
-          }
-        }
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+        } } }
       </mat-card-content>
     </mat-card>
   </div>
@@ -140,32 +152,47 @@
   <div class="preview-section">
     <mat-card>
       <mat-card-header>
-        <mat-card-title>Card Preview</mat-card-title>
+        <mat-card-title><h2>Card Preview</h2></mat-card-title>
         <div class="preview-controls">
-          <button mat-icon-button (click)="prevCard()" [disabled]="!sampleCards.value()?.length">
+          <button
+            mat-icon-button
+            (click)="prevCard()"
+            [disabled]="!sampleCards.value()?.length"
+            aria-label="Previous card"
+          >
             <mat-icon>chevron_left</mat-icon>
           </button>
           <span class="card-index">
-            {{ selectedCardIndex() + 1 }} / {{ sampleCards.value()?.length || 0 }}
+            {{ selectedCardIndex() + 1 }} /
+            {{ sampleCards.value()?.length || 0 }}
           </span>
-          <button mat-icon-button (click)="nextCard()" [disabled]="!sampleCards.value()?.length">
+          <button
+            mat-icon-button
+            (click)="nextCard()"
+            [disabled]="!sampleCards.value()?.length"
+            aria-label="Next card"
+          >
             <mat-icon>chevron_right</mat-icon>
           </button>
-          <button mat-icon-button (click)="refreshCards()" matTooltip="Load new cards">
+          <button
+            mat-icon-button
+            (click)="refreshCards()"
+            matTooltip="Load new cards"
+          >
             <mat-icon>refresh</mat-icon>
           </button>
         </div>
       </mat-card-header>
       <mat-card-content>
         @if (sampleCards.isLoading()) {
-          <div class="skeleton skeleton-card-preview"></div>
+        <div class="skeleton skeleton-card-preview"></div>
         } @else if (selectedCard()) {
-          <app-card-preview [card]="selectedCard()!" />
+        <app-card-preview [card]="selectedCard()!" />
         } @else {
-          <div class="empty-state">
-            <mat-icon>style</mat-icon>
-            <p>No cards available for preview</p>
-          </div>
+        <div class="empty-state">
+          <mat-icon>style</mat-icon>
+          <p>No cards available for preview</p>
+        </div>
         }
       </mat-card-content>
     </mat-card>

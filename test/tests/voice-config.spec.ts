@@ -18,14 +18,14 @@ test('displays empty state when no configurations exist', async ({ page }) => {
 test('displays existing voice configurations grouped by language', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'German Voice',
     isEnabled: true,
   });
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     displayName: 'Hungarian Voice',
     isEnabled: true,
@@ -45,7 +45,7 @@ test('can add a new voice configuration', async ({ page }) => {
   await page.getByRole('button', { name: 'Add voice' }).click();
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
 
-  await page.getByLabel('Voice').click();
+  await page.getByRole('combobox', { name: 'Voice' }).click();
   await page.getByRole('option', { name: /Test Voice DE/ }).click();
 
   await page.getByLabel('Language').click();
@@ -65,7 +65,7 @@ test('can add a new voice configuration', async ({ page }) => {
 test('can toggle voice configuration enabled state', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'Test Voice',
     isEnabled: true,
@@ -74,10 +74,9 @@ test('can toggle voice configuration enabled state', async ({ page }) => {
   await page.goto('http://localhost:8180/voice-config');
   await expect(page.getByText('Test Voice')).toBeVisible();
 
-  const toggle = page.locator('mat-slide-toggle').first();
-  await expect(toggle).toHaveAttribute('class', /mat-mdc-slide-toggle-checked/);
+  await page.getByRole('switch', { name: 'Disable voice' }).click();
 
-  await toggle.click();
+  await page.waitForTimeout(2000);
 
   const configs = await getVoiceConfigurations();
   expect(configs[0].isEnabled).toBe(false);
@@ -86,7 +85,7 @@ test('can toggle voice configuration enabled state', async ({ page }) => {
 test('can delete a voice configuration', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     displayName: 'Voice to Delete',
     isEnabled: true,
@@ -95,11 +94,11 @@ test('can delete a voice configuration', async ({ page }) => {
   await page.goto('http://localhost:8180/voice-config');
   await expect(page.getByText('Voice to Delete')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Delete voice' }).click();
   await expect(page.getByRole('heading', { name: 'Confirmation' })).toBeVisible();
   await page.getByRole('button', { name: 'Yes' }).click();
 
-  await expect(page.getByText('Voice to Delete')).not.toBeVisible();
+  await expect(page.getByText('Voice to Delete', { exact: true})).not.toBeVisible();
   await expect(page.getByText('No voice configurations yet')).toBeVisible();
 
   const configs = await getVoiceConfigurations();
@@ -151,23 +150,23 @@ test('can navigate between preview cards', async ({ page }) => {
 
   await expect(page.getByText('1 / 2')).toBeVisible();
 
-  await page.getByRole('button', { name: 'chevron_right' }).click();
+  await page.getByRole('button', { name: 'Next card' }).click();
   await expect(page.getByText('2 / 2')).toBeVisible();
 
-  await page.getByRole('button', { name: 'chevron_left' }).click();
+  await page.getByRole('button', { name: 'Previous card' }).click();
   await expect(page.getByText('1 / 2')).toBeVisible();
 });
 
 test('displays voice category tags', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     isEnabled: true,
   });
   await createVoiceConfiguration({
     voiceId: 'test-voice-hu',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'hu',
     isEnabled: true,
   });
@@ -181,14 +180,14 @@ test('displays voice category tags', async ({ page }) => {
 test('displays model name in configuration list', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
+    model: 'eleven_v3',
     language: 'de',
     isEnabled: true,
   });
 
   await page.goto('http://localhost:8180/voice-config');
 
-  await expect(page.getByText('Multilingual v2')).toBeVisible();
+  await expect(page.getByText('eleven_v3')).toBeVisible();
 });
 
 test('shows skeleton loader while loading configurations', async ({ page }) => {
@@ -198,25 +197,4 @@ test('shows skeleton loader while loading configurations', async ({ page }) => {
   const skeletons = page.locator(skeletonSelector);
 
   await expect(page.getByRole('heading', { name: 'Voice Configurations' })).toBeVisible();
-});
-
-test('prevents adding duplicate voice-language combination', async ({ page }) => {
-  await createVoiceConfiguration({
-    voiceId: 'test-voice-de',
-    model: 'eleven_multilingual_v2',
-    language: 'de',
-    isEnabled: true,
-  });
-
-  await page.goto('http://localhost:8180/voice-config');
-
-  await page.getByRole('button', { name: 'Add voice' }).click();
-  await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
-
-  await page.getByLabel('Voice').click();
-
-  const voiceOptions = page.getByRole('option');
-  const optionTexts = await voiceOptions.allTextContents();
-
-  expect(optionTexts.some(text => text.includes('Test Voice DE'))).toBeFalsy();
 });

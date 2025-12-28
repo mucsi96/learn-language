@@ -45,6 +45,7 @@ public class AIConfiguration {
   @Bean
   ElevenLabsVoicesApi elevenLabsVoicesApi(ElevenLabsConnectionProperties connectionProperties) {
     return ElevenLabsVoicesApi.builder()
+        .baseUrl(connectionProperties.getBaseUrl())
         .apiKey(connectionProperties.getApiKey())
         .build();
   }

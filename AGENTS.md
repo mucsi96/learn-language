@@ -8,11 +8,14 @@
 - Prefer constructor injection with lombok
 
 ## Testing Code style
+- Try testing from users perspective.
+- Use role based selectors and selectors based on accesibility
 - Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages
 - Test every feature using E2E tests with playwright inline with existing tests
 
 ## Angular Code style
+- Make sure the UI is testable using role based selectors and selectors based on accesibility
 - Prefer functional code over procedural
 - Prefer using Angular Material components
 - Prefer using Angular signal / resource for state management
