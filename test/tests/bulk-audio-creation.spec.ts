@@ -355,8 +355,15 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   await expect(page.getByRole('dialog').getByText('verstehen')).toBeVisible();
   await expect(page.getByRole('dialog').getByText('sprechen')).toBeVisible();
 
-  // Check that progress bars are present
-  await expect(page.getByRole('dialog').locator('mat-progress-bar')).toHaveCount(2);
+  await expect(page.getByRole('dialog').getByRole('list')).toMatchAriaSnapshot(`
+    - list:
+      - listitem:
+        - text: sprechen
+        - img "check_circle"
+      - listitem:
+        - text: verstehen
+        - img "check_circle"
+  `);
 });
 
 test('bulk audio creation creates audio in database', async ({ page }) => {

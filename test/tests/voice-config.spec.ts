@@ -12,7 +12,7 @@ test('navigates to voice configuration from profile menu', async ({ page }) => {
 test('displays empty state when no configurations exist', async ({ page }) => {
   await page.goto('http://localhost:8180/voice-config');
   await expect(page.getByText('No voice configurations yet')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Add Voice' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add Voice' }).first()).toBeVisible();
 });
 
 test('displays existing voice configurations grouped by language', async ({ page }) => {
@@ -187,7 +187,7 @@ test('displays model name in configuration list', async ({ page }) => {
 
   await page.goto('http://localhost:8180/voice-config');
 
-  await expect(page.getByText('eleven_v3')).toBeVisible();
+  await expect(page.getByText('Eleven v3')).toBeVisible();
 });
 
 test('shows skeleton loader while loading configurations', async ({ page }) => {
