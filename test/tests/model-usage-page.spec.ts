@@ -276,6 +276,36 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
   ]);
 });
 
+test('does not show rating for image models', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-image-1',
+    modelType: 'IMAGE',
+    operationType: 'image_generation',
+    imageCount: 1,
+    costUsd: 0.04,
+    processingTimeMs: 5000,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByRole('button', { name: /Rate \d stars/ })).toHaveCount(0);
+});
+
+test('does not show rating for audio models', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'eleven_v3',
+    modelType: 'AUDIO',
+    operationType: 'audio_generation',
+    inputCharacters: 250,
+    costUsd: 0.005,
+    processingTimeMs: 3000,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByRole('button', { name: /Rate \d stars/ })).toHaveCount(0);
+});
+
 test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',

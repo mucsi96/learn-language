@@ -97,6 +97,7 @@ export class ModelUsageLogsComponent {
 
   async setRating(log: ModelUsageLog, rating: number, event: Event): Promise<void> {
     event.stopPropagation();
+    if (log.modelType !== 'CHAT') return;
     const newRating = log.rating === rating ? null : rating;
     await this.service.updateRating(log.id, newRating);
   }
