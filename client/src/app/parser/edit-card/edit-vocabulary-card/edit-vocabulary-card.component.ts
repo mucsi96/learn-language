@@ -176,8 +176,8 @@ export class EditVocabularyCardComponent {
     this.exampleImages.update((images) => {
       images[exampleIdx] = [
         ...images[exampleIdx],
-        ...imageModels.map((modelName) =>
-          this.createExampleImageResource(exampleIdx, modelName)
+        ...imageModels.map((model) =>
+          this.createExampleImageResource(exampleIdx, model.id)
         ),
       ];
       return images;
@@ -339,5 +339,11 @@ export class EditVocabularyCardComponent {
       this.http,
       `/api/image/${imageId}?width=600&height=600`
     );
+  }
+
+  getModelDisplayName(modelId: string | undefined): string {
+    if (!modelId) return '';
+    const model = this.environmentConfig.imageModels.find(m => m.id === modelId);
+    return model?.displayName ?? modelId;
   }
 }

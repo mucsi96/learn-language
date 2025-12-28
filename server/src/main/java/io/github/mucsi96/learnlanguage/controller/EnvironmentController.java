@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
@@ -47,7 +48,9 @@ public class EnvironmentController {
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary()))
             .toList(),
-        Arrays.stream(ImageGenerationModel.values()).map(ImageGenerationModel::getModelName).toList(),
+        Arrays.stream(ImageGenerationModel.values())
+            .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName()))
+            .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),
         SUPPORTED_LANGUAGES);
@@ -65,7 +68,7 @@ public class EnvironmentController {
       String apiClientId,
       boolean mockAuth,
       List<ChatModelInfo> chatModels,
-      List<String> imageModels,
+      List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,
       List<VoiceResponse> voices,
       List<SupportedLanguage> supportedLanguages) {
