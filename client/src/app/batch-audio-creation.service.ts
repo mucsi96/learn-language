@@ -51,7 +51,7 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
-  private voiceConfigsCache: VoiceConfiguration[] = [];
+  private voiceConfigs: VoiceConfiguration[] = [];
 
   readonly totalProgress = computed(() => {
     const progress = this.creationProgress();
@@ -82,7 +82,7 @@ export class BatchAudioCreationService {
 
     // Fetch enabled voice configurations from database
     try {
-      this.voiceConfigsCache = await fetchJson<VoiceConfiguration[]>(
+      this.voiceConfigs = await fetchJson<VoiceConfiguration[]>(
         this.http,
         '/api/voice-configurations/enabled'
       );
@@ -161,9 +161,9 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { 
-              input: card.data.word, 
-              voice: germanVoice.voice, 
+            body: {
+              input: card.data.word,
+              voice: germanVoice.voice,
               model: germanVoice.model,
               language: LANGUAGE_CODES.GERMAN,
               selected: true
@@ -189,9 +189,9 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { 
-              input: card.data.translation['hu'], 
-              voice: hungarianVoice.voice, 
+            body: {
+              input: card.data.translation['hu'],
+              voice: hungarianVoice.voice,
               model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN,
               selected: true
@@ -219,9 +219,9 @@ export class BatchAudioCreationService {
             this.http,
             `/api/audio`,
             {
-              body: { 
-                input: selectedExample['de'], 
-                voice: germanVoice.voice, 
+              body: {
+                input: selectedExample['de'],
+                voice: germanVoice.voice,
                 model: germanVoice.model,
                 language: LANGUAGE_CODES.GERMAN,
                 selected: true
@@ -236,9 +236,9 @@ export class BatchAudioCreationService {
         if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
           const exampleTranslationAudioResponse = await fetchJson<AudioData>(
             this.http, `/api/audio`, {
-            body: { 
-              input: selectedExample['hu'], 
-              voice: hungarianVoice.voice, 
+            body: {
+              input: selectedExample['hu'],
+              voice: hungarianVoice.voice,
               model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN,
               selected: true
@@ -348,7 +348,7 @@ export class BatchAudioCreationService {
         // Keep this audio entry
         cleanedAudioList.push(audioEntry);
       } else {
-        // Mark for deletion 
+        // Mark for deletion
         audioKeysToDelete.push(audioEntry.id);
       }
     }
@@ -376,7 +376,7 @@ export class BatchAudioCreationService {
   }
 
   private getVoiceForLanguage(language: string): VoiceModelPair {
-    const languageVoices = this.voiceConfigsCache.filter(
+    const languageVoices = this.voiceConfigs.filter(
       (config) => config.language === language && config.isEnabled
     );
 
