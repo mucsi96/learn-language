@@ -21,6 +21,13 @@ import java.util.stream.Stream;
 @Slf4j
 public class ElevenLabsAudioService {
 
+  private static final String ELEVEN_V3_MODEL = "eleven_v3";
+
+  private static final Map<String, String> LANGUAGE_NAMES = Map.of(
+      "de", "German",
+      "hu", "Hungarian"
+  );
+
   private final ElevenLabsTextToSpeechModel textToSpeechModel;
   private final ElevenLabsVoicesApi voicesApi;
   private final ModelUsageLoggingService usageLoggingService;
@@ -28,13 +35,24 @@ public class ElevenLabsAudioService {
   public byte[] generateAudio(String input, String voiceId, String model, String language) {
     long startTime = System.currentTimeMillis();
     try {
+      String processedInput = input;
+      String languageCode = language;
+
+      if (ELEVEN_V3_MODEL.equals(model) && language != null) {
+        String languageName = LANGUAGE_NAMES.get(language);
+        if (languageName != null) {
+          processedInput = "[speaking " + languageName + "] " + input;
+          languageCode = null;
+        }
+      }
+
       var speechOptions = ElevenLabsTextToSpeechOptions.builder()
           .voiceId(voiceId)
           .model(model)
-          .languageCode(language)
+          .languageCode(languageCode)
           .build();
 
-      var speechPrompt = new TextToSpeechPrompt(input, speechOptions);
+      var speechPrompt = new TextToSpeechPrompt(processedInput, speechOptions);
 
       byte[] result = textToSpeechModel.call(speechPrompt).getResult().getOutput();
 
