@@ -571,3 +571,42 @@ test('card edits stored locally until save', async ({ page }) => {
     expect(cardData.translation.hu).toBe('megtanulni'); // Updated value
   });
 });
+
+test('image model name displayed below image', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+  const image2 = uploadMockImage(redImage);
+  await createCard({
+    cardId: 'abfahren',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          images: [
+            { id: image1, model: 'gpt-image-1' },
+            { id: image2, model: 'imagen-4.0-ultra' },
+          ],
+        },
+      ],
+    },
+  });
+
+  await navigateToCardCreation(page);
+
+  await expect(page.getByText('GPT Image 1')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next image' }).first().click();
+  await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
+});
