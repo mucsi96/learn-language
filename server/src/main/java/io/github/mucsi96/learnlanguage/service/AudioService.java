@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AudioService {
 
-  private static final String DEFAULT_MODEL = "eleven_v3";
-
   private static final List<AudioModelResponse> AVAILABLE_MODELS = List.of(
       AudioModelResponse.builder()
           .id("eleven_v3")
