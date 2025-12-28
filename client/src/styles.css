@@ -11,6 +11,7 @@ html {
   --mat-sys-corner-full: 0.5rem;
   --mat-sys-surface: hsl(215, 28%, 17%);
   --mat-sys-surface-container: hsl(217, 19%, 27%);
+  --mat-card-elevated-container-color: var(--mat-sys-surface);
   --mat-sys-on-surface: hsl(220, 13%, 91%);
   --mat-sys-outline: transparent;
   --mat-sys-corner-extra-large: var(--mat-sys-corner-full);

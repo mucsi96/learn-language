@@ -8,10 +8,15 @@
 - Prefer constructor injection with lombok
 
 ## Testing Code style
+- Try testing from users perspective.
+- Use role based selectors and selectors based on accesibility
+- Avoid asserting loading state as it is not reliable
 - Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages
+- Test every feature using E2E tests with playwright inline with existing tests
 
 ## Angular Code style
+- Make sure the UI is testable using role based selectors and selectors based on accesibility
 - Prefer functional code over procedural
 - Prefer using Angular Material components
 - Prefer using Angular signal / resource for state management
@@ -21,6 +26,10 @@
 - Avoid using enum in TS. Prefer using string literals
 - Always using new Angular templates
 - Using rxjs is not allowed
+
+## Design guidelines
+- Prefer using Angular Material components
+- Avoid using "Loading..." in favor of skeleton loaders
 
 ## Project Overview
 

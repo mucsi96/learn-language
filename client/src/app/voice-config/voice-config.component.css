@@ -1,0 +1,156 @@
+.voice-config-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .voice-config-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+mat-card {
+  height: fit-content;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.language-group {
+  margin-bottom: 24px;
+}
+
+.language-group h3 {
+  margin: 0 0 12px 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+table {
+  width: 100%;
+}
+
+.voice-name-cell {
+  min-width: 200px;
+  font-weight: 500;
+}
+
+.model-cell {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 13px;
+}
+
+.category-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.default-tag {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.favorite-tag {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-small {
+  height: 16px;
+  width: 60px;
+}
+
+.skeleton-text-medium {
+  height: 18px;
+  width: 120px;
+}
+
+.skeleton-text-large {
+  height: 18px;
+  width: 180px;
+}
+
+.skeleton-toggle {
+  height: 20px;
+  width: 36px;
+  border-radius: 10px;
+}
+
+.skeleton-button {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+}
+
+.skeleton-card-preview {
+  height: 250px;
+  width: 100%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-index {
+  font-size: 14px;
+  color: var(--mat-sys-on-surface-variant);
+  min-width: 60px;
+  text-align: center;
+}
+
+.preview-section mat-card-content {
+  min-height: 300px;
+}

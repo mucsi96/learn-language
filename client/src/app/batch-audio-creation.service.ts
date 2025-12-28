@@ -3,14 +3,22 @@ import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
 import { Card } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import { 
-  AudioSourceRequest, 
-  AudioResponse, 
+import {
+  AudioSourceRequest,
+  AudioResponse,
   AudioData,
   LANGUAGE_CODES,
-  LANGUAGE_SPECIFIC_VOICES,
   VoiceModelPair
 } from './shared/types/audio-generation.types';
+
+interface VoiceConfiguration {
+  id: number;
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName: string | null;
+  isEnabled: boolean;
+}
 
 
 export interface AudioCreationProgress {
@@ -43,6 +51,7 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
+  private voiceConfigs: VoiceConfiguration[] = [];
 
   readonly totalProgress = computed(() => {
     const progress = this.creationProgress();
@@ -70,6 +79,35 @@ export class BatchAudioCreationService {
     }
 
     this.isCreating.set(true);
+
+    // Fetch enabled voice configurations from database
+    try {
+      this.voiceConfigs = await fetchJson<VoiceConfiguration[]>(
+        this.http,
+        '/api/voice-configurations/enabled'
+      );
+    } catch (error) {
+      this.isCreating.set(false);
+      throw new Error('Failed to fetch voice configurations');
+    }
+
+    // Check if we have at least one voice for each language
+    const hasGermanVoice = this.voiceConfigs.some(
+      (config) => config.language === LANGUAGE_CODES.GERMAN
+    );
+    const hasHungarianVoice = this.voiceConfigs.some(
+      (config) => config.language === LANGUAGE_CODES.HUNGARIAN
+    );
+
+    if (!hasGermanVoice ) {
+      this.isCreating.set(false);
+      throw new Error('No enabled voice configurations for German language');
+    }
+
+    if (!hasHungarianVoice ) {
+      this.isCreating.set(false);
+      throw new Error('No enabled voice configurations for Hungarian language');
+    }
 
     // Initialize progress tracking
     const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
@@ -141,9 +179,9 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { 
-              input: card.data.word, 
-              voice: germanVoice.voice, 
+            body: {
+              input: card.data.word,
+              voice: germanVoice.voice,
               model: germanVoice.model,
               language: LANGUAGE_CODES.GERMAN,
               selected: true
@@ -169,9 +207,9 @@ export class BatchAudioCreationService {
           this.http,
           `/api/audio`,
           {
-            body: { 
-              input: card.data.translation['hu'], 
-              voice: hungarianVoice.voice, 
+            body: {
+              input: card.data.translation['hu'],
+              voice: hungarianVoice.voice,
               model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN,
               selected: true
@@ -199,9 +237,9 @@ export class BatchAudioCreationService {
             this.http,
             `/api/audio`,
             {
-              body: { 
-                input: selectedExample['de'], 
-                voice: germanVoice.voice, 
+              body: {
+                input: selectedExample['de'],
+                voice: germanVoice.voice,
                 model: germanVoice.model,
                 language: LANGUAGE_CODES.GERMAN,
                 selected: true
@@ -216,9 +254,9 @@ export class BatchAudioCreationService {
         if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
           const exampleTranslationAudioResponse = await fetchJson<AudioData>(
             this.http, `/api/audio`, {
-            body: { 
-              input: selectedExample['hu'], 
-              voice: hungarianVoice.voice, 
+            body: {
+              input: selectedExample['hu'],
+              voice: hungarianVoice.voice,
               model: hungarianVoice.model,
               language: LANGUAGE_CODES.HUNGARIAN,
               selected: true
@@ -328,7 +366,7 @@ export class BatchAudioCreationService {
         // Keep this audio entry
         cleanedAudioList.push(audioEntry);
       } else {
-        // Mark for deletion 
+        // Mark for deletion
         audioKeysToDelete.push(audioEntry.id);
       }
     }
@@ -356,12 +394,16 @@ export class BatchAudioCreationService {
   }
 
   private getVoiceForLanguage(language: string): VoiceModelPair {
-    const languageVoices = LANGUAGE_SPECIFIC_VOICES[language as keyof typeof LANGUAGE_SPECIFIC_VOICES];
-    if (languageVoices && languageVoices.length > 0) {
+    const languageVoices = this.voiceConfigs.filter(
+      (config) => config.language === language && config.isEnabled
+    );
+
+    if (languageVoices.length > 0) {
       const randomIndex = Math.floor(Math.random() * languageVoices.length);
-      return languageVoices[randomIndex];
+      const config = languageVoices[randomIndex];
+      return { voice: config.voiceId, model: config.model };
     }
-    
+
     throw new Error(`No voices configured for language: ${language}`);
   }
 

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createModelUsageLog, getTableData, selectTextRange } from '../utils';
+import { createCard, createModelUsageLog, createVoiceConfiguration, getTableData, selectTextRange } from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -19,6 +19,23 @@ type ModelSummaryRow = {
   'Avg Rating': string;
   'Total Cost': string;
 };
+
+async function setupVoiceConfigurations() {
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-de',
+    model: 'eleven_v3',
+    language: 'de',
+    displayName: 'Test Voice DE',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-hu',
+    model: 'eleven_v3',
+    language: 'hu',
+    displayName: 'Test Voice HU',
+    isEnabled: true,
+  });
+}
 
 test('page title', async ({ page }) => {
   await page.goto('http://localhost:8180/model-usage');
@@ -136,7 +153,7 @@ test('displays image model usage logs', async ({ page }) => {
 
 test('displays audio model usage logs', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'eleven_multilingual_v2',
+    modelName: 'eleven_v3',
     modelType: 'AUDIO',
     operationType: 'audio_generation',
     inputCharacters: 250,
@@ -155,7 +172,7 @@ test('displays audio model usage logs', async ({ page }) => {
 
   expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
-      Model: 'eleven_multilingual_v2',
+      Model: 'eleven_v3',
       Type: 'AUDIO',
       Operation: 'audio_generation',
       Usage: '250 chars',
@@ -387,6 +404,7 @@ test('creates image model usage logs when using bulk card creation', async ({
 test('creates audio model usage logs when using bulk audio creation', async ({
   page,
 }) => {
+  await setupVoiceConfigurations();
   await createCard({
       cardId: 'verstehen',
       sourceId: 'goethe-a1',
@@ -415,7 +433,7 @@ test('creates audio model usage logs when using bulk audio creation', async ({
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   await expect(
-    page.getByText(/Audio generated successfully for \d+ cards?!/)
+    page.getByText("Audio generated successfully for 1 card!")
   ).toBeVisible();
 
   await page.goto('http://localhost:8180/model-usage');

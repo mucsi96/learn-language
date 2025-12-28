@@ -1,7 +1,5 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VoiceResponse {
-    private String id;
+public class VoiceConfigurationResponse {
+    private Integer id;
+    private String voiceId;
+    private String voiceName;
+    private String model;
+    private String language;
     private String displayName;
-    private List<LanguageResponse> languages;
+    private Boolean isEnabled;
     private String category;
 }

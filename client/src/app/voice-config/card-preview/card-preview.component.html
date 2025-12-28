@@ -1,0 +1,21 @@
+<div class="main-content">
+  <div class="language-section german">
+    <span class="language-label">DE</span>
+    <h2 [style.color]="genderInfo()?.color">{{ word() }}</h2>
+    @if (forms()?.length) {
+    <p class="forms">{{ forms()?.join(", ") }}</p>
+    } @if (germanExample()) {
+    <p class="example">{{ germanExample() }}</p>
+    }
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="language-section hungarian">
+    <span class="language-label">HU</span>
+    <h2>{{ translation() }}</h2>
+    @if (hungarianExample()) {
+    <p class="example">{{ hungarianExample() }}</p>
+    }
+  </div>
+</div>
