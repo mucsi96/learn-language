@@ -153,18 +153,20 @@
           <ng-container matColumnDef="rating">
             <th mat-header-cell *matHeaderCellDef>Rating</th>
             <td mat-cell *matCellDef="let log">
-              <div class="rating-stars">
-                @for (star of ratingStars; track star) {
-                  <button mat-icon-button
-                          class="star-button"
-                          (click)="setRating(log, star, $event)"
-                          [attr.aria-label]="'Rate ' + star + ' stars'">
-                    <mat-icon [class]="getStarClass(log, star)">
-                      {{ log.rating && star <= log.rating ? 'star' : 'star_border' }}
-                    </mat-icon>
-                  </button>
-                }
-              </div>
+              @if (isRatable(log)) {
+                <div class="rating-stars">
+                  @for (star of ratingStars; track star) {
+                    <button mat-icon-button
+                            class="star-button"
+                            (click)="setRating(log, star, $event)"
+                            [attr.aria-label]="'Rate ' + star + ' stars'">
+                      <mat-icon [class]="getStarClass(log, star)">
+                        {{ log.rating && star <= log.rating ? 'star' : 'star_border' }}
+                      </mat-icon>
+                    </button>
+                  }
+                </div>
+              }
             </td>
           </ng-container>
 

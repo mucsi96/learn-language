@@ -1,7 +1,6 @@
 - Assign cards / multiperson
 
 - if a model log is rated. Automatically rate all other logs with the same response
-- disable rating for image and voice models usage
 - for eleven labs model v3 please use tags [spoken in German]
 - display image model name on image
 - drop link for non existing words
