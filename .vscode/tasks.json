@@ -129,6 +129,19 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Run Playwright Tests",
+      "command": "npm test",
+      "options": {
+        "cwd": "${workspaceFolder}/test"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     }
   ]
 }

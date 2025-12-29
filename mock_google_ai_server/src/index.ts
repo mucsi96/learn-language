@@ -8,8 +8,9 @@ const chatHandler = new ChatHandler();
 
 app.use(express.json());
 
+// Middleware to log access details
 app.use((req, res, next) => {
-  if (req.url !== '/health') {
+  if (req.url !== '/health' && req.url !== '/reset') {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   }
 
@@ -18,11 +19,10 @@ app.use((req, res, next) => {
 
 app.post('/reset', (req, res) => {
   imageHandler.reset();
-  console.log('Reset image counter to 0');
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
 });
 
-app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
+app.post('/v1beta/models/imagen-4.0-ultra:predict', (req, res) => {
   try {
     const prompt = req.body.instances[0].prompt;
     console.log({ prompt });

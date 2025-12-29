@@ -57,32 +57,29 @@ test('highlights existing cards', async ({ page }) => {
   await expect(page.getByText('anfangen,')).toHaveAccessibleDescription('Card exists');
 });
 
-test('drag to select words', async ({ page }) => {
+test('drag to select words highlights matching words', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'abfahren' })).toBeVisible();
-
-  await page.getByRole('link', { name: 'abfahren' }).click();
-
-  await expect(
-    page.getByLabel('German translation', { exact: true })
-  ).toHaveValue('abfahren');
+  await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByText('die Abfahrt').first()).toHaveAccessibleDescription('Card does not exist');
 });
 
-test('drag to select multiple regions', async ({ page }) => {
+test('drag to select multiple regions highlights matching words', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await page.locator('section[data-ready="true"]').waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
   // First region selection
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
+  await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
 
   // Second region selection
   await selectTextRange(
@@ -91,11 +88,13 @@ test('drag to select multiple regions', async ({ page }) => {
     'Können Sie mir seine Adresse sagen?'
   );
 
-  // Check that links from both regions are visible
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'abfahren' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'der Absender' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'die Adresse' })).toBeVisible();
+  await expect(page.getByText('Create 6 Cards')).toBeVisible();
+
+  // Check that words from both regions are highlighted
+  await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByText('der Absender').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByText('die Adresse').first()).toHaveAccessibleDescription('Card does not exist');
 });
 
 test('source selector routing works', async ({ page }) => {

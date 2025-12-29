@@ -8,8 +8,7 @@ import {
   yellowImage,
   redImage,
   blueImage,
-  greenImage,
-  navigateToCardCreation,
+  navigateToCardEditing,
   uploadMockImage,
 } from '../utils';
 import { Page } from '@playwright/test';
@@ -25,19 +24,23 @@ async function prepareCard(page: Page) {
       word: 'abfahren',
       type: 'VERB',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1 }, { id: image2 }],
         },
       ],
     },
   });
-  return await navigateToCardCreation(page);
+  return await navigateToCardEditing(page);
 }
 
 test('carousel indicator initial', async ({ page }) => {
@@ -47,7 +50,9 @@ test('carousel indicator initial', async ({ page }) => {
 
 test('prev button disabled on first image', async ({ page }) => {
   await prepareCard(page);
-  const prevButton = page.getByRole('button', { name: 'Previous image' }).first();
+  const prevButton = page
+    .getByRole('button', { name: 'Previous image' })
+    .first();
   await expect(prevButton).toBeDisabled();
 });
 
@@ -68,7 +73,9 @@ test('next click updates indicator and disables next', async ({ page }) => {
 test('prev click from last image', async ({ page }) => {
   await prepareCard(page);
   const nextButton = page.getByRole('button', { name: 'Next image' }).first();
-  const prevButton = page.getByRole('button', { name: 'Previous image' }).first();
+  const prevButton = page
+    .getByRole('button', { name: 'Previous image' })
+    .first();
   await nextButton.click();
   await prevButton.click();
   await expect(page.getByText('1 / 2')).toBeVisible();
@@ -114,12 +121,16 @@ test('card editing page', async ({ page }) => {
       type: 'NOUN',
       gender: 'FEMININE',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1 }],
         },
@@ -134,34 +145,46 @@ test('card editing page', async ({ page }) => {
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Word section
-  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Főnév');
-  await expect(page.getByRole('combobox', { name: 'Gender' })).toHaveText('Feminine');
-  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('abfahren');
-  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue(
-    'elindulni, elhagyni'
+  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText(
+    'Főnév'
   );
-  await expect(page.getByLabel('Swiss German translation', { exact: true })).toHaveValue(
-    'abfahra, verlah'
+  await expect(page.getByRole('combobox', { name: 'Gender' })).toHaveText(
+    'Feminine'
   );
+  await expect(
+    page.getByLabel('German translation', { exact: true })
+  ).toHaveValue('abfahren');
+  await expect(
+    page.getByLabel('Hungarian translation', { exact: true })
+  ).toHaveValue('elindulni, elhagyni');
+  await expect(
+    page.getByLabel('Swiss German translation', { exact: true })
+  ).toHaveValue('abfahra, verlah');
 
   // Forms section
-  await expect(page.getByLabel('Form', { exact: true }).nth(0)).toHaveValue('fährt ab');
-  await expect(page.getByLabel('Form', { exact: true }).nth(1)).toHaveValue('fuhr ab');
-  await expect(page.getByLabel('Form', { exact: true }).nth(2)).toHaveValue('abgefahren');
+  await expect(page.getByLabel('Form', { exact: true }).nth(0)).toHaveValue(
+    'fährt ab'
+  );
+  await expect(page.getByLabel('Form', { exact: true }).nth(1)).toHaveValue(
+    'fuhr ab'
+  );
+  await expect(page.getByLabel('Form', { exact: true }).nth(2)).toHaveValue(
+    'abgefahren'
+  );
 
   // Examples section
-  await expect(page.getByLabel('Example in German', { exact: true }).nth(0)).toHaveValue(
-    'Wir fahren um zwölf Uhr ab.'
-  );
-  await expect(page.getByLabel('Example in Hungarian', { exact: true }).nth(0)).toHaveValue(
-    'Tizenkét órakor indulunk.'
-  );
-  await expect(page.getByLabel('Example in Swiss German', { exact: true }).nth(0)).toHaveValue(
-    'Mir fahred am zwöufi ab.'
-  );
+  await expect(
+    page.getByLabel('Example in German', { exact: true }).nth(0)
+  ).toHaveValue('Wir fahren um zwölf Uhr ab.');
+  await expect(
+    page.getByLabel('Example in Hungarian', { exact: true }).nth(0)
+  ).toHaveValue('Tizenkét órakor indulunk.');
+  await expect(
+    page.getByLabel('Example in Swiss German', { exact: true }).nth(0)
+  ).toHaveValue('Mir fahred am zwöufi ab.');
 
   // Images
   const imageContent1 = await getImageContent(
@@ -185,12 +208,16 @@ test('card editing in db', async ({ page }) => {
       word: 'abfahren',
       type: 'VERB',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1 }],
           isSelected: true,
@@ -205,13 +232,19 @@ test('card editing in db', async ({ page }) => {
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
+
+  await page.waitForLoadState('networkidle');
+
+  const imageLocator = page.getByRole('img', {
+    name: 'Wann fährt der Zug ab?',
+  });
+  const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(page.getByText('4 / 4')).toBeVisible();
-  const imageContent2 = await getImageContent(
-    page.getByRole('img', { name: 'Wann fährt der Zug ab?' })
-  );
+  await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
+
+  const imageContent2 = await getImageContent(imageLocator);
 
   expect(imageContent2.equals(getColorImageBytes('green'))).toBeTruthy();
 
@@ -240,6 +273,13 @@ test('card editing in db', async ({ page }) => {
     expect(img1.equals(yellowImage)).toBeTruthy();
     expect(img2.equals(redImage)).toBeTruthy();
     expect(img3.equals(redImage)).toBeTruthy();
+
+    expect(cardData.examples[0].images).toHaveLength(1);
+    expect(cardData.examples[1].images).toHaveLength(5);
+    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1');
+    expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[1].images[3].model).toBe('Imagen 4 Ultra');
+    expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
   });
 });
 
@@ -254,12 +294,16 @@ test('favorite image in db', async ({ page }) => {
       word: 'abfahren',
       type: 'VERB',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1, isFavorite: true }],
         },
@@ -274,32 +318,28 @@ test('favorite image in db', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Verify initial favorite state
-  await expect(page.getByRole('button', { name: 'Toggle favorite' }).first()).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
-  await expect(page.getByRole('button', { name: 'Toggle favorite' }).last()).not.toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
+  await expect(
+    page.getByRole('button', { name: 'Toggle favorite' }).first()
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByRole('button', { name: 'Toggle favorite' }).last()
+  ).not.toHaveAttribute('aria-pressed', 'true');
 
   // Toggle favorite state of second image
   await page.getByRole('button', { name: 'Toggle favorite' }).last().hover();
   await page.getByRole('button', { name: 'Toggle favorite' }).last().click();
-  await expect(page.getByRole('button', { name: 'Toggle favorite' }).last()).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
+  await expect(
+    page.getByRole('button', { name: 'Toggle favorite' }).last()
+  ).toHaveAttribute('aria-pressed', 'true');
 
   // Toggle favorite state of first image
   await page.getByRole('button', { name: 'Toggle favorite' }).first().click();
-  await expect(page.getByRole('button', { name: 'Toggle favorite' }).first()).not.toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
+  await expect(
+    page.getByRole('button', { name: 'Toggle favorite' }).first()
+  ).not.toHaveAttribute('aria-pressed', 'true');
 
   await page.waitForTimeout(100);
 
@@ -336,12 +376,16 @@ test('word type editing', async ({ page }) => {
       type: 'VERB',
       gender: 'NEUTER',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1 }],
         },
@@ -349,10 +393,12 @@ test('word type editing', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Verify initial word type
-  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Ige');
+  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText(
+    'Ige'
+  );
 
   // Change the word type from VERB to NOUN
   await page.getByRole('combobox', { name: 'Word type' }).click();
@@ -393,26 +439,42 @@ test('example image addition', async ({ page }) => {
       word: 'abfahren',
       type: 'VERB',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [{ id: image1 }],
         },
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
+  const imageLocator = page.getByRole('img', {
+    name: 'Wir fahren um zwölf Uhr ab.',
+  });
+  await imageLocator.evaluate((el) =>
+    el.scrollIntoView({ block: 'start', behavior: 'instant' })
+  );
+  const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).first().click();
+  await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
 
   const regeneratedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })
   );
-  expect(regeneratedImageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
+  expect(
+    regeneratedImageContent.equals(getColorImageBytes('yellow'))
+  ).toBeTruthy();
+
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 });
 
 test('card deletion', async ({ page }) => {
@@ -424,12 +486,16 @@ test('card deletion', async ({ page }) => {
       word: 'abfahren',
       type: 'VERB',
       forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
-      translation: { en: 'to leave', hu: 'elindulni, elhagyni', ch: 'abfahra, verlah' },
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
       examples: [
         {
           de: 'Wir fahren um zwölf Uhr ab.',
           hu: 'Tizenkét órakor indulunk.',
-          en: 'We leave at twelve o\'clock.',
+          en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
         },
         {
@@ -443,9 +509,11 @@ test('card deletion', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
   await page.getByRole('button', { name: 'Delete card' }).click();
-  await expect(page.getByText('Are you sure you want to delete this card?')).toBeVisible();
+  await expect(
+    page.getByText('Are you sure you want to delete this card?')
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Yes' }).click();
   await expect(page.getByText('Card deleted successfully')).toBeVisible();
 
@@ -492,11 +560,15 @@ test('card edits stored locally until save', async ({ page }) => {
   await row.click();
 
   // Make an edit to the card
-  await page.getByLabel('Hungarian translation', { exact: true }).fill('megtanulni');
+  await page
+    .getByLabel('Hungarian translation', { exact: true })
+    .fill('megtanulni');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
-  await expect(page.getByText('Card marked as reviewed successfully')).toBeVisible();
+  await expect(
+    page.getByText('Card marked as reviewed successfully')
+  ).toBeVisible();
 
   // Verify both the edit and readiness were saved to database
   await withDbConnection(async (client) => {
@@ -509,4 +581,43 @@ test('card edits stored locally until save', async ({ page }) => {
     const cardData = result.rows[0].data;
     expect(cardData.translation.hu).toBe('megtanulni'); // Updated value
   });
+});
+
+test('image model name displayed below image', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+  const image2 = uploadMockImage(redImage);
+  await createCard({
+    cardId: 'abfahren',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          images: [
+            { id: image1, model: 'GPT Image 1' },
+            { id: image2, model: 'Imagen 4 Ultra' },
+          ],
+        },
+      ],
+    },
+  });
+
+  await navigateToCardEditing(page);
+
+  await expect(page.getByText('GPT Image 1')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next image' }).first().click();
+  await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
 });

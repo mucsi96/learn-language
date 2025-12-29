@@ -62,6 +62,10 @@ public class CardService {
         .toList();
   }
 
+  public List<Card> getRandomReadyCards(int limit) {
+    return cardRepository.findRandomReadyCards(limit);
+  }
+
   public List<SourceCardCount> getCardCountsBySource() {
     return cardRepository.countBySourceGroupBySource()
         .stream()

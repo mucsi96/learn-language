@@ -40,6 +40,7 @@
   appDraggableSelection
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
+  [attr.data-ready]="isReady()"
 >
   @if (selectionRegionsLoading()) {
   <mat-spinner class="area-loading"></mat-spinner>

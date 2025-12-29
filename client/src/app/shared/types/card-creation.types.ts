@@ -1,5 +1,4 @@
 import { CardData, Word } from '../../parser/types';
-import { ImageGenerationModel } from './image-generation.types';
 
 export type CardType = 'vocabulary';
 
@@ -8,7 +7,6 @@ export interface CardCreationRequest {
   sourceId: string;
   pageNumber: number;
   cardType: CardType;
-  imageModel?: ImageGenerationModel;
 }
 
 export interface ImageGenerationInfo {

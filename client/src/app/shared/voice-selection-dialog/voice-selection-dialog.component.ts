@@ -23,15 +23,19 @@ import { fetchJson } from '../../utils/fetchJson';
 import { AudioData, AudioResponse } from '../types/audio-generation.types';
 import { AudioPlaybackService } from '../services/audio-playback.service';
 
-interface Voice {
-  id: string;
-  displayName: string;
-  languages: { name: string }[];
+interface VoiceConfiguration {
+  id: number;
+  voiceId: string;
+  voiceName: string;
+  model: string;
+  language: string;
+  displayName: string | null;
+  isEnabled: boolean;
+  category: string | null;
 }
 
 interface VoiceCardData {
-  voice: Voice;
-  language: string;
+  config: VoiceConfiguration;
   audioData?: AudioData;
   isGenerating?: boolean;
   isPlaying?: boolean;
@@ -80,33 +84,35 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
   readonly generatingVoices = signal<Set<string>>(new Set());
   readonly playingVoices = signal<Set<string>>(new Set());
 
-  // Fetch voices from API
-  readonly voices = resource<Voice[], never>({
+  // Fetch enabled voice configurations from API
+  readonly voiceConfigurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,
     loader: async () => {
-      return await fetchJson<Voice[]>(this.http, '/api/voices');
+      return await fetchJson<VoiceConfiguration[]>(this.http, '/api/voice-configurations/enabled');
     },
   });
 
-  // Group voices by supported languages
+  // Group voice configurations by language
   readonly groupedVoices = computed(() => {
-    const voiceList = this.voices.value();
-    if (!voiceList) return null;
+    const configs = this.voiceConfigurations.value();
+    if (!configs) return null;
 
     const groups: Record<string, VoiceCardData[]> = {};
     const targetLanguages = ['hu', 'de']; // Hungarian first, then German
 
     targetLanguages.forEach((lang) => {
-      groups[lang] = voiceList
-        .filter((voice) => voice.languages.some((l) => l.name === lang))
-        .sort((a, b) => a.displayName.localeCompare(b.displayName))
-        .map((voice) => {
+      groups[lang] = configs
+        .filter((config) => config.language === lang)
+        .sort((a, b) => (a.displayName || a.voiceName).localeCompare(b.displayName || b.voiceName))
+        .map((config) => {
           const existingAudio = this.localAudioData().find(
-            (audio) => audio.voice === voice.id && audio.language === lang
+            (audio) =>
+              audio.voice === config.voiceId &&
+              audio.model === config.model &&
+              audio.language === lang
           );
           return {
-            voice,
-            language: lang,
+            config,
             audioData: existingAudio,
           };
         });
@@ -133,8 +139,9 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
   isSelected(voiceCard: VoiceCardData): boolean {
     return this.localAudioData().some(
       (audio) =>
-        audio.voice === voiceCard.voice.id &&
-        audio.language === voiceCard.language &&
+        audio.voice === voiceCard.config.voiceId &&
+        audio.model === voiceCard.config.model &&
+        audio.language === voiceCard.config.language &&
         audio.selected
     );
   }
@@ -142,14 +149,14 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
   // Check if voice is currently generating
   isGenerating(voiceCard: VoiceCardData): boolean {
     return this.generatingVoices().has(
-      `${voiceCard.voice.id}-${voiceCard.language}`
+      `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`
     );
   }
 
   // Check if voice is currently playing
   isPlaying(voiceCard: VoiceCardData): boolean {
     return this.playingVoices().has(
-      `${voiceCard.voice.id}-${voiceCard.language}`
+      `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`
     );
   }
 
@@ -169,16 +176,17 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     this.localAudioData.update((audioList) => {
       // Deselect all voices for this language
       audioList.forEach((audio) => {
-        if (audio.language === voiceCard.language) {
+        if (audio.language === voiceCard.config.language) {
           audio.selected = false;
         }
       });
 
-      // Select ALL audio entries for this voice/language combination
+      // Select ALL audio entries for this voice/model/language combination
       audioList.forEach((audio) => {
         if (
-          audio.voice === voiceCard.voice.id &&
-          audio.language === voiceCard.language
+          audio.voice === voiceCard.config.voiceId &&
+          audio.model === voiceCard.config.model &&
+          audio.language === voiceCard.config.language
         ) {
           audio.selected = true;
         }
@@ -188,9 +196,9 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     });
   }
 
-  // Generate audio for a voice
+  // Generate audio for a voice configuration
   async generateAudio(voiceCard: VoiceCardData) {
-    const key = `${voiceCard.voice.id}-${voiceCard.language}`;
+    const key = `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`;
 
     // Prevent duplicate generation
     if (this.generatingVoices().has(key)) return;
@@ -201,7 +209,7 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     });
 
     try {
-      const texts = this.getTextsForLanguage(voiceCard.language);
+      const texts = this.getTextsForLanguage(voiceCard.config.language);
       const generatedAudios: AudioData[] = [];
 
       for (const text of texts) {
@@ -212,18 +220,18 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
             method: 'POST',
             body: {
               input: text,
-              voice: voiceCard.voice.id,
-              model: 'eleven_turbo_v2_5',
-              language: voiceCard.language,
+              voice: voiceCard.config.voiceId,
+              model: voiceCard.config.model,
+              language: voiceCard.config.language,
             },
           }
         );
 
         generatedAudios.push({
           id: response.id,
-          voice: voiceCard.voice.id,
-          model: 'eleven_turbo_v2_5',
-          language: voiceCard.language,
+          voice: voiceCard.config.voiceId,
+          model: voiceCard.config.model,
+          language: voiceCard.config.language,
           text: text,
           selected: false,
         });
@@ -262,9 +270,12 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     // Get or generate audio, then play
     const audioEntries = this.localAudioData().filter(
       (audio) =>
-        audio.voice === voiceCard.voice.id &&
-        audio.language === voiceCard.language
+        audio.voice === voiceCard.config.voiceId &&
+        audio.model === voiceCard.config.model &&
+        audio.language === voiceCard.config.language
     );
+
+    const key = `${voiceCard.config.voiceId}-${voiceCard.config.model}-${voiceCard.config.language}`;
 
     if (audioEntries.length === 0) {
       // Generate audio first if not available
@@ -272,14 +283,15 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
       // Re-fetch the generated audio entries
       const newAudioEntries = this.localAudioData().filter(
         (audio) =>
-          audio.voice === voiceCard.voice.id &&
-          audio.language === voiceCard.language
+          audio.voice === voiceCard.config.voiceId &&
+          audio.model === voiceCard.config.model &&
+          audio.language === voiceCard.config.language
       );
       if (newAudioEntries.length > 0) {
-        await this.playAudioSequence(newAudioEntries, `${voiceCard.voice.id}-${voiceCard.language}`);
+        await this.playAudioSequence(newAudioEntries, key);
       }
     } else {
-      await this.playAudioSequence(audioEntries, `${voiceCard.voice.id}-${voiceCard.language}`);
+      await this.playAudioSequence(audioEntries, key);
     }
   }
 

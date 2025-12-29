@@ -82,18 +82,10 @@ export class PageService {
             const { x, y, width, height } = rectangle;
 
             return this.multiModelService.call<WordList>(
-              'word_extraction',
-              JSON.stringify({ sourceId, pageNumber, x, y, width, height }),
               (model: string) => fetchJson<WordList>(
                 this.http,
                 `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
-              ),
-              (response: WordList) => {
-                const sortedWords = [...response.words]
-                  .sort((a, b) => a.word.localeCompare(b.word))
-                  .map(w => w.word);
-                return JSON.stringify(sortedWords);
-              }
+              )
             );
           },
         });

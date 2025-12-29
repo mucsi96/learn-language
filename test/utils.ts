@@ -91,13 +91,8 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     // Delete records in order to respect foreign key constraints
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
-
-    // Reset the review_logs sequence
-    await client.query(
-      "SELECT setval('learn_language.review_logs_id_seq', 1, false)"
-    );
-
-    // Delete all sources
+    await client.query('DELETE FROM learn_language.model_usage_logs');
+    await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.sources');
   });
 
@@ -387,6 +382,11 @@ export async function selectTextRange(
   const startElement = page.getByText(startText, { exact: true });
   const endElement = page.getByText(endText, { exact: true });
 
+  await expect(startElement).toBeVisible();
+  await expect(endElement).toBeVisible();
+
+  await page.waitForLoadState('networkidle');
+
   const startBox = await startElement.boundingBox();
   const endBox = await endElement.boundingBox();
 
@@ -401,6 +401,7 @@ export async function selectTextRange(
     endBox.y + endBox.height + 5
   );
   await page.mouse.up();
+  await page.waitForTimeout(2000);
 }
 
 export async function scrollElementToTop(
@@ -409,12 +410,14 @@ export async function scrollElementToTop(
   exact: boolean = true
 ): Promise<void> {
   const element = page.getByText(selectorText, { exact });
+  await expect(element).toBeVisible();
   await element.evaluate((el) =>
     el.scrollIntoView({ block: 'start', behavior: 'instant' })
   );
+  await page.waitForLoadState('networkidle');
 }
 
-export async function navigateToCardCreation(
+export async function navigateToCardEditing(
   page: Page,
   sourceName: string = 'Goethe A1',
   startText: string = 'aber',
@@ -472,4 +475,174 @@ export function ensureTimezoneAware(dt: Date): Date {
     dt.getSeconds(),
     dt.getMilliseconds()
   ));
+}
+
+export async function createModelUsageLog(params: {
+  modelName: string;
+  modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
+  operationType: string;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  inputCharacters?: number | null;
+  imageCount?: number | null;
+  costUsd: number;
+  processingTimeMs: number;
+  responseContent?: string | null;
+  rating?: number | null;
+}): Promise<number> {
+  const {
+    modelName,
+    modelType,
+    operationType,
+    inputTokens = null,
+    outputTokens = null,
+    inputCharacters = null,
+    imageCount = null,
+    costUsd,
+    processingTimeMs,
+    responseContent = null,
+    rating = null,
+  } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.model_usage_logs (
+        model_name, model_type, operation_type, input_tokens, output_tokens,
+        input_characters, image_count, cost_usd, processing_time_ms,
+        response_content, rating, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+      RETURNING id`,
+      [
+        modelName,
+        modelType,
+        operationType,
+        inputTokens,
+        outputTokens,
+        inputCharacters,
+        imageCount,
+        costUsd,
+        processingTimeMs,
+        responseContent,
+        rating,
+      ]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getModelUsageLogs(): Promise<Array<{
+  id: number;
+  modelName: string;
+  modelType: string;
+  operationType: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  rating: number | null;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, model_name as "modelName", model_type as "modelType",
+              operation_type as "operationType", input_tokens as "inputTokens",
+              output_tokens as "outputTokens", rating
+       FROM learn_language.model_usage_logs
+       ORDER BY created_at DESC`
+    );
+    return result.rows;
+  });
+}
+
+export async function createVoiceConfiguration(params: {
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName?: string | null;
+  isEnabled?: boolean;
+}): Promise<number> {
+  const {
+    voiceId,
+    model,
+    language,
+    displayName = null,
+    isEnabled = true,
+  } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.voice_configurations (voice_id, model, language, display_name, is_enabled)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [voiceId, model, language, displayName, isEnabled]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getVoiceConfigurations(): Promise<Array<{
+  id: number;
+  voiceId: string;
+  model: string;
+  language: string;
+  displayName: string | null;
+  isEnabled: boolean;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, voice_id as "voiceId", model, language,
+              display_name as "displayName", is_enabled as "isEnabled"
+       FROM learn_language.voice_configurations
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function getTableData<T extends Record<string, string>>(
+  table: Locator,
+  options: { excludeRowSelector?: string } = {}
+): Promise<T[]> {
+  const { excludeRowSelector } = options;
+
+  await expect(table).toBeVisible();
+
+  return await table.evaluate(
+    (tableEl, excludeSelector) => {
+      function getTextContent(element: Element): string {
+        let text = '';
+        for (const node of Array.from(element.childNodes)) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.textContent || '';
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node as Element;
+            if (el.getAttribute('role') !== 'img') {
+              text += getTextContent(el);
+            }
+          }
+        }
+        return text.trim().replace(/\s+/g, ' ');
+      }
+
+      const headers = Array.from(tableEl.querySelectorAll('thead th')).map(
+        (th) => getTextContent(th)
+      );
+
+      const rowSelector = excludeSelector
+        ? `tbody tr:not(${excludeSelector})`
+        : 'tbody tr';
+      const rows = Array.from(tableEl.querySelectorAll(rowSelector));
+
+      return rows.map((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        const rowData: Record<string, string> = {};
+
+        headers.forEach((header, index) => {
+          if (header) {
+            rowData[header] = cells[index] ? getTextContent(cells[index]) : '';
+          }
+        });
+
+        return rowData;
+      });
+    },
+    excludeRowSelector
+  ) as T[];
 }

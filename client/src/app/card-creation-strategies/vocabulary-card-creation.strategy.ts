@@ -42,8 +42,6 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     try {
       progressCallback(10, 'Detecting word type...');
       const wordType = await this.multiModelService.call<WordTypeResponse>(
-        'word_type',
-        word.word,
         (model: string) => fetchJson<WordTypeResponse>(
           this.http,
           `/api/word-type?model=${model}`,
@@ -51,16 +49,13 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
             body: { word: word.word },
             method: 'POST',
           }
-        ),
-        (response: WordTypeResponse) => response.type
+        )
       );
 
       let gender: string | undefined;
       if (wordType.type === 'NOUN') {
         progressCallback(30, 'Detecting gender...');
         const genderResponse = await this.multiModelService.call<GenderResponse>(
-          'gender',
-          word.word,
           (model: string) => fetchJson<GenderResponse>(
             this.http,
             `/api/gender?model=${model}`,
@@ -68,8 +63,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
               body: { word: word.word },
               method: 'POST',
             }
-          ),
-          (response: GenderResponse) => response.gender
+          )
         );
         gender = genderResponse.gender;
       }
@@ -78,8 +72,6 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
       const translations = await Promise.all(
         languages.map(async (languageCode) => {
           const translation = await this.multiModelService.call<TranslationResponse>(
-            `translation_${languageCode}`,
-            JSON.stringify({ word: word.word, examples: word.examples, forms: word.forms }),
             (model: string) => fetchJson<TranslationResponse>(
               this.http,
               `/api/translate/${languageCode}?model=${model}`,
@@ -87,8 +79,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
                 body: word,
                 method: 'POST',
               }
-            ),
-            (response: TranslationResponse) => JSON.stringify({ translation: response.translation, examples: response.examples })
+            )
           );
           return { languageCode, translation };
         })

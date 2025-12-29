@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModelResponse {
-    private String modelName;
-    private String output;
-    private Double priceUsd;
-    private Long executionTimeMs;
+public class AudioModelResponse {
+    private String id;
+    private String displayName;
+    private boolean isDefault;
 }

@@ -19,5 +19,5 @@ public class ExampleImageData {
   private Boolean isFavorite;
 
   @JsonInclude(Include.NON_NULL)
-  private ImageGenerationModel model;
+  private String model;
 }

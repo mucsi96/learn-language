@@ -216,7 +216,15 @@ mat-dialog-content {
   font-weight: 500;
   color: var(--mat-sys-on-surface);
   text-align: center;
+  margin-bottom: 4px;
+}
+
+.voice-model {
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
   margin-bottom: 8px;
+  opacity: 0.8;
 }
 
 .voice-hint {
@@ -245,6 +253,7 @@ mat-dialog-content {
 }
 
 .skeleton-name,
+.skeleton-model,
 .skeleton-hint {
   background: linear-gradient(
     90deg,
@@ -259,7 +268,13 @@ mat-dialog-content {
 .skeleton-name {
   width: 120px;
   height: 20px;
-  margin: 0 auto 12px;
+  margin: 0 auto 8px;
+}
+
+.skeleton-model {
+  width: 150px;
+  height: 14px;
+  margin: 0 auto 8px;
 }
 
 .skeleton-hint {

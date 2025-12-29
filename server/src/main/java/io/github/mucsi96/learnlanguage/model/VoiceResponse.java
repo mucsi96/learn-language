@@ -15,4 +15,5 @@ public class VoiceResponse {
     private String id;
     private String displayName;
     private List<LanguageResponse> languages;
+    private String category;
 }

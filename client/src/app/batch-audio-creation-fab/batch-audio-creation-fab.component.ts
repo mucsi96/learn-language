@@ -55,26 +55,36 @@ export class BatchAudioCreationFabComponent {
       maxHeight: '100vh',
     });
 
-    const result = await this.batchAudioService.createAudioInBatch(
-      cards
-    );
+    try {
+      const result = await this.batchAudioService.createAudioInBatch(cards);
 
-    if (result.successfulCards > 0) {
-      this.cards.reload();
-      this.snackBar.open(
-        `Audio generated successfully for ${result.successfulCards} card${result.successfulCards === 1 ? '' : 's'}!`,
-        'Close',
-        {
-          duration: 5000,
-          verticalPosition: 'top',
-          panelClass: ['success'],
-        }
-      );
-    }
+      if (result.successfulCards > 0) {
+        this.cards.reload();
+        this.snackBar.open(
+          `Audio generated successfully for ${result.successfulCards} card${result.successfulCards === 1 ? '' : 's'}!`,
+          'Close',
+          {
+            duration: 5000,
+            verticalPosition: 'top',
+            panelClass: ['success'],
+          }
+        );
+      }
 
-    if (result.failedCards > 0) {
+      if (result.failedCards > 0) {
+        this.snackBar.open(
+          `Failed to generate audio for ${result.failedCards} card${result.failedCards === 1 ? '' : 's'}. Check the console for details.`,
+          'Close',
+          {
+            duration: 8000,
+            verticalPosition: 'top',
+            panelClass: ['error'],
+          }
+        );
+      }
+    } catch (error) {
       this.snackBar.open(
-        `Failed to generate audio for ${result.failedCards} card${result.failedCards === 1 ? '' : 's'}. Check the console for details.`,
+        `Batch audio creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'Close',
         {
           duration: 8000,

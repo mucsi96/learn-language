@@ -39,7 +39,6 @@ spring:
       api-key: ${eleven-labs-api-key}
       tts:
         options:
-          model: eleven_turbo_v2_5
           output-format: mp3_44100_128
 server:
   servlet:

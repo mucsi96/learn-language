@@ -34,6 +34,8 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await expect(page.getByText('Create 2 Cards')).toBeVisible();
+
   // FAB should now be visible with correct count
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
   await expect(fab).toBeVisible();
@@ -56,13 +58,19 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
   await scrollElementToTop(page, 'A', true);
 
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
   // Select second region
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
+
+  await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // FAB should show total count from both regions
   const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
@@ -230,6 +238,12 @@ test('bulk card creation includes word data', async ({ page }) => {
     const image2 = downloadImage(cardData.examples[1].images[0].id);
     expect(image1.equals(yellowImage)).toBeTruthy();
     expect(image2.equals(redImage)).toBeTruthy();
+
+    expect(cardData.examples[0].images[0].model).toBe('GPT Image 1');
+    expect(cardData.examples[0].images[1].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[0].images[2].model).toBe('Imagen 4 Ultra');
+    expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
 
     const result2 = await client.query(
       "SELECT data FROM learn_language.cards WHERE id = 'die-abfahrt'"

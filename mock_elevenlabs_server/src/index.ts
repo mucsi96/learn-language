@@ -1,5 +1,5 @@
 import express from 'express';
-import { AudioGenerationHandler } from './audioGeneration';
+import { AudioGenerationHandler, MOCK_VOICES } from './audioGeneration';
 
 const app = express();
 const audioHandler = new AudioGenerationHandler();
@@ -56,6 +56,11 @@ app.get('/stats', (req, res) => {
     status: 'ok',
     audioCallCount: audioHandler.getCallCount()
   });
+});
+
+// Eleven Labs Voices API endpoint
+app.get('/v1/voices', (req, res) => {
+  res.status(200).json(MOCK_VOICES);
 });
 
 app.get('/health', (req, res) => {

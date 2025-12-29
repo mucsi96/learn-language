@@ -6,21 +6,20 @@ const chatHandler = new ChatHandler();
 
 app.use(express.json());
 
+// Middleware to log access details
 app.use((req, res, next) => {
-  if (req.url !== '/health') {
+  if (req.url !== '/health' && req.url !== '/reset') {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   }
   next();
 });
 
 app.post('/reset', (req, res) => {
-  console.log('Reset called');
   res.status(200).json({ status: 'ok', message: 'Reset complete' });
 });
 
 app.post('/v1/messages', async (req, res) => {
   try {
-    console.log('Claude messages request:', JSON.stringify(req.body, null, 2));
     const result = await chatHandler.processRequest(req.body);
     res.status(200).json(result);
   } catch (error: any) {
