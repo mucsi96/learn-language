@@ -417,7 +417,7 @@ export async function scrollElementToTop(
   await page.waitForLoadState('networkidle');
 }
 
-export async function navigateToCardCreation(
+export async function navigateToCardEditing(
   page: Page,
   sourceName: string = 'Goethe A1',
   startText: string = 'aber',

@@ -8,8 +8,7 @@ import {
   yellowImage,
   redImage,
   blueImage,
-  greenImage,
-  navigateToCardCreation,
+  navigateToCardEditing,
   uploadMockImage,
 } from '../utils';
 import { Page } from '@playwright/test';
@@ -41,7 +40,7 @@ async function prepareCard(page: Page) {
       ],
     },
   });
-  return await navigateToCardCreation(page);
+  return await navigateToCardEditing(page);
 }
 
 test('carousel indicator initial', async ({ page }) => {
@@ -146,7 +145,7 @@ test('card editing page', async ({ page }) => {
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Word section
   await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText(
@@ -233,7 +232,7 @@ test('card editing in db', async ({ page }) => {
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
 
   await page.waitForLoadState('networkidle');
@@ -319,7 +318,7 @@ test('favorite image in db', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Verify initial favorite state
   await expect(
@@ -394,7 +393,7 @@ test('word type editing', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   // Verify initial word type
   await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText(
@@ -456,7 +455,7 @@ test('example image addition', async ({ page }) => {
       ],
     },
   });
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   const imageLocator = page.getByRole('img', {
     name: 'Wir fahren um zwölf Uhr ab.',
@@ -510,7 +509,7 @@ test('card deletion', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
   await page.getByRole('button', { name: 'Delete card' }).click();
   await expect(
     page.getByText('Are you sure you want to delete this card?')
@@ -615,7 +614,7 @@ test('image model name displayed below image', async ({ page }) => {
     },
   });
 
-  await navigateToCardCreation(page);
+  await navigateToCardEditing(page);
 
   await expect(page.getByText('GPT Image 1')).toBeVisible();
 
