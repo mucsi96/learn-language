@@ -69,6 +69,9 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
   await createCardsWithStates('goethe-a1', cardsToCreate);
 
   await page.goto('http://localhost:8180');
+
+  await page.waitForLoadState('networkidle');
+
   await expect(page.getByTitle('New', { exact: true })).toContainText('20');
   await expect(page.getByTitle('Learning', { exact: true })).toContainText('15');
   await expect(page.getByTitle('Review', { exact: true })).toContainText('10');
