@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleImageService {
 
-  private static final String IMAGEN_MODEL = "imagen-4.0-ultra";
+  private static final String IMAGEN_MODEL = "imagen-4.0-ultra-generate-001";
   private static final String GEMINI_3_PRO_IMAGE_PREVIEW_MODEL = "gemini-3-pro-image-preview";
 
   private final Client googleAiClient;
@@ -37,17 +37,17 @@ public class GoogleImageService {
           prompt + ". Avoid using text.",
           generateImagesConfig);
 
-      if (generatedImagesResponse.generatedImages().isEmpty() ||
-          generatedImagesResponse.generatedImages().get().isEmpty()) {
+      if (generatedImagesResponse.images().isEmpty()) {
         throw new RuntimeException("No image generated from Google Imagen API");
       }
 
-      Image generatedImage = generatedImagesResponse.generatedImages().get().get(0).image().get();
+      Image generatedImage = generatedImagesResponse.images().get(0);
 
       long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logImageUsage("imagen-4.0-ultra", "image_generation", 1, processingTime);
+      usageLoggingService.logImageUsage(IMAGEN_MODEL, "image_generation", 1, processingTime);
 
-      return generatedImage.imageBytes().get();
+      return generatedImage.imageBytes().orElseThrow(
+          () -> new RuntimeException("No image bytes in generated image"));
 
     } catch (Exception e) {
       log.error("Failed to generate image with Google Imagen", e);
@@ -78,7 +78,7 @@ public class GoogleImageService {
       for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
         if (part.inlineData().isPresent()) {
           long processingTime = System.currentTimeMillis() - startTime;
-          usageLoggingService.logImageUsage("gemini-3-pro-image-preview", "image_generation", 1, processingTime);
+          usageLoggingService.logImageUsage(GEMINI_3_PRO_IMAGE_PREVIEW_MODEL, "image_generation", 1, processingTime);
           return part.inlineData().get().data().get();
         }
       }
