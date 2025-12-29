@@ -1,8 +1,9 @@
 export interface ImageSourceRequest {
   input: string;
-  model?: string;
+  model: string;
 }
 
 export interface ImageResponse {
   id: string;
+  model: string;
 }

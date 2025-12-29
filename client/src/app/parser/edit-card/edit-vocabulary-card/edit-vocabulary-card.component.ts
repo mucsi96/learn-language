@@ -28,6 +28,7 @@ import { fetchJson } from '../../../utils/fetchJson';
 
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
+import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -281,7 +282,8 @@ export class EditVocabularyCardComponent {
         }),
         images: this.exampleImages()
           [index]?.map((image) => image.value())
-          .filter((image) => image != null),
+          .filter((image) => image != null)
+          .map((image) => ({ id: image.id, model: image.model, isFavorite: image.isFavorite } satisfies ExampleImage))
       })),
       audio: this.card()?.data.audio || [],
     };
@@ -321,7 +323,7 @@ export class EditVocabularyCardComponent {
             body: {
               input: englishTranslation,
               model,
-            },
+            } satisfies ImageSourceRequest,
             method: 'POST',
           }
         );
@@ -339,11 +341,5 @@ export class EditVocabularyCardComponent {
       this.http,
       `/api/image/${imageId}?width=600&height=600`
     );
-  }
-
-  getModelDisplayName(modelId: string | undefined): string {
-    if (!modelId) return '';
-    const model = this.environmentConfig.imageModels.find(m => m.id === modelId);
-    return model?.displayName ?? modelId;
   }
 }
