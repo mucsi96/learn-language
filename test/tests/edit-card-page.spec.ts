@@ -274,6 +274,13 @@ test('card editing in db', async ({ page }) => {
     expect(img1.equals(yellowImage)).toBeTruthy();
     expect(img2.equals(redImage)).toBeTruthy();
     expect(img3.equals(redImage)).toBeTruthy();
+
+    expect(cardData.examples[0].images).toHaveLength(1);
+    expect(cardData.examples[1].images).toHaveLength(5);
+    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1');
+    expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[1].images[3].model).toBe('Imagen 4 Ultra');
+    expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
   });
 });
 
@@ -454,6 +461,9 @@ test('example image addition', async ({ page }) => {
   const imageLocator = page.getByRole('img', {
     name: 'Wir fahren um zwölf Uhr ab.',
   });
+  await imageLocator.evaluate((el) =>
+    el.scrollIntoView({ block: 'start', behavior: 'instant' })
+  );
   const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
@@ -464,6 +474,8 @@ test('example image addition', async ({ page }) => {
   expect(
     regeneratedImageContent.equals(getColorImageBytes('yellow'))
   ).toBeTruthy();
+
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 });
 
 test('card deletion', async ({ page }) => {
@@ -595,8 +607,8 @@ test('image model name displayed below image', async ({ page }) => {
           en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [
-            { id: image1, model: 'gpt-image-1' },
-            { id: image2, model: 'imagen-4.0-ultra' },
+            { id: image1, model: 'GPT Image 1' },
+            { id: image2, model: 'Imagen 4 Ultra' },
           ],
         },
       ],

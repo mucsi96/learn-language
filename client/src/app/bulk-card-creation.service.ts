@@ -13,7 +13,7 @@ import {
   CardType,
   ImageGenerationInfo
 } from './shared/types/card-creation.types';
-import { ImageResponse } from './shared/types/image-generation.types';
+import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 const MAX_CONCURRENT_CARD_CREATIONS = 3;
@@ -211,7 +211,7 @@ export class BulkCardCreationService {
               body: {
                 input: task.englishTranslation,
                 model: task.model
-              },
+              } satisfies ImageSourceRequest,
               method: 'POST',
             }
           );
@@ -235,7 +235,7 @@ export class BulkCardCreationService {
           return {
             cardId: task.cardId,
             exampleIndex: task.exampleIndex,
-            image: { id: response.id }
+            image: response
           };
         } catch {
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
