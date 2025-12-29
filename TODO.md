@@ -1,11 +1,10 @@
 - Assign cards / multiperson
 
 - if a model log is rated. Automatically rate all other logs with the same response
-- for eleven labs model v3 please use tags [spoken in German]
-- display image model name on image
-- ~~drop link for non existing words~~ ✓
 - add a know table with levels imported from Anki db - usefull for other new source types
 - fix imagen 4 generation
+- move voice config under settings
+- add ai model matric for setting ai model per each operation type
 
 - add AI generated word forms and warn if they dont match with original
 - support for speach card type

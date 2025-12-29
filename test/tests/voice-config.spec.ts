@@ -42,7 +42,7 @@ test('displays existing voice configurations grouped by language', async ({ page
 test('can add a new voice configuration', async ({ page }) => {
   await page.goto('http://localhost:8180/voice-config');
 
-  await page.getByRole('button', { name: 'Add voice' }).click();
+  await page.getByRole('button', { name: 'Add voice' }).first().click();
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
 
   await page.getByRole('combobox', { name: 'Voice' }).click();

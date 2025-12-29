@@ -5,6 +5,11 @@ export interface ChatModelInfo {
   primary: boolean;
 }
 
+export interface ImageModel {
+  id: string;
+  displayName: string;
+}
+
 export interface AudioModel {
   id: string;
   displayName: string;
@@ -29,7 +34,7 @@ export interface EnvironmentConfig {
   apiClientId: string;
   mockAuth: boolean;
   chatModels: ChatModelInfo[];
-  imageModels: string[];
+  imageModels: ImageModel[];
   audioModels: AudioModel[];
   voices: Voice[];
   supportedLanguages: SupportedLanguage[];

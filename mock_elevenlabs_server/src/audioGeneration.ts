@@ -41,11 +41,17 @@ export class AudioGenerationHandler {
   generateAudio(text: string, voiceId: string, languageCode?: string): Buffer {
     this.audioCallCounter++;
 
-    // Determine which audio sample to return based on language or voice
-    let audioBase64 = ''
+    let audioBase64 = '';
+    let detectedLanguage = languageCode;
 
-    if (languageCode) {
-      switch (languageCode.toLowerCase()) {
+    const audioTagMatch = text.match(/^\[speaking (German|Hungarian)\]/i);
+    if (audioTagMatch) {
+      const tagLanguage = audioTagMatch[1].toLowerCase();
+      detectedLanguage = tagLanguage === 'german' ? 'de' : tagLanguage === 'hungarian' ? 'hu' : undefined;
+    }
+
+    if (detectedLanguage) {
+      switch (detectedLanguage.toLowerCase()) {
         case 'de':
           audioBase64 = AUDIO_SAMPLES.german;
           break;
@@ -55,7 +61,7 @@ export class AudioGenerationHandler {
       }
     }
 
-    console.log(`Generated audio for text: "${text}" (language: ${languageCode || 'auto'}, voice: ${voiceId})`);
+    console.log(`Generated audio for text: "${text}" (language: ${detectedLanguage || 'auto'}, voice: ${voiceId})`);
 
     return Buffer.from(audioBase64, 'base64');
   }
