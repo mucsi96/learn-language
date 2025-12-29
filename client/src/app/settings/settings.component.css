@@ -1,0 +1,25 @@
+.settings-container {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.settings-nav {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+}
+
+.settings-nav mat-nav-list {
+  padding-top: 16px;
+}
+
+.settings-nav a.active {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+}
