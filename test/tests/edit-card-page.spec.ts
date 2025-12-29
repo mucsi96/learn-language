@@ -607,8 +607,8 @@ test('image model name displayed below image', async ({ page }) => {
           en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [
-            { id: image1, model: 'gpt-image-1' },
-            { id: image2, model: 'imagen-4.0-ultra' },
+            { id: image1, model: 'GPT Image 1' },
+            { id: image2, model: 'Imagen 4 Ultra' },
           ],
         },
       ],
