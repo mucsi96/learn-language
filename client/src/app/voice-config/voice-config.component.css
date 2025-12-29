@@ -2,12 +2,9 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
-  padding: 24px;
-  max-width: 1600px;
-  margin: 0 auto;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
   .voice-config-container {
     grid-template-columns: 1fr;
   }

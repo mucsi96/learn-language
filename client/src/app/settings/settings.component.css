@@ -1,25 +1,34 @@
 .settings-container {
   display: flex;
-  min-height: calc(100vh - 64px);
+  gap: 24px;
+  padding: 24px 0;
 }
 
 .settings-nav {
-  width: 240px;
+  width: 200px;
   flex-shrink: 0;
-  border-right: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
 }
 
 .settings-nav mat-nav-list {
-  padding-top: 16px;
+  padding: 0;
+  background: transparent;
+}
+
+.settings-nav a {
+  border-radius: 0.5rem;
+  color: var(--mat-app-text-color);
+}
+
+.settings-nav a:hover {
+  background: var(--mat-sys-surface);
 }
 
 .settings-nav a.active {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
 }
 
 .settings-content {
   flex: 1;
-  overflow-y: auto;
+  min-width: 0;
 }
