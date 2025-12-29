@@ -44,7 +44,7 @@ public class GoogleImageService {
       Image generatedImage = generatedImagesResponse.images().get(0);
 
       long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logImageUsage("imagen-4.0-ultra-generate-001", "image_generation", 1, processingTime);
+      usageLoggingService.logImageUsage(IMAGEN_MODEL, "image_generation", 1, processingTime);
 
       return generatedImage.imageBytes().orElseThrow(
           () -> new RuntimeException("No image bytes in generated image"));
@@ -78,7 +78,7 @@ public class GoogleImageService {
       for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
         if (part.inlineData().isPresent()) {
           long processingTime = System.currentTimeMillis() - startTime;
-          usageLoggingService.logImageUsage("gemini-3-pro-image-preview", "image_generation", 1, processingTime);
+          usageLoggingService.logImageUsage(GEMINI_3_PRO_IMAGE_PREVIEW_MODEL, "image_generation", 1, processingTime);
           return part.inlineData().get().data().get();
         }
       }
