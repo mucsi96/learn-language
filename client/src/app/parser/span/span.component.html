@@ -1,4 +1,4 @@
-@if (!matches.length) {
+@if (!matches.length || !exists()) {
 <div
   class="word"
   exclude-selection
@@ -7,6 +7,7 @@
   [style.width]="width"
   [style.height]="height"
   [class.exists]="exists()"
+  [class.matches]="matches.length > 0"
   [ariaDescription]="ariaDescription"
 >
   {{ text() }}

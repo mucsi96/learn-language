@@ -1,7 +1,6 @@
 - Assign cards / multiperson
 
 - if a model log is rated. Automatically rate all other logs with the same response
-- drop link for non existing words
 - add a know table with levels imported from Anki db - usefull for other new source types
 - fix imagen 4 generation
 - move voice config under settings

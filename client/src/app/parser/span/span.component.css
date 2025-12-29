@@ -11,6 +11,10 @@
     --outline: hsl(111, 32%, 66%);
   }
 
+  &.matches {
+    --outline: hsl(200, 50%, 50%);
+  }
+
   &:not(button) {
     outline: 1px solid var(--outline, darkslategray);
     outline-offset: 2px;
