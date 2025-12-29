@@ -43,7 +43,7 @@ public class ModelPricingConfig {
         "gpt-image-1", new ImageModelPricing(new BigDecimal("0.25")),
         "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.20")),
         // Google image models
-        "imagen-4.0-ultra", new ImageModelPricing(new BigDecimal("0.06")),
+        "imagen-4.0-ultra-generate-001", new ImageModelPricing(new BigDecimal("0.06")),
         "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))
     );
 
