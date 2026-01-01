@@ -11,21 +11,10 @@
 
 .settings-nav mat-nav-list {
   padding: 0;
-  background: transparent;
-}
-
-.settings-nav a {
-  border-radius: 0.5rem;
-  color: var(--mat-app-text-color);
-}
-
-.settings-nav a:hover {
-  background: var(--mat-sys-surface);
 }
 
 .settings-nav a.active {
   background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
 }
 
 .settings-content {

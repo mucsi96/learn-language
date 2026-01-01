@@ -36,11 +36,38 @@ mat-card-header {
 
 table {
   width: 100%;
+  table-layout: fixed;
+}
+
+th.mat-column-displayName,
+td.mat-column-displayName {
+  width: 40%;
+}
+
+th.mat-column-category,
+td.mat-column-category {
+  width: 15%;
+}
+
+th.mat-column-model,
+td.mat-column-model {
+  width: 20%;
+}
+
+th.mat-column-enabled,
+td.mat-column-enabled {
+  width: 12%;
+}
+
+th.mat-column-actions,
+td.mat-column-actions {
+  width: 13%;
 }
 
 .voice-name-cell {
-  min-width: 200px;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .model-cell {
