@@ -6,7 +6,7 @@ test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.getByRole('button', { name: 'TU' }).click();
   await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Settings' }).click();
-  await expect(page.getByRole('heading', { name: 'Voice Configurations' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
 });
 
 test('displays empty state when no configurations exist', async ({ page }) => {
@@ -120,7 +120,7 @@ test('displays card preview section', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/voices');
 
-  await expect(page.getByRole('heading', { name: 'Card Preview' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible();
   await expect(page.getByText('1 / 1')).toBeVisible();
 });
 
@@ -193,7 +193,7 @@ test('displays model name in configuration list', async ({ page }) => {
 test('shows skeleton loader while loading configurations', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/voices');
 
-  await expect(page.getByRole('heading', { name: 'Voice Configurations' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
 });
 
 test('settings page has left navigation with voices link', async ({ page }) => {
