@@ -9,6 +9,9 @@ export const test = base.extend({
     cleanupStorage();
     populateStorage();
 
+    // Wait for db and storage to be ready
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Reset mock AI servers
     try {
       await Promise.all([

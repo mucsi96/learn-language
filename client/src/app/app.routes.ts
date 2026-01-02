@@ -41,11 +41,23 @@ export const routes: Routes = [
     title: 'Model Usage',
   },
   {
-    path: 'voice-config',
+    path: 'settings',
     loadComponent: () =>
-      import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
+      import('./settings/settings.component').then((m) => m.SettingsComponent),
     canActivate: [conditionalAuthGuard],
-    title: 'Voice Configuration',
+    children: [
+      {
+        path: '',
+        redirectTo: 'voices',
+        pathMatch: 'full',
+      },
+      {
+        path: 'voices',
+        loadComponent: () =>
+          import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
+        title: 'Voice Settings',
+      },
+    ],
   },
   {
     path: 'sources/:sourceId/study',
