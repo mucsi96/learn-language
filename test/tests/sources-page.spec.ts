@@ -88,6 +88,10 @@ test('drag to select multiple regions highlights matching words', async ({ page 
     'Können Sie mir seine Adresse sagen?'
   );
 
+  await page.locator('section[data-ready="true"]').waitFor();
+
+  await page.waitForLoadState('networkidle');
+
   await expect(page.getByText('Create 6 Cards')).toBeVisible();
 
   // Check that words from both regions are highlighted
