@@ -13,7 +13,7 @@
     </mat-card-header>
     <mat-card-content>
       <div class="table-wrapper">
-        @if (settings.isLoading()) {
+        @if (isLoading()) {
         <table class="matrix-table">
           <thead>
             <tr>
@@ -45,7 +45,7 @@
           <thead>
             <tr>
               <th class="model-header">Model</th>
-              @for (operation of settings.value(); track operation.operationType) {
+              @for (operation of settingsValue(); track operation.operationType) {
               <th class="operation-header">
                 <span class="operation-header-text">{{ operation.operationDisplayName }}</span>
               </th>
@@ -56,11 +56,10 @@
             @for (modelName of modelNames(); track modelName) {
             <tr>
               <td class="model-cell">{{ modelName }}</td>
-              @for (operation of settings.value(); track operation.operationType) {
+              @for (operation of settingsValue(); track operation.operationType) {
               <td class="toggle-cell">
                 <mat-slide-toggle
                   [checked]="isModelEnabled(operation, modelName)"
-                  [disabled]="isToggling(operation.operationType, modelName)"
                   (change)="
                     onToggle(operation.operationType, modelName, $event.checked)
                   "

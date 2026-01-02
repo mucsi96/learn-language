@@ -31,11 +31,11 @@ import {
 export class AiModelSettingsComponent {
   private readonly service = inject(AiModelSettingsService);
 
-  readonly settings = this.service.settings;
-  readonly togglingModel = signal<string | null>(null);
+  readonly settingsValue = this.service.settings.value;
+  readonly isLoading = this.service.settings.isLoading;
 
   readonly modelNames = computed(() => {
-    const data = this.settings.value();
+    const data = this.settingsValue();
     if (!data || data.length === 0) return [];
     return data[0].models.map((m) => m.modelName);
   });
@@ -50,16 +50,6 @@ export class AiModelSettingsComponent {
     modelName: string,
     isEnabled: boolean
   ) {
-    const key = `${operationType}-${modelName}`;
-    this.togglingModel.set(key);
-    try {
-      await this.service.toggleModel(operationType, modelName, isEnabled);
-    } finally {
-      this.togglingModel.set(null);
-    }
-  }
-
-  isToggling(operationType: string, modelName: string): boolean {
-    return this.togglingModel() === `${operationType}-${modelName}`;
+    await this.service.toggleModel(operationType, modelName, isEnabled);
   }
 }
