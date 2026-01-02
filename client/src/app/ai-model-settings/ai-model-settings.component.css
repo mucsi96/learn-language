@@ -1,0 +1,116 @@
+.ai-model-settings-container {
+  max-width: 800px;
+}
+
+mat-card {
+  height: fit-content;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.model-type-group {
+  margin-bottom: 24px;
+}
+
+.model-type-group:last-child {
+  margin-bottom: 0;
+}
+
+.model-type-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.model-type-group h3 mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+th.mat-column-operation,
+td.mat-column-operation {
+  width: 35%;
+}
+
+th.mat-column-model,
+td.mat-column-model {
+  width: 55%;
+}
+
+th.mat-column-actions,
+td.mat-column-actions {
+  width: 10%;
+}
+
+.operation-cell {
+  font-weight: 500;
+}
+
+.model-cell {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.model-select {
+  width: 100%;
+  max-width: 300px;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-medium {
+  height: 18px;
+  width: 120px;
+}
+
+.skeleton-text-large {
+  height: 18px;
+  width: 180px;
+}
+
+.skeleton-select {
+  height: 40px;
+  width: 200px;
+}
+
+.skeleton-button {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

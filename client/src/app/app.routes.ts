@@ -48,8 +48,16 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'voices',
+        redirectTo: 'ai-models',
         pathMatch: 'full',
+      },
+      {
+        path: 'ai-models',
+        loadComponent: () =>
+          import('./ai-model-settings/ai-model-settings.component').then(
+            (m) => m.AiModelSettingsComponent
+          ),
+        title: 'AI Model Settings',
       },
       {
         path: 'voices',

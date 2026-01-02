@@ -93,6 +93,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.cards');
     await client.query('DELETE FROM learn_language.model_usage_logs');
     await client.query('DELETE FROM learn_language.voice_configurations');
+    await client.query('DELETE FROM learn_language.ai_model_settings');
     await client.query('DELETE FROM learn_language.sources');
   });
 
@@ -590,6 +591,41 @@ export async function getVoiceConfigurations(): Promise<Array<{
       `SELECT id, voice_id as "voiceId", model, language,
               display_name as "displayName", is_enabled as "isEnabled"
        FROM learn_language.voice_configurations
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function createAiModelSetting(params: {
+  operationType: string;
+  modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
+  modelName: string;
+}): Promise<number> {
+  const { operationType, modelType, modelName } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.ai_model_settings (operation_type, model_type, model_name, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       RETURNING id`,
+      [operationType, modelType, modelName]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getAiModelSettings(): Promise<Array<{
+  id: number;
+  operationType: string;
+  modelType: string;
+  modelName: string;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, operation_type as "operationType", model_type as "modelType",
+              model_name as "modelName"
+       FROM learn_language.ai_model_settings
        ORDER BY id`
     );
     return result.rows;
