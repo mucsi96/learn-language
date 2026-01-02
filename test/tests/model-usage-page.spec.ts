@@ -281,7 +281,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await page.getByRole('button', { name: 'Rate 4 stars' }).first().click();
+  await page.getByRole('button', { name: 'Rate 4 stars' }).last().click();
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
