@@ -45,8 +45,19 @@ export class ModelUsageLogsService {
   });
 
   async updateRating(id: number, rating: number | null): Promise<void> {
+    const currentLog = this.logs.value()?.find((log) => log.id === id);
+    const responseContent = currentLog?.responseContent;
+
     this.logs.update((currentLogs) =>
-      currentLogs?.map((log) => (log.id === id ? { ...log, rating } : log))
+      currentLogs?.map((log) => {
+        if (log.id === id) {
+          return { ...log, rating };
+        }
+        if (responseContent && log.responseContent === responseContent) {
+          return { ...log, rating };
+        }
+        return log;
+      })
     );
 
     await fetchJson(this.http, `/api/model-usage-logs/${id}/rating`, {

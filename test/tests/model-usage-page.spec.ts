@@ -243,6 +243,63 @@ test('allows rating usage logs', async ({ page }) => {
   ]);
 });
 
+test('auto-rates duplicate logs with same response content', async ({ page }) => {
+  const sharedResponse = '{"translation": "hello"}';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: sharedResponse,
+  });
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: sharedResponse,
+  });
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'translation',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: '{"translation": "different"}',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Rate 4 stars' }).first().click();
+
+  await page.getByRole('tab', { name: 'Model Summary' }).click();
+
+  const summaryData = await getTableData<ModelSummaryRow>(
+    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+  );
+
+  expect(summaryData).toEqual([
+    {
+      Model: 'gpt-4o',
+      'Total Calls': '3',
+      'Rated Calls': '2',
+      'Avg Rating': '4.00',
+      'Total Cost': '$0.0060',
+    },
+  ]);
+});
+
 test('allows clearing rating by clicking the same star', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
