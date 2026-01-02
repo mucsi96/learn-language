@@ -43,10 +43,11 @@ mat-card-header {
   min-width: 60px;
   vertical-align: bottom;
   padding-bottom: 12px;
+  text-align: center;
 }
 
 .operation-header-text {
-  display: block;
+  display: inline-block;
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
@@ -56,6 +57,7 @@ mat-card-header {
   max-height: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
 }
 
 .model-cell {
