@@ -29,23 +29,23 @@ mat-card-header {
   border-bottom: 2px solid var(--mat-sys-outline);
 }
 
-.operation-header {
+.model-header {
   text-align: left;
   font-weight: 500;
-  min-width: 180px;
+  min-width: 140px;
   position: sticky;
   left: 0;
   background: var(--mat-sys-surface);
   z-index: 1;
 }
 
-.model-header {
+.operation-header {
   min-width: 60px;
   vertical-align: bottom;
   padding-bottom: 12px;
 }
 
-.model-header-text {
+.operation-header-text {
   display: block;
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -53,12 +53,12 @@ mat-card-header {
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  max-height: 120px;
+  max-height: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.operation-cell {
+.model-cell {
   text-align: left;
   font-weight: 500;
   white-space: nowrap;
@@ -89,14 +89,14 @@ mat-card-header {
 }
 
 .skeleton-header {
-  height: 80px;
+  height: 100px;
   width: 16px;
   margin: 0 auto;
 }
 
-.skeleton-operation {
+.skeleton-model {
   height: 18px;
-  width: 140px;
+  width: 120px;
 }
 
 .skeleton-toggle {

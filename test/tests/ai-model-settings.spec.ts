@@ -11,31 +11,31 @@ test('navigates to AI model settings from profile menu', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('displays matrix with operations as rows', async ({ page }) => {
+test('displays matrix with models as rows', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/ai-models');
 
-  await expect(page.getByRole('cell', { name: 'English Translation' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Swiss German Translation' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Hungarian Translation' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Gender Detection' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Word Type Classification' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'gpt-4o', exact: true })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'gpt-4o-mini' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'gemini-3-pro-preview' })).toBeVisible();
 });
 
-test('displays model names as column headers', async ({ page }) => {
+test('displays operation names as column headers', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/ai-models');
 
-  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
-  await expect(page.getByText('gpt-4o-mini')).toBeVisible();
-  await expect(page.getByText('gemini-3-pro-preview')).toBeVisible();
+  await expect(page.getByText('English Translation')).toBeVisible();
+  await expect(page.getByText('Swiss German Translation')).toBeVisible();
+  await expect(page.getByText('Hungarian Translation')).toBeVisible();
+  await expect(page.getByText('Gender Detection')).toBeVisible();
+  await expect(page.getByText('Word Type Classification')).toBeVisible();
 });
 
 test('can enable a model for an operation', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/ai-models');
 
-  const englishRow = page.locator('tr', { hasText: 'English Translation' });
-  await expect(englishRow).toBeVisible();
+  const modelRow = page.locator('tr', { hasText: 'gpt-4o-mini' });
+  await expect(modelRow).toBeVisible();
 
-  const toggle = englishRow.getByRole('switch', { name: /gpt-4o-mini/ });
+  const toggle = modelRow.getByRole('switch', { name: /English Translation/ });
   await expect(toggle).not.toBeChecked();
 
   await toggle.click();
@@ -58,8 +58,8 @@ test('displays existing enabled model settings', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/ai-models');
 
-  const hungarianRow = page.locator('tr', { hasText: 'Hungarian Translation' });
-  const toggle = hungarianRow.getByRole('switch', { name: /gpt-4\.1/ });
+  const modelRow = page.locator('tr', { hasText: 'gpt-4.1' }).first();
+  const toggle = modelRow.getByRole('switch', { name: /Hungarian Translation/ });
   await expect(toggle).toBeChecked();
 });
 
@@ -72,8 +72,8 @@ test('can disable a model for an operation', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/ai-models');
 
-  const genderRow = page.locator('tr', { hasText: 'Gender Detection' });
-  const toggle = genderRow.getByRole('switch', { name: /gpt-5-mini/ });
+  const modelRow = page.locator('tr', { hasText: 'gpt-5-mini' });
+  const toggle = modelRow.getByRole('switch', { name: /Gender Detection/ });
   await expect(toggle).toBeChecked();
 
   await toggle.click();

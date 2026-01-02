@@ -17,21 +17,21 @@
         <table class="matrix-table">
           <thead>
             <tr>
-              <th class="operation-header"></th>
-              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-              <th class="model-header">
+              <th class="model-header"></th>
+              @for (i of [1, 2, 3, 4, 5]; track i) {
+              <th class="operation-header">
                 <div class="skeleton skeleton-header"></div>
               </th>
               }
             </tr>
           </thead>
           <tbody>
-            @for (j of [1, 2, 3, 4, 5]; track j) {
+            @for (j of [1, 2, 3, 4, 5, 6, 7, 8]; track j) {
             <tr>
-              <td class="operation-cell">
-                <div class="skeleton skeleton-operation"></div>
+              <td class="model-cell">
+                <div class="skeleton skeleton-model"></div>
               </td>
-              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              @for (i of [1, 2, 3, 4, 5]; track i) {
               <td class="toggle-cell">
                 <div class="skeleton skeleton-toggle"></div>
               </td>
@@ -44,29 +44,28 @@
         <table class="matrix-table">
           <thead>
             <tr>
-              <th class="operation-header">Operation</th>
-              @for (modelName of modelNames(); track modelName) {
-              <th class="model-header">
-                <span class="model-header-text">{{ modelName }}</span>
+              <th class="model-header">Model</th>
+              @for (operation of settings.value(); track operation.operationType) {
+              <th class="operation-header">
+                <span class="operation-header-text">{{ operation.operationDisplayName }}</span>
               </th>
               }
             </tr>
           </thead>
           <tbody>
-            @for (operation of settings.value(); track operation.operationType) {
+            @for (modelName of modelNames(); track modelName) {
             <tr>
-              <td class="operation-cell">{{ operation.operationDisplayName }}</td>
-              @for (modelName of modelNames(); track modelName) {
+              <td class="model-cell">{{ modelName }}</td>
+              @for (operation of settings.value(); track operation.operationType) {
               <td class="toggle-cell">
-                @let model = getModel(operation, modelName);
                 <mat-slide-toggle
-                  [checked]="model.isEnabled"
+                  [checked]="isModelEnabled(operation, modelName)"
                   [disabled]="isToggling(operation.operationType, modelName)"
                   (change)="
                     onToggle(operation.operationType, modelName, $event.checked)
                   "
                   [attr.aria-label]="
-                    (model.isEnabled ? 'Disable ' : 'Enable ') +
+                    (isModelEnabled(operation, modelName) ? 'Disable ' : 'Enable ') +
                     modelName +
                     ' for ' +
                     operation.operationDisplayName

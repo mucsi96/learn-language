@@ -9,7 +9,6 @@ import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import {
   AiModelSettingsService,
-  ModelSetting,
   OperationSettings,
 } from './ai-model-settings.service';
 
@@ -41,12 +40,9 @@ export class AiModelSettingsComponent {
     return data[0].models.map((m) => m.modelName);
   });
 
-  readonly displayedColumns = computed(() => {
-    return ['operation', ...this.modelNames()];
-  });
-
-  getModel(operation: OperationSettings, modelName: string): ModelSetting {
-    return operation.models.find((m) => m.modelName === modelName)!;
+  isModelEnabled(operation: OperationSettings, modelName: string): boolean {
+    const model = operation.models.find((m) => m.modelName === modelName);
+    return model?.isEnabled ?? false;
   }
 
   async onToggle(
