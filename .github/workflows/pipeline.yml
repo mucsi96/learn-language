@@ -13,6 +13,10 @@ concurrency:
 jobs:
   test-e2e:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -30,12 +34,12 @@ jobs:
         run: scripts/compose_up.sh
       - name: Run Playwright tests
         working-directory: test
-        run: npm test
+        run: npx playwright test --shard=${{ matrix.shard }}/5
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: test-results
+          name: test-results-shard-${{ matrix.shard }}
           path: test/test-results
       - run: docker compose logs
         if: always()
