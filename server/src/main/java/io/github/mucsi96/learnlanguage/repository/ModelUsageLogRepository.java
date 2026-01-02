@@ -14,6 +14,7 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
     List<ModelUsageLog> findAllByOrderByCreatedAtDesc();
     List<ModelUsageLog> findByModelTypeOrderByCreatedAtDesc(ModelType modelType);
     List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(String operationType);
+    List<ModelUsageLog> findByResponseContent(String responseContent);
 
     @Query("""
         SELECT m.modelName, COUNT(m), COUNT(m.rating),
