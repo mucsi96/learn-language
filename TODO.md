@@ -1,7 +1,6 @@
 - Assign cards / multiperson
 
 - add a know table with levels imported from Anki db - usefull for other new source types
-- add ai model matric for setting ai model per each operation type
 
 - add AI generated word forms and warn if they dont match with original
 - support for speach card type
