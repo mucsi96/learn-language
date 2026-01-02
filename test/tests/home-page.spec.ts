@@ -70,15 +70,13 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
 
   await page.goto('http://localhost:8180');
 
-  await expect(page.getByText('20')).toBeVisible();
-  await expect(page.getByText('15')).toBeVisible();
-  await expect(page.getByText('10')).toBeVisible();
-  await expect(page.getByText('15')).toBeVisible();
+  const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
+  await expect(goetheA1Card).toBeVisible();
 
-  await expect(page.getByTitle('New', { exact: true })).toContainText('20');
-  await expect(page.getByTitle('Learning', { exact: true })).toContainText('15');
-  await expect(page.getByTitle('Review', { exact: true })).toContainText('10');
-  await expect(page.getByTitle('Relearning', { exact: true })).toContainText('5');
+  await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('20');
+  await expect(goetheA1Card.getByTitle('Learning', { exact: true })).toContainText('15');
+  await expect(goetheA1Card.getByTitle('Review', { exact: true })).toContainText('10');
+  await expect(goetheA1Card.getByTitle('Relearning', { exact: true })).toContainText('5');
 });
 
 test('in review cards not on home page', async ({ page }) => {
