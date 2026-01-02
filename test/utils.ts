@@ -599,17 +599,17 @@ export async function getVoiceConfigurations(): Promise<Array<{
 
 export async function createAiModelSetting(params: {
   operationType: string;
-  modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
   modelName: string;
+  isEnabled?: boolean;
 }): Promise<number> {
-  const { operationType, modelType, modelName } = params;
+  const { operationType, modelName, isEnabled = true } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.ai_model_settings (operation_type, model_type, model_name, updated_at)
-       VALUES ($1, $2, $3, NOW())
+      `INSERT INTO learn_language.ai_model_settings (operation_type, model_name, is_enabled)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      [operationType, modelType, modelName]
+      [operationType, modelName, isEnabled]
     );
     return result.rows[0].id;
   });
@@ -618,13 +618,13 @@ export async function createAiModelSetting(params: {
 export async function getAiModelSettings(): Promise<Array<{
   id: number;
   operationType: string;
-  modelType: string;
   modelName: string;
+  isEnabled: boolean;
 }>> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, operation_type as "operationType", model_type as "modelType",
-              model_name as "modelName"
+      `SELECT id, operation_type as "operationType",
+              model_name as "modelName", is_enabled as "isEnabled"
        FROM learn_language.ai_model_settings
        ORDER BY id`
     );

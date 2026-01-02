@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiModelSettingsRequest {
-    private String operationType;
     private String modelName;
+    private boolean isEnabled;
 }

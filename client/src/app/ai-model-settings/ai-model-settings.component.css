@@ -1,5 +1,5 @@
 .ai-model-settings-container {
-  max-width: 800px;
+  max-width: 600px;
 }
 
 mat-card {
@@ -13,64 +13,41 @@ mat-card-header {
   margin-bottom: 16px;
 }
 
-.model-type-group {
+.operation-group {
   margin-bottom: 24px;
 }
 
-.model-type-group:last-child {
+.operation-group:last-child {
   margin-bottom: 0;
 }
 
-.model-type-group h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.operation-group h3 {
   margin: 0 0 12px 0;
-  color: var(--mat-sys-on-surface-variant);
   font-size: 14px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.model-type-group h3 mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 16px;
 }
 
-table {
-  width: 100%;
-  table-layout: fixed;
+.model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
 }
 
-th.mat-column-operation,
-td.mat-column-operation {
-  width: 35%;
-}
-
-th.mat-column-model,
-td.mat-column-model {
-  width: 55%;
-}
-
-th.mat-column-actions,
-td.mat-column-actions {
-  width: 10%;
-}
-
-.operation-cell {
-  font-weight: 500;
-}
-
-.model-cell {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
-.model-select {
-  width: 100%;
-  max-width: 300px;
+.model-name {
+  font-size: 14px;
+  color: var(--mat-sys-on-surface);
 }
 
 .skeleton {
@@ -91,19 +68,15 @@ td.mat-column-actions {
 }
 
 .skeleton-text-large {
-  height: 18px;
+  height: 20px;
   width: 180px;
+  margin-bottom: 12px;
 }
 
-.skeleton-select {
-  height: 40px;
-  width: 200px;
-}
-
-.skeleton-button {
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
+.skeleton-toggle {
+  height: 20px;
+  width: 36px;
+  border-radius: 10px;
 }
 
 @keyframes loading {

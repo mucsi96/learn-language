@@ -1,6 +1,6 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,10 +12,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiModelSettingsResponse {
-    private Integer id;
     private String operationType;
     private String operationDisplayName;
-    private ModelType modelType;
-    private String modelName;
-    private LocalDateTime updatedAt;
+    private List<ModelSetting> models;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ModelSetting {
+        private String modelName;
+        private boolean isEnabled;
+    }
 }
