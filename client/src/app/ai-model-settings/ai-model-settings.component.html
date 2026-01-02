@@ -12,43 +12,74 @@
       </a>
     </mat-card-header>
     <mat-card-content>
-      @if (settings.isLoading()) { @for (i of [1, 2, 3, 4, 5]; track i) {
-      <div class="operation-group">
-        <div class="skeleton skeleton-text-large"></div>
-        <div class="models-list">
-          @for (j of [1, 2, 3, 4, 5, 6]; track j) {
-          <div class="model-item">
-            <div class="skeleton skeleton-text-medium"></div>
-            <div class="skeleton skeleton-toggle"></div>
-          </div>
-          }
-        </div>
+      <div class="table-wrapper">
+        @if (settings.isLoading()) {
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="operation-header"></th>
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <th class="model-header">
+                <div class="skeleton skeleton-header"></div>
+              </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (j of [1, 2, 3, 4, 5]; track j) {
+            <tr>
+              <td class="operation-cell">
+                <div class="skeleton skeleton-operation"></div>
+              </td>
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <td class="toggle-cell">
+                <div class="skeleton skeleton-toggle"></div>
+              </td>
+              }
+            </tr>
+            }
+          </tbody>
+        </table>
+        } @else {
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="operation-header">Operation</th>
+              @for (modelName of modelNames(); track modelName) {
+              <th class="model-header">
+                <span class="model-header-text">{{ modelName }}</span>
+              </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (operation of settings.value(); track operation.operationType) {
+            <tr>
+              <td class="operation-cell">{{ operation.operationDisplayName }}</td>
+              @for (modelName of modelNames(); track modelName) {
+              <td class="toggle-cell">
+                @let model = getModel(operation, modelName);
+                <mat-slide-toggle
+                  [checked]="model.isEnabled"
+                  [disabled]="isToggling(operation.operationType, modelName)"
+                  (change)="
+                    onToggle(operation.operationType, modelName, $event.checked)
+                  "
+                  [attr.aria-label]="
+                    (model.isEnabled ? 'Disable ' : 'Enable ') +
+                    modelName +
+                    ' for ' +
+                    operation.operationDisplayName
+                  "
+                ></mat-slide-toggle>
+              </td>
+              }
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
       </div>
-      } } @else { @for (operation of settings.value(); track
-      operation.operationType) {
-      <div class="operation-group">
-        <h3>{{ operation.operationDisplayName }}</h3>
-        <div class="models-list">
-          @for (model of operation.models; track model.modelName) {
-          <div class="model-item">
-            <span class="model-name">{{ model.modelName }}</span>
-            <mat-slide-toggle
-              [checked]="model.isEnabled"
-              [disabled]="isToggling(operation.operationType, model.modelName)"
-              (change)="
-                onToggle(operation.operationType, model, $event.checked)
-              "
-              [attr.aria-label]="
-                model.isEnabled
-                  ? 'Disable ' + model.modelName
-                  : 'Enable ' + model.modelName
-              "
-            ></mat-slide-toggle>
-          </div>
-          }
-        </div>
-      </div>
-      } }
     </mat-card-content>
   </mat-card>
 </div>

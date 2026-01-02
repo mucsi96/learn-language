@@ -1,7 +1,3 @@
-.ai-model-settings-container {
-  max-width: 600px;
-}
-
 mat-card {
   height: fit-content;
 }
@@ -13,41 +9,71 @@ mat-card-header {
   margin-bottom: 16px;
 }
 
-.operation-group {
-  margin-bottom: 24px;
+.table-wrapper {
+  overflow-x: auto;
 }
 
-.operation-group:last-child {
-  margin-bottom: 0;
+.matrix-table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-.operation-group h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+.matrix-table th,
+.matrix-table td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.matrix-table thead th {
+  border-bottom: 2px solid var(--mat-sys-outline);
+}
+
+.operation-header {
+  text-align: left;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  min-width: 180px;
+  position: sticky;
+  left: 0;
+  background: var(--mat-sys-surface);
+  z-index: 1;
 }
 
-.models-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-left: 16px;
+.model-header {
+  min-width: 60px;
+  vertical-align: bottom;
+  padding-bottom: 12px;
 }
 
-.model-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: var(--mat-sys-surface-container);
-  border-radius: 8px;
+.model-header-text {
+  display: block;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  max-height: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.model-name {
-  font-size: 14px;
-  color: var(--mat-sys-on-surface);
+.operation-cell {
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  position: sticky;
+  left: 0;
+  background: var(--mat-sys-surface);
+  z-index: 1;
+}
+
+.toggle-cell {
+  padding: 4px;
+}
+
+.toggle-cell mat-slide-toggle {
+  margin: 0;
 }
 
 .skeleton {
@@ -62,21 +88,22 @@ mat-card-header {
   border-radius: 4px;
 }
 
-.skeleton-text-medium {
-  height: 18px;
-  width: 120px;
+.skeleton-header {
+  height: 80px;
+  width: 16px;
+  margin: 0 auto;
 }
 
-.skeleton-text-large {
-  height: 20px;
-  width: 180px;
-  margin-bottom: 12px;
+.skeleton-operation {
+  height: 18px;
+  width: 140px;
 }
 
 .skeleton-toggle {
   height: 20px;
   width: 36px;
   border-radius: 10px;
+  margin: 0 auto;
 }
 
 @keyframes loading {
