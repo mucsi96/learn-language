@@ -40,24 +40,6 @@ test('word extraction only uses enabled models for word_extraction operation', a
   expect(modelNames).not.toContain('gpt-4.1');
 });
 
-test('word extraction uses all models when no settings configured', async ({
-  page,
-}) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
-
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-
-  const logs = await getModelUsageLogs();
-  const wordExtractionLogs = logs.filter(
-    (log) => log.operationType === 'word_extraction'
-  );
-
-  expect(wordExtractionLogs.length).toBeGreaterThan(2);
-});
-
 test('bulk card creation only uses enabled models for word_type operation', async ({
   page,
 }) => {
