@@ -21,12 +21,63 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByText('Word Type')).toBeVisible();
 });
 
-test('shows primary tag for primary model', async ({ page }) => {
+test('can set primary model for operation type', async ({ page }) => {
+  await createChatModelSetting({
+    modelName: 'gpt-4o',
+    operationType: 'translation_en',
+    isEnabled: true,
+    isPrimary: false,
+  });
+  await createChatModelSetting({
+    modelName: 'gemini-3-pro-preview',
+    operationType: 'translation_en',
+    isEnabled: true,
+    isPrimary: true,
+  });
+
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const primaryTag = page.locator('.primary-tag');
-  await expect(primaryTag).toBeVisible();
-  await expect(primaryTag).toHaveText('primary');
+  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptPrimaryRadio = gptRow.getByRole('radio').first();
+
+  await expect(gptPrimaryRadio).not.toBeChecked();
+
+  await gptPrimaryRadio.click();
+  await page.waitForTimeout(500);
+
+  await expect(gptPrimaryRadio).toBeChecked();
+
+  const settings = await getChatModelSettings();
+  const gptSetting = settings.find(s => s.modelName === 'gpt-4o' && s.operationType === 'translation_en');
+  const geminiSetting = settings.find(s => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation_en');
+
+  expect(gptSetting?.isPrimary).toBe(true);
+  expect(geminiSetting?.isPrimary).toBe(false);
+});
+
+test('primary radio is disabled when model is not enabled', async ({ page }) => {
+  await page.goto('http://localhost:8180/settings/data-models');
+
+  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptPrimaryRadio = gptRow.getByRole('radio').first();
+
+  await expect(gptPrimaryRadio).toBeDisabled();
+});
+
+test('shows primary model indicator for enabled model', async ({ page }) => {
+  await createChatModelSetting({
+    modelName: 'gpt-4o',
+    operationType: 'translation_en',
+    isEnabled: true,
+    isPrimary: true,
+  });
+
+  await page.goto('http://localhost:8180/settings/data-models');
+
+  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptPrimaryRadio = gptRow.getByRole('radio').first();
+
+  await expect(gptPrimaryRadio).toBeChecked();
 });
 
 test('can toggle model setting', async ({ page }) => {

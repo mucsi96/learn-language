@@ -16,13 +16,13 @@ export class MultiModelService {
     operationType: string,
     apiCall: (model: string) => Promise<T>
   ): Promise<T> {
-    const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType];
+    const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType] ?? [];
     const modelsToUse = this.environmentConfig.chatModels.filter(m =>
       enabledModelNames.includes(m.modelName)
     );
-    const primaryModelName = modelsToUse.find(m => m.primary)?.modelName;
+    const primaryModelName = this.environmentConfig.primaryModelByOperation[operationType];
 
-    if (!primaryModelName) {
+    if (!primaryModelName || !enabledModelNames.includes(primaryModelName)) {
       throw new Error(`No primary model enabled for operation type: ${operationType}`);
     }
 

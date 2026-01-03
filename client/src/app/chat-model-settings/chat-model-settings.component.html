@@ -57,17 +57,23 @@
                       }
                       <span class="model-name">{{ model.modelName }}</span>
                     </div>
-                    @if (model.primary) {
-                      <span class="primary-tag">primary</span>
-                    }
                   </td>
                   @for (operation of operationTypes; track operation.code) {
                     <td class="toggle-cell">
-                      <mat-slide-toggle
-                        [checked]="settingsMatrix()[model.modelName][operation.code]"
-                        (change)="toggleSetting(model.modelName, operation.code)"
-                        [aria-label]="model.modelName + ' for ' + operation.displayName"
-                      ></mat-slide-toggle>
+                      <div class="cell-controls">
+                        <mat-slide-toggle
+                          [checked]="settingsMatrix()[model.modelName][operation.code]"
+                          (change)="toggleSetting(model.modelName, operation.code)"
+                          [aria-label]="model.modelName + ' for ' + operation.displayName"
+                        ></mat-slide-toggle>
+                        <mat-radio-button
+                          [checked]="isPrimaryModel(model.modelName, operation.code)"
+                          [disabled]="!settingsMatrix()[model.modelName][operation.code]"
+                          (change)="setPrimaryModel(model.modelName, operation.code)"
+                          [aria-label]="'Set ' + model.modelName + ' as primary for ' + operation.displayName"
+                          class="primary-radio"
+                        ></mat-radio-button>
+                      </div>
                     </td>
                   }
                 </tr>

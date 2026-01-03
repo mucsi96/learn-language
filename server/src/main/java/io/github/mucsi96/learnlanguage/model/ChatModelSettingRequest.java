@@ -19,4 +19,7 @@ public class ChatModelSettingRequest {
 
     @Builder.Default
     private Boolean isEnabled = true;
+
+    @Builder.Default
+    private Boolean isPrimary = false;
 }

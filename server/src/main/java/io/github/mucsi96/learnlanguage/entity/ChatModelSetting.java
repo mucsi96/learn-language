@@ -32,4 +32,8 @@ public class ChatModelSetting {
     @Column(name = "is_enabled", nullable = false)
     @Builder.Default
     private Boolean isEnabled = true;
+
+    @Column(name = "is_primary", nullable = false)
+    @Builder.Default
+    private Boolean isPrimary = false;
 }

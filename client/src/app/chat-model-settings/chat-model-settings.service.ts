@@ -8,12 +8,14 @@ export interface ChatModelSettingResponse {
   modelName: string;
   operationType: string;
   isEnabled: boolean;
+  isPrimary: boolean;
 }
 
 export interface ChatModelSettingRequest {
   modelName: string;
   operationType: string;
   isEnabled: boolean;
+  isPrimary?: boolean;
 }
 
 @Injectable({
@@ -30,7 +32,12 @@ export class ChatModelSettingsService {
     this.config.enabledModelsByOperation ?? {}
   );
 
+  private readonly _primaryModelByOperation = signal<Record<string, string>>(
+    this.config.primaryModelByOperation ?? {}
+  );
+
   readonly enabledModelsByOperation = this._enabledModelsByOperation.asReadonly();
+  readonly primaryModelByOperation = this._primaryModelByOperation.asReadonly();
 
   readonly settingsMatrix = computed(() => {
     const enabled = this._enabledModelsByOperation();
@@ -51,6 +58,11 @@ export class ChatModelSettingsService {
     const enabled = this._enabledModelsByOperation();
     const models = enabled[operationType] ?? [];
     return models.includes(modelName);
+  }
+
+  isPrimaryModel(modelName: string, operationType: string): boolean {
+    const primary = this._primaryModelByOperation();
+    return primary[operationType] === modelName;
   }
 
   async toggleSetting(modelName: string, operationType: string): Promise<void> {
@@ -106,6 +118,42 @@ export class ChatModelSettingsService {
         }
 
         updated[operationType] = models;
+        return updated;
+      });
+      throw error;
+    }
+  }
+
+  async setPrimaryModel(modelName: string, operationType: string): Promise<void> {
+    const previousPrimary = this._primaryModelByOperation()[operationType];
+
+    this._primaryModelByOperation.update((current) => ({
+      ...current,
+      [operationType]: modelName,
+    }));
+
+    try {
+      await fetchJson<ChatModelSettingResponse>(
+        this.http,
+        '/api/chat-model-settings',
+        {
+          method: 'PUT',
+          body: {
+            modelName,
+            operationType,
+            isEnabled: true,
+            isPrimary: true,
+          } as ChatModelSettingRequest,
+        }
+      );
+    } catch (error) {
+      this._primaryModelByOperation.update((current) => {
+        const updated = { ...current };
+        if (previousPrimary) {
+          updated[operationType] = previousPrimary;
+        } else {
+          delete updated[operationType];
+        }
         return updated;
       });
       throw error;
