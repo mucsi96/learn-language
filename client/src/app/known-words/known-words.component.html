@@ -1,0 +1,102 @@
+<div class="known-words-container">
+  <div class="import-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title><h2>Import Known Words</h2></mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="import-description">
+          Paste a list of words you already know. Words can be separated by
+          commas, new lines, tabs, or semicolons.
+        </p>
+        <mat-form-field appearance="outline" class="import-textarea">
+          <mat-label>Words to import</mat-label>
+          <textarea
+            matInput
+            [ngModel]="importText()"
+            (ngModelChange)="importText.set($event)"
+            rows="8"
+            placeholder="word1, word2, word3&#10;word4&#10;word5"
+            aria-label="Words to import"
+          ></textarea>
+        </mat-form-field>
+        <div class="import-actions">
+          <button
+            mat-flat-button
+            (click)="importWords()"
+            [disabled]="!importText().trim() || isImporting()"
+            aria-label="Import words"
+          >
+            @if (isImporting()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>upload</mat-icon>
+            }
+            Import
+          </button>
+          @if (lastImportCount() !== null) {
+          <span class="import-result">
+            {{ lastImportCount() }} new words imported
+          </span>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="words-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>Known Words ({{ wordCount() }})</h2>
+        </mat-card-title>
+        @if (wordCount() > 0) {
+        <button
+          mat-icon-button
+          (click)="clearAll()"
+          matTooltip="Clear all words"
+          aria-label="Clear all known words"
+        >
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+        }
+      </mat-card-header>
+      <mat-card-content>
+        @if (knownWords.isLoading()) {
+        <div class="words-grid">
+          @for (row of skeletonRows; track $index) {
+          <div class="skeleton skeleton-chip"></div>
+          }
+        </div>
+        } @else if (words().length === 0) {
+        <div class="empty-state">
+          <mat-icon>library_books</mat-icon>
+          <p>No known words yet</p>
+          <p class="empty-state-hint">
+            Import words from other applications to skip them during card
+            creation
+          </p>
+        </div>
+        } @else {
+        <mat-chip-set class="words-grid" role="list" aria-label="Known words">
+          @for (word of words(); track word) {
+          <mat-chip
+            (removed)="deleteWord(word)"
+            role="listitem"
+            [attr.aria-label]="'Known word: ' + word"
+          >
+            {{ word }}
+            <button
+              matChipRemove
+              aria-label="Remove word"
+            >
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+          }
+        </mat-chip-set>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
