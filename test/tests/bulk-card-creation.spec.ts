@@ -8,9 +8,11 @@ import {
   yellowImage,
   redImage,
   ensureTimezoneAware,
+  setupDefaultChatModelSettings,
 } from '../utils';
 
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
     cardId: 'aber',
     sourceId: 'goethe-a1',
@@ -43,6 +45,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
 });
 
 test('bulk create fab shows correct count for multiple regions', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
     cardId: 'aber',
     sourceId: 'goethe-a1',
@@ -79,6 +82,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
 });
 
 test('bulk create fab hides when all words have cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
     cardId: 'aber',
     sourceId: 'goethe-a1',
@@ -131,6 +135,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
 });
 
 test('bulk card creation opens progress dialog', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -145,6 +150,7 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
 });
 
 test('bulk card creation shows individual progress', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -164,6 +170,7 @@ test('bulk card creation shows individual progress', async ({ page }) => {
 });
 
 test('bulk card creation creates cards in database', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -194,6 +201,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
 });
 
 test('bulk card creation includes word data', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -260,6 +268,7 @@ test('bulk card creation includes word data', async ({ page }) => {
 });
 
 test('bulk card creation updates ui after completion', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -297,6 +306,7 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
 });
 
 test('bulk card creation fsrs attributes', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -334,6 +344,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
 });
 
 test('bulk card creation source metadata', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -367,6 +378,7 @@ test('bulk card creation source metadata', async ({ page }) => {
 });
 
 test('bulk card creation learning parameters and review state', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -416,6 +428,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
 });
 
 test('bulk card creation dialog review link', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 

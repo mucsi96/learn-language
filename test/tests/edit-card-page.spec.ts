@@ -10,10 +10,12 @@ import {
   blueImage,
   navigateToCardEditing,
   uploadMockImage,
+  setupDefaultChatModelSettings,
 } from '../utils';
 import { Page } from '@playwright/test';
 
 async function prepareCard(page: Page) {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
