@@ -73,8 +73,20 @@ mat-card-header {
   z-index: 1;
 }
 
+.model-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-logo {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
 .model-name {
-  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
 }
