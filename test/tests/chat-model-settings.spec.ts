@@ -13,7 +13,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
 
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
-  await expect(page.getByText('gpt-4o')).toBeVisible();
+  await expect(page.getByText('gpt-4o', {exact: true})).toBeVisible();
   await expect(page.getByText('gemini-3-pro-preview')).toBeVisible();
 
   await expect(page.getByText('English Translation')).toBeVisible();

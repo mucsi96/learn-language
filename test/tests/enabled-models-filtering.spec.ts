@@ -24,7 +24,7 @@ test('word extraction only uses enabled models for word_extraction operation', a
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
+  await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   const logs = await getModelUsageLogs();
   const wordExtractionLogs = logs.filter(
@@ -48,7 +48,7 @@ test('word extraction uses all models when no settings configured', async ({
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
+  await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   const logs = await getModelUsageLogs();
   const wordExtractionLogs = logs.filter(
