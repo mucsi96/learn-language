@@ -619,6 +619,33 @@ export async function createChatModelSetting(params: {
   });
 }
 
+const ALL_OPERATION_TYPES = [
+  'word_extraction',
+  'word_type',
+  'gender',
+  'translation_en',
+  'translation_hu',
+  'translation_ch',
+];
+
+const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';
+
+export async function setupDefaultChatModelSettings(): Promise<void> {
+  for (const operationType of ALL_OPERATION_TYPES) {
+    await createChatModelSetting({
+      modelName: DEFAULT_CHAT_MODEL,
+      operationType,
+      isEnabled: true,
+    });
+  }
+}
+
+export async function clearChatModelSettings(): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query('DELETE FROM learn_language.chat_model_settings');
+  });
+}
+
 export async function getChatModelSettings(): Promise<Array<{
   id: number;
   modelName: string;

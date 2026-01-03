@@ -1,11 +1,12 @@
 import { test as base, TestInfo } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { cleanupDbRecords, cleanupStorage, populateStorage } from './utils';
+import { cleanupDbRecords, cleanupStorage, populateStorage, setupDefaultChatModelSettings } from './utils';
 
 export const test = base.extend({
   page: async ({ page }, use, testInfo: TestInfo) => {
     await cleanupDbRecords();
+    await setupDefaultChatModelSettings();
     cleanupStorage();
     populateStorage();
 

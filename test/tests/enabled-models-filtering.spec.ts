@@ -1,22 +1,44 @@
 import { test, expect } from '../fixtures';
 import {
+  clearChatModelSettings,
   createChatModelSetting,
   getModelUsageLogs,
   selectTextRange,
 } from '../utils';
 
+async function setupChatModelsForAllOperations(config: {
+  word_extraction?: string[];
+  word_type?: string[];
+  gender?: string[];
+  translation_en?: string[];
+  translation_hu?: string[];
+  translation_ch?: string[];
+}): Promise<void> {
+  await clearChatModelSettings();
+
+  const defaultModel = 'gemini-3-pro-preview';
+  const operations = [
+    'word_extraction',
+    'word_type',
+    'gender',
+    'translation_en',
+    'translation_hu',
+    'translation_ch',
+  ] as const;
+
+  for (const op of operations) {
+    const models = config[op] ?? [defaultModel];
+    for (const modelName of models) {
+      await createChatModelSetting({ modelName, operationType: op });
+    }
+  }
+}
+
 test('word extraction only uses enabled models for word_extraction operation', async ({
   page,
 }) => {
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'word_extraction',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
-    operationType: 'word_extraction',
-    isEnabled: true,
+  await setupChatModelsForAllOperations({
+    word_extraction: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -43,15 +65,8 @@ test('word extraction only uses enabled models for word_extraction operation', a
 test('bulk card creation only uses enabled models for word_type operation', async ({
   page,
 }) => {
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'word_type',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
-    operationType: 'word_type',
-    isEnabled: true,
+  await setupChatModelsForAllOperations({
+    word_type: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -83,10 +98,8 @@ test('bulk card creation only uses enabled models for word_type operation', asyn
 test('bulk card creation only uses enabled models for gender operation', async ({
   page,
 }) => {
-  await createChatModelSetting({
-    modelName: 'claude-sonnet-4-5',
-    operationType: 'gender',
-    isEnabled: true,
+  await setupChatModelsForAllOperations({
+    gender: ['claude-sonnet-4-5'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -115,20 +128,10 @@ test('bulk card creation only uses enabled models for gender operation', async (
 test('bulk card creation only uses enabled models for translation operations', async ({
   page,
 }) => {
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'translation_en',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'translation_hu',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'translation_ch',
-    isEnabled: true,
+  await setupChatModelsForAllOperations({
+    translation_en: ['gpt-4o'],
+    translation_hu: ['gpt-4o'],
+    translation_ch: ['gpt-4o'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -173,30 +176,12 @@ test('bulk card creation only uses enabled models for translation operations', a
 test('different operation types can have different enabled models', async ({
   page,
 }) => {
-  await createChatModelSetting({
-    modelName: 'gpt-4o',
-    operationType: 'word_type',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'claude-sonnet-4-5',
-    operationType: 'gender',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
-    operationType: 'translation_en',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
-    operationType: 'translation_hu',
-    isEnabled: true,
-  });
-  await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
-    operationType: 'translation_ch',
-    isEnabled: true,
+  await setupChatModelsForAllOperations({
+    word_type: ['gpt-4o'],
+    gender: ['claude-sonnet-4-5'],
+    translation_en: ['gemini-3-pro-preview'],
+    translation_hu: ['gemini-3-pro-preview'],
+    translation_ch: ['gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
