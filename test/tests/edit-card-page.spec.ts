@@ -112,6 +112,7 @@ test('back button navigates to source page', async ({ page }) => {
 });
 
 test('card editing page', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
@@ -200,6 +201,7 @@ test('card editing page', async ({ page }) => {
 });
 
 test('card editing in db', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(blueImage);
   const image2 = uploadMockImage(yellowImage);
   await createCard({
@@ -286,6 +288,7 @@ test('card editing in db', async ({ page }) => {
 });
 
 test('favorite image in db', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
@@ -368,6 +371,7 @@ test('favorite image in db', async ({ page }) => {
 });
 
 test('word type editing', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'abfahren',
@@ -432,6 +436,7 @@ test('word type editing', async ({ page }) => {
 });
 
 test('example image addition', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren',
@@ -480,6 +485,7 @@ test('example image addition', async ({ page }) => {
 });
 
 test('card deletion', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
     cardId: 'abfahren',
     sourceId: 'goethe-a1',
@@ -586,6 +592,7 @@ test('card edits stored locally until save', async ({ page }) => {
 });
 
 test('image model name displayed below image', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
