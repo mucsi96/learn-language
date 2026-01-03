@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -10,10 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ChatOperationType;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
+import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +26,7 @@ public class EnvironmentController {
   private final Environment environment;
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
+  private final ChatModelSettingService chatModelSettingService;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -40,6 +44,12 @@ public class EnvironmentController {
 
   @GetMapping("/environment")
   public ConfigResponse getConfig() {
+    Map<String, List<String>> enabledModelsByOperation = chatModelSettingService.getEnabledModelsByOperation();
+
+    List<OperationTypeInfo> operationTypes = Arrays.stream(ChatOperationType.values())
+        .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
+        .toList();
+
     return new ConfigResponse(
         tenantId,
         uiClientId,
@@ -53,13 +63,18 @@ public class EnvironmentController {
             .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),
-        SUPPORTED_LANGUAGES);
+        SUPPORTED_LANGUAGES,
+        enabledModelsByOperation,
+        operationTypes);
   }
 
   public record ChatModelInfo(String modelName, boolean primary) {
   }
 
   public record SupportedLanguage(String code, String displayName) {
+  }
+
+  public record OperationTypeInfo(String code, String displayName) {
   }
 
   public record ConfigResponse(
@@ -71,6 +86,8 @@ public class EnvironmentController {
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,
       List<VoiceResponse> voices,
-      List<SupportedLanguage> supportedLanguages) {
+      List<SupportedLanguage> supportedLanguages,
+      Map<String, List<String>> enabledModelsByOperation,
+      List<OperationTypeInfo> operationTypes) {
   }
 }

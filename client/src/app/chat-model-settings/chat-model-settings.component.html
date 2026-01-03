@@ -1,0 +1,62 @@
+<div class="chat-model-settings-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title><h2>Data Models</h2></mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (chatModels.length === 0 || operationTypes.length === 0) {
+        <div class="empty-state">
+          <mat-icon>model_training</mat-icon>
+          <p>No models or operation types available</p>
+        </div>
+      } @else {
+        <div class="matrix-container">
+          <table class="matrix-table" role="grid" aria-label="Chat model settings matrix">
+            <thead>
+              <tr>
+                <th class="model-header">Model</th>
+                @for (operation of operationTypes; track operation.code) {
+                  <th class="operation-header">
+                    <div class="operation-header-content">
+                      <span class="operation-name">{{ operation.displayName }}</span>
+                      <button
+                        mat-icon-button
+                        (click)="enableAllForOperation(operation.code)"
+                        matTooltip="Enable all models"
+                        aria-label="Enable all models for {{ operation.displayName }}"
+                        class="enable-all-button"
+                      >
+                        <mat-icon>select_all</mat-icon>
+                      </button>
+                    </div>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (model of chatModels; track model.modelName) {
+                <tr>
+                  <td class="model-name-cell">
+                    <span class="model-name">{{ model.modelName }}</span>
+                    @if (model.primary) {
+                      <span class="primary-tag">primary</span>
+                    }
+                  </td>
+                  @for (operation of operationTypes; track operation.code) {
+                    <td class="toggle-cell">
+                      <mat-slide-toggle
+                        [checked]="settingsMatrix()[model.modelName][operation.code]"
+                        (change)="toggleSetting(model.modelName, operation.code)"
+                        [aria-label]="model.modelName + ' for ' + operation.displayName"
+                      ></mat-slide-toggle>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

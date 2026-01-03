@@ -28,6 +28,11 @@ export interface SupportedLanguage {
   displayName: string;
 }
 
+export interface OperationTypeInfo {
+  code: string;
+  displayName: string;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -38,6 +43,8 @@ export interface EnvironmentConfig {
   audioModels: AudioModel[];
   voices: Voice[];
   supportedLanguages: SupportedLanguage[];
+  enabledModelsByOperation: Record<string, string[]>;
+  operationTypes: OperationTypeInfo[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

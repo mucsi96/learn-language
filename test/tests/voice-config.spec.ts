@@ -196,8 +196,9 @@ test('shows skeleton loader while loading configurations', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
 });
 
-test('settings page has left navigation with voices link', async ({ page }) => {
+test('settings page has left navigation with voices and data models links', async ({ page }) => {
   await page.goto('http://localhost:8180/settings');
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Voices' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Data Models' })).toBeVisible();
 });
