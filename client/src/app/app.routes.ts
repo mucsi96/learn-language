@@ -63,6 +63,12 @@ export const routes: Routes = [
           import('./chat-model-settings/chat-model-settings.component').then((m) => m.ChatModelSettingsComponent),
         title: 'Data Model Settings',
       },
+      {
+        path: 'known-words',
+        loadComponent: () =>
+          import('./known-words/known-words.component').then((m) => m.KnownWordsComponent),
+        title: 'Known Words',
+      },
     ],
   },
   {

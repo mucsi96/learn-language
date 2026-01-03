@@ -94,6 +94,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.model_usage_logs');
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
+    await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.sources');
   });
 
@@ -716,4 +717,44 @@ export async function getTableData<T extends Record<string, string>>(
     },
     excludeRowSelector
   ) as T[];
+}
+
+export async function createKnownWord(word: string): Promise<number> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.known_words (word)
+       VALUES ($1)
+       RETURNING id`,
+      [word.toLowerCase().trim()]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function createKnownWords(words: string[]): Promise<void> {
+  await withDbConnection(async (client) => {
+    for (const word of words) {
+      await client.query(
+        `INSERT INTO learn_language.known_words (word)
+         VALUES ($1)
+         ON CONFLICT (word) DO NOTHING`,
+        [word.toLowerCase().trim()]
+      );
+    }
+  });
+}
+
+export async function getKnownWords(): Promise<string[]> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT word FROM learn_language.known_words ORDER BY word`
+    );
+    return result.rows.map((row) => row.word);
+  });
+}
+
+export async function clearKnownWords(): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query('DELETE FROM learn_language.known_words');
+  });
 }
