@@ -22,6 +22,10 @@ export class MultiModelService {
     );
     const primaryModelName = modelsToUse.find(m => m.primary)?.modelName;
 
+    if (!primaryModelName) {
+      throw new Error(`No primary model enabled for operation type: ${operationType}`);
+    }
+
     const modelResponses = await Promise.allSettled(
       modelsToUse.map(async (modelInfo) => {
         const response = await apiCall(modelInfo.modelName);
