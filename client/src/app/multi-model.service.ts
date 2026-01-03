@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ENVIRONMENT_CONFIG, ChatModelInfo } from './environment/environment.config';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 interface ModelResponse<T> {
   model: string;
@@ -16,17 +16,11 @@ export class MultiModelService {
     operationType: string,
     apiCall: (model: string) => Promise<T>
   ): Promise<T> {
-    const allChatModels = this.environmentConfig.chatModels;
-    const enabledModelsByOperation = this.environmentConfig.enabledModelsByOperation;
-    const enabledModelNames = enabledModelsByOperation[operationType] ?? [];
-
-    const modelsToUse: ChatModelInfo[] = enabledModelNames.length > 0
-      ? allChatModels.filter(m => enabledModelNames.includes(m.modelName))
-      : allChatModels;
-
-    const primaryModelInfo = modelsToUse.find(m => m.primary)
-      ?? allChatModels.find(m => m.primary);
-    const primaryModelName = primaryModelInfo?.modelName;
+    const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType];
+    const modelsToUse = this.environmentConfig.chatModels.filter(m =>
+      enabledModelNames.includes(m.modelName)
+    );
+    const primaryModelName = modelsToUse.find(m => m.primary)?.modelName;
 
     const modelResponses = await Promise.allSettled(
       modelsToUse.map(async (modelInfo) => {
