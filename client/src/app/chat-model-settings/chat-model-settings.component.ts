@@ -7,8 +7,6 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChatModelSettingsService } from './chat-model-settings.service';
 
-type ModelProvider = 'openai' | 'anthropic' | 'google';
-
 @Component({
   selector: 'app-chat-model-settings',
   standalone: true,
@@ -44,18 +42,5 @@ export class ChatModelSettingsComponent {
 
   async enableAllForOperation(operationType: string): Promise<void> {
     await this.service.enableAllForOperation(operationType);
-  }
-
-  getModelProvider(modelName: string): ModelProvider {
-    if (modelName.startsWith('gpt-')) {
-      return 'openai';
-    }
-    if (modelName.startsWith('claude-')) {
-      return 'anthropic';
-    }
-    if (modelName.startsWith('gemini-')) {
-      return 'google';
-    }
-    return 'openai';
   }
 }

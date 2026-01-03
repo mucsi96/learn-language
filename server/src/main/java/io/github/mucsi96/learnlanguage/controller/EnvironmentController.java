@@ -56,7 +56,7 @@ public class EnvironmentController {
         clientId,
         environment.matchesProfiles("test"),
         Arrays.stream(ChatModel.values())
-            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary()))
+            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary(), model.getProvider().getCode()))
             .toList(),
         Arrays.stream(ImageGenerationModel.values())
             .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName()))
@@ -68,7 +68,7 @@ public class EnvironmentController {
         operationTypes);
   }
 
-  public record ChatModelInfo(String modelName, boolean primary) {
+  public record ChatModelInfo(String modelName, boolean primary, String provider) {
   }
 
   public record SupportedLanguage(String code, String displayName) {

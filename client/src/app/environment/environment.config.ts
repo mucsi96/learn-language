@@ -1,8 +1,11 @@
 import { InjectionToken } from '@angular/core';
 
+export type ModelProvider = 'openai' | 'anthropic' | 'google';
+
 export interface ChatModelInfo {
   modelName: string;
   primary: boolean;
+  provider: ModelProvider;
 }
 
 export interface ImageModel {
