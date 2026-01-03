@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingRequest;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingResponse;
-import io.github.mucsi96.learnlanguage.model.ChatOperationType;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +31,6 @@ public class ChatModelSettingController {
         return chatModelSettingService.getAllSettings();
     }
 
-    @GetMapping("/operation-types")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public List<OperationTypeInfo> getOperationTypes() {
-        return chatModelSettingService.getOperationTypes().stream()
-                .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
-                .toList();
-    }
-
     @PutMapping
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ChatModelSettingResponse updateSetting(@Valid @RequestBody ChatModelSettingRequest request) {
@@ -52,6 +43,4 @@ public class ChatModelSettingController {
         chatModelSettingService.enableAllModelsForOperation(operationType);
         return ResponseEntity.ok().build();
     }
-
-    public record OperationTypeInfo(String code, String displayName) {}
 }

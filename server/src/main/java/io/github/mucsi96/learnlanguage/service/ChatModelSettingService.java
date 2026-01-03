@@ -12,7 +12,6 @@ import io.github.mucsi96.learnlanguage.entity.ChatModelSetting;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingRequest;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingResponse;
-import io.github.mucsi96.learnlanguage.model.ChatOperationType;
 import io.github.mucsi96.learnlanguage.repository.ChatModelSettingRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -86,10 +85,6 @@ public class ChatModelSettingService {
                 .toList();
 
         chatModelSettingRepository.saveAll(settingsToSave);
-    }
-
-    public List<ChatOperationType> getOperationTypes() {
-        return Arrays.asList(ChatOperationType.values());
     }
 
     private ChatModelSettingResponse toResponse(ChatModelSetting setting) {
