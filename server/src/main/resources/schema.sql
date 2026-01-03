@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS learn_language.chat_model_settings (
     model_name character varying(255) NOT NULL,
     operation_type character varying(255) NOT NULL,
     is_enabled boolean NOT NULL DEFAULT true,
+    is_primary boolean NOT NULL DEFAULT false,
     CONSTRAINT chat_model_settings_pkey PRIMARY KEY (id),
     CONSTRAINT chat_model_settings_unique UNIQUE (model_name, operation_type)
 );

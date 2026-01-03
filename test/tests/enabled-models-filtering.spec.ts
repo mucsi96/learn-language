@@ -28,8 +28,10 @@ async function setupChatModelsForAllOperations(config: {
 
   for (const op of operations) {
     const models = config[op] ?? [defaultModel];
-    for (const modelName of models) {
-      await createChatModelSetting({ modelName, operationType: op });
+    for (let i = 0; i < models.length; i++) {
+      const modelName = models[i];
+      const isPrimary = i === 0 || modelName === defaultModel;
+      await createChatModelSetting({ modelName, operationType: op, isPrimary });
     }
   }
 }

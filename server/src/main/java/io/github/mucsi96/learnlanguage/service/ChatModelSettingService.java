@@ -49,6 +49,17 @@ public class ChatModelSettingService {
                 ));
     }
 
+    public Map<String, String> getPrimaryModelByOperation() {
+        List<ChatModelSetting> primarySettings = chatModelSettingRepository.findByIsPrimaryTrue();
+
+        return primarySettings.stream()
+                .collect(Collectors.toMap(
+                        ChatModelSetting::getOperationType,
+                        ChatModelSetting::getModelName,
+                        (existing, replacement) -> existing
+                ));
+    }
+
     public ChatModelSettingResponse updateSetting(ChatModelSettingRequest request) {
         ChatModelSetting setting = chatModelSettingRepository
                 .findByModelNameAndOperationType(request.getModelName(), request.getOperationType())
@@ -58,7 +69,25 @@ public class ChatModelSettingService {
                         .build());
 
         setting.setIsEnabled(request.getIsEnabled());
+
+        if (Boolean.TRUE.equals(request.getIsPrimary())) {
+            clearPrimaryForOperation(request.getOperationType());
+            setting.setIsPrimary(true);
+        } else if (request.getIsPrimary() != null) {
+            setting.setIsPrimary(false);
+        }
+
         return toResponse(chatModelSettingRepository.save(setting));
+    }
+
+    private void clearPrimaryForOperation(String operationType) {
+        List<ChatModelSetting> settings = chatModelSettingRepository.findByOperationType(operationType);
+        for (ChatModelSetting s : settings) {
+            if (Boolean.TRUE.equals(s.getIsPrimary())) {
+                s.setIsPrimary(false);
+                chatModelSettingRepository.save(s);
+            }
+        }
     }
 
     public void enableAllModelsForOperation(String operationType) {
@@ -93,6 +122,7 @@ public class ChatModelSettingService {
                 .modelName(setting.getModelName())
                 .operationType(setting.getOperationType())
                 .isEnabled(setting.getIsEnabled())
+                .isPrimary(setting.getIsPrimary())
                 .build();
     }
 }

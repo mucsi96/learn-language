@@ -14,4 +14,5 @@ public class ChatModelSettingResponse {
     private String modelName;
     private String operationType;
     private Boolean isEnabled;
+    private Boolean isPrimary;
 }

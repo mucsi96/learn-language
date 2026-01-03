@@ -45,6 +45,7 @@ public class EnvironmentController {
   @GetMapping("/environment")
   public ConfigResponse getConfig() {
     Map<String, List<String>> enabledModelsByOperation = chatModelSettingService.getEnabledModelsByOperation();
+    Map<String, String> primaryModelByOperation = chatModelSettingService.getPrimaryModelByOperation();
 
     List<OperationTypeInfo> operationTypes = Arrays.stream(ChatOperationType.values())
         .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
@@ -56,7 +57,7 @@ public class EnvironmentController {
         clientId,
         environment.matchesProfiles("test"),
         Arrays.stream(ChatModel.values())
-            .map(model -> new ChatModelInfo(model.getModelName(), model.isPrimary(), model.getProvider().getCode()))
+            .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
         Arrays.stream(ImageGenerationModel.values())
             .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName()))
@@ -65,10 +66,11 @@ public class EnvironmentController {
         elevenLabsAudioService.getVoices(),
         SUPPORTED_LANGUAGES,
         enabledModelsByOperation,
+        primaryModelByOperation,
         operationTypes);
   }
 
-  public record ChatModelInfo(String modelName, boolean primary, String provider) {
+  public record ChatModelInfo(String modelName, String provider) {
   }
 
   public record SupportedLanguage(String code, String displayName) {
@@ -88,6 +90,7 @@ public class EnvironmentController {
       List<VoiceResponse> voices,
       List<SupportedLanguage> supportedLanguages,
       Map<String, List<String>> enabledModelsByOperation,
+      Map<String, String> primaryModelByOperation,
       List<OperationTypeInfo> operationTypes) {
   }
 }

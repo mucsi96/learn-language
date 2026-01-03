@@ -601,19 +601,21 @@ export async function createChatModelSetting(params: {
   modelName: string;
   operationType: string;
   isEnabled?: boolean;
+  isPrimary?: boolean;
 }): Promise<number> {
   const {
     modelName,
     operationType,
     isEnabled = true,
+    isPrimary = false,
   } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.chat_model_settings (model_name, operation_type, is_enabled)
-       VALUES ($1, $2, $3)
+      `INSERT INTO learn_language.chat_model_settings (model_name, operation_type, is_enabled, is_primary)
+       VALUES ($1, $2, $3, $4)
        RETURNING id`,
-      [modelName, operationType, isEnabled]
+      [modelName, operationType, isEnabled, isPrimary]
     );
     return result.rows[0].id;
   });
@@ -636,6 +638,7 @@ export async function setupDefaultChatModelSettings(): Promise<void> {
       modelName: DEFAULT_CHAT_MODEL,
       operationType,
       isEnabled: true,
+      isPrimary: true,
     });
   }
 }
@@ -651,11 +654,12 @@ export async function getChatModelSettings(): Promise<Array<{
   modelName: string;
   operationType: string;
   isEnabled: boolean;
+  isPrimary: boolean;
 }>> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, model_name as "modelName", operation_type as "operationType",
-              is_enabled as "isEnabled"
+              is_enabled as "isEnabled", is_primary as "isPrimary"
        FROM learn_language.chat_model_settings
        ORDER BY id`
     );
