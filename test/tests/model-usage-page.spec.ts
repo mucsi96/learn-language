@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createModelUsageLog, createVoiceConfiguration, getTableData, selectTextRange } from '../utils';
+import { createCard, createModelUsageLog, createVoiceConfiguration, getTableData, selectTextRange, setupDefaultChatModelSettings } from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -431,6 +431,7 @@ test('displays model summary tab', async ({ page }) => {
 test('creates chat model usage logs when using bulk card creation', async ({
   page,
 }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -461,6 +462,7 @@ test('creates chat model usage logs when using bulk card creation', async ({
 test('creates image model usage logs when using bulk card creation', async ({
   page,
 }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 

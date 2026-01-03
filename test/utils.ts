@@ -93,6 +93,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.cards');
     await client.query('DELETE FROM learn_language.model_usage_logs');
     await client.query('DELETE FROM learn_language.voice_configurations');
+    await client.query('DELETE FROM learn_language.chat_model_settings');
     await client.query('DELETE FROM learn_language.sources');
   });
 
@@ -590,6 +591,72 @@ export async function getVoiceConfigurations(): Promise<Array<{
       `SELECT id, voice_id as "voiceId", model, language,
               display_name as "displayName", is_enabled as "isEnabled"
        FROM learn_language.voice_configurations
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function createChatModelSetting(params: {
+  modelName: string;
+  operationType: string;
+  isEnabled?: boolean;
+}): Promise<number> {
+  const {
+    modelName,
+    operationType,
+    isEnabled = true,
+  } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.chat_model_settings (model_name, operation_type, is_enabled)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [modelName, operationType, isEnabled]
+    );
+    return result.rows[0].id;
+  });
+}
+
+const ALL_OPERATION_TYPES = [
+  'word_extraction',
+  'word_type',
+  'gender',
+  'translation_en',
+  'translation_hu',
+  'translation_ch',
+];
+
+const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';
+
+export async function setupDefaultChatModelSettings(): Promise<void> {
+  for (const operationType of ALL_OPERATION_TYPES) {
+    await createChatModelSetting({
+      modelName: DEFAULT_CHAT_MODEL,
+      operationType,
+      isEnabled: true,
+    });
+  }
+}
+
+export async function clearChatModelSettings(): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query('DELETE FROM learn_language.chat_model_settings');
+  });
+}
+
+export async function getChatModelSettings(): Promise<Array<{
+  id: number;
+  modelName: string;
+  operationType: string;
+  isEnabled: boolean;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, model_name as "modelName", operation_type as "operationType",
+              is_enabled as "isEnabled"
+       FROM learn_language.chat_model_settings
        ORDER BY id`
     );
     return result.rows;

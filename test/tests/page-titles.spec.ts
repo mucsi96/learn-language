@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, navigateToCardEditing } from '../utils';
+import { createCard, navigateToCardEditing, setupDefaultChatModelSettings } from '../utils';
 
 test('home page title', async ({ page }) => {
   await page.goto('http://localhost:8180/');
@@ -17,6 +17,7 @@ test('source page title', async ({ page }) => {
 });
 
 test('card page title', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
       cardId: 'abfahren',
       sourceId: 'goethe-a1',

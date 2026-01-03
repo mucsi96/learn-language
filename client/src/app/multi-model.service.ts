@@ -13,14 +13,21 @@ export class MultiModelService {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   async call<T>(
+    operationType: string,
     apiCall: (model: string) => Promise<T>
   ): Promise<T> {
-    const chatModels = this.environmentConfig.chatModels;
-    const primaryModelInfo = chatModels.find(m => m.primary);
-    const primaryModelName = primaryModelInfo?.modelName;
+    const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType];
+    const modelsToUse = this.environmentConfig.chatModels.filter(m =>
+      enabledModelNames.includes(m.modelName)
+    );
+    const primaryModelName = modelsToUse.find(m => m.primary)?.modelName;
+
+    if (!primaryModelName) {
+      throw new Error(`No primary model enabled for operation type: ${operationType}`);
+    }
 
     const modelResponses = await Promise.allSettled(
-      chatModels.map(async (modelInfo) => {
+      modelsToUse.map(async (modelInfo) => {
         const response = await apiCall(modelInfo.modelName);
         return { model: modelInfo.modelName, response } as ModelResponse<T>;
       })
@@ -35,7 +42,10 @@ export class MultiModelService {
     const primaryResponse = successfulResponses.find(r => r.model === primaryModelName);
 
     if (!primaryResponse) {
-      throw new Error(`Primary model ${primaryModelName} failed`);
+      if (successfulResponses.length > 0) {
+        return successfulResponses[0].response;
+      }
+      throw new Error(`Primary model ${primaryModelName} failed and no other models succeeded`);
     }
 
     return primaryResponse.response;

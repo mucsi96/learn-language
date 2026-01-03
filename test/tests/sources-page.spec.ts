@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings } from '../utils';
 
 test('displays current page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -58,6 +58,7 @@ test('highlights existing cards', async ({ page }) => {
 });
 
 test('drag to select words highlights matching words', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -69,6 +70,7 @@ test('drag to select words highlights matching words', async ({ page }) => {
 });
 
 test('drag to select multiple regions highlights matching words', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 

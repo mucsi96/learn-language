@@ -82,6 +82,7 @@ export class PageService {
             const { x, y, width, height } = rectangle;
 
             return this.multiModelService.call<WordList>(
+              'word_extraction',
               (model: string) => fetchJson<WordList>(
                 this.http,
                 `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`

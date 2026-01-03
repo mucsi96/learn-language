@@ -57,6 +57,12 @@ export const routes: Routes = [
           import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
         title: 'Voice Settings',
       },
+      {
+        path: 'data-models',
+        loadComponent: () =>
+          import('./chat-model-settings/chat-model-settings.component').then((m) => m.ChatModelSettingsComponent),
+        title: 'Data Model Settings',
+      },
     ],
   },
   {
