@@ -38,14 +38,18 @@ test('can set primary model for operation type', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
   const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const geminiRow = page.locator('tr', { has: page.getByText('gemini-3-pro-preview', { exact: true }) });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
+  const geminiPrimaryRadio = geminiRow.getByRole('radio').first();
 
   await expect(gptPrimaryRadio).not.toBeChecked();
+  await expect(geminiPrimaryRadio).toBeChecked();
 
   await gptPrimaryRadio.click();
   await page.waitForTimeout(500);
 
   await expect(gptPrimaryRadio).toBeChecked();
+  await expect(geminiPrimaryRadio).not.toBeChecked();
 
   const settings = await getChatModelSettings();
   const gptSetting = settings.find(s => s.modelName === 'gpt-4o' && s.operationType === 'translation_en');
