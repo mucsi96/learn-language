@@ -33,7 +33,6 @@ mat-card-header {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: var(--mat-sys-surface-container);
 }
 
 .model-header {
