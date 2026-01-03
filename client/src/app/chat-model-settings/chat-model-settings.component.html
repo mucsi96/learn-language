@@ -67,6 +67,7 @@
                           [aria-label]="model.modelName + ' for ' + operation.displayName"
                         ></mat-slide-toggle>
                         <mat-radio-button
+                          [name]="'primary-' + operation.code"
                           [checked]="isPrimaryModel(model.modelName, operation.code)"
                           [disabled]="!settingsMatrix()[model.modelName][operation.code]"
                           (change)="setPrimaryModel(model.modelName, operation.code)"
