@@ -104,6 +104,15 @@ export class ModelUsageLogsComponent {
     return '-';
   }
 
+  getPerDollarCount(log: ModelUsageLog): number {
+    if (!log.costUsd || log.costUsd === 0) return 0;
+    return Math.floor(1 / log.costUsd);
+  }
+
+  getDurationSeconds(log: ModelUsageLog): number {
+    return log.processingTimeMs / 1000;
+  }
+
   getModelTypeIcon(type: string): string {
     switch (type) {
       case 'CHAT': return 'chat';

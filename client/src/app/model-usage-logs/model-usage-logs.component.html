@@ -47,14 +47,14 @@
     </ng-container>
 
     <ng-container matColumnDef="cost">
-      <th mat-header-cell *matHeaderCellDef>Cost</th>
+      <th mat-header-cell *matHeaderCellDef>Per $1</th>
       <td mat-cell *matCellDef="let log">
         <div class="skeleton skeleton-text-small"></div>
       </td>
     </ng-container>
 
     <ng-container matColumnDef="time">
-      <th mat-header-cell *matHeaderCellDef>Duration</th>
+      <th mat-header-cell *matHeaderCellDef>Seconds</th>
       <td mat-cell *matCellDef="let log">
         <div class="skeleton skeleton-text-small"></div>
       </td>
@@ -185,16 +185,16 @@
           </ng-container>
 
           <ng-container matColumnDef="cost">
-            <th mat-header-cell *matHeaderCellDef>Cost</th>
+            <th mat-header-cell *matHeaderCellDef>Per $1</th>
             <td mat-cell *matCellDef="let log">
-              <span class="cost-value">${{ log.costUsd | number: '1.6-6' }}</span>
+              <span class="cost-value">{{ getPerDollarCount(log) }}</span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="time">
-            <th mat-header-cell *matHeaderCellDef>Duration</th>
+            <th mat-header-cell *matHeaderCellDef>Seconds</th>
             <td mat-cell *matCellDef="let log">
-              {{ log.processingTimeMs }}ms
+              {{ getDurationSeconds(log) }}
             </td>
           </ng-container>
 
