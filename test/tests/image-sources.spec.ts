@@ -1,7 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createSource, getSource, getDocuments, yellowImage, STORAGE_DIR } from '../utils';
-import * as fs from 'fs';
-import * as path from 'path';
+import { createSource, getSource, getDocuments, yellowImage } from '../utils';
 
 test('can create an image source', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -83,10 +81,10 @@ test('can upload image to image source from page view', async ({ page }) => {
   expect(documents[0].pageNumber).toBe(1);
 });
 
-test('can upload multiple images using add button', async ({ page }) => {
+test('can delete image from image source', async ({ page }) => {
   await createSource({
-    id: 'multi-image-source',
-    name: 'Multi Image Source',
+    id: 'delete-image-source',
+    name: 'Delete Image Source',
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
@@ -94,36 +92,27 @@ test('can upload multiple images using add button', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  const sourcesDir = path.join(STORAGE_DIR, 'sources', 'multi-image-source');
-  fs.mkdirSync(sourcesDir, { recursive: true });
-  fs.writeFileSync(path.join(sourcesDir, 'image1.png'), yellowImage);
-
-  await page.goto('http://localhost:8180/sources/multi-image-source/page/1');
+  await page.goto('http://localhost:8180/sources/delete-image-source/page/1');
 
   const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
   await dropzoneInput.setInputFiles({
-    name: 'image1.png',
+    name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
   await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
 
-  await expect(page.getByRole('button', { name: 'Add image' })).toBeVisible();
+  let documents = await getDocuments('delete-image-source');
+  expect(documents).toHaveLength(1);
 
-  const addImageInput = page.locator('.add-image-button input[type="file"]');
-  await addImageInput.setInputFiles({
-    name: 'image2.png',
-    mimeType: 'image/png',
-    buffer: yellowImage
-  });
+  await expect(page.getByRole('button', { name: 'Delete image' })).toBeVisible();
+  await page.getByRole('button', { name: 'Delete image' }).click();
 
-  await page.waitForTimeout(1000);
+  await expect(page.locator('.image-dropzone')).toBeVisible({ timeout: 10000 });
 
-  const documents = await getDocuments('multi-image-source');
-  expect(documents).toHaveLength(2);
-  expect(documents[0].pageNumber).toBe(1);
-  expect(documents[1].pageNumber).toBe(2);
+  documents = await getDocuments('delete-image-source');
+  expect(documents).toHaveLength(0);
 });
 
 test('image source shows source type in create dialog is disabled during edit', async ({ page }) => {

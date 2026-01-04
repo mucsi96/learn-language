@@ -31,18 +31,10 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
-  @if (sourceType() === 'images') {
-  <label class="add-image-button">
-    <button mat-icon-button aria-label="Add image" type="button">
-      <mat-icon>add_photo_alternate</mat-icon>
-    </button>
-    <input
-      type="file"
-      accept=".png,.jpg,.jpeg,.gif,.webp"
-      (change)="onImageFileSelected($event)"
-      class="hidden-file-input"
-    />
-  </label>
+  @if (sourceType() === 'images' && hasImage()) {
+  <button mat-icon-button aria-label="Delete image" (click)="deleteImage()">
+    <mat-icon>delete</mat-icon>
+  </button>
   }
 </div>
 } @if (pageLoading()) {

@@ -39,10 +39,6 @@
   display: none;
 }
 
-.add-image-button {
-  cursor: pointer;
-}
-
 .image-dropzone {
   display: flex;
   flex-direction: column;

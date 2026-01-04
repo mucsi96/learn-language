@@ -25,6 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 import { uploadDocument } from '../../utils/uploadDocument';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-page',
@@ -212,5 +213,18 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     } finally {
       this.uploading.set(false);
     }
+  }
+
+  async deleteImage(): Promise<void> {
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.pageNumber();
+    if (!sourceId || !pageNumber) return;
+
+    await firstValueFrom(
+      this.http.delete(`/api/source/${sourceId}/documents/${pageNumber}`)
+    );
+
+    this.sourcesService.refetchSources();
+    this.pageService.reload();
   }
 }
