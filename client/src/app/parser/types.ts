@@ -85,6 +85,10 @@ export type Page = {
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type CardType = 'vocabulary';
+export type SourceFormatType =
+  | 'wordListWithExamples'
+  | 'wordListWithFormsAndExamples'
+  | 'flowingText';
 
 export type Source = {
   id: string;
@@ -94,6 +98,7 @@ export type Source = {
   cardCount?: number;
   languageLevel?: LanguageLevel;
   cardType?: CardType;
+  formatType?: SourceFormatType;
 };
 
 export type WordList = {

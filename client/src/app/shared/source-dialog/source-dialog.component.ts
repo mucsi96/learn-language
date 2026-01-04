@@ -11,7 +11,7 @@ import {
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { LanguageLevel, Source } from '../../parser/types';
+import { LanguageLevel, Source, SourceFormatType } from '../../parser/types';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
@@ -41,6 +41,14 @@ export class SourceDialogComponent {
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
   languageLevels: LanguageLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  formatTypes: { value: SourceFormatType; label: string }[] = [
+    { value: 'wordListWithExamples', label: 'Word list with examples' },
+    {
+      value: 'wordListWithFormsAndExamples',
+      label: 'Word list with forms and examples',
+    },
+    { value: 'flowingText', label: 'Flowing text' },
+  ];
 
   formData: Partial<Source> = {
     id: this.data.source?.id || '',
@@ -48,7 +56,8 @@ export class SourceDialogComponent {
     fileName: this.data.source?.fileName || '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel || 'A1',
-    cardType: 'vocabulary', // Only vocabulary is supported for now
+    cardType: 'vocabulary',
+    formatType: this.data.source?.formatType || 'wordListWithFormsAndExamples',
   };
 
   uploadedFile = signal<File | null>(null);
@@ -79,7 +88,8 @@ export class SourceDialogComponent {
       this.formData.name &&
       this.formData.startPage &&
       this.formData.startPage > 0 &&
-      this.formData.languageLevel
+      this.formData.languageLevel &&
+      this.formData.formatType
     );
 
     if (!hasRequiredFields) {

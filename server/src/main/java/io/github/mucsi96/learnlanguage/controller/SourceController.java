@@ -66,6 +66,7 @@ public class SourceController {
           .fileName(source.getFileName())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .cardCount(cardCount)
+          .formatType(source.getFormatType())
           .build();
     }).collect(Collectors.toList());
   }
@@ -111,7 +112,7 @@ public class SourceController {
 
     byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    var areaWords = areaWordsService.getAreaWords(imageData, model);
+    var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType());
     List<String> ids = areaWords.stream()
         .map(word -> word.getId())
         .toList();
@@ -148,6 +149,7 @@ public class SourceController {
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
+        .formatType(request.getFormatType())
         .build();
 
     sourceService.saveSource(source);
@@ -163,13 +165,13 @@ public class SourceController {
     Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-    // Copy only non-null properties from request to existing source
     Source updates = Source.builder()
         .name(request.getName())
         .fileName(request.getFileName())
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
+        .formatType(request.getFormatType())
         .build();
 
     BeanUtils.copyNonNullProperties(updates, existingSource);

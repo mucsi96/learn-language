@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.entity;
 
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,4 +39,8 @@ public class Source {
   @Enumerated(EnumType.STRING)
   @Column(name = "card_type")
   private CardType cardType;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "format_type")
+  private SourceFormatType formatType;
 }

@@ -96,6 +96,19 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Format Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.formatType"
+        name="formatType"
+        required
+      >
+        @for (formatType of formatTypes; track formatType.value) {
+        <mat-option [value]="formatType.value">{{ formatType.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
       <mat-label>Card Type</mat-label>
       <mat-select [(ngModel)]="formData.cardType" name="cardType" disabled>
         <mat-option value="vocabulary">Vocabulary</mat-option>
