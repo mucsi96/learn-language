@@ -42,6 +42,7 @@ export async function createSource(params: {
   startPage: number;
   languageLevel: string;
   cardType: string;
+  formatType: string;
   bookmarkedPage?: number | null;
 }): Promise<void> {
   const {
@@ -51,14 +52,15 @@ export async function createSource(params: {
     startPage,
     languageLevel,
     cardType,
+    formatType,
     bookmarkedPage = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, file_name, start_page, language_level, card_type, bookmarked_page)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [id, name, fileName, startPage, languageLevel, cardType, bookmarkedPage]
+      `INSERT INTO learn_language.sources (id, name, file_name, start_page, language_level, card_type, format_type, bookmarked_page)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, name, fileName, startPage, languageLevel, cardType, formatType, bookmarkedPage]
     );
   });
 }
@@ -70,13 +72,14 @@ export async function getSource(id: string): Promise<{
   startPage: number;
   languageLevel: string;
   cardType: string;
+  formatType: string;
   bookmarkedPage: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, name, file_name as "fileName", start_page as "startPage",
               language_level as "languageLevel", card_type as "cardType",
-              bookmarked_page as "bookmarkedPage"
+              format_type as "formatType", bookmarked_page as "bookmarkedPage"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]
@@ -107,6 +110,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       startPage: 9,
       languageLevel: 'A1',
       cardType: 'VOCABULARY',
+      formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
     });
 
@@ -117,6 +121,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       startPage: 8,
       languageLevel: 'A2',
       cardType: 'VOCABULARY',
+      formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 8,
     });
 
@@ -127,6 +132,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       startPage: 16,
       languageLevel: 'B1',
       cardType: 'VOCABULARY',
+      formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: null,
     });
   }

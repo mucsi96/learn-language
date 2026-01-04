@@ -11,4 +11,6 @@ public class SourceResponse {
     private String fileName;
     private Integer startPage;
     private Integer cardCount;
+    private LanguageLevel languageLevel;
+    private SourceFormatType formatType;
 }

@@ -8,8 +8,11 @@ CREATE TABLE IF NOT EXISTS learn_language.sources (
     name character varying(255),
     language_level character varying(255),
     card_type character varying(255),
+    format_type character varying(255),
     CONSTRAINT sources_pkey PRIMARY KEY (id)
 );
+
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS format_type character varying(255);
 
 CREATE TABLE IF NOT EXISTS learn_language.cards (
     id character varying(255) NOT NULL,
