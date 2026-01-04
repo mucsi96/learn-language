@@ -102,20 +102,20 @@ test('displays chat model usage logs', async ({ page }) => {
 
   expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
-      Model: 'gemini-3-pro-preview',
-      Type: 'CHAT',
-      Operation: 'word_type_detection',
-      Usage: '100 / 25 tokens',
-      'Per $1': '833',
-      Seconds: '0.8',
-    },
-    {
       Model: 'gpt-4o',
       Type: 'CHAT',
       Operation: 'translation',
       Usage: '150 / 50 tokens',
       'Per $1': '400',
       Seconds: '1.2',
+    },
+    {
+      Model: 'gemini-3-pro-preview',
+      Type: 'CHAT',
+      Operation: 'word_type_detection',
+      Usage: '100 / 25 tokens',
+      'Per $1': '833',
+      Seconds: '0.8',
     },
   ]);
 });
