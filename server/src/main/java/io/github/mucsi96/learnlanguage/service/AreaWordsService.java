@@ -37,7 +37,7 @@ public class AreaWordsService {
           The forms is a string array representing the different forms extracted from the document.
           In case of a noun it's the plural form.
           In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.""";
-      case WORD_LIST_WITH_EXAMPLES, FLOWING_TEXT, null -> """
+      case null, default -> """
 
           The forms is a string array representing the different forms. Since the document does not contain word forms, you must generate them.
           In case of a noun generate the plural form.
@@ -48,7 +48,7 @@ public class AreaWordsService {
       case WORD_LIST_WITH_EXAMPLES, WORD_LIST_WITH_FORMS_AND_EXAMPLES -> """
 
           The examples property is a string array enlisting the examples provided in the document.""";
-      case FLOWING_TEXT, null -> """
+      case null, default -> """
 
           The examples property is a string array. Since the document is flowing text without explicit examples, you must generate one context-relevant example sentence for each word that demonstrates its meaning and usage.""";
     };
