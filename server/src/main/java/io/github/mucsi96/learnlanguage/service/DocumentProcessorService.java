@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,7 +51,7 @@ public class DocumentProcessorService {
           .sourceId(source.getId())
           .sourceName(source.getName())
           .sourceType(SourceType.IMAGES)
-          .imageData(null)
+          .hasImage(false)
           .spans(Collections.emptyList())
           .build();
     }
@@ -61,9 +60,6 @@ public class DocumentProcessorService {
     byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
-    String base64Image = Base64.getEncoder().encodeToString(bytes);
-    String mimeType = getMimeType(document.getFileName());
-
     return PageResponse.builder()
         .width(image.getWidth())
         .height(image.getHeight())
@@ -71,7 +67,7 @@ public class DocumentProcessorService {
         .sourceId(source.getId())
         .sourceName(source.getName())
         .sourceType(SourceType.IMAGES)
-        .imageData("data:" + mimeType + ";base64," + base64Image)
+        .hasImage(true)
         .spans(Collections.emptyList())
         .build();
   }
@@ -165,20 +161,6 @@ public class DocumentProcessorService {
       ImageIO.write(croppedImage, "png", outputStream);
       return outputStream.toByteArray();
     }
-  }
-
-  private String getMimeType(String fileName) {
-    String lowerName = fileName.toLowerCase();
-    if (lowerName.endsWith(".png")) {
-      return "image/png";
-    } else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
-      return "image/jpeg";
-    } else if (lowerName.endsWith(".gif")) {
-      return "image/gif";
-    } else if (lowerName.endsWith(".webp")) {
-      return "image/webp";
-    }
-    return "image/png";
   }
 
   private byte[] fetchAndCacheFile(String filePath) throws IOException {

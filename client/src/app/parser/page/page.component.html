@@ -84,7 +84,7 @@
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
   [attr.data-ready]="isReady()"
-  [style.background-image]="imageData() ? 'url(' + imageData() + ')' : 'none'"
+  [style.background-image]="documentImage.value() ? 'url(' + documentImage.value() + ')' : 'none'"
   [style.background-size]="'100% 100%'"
 >
   @if (selectionRegionsLoading()) {

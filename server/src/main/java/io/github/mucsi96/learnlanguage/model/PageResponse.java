@@ -14,7 +14,7 @@ public class PageResponse {
     private String sourceId;
     private String sourceName;
     private SourceType sourceType;
-    private String imageData;
+    private Boolean hasImage;
     private List<Span> spans;
 
     @Data

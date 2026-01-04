@@ -37,6 +37,7 @@ import io.github.mucsi96.learnlanguage.service.SourceService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import com.azure.core.util.BinaryData;
 
@@ -298,6 +299,44 @@ public class SourceController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Document deleted successfully");
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping(value = "/source/{sourceId}/document/{pageNumber}/image")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<byte[]> getDocumentImage(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber) {
+    Source source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    if (source.getSourceType() != SourceType.IMAGES) {
+      throw new ResourceNotFoundException("Source is not an image source");
+    }
+
+    Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
+        .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
+
+    byte[] imageData = fileStorageService.fetchFile("sources/" + sourceId + "/" + document.getFileName()).toBytes();
+    MediaType mediaType = getMediaTypeForFile(document.getFileName());
+
+    return ResponseEntity.ok()
+        .contentType(mediaType)
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .body(imageData);
+  }
+
+  private MediaType getMediaTypeForFile(String fileName) {
+    String lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith(".png")) {
+      return MediaType.IMAGE_PNG;
+    } else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+      return MediaType.IMAGE_JPEG;
+    } else if (lowerName.endsWith(".gif")) {
+      return MediaType.IMAGE_GIF;
+    } else if (lowerName.endsWith(".webp")) {
+      return MediaType.parseMediaType("image/webp");
+    }
+    return MediaType.APPLICATION_OCTET_STREAM;
   }
 
   private boolean isImageFile(String filename) {

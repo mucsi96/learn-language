@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
+import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { MultiModelService } from './multi-model.service';
 
@@ -44,6 +45,22 @@ export class PageService {
       return fetchJson<Page>(
         this.http,
         `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`
+      );
+    },
+  });
+
+  readonly documentImage = resource({
+    params: () => ({
+      page: this.page.value(),
+    }),
+    loader: async ({ params: { page } }) => {
+      if (!page || page.sourceType !== 'images' || !page.hasImage) {
+        return null;
+      }
+
+      return fetchAsset(
+        this.http,
+        `/api/source/${page.sourceId}/document/${page.number}/image`
       );
     },
   });
@@ -96,6 +113,7 @@ export class PageService {
 
   reload() {
     this.page.reload();
+    this.documentImage.reload();
     this.selectionRegions().forEach((region) => {
       region.reload();
     });

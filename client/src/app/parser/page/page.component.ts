@@ -65,9 +65,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly sourceType = computed(
     () => this.pageService.page.value()?.sourceType
   );
-  readonly imageData = computed(
-    () => this.pageService.page.value()?.imageData
+  readonly hasImage = computed(
+    () => this.pageService.page.value()?.hasImage
   );
+  readonly documentImage = this.pageService.documentImage;
   readonly selectionRegions = this.pageService.selectionRegions
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
@@ -77,10 +78,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.pageService.selectionRegions().some((w) => w.isLoading())
   );
   readonly isReady = computed(
-    () => !this.pageLoading() && !this.selectionRegionsLoading()
+    () => !this.pageLoading() && !this.selectionRegionsLoading() && !this.documentImage.isLoading()
   );
   readonly isEmptyImageSource = computed(() =>
-    this.sourceType() === 'images' && !this.pageService.page.value()?.imageData
+    this.sourceType() === 'images' && !this.hasImage()
   );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
