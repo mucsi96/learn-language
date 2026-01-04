@@ -78,11 +78,59 @@
 
   @let logsList = logs() || [];
   @let summaryList = summary() || [];
+  @let dateOptions = availableDates();
+  @let modelTypes = availableModelTypes();
+  @let operationTypes = availableOperationTypes();
+  @let modelNames = availableModelNames();
 
   <mat-tab-group>
     <mat-tab label="Usage Logs">
-      @if (logsList.length > 0) {
       <div class="tab-content">
+        @if (hasAnyLogs()) {
+        <div class="filters-section">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date</mat-label>
+            <mat-select [value]="dateFilter()" (selectionChange)="onDateFilterChange($event.value)" aria-label="Filter by date">
+              <mat-option value="ALL">All dates</mat-option>
+              @for (option of dateOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Type</mat-label>
+            <mat-select [value]="modelTypeFilter()" (selectionChange)="onModelTypeFilterChange($event.value)" aria-label="Filter by type">
+              <mat-option value="ALL">All types</mat-option>
+              @for (type of modelTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Operation</mat-label>
+            <mat-select [value]="operationTypeFilter()" (selectionChange)="onOperationTypeFilterChange($event.value)" aria-label="Filter by operation">
+              <mat-option value="ALL">All operations</mat-option>
+              @for (op of operationTypes; track op) {
+                <mat-option [value]="op">{{ op }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Model</mat-label>
+            <mat-select [value]="modelNameFilter()" (selectionChange)="onModelNameFilterChange($event.value)" aria-label="Filter by model">
+              <mat-option value="ALL">All models</mat-option>
+              @for (name of modelNames; track name) {
+                <mat-option [value]="name">{{ name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        }
+
+        @if (logsList.length > 0) {
         <div class="summary-card">
           <span class="summary-label">Total Cost:</span>
           <span class="summary-value">${{ totalCost() | number: '1.4-4' }}</span>
@@ -191,16 +239,24 @@
               (click)="toggleExpand(row)"></tr>
           <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
         </table>
+        } @else if (hasAnyLogs()) {
+        <mat-card class="empty-state">
+          <mat-card-content>
+            <mat-icon class="empty-icon">filter_list</mat-icon>
+            <h2>No matching logs</h2>
+            <p>No logs match the selected filters. Try adjusting your filters.</p>
+          </mat-card-content>
+        </mat-card>
+        } @else {
+        <mat-card class="empty-state">
+          <mat-card-content>
+            <mat-icon class="empty-icon">analytics</mat-icon>
+            <h2>No usage logs yet</h2>
+            <p>Usage logs will appear here once AI models are used.</p>
+          </mat-card-content>
+        </mat-card>
+        }
       </div>
-      } @else {
-      <mat-card class="empty-state">
-        <mat-card-content>
-          <mat-icon class="empty-icon">analytics</mat-icon>
-          <h2>No usage logs yet</h2>
-          <p>Usage logs will appear here once AI models are used.</p>
-        </mat-card-content>
-      </mat-card>
-      }
     </mat-tab>
 
     <mat-tab label="Model Summary">

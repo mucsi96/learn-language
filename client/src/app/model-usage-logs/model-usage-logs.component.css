@@ -19,6 +19,22 @@ p {
   margin-bottom: 2rem;
 }
 
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.filter-field {
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
 .summary-card {
   display: flex;
   align-items: center;
@@ -262,6 +278,16 @@ p {
 
   .container {
     padding: 1rem 0;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .filter-field {
+    max-width: 100%;
   }
 
   .usage-table {
