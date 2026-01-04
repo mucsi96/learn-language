@@ -6,8 +6,8 @@ type UsageLogRow = {
   Type: string;
   Operation: string;
   Usage: string;
-  Cost: string;
-  Duration: string;
+  'Per $1': string;
+  Seconds: string;
   Time: string;
   Rating: string;
 };
@@ -102,20 +102,20 @@ test('displays chat model usage logs', async ({ page }) => {
 
   expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
-      Model: 'gemini-3-pro-preview',
-      Type: 'CHAT',
-      Operation: 'word_type_detection',
-      Usage: '100 / 25 tokens',
-      Cost: '$0.001200',
-      Duration: '800ms',
-    },
-    {
       Model: 'gpt-4o',
       Type: 'CHAT',
       Operation: 'translation',
       Usage: '150 / 50 tokens',
-      Cost: '$0.002500',
-      Duration: '1200ms',
+      'Per $1': '400',
+      Seconds: '1.2',
+    },
+    {
+      Model: 'gemini-3-pro-preview',
+      Type: 'CHAT',
+      Operation: 'word_type_detection',
+      Usage: '100 / 25 tokens',
+      'Per $1': '833',
+      Seconds: '0.8',
     },
   ]);
 });
@@ -145,8 +145,8 @@ test('displays image model usage logs', async ({ page }) => {
       Type: 'IMAGE',
       Operation: 'image_generation',
       Usage: '1 image(s)',
-      Cost: '$0.040000',
-      Duration: '5000ms',
+      'Per $1': '25',
+      Seconds: '5',
     },
   ]);
 });
@@ -176,8 +176,8 @@ test('displays audio model usage logs', async ({ page }) => {
       Type: 'AUDIO',
       Operation: 'audio_generation',
       Usage: '250 chars',
-      Cost: '$0.005000',
-      Duration: '3000ms',
+      'Per $1': '200',
+      Seconds: '3',
     },
   ]);
 });

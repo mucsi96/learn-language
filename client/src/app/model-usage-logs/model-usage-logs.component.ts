@@ -6,7 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
-import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ModelUsageLogsService, ModelUsageLog, ModelType } from './model-usage-logs.service';
 
 @Component({
   selector: 'app-model-usage-logs',
@@ -19,6 +21,8 @@ import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service
     MatChipsModule,
     MatButtonModule,
     MatTabsModule,
+    MatSelectModule,
+    MatFormFieldModule,
     DatePipe,
     DecimalPipe,
   ],
@@ -28,11 +32,22 @@ import { ModelUsageLogsService, ModelUsageLog } from './model-usage-logs.service
 export class ModelUsageLogsComponent {
   private readonly service = inject(ModelUsageLogsService);
 
-  readonly logs = this.service.logs.value;
+  readonly logs = this.service.filteredAndSortedLogs;
   readonly summary = this.service.summary.value;
   readonly loading = computed(() => this.service.logs.isLoading());
   readonly expandedLogId = signal<number | null>(null);
   readonly ratingStars = [1, 2, 3, 4, 5];
+
+  readonly availableDates = this.service.availableDates;
+  readonly availableModelTypes = this.service.availableModelTypes;
+  readonly availableOperationTypes = this.service.availableOperationTypes;
+  readonly availableModelNames = this.service.availableModelNames;
+
+  readonly dateFilter = this.service.dateFilter;
+  readonly modelTypeFilter = this.service.modelTypeFilter;
+  readonly operationTypeFilter = this.service.operationTypeFilter;
+  readonly modelNameFilter = this.service.modelNameFilter;
+  readonly hasAnyLogs = this.service.hasAnyLogs;
 
   readonly displayedColumns: string[] = [
     'expand',
@@ -62,6 +77,22 @@ export class ModelUsageLogsComponent {
     return logsList.reduce((sum, log) => sum + (log.costUsd || 0), 0);
   });
 
+  onDateFilterChange(value: string): void {
+    this.service.dateFilter.set(value);
+  }
+
+  onModelTypeFilterChange(value: ModelType | 'ALL'): void {
+    this.service.modelTypeFilter.set(value);
+  }
+
+  onOperationTypeFilterChange(value: string): void {
+    this.service.operationTypeFilter.set(value);
+  }
+
+  onModelNameFilterChange(value: string): void {
+    this.service.modelNameFilter.set(value);
+  }
+
   getUsageDisplay(log: ModelUsageLog): string {
     if (log.modelType === 'CHAT') {
       return `${log.inputTokens ?? 0} / ${log.outputTokens ?? 0} tokens`;
@@ -71,6 +102,15 @@ export class ModelUsageLogsComponent {
       return `${log.inputCharacters ?? 0} chars`;
     }
     return '-';
+  }
+
+  getPerDollarCount(log: ModelUsageLog): number {
+    if (!log.costUsd || log.costUsd === 0) return 0;
+    return Math.floor(1 / log.costUsd);
+  }
+
+  getDurationSeconds(log: ModelUsageLog): number {
+    return log.processingTimeMs / 1000;
   }
 
   getModelTypeIcon(type: string): string {
