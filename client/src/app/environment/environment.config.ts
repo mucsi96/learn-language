@@ -35,6 +35,16 @@ export interface OperationTypeInfo {
   displayName: string;
 }
 
+export interface LanguageLevelInfo {
+  code: string;
+  displayName: string;
+}
+
+export interface SourceFormatTypeInfo {
+  code: string;
+  displayName: string;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -48,6 +58,8 @@ export interface EnvironmentConfig {
   enabledModelsByOperation: Record<string, string[]>;
   primaryModelByOperation: Record<string, string>;
   operationTypes: OperationTypeInfo[];
+  languageLevels: LanguageLevelInfo[];
+  sourceFormatTypes: SourceFormatTypeInfo[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

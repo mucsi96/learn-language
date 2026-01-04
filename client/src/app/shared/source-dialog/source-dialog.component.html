@@ -89,8 +89,8 @@
         name="languageLevel"
         required
       >
-        @for (level of languageLevels; track level) {
-        <mat-option [value]="level">{{ level }}</mat-option>
+        @for (level of languageLevels; track level.code) {
+        <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -102,8 +102,8 @@
         name="formatType"
         required
       >
-        @for (formatType of formatTypes; track formatType.value) {
-        <mat-option [value]="formatType.value">{{ formatType.label }}</mat-option>
+        @for (formatType of formatTypes; track formatType.code) {
+        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
         }
       </mat-select>
     </mat-form-field>

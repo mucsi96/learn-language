@@ -14,6 +14,8 @@ import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ChatOperationType;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
+import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
@@ -51,6 +53,14 @@ public class EnvironmentController {
         .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
         .toList();
 
+    List<LanguageLevelInfo> languageLevels = Arrays.stream(LanguageLevel.values())
+        .map(level -> new LanguageLevelInfo(level.getCode(), level.getDisplayName()))
+        .toList();
+
+    List<SourceFormatTypeInfo> sourceFormatTypes = Arrays.stream(SourceFormatType.values())
+        .map(type -> new SourceFormatTypeInfo(type.getCode(), type.getDisplayName()))
+        .toList();
+
     return new ConfigResponse(
         tenantId,
         uiClientId,
@@ -67,7 +77,9 @@ public class EnvironmentController {
         SUPPORTED_LANGUAGES,
         enabledModelsByOperation,
         primaryModelByOperation,
-        operationTypes);
+        operationTypes,
+        languageLevels,
+        sourceFormatTypes);
   }
 
   public record ChatModelInfo(String modelName, String provider) {
@@ -77,6 +89,12 @@ public class EnvironmentController {
   }
 
   public record OperationTypeInfo(String code, String displayName) {
+  }
+
+  public record LanguageLevelInfo(String code, String displayName) {
+  }
+
+  public record SourceFormatTypeInfo(String code, String displayName) {
   }
 
   public record ConfigResponse(
@@ -91,6 +109,8 @@ public class EnvironmentController {
       List<SupportedLanguage> supportedLanguages,
       Map<String, List<String>> enabledModelsByOperation,
       Map<String, String> primaryModelByOperation,
-      List<OperationTypeInfo> operationTypes) {
+      List<OperationTypeInfo> operationTypes,
+      List<LanguageLevelInfo> languageLevels,
+      List<SourceFormatTypeInfo> sourceFormatTypes) {
   }
 }
