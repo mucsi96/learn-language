@@ -7,9 +7,11 @@ import {
   inject,
   linkedSignal,
   OnDestroy,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { PageService } from '../../page.service';
 import { SpanComponent } from '../span/span.component';
 import { SourcesService } from '../../sources.service';
@@ -22,6 +24,7 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
+import { uploadDocument } from '../../utils/uploadDocument';
 
 @Component({
   selector: 'app-page',
@@ -48,6 +51,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
+  private readonly http = inject(HttpClient);
   readonly sources = this.sourcesService.sources.value;
   readonly pageNumber = linkedSignal(
     () => this.pageService.page.value()?.number
@@ -58,6 +62,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly spans = computed(() => this.pageService.page.value()?.spans);
   readonly width = computed(() => this.pageService.page.value()?.width);
   readonly height = computed(() => this.pageService.page.value()?.height);
+  readonly sourceType = computed(
+    () => this.pageService.page.value()?.sourceType
+  );
+  readonly imageData = computed(
+    () => this.pageService.page.value()?.imageData
+  );
   readonly selectionRegions = this.pageService.selectionRegions
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
@@ -69,8 +79,14 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly isReady = computed(
     () => !this.pageLoading() && !this.selectionRegionsLoading()
   );
+  readonly isEmptyImageSource = computed(() =>
+    this.sourceType() === 'images' && !this.pageService.page.value()?.imageData
+  );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
+  readonly uploading = signal(false);
+  readonly uploadError = signal<string | null>(null);
+  readonly isDragging = signal(false);
 
   constructor() {
     this.route.params.subscribe((params) =>
@@ -135,5 +151,65 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     const width = pageWidth * event.width / parentWidth;
     const height = pageWidth * event.height / parentWidth;
     this.pageService.addSelectedRectangle({ x, y, width, height });
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleImageUpload(files[0]);
+    }
+  }
+
+  onImageFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleImageUpload(input.files[0]);
+    }
+  }
+
+  async handleImageUpload(file: File): Promise<void> {
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some(ext => fileName.endsWith(ext))) {
+      this.uploadError.set('Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed');
+      return;
+    }
+
+    this.uploading.set(true);
+    this.uploadError.set(null);
+
+    try {
+      const sourceId = this.selectedSourceId();
+      if (!sourceId) return;
+
+      await uploadDocument<{ fileName: string; pageNumber: number }>(
+        this.http,
+        `/api/source/${sourceId}/documents`,
+        file
+      );
+
+      this.sourcesService.refetchSources();
+      this.pageService.reload();
+    } catch (error) {
+      this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      this.uploading.set(false);
+    }
   }
 }

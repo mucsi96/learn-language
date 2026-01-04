@@ -16,6 +16,7 @@ import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
+import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
@@ -61,6 +62,10 @@ public class EnvironmentController {
         .map(type -> new SourceFormatTypeInfo(type.getCode(), type.getDisplayName()))
         .toList();
 
+    List<SourceTypeInfo> sourceTypes = Arrays.stream(SourceType.values())
+        .map(type -> new SourceTypeInfo(type.getCode(), type.getDisplayName()))
+        .toList();
+
     return new ConfigResponse(
         tenantId,
         uiClientId,
@@ -79,7 +84,8 @@ public class EnvironmentController {
         primaryModelByOperation,
         operationTypes,
         languageLevels,
-        sourceFormatTypes);
+        sourceFormatTypes,
+        sourceTypes);
   }
 
   public record ChatModelInfo(String modelName, String provider) {
@@ -97,6 +103,9 @@ public class EnvironmentController {
   public record SourceFormatTypeInfo(String code, String displayName) {
   }
 
+  public record SourceTypeInfo(String code, String displayName) {
+  }
+
   public record ConfigResponse(
       String tenantId,
       String clientId,
@@ -111,6 +120,7 @@ public class EnvironmentController {
       Map<String, String> primaryModelByOperation,
       List<OperationTypeInfo> operationTypes,
       List<LanguageLevelInfo> languageLevels,
-      List<SourceFormatTypeInfo> sourceFormatTypes) {
+      List<SourceFormatTypeInfo> sourceFormatTypes,
+      List<SourceTypeInfo> sourceTypes) {
   }
 }

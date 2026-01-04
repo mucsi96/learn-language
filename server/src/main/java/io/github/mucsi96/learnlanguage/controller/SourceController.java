@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -24,7 +25,9 @@ import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
+import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
+import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
@@ -46,6 +49,7 @@ public class SourceController {
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
   private final FileStorageService fileStorageService;
+  private final DocumentRepository documentRepository;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -60,11 +64,18 @@ public class SourceController {
           .map(SourceCardCount::count)
           .orElse(0);
 
+      Integer pageCount = null;
+      if (source.getSourceType() == SourceType.IMAGES) {
+        pageCount = documentRepository.findMaxPageNumberBySource(source).orElse(0);
+      }
+
       return SourceResponse.builder()
           .id(source.getId())
           .name(source.getName())
+          .sourceType(source.getSourceType())
           .fileName(source.getFileName())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
+          .pageCount(pageCount)
           .cardCount(cardCount)
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
@@ -146,6 +157,7 @@ public class SourceController {
     Source source = Source.builder()
         .id(request.getId())
         .name(request.getName())
+        .sourceType(request.getSourceType())
         .fileName(request.getFileName())
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
@@ -168,6 +180,7 @@ public class SourceController {
 
     Source updates = Source.builder()
         .name(request.getName())
+        .sourceType(request.getSourceType())
         .fileName(request.getFileName())
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
@@ -200,7 +213,6 @@ public class SourceController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> uploadSourceFile(@RequestParam("file") MultipartFile file) {
     try {
-      // Validate file type
       String originalFilename = file.getOriginalFilename();
       if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -220,5 +232,80 @@ public class SourceController {
       errorResponse.put("error", "Failed to upload file: " + e.getMessage());
       return ResponseEntity.internalServerError().body(errorResponse);
     }
+  }
+
+  @PostMapping("/source/{sourceId}/documents")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, Object>> uploadDocument(
+      @PathVariable String sourceId,
+      @RequestParam("file") MultipartFile file) {
+    try {
+      Source source = sourceService.getSourceById(sourceId)
+          .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+      if (source.getSourceType() != SourceType.IMAGES) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Document upload is only supported for image sources");
+        return ResponseEntity.badRequest().body(errorResponse);
+      }
+
+      String originalFilename = file.getOriginalFilename();
+      if (originalFilename == null || !isImageFile(originalFilename)) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed");
+        return ResponseEntity.badRequest().body(errorResponse);
+      }
+
+      Integer maxPageNumber = documentRepository.findMaxPageNumberBySource(source).orElse(0);
+      int newPageNumber = maxPageNumber + 1;
+
+      BinaryData fileData = BinaryData.fromBytes(file.getBytes());
+      fileStorageService.saveFile(fileData, "sources/" + sourceId + "/" + originalFilename);
+
+      Document document = Document.builder()
+          .source(source)
+          .fileName(originalFilename)
+          .pageNumber(newPageNumber)
+          .build();
+      documentRepository.save(document);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("fileName", originalFilename);
+      response.put("pageNumber", newPageNumber);
+      response.put("detail", "Document uploaded successfully");
+      return ResponseEntity.ok(response);
+    } catch (IOException e) {
+      Map<String, Object> errorResponse = new HashMap<>();
+      errorResponse.put("error", "Failed to upload document: " + e.getMessage());
+      return ResponseEntity.internalServerError().body(errorResponse);
+    }
+  }
+
+  @DeleteMapping("/source/{sourceId}/documents/{pageNumber}")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> deleteDocument(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber) {
+    Source source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
+        .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
+
+    fileStorageService.deleteFile("sources/" + sourceId + "/" + document.getFileName());
+    documentRepository.delete(document);
+
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Document deleted successfully");
+    return ResponseEntity.ok(response);
+  }
+
+  private boolean isImageFile(String filename) {
+    String lowerName = filename.toLowerCase();
+    return lowerName.endsWith(".png") ||
+        lowerName.endsWith(".jpg") ||
+        lowerName.endsWith(".jpeg") ||
+        lowerName.endsWith(".gif") ||
+        lowerName.endsWith(".webp");
   }
 }

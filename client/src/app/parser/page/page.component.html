@@ -31,9 +31,52 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
+  @if (sourceType() === 'images') {
+  <label class="add-image-button">
+    <button mat-icon-button aria-label="Add image" type="button">
+      <mat-icon>add_photo_alternate</mat-icon>
+    </button>
+    <input
+      type="file"
+      accept=".png,.jpg,.jpeg,.gif,.webp"
+      (change)="onImageFileSelected($event)"
+      class="hidden-file-input"
+    />
+  </label>
+  }
 </div>
 } @if (pageLoading()) {
 <mat-spinner class="page-loading" />
+} @else if (isEmptyImageSource()) {
+<div
+  class="image-dropzone"
+  [class.dragging]="isDragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  @if (uploading()) {
+  <mat-spinner></mat-spinner>
+  } @else {
+  <mat-icon class="upload-icon">add_photo_alternate</mat-icon>
+  <p class="dropzone-text">
+    Drag and drop an image here or
+    <label class="file-input-label">
+      browse
+      <input
+        type="file"
+        accept=".png,.jpg,.jpeg,.gif,.webp"
+        (change)="onImageFileSelected($event)"
+        class="hidden-file-input"
+      />
+    </label>
+  </p>
+  <p class="dropzone-hint">PNG, JPG, JPEG, GIF, WEBP</p>
+  }
+  @if (uploadError()) {
+  <p class="error-message">{{ uploadError() }}</p>
+  }
+</div>
 } @else {
 <section
   class="page-layout"
@@ -41,6 +84,8 @@
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
   [attr.data-ready]="isReady()"
+  [style.background-image]="imageData() ? 'url(' + imageData() + ')' : 'none'"
+  [style.background-size]="'100% 100%'"
 >
   @if (selectionRegionsLoading()) {
   <mat-spinner class="area-loading"></mat-spinner>

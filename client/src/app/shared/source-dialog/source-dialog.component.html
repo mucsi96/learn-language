@@ -17,7 +17,21 @@
       <input matInput [(ngModel)]="formData.name" name="name" required />
     </mat-form-field>
 
-    <!-- File Upload Dropzone -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Source Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.sourceType"
+        name="sourceType"
+        [disabled]="data.mode === 'edit'"
+        required
+      >
+        @for (sourceType of sourceTypes; track sourceType.code) {
+        <mat-option [value]="sourceType.code">{{ sourceType.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (formData.sourceType === 'pdf') {
     <div
       class="dropzone"
       [class.dragging]="isDragging()"
@@ -69,6 +83,9 @@
       <p class="error-message">{{ uploadError() }}</p>
       }
     </div>
+    } @else {
+    <p class="hint-text">Images will be added from the page view after creating the source.</p>
+    }
 
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Start Page</mat-label>

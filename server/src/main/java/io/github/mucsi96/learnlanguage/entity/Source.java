@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.entity;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
+import io.github.mucsi96.learnlanguage.model.SourceType;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,10 @@ public class Source {
   @Nonnull
   private String name;
 
-  @Nonnull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "source_type")
+  private SourceType sourceType;
+
   private String fileName;
 
   @Nonnull

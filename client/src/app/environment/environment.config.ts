@@ -45,6 +45,11 @@ export interface SourceFormatTypeInfo {
   displayName: string;
 }
 
+export interface SourceTypeInfo {
+  code: string;
+  displayName: string;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -60,6 +65,7 @@ export interface EnvironmentConfig {
   operationTypes: OperationTypeInfo[];
   languageLevels: LanguageLevelInfo[];
   sourceFormatTypes: SourceFormatTypeInfo[];
+  sourceTypes: SourceTypeInfo[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

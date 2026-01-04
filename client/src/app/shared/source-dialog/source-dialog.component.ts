@@ -44,10 +44,12 @@ export class SourceDialogComponent {
 
   readonly languageLevels = this.environment.languageLevels;
   readonly formatTypes = this.environment.sourceFormatTypes;
+  readonly sourceTypes = this.environment.sourceTypes;
 
   formData: Partial<Source> = {
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
+    sourceType: this.data.source?.sourceType || 'pdf',
     fileName: this.data.source?.fileName || '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel,
@@ -80,6 +82,7 @@ export class SourceDialogComponent {
     const hasRequiredFields = !!(
       this.formData.id &&
       this.formData.name &&
+      this.formData.sourceType &&
       this.formData.startPage &&
       this.formData.startPage > 0 &&
       this.formData.languageLevel &&
@@ -88,6 +91,10 @@ export class SourceDialogComponent {
 
     if (!hasRequiredFields) {
       return false;
+    }
+
+    if (this.formData.sourceType === 'images') {
+      return true;
     }
 
     return this.hasFile();

@@ -13,6 +13,8 @@ public class PageResponse {
     private double height;
     private String sourceId;
     private String sourceName;
+    private SourceType sourceType;
+    private String imageData;
     private List<Span> spans;
 
     @Data
