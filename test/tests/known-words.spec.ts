@@ -50,9 +50,9 @@ test('displays existing known words as chips', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/known-words');
 
   await expect(page.getByRole('heading', { name: /Known Words \(3\)/ })).toBeVisible();
-  await expect(page.getByRole('listitem', { name: /hello/ })).toBeVisible();
-  await expect(page.getByRole('listitem', { name: /world/ })).toBeVisible();
-  await expect(page.getByRole('listitem', { name: /test/ })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: "hello" })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: "world" })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: "test" })).toBeVisible();
 });
 
 test('can delete individual words', async ({ page }) => {
@@ -62,12 +62,12 @@ test('can delete individual words', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: /Known Words \(2\)/ })).toBeVisible();
 
-  const removeChip = page.getByRole('listitem', { name: /remove/ });
+  const removeChip = page.getByRole('listitem').filter({ hasText: "remove" });
   await removeChip.getByRole('button', { name: 'Remove word' }).click();
 
   await expect(page.getByRole('heading', { name: /Known Words \(1\)/ })).toBeVisible();
-  await expect(page.getByRole('listitem', { name: /remove/ })).not.toBeVisible();
-  await expect(page.getByRole('listitem', { name: /keep/ })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: "remove" })).not.toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: "keep" })).toBeVisible();
 
   const words = await getKnownWords();
   expect(words).toEqual(['keep']);
@@ -86,7 +86,7 @@ test('can clear all words', async ({ page }) => {
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText('Delete all 3 known words?')).toBeVisible();
 
-  await dialog.getByRole('button', { name: 'Confirm' }).click();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
 
   await expect(page.getByRole('heading', { name: /Known Words \(0\)/ })).toBeVisible();
   await expect(page.getByText('No known words yet')).toBeVisible();
