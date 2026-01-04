@@ -42,9 +42,22 @@ public class DocumentProcessorService {
   }
 
   private PageResponse processImageDocument(Source source, int pageNumber) throws IOException {
-    Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
-        .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
+    var documentOptional = documentRepository.findBySourceAndPageNumber(source, pageNumber);
 
+    if (documentOptional.isEmpty()) {
+      return PageResponse.builder()
+          .width(0)
+          .height(0)
+          .number(pageNumber)
+          .sourceId(source.getId())
+          .sourceName(source.getName())
+          .sourceType(SourceType.IMAGES)
+          .imageData(null)
+          .spans(Collections.emptyList())
+          .build();
+    }
+
+    Document document = documentOptional.get();
     byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
