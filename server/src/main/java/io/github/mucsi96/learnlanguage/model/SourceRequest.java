@@ -16,4 +16,5 @@ public class SourceRequest {
     private Integer startPage;
     private LanguageLevel languageLevel;
     private CardType cardType;
+    private SourceFormatType formatType;
 }

@@ -89,8 +89,21 @@
         name="languageLevel"
         required
       >
-        @for (level of languageLevels; track level) {
-        <mat-option [value]="level">{{ level }}</mat-option>
+        @for (level of languageLevels; track level.code) {
+        <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Format Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.formatType"
+        name="formatType"
+        required
+      >
+        @for (formatType of formatTypes; track formatType.code) {
+        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
         }
       </mat-select>
     </mat-form-field>

@@ -120,6 +120,8 @@ test('can create a new source', async ({ page }) => {
   await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
+  await page.getByLabel('Format Type').click();
+  await page.getByRole('option', { name: 'Word list with examples' }).click();
 
   // Click Create button
   await page.getByRole('button', { name: 'Create' }).click();
@@ -138,6 +140,7 @@ test('can create a new source', async ({ page }) => {
   expect(createdSource?.startPage).toBe(1);
   expect(createdSource?.languageLevel).toBe('B2');
   expect(createdSource?.cardType).toBe('VOCABULARY');
+  expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
 });
 
 test('can edit an existing source', async ({ page }) => {
@@ -333,6 +336,10 @@ test('validates required fields when creating source', async ({ page }) => {
   });
 
   await page.getByLabel('Start Page').fill('1');
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+  await page.getByLabel('Format Type').click();
+  await page.getByRole('option', { name: 'Word list with forms and examples' }).click();
 
   // Create button should now be enabled
   await expect(createButton).toBeEnabled();
