@@ -66,6 +66,7 @@ public class SourceController {
           .fileName(source.getFileName())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .cardCount(cardCount)
+          .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();
     }).collect(Collectors.toList());
