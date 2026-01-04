@@ -36,12 +36,12 @@ public class AreaWordsService {
 
           The forms is a string array representing the different forms extracted from the document.
           In case of a noun it's the plural form.
-          In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.""";
+          In case of verb it's the 3 forms of conjugation. Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g., "gehst", "geht", "ist gegangen").""";
       case null, default -> """
 
           The forms is a string array representing the different forms. Since the document does not contain word forms, you must generate them.
           In case of a noun generate the plural form.
-          In case of verb generate the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please make those full words. Not just endings.""";
+          In case of verb generate the 3 forms of conjugation. Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g., "gehst", "geht", "ist gegangen").""";
     };
 
     String examplesPrompt = switch (formatType) {
