@@ -30,14 +30,7 @@ test('audio plays sequentially', async ({ page }) => {
   // Navigate to a study page with cards that have audio
   await page.goto('/sources/goethe-a1/study');
 
-  // Wait for the learn card component to load
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
-
-  // Click reveal to trigger audio playback
-  const revealButton = page.getByRole('button', { name: 'Reveal' });
-  if (await revealButton.isVisible()) {
-    await revealButton.click();
-  }
+  await page.getByRole('heading', { name: 'helló' }).click();
 
   // Wait a moment for audio to start
   await page.waitForTimeout(500);
@@ -48,24 +41,16 @@ test('audio plays sequentially', async ({ page }) => {
   await expect(page.getByRole('main')).toBeVisible();
 
   // Verify the vocabulary card is present by checking for the word
-  await expect(page.getByText('Hallo')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hallo' })).toBeVisible();
 
-  // Test toggling reveal again
-  const hideButton = page.getByRole('button', { name: 'Hide' });
-  if (await hideButton.isVisible()) {
-    await hideButton.click();
-    await page.waitForTimeout(500);
-  }
+  await page.getByRole('heading', { name: 'Hallo' }).click();
 
-  // Click reveal again to test audio restart
-  const revealButton2 = page.getByRole('button', { name: 'Reveal' });
-  if (await revealButton2.isVisible()) {
-    await revealButton2.click();
-  }
+  await page.getByRole('heading', { name: 'helló' }).click();
 
   // Check for audio-related errors
   const audioErrors = consoleMessages.filter(
-    (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
+    (msg) =>
+      msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
   );
   expect(audioErrors.length).toBe(0);
 });
@@ -90,7 +75,9 @@ test('voice selection dialog audio', async ({ page }) => {
   expect(serviceErrors.length).toBe(0);
 });
 
-test('voice selection dialog shows only enabled voice configurations', async ({ page }) => {
+test('voice selection dialog shows only enabled voice configurations', async ({
+  page,
+}) => {
   // Create enabled voice configurations
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
@@ -136,13 +123,15 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: 'ház' })).toBeVisible();
 
   // Click the voice selection button
   await page.getByRole('button', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
-  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Voice Selection' })
+  ).toBeVisible();
 
   // Verify enabled voices are visible with their models
   await expect(page.getByText('Enabled German Voice')).toBeVisible();
@@ -153,7 +142,9 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   await expect(page.getByText('Disabled German Voice')).not.toBeVisible();
 });
 
-test('voice selection dialog shows no voices when no configurations exist', async ({ page }) => {
+test('voice selection dialog shows no voices when no configurations exist', async ({
+  page,
+}) => {
   // Create a card without audio configurations
   await createCard({
     cardId: 'voice-selection-empty-test',
@@ -175,20 +166,26 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: 'autó' })).toBeVisible();
 
   // Click the voice selection button
   await page.getByRole('button', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
-  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Voice Selection' })
+  ).toBeVisible();
 
   // Verify no voice cards are visible (both language groups should be empty)
-  const voiceCards = page.getByRole('dialog').getByRole('button', { name: /^Voice:/ });
+  const voiceCards = page
+    .getByRole('dialog')
+    .getByRole('button', { name: /^Voice:/ });
   await expect(voiceCards).toHaveCount(0);
 });
 
-test('voice selection dialog displays model for each voice configuration', async ({ page }) => {
+test('voice selection dialog displays model for each voice configuration', async ({
+  page,
+}) => {
   // Create voice configurations with different models
   await createVoiceConfiguration({
     voiceId: 'voice-1',
@@ -218,10 +215,12 @@ test('voice selection dialog displays model for each voice configuration', async
   });
 
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Voice Selection' }).click();
-  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Voice Selection' })
+  ).toBeVisible();
 
   // Verify both voices with their respective models are displayed
   await expect(page.getByText('German V2 Voice')).toBeVisible();

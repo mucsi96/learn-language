@@ -177,7 +177,7 @@ test('source selector routing works', async ({ page }) => {
 
   // Start from the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
-  await expect(page.getByText('tanulni', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'tanulni' })).toBeVisible();
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -189,8 +189,8 @@ test('source selector routing works', async ({ page }) => {
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/study');
 
   // Content should change to the card from the second source
-  await expect(page.getByText('írni', { exact: true })).toBeVisible();
-  await expect(page.getByText('tanulni', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'írni' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });
 
 test('source selector shows proper stats', async ({ page }) => {
@@ -468,14 +468,14 @@ test('mark for review button loads next card', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing (due earlier)
-  await expect(page.getByText('első', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'első' })).toBeVisible();
 
   // Click Mark for Review button
   await page.getByRole('button', { name: 'Mark for Review' }).click();
 
   // Verify the second card is now showing
-  await expect(page.getByText('második', { exact: true })).toBeVisible();
-  await expect(page.getByText('első', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'második' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'első' })).not.toBeVisible();
 });
 
 test('edit card button navigation', async ({ page }) => {
@@ -545,7 +545,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Easy' })).not.toBeVisible();
 
   // Click to reveal the card
-  await page.getByText('értékelni', { exact: true }).click();
+  await page.getByRole('heading', { name: 'értékelni' }).click();
 
   // Now grading buttons should be visible
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
@@ -600,17 +600,17 @@ test('again button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('ismételni', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ismételni' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('ismételni', { exact: true }).click();
+  await page.getByRole('heading', { name: 'ismételni' }).click();
 
   // Click Again button
   await page.getByRole('button', { name: 'Again' }).click();
 
   // Verify next card is loaded and card is no longer revealed
-  await expect(page.getByText('következő', { exact: true })).toBeVisible();
-  await expect(page.getByText('ismételni', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'következő' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ismételni' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Again' })).not.toBeVisible();
 });
 
@@ -658,17 +658,17 @@ test('hard button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('nehéz', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'nehéz' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('nehéz', { exact: true }).click();
+  await page.getByRole('heading', { name: 'nehéz' }).click();
 
   // Click Hard button
   await page.getByRole('button', { name: 'Hard' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('második', { exact: true })).toBeVisible();
-  await expect(page.getByText('nehéz', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'második' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'nehéz' })).not.toBeVisible();
 });
 
 test('good button functionality', async ({ page }) => {
@@ -715,17 +715,17 @@ test('good button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('jó', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'jó' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('jó', { exact: true }).click();
+  await page.getByRole('heading', { name: 'jó' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('harmadik', { exact: true })).toBeVisible();
-  await expect(page.getByText('jó', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'harmadik' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'jó' })).not.toBeVisible();
 });
 
 test('easy button functionality', async ({ page }) => {
@@ -772,17 +772,17 @@ test('easy button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('könnyű', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'könnyű' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('könnyű', { exact: true }).click();
+  await page.getByRole('heading', { name: 'könnyű' }).click();
 
   // Click Easy button
   await page.getByRole('button', { name: 'Easy' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('negyedik', { exact: true })).toBeVisible();
-  await expect(page.getByText('könnyű', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'negyedik' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'könnyű' })).not.toBeVisible();
 });
 
 test('grading card updates database', async ({ page }) => {
@@ -810,7 +810,7 @@ test('grading card updates database', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Reveal the card
-  await page.getByText('adatbázis', { exact: true }).click();
+  await page.getByRole('heading', { name: 'adatbázis' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
@@ -860,7 +860,7 @@ test('grading with no next card shows empty state', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Reveal the card
-  await page.getByText('utolsó', { exact: true }).click();
+  await page.getByRole('heading', { name: 'utolsó' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
