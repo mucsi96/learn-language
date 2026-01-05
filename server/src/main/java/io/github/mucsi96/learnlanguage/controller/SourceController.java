@@ -125,7 +125,7 @@ public class SourceController {
 
     byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType());
+    var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType(), source.getLanguageLevel());
     List<String> ids = areaWords.stream()
         .map(word -> word.getId())
         .toList();

@@ -9,6 +9,7 @@ import org.springframework.util.MimeTypeUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class AreaWordsService {
   private final WordIdService wordIdService;
   private final ChatService chatService;
 
-  private String buildSystemPrompt(SourceFormatType formatType) {
+  private String buildSystemPrompt(SourceFormatType formatType, LanguageLevel languageLevel) {
     String basePrompt = """
         You are a linguistic expert.
         You task is to extract the wordlist data from provided page image.
@@ -50,7 +51,8 @@ public class AreaWordsService {
           The examples property is a string array enlisting the examples provided in the document.""";
       case null, default -> """
 
-          The examples property is a string array. Since the document is flowing text without explicit examples, you must generate one context-relevant example sentence for each word that demonstrates its meaning and usage.""";
+          The examples property is a string array. Since the document is flowing text without explicit examples, you must generate one context-relevant example sentence for each word that demonstrates its meaning and usage. The generated examples must be appropriate for %s level learners - use vocabulary and grammar structures suitable for this proficiency level."""
+          .formatted(languageLevel != null ? languageLevel.name() : "A1");
     };
 
     AreaWords example = new AreaWords(List.of(
@@ -73,11 +75,11 @@ public class AreaWordsService {
     }
   }
 
-  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType) {
+  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType, LanguageLevel languageLevel) {
     var result = chatService.callWithLoggingAndMedia(
         model,
         "word_extraction",
-        buildSystemPrompt(formatType),
+        buildSystemPrompt(formatType, languageLevel),
         u -> u
             .text("Here is the image of the page")
             .media(Media.builder()
