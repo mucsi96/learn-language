@@ -1,5 +1,7 @@
 - Assign cards / multiperson
 
+- Fix ids to include both languages. Same for known words. 
+
 - support for speach card type
 - support for grammar card type
 - support multi part regions
