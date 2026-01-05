@@ -2,6 +2,9 @@
 
 !IMPORTANT: Avoid using comments which are trivial or obvious. If comment is needed means the code is not clear enough.
 
+## General Code style
+- Avoid fallback values that hide missing data - prefer crashes over silent incorrect behavior
+
 ## Java Code style
 - Prefer using lombok
 - Prefer using builder for models

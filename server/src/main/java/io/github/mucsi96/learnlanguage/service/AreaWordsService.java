@@ -52,7 +52,7 @@ public class AreaWordsService {
       case null, default -> """
 
           The examples property is a string array. Since the document is flowing text without explicit examples, you must generate one context-relevant example sentence for each word that demonstrates its meaning and usage. The generated examples must be appropriate for %s level learners - use vocabulary and grammar structures suitable for this proficiency level."""
-          .formatted(languageLevel != null ? languageLevel.name() : "A1");
+          .formatted(languageLevel.name());
     };
 
     AreaWords example = new AreaWords(List.of(

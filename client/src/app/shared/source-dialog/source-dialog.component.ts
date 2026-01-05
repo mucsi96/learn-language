@@ -49,7 +49,7 @@ export class SourceDialogComponent {
   formData: Partial<Source> = {
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
-    sourceType: this.data.source?.sourceType || 'pdf',
+    sourceType: this.data.source?.sourceType,
     fileName: this.data.source?.fileName || '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel,
