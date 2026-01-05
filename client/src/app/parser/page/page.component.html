@@ -80,7 +80,9 @@
   [style.background-size]="'100% 100%'"
 >
   @if (selectionRegionsLoading()) {
-  <mat-spinner class="area-loading"></mat-spinner>
+  <div class="area-loading">
+    <mat-spinner></mat-spinner>
+  </div>
   } @for (span of spans(); track $index) {
   <app-span
     [sourceId]="selectedSourceId()"
