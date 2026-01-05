@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createSource, getSource, getDocuments, yellowImage, getKnownWords, setupDefaultChatModelSettings } from '../utils';
+import { createSource, getSource, getDocuments, yellowImage, menschenA1Image, getKnownWords, setupDefaultChatModelSettings } from '../utils';
 
 test('can create an image source', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -151,9 +151,9 @@ test('extracted words appear as chips for image source after selection', async (
   await page.goto('http://localhost:8180/sources/chips-image-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
-    name: 'test-image.png',
+    name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: yellowImage
+    buffer: menschenA1Image
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
@@ -162,9 +162,9 @@ test('extracted words appear as chips for image source after selection', async (
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
     await page.mouse.up();
   }
 
@@ -188,9 +188,9 @@ test('can add word to known words from chip context menu', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/known-words-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
-    name: 'test-image.png',
+    name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: yellowImage
+    buffer: menschenA1Image
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
@@ -199,9 +199,9 @@ test('can add word to known words from chip context menu', async ({ page }) => {
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
     await page.mouse.up();
   }
 
@@ -236,9 +236,9 @@ test('can ignore word once from chip context menu', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/ignore-word-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
-    name: 'test-image.png',
+    name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: yellowImage
+    buffer: menschenA1Image
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
@@ -247,9 +247,9 @@ test('can ignore word once from chip context menu', async ({ page }) => {
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
     await page.mouse.up();
   }
 
