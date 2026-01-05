@@ -437,7 +437,7 @@ test('creates chat model usage logs when using bulk card creation', async ({
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   await expect(
     page.getByRole('dialog').getByRole('button', { name: 'Close' })
@@ -468,7 +468,7 @@ test('creates image model usage logs when using bulk card creation', async ({
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   await expect(
     page.getByRole('dialog').getByRole('button', { name: 'Close' })

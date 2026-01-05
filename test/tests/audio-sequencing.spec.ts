@@ -34,7 +34,7 @@ test('audio plays sequentially', async ({ page }) => {
   await page.waitForSelector('app-learn-card', { timeout: 10000 });
 
   // Click reveal to trigger audio playback
-  const revealButton = page.locator("button:has-text('Reveal')");
+  const revealButton = page.getByRole('button', { name: 'Reveal' });
   if (await revealButton.isVisible()) {
     await revealButton.click();
   }
@@ -45,22 +45,20 @@ test('audio plays sequentially', async ({ page }) => {
   // Check that the component is present and audio would be playing
   // Note: We can't directly test audio playback in headless mode,
   // but we can verify the component structure is correct
-  const learnCard = page.locator('app-learn-card');
-  await expect(learnCard).toBeVisible();
+  await expect(page.getByRole('main')).toBeVisible();
 
-  // Verify the vocabulary card component is present
-  const vocabCard = page.locator('app-learn-vocabulary-card');
-  await expect(vocabCard).toBeVisible();
+  // Verify the vocabulary card is present by checking for the word
+  await expect(page.getByText('Hallo')).toBeVisible();
 
   // Test toggling reveal again
-  const hideButton = page.locator('button').filter({ hasText: 'Hide' });
+  const hideButton = page.getByRole('button', { name: 'Hide' });
   if (await hideButton.isVisible()) {
     await hideButton.click();
     await page.waitForTimeout(500);
   }
 
   // Click reveal again to test audio restart
-  const revealButton2 = page.locator('button').filter({ hasText: 'Reveal' });
+  const revealButton2 = page.getByRole('button', { name: 'Reveal' });
   if (await revealButton2.isVisible()) {
     await revealButton2.click();
   }
@@ -186,7 +184,7 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify no voice cards are visible (both language groups should be empty)
-  const voiceCards = page.locator('.voice-card:not(.skeleton)');
+  const voiceCards = page.getByRole('dialog').getByRole('button', { name: /^Voice:/ });
   await expect(voiceCards).toHaveCount(0);
 });
 

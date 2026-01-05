@@ -30,7 +30,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
 
   // Initially no FAB should be visible
   await expect(
-    page.locator("button:has-text('Create')").filter({ hasText: 'Cards' })
+    page.getByRole('button', { name: 'Create cards in bulk' })
   ).not.toBeVisible();
 
   // Select a region with words that don't have cards
@@ -39,7 +39,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
   // FAB should now be visible with correct count
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
   await expect(fab).toContainText('Create 2 Cards');
 });
@@ -61,14 +61,14 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
   // Select first region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   // Select second region
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
@@ -76,7 +76,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // FAB should show total count from both regions
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
   await expect(fab).toContainText('Create 5 Cards');
 });
@@ -130,7 +130,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
 
   // FAB should not be visible
   await expect(
-    page.locator("button:has-text('Create')").filter({ hasText: 'Cards' })
+    page.getByRole('button', { name: 'Create cards in bulk' })
   ).not.toBeVisible();
 });
 
@@ -143,10 +143,10 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Progress dialog should open
-  await expect(page.locator("h2:has-text('Creating Cards')")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
 });
 
 test('bulk card creation shows individual progress', async ({ page }) => {
@@ -158,7 +158,7 @@ test('bulk card creation shows individual progress', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Check that individual words are listed within the progress dialog
   await expect(page.getByRole('dialog').getByText('aber')).toBeVisible();
@@ -178,7 +178,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
   await expect(
@@ -209,7 +209,7 @@ test('bulk card creation includes word data', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
   await expect(
@@ -276,7 +276,7 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Verify FAB is initially visible
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
 
   await fab.click();
 
@@ -286,7 +286,7 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   ).toBeVisible();
 
   // Close the dialog
-  await page.locator("button:has-text('Close')").click();
+  await page.getByRole('button', { name: 'Close' }).click();
 
   // FAB should no longer be visible since cards now exist
   await expect(fab).not.toBeVisible();
@@ -314,7 +314,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
   await expect(
@@ -352,7 +352,7 @@ test('bulk card creation source metadata', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
   await expect(
@@ -386,7 +386,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
   await expect(
@@ -436,7 +436,7 @@ test('bulk card creation dialog review link', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB to open the dialog
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Click the review link
   await page.getByRole('dialog').getByRole('link', { name: 'Review' }).click();

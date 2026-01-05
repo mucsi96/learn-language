@@ -89,13 +89,13 @@ test('displays card count for sources', async ({ page }) => {
 
   // Check that card counts are displayed
   await expect(
-    page.locator('text=Goethe A1').locator('..').getByText('2 cards')
+    page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')
   ).toBeVisible();
   await expect(
-    page.locator('text=Goethe A2').locator('..').getByText('1 cards')
+    page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')
   ).toBeVisible();
   await expect(
-    page.locator('text=Goethe B1').locator('..').getByText('0 cards')
+    page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')
   ).toBeVisible();
 });
 
@@ -110,8 +110,7 @@ test('can create a new source', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
 
   // Upload a PDF file via the file input
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test-file.pdf',
     mimeType: 'application/pdf',
     buffer: Buffer.from('PDF content')
@@ -151,7 +150,7 @@ test('can edit an existing source', async ({ page }) => {
   expect(initialSource?.name).toBe('Goethe A1');
 
   // Hover over a source card to reveal action buttons
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
+  const sourceCard = page.getByRole('article', { name: 'Goethe A1' });
   await sourceCard.hover();
 
   // Click the edit button
@@ -189,7 +188,7 @@ test('can replace PDF file when editing source', async ({ page }) => {
   expect(initialSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
 
   // Hover over a source card to reveal action buttons
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
+  const sourceCard = page.getByRole('article', { name: 'Goethe A1' });
   await sourceCard.hover();
 
   // Click the edit button
@@ -206,8 +205,7 @@ test('can replace PDF file when editing source', async ({ page }) => {
   await expect(page.getByText('Drag and drop a PDF file here')).toBeVisible();
 
   // Upload a new PDF file
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'new-document.pdf',
     mimeType: 'application/pdf',
     buffer: Buffer.from('New PDF content')
@@ -259,11 +257,11 @@ test('can delete a source and its cards', async ({ page }) => {
 
   // Verify source has cards
   await expect(
-    page.locator('text=Goethe B1').locator('..').getByText('2 cards')
+    page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')
   ).toBeVisible();
 
   // Hover over the source card
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe B1') });
+  const sourceCard = page.getByRole('article', { name: 'Goethe B1' });
   await sourceCard.hover();
 
   // Click the delete button
@@ -328,8 +326,7 @@ test('validates required fields when creating source', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Name');
 
   // Upload a PDF file
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test.pdf',
     mimeType: 'application/pdf',
     buffer: Buffer.from('PDF content')
@@ -360,5 +357,5 @@ test('displays empty state when no sources exist', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Add Source' })).toBeVisible();
 
   // Check that the sources grid is not displayed
-  await expect(page.locator('.sources')).not.toBeVisible();
+  await expect(page.getByRole('region', { name: 'Sources list' })).not.toBeVisible();
 });

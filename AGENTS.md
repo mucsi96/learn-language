@@ -13,6 +13,7 @@
 ## Testing Code style
 - Try testing from users perspective.
 - Use role based selectors and selectors based on accesibility
+- Avoid using page.locator in favor of semantic selectors (getByRole, getByLabel, getByText, etc.)
 - Avoid asserting loading state as it is not reliable
 - Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages

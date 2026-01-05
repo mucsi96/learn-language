@@ -74,7 +74,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
@@ -90,7 +90,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
     'Können Sie mir seine Adresse sagen?'
   );
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   await page.waitForLoadState('networkidle');
 

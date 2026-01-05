@@ -42,6 +42,8 @@
 } @else if (isEmptyImageSource()) {
 <div
   class="image-dropzone"
+  role="region"
+  aria-label="Image upload dropzone"
   [class.dragging]="isDragging()"
   (dragover)="onDragOver($event)"
   (dragleave)="onDragLeave($event)"
@@ -60,6 +62,7 @@
         accept=".png,.jpg,.jpeg,.gif,.webp"
         (change)="onImageFileSelected($event)"
         class="hidden-file-input"
+        aria-label="Upload image file"
       />
     </label>
   </p>
@@ -72,6 +75,8 @@
 } @else {
 <section
   class="page-layout"
+  role="region"
+  aria-label="Page content"
   appDraggableSelection
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
@@ -100,8 +105,8 @@
 </section>
 
 @if (sourceType() === 'images' && extractedWords().length > 0) {
-<div class="extracted-words-container">
-  <mat-chip-set aria-label="Extracted words">
+<div class="extracted-words-container" role="region" aria-label="Extracted words">
+  <mat-chip-set>
     @for (word of extractedWords(); track word.id) {
     <mat-chip [matMenuTriggerFor]="wordMenu">
       {{ word.word }}

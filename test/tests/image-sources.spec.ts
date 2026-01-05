@@ -48,7 +48,7 @@ test('image source shows empty dropzone initially', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/empty-image-source/page/1');
 
   await expect(page.getByText('Drag and drop an image here')).toBeVisible();
-  await expect(page.locator('.image-dropzone')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Image upload dropzone' })).toBeVisible();
 });
 
 test('can upload image to image source from page view', async ({ page }) => {
@@ -66,14 +66,13 @@ test('can upload image to image source from page view', async ({ page }) => {
 
   await expect(page.getByText('Drag and drop an image here')).toBeVisible();
 
-  const fileInput = page.locator('.image-dropzone input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
-  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible({ timeout: 10000 });
 
   const documents = await getDocuments('upload-image-source');
   expect(documents).toHaveLength(1);
@@ -94,14 +93,13 @@ test('can delete image from image source', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/delete-image-source/page/1');
 
-  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
-  await dropzoneInput.setInputFiles({
+  await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
-  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible({ timeout: 10000 });
 
   let documents = await getDocuments('delete-image-source');
   expect(documents).toHaveLength(1);
@@ -109,7 +107,7 @@ test('can delete image from image source', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Delete image' })).toBeVisible();
   await page.getByRole('button', { name: 'Delete image' }).click();
 
-  await expect(page.locator('.image-dropzone')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Image upload dropzone' })).toBeVisible({ timeout: 10000 });
 
   documents = await getDocuments('delete-image-source');
   expect(documents).toHaveLength(0);
@@ -128,7 +126,7 @@ test('image source shows source type in create dialog is disabled during edit', 
 
   await page.goto('http://localhost:8180/sources');
 
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Edit Image Source') });
+  const sourceCard = page.getByRole('article', { name: 'Edit Image Source' });
   await sourceCard.hover();
   await sourceCard.getByRole('button', { name: 'Edit source' }).click();
 
@@ -152,17 +150,16 @@ test('extracted words appear as chips for image source after selection', async (
 
   await page.goto('http://localhost:8180/sources/chips-image-source/page/1');
 
-  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
-  await dropzoneInput.setInputFiles({
+  await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
-  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible({ timeout: 10000 });
 
-  const pageLayout = page.locator('.page-layout');
-  const box = await pageLayout.boundingBox();
+  const box = await pageContent.boundingBox();
 
   if (box) {
     await page.mouse.move(box.x + 10, box.y + 10);
@@ -171,8 +168,9 @@ test('extracted words appear as chips for image source after selection', async (
     await page.mouse.up();
   }
 
-  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('mat-chip')).toBeVisible();
+  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  await expect(extractedWords).toBeVisible({ timeout: 15000 });
+  await expect(extractedWords.getByRole('button').first()).toBeVisible();
 });
 
 test('can add word to known words from chip context menu', async ({ page }) => {
@@ -189,17 +187,16 @@ test('can add word to known words from chip context menu', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/known-words-source/page/1');
 
-  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
-  await dropzoneInput.setInputFiles({
+  await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
-  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible({ timeout: 10000 });
 
-  const pageLayout = page.locator('.page-layout');
-  const box = await pageLayout.boundingBox();
+  const box = await pageContent.boundingBox();
 
   if (box) {
     await page.mouse.move(box.x + 10, box.y + 10);
@@ -208,9 +205,10 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
+  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  await expect(extractedWords).toBeVisible({ timeout: 15000 });
 
-  const firstChip = page.locator('mat-chip').first();
+  const firstChip = extractedWords.getByRole('button').first();
   const chipText = await firstChip.textContent();
   await firstChip.click();
 
@@ -237,17 +235,16 @@ test('can ignore word once from chip context menu', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/ignore-word-source/page/1');
 
-  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
-  await dropzoneInput.setInputFiles({
+  await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer: yellowImage
   });
 
-  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible({ timeout: 10000 });
 
-  const pageLayout = page.locator('.page-layout');
-  const box = await pageLayout.boundingBox();
+  const box = await pageContent.boundingBox();
 
   if (box) {
     await page.mouse.move(box.x + 10, box.y + 10);
@@ -256,10 +253,11 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
+  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  await expect(extractedWords).toBeVisible({ timeout: 15000 });
 
-  const initialChipCount = await page.locator('mat-chip').count();
-  const firstChip = page.locator('mat-chip').first();
+  const initialChipCount = await extractedWords.getByRole('button').count();
+  const firstChip = extractedWords.getByRole('button').first();
   const chipText = await firstChip.textContent();
   await firstChip.click();
 

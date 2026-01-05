@@ -37,8 +37,8 @@ test('can set primary model for operation type', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
-  const geminiRow = page.locator('tr', { has: page.getByText('gemini-3-pro-preview', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const geminiRow = page.getByRole('row', { name: 'gemini-3-pro-preview' });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
   const geminiPrimaryRadio = geminiRow.getByRole('radio').first();
 
@@ -62,7 +62,7 @@ test('can set primary model for operation type', async ({ page }) => {
 test('primary radio is disabled when model is not enabled', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
 
   await expect(gptPrimaryRadio).toBeDisabled();
@@ -78,7 +78,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
 
   await expect(gptPrimaryRadio).toBeChecked();
@@ -87,7 +87,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
 test('can toggle model setting', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const toggleInGptRow = gptRow.getByRole('switch').first();
 
   await expect(toggleInGptRow).toBeVisible();
@@ -120,12 +120,12 @@ test('displays existing enabled settings from database', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptToggles = gptRow.getByRole('switch');
   const firstGptToggle = gptToggles.first();
   await expect(firstGptToggle).toBeChecked();
 
-  const gptMiniRow = page.locator('tr', { has: page.getByText('gpt-4o-mini', { exact: true }) });
+  const gptMiniRow = page.getByRole('row', { name: 'gpt-4o-mini' });
   const gptMiniToggles = gptMiniRow.getByRole('switch');
   const genderToggle = gptMiniToggles.nth(3);
   await expect(genderToggle).toBeChecked();
@@ -150,7 +150,7 @@ test('can enable all models for an operation type', async ({ page }) => {
 test('toggle performs optimistic update', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const gptRow = page.locator('tr', { has: page.getByText('gpt-4o', { exact: true }) });
+  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const toggle = gptRow.getByRole('switch').first();
 
   await expect(toggle).not.toBeChecked();

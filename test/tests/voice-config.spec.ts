@@ -173,8 +173,8 @@ test('displays voice category tags', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/voices');
 
-  await expect(page.locator('.default-tag').first()).toBeVisible();
-  await expect(page.locator('.favorite-tag').first()).toBeVisible();
+  await expect(page.getByText('default').first()).toBeVisible();
+  await expect(page.getByText('favorite').first()).toBeVisible();
 });
 
 test('displays model name in configuration list', async ({ page }) => {
