@@ -22,10 +22,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
+import { WordsWithoutCardsService } from '../../words-without-cards.service';
+import { KnownWordsService } from '../../known-words/known-words.service';
 
 @Component({
   selector: 'app-page',
@@ -41,6 +44,7 @@ import { firstValueFrom } from 'rxjs';
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
+    MatChipsModule,
     BulkCardCreationFabComponent
   ],
   templateUrl: './page.component.html',
@@ -53,7 +57,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
   private readonly http = inject(HttpClient);
+  private readonly wordsService = inject(WordsWithoutCardsService);
+  private readonly knownWordsService = inject(KnownWordsService);
   readonly sources = this.sourcesService.sources.value;
+  readonly extractedWords = this.wordsService.wordsWithoutCards;
   readonly pageNumber = linkedSignal(
     () => this.pageService.page.value()?.number
   );
@@ -226,5 +233,14 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
     this.sourcesService.refetchSources();
     this.pageService.reload();
+  }
+
+  async addToKnownWords(word: string, wordId: string): Promise<void> {
+    await this.knownWordsService.addWord(word);
+    this.wordsService.ignoreWord(wordId);
+  }
+
+  ignoreWord(wordId: string): void {
+    this.wordsService.ignoreWord(wordId);
   }
 }

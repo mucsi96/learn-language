@@ -33,6 +33,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+  background-color: var(--mat-app-background-color);
+  border-radius: 50%;
+  padding: 1rem;
 }
 
 .hidden-file-input {
@@ -85,4 +88,28 @@
 .image-dropzone .error-message {
   color: #f44336;
   margin-top: 1rem;
+}
+
+.extracted-words-container {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90vw;
+  background-color: var(--mat-app-background-color);
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.extracted-words-container mat-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.extracted-words-container mat-chip {
+  cursor: pointer;
 }

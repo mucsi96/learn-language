@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createSource, getSource, getDocuments, yellowImage } from '../utils';
+import { createSource, getSource, getDocuments, yellowImage, getKnownWords, setupDefaultChatModelSettings } from '../utils';
 
 test('can create an image source', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -136,4 +136,138 @@ test('image source shows source type in create dialog is disabled during edit', 
 
   const sourceTypeSelect = page.getByLabel('Source Type');
   await expect(sourceTypeSelect).toBeDisabled();
+});
+
+test('extracted words appear as chips for image source after selection', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'chips-image-source',
+    name: 'Chips Image Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/chips-image-source/page/1');
+
+  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
+  await dropzoneInput.setInputFiles({
+    name: 'test-image.png',
+    mimeType: 'image/png',
+    buffer: yellowImage
+  });
+
+  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+
+  const pageLayout = page.locator('.page-layout');
+  const box = await pageLayout.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.up();
+  }
+
+  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('mat-chip')).toBeVisible();
+});
+
+test('can add word to known words from chip context menu', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'known-words-source',
+    name: 'Known Words Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/known-words-source/page/1');
+
+  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
+  await dropzoneInput.setInputFiles({
+    name: 'test-image.png',
+    mimeType: 'image/png',
+    buffer: yellowImage
+  });
+
+  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+
+  const pageLayout = page.locator('.page-layout');
+  const box = await pageLayout.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.up();
+  }
+
+  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
+
+  const firstChip = page.locator('mat-chip').first();
+  const chipText = await firstChip.textContent();
+  await firstChip.click();
+
+  await expect(page.getByRole('menuitem', { name: 'Add to known words' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Add to known words' }).click();
+
+  await expect(firstChip).not.toBeVisible({ timeout: 5000 });
+
+  const knownWords = await getKnownWords();
+  expect(knownWords).toContain(chipText?.trim());
+});
+
+test('can ignore word once from chip context menu', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ignore-word-source',
+    name: 'Ignore Word Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/ignore-word-source/page/1');
+
+  const dropzoneInput = page.locator('.image-dropzone input[type="file"]');
+  await dropzoneInput.setInputFiles({
+    name: 'test-image.png',
+    mimeType: 'image/png',
+    buffer: yellowImage
+  });
+
+  await expect(page.locator('.page-layout')).toBeVisible({ timeout: 10000 });
+
+  const pageLayout = page.locator('.page-layout');
+  const box = await pageLayout.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 10, box.y + box.height - 10);
+    await page.mouse.up();
+  }
+
+  await expect(page.locator('.extracted-words-container')).toBeVisible({ timeout: 15000 });
+
+  const initialChipCount = await page.locator('mat-chip').count();
+  const firstChip = page.locator('mat-chip').first();
+  const chipText = await firstChip.textContent();
+  await firstChip.click();
+
+  await expect(page.getByRole('menuitem', { name: 'Ignore once' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Ignore once' }).click();
+
+  await expect(firstChip).not.toBeVisible({ timeout: 5000 });
+
+  const knownWords = await getKnownWords();
+  expect(knownWords).not.toContain(chipText?.trim());
 });
