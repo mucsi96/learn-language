@@ -33,6 +33,7 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
+import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ public class SourceController {
   private final AreaWordsService areaWordsService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
+  private final KnownWordService knownWordService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -126,13 +128,18 @@ public class SourceController {
     byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
     var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType(), source.getLanguageLevel());
-    List<String> ids = areaWords.stream()
+
+    var filteredWords = areaWords.stream()
+        .filter(word -> !knownWordService.isWordKnown(word.getWord()))
+        .toList();
+
+    List<String> ids = filteredWords.stream()
         .map(word -> word.getId())
         .toList();
 
     var cards = cardService.getCardsByIds(ids);
 
-    var words = areaWords.stream().map(word -> {
+    var words = filteredWords.stream().map(word -> {
       word.setExists(cards.stream().anyMatch(card -> card.getId().equals(word.getId())));
       return word;
     }).collect(Collectors.toList());
