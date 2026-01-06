@@ -97,6 +97,10 @@ export class SourceDialogComponent {
       return true;
     }
 
+    if (this.data.mode === 'edit') {
+      return true;
+    }
+
     return this.hasFile();
   }
 
