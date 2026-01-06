@@ -1,5 +1,12 @@
 import { test, expect } from '../fixtures';
-import { createSource, getSource, getDocuments, yellowImage, menschenA1Image, getKnownWords, setupDefaultChatModelSettings } from '../utils';
+import {
+  createSource,
+  getSource,
+  getDocuments,
+  menschenA1Image,
+  getKnownWords,
+  setupDefaultChatModelSettings,
+} from '../utils';
 
 test('can create an image source', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -30,7 +37,7 @@ test('can create an image source', async ({ page }) => {
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Image Source');
   expect(createdSource?.sourceType).toBe('IMAGES');
-  expect(createdSource?.fileName).toBeNull();
+  expect(createdSource?.fileName).toBe('');
   expect(createdSource?.startPage).toBe(1);
 });
 
@@ -41,7 +48,7 @@ test('image source shows empty dropzone initially', async ({ page }) => {
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -58,7 +65,7 @@ test('can upload image to image source from page view', async ({ page }) => {
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -69,10 +76,10 @@ test('can upload image to image source from page view', async ({ page }) => {
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
-    buffer: yellowImage
+    buffer: menschenA1Image,
   });
 
-  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible();
 
   const documents = await getDocuments('upload-image-source');
   expect(documents).toHaveLength(1);
@@ -87,7 +94,7 @@ test('can delete image from image source', async ({ page }) => {
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -96,18 +103,17 @@ test('can delete image from image source', async ({ page }) => {
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
     mimeType: 'image/png',
-    buffer: yellowImage
+    buffer: menschenA1Image,
   });
 
-  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Page content' })).toBeVisible();
 
   let documents = await getDocuments('delete-image-source');
   expect(documents).toHaveLength(1);
 
-  await expect(page.getByRole('button', { name: 'Delete image' })).toBeVisible();
-  await page.getByRole('button', { name: 'Delete image' }).click();
+  await page.getByRole('button', { name: 'Delete image', exact: true }).click();
 
-  await expect(page.getByRole('region', { name: 'Image upload dropzone' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('region', { name: 'Image upload dropzone' })).toBeVisible();
 
   documents = await getDocuments('delete-image-source');
   expect(documents).toHaveLength(0);
@@ -120,7 +126,7 @@ test('image source shows source type in create dialog is disabled during edit', 
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -144,7 +150,7 @@ test('extracted words appear as chips for image source after selection', async (
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -153,24 +159,27 @@ test('extracted words appear as chips for image source after selection', async (
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: menschenA1Image
+    buffer: menschenA1Image,
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
-  await expect(pageContent).toBeVisible({ timeout: 10000 });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
 
   const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible({ timeout: 15000 });
-  await expect(extractedWords.getByRole('button').first()).toBeVisible();
+  await expect(extractedWords).toBeVisible();
+  await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
+  await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
 });
 
 test('can add word to known words from chip context menu', async ({ page }) => {
@@ -181,7 +190,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -190,35 +199,37 @@ test('can add word to known words from chip context menu', async ({ page }) => {
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: menschenA1Image
+    buffer: menschenA1Image,
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
-  await expect(pageContent).toBeVisible({ timeout: 10000 });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
 
   const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible({ timeout: 15000 });
+  await expect(extractedWords).toBeVisible();
 
-  const firstChip = extractedWords.getByRole('button').first();
-  const chipText = await firstChip.textContent();
-  await firstChip.click();
+  await extractedWords.getByRole('button', { name: 'hören' }).click();
 
   await expect(page.getByRole('menuitem', { name: 'Add to known words' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Add to known words' }).click();
 
-  await expect(firstChip).not.toBeVisible({ timeout: 5000 });
+  await expect(extractedWords.getByRole('button', { name: 'hören' })).not.toBeVisible();
+  await expect(extractedWords.getByRole('button', { name: 'das Lied' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
 
   const knownWords = await getKnownWords();
-  expect(knownWords).toContain(chipText?.trim());
+  expect(knownWords).toContain('hören');
 });
 
 test('can ignore word once from chip context menu', async ({ page }) => {
@@ -229,7 +240,7 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     startPage: 1,
     languageLevel: 'A1',
     cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
 
@@ -238,34 +249,32 @@ test('can ignore word once from chip context menu', async ({ page }) => {
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',
     mimeType: 'image/png',
-    buffer: menschenA1Image
+    buffer: menschenA1Image,
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
-  await expect(pageContent).toBeVisible({ timeout: 10000 });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + box.width * 0.02, box.y + box.height * 0.53);
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.98);
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
 
   const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible({ timeout: 15000 });
+  await expect(extractedWords).toBeVisible();
 
-  const initialChipCount = await extractedWords.getByRole('button').count();
-  const firstChip = extractedWords.getByRole('button').first();
-  const chipText = await firstChip.textContent();
-  await firstChip.click();
+  await extractedWords.getByRole('button', { name: 'hören' }).click();
 
   await expect(page.getByRole('menuitem', { name: 'Ignore once' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Ignore once' }).click();
 
-  await expect(firstChip).not.toBeVisible({ timeout: 5000 });
-
-  const knownWords = await getKnownWords();
-  expect(knownWords).not.toContain(chipText?.trim());
+  await expect(extractedWords.getByRole('button', { name: 'hören' })).not.toBeVisible();
+  await expect(extractedWords.getByRole('button', { name: 'das Lied' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
 });

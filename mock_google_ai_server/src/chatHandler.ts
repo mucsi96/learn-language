@@ -20,6 +20,19 @@ export class ChatHandler {
         request,
         'You task is to extract the wordlist data from provided page image.',
         'Here is the image of the page',
+        ['Hören', 'Lied']
+      )
+    ) {
+      return createGeminiResponse({
+        wordList: WORD_LISTS['hoeren_lied'],
+      });
+    }
+
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
         ['aber', 'abfahren']
       )
     ) {

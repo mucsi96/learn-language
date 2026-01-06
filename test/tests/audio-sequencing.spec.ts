@@ -49,8 +49,7 @@ test('audio plays sequentially', async ({ page }) => {
 
   // Check for audio-related errors
   const audioErrors = consoleMessages.filter(
-    (msg) =>
-      msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
+    (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
   );
   expect(audioErrors.length).toBe(0);
 });
@@ -69,15 +68,12 @@ test('voice selection dialog audio', async ({ page }) => {
 
   // Check for service-related errors
   const serviceErrors = consoleMessages.filter(
-    (msg) =>
-      msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
+    (msg) => msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
   );
   expect(serviceErrors.length).toBe(0);
 });
 
-test('voice selection dialog shows only enabled voice configurations', async ({
-  page,
-}) => {
+test('voice selection dialog shows only enabled voice configurations', async ({ page }) => {
   // Create enabled voice configurations
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
@@ -129,9 +125,7 @@ test('voice selection dialog shows only enabled voice configurations', async ({
   await page.getByRole('button', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
-  await expect(
-    page.getByRole('heading', { name: 'Voice Selection' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify enabled voices are visible with their models
   await expect(page.getByText('Enabled German Voice')).toBeVisible();
@@ -142,9 +136,7 @@ test('voice selection dialog shows only enabled voice configurations', async ({
   await expect(page.getByText('Disabled German Voice')).not.toBeVisible();
 });
 
-test('voice selection dialog shows no voices when no configurations exist', async ({
-  page,
-}) => {
+test('voice selection dialog shows no voices when no configurations exist', async ({ page }) => {
   // Create a card without audio configurations
   await createCard({
     cardId: 'voice-selection-empty-test',
@@ -172,20 +164,14 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
   await page.getByRole('button', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
-  await expect(
-    page.getByRole('heading', { name: 'Voice Selection' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify no voice cards are visible (both language groups should be empty)
-  const voiceCards = page
-    .getByRole('dialog')
-    .getByRole('button', { name: /^Voice:/ });
+  const voiceCards = page.getByRole('dialog').getByRole('button', { name: /^Voice:/ });
   await expect(voiceCards).toHaveCount(0);
 });
 
-test('voice selection dialog displays model for each voice configuration', async ({
-  page,
-}) => {
+test('voice selection dialog displays model for each voice configuration', async ({ page }) => {
   // Create voice configurations with different models
   await createVoiceConfiguration({
     voiceId: 'voice-1',
@@ -218,9 +204,7 @@ test('voice selection dialog displays model for each voice configuration', async
   await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Voice Selection' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Voice Selection' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify both voices with their respective models are displayed
   await expect(page.getByText('German V2 Voice')).toBeVisible();

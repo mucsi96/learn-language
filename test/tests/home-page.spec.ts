@@ -4,22 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 test('displays welcome message', async ({ page }) => {
   await page.goto('http://localhost:8180');
-  await expect(
-    page.getByRole('heading', { name: 'Welcome to Learn Language', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome to Learn Language', exact: true })).toBeVisible();
 });
 
 test('displays source list', async ({ page }) => {
   await page.goto('http://localhost:8180');
-  await expect(
-    page.getByRole('heading', { name: 'Goethe A1', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Goethe A2', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Goethe B1', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A1', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A2', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe B1', exact: true })).toBeVisible();
 });
 
 test('due cards count by state', async ({ page }) => {

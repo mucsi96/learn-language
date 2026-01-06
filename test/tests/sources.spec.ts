@@ -3,9 +3,7 @@ import { createCard, cleanupDbRecords, getSource } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Sources' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe A2' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe B1' })).toBeVisible();
@@ -13,18 +11,9 @@ test('displays sources', async ({ page }) => {
 
 test('sources have links', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByRole('link', { name: 'Goethe A1' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-a1/page/9'
-  );
-  await expect(page.getByRole('link', { name: 'Goethe A2' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-a2/page/8'
-  );
-  await expect(page.getByRole('link', { name: 'Goethe B1' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-b1/page/16'
-  );
+  await expect(page.getByRole('link', { name: 'Goethe A1' })).toHaveAttribute('href', '/sources/goethe-a1/page/9');
+  await expect(page.getByRole('link', { name: 'Goethe A2' })).toHaveAttribute('href', '/sources/goethe-a2/page/8');
+  await expect(page.getByRole('link', { name: 'Goethe B1' })).toHaveAttribute('href', '/sources/goethe-b1/page/16');
 });
 
 test('displays card counts', async ({ page }) => {
@@ -88,15 +77,9 @@ test('displays card count for sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Check that card counts are displayed
-  await expect(
-    page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')
-  ).toBeVisible();
-  await expect(
-    page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')
-  ).toBeVisible();
-  await expect(
-    page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')
-  ).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')).toBeVisible();
 });
 
 test('can create a new source', async ({ page }) => {
@@ -113,7 +96,7 @@ test('can create a new source', async ({ page }) => {
   await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test-file.pdf',
     mimeType: 'application/pdf',
-    buffer: Buffer.from('PDF content')
+    buffer: Buffer.from('PDF content'),
   });
 
   await page.getByLabel('Start Page').fill('1');
@@ -208,7 +191,7 @@ test('can replace PDF file when editing source', async ({ page }) => {
   await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'new-document.pdf',
     mimeType: 'application/pdf',
-    buffer: Buffer.from('New PDF content')
+    buffer: Buffer.from('New PDF content'),
   });
 
   // Verify the new file is shown
@@ -256,9 +239,7 @@ test('can delete a source and its cards', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Verify source has cards
-  await expect(
-    page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')
-  ).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')).toBeVisible();
 
   // Hover over the source card
   const sourceCard = page.getByRole('article', { name: 'Goethe B1' });
@@ -329,7 +310,7 @@ test('validates required fields when creating source', async ({ page }) => {
   await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test.pdf',
     mimeType: 'application/pdf',
-    buffer: Buffer.from('PDF content')
+    buffer: Buffer.from('PDF content'),
   });
 
   await page.getByLabel('Start Page').fill('1');
@@ -348,12 +329,8 @@ test('displays empty state when no sources exist', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Check that empty state is displayed
-  await expect(
-    page.getByRole('heading', { name: 'No sources yet', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByText('Create your first source to start adding cards.')
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No sources yet', exact: true })).toBeVisible();
+  await expect(page.getByText('Create your first source to start adding cards.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add Source' })).toBeVisible();
 
   // Check that the sources grid is not displayed

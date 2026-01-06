@@ -13,7 +13,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
 
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
-  await expect(page.getByText('gpt-4o', {exact: true})).toBeVisible();
+  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3-pro-preview')).toBeVisible();
 
   await expect(page.getByText('English Translation')).toBeVisible();
@@ -52,8 +52,10 @@ test('can set primary model for operation type', async ({ page }) => {
   await expect(geminiPrimaryRadio).not.toBeChecked();
 
   const settings = await getChatModelSettings();
-  const gptSetting = settings.find(s => s.modelName === 'gpt-4o' && s.operationType === 'translation_en');
-  const geminiSetting = settings.find(s => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation_en');
+  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'translation_en');
+  const geminiSetting = settings.find(
+    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation_en'
+  );
 
   expect(gptSetting?.isPrimary).toBe(true);
   expect(geminiSetting?.isPrimary).toBe(false);
@@ -101,7 +103,7 @@ test('can toggle model setting', async ({ page }) => {
   expect(isCheckedAfter).toBe(!isCheckedBefore);
 
   const settings = await getChatModelSettings();
-  const gptSetting = settings.find(s => s.modelName === 'gpt-4o');
+  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o');
   expect(gptSetting).toBeDefined();
   expect(gptSetting!.isEnabled).toBe(!isCheckedBefore);
 });
@@ -141,10 +143,10 @@ test('can enable all models for an operation type', async ({ page }) => {
   await page.waitForTimeout(500);
 
   const settings = await getChatModelSettings();
-  const translationEnSettings = settings.filter(s => s.operationType === 'translation_en');
+  const translationEnSettings = settings.filter((s) => s.operationType === 'translation_en');
 
   expect(translationEnSettings.length).toBeGreaterThan(0);
-  expect(translationEnSettings.every(s => s.isEnabled)).toBe(true);
+  expect(translationEnSettings.every((s) => s.isEnabled)).toBe(true);
 });
 
 test('toggle performs optimistic update', async ({ page }) => {

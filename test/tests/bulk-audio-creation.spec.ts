@@ -141,9 +141,7 @@ test('bulk audio fab hides when all cards have audio', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // FAB should not be visible since card has complete audio
-  await expect(
-    page.getByRole('button', { name: 'Generate audio for cards' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
 
 test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
@@ -293,9 +291,7 @@ test('bulk audio creation opens progress dialog', async ({ page }) => {
 
   // Progress dialog should open
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(
-    page.getByRole('dialog').getByRole('heading', { name: 'Creating Audio' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Creating Audio' })).toBeVisible();
 });
 
 test('bulk audio creation shows individual progress', async ({ page }) => {
@@ -387,15 +383,11 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify audio data was added to database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'verstehen'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -406,8 +398,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
     expect(Array.isArray(audioList)).toBeTruthy();
 
     // Helper function to find audio by text
-    const findAudioByText = (text: string) =>
-      audioList.find((audio: any) => audio.text === text);
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
 
     // Should have audio for German word (German samples)
     const verstehenAudio = findAudioByText('verstehen');
@@ -425,9 +416,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(
-      downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)
-    ).toBeTruthy();
+    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });
 
@@ -462,15 +451,11 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify card readiness was updated
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness FROM learn_language.cards WHERE id = 'verstehen'"
-    );
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verstehen'");
 
     expect(result.rows.length).toBe(1);
     const readiness = result.rows[0].readiness;
@@ -536,9 +521,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
   await fab.click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 2 cards!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
 
   // Close the dialog
   await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
@@ -590,15 +573,11 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify audio data was completed
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'partial-audio'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'partial-audio'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -607,8 +586,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
     expect(Array.isArray(audioList)).toBeTruthy();
 
     // Helper function to find audio by text
-    const findAudioByText = (text: string) =>
-      audioList.find((audio: any) => audio.text === text);
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
 
     // Should preserve existing audio
     const verstehenAudio = findAudioByText('verstehen');
@@ -626,9 +604,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(
-      downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)
-    ).toBeTruthy();
+    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });
 
@@ -719,15 +695,11 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Should complete successfully
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify the generated audio uses the configured voice
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'test-card'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'test-card'");
 
     const cardData = result.rows[0].data;
     const audioList = cardData.audio;

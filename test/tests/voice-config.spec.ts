@@ -98,7 +98,7 @@ test('can delete a voice configuration', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Confirmation' })).toBeVisible();
   await page.getByRole('button', { name: 'Yes' }).click();
 
-  await expect(page.getByText('Voice to Delete', { exact: true})).not.toBeVisible();
+  await expect(page.getByText('Voice to Delete', { exact: true })).not.toBeVisible();
   await expect(page.getByText('No voice configurations yet')).toBeVisible();
 
   const configs = await getVoiceConfigurations();

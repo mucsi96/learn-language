@@ -1,21 +1,16 @@
 import { WordData } from './types';
 
 export const WORD_LISTS: Record<string, WordData[]> = {
-  'menschen_a1_1_9': [
+  'hoeren_lied': [
     {
-      word: 'heißen',
-      forms: ['heißt', 'hieß', 'geheißen'],
-      examples: ['Ich heiße Maria.', 'Wie heißen Sie?'],
+      word: 'hören',
+      forms: ['hört', 'hörte', 'gehört'],
+      examples: ['Hören Sie. Wie heißt das Lied?'],
     },
     {
-      word: 'kommen',
-      forms: ['kommt', 'kam', 'gekommen'],
-      examples: ['Ich komme aus Deutschland.', 'Woher kommst du?'],
-    },
-    {
-      word: 'wohnen',
-      forms: ['wohnt', 'wohnte', 'gewohnt'],
-      examples: ['Ich wohne in Berlin.', 'Wo wohnst du?'],
+      word: 'das Lied',
+      forms: ['die Lieder'],
+      examples: ['Das Lied ist sehr schön.'],
     },
   ],
   'aber_abfahren': [
@@ -56,17 +51,13 @@ export const WORD_LISTS: Record<string, WordData[]> = {
 
 export const TRANSLATIONS: Record<string, Record<string, { translation: string; examples: string[] }>> = {
   english: {
-    'heißen': {
-      translation: 'to be called, to be named',
-      examples: ['My name is Maria.', 'What is your name?'],
+    'hören': {
+      translation: 'to hear, to listen',
+      examples: ['Listen. What is the song called?'],
     },
-    'kommen': {
-      translation: 'to come',
-      examples: ['I come from Germany.', 'Where do you come from?'],
-    },
-    'wohnen': {
-      translation: 'to live, to reside',
-      examples: ['I live in Berlin.', 'Where do you live?'],
+    'das Lied': {
+      translation: 'the song',
+      examples: ['The song is very beautiful.'],
     },
     'aber': {
       translation: 'but, however',
@@ -94,17 +85,13 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   hungarian: {
-    'heißen': {
-      translation: 'hívni (valakit valahogyan)',
-      examples: ['Maria a nevem.', 'Hogy hívnak?'],
+    'hören': {
+      translation: 'hallani, hallgatni',
+      examples: ['Figyeljen. Hogy hívják a dalt?'],
     },
-    'kommen': {
-      translation: 'jönni',
-      examples: ['Németországból jövök.', 'Honnan jössz?'],
-    },
-    'wohnen': {
-      translation: 'lakni',
-      examples: ['Berlinben lakom.', 'Hol laksz?'],
+    'das Lied': {
+      translation: 'a dal',
+      examples: ['A dal nagyon szép.'],
     },
     'aber': {
       translation: 'de, azonban',
@@ -132,17 +119,13 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   'swiss-german': {
-    'heißen': {
-      translation: 'heissa',
-      examples: ['Ich heissa Maria.', 'Wie heissisch?'],
+    'hören': {
+      translation: 'ghöra, lose',
+      examples: ['Losed Sie. Wie heisst s Lied?'],
     },
-    'kommen': {
-      translation: 'cho',
-      examples: ['Ich chume us Dütschland.', 'Woher chunsch?'],
-    },
-    'wohnen': {
-      translation: 'wohne',
-      examples: ['Ich wohne z Berlin.', 'Wo wohnsch?'],
+    'das Lied': {
+      translation: 's Lied',
+      examples: ['S Lied isch sehr schön.'],
     },
     'aber': {
       translation: 'aber, doch',
@@ -172,6 +155,7 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
 };
 
 export const GENDERS: Record<string, string> = {
+  'das Lied': 'NEUTER',
   'die Abfahrt': 'FEMININE',
   'der Absender': 'MASCULINE',
   'Achtung': 'FEMININE',
@@ -179,9 +163,8 @@ export const GENDERS: Record<string, string> = {
 };
 
 export const WORD_TYPES: Record<string, string> = {
-  'heißen': 'VERB',
-  'kommen': 'VERB',
-  'wohnen': 'VERB',
+  'hören': 'VERB',
+  'das Lied': 'NOUN',
   'aber': 'CONJUNCTION',
   'abfahren': 'VERB',
   'die Abfahrt': 'NOUN',

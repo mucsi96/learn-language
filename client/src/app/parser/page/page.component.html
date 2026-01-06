@@ -108,9 +108,9 @@
 <div class="extracted-words-container" role="region" aria-label="Extracted words">
   <mat-chip-set>
     @for (word of extractedWords(); track word.id) {
-    <mat-chip [matMenuTriggerFor]="wordMenu">
+    <button mat-chip [matMenuTriggerFor]="wordMenu">
       {{ word.word }}
-    </mat-chip>
+    </button>
     <mat-menu #wordMenu="matMenu">
       <button mat-menu-item (click)="addToKnownWords(word.word, word.id)">
         <mat-icon>check_circle</mat-icon>

@@ -84,11 +84,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
   await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
 
   // Second region selection
-  await selectTextRange(
-    page,
-    'der Absender',
-    'Können Sie mir seine Adresse sagen?'
-  );
+  await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
