@@ -31,19 +31,63 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
+  @if (sourceType() === 'images' && hasImage()) {
+  <button mat-icon-button aria-label="Delete image" (click)="deleteImage()">
+    <mat-icon>delete</mat-icon>
+  </button>
+  }
 </div>
 } @if (pageLoading()) {
 <mat-spinner class="page-loading" />
+} @else if (isEmptyImageSource()) {
+<div
+  class="image-dropzone"
+  role="region"
+  aria-label="Image upload dropzone"
+  [class.dragging]="isDragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  @if (uploading()) {
+  <mat-spinner></mat-spinner>
+  } @else {
+  <mat-icon class="upload-icon">add_photo_alternate</mat-icon>
+  <p class="dropzone-text">
+    Drag and drop an image here or
+    <label class="file-input-label">
+      browse
+      <input
+        type="file"
+        accept=".png,.jpg,.jpeg,.gif,.webp"
+        (change)="onImageFileSelected($event)"
+        class="hidden-file-input"
+        aria-label="Upload image file"
+      />
+    </label>
+  </p>
+  <p class="dropzone-hint">PNG, JPG, JPEG, GIF, WEBP</p>
+  }
+  @if (uploadError()) {
+  <p class="error-message">{{ uploadError() }}</p>
+  }
+</div>
 } @else {
 <section
   class="page-layout"
+  role="region"
+  aria-label="Page content"
   appDraggableSelection
   (selectionBox)="onSelection($event)"
   [style.height]="heightStyle"
   [attr.data-ready]="isReady()"
+  [style.background-image]="documentImage.value() ? 'url(' + documentImage.value() + ')' : 'none'"
+  [style.background-size]="'100% 100%'"
 >
   @if (selectionRegionsLoading()) {
-  <mat-spinner class="area-loading"></mat-spinner>
+  <div class="area-loading">
+    <mat-spinner></mat-spinner>
+  </div>
   } @for (span of spans(); track $index) {
   <app-span
     [sourceId]="selectedSourceId()"
@@ -59,6 +103,28 @@
   ></app-span>
   }
 </section>
+
+@if (sourceType() === 'images' && extractedWords().length > 0) {
+<div class="extracted-words-container" role="region" aria-label="Extracted words">
+  <mat-chip-set>
+    @for (word of extractedWords(); track word.id) {
+    <button mat-chip [matMenuTriggerFor]="wordMenu">
+      {{ word.word }}
+    </button>
+    <mat-menu #wordMenu="matMenu">
+      <button mat-menu-item (click)="addToKnownWords(word.word, word.id)">
+        <mat-icon>check_circle</mat-icon>
+        <span>Add to known words</span>
+      </button>
+      <button mat-menu-item (click)="ignoreWord(word.id)">
+        <mat-icon>visibility_off</mat-icon>
+        <span>Ignore once</span>
+      </button>
+    </mat-menu>
+    }
+  </mat-chip-set>
+</div>
+}
 
 <app-bulk-card-creation-fab></app-bulk-card-creation-fab>
 }

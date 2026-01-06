@@ -2,6 +2,9 @@
 
 !IMPORTANT: Avoid using comments which are trivial or obvious. If comment is needed means the code is not clear enough.
 
+## General Code style
+- Avoid fallback values that hide missing data - prefer crashes over silent incorrect behavior
+
 ## Java Code style
 - Prefer using lombok
 - Prefer using builder for models
@@ -10,6 +13,7 @@
 ## Testing Code style
 - Try testing from users perspective.
 - Use role based selectors and selectors based on accesibility
+- Avoid using `page.locator` or `page.waitForSelector` in favor of semantic selectors (`getByRole`, `getByLabel`, `getByText`, etc.)
 - Avoid asserting loading state as it is not reliable
 - Prefer using Playwright for end-to-end tests with TypeScript in test folder
 - Don't use assertion messages

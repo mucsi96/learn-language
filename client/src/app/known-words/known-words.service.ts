@@ -41,6 +41,10 @@ export class KnownWordsService {
     return result;
   }
 
+  async addWord(word: string): Promise<void> {
+    await this.importWords(word);
+  }
+
   async deleteWord(word: string): Promise<void> {
     await fetchJson(this.http, `/api/known-words/${encodeURIComponent(word)}`, {
       method: 'DELETE',

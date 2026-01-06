@@ -1,5 +1,12 @@
 import { test, expect } from '../fixtures';
-import { createCard, createModelUsageLog, createVoiceConfiguration, getTableData, selectTextRange, setupDefaultChatModelSettings } from '../utils';
+import {
+  createCard,
+  createModelUsageLog,
+  createVoiceConfiguration,
+  getTableData,
+  selectTextRange,
+  setupDefaultChatModelSettings,
+} from '../utils';
 
 type UsageLogRow = {
   Model: string;
@@ -45,24 +52,16 @@ test('page title', async ({ page }) => {
 test('navigates to model usage from profile menu', async ({ page }) => {
   await page.goto('http://localhost:8180');
   await page.getByRole('button', { name: 'TU' }).click();
-  await expect(
-    page.getByRole('menuitem', { name: 'Model usage' })
-  ).toHaveAttribute('href', '/model-usage');
+  await expect(page.getByRole('menuitem', { name: 'Model usage' })).toHaveAttribute('href', '/model-usage');
   await page.getByRole('menuitem', { name: 'Model usage' }).click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Model Usage Logs' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Model Usage Logs' })).toBeVisible();
 });
 
 test('displays empty state when no usage logs', async ({ page }) => {
   await page.goto('http://localhost:8180/model-usage');
 
-  await expect(
-    page.getByRole('heading', { name: 'Model Usage Logs', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'No usage logs yet', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No usage logs yet', exact: true })).toBeVisible();
   await expect(page.getByRole('table')).not.toBeVisible();
 });
 
@@ -89,13 +88,9 @@ test('displays chat model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await expect(
-    page.getByRole('heading', { name: 'Model Usage Logs', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });
@@ -132,9 +127,7 @@ test('displays image model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });
@@ -163,9 +156,7 @@ test('displays audio model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });
@@ -224,9 +215,7 @@ test('allows rating usage logs', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(
-    page.getByRole('tabpanel', { name: 'Usage Logs' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
 
   const summaryData = await getTableData<ModelSummaryRow>(
     page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
@@ -401,13 +390,9 @@ test('displays model summary tab', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(
-    page.getByRole('tabpanel', { name: 'Usage Logs' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Model Summary' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table');
   const summaryData = await getTableData<ModelSummaryRow>(table);
 
   expect(summaryData).toEqual([
@@ -428,26 +413,20 @@ test('displays model summary tab', async ({ page }) => {
   ]);
 });
 
-test('creates chat model usage logs when using bulk card creation', async ({
-  page,
-}) => {
+test('creates chat model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });
@@ -459,26 +438,20 @@ test('creates chat model usage logs when using bulk card creation', async ({
   expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
 });
 
-test('creates image model usage logs when using bulk card creation', async ({
-  page,
-}) => {
+test('creates image model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });
@@ -490,46 +463,40 @@ test('creates image model usage logs when using bulk card creation', async ({
   expect(imageLogs[0].Usage).toMatch(/\d+ image\(s\)/);
 });
 
-test('creates audio model usage logs when using bulk audio creation', async ({
-  page,
-}) => {
+test('creates audio model usage logs when using bulk audio creation', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-      cardId: 'verstehen',
-      sourceId: 'goethe-a1',
-      sourcePageNumber: 15,
-      data: {
-        word: 'verstehen',
-        type: 'VERB',
-        translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
-        forms: ['versteht', 'verstand', 'verstanden'],
-        examples: [
-          {
-            de: 'Ich verstehe Deutsch.',
-            hu: 'Értem a németet.',
-            en: 'I understand German.',
-            ch: 'Ich verstoh Tüütsch.',
-            isSelected: true,
-            images: [{ id: 'test-image-id' }],
-          },
-        ],
-      },
-      readiness: 'REVIEWED',
-    });
+    cardId: 'verstehen',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
 
   await page.goto('http://localhost:8180/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
-  await expect(
-    page.getByText("Audio generated successfully for 1 card!")
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page
-    .getByRole('tabpanel', { name: 'Usage Logs' })
-    .getByRole('table');
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
   const tableData = await getTableData<UsageLogRow>(table, {
     excludeRowSelector: '.detail-row',
   });

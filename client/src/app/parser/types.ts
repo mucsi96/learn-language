@@ -79,6 +79,8 @@ export type Page = {
   spans: Span[];
   sourceId: string;
   sourceName: string;
+  sourceType?: SourceType;
+  hasImage?: boolean;
   width: number;
   height: number;
 };
@@ -89,12 +91,14 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
+export type SourceType = 'pdf' | 'images';
 
 export type Source = {
   id: string;
   name: string;
-  fileName?: string;
+  sourceType?: SourceType;
   startPage: number;
+  pageCount?: number;
   cardCount?: number;
   languageLevel?: LanguageLevel;
   cardType?: CardType;

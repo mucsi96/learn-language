@@ -1,9 +1,12 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -14,8 +17,12 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
 
+import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.SourceType;
+import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,9 +31,51 @@ public class DocumentProcessorService {
 
   private final FileStorageService fileStorageService;
   private final WordIdService wordIdService;
+  private final DocumentRepository documentRepository;
 
   public PageResponse processDocument(Source source, int pageNumber) throws IOException {
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
+    if (source.getSourceType() == SourceType.IMAGES) {
+      return processImageDocument(source, pageNumber);
+    }
+    return processPdfDocument(source, pageNumber);
+  }
+
+  private PageResponse processImageDocument(Source source, int pageNumber) throws IOException {
+    var documentOptional = documentRepository.findBySourceAndPageNumber(source, pageNumber);
+
+    if (documentOptional.isEmpty()) {
+      return PageResponse.builder()
+          .width(0)
+          .height(0)
+          .number(pageNumber)
+          .sourceId(source.getId())
+          .sourceName(source.getName())
+          .sourceType(SourceType.IMAGES)
+          .hasImage(false)
+          .spans(Collections.emptyList())
+          .build();
+    }
+
+    Document document = documentOptional.get();
+    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+
+    return PageResponse.builder()
+        .width(image.getWidth())
+        .height(image.getHeight())
+        .number(pageNumber)
+        .sourceId(source.getId())
+        .sourceName(source.getName())
+        .sourceType(SourceType.IMAGES)
+        .hasImage(true)
+        .spans(Collections.emptyList())
+        .build();
+  }
+
+  private PageResponse processPdfDocument(Source source, int pageNumber) throws IOException {
+    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
+        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
+    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -56,6 +105,7 @@ public class DocumentProcessorService {
           .number(pageNumber)
           .sourceId(source.getId())
           .sourceName(source.getName())
+          .sourceType(SourceType.PDF)
           .spans(spans)
           .build();
     }
@@ -63,7 +113,39 @@ public class DocumentProcessorService {
 
   public byte[] getPageArea(Source source, int pageNumber, double x, double y, double width, double height)
       throws IOException {
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
+    if (source.getSourceType() == SourceType.IMAGES) {
+      return getImagePageArea(source, pageNumber, x, y, width, height);
+    }
+    return getPdfPageArea(source, pageNumber, x, y, width, height);
+  }
+
+  private byte[] getImagePageArea(Source source, int pageNumber, double x, double y, double width, double height)
+      throws IOException {
+    Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
+        .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
+
+    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+
+    int imageWidth = image.getWidth();
+    int imageHeight = image.getHeight();
+
+    var croppedImage = image.getSubimage(
+        (int) Math.round((x / imageWidth) * imageWidth),
+        (int) Math.round((y / imageHeight) * imageHeight),
+        (int) Math.round((width / imageWidth) * imageWidth),
+        (int) Math.round((height / imageHeight) * imageHeight));
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(croppedImage, "png", outputStream);
+    return outputStream.toByteArray();
+  }
+
+  private byte[] getPdfPageArea(Source source, int pageNumber, double x, double y, double width, double height)
+      throws IOException {
+    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
+        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
+    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -81,8 +163,6 @@ public class DocumentProcessorService {
           (int) Math.round((height / pageHeight) * image.getHeight()));
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       ImageIO.write(croppedImage, "png", outputStream);
-      // Write image to file for debugging purpose
-      // ImageIO.write(croppedImage, "png", Path.of("image.png").toFile());
       return outputStream.toByteArray();
     }
   }

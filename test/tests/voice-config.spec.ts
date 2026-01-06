@@ -98,7 +98,7 @@ test('can delete a voice configuration', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Confirmation' })).toBeVisible();
   await page.getByRole('button', { name: 'Yes' }).click();
 
-  await expect(page.getByText('Voice to Delete', { exact: true})).not.toBeVisible();
+  await expect(page.getByText('Voice to Delete', { exact: true })).not.toBeVisible();
   await expect(page.getByText('No voice configurations yet')).toBeVisible();
 
   const configs = await getVoiceConfigurations();
@@ -173,8 +173,8 @@ test('displays voice category tags', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/voices');
 
-  await expect(page.locator('.default-tag').first()).toBeVisible();
-  await expect(page.locator('.favorite-tag').first()).toBeVisible();
+  await expect(page.getByText('default').first()).toBeVisible();
+  await expect(page.getByText('cloned').first()).toBeVisible();
 });
 
 test('displays model name in configuration list', async ({ page }) => {

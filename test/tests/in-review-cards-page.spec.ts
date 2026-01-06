@@ -1,11 +1,5 @@
 import { test, expect } from '../fixtures';
-import {
-  createCard,
-  uploadMockImage,
-  yellowImage,
-  redImage,
-  withDbConnection,
-} from '../utils';
+import { createCard, uploadMockImage, yellowImage, redImage, withDbConnection } from '../utils';
 
 test('displays in review cards in table', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
@@ -65,9 +59,7 @@ test('displays in review cards in table', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // Check page title and description
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
   await expect(page.getByText('These cards are currently being reviewed')).toBeVisible();
 
   // Check table headers
@@ -153,9 +145,7 @@ test('navigation back after row click', async ({ page }) => {
 
   // Verify we're back on the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
   await expect(page.getByText('lesen', { exact: true })).toBeVisible();
 });
 
@@ -176,9 +166,7 @@ test('displays empty state when no cards in review', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // Check that empty state is displayed
-  await expect(
-    page.getByRole('heading', { name: 'No cards in review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
   // Check that table is not displayed
   await expect(page.getByRole('table')).not.toBeVisible();
 });
@@ -349,9 +337,7 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
 
   // Verify readiness was updated in database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness FROM learn_language.cards WHERE id = 'verwalten'"
-    );
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verwalten'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('REVIEWED');
   });
@@ -403,9 +389,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
 
   // Verify both readiness and card data were updated in database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness, data FROM learn_language.cards WHERE id = 'organisieren'"
-    );
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'organisieren'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('REVIEWED');
 
@@ -460,9 +444,7 @@ test('navigation back after mark as reviewed', async ({ page }) => {
 
   // Verify we're back on the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
 
   await expect(page.getByRole('row').filter({ hasText: 'koordinieren' })).not.toBeVisible();
 });

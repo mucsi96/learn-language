@@ -46,12 +46,8 @@ test('study page initial state', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'abfahren' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
   await expect(page.getByText('Ige', { exact: true })).toBeVisible();
   await expect(page.getByText('New', { exact: true })).toBeVisible();
   await expect(page.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
@@ -60,13 +56,9 @@ test('study page initial state', async ({ page }) => {
   await expect(page.getByText('abgefahren')).not.toBeVisible();
   await expect(page.getByText('Tizenkét órakor indulunk.')).not.toBeVisible();
   await expect(page.getByText('Mikor indul a vonat?')).toBeVisible();
-  await expect(
-    page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })).not.toBeVisible();
   await expect(page.getByRole('img', { name: 'Mikor indul a vonat?' })).toBeVisible();
-  const imageContent = await getImageContent(
-    page.getByRole('img', { name: 'Mikor indul a vonat?' })
-  );
+  const imageContent = await getImageContent(page.getByRole('img', { name: 'Mikor indul a vonat?' }));
   expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
 });
 
@@ -122,9 +114,7 @@ test('study page revealed state', async ({ page }) => {
   await expect(page.getByText('Wann fährt der Zug ab?')).toBeVisible();
   await expect(page.getByText('Mikor indul a vonat?')).not.toBeVisible();
 
-  const imageContent = await getImageContent(
-    page.getByRole('img', { name: 'Wann fährt der Zug ab?' })
-  );
+  const imageContent = await getImageContent(page.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
   expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Hard' })).toBeVisible();
@@ -177,7 +167,7 @@ test('source selector routing works', async ({ page }) => {
 
   // Start from the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
-  await expect(page.getByText('tanulni', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'tanulni' })).toBeVisible();
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -189,8 +179,8 @@ test('source selector routing works', async ({ page }) => {
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/study');
 
   // Content should change to the card from the second source
-  await expect(page.getByText('írni', { exact: true })).toBeVisible();
-  await expect(page.getByText('tanulni', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'írni' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });
 
 test('source selector shows proper stats', async ({ page }) => {
@@ -204,12 +194,8 @@ test('source selector shows proper stats', async ({ page }) => {
   // Navigate to the study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(
-    page.getByRole('navigation').getByTitle('New', { exact: true })
-  ).toHaveText('3');
-  await expect(
-    page.getByRole('navigation').getByTitle('Learning', { exact: true })
-  ).toHaveText('2');
+  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
+  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
 });
 
 test('source selector stats update after changing source', async ({ page }) => {
@@ -229,12 +215,8 @@ test('source selector stats update after changing source', async ({ page }) => {
   // Navigate to the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(
-    page.getByRole('navigation').getByTitle('New', { exact: true })
-  ).toHaveText('3');
-  await expect(
-    page.getByRole('navigation').getByTitle('Learning', { exact: true })
-  ).toHaveText('2');
+  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
+  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -242,12 +224,8 @@ test('source selector stats update after changing source', async ({ page }) => {
   // Select the second source
   await page.getByRole('menuitem', { name: 'Goethe A2' }).click();
 
-  await expect(
-    page.getByRole('navigation').getByTitle('New', { exact: true })
-  ).toHaveText('1');
-  await expect(
-    page.getByRole('navigation').getByTitle('Learning', { exact: true })
-  ).toHaveText('4');
+  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('1');
+  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('4');
 });
 
 test('source selector dropdown shows stats', async ({ page }) => {
@@ -312,12 +290,8 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   // Navigate to the study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(
-    page.getByRole('navigation').getByTitle('Review', { exact: true })
-  ).toHaveText('1');
-  await expect(
-    page.getByRole('navigation').getByTitle('New', { exact: true })
-  ).not.toBeVisible();
+  await expect(page.getByRole('navigation').getByTitle('Review', { exact: true })).toHaveText('1');
+  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).not.toBeVisible();
   await expect(page.getByText('Review', { exact: true })).toBeVisible();
 });
 
@@ -413,9 +387,7 @@ test('mark for review button functionality', async ({ page }) => {
 
   // Verify the card readiness was updated in the database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness FROM learn_language.cards WHERE id = 'markieren'"
-    );
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'markieren'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('IN_REVIEW');
   });
@@ -468,14 +440,14 @@ test('mark for review button loads next card', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing (due earlier)
-  await expect(page.getByText('első', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'első' })).toBeVisible();
 
   // Click Mark for Review button
   await page.getByRole('button', { name: 'Mark for Review' }).click();
 
   // Verify the second card is now showing
-  await expect(page.getByText('második', { exact: true })).toBeVisible();
-  await expect(page.getByText('első', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'második' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'első' })).not.toBeVisible();
 });
 
 test('edit card button navigation', async ({ page }) => {
@@ -508,9 +480,7 @@ test('edit card button navigation', async ({ page }) => {
   await page.getByRole('link', { name: 'Edit Card' }).click();
 
   // Verify we navigated to the correct card editing page
-  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue(
-    'navigieren'
-  );
+  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('navigieren');
 });
 
 test('grading buttons visibility after reveal', async ({ page }) => {
@@ -545,7 +515,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Easy' })).not.toBeVisible();
 
   // Click to reveal the card
-  await page.getByText('értékelni', { exact: true }).click();
+  await page.getByRole('heading', { name: 'értékelni' }).click();
 
   // Now grading buttons should be visible
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
@@ -600,17 +570,17 @@ test('again button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('ismételni', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ismételni' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('ismételni', { exact: true }).click();
+  await page.getByRole('heading', { name: 'ismételni' }).click();
 
   // Click Again button
   await page.getByRole('button', { name: 'Again' }).click();
 
   // Verify next card is loaded and card is no longer revealed
-  await expect(page.getByText('következő', { exact: true })).toBeVisible();
-  await expect(page.getByText('ismételni', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'következő' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ismételni' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Again' })).not.toBeVisible();
 });
 
@@ -658,17 +628,17 @@ test('hard button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('nehéz', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'nehéz' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('nehéz', { exact: true }).click();
+  await page.getByRole('heading', { name: 'nehéz' }).click();
 
   // Click Hard button
   await page.getByRole('button', { name: 'Hard' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('második', { exact: true })).toBeVisible();
-  await expect(page.getByText('nehéz', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'második' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'nehéz' })).not.toBeVisible();
 });
 
 test('good button functionality', async ({ page }) => {
@@ -715,17 +685,17 @@ test('good button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('jó', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'jó' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('jó', { exact: true }).click();
+  await page.getByRole('heading', { name: 'jó' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('harmadik', { exact: true })).toBeVisible();
-  await expect(page.getByText('jó', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'harmadik' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'jó' })).not.toBeVisible();
 });
 
 test('easy button functionality', async ({ page }) => {
@@ -772,17 +742,17 @@ test('easy button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Verify first card is showing
-  await expect(page.getByText('könnyű', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'könnyű' })).toBeVisible();
 
   // Reveal the card
-  await page.getByText('könnyű', { exact: true }).click();
+  await page.getByRole('heading', { name: 'könnyű' }).click();
 
   // Click Easy button
   await page.getByRole('button', { name: 'Easy' }).click();
 
   // Verify next card is loaded
-  await expect(page.getByText('negyedik', { exact: true })).toBeVisible();
-  await expect(page.getByText('könnyű', { exact: true })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'negyedik' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'könnyű' })).not.toBeVisible();
 });
 
 test('grading card updates database', async ({ page }) => {
@@ -810,7 +780,7 @@ test('grading card updates database', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Reveal the card
-  await page.getByText('adatbázis', { exact: true }).click();
+  await page.getByRole('heading', { name: 'adatbázis' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
@@ -860,7 +830,7 @@ test('grading with no next card shows empty state', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   // Reveal the card
-  await page.getByText('utolsó', { exact: true }).click();
+  await page.getByRole('heading', { name: 'utolsó' }).click();
 
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
@@ -868,7 +838,5 @@ test('grading with no next card shows empty state', async ({ page }) => {
   // Should show empty state
   await expect(page.getByText('All caught up!')).toBeVisible();
   await expect(page.getByText('No cards are due for review right now.')).toBeVisible();
-  await expect(
-    page.getByText('Great job keeping up with your studies! 🎉')
-  ).toBeVisible();
+  await expect(page.getByText('Great job keeping up with your studies! 🎉')).toBeVisible();
 });

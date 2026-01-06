@@ -47,6 +47,7 @@
                   [class.has-audio]="!!voiceCard.audioData"
                   (click)="onCardClick(voiceCard)"
                   role="button"
+                  [attr.aria-label]="'Voice: ' + (voiceCard.config.displayName || voiceCard.config.voiceName)"
                   tabindex="0">
 
                   <!-- Selection indicator in corner -->

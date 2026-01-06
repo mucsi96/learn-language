@@ -38,48 +38,84 @@ export async function cleanupDb(): Promise<void> {
 export async function createSource(params: {
   id: string;
   name: string;
-  fileName: string;
   startPage: number;
   languageLevel: string;
   cardType: string;
   formatType: string;
+  sourceType?: string;
   bookmarkedPage?: number | null;
 }): Promise<void> {
   const {
     id,
     name,
-    fileName,
     startPage,
     languageLevel,
     cardType,
     formatType,
+    sourceType = 'PDF',
     bookmarkedPage = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, file_name, start_page, language_level, card_type, format_type, bookmarked_page)
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [id, name, fileName, startPage, languageLevel, cardType, formatType, bookmarkedPage]
+      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage]
     );
+  });
+}
+
+export async function createDocument(params: {
+  sourceId: string;
+  fileName: string;
+  pageNumber?: number | null;
+}): Promise<number> {
+  const { sourceId, fileName, pageNumber = null } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.documents (source_id, file_name, page_number)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [sourceId, fileName, pageNumber]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getDocuments(sourceId: string): Promise<Array<{
+  id: number;
+  fileName: string;
+  pageNumber: number | null;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, file_name as "fileName", page_number as "pageNumber"
+       FROM learn_language.documents
+       WHERE source_id = $1
+       ORDER BY page_number NULLS FIRST`,
+      [sourceId]
+    );
+    return result.rows;
   });
 }
 
 export async function getSource(id: string): Promise<{
   id: string;
   name: string;
-  fileName: string;
   startPage: number;
   languageLevel: string;
   cardType: string;
   formatType: string;
+  sourceType: string | null;
   bookmarkedPage: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, name, file_name as "fileName", start_page as "startPage",
+      `SELECT id, name, start_page as "startPage",
               language_level as "languageLevel", card_type as "cardType",
-              format_type as "formatType", bookmarked_page as "bookmarkedPage"
+              format_type as "formatType", source_type as "sourceType",
+              bookmarked_page as "bookmarkedPage"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]
@@ -98,42 +134,52 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
     await client.query('DELETE FROM learn_language.known_words');
+    await client.query('DELETE FROM learn_language.documents');
     await client.query('DELETE FROM learn_language.sources');
   });
 
   if (!withSources) {
-    // Create test sources
+    // Create test sources and their PDF documents
     await createSource({
       id: 'goethe-a1',
       name: 'Goethe A1',
-      fileName: 'A1_SD1_Wortliste_02.pdf',
       startPage: 9,
       languageLevel: 'A1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
     });
+    await createDocument({
+      sourceId: 'goethe-a1',
+      fileName: 'A1_SD1_Wortliste_02.pdf',
+    });
 
     await createSource({
       id: 'goethe-a2',
       name: 'Goethe A2',
-      fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
       startPage: 8,
       languageLevel: 'A2',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 8,
     });
+    await createDocument({
+      sourceId: 'goethe-a2',
+      fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+    });
 
     await createSource({
       id: 'goethe-b1',
       name: 'Goethe B1',
-      fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
       startPage: 16,
       languageLevel: 'B1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: null,
+    });
+    await createDocument({
+      sourceId: 'goethe-b1',
+      fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
     });
   }
 }
@@ -328,6 +374,8 @@ export const greenImage = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFElEQVR42mNk+A+ERADGUYX0VQgAXAYT9xTSUocAAAAASUVORK5CYII=',
   'base64'
 );
+
+export const menschenA1Image = fs.readFileSync(path.join(__dirname, 'menshcen-a1-1-9.png'));
 
 export const germanAudioSample = Buffer.from(
   'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaBC+Ezm4=',

@@ -7,6 +7,19 @@ import { imageMessagesMatch, extractTextFromImageUrl } from './ocr';
 
 export class ChatHandler {
   async handleWordListExtraction(messages: ChatMessage[]): Promise<any | null> {
+    if (
+      await imageMessagesMatch(
+        messages,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['Hören', 'Lied']
+      )
+    ) {
+      return createAssistantResponse({
+        wordList: WORD_LISTS['hoeren_lied'],
+      });
+    }
+
     // Check for first word list (aber, abfahren)
     if (
       await imageMessagesMatch(

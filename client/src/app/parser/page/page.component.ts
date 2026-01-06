@@ -7,9 +7,11 @@ import {
   inject,
   linkedSignal,
   OnDestroy,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { PageService } from '../../page.service';
 import { SpanComponent } from '../span/span.component';
 import { SourcesService } from '../../sources.service';
@@ -20,8 +22,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatChipsModule } from '@angular/material/chips';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
+import { uploadDocument } from '../../utils/uploadDocument';
+import { firstValueFrom } from 'rxjs';
+import { WordsWithoutCardsService } from '../../words-without-cards.service';
+import { KnownWordsService } from '../../known-words/known-words.service';
 
 @Component({
   selector: 'app-page',
@@ -37,6 +44,7 @@ import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
+    MatChipsModule,
     BulkCardCreationFabComponent
   ],
   templateUrl: './page.component.html',
@@ -48,7 +56,11 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
+  private readonly http = inject(HttpClient);
+  private readonly wordsService = inject(WordsWithoutCardsService);
+  private readonly knownWordsService = inject(KnownWordsService);
   readonly sources = this.sourcesService.sources.value;
+  readonly extractedWords = this.wordsService.wordsWithoutCards;
   readonly pageNumber = linkedSignal(
     () => this.pageService.page.value()?.number
   );
@@ -58,6 +70,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly spans = computed(() => this.pageService.page.value()?.spans);
   readonly width = computed(() => this.pageService.page.value()?.width);
   readonly height = computed(() => this.pageService.page.value()?.height);
+  readonly sourceType = computed(
+    () => this.pageService.page.value()?.sourceType
+  );
+  readonly hasImage = computed(
+    () => this.pageService.page.value()?.hasImage
+  );
+  readonly documentImage = this.pageService.documentImage;
   readonly selectionRegions = this.pageService.selectionRegions
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
@@ -67,10 +86,16 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.pageService.selectionRegions().some((w) => w.isLoading())
   );
   readonly isReady = computed(
-    () => !this.pageLoading() && !this.selectionRegionsLoading()
+    () => !this.pageLoading() && !this.selectionRegionsLoading() && !this.documentImage.isLoading()
+  );
+  readonly isEmptyImageSource = computed(() =>
+    this.sourceType() === 'images' && !this.hasImage()
   );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
+  readonly uploading = signal(false);
+  readonly uploadError = signal<string | null>(null);
+  readonly isDragging = signal(false);
 
   constructor() {
     this.route.params.subscribe((params) =>
@@ -135,5 +160,87 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     const width = pageWidth * event.width / parentWidth;
     const height = pageWidth * event.height / parentWidth;
     this.pageService.addSelectedRectangle({ x, y, width, height });
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleImageUpload(files[0]);
+    }
+  }
+
+  onImageFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleImageUpload(input.files[0]);
+    }
+  }
+
+  async handleImageUpload(file: File): Promise<void> {
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some(ext => fileName.endsWith(ext))) {
+      this.uploadError.set('Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed');
+      return;
+    }
+
+    this.uploading.set(true);
+    this.uploadError.set(null);
+
+    try {
+      const sourceId = this.selectedSourceId();
+      if (!sourceId) return;
+
+      await uploadDocument<{ fileName: string; pageNumber: number }>(
+        this.http,
+        `/api/source/${sourceId}/documents`,
+        file
+      );
+
+      this.sourcesService.refetchSources();
+      this.pageService.reload();
+    } catch (error) {
+      this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      this.uploading.set(false);
+    }
+  }
+
+  async deleteImage(): Promise<void> {
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.pageNumber();
+    if (!sourceId || !pageNumber) return;
+
+    await firstValueFrom(
+      this.http.delete(`/api/source/${sourceId}/documents/${pageNumber}`)
+    );
+
+    this.sourcesService.refetchSources();
+    this.pageService.reload();
+  }
+
+  async addToKnownWords(word: string, wordId: string): Promise<void> {
+    await this.knownWordsService.addWord(word);
+    this.wordsService.ignoreWord(wordId);
+  }
+
+  ignoreWord(wordId: string): void {
+    this.wordsService.ignoreWord(wordId);
   }
 }
