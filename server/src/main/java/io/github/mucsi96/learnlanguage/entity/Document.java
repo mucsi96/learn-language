@@ -26,7 +26,6 @@ public class Document {
   @Nonnull
   private String fileName;
 
-  @Nonnull
   @Column(name = "page_number")
   private Integer pageNumber;
 }

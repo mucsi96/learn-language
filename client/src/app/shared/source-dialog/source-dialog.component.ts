@@ -46,11 +46,11 @@ export class SourceDialogComponent {
   readonly formatTypes = this.environment.sourceFormatTypes;
   readonly sourceTypes = this.environment.sourceTypes;
 
-  formData: Partial<Source> = {
+  formData: Partial<Source> & { fileName?: string } = {
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType,
-    fileName: this.data.source?.fileName || '',
+    fileName: '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel,
     cardType: 'vocabulary',

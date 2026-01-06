@@ -16,6 +16,8 @@ public interface DocumentRepository extends JpaRepository<Document, Integer> {
 
     Optional<Document> findBySourceAndPageNumber(Source source, Integer pageNumber);
 
+    Optional<Document> findBySourceAndPageNumberIsNull(Source source);
+
     @Query("SELECT MAX(d.pageNumber) FROM Document d WHERE d.source = :source")
     Optional<Integer> findMaxPageNumberBySource(@Param("source") Source source);
 

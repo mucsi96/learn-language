@@ -73,7 +73,9 @@ public class DocumentProcessorService {
   }
 
   private PageResponse processPdfDocument(Source source, int pageNumber) throws IOException {
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
+    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
+        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
+    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -141,7 +143,9 @@ public class DocumentProcessorService {
 
   private byte[] getPdfPageArea(Source source, int pageNumber, double x, double y, double width, double height)
       throws IOException {
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getFileName());
+    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
+        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
+    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();

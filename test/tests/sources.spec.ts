@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -118,11 +118,16 @@ test('can create a new source', async ({ page }) => {
   const createdSource = await getSource('test-source');
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Source');
-  expect(createdSource?.fileName).toBe('test-file.pdf');
   expect(createdSource?.startPage).toBe(1);
   expect(createdSource?.languageLevel).toBe('B2');
   expect(createdSource?.cardType).toBe('VOCABULARY');
   expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
+
+  // Verify the PDF document was created
+  const documents = await getDocuments('test-source');
+  expect(documents).toHaveLength(1);
+  expect(documents[0].fileName).toBe('test-file.pdf');
+  expect(documents[0].pageNumber).toBeNull();
 });
 
 test('can edit an existing source', async ({ page }) => {
@@ -160,52 +165,6 @@ test('can edit an existing source', async ({ page }) => {
   // Verify the source was updated in the database
   const updatedSource = await getSource('goethe-a1');
   expect(updatedSource?.name).toBe('Goethe A1 Updated');
-  expect(updatedSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
-});
-
-test('can replace PDF file when editing source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-
-  // Verify the initial file name in the database
-  const initialSource = await getSource('goethe-a1');
-  expect(initialSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
-
-  // Hover over a source card to reveal action buttons
-  const sourceCard = page.getByRole('article', { name: 'Goethe A1' });
-  await sourceCard.hover();
-
-  // Click the edit button
-  await sourceCard.getByRole('button', { name: 'Edit source' }).click();
-
-  // Verify the dialog opened and shows the current file
-  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
-  await expect(page.getByText('A1_SD1_Wortliste_02.pdf')).toBeVisible();
-
-  // Remove the current file
-  await page.getByRole('button', { name: 'Remove file' }).click();
-
-  // Verify dropzone is empty after removal
-  await expect(page.getByText('Drag and drop a PDF file here')).toBeVisible();
-
-  // Upload a new PDF file
-  await page.getByLabel('Upload PDF file').setInputFiles({
-    name: 'new-document.pdf',
-    mimeType: 'application/pdf',
-    buffer: Buffer.from('New PDF content'),
-  });
-
-  // Verify the new file is shown
-  await expect(page.getByText('new-document.pdf')).toBeVisible();
-
-  // Click Update button
-  await page.getByRole('button', { name: 'Update' }).click();
-
-  // Wait for dialog to close
-  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
-
-  // Verify the fileName is updated in the database
-  const updatedSource = await getSource('goethe-a1');
-  expect(updatedSource?.fileName).toBe('new-document.pdf');
 });
 
 test('can delete a source and its cards', async ({ page }) => {

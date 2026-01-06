@@ -97,7 +97,6 @@ export type Source = {
   id: string;
   name: string;
   sourceType?: SourceType;
-  fileName?: string;
   startPage: number;
   pageCount?: number;
   cardCount?: number;

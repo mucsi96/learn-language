@@ -38,7 +38,6 @@ export async function cleanupDb(): Promise<void> {
 export async function createSource(params: {
   id: string;
   name: string;
-  fileName?: string | null;
   startPage: number;
   languageLevel: string;
   cardType: string;
@@ -49,7 +48,6 @@ export async function createSource(params: {
   const {
     id,
     name,
-    fileName = null,
     startPage,
     languageLevel,
     cardType,
@@ -60,9 +58,9 @@ export async function createSource(params: {
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, file_name, start_page, language_level, card_type, format_type, source_type, bookmarked_page)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [id, name, fileName, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage]
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage]
     );
   });
 }
@@ -70,9 +68,9 @@ export async function createSource(params: {
 export async function createDocument(params: {
   sourceId: string;
   fileName: string;
-  pageNumber: number;
+  pageNumber?: number | null;
 }): Promise<number> {
-  const { sourceId, fileName, pageNumber } = params;
+  const { sourceId, fileName, pageNumber = null } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
@@ -88,14 +86,14 @@ export async function createDocument(params: {
 export async function getDocuments(sourceId: string): Promise<Array<{
   id: number;
   fileName: string;
-  pageNumber: number;
+  pageNumber: number | null;
 }>> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, file_name as "fileName", page_number as "pageNumber"
        FROM learn_language.documents
        WHERE source_id = $1
-       ORDER BY page_number`,
+       ORDER BY page_number NULLS FIRST`,
       [sourceId]
     );
     return result.rows;
@@ -105,7 +103,6 @@ export async function getDocuments(sourceId: string): Promise<Array<{
 export async function getSource(id: string): Promise<{
   id: string;
   name: string;
-  fileName: string | null;
   startPage: number;
   languageLevel: string;
   cardType: string;
@@ -115,7 +112,7 @@ export async function getSource(id: string): Promise<{
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, name, file_name as "fileName", start_page as "startPage",
+      `SELECT id, name, start_page as "startPage",
               language_level as "languageLevel", card_type as "cardType",
               format_type as "formatType", source_type as "sourceType",
               bookmarked_page as "bookmarkedPage"
@@ -142,38 +139,47 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
   });
 
   if (!withSources) {
-    // Create test sources
+    // Create test sources and their PDF documents
     await createSource({
       id: 'goethe-a1',
       name: 'Goethe A1',
-      fileName: 'A1_SD1_Wortliste_02.pdf',
       startPage: 9,
       languageLevel: 'A1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
     });
+    await createDocument({
+      sourceId: 'goethe-a1',
+      fileName: 'A1_SD1_Wortliste_02.pdf',
+    });
 
     await createSource({
       id: 'goethe-a2',
       name: 'Goethe A2',
-      fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
       startPage: 8,
       languageLevel: 'A2',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 8,
     });
+    await createDocument({
+      sourceId: 'goethe-a2',
+      fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+    });
 
     await createSource({
       id: 'goethe-b1',
       name: 'Goethe B1',
-      fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
       startPage: 16,
       languageLevel: 'B1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: null,
+    });
+    await createDocument({
+      sourceId: 'goethe-b1',
+      fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
     });
   }
 }

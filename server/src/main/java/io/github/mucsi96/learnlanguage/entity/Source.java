@@ -29,8 +29,6 @@ public class Source {
   @Column(name = "source_type")
   private SourceType sourceType;
 
-  private String fileName;
-
   @Nonnull
   private Integer startPage;
 

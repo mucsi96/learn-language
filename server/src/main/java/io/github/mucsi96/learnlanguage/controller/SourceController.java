@@ -76,7 +76,6 @@ public class SourceController {
           .id(source.getId())
           .name(source.getName())
           .sourceType(source.getSourceType())
-          .fileName(source.getFileName())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
           .cardCount(cardCount)
@@ -166,7 +165,6 @@ public class SourceController {
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
-        .fileName(request.getFileName())
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
@@ -174,6 +172,15 @@ public class SourceController {
         .build();
 
     sourceService.saveSource(source);
+
+    if (request.getSourceType() == SourceType.PDF && request.getFileName() != null) {
+      Document document = Document.builder()
+          .source(source)
+          .fileName(request.getFileName())
+          .pageNumber(null)
+          .build();
+      documentRepository.save(document);
+    }
 
     return ResponseEntity.ok(new HashMap<>());
   }
@@ -189,7 +196,6 @@ public class SourceController {
     Source updates = Source.builder()
         .name(request.getName())
         .sourceType(request.getSourceType())
-        .fileName(request.getFileName())
         .startPage(request.getStartPage())
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())

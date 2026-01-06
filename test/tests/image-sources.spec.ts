@@ -37,7 +37,6 @@ test('can create an image source', async ({ page }) => {
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Image Source');
   expect(createdSource?.sourceType).toBe('IMAGES');
-  expect(createdSource?.fileName).toBe('');
   expect(createdSource?.startPage).toBe(1);
 });
 
