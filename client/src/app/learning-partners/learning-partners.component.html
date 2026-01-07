@@ -1,34 +1,4 @@
 <div class="learning-partners-container">
-  <div class="settings-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title><h2>Study Mode</h2></mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="section-description">
-          Choose how you want to study. With a learning partner, cards alternate
-          between you and your partner.
-        </p>
-        @if (studySettings.isLoading()) {
-        <div class="skeleton skeleton-radio"></div>
-        <div class="skeleton skeleton-radio"></div>
-        } @else {
-        <mat-radio-group
-          [ngModel]="studyMode()"
-          (ngModelChange)="onStudyModeChange($event)"
-          aria-label="Study mode selection"
-          class="study-mode-group"
-        >
-          <mat-radio-button value="SOLO">Solo study</mat-radio-button>
-          <mat-radio-button value="WITH_PARTNER"
-            >Study with partner</mat-radio-button
-          >
-        </mat-radio-group>
-        }
-      </mat-card-content>
-    </mat-card>
-  </div>
-
   <div class="partners-section">
     <mat-card>
       <mat-card-header>
@@ -38,8 +8,8 @@
       </mat-card-header>
       <mat-card-content>
         <p class="section-description">
-          Add learning partners who study with you. Enable or disable them to
-          include or exclude them from study sessions.
+          Add learning partners who study with you. Activate a partner to study
+          together - cards will alternate between you and your partner.
         </p>
 
         <div class="add-partner-form">
@@ -90,10 +60,10 @@
             <span matListItemTitle>{{ partner.name }}</span>
             <div matListItemMeta class="partner-actions">
               <mat-slide-toggle
-                [checked]="partner.isEnabled"
-                (change)="toggleEnabled(partner)"
+                [checked]="partner.isActive"
+                (change)="toggleActive(partner)"
                 [attr.aria-label]="
-                  (partner.isEnabled ? 'Disable' : 'Enable') +
+                  (partner.isActive ? 'Deactivate' : 'Activate') +
                   ' ' +
                   partner.name
                 "

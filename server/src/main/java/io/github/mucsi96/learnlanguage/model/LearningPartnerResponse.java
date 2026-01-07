@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class LearningPartnerResponse {
     private Integer id;
     private String name;
-    private Boolean isEnabled;
+    private Boolean isActive;
 }

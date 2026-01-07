@@ -1,13 +1,5 @@
 .learning-partners-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 24px;
-}
-
-@media (max-width: 1000px) {
-  .learning-partners-container {
-    grid-template-columns: 1fr;
-  }
+  max-width: 600px;
 }
 
 mat-card {
@@ -25,12 +17,6 @@ mat-card-header {
   margin: 0 0 16px 0;
   color: var(--mat-sys-on-surface-variant);
   font-size: 14px;
-}
-
-.study-mode-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .add-partner-form {
@@ -65,12 +51,6 @@ mat-card-header {
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
   border-radius: 4px;
-}
-
-.skeleton-radio {
-  height: 24px;
-  width: 150px;
-  margin-bottom: 8px;
 }
 
 .skeleton-partner {

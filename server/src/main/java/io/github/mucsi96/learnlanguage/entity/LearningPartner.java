@@ -26,7 +26,7 @@ public class LearningPartner {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "is_enabled", nullable = false)
+    @Column(name = "is_active", nullable = false)
     @Builder.Default
-    private Boolean isEnabled = true;
+    private Boolean isActive = false;
 }

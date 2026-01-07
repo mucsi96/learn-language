@@ -5,21 +5,12 @@ import { fetchJson } from '../utils/fetchJson';
 export interface LearningPartner {
   id: number;
   name: string;
-  isEnabled: boolean;
+  isActive: boolean;
 }
 
 export interface LearningPartnerRequest {
   name: string;
-  isEnabled?: boolean;
-}
-
-export interface StudySettings {
-  studyMode: 'SOLO' | 'WITH_PARTNER';
-  enabledPartners: LearningPartner[];
-}
-
-export interface StudySettingsRequest {
-  studyMode: 'SOLO' | 'WITH_PARTNER';
+  isActive?: boolean;
 }
 
 @Injectable({
@@ -39,13 +30,6 @@ export class LearningPartnersService {
     },
   });
 
-  readonly studySettings = resource<StudySettings, never>({
-    injector: this.injector,
-    loader: async () => {
-      return await fetchJson<StudySettings>(this.http, '/api/study-settings');
-    },
-  });
-
   async createPartner(request: LearningPartnerRequest): Promise<LearningPartner> {
     const result = await fetchJson<LearningPartner>(
       this.http,
@@ -55,7 +39,7 @@ export class LearningPartnersService {
         body: request,
       }
     );
-    this.refresh();
+    this.partners.reload();
     return result;
   }
 
@@ -71,7 +55,7 @@ export class LearningPartnersService {
         body: request,
       }
     );
-    this.refresh();
+    this.partners.reload();
     return result;
   }
 
@@ -79,26 +63,13 @@ export class LearningPartnersService {
     await fetchJson(this.http, `/api/learning-partners/${id}`, {
       method: 'DELETE',
     });
-    this.refresh();
+    this.partners.reload();
   }
 
-  async toggleEnabled(partner: LearningPartner): Promise<void> {
+  async setActivePartner(partner: LearningPartner): Promise<void> {
     await this.updatePartner(partner.id, {
       name: partner.name,
-      isEnabled: !partner.isEnabled,
+      isActive: !partner.isActive,
     });
-  }
-
-  async updateStudyMode(studyMode: 'SOLO' | 'WITH_PARTNER'): Promise<void> {
-    await fetchJson<StudySettings>(this.http, '/api/study-settings', {
-      method: 'PUT',
-      body: { studyMode },
-    });
-    this.studySettings.reload();
-  }
-
-  private refresh(): void {
-    this.partners.reload();
-    this.studySettings.reload();
   }
 }

@@ -14,6 +14,5 @@ public class LearningPartnerRequest {
     @NotBlank
     private String name;
 
-    @Builder.Default
-    private Boolean isEnabled = true;
+    private Boolean isActive;
 }

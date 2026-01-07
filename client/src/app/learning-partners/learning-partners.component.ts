@@ -7,7 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -29,7 +28,6 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
-    MatRadioModule,
     MatListModule,
     MatTooltipModule,
     MatDialogModule,
@@ -42,17 +40,10 @@ export class LearningPartnersComponent {
   private readonly dialog = inject(MatDialog);
 
   readonly partners = this.service.partners;
-  readonly studySettings = this.service.studySettings;
   readonly newPartnerName = signal('');
   readonly isAdding = signal(false);
 
   readonly partnersList = computed(() => this.partners.value() ?? []);
-  readonly studyMode = computed(
-    () => this.studySettings.value()?.studyMode ?? 'SOLO'
-  );
-  readonly enabledPartners = computed(
-    () => this.studySettings.value()?.enabledPartners ?? []
-  );
 
   readonly skeletonRows = [{}, {}, {}];
 
@@ -62,15 +53,15 @@ export class LearningPartnersComponent {
 
     this.isAdding.set(true);
     try {
-      await this.service.createPartner({ name, isEnabled: true });
+      await this.service.createPartner({ name });
       this.newPartnerName.set('');
     } finally {
       this.isAdding.set(false);
     }
   }
 
-  async toggleEnabled(partner: LearningPartner): Promise<void> {
-    await this.service.toggleEnabled(partner);
+  async toggleActive(partner: LearningPartner): Promise<void> {
+    await this.service.setActivePartner(partner);
   }
 
   async deletePartner(partner: LearningPartner): Promise<void> {
@@ -85,9 +76,5 @@ export class LearningPartnersComponent {
         await this.service.deletePartner(partner.id);
       }
     });
-  }
-
-  async onStudyModeChange(mode: 'SOLO' | 'WITH_PARTNER'): Promise<void> {
-    await this.service.updateStudyMode(mode);
   }
 }
