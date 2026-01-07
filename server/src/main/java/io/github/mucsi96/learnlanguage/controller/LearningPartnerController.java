@@ -32,12 +32,6 @@ public class LearningPartnerController {
         return learningPartnerService.getAllLearningPartners();
     }
 
-    @GetMapping("/enabled")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public List<LearningPartnerResponse> getEnabledLearningPartners() {
-        return learningPartnerService.getEnabledLearningPartners();
-    }
-
     @PostMapping
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public LearningPartnerResponse createLearningPartner(
