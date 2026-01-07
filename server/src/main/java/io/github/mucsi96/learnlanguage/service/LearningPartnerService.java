@@ -45,12 +45,7 @@ public class LearningPartnerService {
         partner.setName(request.getName());
 
         if (request.getIsActive() != null && request.getIsActive()) {
-            learningPartnerRepository.findAll().forEach(p -> {
-                if (!p.getId().equals(id)) {
-                    p.setIsActive(false);
-                    learningPartnerRepository.save(p);
-                }
-            });
+            learningPartnerRepository.deactivateAllExcept(id);
             partner.setIsActive(true);
         } else if (request.getIsActive() != null) {
             partner.setIsActive(false);
