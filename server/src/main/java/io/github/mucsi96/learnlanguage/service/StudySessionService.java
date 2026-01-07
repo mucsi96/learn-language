@@ -37,6 +37,7 @@ public class StudySessionService {
     @Transactional
     public StudySessionResponse createSession(String sourceId) {
         studySessionRepository.deleteBySourceId(sourceId);
+        studySessionRepository.deleteOlderThan(LocalDateTime.now().minusDays(1));
 
         Source source = sourceRepository.findById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));

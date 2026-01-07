@@ -1,8 +1,12 @@
 package io.github.mucsi96.learnlanguage.repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import io.github.mucsi96.learnlanguage.entity.StudySession;
@@ -11,4 +15,8 @@ import io.github.mucsi96.learnlanguage.entity.StudySession;
 public interface StudySessionRepository extends JpaRepository<StudySession, String> {
     Optional<StudySession> findBySourceId(String sourceId);
     void deleteBySourceId(String sourceId);
+
+    @Modifying
+    @Query("DELETE FROM StudySession s WHERE s.createdAt < :cutoff")
+    void deleteOlderThan(@Param("cutoff") LocalDateTime cutoff);
 }
