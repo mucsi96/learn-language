@@ -123,3 +123,13 @@ export type ImageSource = {
   input: string;
   index: number;
 };
+
+export type StudyDeckItem = {
+  cardId: string;
+  learningPartnerId: number | null;
+  presenterName: string;
+};
+
+export type StudyDeck = {
+  items: StudyDeckItem[];
+};

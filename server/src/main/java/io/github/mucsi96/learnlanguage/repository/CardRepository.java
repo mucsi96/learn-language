@@ -46,6 +46,17 @@ public interface CardRepository extends JpaRepository<Card, String> {
       """, nativeQuery = true)
   Optional<Card> findMostDueCardBySourceId(String sourceId);
 
+  @Query(value = """
+      SELECT *
+      FROM learn_language.cards
+      WHERE source_id = :sourceId
+        AND readiness = 'READY'
+        AND due at time zone 'UTC' <= NOW()
+      ORDER BY due ASC
+      LIMIT 50
+      """, nativeQuery = true)
+  List<Card> findDueCardsBySourceId(String sourceId);
+
   List<Card> findByReadinessOrderByDueAsc(String readiness);
 
   @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")

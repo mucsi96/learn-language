@@ -10,10 +10,12 @@ import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
+import io.github.mucsi96.learnlanguage.service.StudyDeckService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
+import io.github.mucsi96.learnlanguage.model.StudyDeckResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,7 @@ public class CardController {
   private final CardService cardService;
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
+  private final StudyDeckService studyDeckService;
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -140,6 +143,12 @@ public class CardController {
     return cardService.getMostDueCardBySourceId(sourceId)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.noContent().build());
+  }
+
+  @GetMapping("/source/{sourceId}/study-deck")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<StudyDeckResponse> getStudyDeck(@PathVariable String sourceId) {
+    return ResponseEntity.ok(studyDeckService.getStudyDeck(sourceId));
   }
 
   @GetMapping("/cards/readiness/{readiness}")
