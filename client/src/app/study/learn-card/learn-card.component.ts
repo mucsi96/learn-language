@@ -6,7 +6,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { StudyDeckService } from '../../study-deck.service';
+import { StudySessionService } from '../../study-session.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +18,7 @@ import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-sk
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
+import { Card } from '../../parser/types';
 
 @Component({
   selector: 'app-learn-card',
@@ -36,14 +37,23 @@ import { LearningPartnersService } from '../../learning-partners/learning-partne
 })
 export class LearnCardComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
-  private readonly studyDeckService = inject(StudyDeckService);
+  private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly learningPartnersService = inject(LearningPartnersService);
 
-  readonly card = this.studyDeckService.card;
-  readonly deck = this.studyDeckService.deck;
+  readonly currentCardData = this.studySessionService.currentCard;
+  readonly session = this.studySessionService.session;
   readonly studySettings = this.learningPartnersService.studySettings;
+
+  readonly cardResource = {
+    value: () => this.currentCardData.value()?.card,
+    isLoading: () => this.currentCardData.isLoading(),
+  };
+
+  readonly card = computed<Card | null | undefined>(() => {
+    return this.currentCardData.value()?.card;
+  });
 
   readonly isRevealed = signal(false);
   private lastPlayedTexts: string[] = [];
@@ -54,17 +64,20 @@ export class LearnCardComponent implements OnDestroy {
     return settings?.studyMode === 'WITH_PARTNER' && (settings?.enabledPartners?.length ?? 0) > 0;
   });
 
-  readonly currentPresenter = this.studyDeckService.currentPresenter;
+  readonly currentPresenter = this.studySessionService.currentPresenter;
+  readonly stats = this.studySessionService.stats;
 
   constructor() {
     this.route.params.subscribe((params) => {
-      params['sourceId'] &&
-        this.studyDeckService.setSelectedSourceId(params['sourceId']);
+      if (params['sourceId']) {
+        this.studySessionService.createSession(params['sourceId']);
+      }
     });
   }
 
   ngOnDestroy() {
     this.audioPlaybackService.stopPlayback();
+    this.studySessionService.clearSession();
   }
 
   playAudioForContent(texts: string[]) {
@@ -82,7 +95,7 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   private async playAudioSequence(texts: string[]) {
-    const audioList = this.card.value()?.data.audio;
+    const audioList = this.card()?.data.audio;
     if (!audioList || audioList.length === 0) return;
 
     await this.audioPlaybackService.playAudioForTexts(
@@ -96,11 +109,15 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.update((revealed) => !revealed);
   }
 
-  onCardProcessed() {
+  async onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();
-    this.studyDeckService.advanceToNextCard();
+
+    const cardId = this.card()?.id;
+    if (cardId) {
+      await this.studySessionService.markCardCompleted(cardId);
+    }
   }
 
   onLanguageTextsReady(texts: LanguageTexts[]) {

@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudyDeckResponse {
-    private List<StudyDeckItemResponse> items;
+public class StudySessionResponse {
+    private String sessionId;
+    private String sourceId;
+    private int totalCards;
+    private int remainingCards;
+    private int completedCards;
 }

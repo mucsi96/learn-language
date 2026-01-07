@@ -3,8 +3,12 @@
   <div class="loading-placeholder"></div>
   } @else { @if(selectedSourceId() && mode() === 'study') {
   <div class="stats-container">
+    @if (hasActiveSession()) {
+    <span class="session-stats">{{ sessionStats().remainingCards }} / {{ sessionStats().totalCards }}</span>
+    } @else {
     @for (dueCount of getDueCounts(selectedSourceId()!); track dueCount.state) {
     <app-state [state]="dueCount.state" [count]="dueCount.count" />
+    }
     }
   </div>
   }

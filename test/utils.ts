@@ -128,6 +128,8 @@ export async function getSource(id: string): Promise<{
 export async function cleanupDbRecords({ withSources }: { withSources?: boolean } = {}): Promise<void> {
   await withDbConnection(async (client) => {
     // Delete records in order to respect foreign key constraints
+    await client.query('DELETE FROM learn_language.study_session_cards');
+    await client.query('DELETE FROM learn_language.study_sessions');
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
     await client.query('DELETE FROM learn_language.model_usage_logs');

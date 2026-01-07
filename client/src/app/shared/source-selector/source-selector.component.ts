@@ -6,6 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SourcesService } from '../../sources.service';
 import { DueCardsService } from '../../due-cards.service';
+import { StudySessionService } from '../../study-session.service';
 import { CardState } from '../state/card-state';
 import { StateComponent } from '../state/state.component';
 
@@ -40,9 +41,12 @@ export class SourceSelectorComponent {
 
   private readonly sourcesService = inject(SourcesService);
   private readonly dueCardsService = inject(DueCardsService);
+  private readonly studySessionService = inject(StudySessionService);
 
   readonly sources = this.sourcesService.sources.value;
   readonly dueCounts = this.dueCardsService.dueCounts.value;
+  readonly sessionStats = this.studySessionService.stats;
+
   readonly loading = computed(
     () =>
       !this.selectedSourceId() ||
@@ -59,6 +63,10 @@ export class SourceSelectorComponent {
       this.sources()?.find((source) => source.id === selectedId)?.name ||
       'Select source'
     );
+  });
+
+  readonly hasActiveSession = computed(() => {
+    return this.sessionStats().totalCards > 0;
   });
 
   getDueCounts(sourceId: string): { state: CardState; count: number }[] {

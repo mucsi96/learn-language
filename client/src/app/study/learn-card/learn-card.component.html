@@ -1,10 +1,10 @@
-@if (deck.isLoading() || card.isLoading()) {
+@if (currentCardData.isLoading()) {
 <div class="learn-card-container">
   <div class="learn-card">
     <app-learn-card-skeleton />
   </div>
 </div>
-} @else if (card.value() === null) {
+} @else if (card() === null || card() === undefined) {
 <div class="empty-state">
   <mat-icon class="empty-icon">school</mat-icon>
   <h2>All caught up!</h2>
@@ -24,13 +24,13 @@
     </span>
     }
     <app-card-actions
-      [card]="card"
+      [card]="cardResource"
       [languageTexts]="languageTexts()"
       (cardProcessed)="onCardProcessed()">
     </app-card-actions>
 
     <app-learn-vocabulary-card
-      [card]="card"
+      [card]="cardResource"
       [isRevealed]="isRevealed()"
       [onPlayAudio]="playAudioForContent.bind(this)"
       (languageTextsReady)="onLanguageTextsReady($event)">
@@ -39,7 +39,7 @@
 
   @if (isRevealed()) {
     <app-card-grading-buttons
-      [card]="card"
+      [card]="cardResource"
       [learningPartnerId]="currentPresenter().partnerId"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>

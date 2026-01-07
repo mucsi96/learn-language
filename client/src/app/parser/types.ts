@@ -124,12 +124,19 @@ export type ImageSource = {
   index: number;
 };
 
-export type StudyDeckItem = {
-  cardId: string;
-  learningPartnerId: number | null;
-  presenterName: string;
+export type StudySession = {
+  sessionId: string;
+  sourceId: string;
+  totalCards: number;
+  remainingCards: number;
+  completedCards: number;
 };
 
-export type StudyDeck = {
-  items: StudyDeckItem[];
+export type StudySessionCard = {
+  card: Card;
+  learningPartnerId: number | null;
+  presenterName: string;
+  position: number;
+  totalCards: number;
+  remainingCards: number;
 };
