@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,7 +92,7 @@ public class StudySessionService {
                     return nextCard.map(sessionCard -> {
                         String presenterName = sessionCard.getLearningPartner() != null
                                 ? sessionCard.getLearningPartner().getName()
-                                : "Myself";
+                                : getCurrentUserFirstName();
 
                         return StudySessionCardResponse.builder()
                                 .card(sessionCard.getCard())
@@ -119,5 +122,20 @@ public class StudySessionService {
     @Transactional
     public void deleteSession(String sessionId) {
         studySessionRepository.deleteById(sessionId);
+    }
+
+    private String getCurrentUserFirstName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            String givenName = jwt.getClaimAsString("given_name");
+            if (givenName != null && !givenName.isBlank()) {
+                return givenName;
+            }
+            String name = jwt.getClaimAsString("name");
+            if (name != null && !name.isBlank()) {
+                return name.split(" ")[0];
+            }
+        }
+        return "Me";
     }
 }
