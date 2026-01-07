@@ -3,6 +3,7 @@ import { Injectable, Injector, computed, inject, resource, signal } from '@angul
 import { fetchJson } from './utils/fetchJson';
 import { StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
+import { DueCardsService } from './due-cards.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +11,7 @@ import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 export class StudySessionService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly dueCardsService = inject(DueCardsService);
 
   readonly sessionId = signal<string | undefined>(undefined);
   private sessionVersion = signal(0);
@@ -95,6 +97,7 @@ export class StudySessionService {
     );
 
     this.sessionVersion.update((v) => v + 1);
+    this.dueCardsService.refetchDueCounts();
   }
 
   refreshSession() {
