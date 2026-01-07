@@ -19,6 +19,7 @@ import { AudioPlaybackService } from '../../shared/services/audio-playback.servi
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 import { Card } from '../../parser/types';
+import { CardResourceLike } from '../../shared/types/card-resource.types';
 
 @Component({
   selector: 'app-learn-card',
@@ -46,7 +47,7 @@ export class LearnCardComponent implements OnDestroy {
   readonly session = this.studySessionService.session;
   readonly studySettings = this.learningPartnersService.studySettings;
 
-  readonly cardResource = {
+  readonly cardResource: CardResourceLike = {
     value: () => this.currentCardData.value()?.card,
     isLoading: () => this.currentCardData.isLoading(),
   };
