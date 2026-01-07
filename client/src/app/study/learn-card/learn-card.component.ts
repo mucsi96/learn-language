@@ -44,7 +44,6 @@ export class LearnCardComponent implements OnDestroy {
   private readonly learningPartnersService = inject(LearningPartnersService);
 
   readonly currentCardData = this.studySessionService.currentCard;
-  readonly session = this.studySessionService.session;
   readonly studySettings = this.learningPartnersService.studySettings;
 
   readonly cardResource: CardResourceLike = {
@@ -66,7 +65,6 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentPresenter = this.studySessionService.currentPresenter;
-  readonly stats = this.studySessionService.stats;
 
   constructor() {
     this.route.params.subscribe((params) => {

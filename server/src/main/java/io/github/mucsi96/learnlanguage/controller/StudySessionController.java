@@ -25,14 +25,6 @@ public class StudySessionController {
         return ResponseEntity.ok(studySessionService.createSession(sourceId));
     }
 
-    @GetMapping("/study-session/{sessionId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<StudySessionResponse> getSession(@PathVariable String sessionId) {
-        return studySessionService.getSession(sessionId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @GetMapping("/study-session/{sessionId}/current-card")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<StudySessionCardResponse> getCurrentCard(@PathVariable String sessionId) {
@@ -43,12 +35,11 @@ public class StudySessionController {
 
     @PostMapping("/study-session/{sessionId}/card/{cardId}/complete")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<StudySessionResponse> markCardCompleted(
+    public ResponseEntity<Void> markCardCompleted(
             @PathVariable String sessionId,
             @PathVariable String cardId) {
-        return studySessionService.markCardCompleted(sessionId, cardId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        studySessionService.markCardCompleted(sessionId, cardId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/study-session/{sessionId}")

@@ -14,7 +14,4 @@ public class StudySessionCardResponse {
     private Card card;
     private Integer learningPartnerId;
     private String presenterName;
-    private int position;
-    private int totalCards;
-    private int remainingCards;
 }

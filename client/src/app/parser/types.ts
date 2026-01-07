@@ -126,17 +126,10 @@ export type ImageSource = {
 
 export type StudySession = {
   sessionId: string;
-  sourceId: string;
-  totalCards: number;
-  remainingCards: number;
-  completedCards: number;
 };
 
 export type StudySessionCard = {
   card: Card;
   learningPartnerId: number | null;
   presenterName: string;
-  position: number;
-  totalCards: number;
-  remainingCards: number;
 };

@@ -16,20 +16,6 @@ export class StudySessionService {
   readonly sessionId = signal<string | undefined>(undefined);
   private sessionVersion = signal(0);
 
-  readonly session = resource({
-    params: () => ({
-      sessionId: this.sessionId(),
-      version: this.sessionVersion(),
-    }),
-    loader: async ({ params: { sessionId } }) => {
-      if (!sessionId) {
-        return null;
-      }
-      return fetchJson<StudySession>(this.http, `/api/study-session/${sessionId}`);
-    },
-    injector: this.injector,
-  });
-
   readonly currentCard = resource({
     params: () => ({
       sessionId: this.sessionId(),
@@ -59,18 +45,6 @@ export class StudySessionService {
     return {
       name: cardData.presenterName,
       partnerId: cardData.learningPartnerId,
-    };
-  });
-
-  readonly stats = computed(() => {
-    const cardData = this.currentCard.value();
-    if (!cardData) {
-      return { totalCards: 0, remainingCards: 0, position: 0 };
-    }
-    return {
-      totalCards: cardData.totalCards,
-      remainingCards: cardData.remainingCards,
-      position: cardData.position,
     };
   });
 

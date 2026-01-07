@@ -76,12 +76,9 @@ public class StudySessionService {
 
         studySessionRepository.save(session);
 
-        return buildSessionResponse(session);
-    }
-
-    public Optional<StudySessionResponse> getSession(String sessionId) {
-        return studySessionRepository.findById(sessionId)
-                .map(this::buildSessionResponse);
+        return StudySessionResponse.builder()
+                .sessionId(sessionId)
+                .build();
     }
 
     public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
@@ -93,10 +90,6 @@ public class StudySessionService {
                             .findFirst();
 
                     return nextCard.map(sessionCard -> {
-                        int remainingCards = (int) cards.stream()
-                                .filter(c -> !c.getIsCompleted())
-                                .count();
-
                         String presenterName = sessionCard.getLearningPartner() != null
                                 ? sessionCard.getLearningPartner().getName()
                                 : "Myself";
@@ -107,45 +100,27 @@ public class StudySessionService {
                                         ? sessionCard.getLearningPartner().getId()
                                         : null)
                                 .presenterName(presenterName)
-                                .position(sessionCard.getPosition())
-                                .totalCards(cards.size())
-                                .remainingCards(remainingCards)
                                 .build();
                     });
                 });
     }
 
     @Transactional
-    public Optional<StudySessionResponse> markCardCompleted(String sessionId, String cardId) {
-        return studySessionRepository.findById(sessionId)
-                .map(session -> {
+    public void markCardCompleted(String sessionId, String cardId) {
+        studySessionRepository.findById(sessionId)
+                .ifPresent(session -> {
                     session.getCards().stream()
                             .filter(c -> c.getCard().getId().equals(cardId))
                             .findFirst()
                             .ifPresent(c -> c.setIsCompleted(true));
 
                     studySessionRepository.save(session);
-                    return buildSessionResponse(session);
                 });
     }
 
     @Transactional
     public void deleteSession(String sessionId) {
         studySessionRepository.deleteById(sessionId);
-    }
-
-    private StudySessionResponse buildSessionResponse(StudySession session) {
-        List<StudySessionCard> cards = session.getCards();
-        int completedCards = (int) cards.stream().filter(StudySessionCard::getIsCompleted).count();
-        int remainingCards = cards.size() - completedCards;
-
-        return StudySessionResponse.builder()
-                .sessionId(session.getId())
-                .sourceId(session.getSource().getId())
-                .totalCards(cards.size())
-                .remainingCards(remainingCards)
-                .completedCards(completedCards)
-                .build();
     }
 
     private List<PresenterInfo> buildPresenterList(StudySettingsResponse settings) {
