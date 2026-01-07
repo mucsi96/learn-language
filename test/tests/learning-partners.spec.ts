@@ -98,7 +98,7 @@ test('can change study mode back to solo', async ({ page }) => {
   expect(settings?.studyMode).toBe('SOLO');
 });
 
-test('study page shows presenter banner when studying with partner', async ({ page }) => {
+test('study page shows presenter indicator when studying with partner', async ({ page }) => {
   await createLearningPartner({ name: 'Alice' });
   await setStudySettings({ studyMode: 'WITH_PARTNER' });
   await createCard({
@@ -114,11 +114,11 @@ test('study page shows presenter banner when studying with partner', async ({ pa
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(page.getByRole('status')).toContainText('Myself');
+  await expect(page.locator('.presenter-indicator')).toContainText('Myself');
 });
 
 test('study page alternates between presenter and partner', async ({ page }) => {
-  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await createLearningPartner({ name: 'Alice' });
   await setStudySettings({ studyMode: 'WITH_PARTNER' });
 
   await createCard({
@@ -145,15 +145,15 @@ test('study page alternates between presenter and partner', async ({ page }) => 
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(page.getByRole('status')).toContainText('Myself');
+  await expect(page.locator('.presenter-indicator')).toContainText('Myself');
 
   await page.getByRole('heading', { name: 'első' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
-  await expect(page.getByRole('status')).toContainText('Alice');
+  await expect(page.locator('.presenter-indicator')).toContainText('Alice');
 });
 
-test('study page does not show presenter banner in solo mode', async ({ page }) => {
+test('study page does not show presenter indicator in solo mode', async ({ page }) => {
   await setStudySettings({ studyMode: 'SOLO' });
   await createCard({
     cardId: 'test-card',
@@ -168,7 +168,7 @@ test('study page does not show presenter banner in solo mode', async ({ page }) 
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(page.getByRole('status')).not.toBeVisible();
+  await expect(page.locator('.presenter-indicator')).not.toBeVisible();
 });
 
 test('review log records learning partner when grading', async ({ page }) => {
