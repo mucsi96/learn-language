@@ -69,6 +69,12 @@ export const routes: Routes = [
           import('./known-words/known-words.component').then((m) => m.KnownWordsComponent),
         title: 'Known Words',
       },
+      {
+        path: 'learning-partners',
+        loadComponent: () =>
+          import('./learning-partners/learning-partners.component').then((m) => m.LearningPartnersComponent),
+        title: 'Learning Partners',
+      },
     ],
   },
   {

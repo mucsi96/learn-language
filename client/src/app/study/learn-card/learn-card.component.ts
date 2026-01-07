@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   OnDestroy,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +17,7 @@ import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-voc
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
+import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 
 @Component({
   selector: 'app-learn-card',
@@ -37,11 +39,34 @@ export class LearnCardComponent implements OnDestroy {
   private readonly mostDueCardService = inject(MostDueCardService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
+  private readonly learningPartnersService = inject(LearningPartnersService);
   readonly card = this.mostDueCardService.card;
+  readonly studySettings = this.learningPartnersService.studySettings;
 
   readonly isRevealed = signal(false);
   private lastPlayedTexts: string[] = [];
   readonly languageTexts = signal<LanguageTexts[]>([]);
+  readonly cardIndex = signal(0);
+
+  readonly isStudyingWithPartner = computed(() => {
+    const settings = this.studySettings.value();
+    return settings?.studyMode === 'WITH_PARTNER' && (settings?.enabledPartners?.length ?? 0) > 0;
+  });
+
+  readonly currentPresenter = computed<{ name: string; partnerId: number | null }>(() => {
+    if (!this.isStudyingWithPartner()) {
+      return { name: 'Myself', partnerId: null };
+    }
+
+    const partners = this.studySettings.value()?.enabledPartners ?? [];
+    const allPresenters: { name: string; partnerId: number | null }[] = [
+      { name: 'Myself', partnerId: null },
+      ...partners.map((p) => ({ name: p.name, partnerId: p.id })),
+    ];
+
+    const index = this.cardIndex() % allPresenters.length;
+    return allPresenters[index];
+  });
 
   constructor() {
     this.route.params.subscribe((params) => {
@@ -93,6 +118,8 @@ export class LearnCardComponent implements OnDestroy {
     this.lastPlayedTexts = [];
     // Stop any ongoing audio playback
     this.audioPlaybackService.stopPlayback();
+    // Increment card index for partner alternation
+    this.cardIndex.update((i) => i + 1);
   }
 
   onLanguageTextsReady(texts: LanguageTexts[]) {

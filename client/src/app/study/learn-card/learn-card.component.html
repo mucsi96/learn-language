@@ -13,6 +13,12 @@
 </div>
 } @else {
 <div class="learn-card-container">
+  @if (isStudyingWithPartner()) {
+  <div class="presenter-banner" role="status" aria-live="polite">
+    <mat-icon>person</mat-icon>
+    <span>{{ currentPresenter().name }}</span>
+  </div>
+  }
   <div
     class="learn-card"
     [class.revealed]="isRevealed()"
@@ -35,6 +41,7 @@
   @if (isRevealed()) {
     <app-card-grading-buttons
       [card]="card"
+      [learningPartnerId]="currentPresenter().partnerId"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
   }

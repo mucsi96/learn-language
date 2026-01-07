@@ -134,6 +134,8 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
     await client.query('DELETE FROM learn_language.known_words');
+    await client.query('DELETE FROM learn_language.learning_partners');
+    await client.query('DELETE FROM learn_language.study_settings');
     await client.query('DELETE FROM learn_language.documents');
     await client.query('DELETE FROM learn_language.sources');
   });
@@ -810,5 +812,81 @@ export async function getKnownWords(): Promise<string[]> {
 export async function clearKnownWords(): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query('DELETE FROM learn_language.known_words');
+  });
+}
+
+export async function createLearningPartner(params: {
+  name: string;
+  isEnabled?: boolean;
+}): Promise<number> {
+  const { name, isEnabled = true } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.learning_partners (name, is_enabled)
+       VALUES ($1, $2)
+       RETURNING id`,
+      [name, isEnabled]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getLearningPartners(): Promise<Array<{
+  id: number;
+  name: string;
+  isEnabled: boolean;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, name, is_enabled as "isEnabled"
+       FROM learn_language.learning_partners
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function setStudySettings(params: {
+  studyMode: string;
+}): Promise<void> {
+  const { studyMode } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.study_settings (id, study_mode)
+       VALUES (1, $1)
+       ON CONFLICT (id) DO UPDATE SET study_mode = $1`,
+      [studyMode]
+    );
+  });
+}
+
+export async function getStudySettings(): Promise<{
+  studyMode: string;
+} | null> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT study_mode as "studyMode"
+       FROM learn_language.study_settings
+       WHERE id = 1`
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
+  });
+}
+
+export async function getReviewLogs(): Promise<Array<{
+  id: number;
+  cardId: string;
+  learningPartnerId: number | null;
+  rating: number;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, card_id as "cardId", learning_partner_id as "learningPartnerId", rating
+       FROM learn_language.review_logs
+       ORDER BY id`
+    );
+    return result.rows;
   });
 }

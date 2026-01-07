@@ -14,6 +14,7 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 })
 export class CardGradingButtonsComponent {
   card = input<any>(null);
+  learningPartnerId = input<number | null>(null);
   graded = output<Grade>();
   cardProcessed = output<void>();
 
@@ -24,7 +25,7 @@ export class CardGradingButtonsComponent {
     if (!cardData) return;
 
     try {
-      await this.fsrsGradingService.gradeCard(cardData, grade);
+      await this.fsrsGradingService.gradeCard(cardData, grade, this.learningPartnerId());
       // Reload the card resource to get the next card
       this.card()?.reload();
       this.cardProcessed.emit();

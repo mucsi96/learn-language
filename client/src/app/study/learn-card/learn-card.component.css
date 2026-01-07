@@ -6,6 +6,26 @@
   max-width: 1200px;
 }
 
+.presenter-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  margin-bottom: 1rem;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.presenter-banner mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
 .learn-card {
   position: relative;
   width: 100%;

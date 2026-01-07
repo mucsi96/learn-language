@@ -1,0 +1,117 @@
+<div class="learning-partners-container">
+  <div class="settings-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title><h2>Study Mode</h2></mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="section-description">
+          Choose how you want to study. With a learning partner, cards alternate
+          between you and your partner.
+        </p>
+        @if (studySettings.isLoading()) {
+        <div class="skeleton skeleton-radio"></div>
+        <div class="skeleton skeleton-radio"></div>
+        } @else {
+        <mat-radio-group
+          [ngModel]="studyMode()"
+          (ngModelChange)="onStudyModeChange($event)"
+          aria-label="Study mode selection"
+          class="study-mode-group"
+        >
+          <mat-radio-button value="SOLO">Solo study</mat-radio-button>
+          <mat-radio-button value="WITH_PARTNER"
+            >Study with partner</mat-radio-button
+          >
+        </mat-radio-group>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="partners-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>Learning Partners</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="section-description">
+          Add learning partners who study with you. Enable or disable them to
+          include or exclude them from study sessions.
+        </p>
+
+        <div class="add-partner-form">
+          <mat-form-field appearance="outline" class="partner-name-field">
+            <mat-label>Partner name</mat-label>
+            <input
+              matInput
+              [ngModel]="newPartnerName()"
+              (ngModelChange)="newPartnerName.set($event)"
+              placeholder="Enter partner name"
+              aria-label="Partner name"
+              (keydown.enter)="addPartner()"
+            />
+          </mat-form-field>
+          <button
+            mat-flat-button
+            (click)="addPartner()"
+            [disabled]="!newPartnerName().trim() || isAdding()"
+            aria-label="Add partner"
+          >
+            @if (isAdding()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>person_add</mat-icon>
+            }
+            Add
+          </button>
+        </div>
+
+        @if (partners.isLoading()) {
+        <mat-list class="partners-list">
+          @for (row of skeletonRows; track $index) {
+          <mat-list-item>
+            <div class="skeleton skeleton-partner"></div>
+          </mat-list-item>
+          }
+        </mat-list>
+        } @else if (partnersList().length === 0) {
+        <div class="empty-state">
+          <mat-icon>group</mat-icon>
+          <p>No learning partners yet</p>
+          <p class="empty-state-hint">Add a partner to study together</p>
+        </div>
+        } @else {
+        <mat-list class="partners-list" role="list" aria-label="Learning partners">
+          @for (partner of partnersList(); track partner.id) {
+          <mat-list-item role="listitem">
+            <span matListItemTitle>{{ partner.name }}</span>
+            <div matListItemMeta class="partner-actions">
+              <mat-slide-toggle
+                [checked]="partner.isEnabled"
+                (change)="toggleEnabled(partner)"
+                [attr.aria-label]="
+                  (partner.isEnabled ? 'Disable' : 'Enable') +
+                  ' ' +
+                  partner.name
+                "
+              ></mat-slide-toggle>
+              <button
+                mat-icon-button
+                (click)="deletePartner(partner)"
+                matTooltip="Delete partner"
+                [attr.aria-label]="'Delete ' + partner.name"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+          }
+        </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -31,6 +31,10 @@ public class ReviewLog {
     @JoinColumn(name = "card_id", nullable = false)
     private Card card;
 
+    @ManyToOne
+    @JoinColumn(name = "learning_partner_id")
+    private LearningPartner learningPartner;
+
     @Column(nullable = false)
     private Integer rating;
 
