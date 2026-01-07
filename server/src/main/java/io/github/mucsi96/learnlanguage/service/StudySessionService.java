@@ -46,11 +46,13 @@ public class StudySessionService {
         List<PresenterInfo> presenters = buildPresenterList(settings);
 
         String sessionId = UUID.randomUUID().toString();
+        String studyMode = settings.getStudyMode() != null ? settings.getStudyMode() : "SOLO";
         StudySession session = StudySession.builder()
                 .id(sessionId)
                 .source(source)
                 .createdAt(LocalDateTime.now())
                 .currentIndex(0)
+                .studyMode(studyMode)
                 .cards(new ArrayList<>())
                 .build();
 
@@ -100,6 +102,7 @@ public class StudySessionService {
                                         ? sessionCard.getLearningPartner().getId()
                                         : null)
                                 .presenterName(presenterName)
+                                .studyMode(session.getStudyMode())
                                 .build();
                     });
                 });

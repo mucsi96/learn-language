@@ -17,7 +17,6 @@ import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-voc
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
-import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 import { Card } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 
@@ -41,10 +40,8 @@ export class LearnCardComponent implements OnDestroy {
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
-  private readonly learningPartnersService = inject(LearningPartnersService);
 
   readonly currentCardData = this.studySessionService.currentCard;
-  readonly studySettings = this.learningPartnersService.studySettings;
 
   readonly cardResource: CardResourceLike = {
     value: () => this.currentCardData.value()?.card,
@@ -60,8 +57,8 @@ export class LearnCardComponent implements OnDestroy {
   readonly languageTexts = signal<LanguageTexts[]>([]);
 
   readonly isStudyingWithPartner = computed(() => {
-    const settings = this.studySettings.value();
-    return settings?.studyMode === 'WITH_PARTNER' && (settings?.enabledPartners?.length ?? 0) > 0;
+    const cardData = this.currentCardData.value();
+    return cardData?.studyMode === 'WITH_PARTNER';
   });
 
   readonly currentPresenter = this.studySessionService.currentPresenter;

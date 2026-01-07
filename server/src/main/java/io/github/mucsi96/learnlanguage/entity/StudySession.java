@@ -39,6 +39,9 @@ public class StudySession {
     @Builder.Default
     private Integer currentIndex = 0;
 
+    @Column(name = "study_mode", nullable = false)
+    private String studyMode;
+
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<StudySessionCard> cards;

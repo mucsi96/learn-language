@@ -132,4 +132,5 @@ export type StudySessionCard = {
   card: Card;
   learningPartnerId: number | null;
   presenterName: string;
+  studyMode: 'SOLO' | 'WITH_PARTNER';
 };

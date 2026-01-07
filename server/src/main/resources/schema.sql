@@ -145,6 +145,7 @@ CREATE TABLE IF NOT EXISTS learn_language.study_sessions (
     source_id character varying(255) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     current_index integer NOT NULL DEFAULT 0,
+    study_mode character varying(50) NOT NULL DEFAULT 'SOLO',
     CONSTRAINT study_sessions_pkey PRIMARY KEY (id),
     CONSTRAINT study_session_source_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id) ON DELETE CASCADE
 );
