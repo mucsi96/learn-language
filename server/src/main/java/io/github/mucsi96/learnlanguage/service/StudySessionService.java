@@ -87,7 +87,6 @@ public class StudySessionService {
                 .flatMap(session -> {
                     LocalDateTime now = LocalDateTime.now();
                     LocalDateTime oneHourFromNow = now.plusHours(1);
-                    LocalDateTime recentReviewThreshold = now.minusMinutes(10);
                     List<StudySessionCard> cards = session.getCards();
 
                     cards.removeIf(c -> c.getCard().getDue().isAfter(oneHourFromNow));
@@ -97,16 +96,10 @@ public class StudySessionService {
                             .max()
                             .orElse(0);
 
-                    for (StudySessionCard c : cards) {
-                        Card card = c.getCard();
-                        boolean isDue = !card.getDue().isAfter(now);
-                        boolean wasRecentlyReviewed = card.getLastReview() != null
-                                && card.getLastReview().isAfter(recentReviewThreshold);
-
-                        if (isDue && wasRecentlyReviewed) {
-                            c.setPosition(++maxPosition);
-                        }
-                    }
+                    cards.stream()
+                            .filter(c -> c.getCard().getLastReview() != null)
+                            .max(Comparator.comparing(c -> c.getCard().getLastReview()))
+                            .ifPresent(c -> c.setPosition(++maxPosition));
 
                     studySessionRepository.save(session);
 
