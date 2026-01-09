@@ -47,10 +47,9 @@ test('can activate a learning partner', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/learning-partners');
 
-  const toggle = page.getByRole('switch', { name: /Alice/ });
-  await expect(toggle).not.toBeChecked();
+  await page.getByRole('switch', { name: "Activate Alice" }).click();
 
-  await toggle.click();
+  await expect(page.getByRole('switch', { name: "Deactivate Alice" })).toBeVisible();
 
   const partners = await getLearningPartners();
   expect(partners[0].isActive).toBe(true);
@@ -62,10 +61,13 @@ test('activating one partner deactivates others', async ({ page }) => {
 
   await page.goto('http://localhost:8180/settings/learning-partners');
 
-  await expect(page.getByRole('switch', { name: /Alice/ })).toBeChecked();
-  await expect(page.getByRole('switch', { name: /Bob/ })).not.toBeChecked();
+  await expect(page.getByRole('switch', { name: 'Deactivate Alice' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Activate Bob' })).toBeVisible();
 
-  await page.getByRole('switch', { name: /Bob/ }).click();
+  await page.getByRole('switch', { name: 'Activate Bob' }).click();
+
+  await expect(page.getByRole('switch', { name: 'Activate Alice' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Deactivate Bob' })).toBeVisible();
 
   const partners = await getLearningPartners();
   const alice = partners.find(p => p.name === 'Alice');
@@ -82,8 +84,9 @@ test('can delete a learning partner', async ({ page }) => {
   await expect(page.getByText('Alice')).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete Alice' }).click();
-  await page.getByRole('button', { name: 'OK' }).click();
+  await page.getByRole('button', { name: 'Yes' }).click();
 
+  await expect(page.getByText('No learning partners yet')).toBeVisible();
   await expect(page.getByText('Alice')).not.toBeVisible();
 
   const partners = await getLearningPartners();
@@ -194,6 +197,8 @@ test('review log records learning partner when grading', async ({ page }) => {
   await page.getByRole('heading', { name: 'második' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
+  await expect(page.getByText('All caught up!')).toBeVisible();
+
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(2);
   expect(reviewLogs[0].learningPartnerId).toBeNull();
@@ -216,6 +221,8 @@ test('review log has null learning partner when no partner is active', async ({ 
 
   await page.getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(1);
