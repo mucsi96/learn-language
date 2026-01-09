@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,24 +88,28 @@ public class StudySessionService {
                 .flatMap(session -> {
                     LocalDateTime now = LocalDateTime.now();
                     LocalDateTime oneHourFromNow = now.plusHours(1);
-                    List<StudySessionCard> cards = session.getCards();
 
-                    cards.removeIf(c -> c.getCard().getDue().isAfter(oneHourFromNow));
+                    List<StudySessionCard> expiredCards = session.getCards().stream()
+                            .filter(c -> c.getCard().getDue().isAfter(oneHourFromNow))
+                            .collect(Collectors.toList());
+                    session.getCards().removeAll(expiredCards);
 
-                    int maxPosition = cards.stream()
+                    List<StudySessionCard> eligibleCards = session.getCards();
+
+                    int maxPosition = eligibleCards.stream()
                             .mapToInt(StudySessionCard::getPosition)
                             .max()
                             .orElse(0);
 
                     int newLastPosition = maxPosition + 1;
-                    cards.stream()
+                    eligibleCards.stream()
                             .filter(c -> c.getCard().getLastReview() != null)
                             .max(Comparator.comparing(c -> c.getCard().getLastReview()))
                             .ifPresent(c -> c.setPosition(newLastPosition));
 
                     studySessionRepository.save(session);
 
-                    Optional<StudySessionCard> nextCard = cards.stream()
+                    Optional<StudySessionCard> nextCard = eligibleCards.stream()
                             .filter(c -> !c.getCard().getDue().isAfter(now))
                             .min(Comparator.comparing(StudySessionCard::getPosition));
 
