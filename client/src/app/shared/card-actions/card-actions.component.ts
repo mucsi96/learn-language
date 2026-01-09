@@ -1,4 +1,4 @@
-import { Component, inject, input, output, ResourceRef } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -10,6 +10,7 @@ import { fetchJson } from '../../utils/fetchJson';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { AudioData } from '../types/audio-generation.types';
 import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { CardResourceLike } from '../types/card-resource.types';
 
 @Component({
   selector: 'app-card-actions',
@@ -26,7 +27,7 @@ import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection
   styleUrl: './card-actions.component.css',
 })
 export class CardActionsComponent {
-  card = input<ResourceRef<any>>();
+  card = input<CardResourceLike>();
   languageTexts = input<LanguageTexts[]>([]);
   markedForReview = output<void>();
   cardProcessed = output<void>();
@@ -46,7 +47,7 @@ export class CardActionsComponent {
         body: { readiness: 'IN_REVIEW' },
         method: 'PUT',
       });
-      this.card()?.reload();
+      this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {
       console.error('Error marking card for review:', error);
@@ -107,7 +108,7 @@ export class CardActionsComponent {
           },
         },
       });
-      this.card()?.reload();
+      this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {
       console.error('Error saving voice selection:', error);

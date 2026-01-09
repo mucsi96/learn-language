@@ -9,17 +9,17 @@ import {
   linkedSignal,
   untracked,
   effect,
-  ResourceRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
-import { Card, ExampleImage } from '../../parser/types';
+import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
+import { CardResourceLike } from '../../shared/types/card-resource.types';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -35,7 +35,7 @@ type ImageResource = ExampleImage & { url: string };
   styleUrl: './learn-vocabulary-card.component.css',
 })
 export class LearnVocabularyCardComponent {
-  card = input<ResourceRef<Card | null | undefined> | null>(null);
+  card = input<CardResourceLike | null>(null);
   isRevealed = input<boolean>(false);
   onPlayAudio = input<((texts: string[]) => void) | null>(null);
   languageTextsReady = output<LanguageTexts[]>();

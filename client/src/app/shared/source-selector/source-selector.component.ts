@@ -43,6 +43,7 @@ export class SourceSelectorComponent {
 
   readonly sources = this.sourcesService.sources.value;
   readonly dueCounts = this.dueCardsService.dueCounts.value;
+
   readonly loading = computed(
     () =>
       !this.selectedSourceId() ||

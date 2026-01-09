@@ -123,3 +123,14 @@ export type ImageSource = {
   input: string;
   index: number;
 };
+
+export type StudySession = {
+  sessionId: string;
+};
+
+export type StudySessionCard = {
+  card: Card;
+  learningPartnerId: number | null;
+  presenterName: string;
+  studyMode: 'SOLO' | 'WITH_PARTNER';
+};

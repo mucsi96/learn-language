@@ -6,6 +6,19 @@
   max-width: 1200px;
 }
 
+.presenter-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--mat-sys-on-surface-variant);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  z-index: 10;
+}
+
 .learn-card {
   position: relative;
   width: 100%;

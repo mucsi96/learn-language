@@ -1,8 +1,7 @@
-- Assign cards / multiperson
-
 - Fix ids to include both languages. Same for known words. 
-
 - support for speach card type
 - support for grammar card type
 - support multi part regions
 - support cross-page multi part regions
+- add smart card assigment to maximise the study session effectiveness based on ereview log
+- add a study button to fix the initial no auto audio issue

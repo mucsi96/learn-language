@@ -65,7 +65,8 @@ export class FsrsGradingService {
    */
   async gradeCard(
     card: Card,
-    grade: 'Again' | 'Hard' | 'Good' | 'Easy'
+    grade: 'Again' | 'Hard' | 'Good' | 'Easy',
+    learningPartnerId?: number | null
   ): Promise<void> {
     // Convert grade to FSRS Rating
     const rating = this.convertGradeToRating(grade);
@@ -84,7 +85,10 @@ export class FsrsGradingService {
     // Save the updated card using existing endpoint
     await fetchJson(this.http, `/api/card/${card.id}`, {
       method: 'PUT',
-      body: mapCardDatesToISOStrings(cardUpdateData),
+      body: {
+        ...mapCardDatesToISOStrings(cardUpdateData),
+        learningPartnerId: learningPartnerId ?? null,
+      },
     });
   }
 

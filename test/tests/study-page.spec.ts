@@ -806,6 +806,53 @@ test('grading card updates database', async ({ page }) => {
   });
 });
 
+test('grading card creates review log', async ({ page }) => {
+  await createCard({
+    cardId: 'review_log_test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 52,
+    data: {
+      word: 'protokoll',
+      type: 'NOUN',
+      gender: 'NEUTER',
+      translation: { en: 'log', hu: 'napló', ch: 'Protokoll' },
+      examples: [
+        {
+          de: 'Das Protokoll wird erstellt.',
+          hu: 'A napló létrejön.',
+          en: 'The log is created.',
+          ch: "S'Protokoll wird erstellt.",
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await page.getByRole('heading', { name: 'napló' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await page.waitForTimeout(500);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT card_id, rating, state, stability, difficulty, learning_partner_id
+       FROM learn_language.review_logs
+       WHERE card_id = 'review_log_test'`
+    );
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0];
+
+    expect(row.card_id).toBe('review_log_test');
+    expect(row.rating).toBe(3);
+    expect(row.state).toBe('LEARNING');
+    expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
+    expect(parseFloat(row.difficulty)).toBeGreaterThan(0.0);
+    expect(row.learning_partner_id).toBeNull();
+  });
+});
+
 test('grading with no next card shows empty state', async ({ page }) => {
   await createCard({
     cardId: 'last_card',
