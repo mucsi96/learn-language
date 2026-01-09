@@ -2,7 +2,6 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,12 +30,5 @@ public class StudySessionController {
         return studySessionService.getCurrentCard(sessionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
-    }
-
-    @DeleteMapping("/study-session/{sessionId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<Void> deleteSession(@PathVariable String sessionId) {
-        studySessionService.deleteSession(sessionId);
-        return ResponseEntity.noContent().build();
     }
 }

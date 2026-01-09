@@ -112,11 +112,6 @@ public class StudySessionService {
                 });
     }
 
-    @Transactional
-    public void deleteSession(String sessionId) {
-        studySessionRepository.deleteById(sessionId);
-    }
-
     private String getCurrentUserFirstName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
