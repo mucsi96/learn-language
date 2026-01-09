@@ -16,6 +16,9 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Stri
     Optional<StudySession> findBySourceId(String sourceId);
     void deleteBySourceId(String sourceId);
 
+    @Query("SELECT s FROM StudySession s LEFT JOIN FETCH s.cards sc LEFT JOIN FETCH sc.card WHERE s.id = :sessionId")
+    Optional<StudySession> findByIdWithCards(@Param("sessionId") String sessionId);
+
     @Modifying
     @Query("DELETE FROM StudySession s WHERE s.createdAt < :cutoff")
     void deleteOlderThan(@Param("cutoff") LocalDateTime cutoff);

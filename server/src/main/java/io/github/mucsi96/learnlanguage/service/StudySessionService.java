@@ -84,7 +84,7 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
-        return studySessionRepository.findById(sessionId)
+        return studySessionRepository.findByIdWithCards(sessionId)
                 .flatMap(session -> {
                     LocalDateTime now = LocalDateTime.now();
                     LocalDateTime oneHourFromNow = now.plusHours(1);
@@ -105,7 +105,7 @@ public class StudySessionService {
                     eligibleCards.stream()
                             .filter(c -> c.getCard().getLastReview() != null)
                             .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                            .ifPresent(c -> c.setPosition(newLastPosition));
+                            .ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
                     studySessionRepository.save(session);
 
