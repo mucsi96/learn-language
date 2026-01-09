@@ -96,10 +96,11 @@ public class StudySessionService {
                             .max()
                             .orElse(0);
 
+                    int newLastPosition = maxPosition + 1;
                     cards.stream()
                             .filter(c -> c.getCard().getLastReview() != null)
                             .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                            .ifPresent(c -> c.setPosition(++maxPosition));
+                            .ifPresent(c -> c.setPosition(newLastPosition));
 
                     studySessionRepository.save(session);
 
