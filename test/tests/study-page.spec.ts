@@ -887,3 +887,146 @@ test('grading with no next card shows empty state', async ({ page }) => {
   await expect(page.getByText('No cards are due for review right now.')).toBeVisible();
   await expect(page.getByText('Great job keeping up with your studies! 🎉')).toBeVisible();
 });
+
+test('cards due more than 1 hour from now are removed from session', async ({ page }) => {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+  const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+  await createCard({
+    cardId: 'due_now_card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 60,
+    data: {
+      word: 'jetzt',
+      type: 'ADVERB',
+      translation: { en: 'now', hu: 'most', ch: 'jetzt' },
+    },
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'due_later_card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 61,
+    data: {
+      word: 'später',
+      type: 'ADVERB',
+      translation: { en: 'later', hu: 'később', ch: 'spöter' },
+    },
+    due: twoHoursFromNow,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await expect(page.getByRole('heading', { name: 'most' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'most' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'később' })).not.toBeVisible();
+});
+
+test('most recently reviewed card moves to back of queue', async ({ page }) => {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+
+  await createCard({
+    cardId: 'first_card_queue',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 62,
+    data: {
+      word: 'erste',
+      type: 'ADJECTIVE',
+      translation: { en: 'first', hu: 'első', ch: 'erschti' },
+    },
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'second_card_queue',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 63,
+    data: {
+      word: 'zweite',
+      type: 'ADJECTIVE',
+      translation: { en: 'second', hu: 'második', ch: 'zwöiti' },
+    },
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'third_card_queue',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 64,
+    data: {
+      word: 'dritte',
+      type: 'ADJECTIVE',
+      translation: { en: 'third', hu: 'harmadik', ch: 'dritti' },
+    },
+    due: yesterday,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await expect(page.getByRole('heading', { name: 'első' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'első' }).click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(page.getByRole('heading', { name: 'második' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'második' }).click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(page.getByRole('heading', { name: 'harmadik' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'harmadik' }).click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(page.getByRole('heading', { name: 'első' })).toBeVisible();
+});
+
+test('card graded with Again reappears after other due cards', async ({ page }) => {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+
+  await createCard({
+    cardId: 'reappear_card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 65,
+    data: {
+      word: 'wiederkommen',
+      type: 'VERB',
+      translation: { en: 'to come back', hu: 'visszajönni', ch: 'zruggcho' },
+    },
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'other_card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 66,
+    data: {
+      word: 'warten',
+      type: 'VERB',
+      translation: { en: 'to wait', hu: 'várni', ch: 'warte' },
+    },
+    due: yesterday,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await expect(page.getByRole('heading', { name: 'visszajönni' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'visszajönni' }).click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(page.getByRole('heading', { name: 'várni' })).toBeVisible();
+
+  await page.getByRole('heading', { name: 'várni' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByRole('heading', { name: 'visszajönni' })).toBeVisible();
+});
