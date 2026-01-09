@@ -51,7 +51,6 @@ public class StudySessionService {
                 .id(sessionId)
                 .source(source)
                 .createdAt(LocalDateTime.now())
-                .currentIndex(0)
                 .studyMode(studyMode)
                 .cards(new ArrayList<>())
                 .build();
@@ -69,7 +68,6 @@ public class StudySessionService {
                     .card(card)
                     .position(i)
                     .learningPartner(assignedPartner)
-                    .isCompleted(false)
                     .build();
 
             session.getCards().add(sessionCard);
@@ -85,10 +83,17 @@ public class StudySessionService {
     public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
         return studySessionRepository.findById(sessionId)
                 .flatMap(session -> {
+                    LocalDateTime now = LocalDateTime.now();
                     List<StudySessionCard> cards = session.getCards();
                     Optional<StudySessionCard> nextCard = cards.stream()
-                            .filter(c -> !c.getIsCompleted())
-                            .findFirst();
+                            .filter(c -> !c.getCard().getDue().isAfter(now))
+                            .min((c1, c2) -> {
+                                int dateCompare = c1.getCard().getDue().compareTo(c2.getCard().getDue());
+                                if (dateCompare != 0) {
+                                    return dateCompare;
+                                }
+                                return c1.getPosition().compareTo(c2.getPosition());
+                            });
 
                     return nextCard.map(sessionCard -> {
                         String presenterName = sessionCard.getLearningPartner() != null
@@ -104,19 +109,6 @@ public class StudySessionService {
                                 .studyMode(session.getStudyMode())
                                 .build();
                     });
-                });
-    }
-
-    @Transactional
-    public void markCardCompleted(String sessionId, String cardId) {
-        studySessionRepository.findById(sessionId)
-                .ifPresent(session -> {
-                    session.getCards().stream()
-                            .filter(c -> c.getCard().getId().equals(cardId))
-                            .findFirst()
-                            .ifPresent(c -> c.setIsCompleted(true));
-
-                    studySessionRepository.save(session);
                 });
     }
 

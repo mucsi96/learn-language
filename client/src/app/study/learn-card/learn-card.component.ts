@@ -105,15 +105,11 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.update((revealed) => !revealed);
   }
 
-  async onCardProcessed() {
+  onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();
-
-    const cardId = this.card()?.id;
-    if (cardId) {
-      await this.studySessionService.markCardCompleted(cardId);
-    }
+    this.studySessionService.refreshSession();
   }
 
   onLanguageTextsReady(texts: LanguageTexts[]) {

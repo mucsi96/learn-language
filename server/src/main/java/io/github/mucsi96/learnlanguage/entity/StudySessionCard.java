@@ -39,8 +39,4 @@ public class StudySessionCard {
     @ManyToOne
     @JoinColumn(name = "learning_partner_id")
     private LearningPartner learningPartner;
-
-    @Column(name = "is_completed", nullable = false)
-    @Builder.Default
-    private Boolean isCompleted = false;
 }

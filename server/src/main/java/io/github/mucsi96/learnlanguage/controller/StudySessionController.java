@@ -33,15 +33,6 @@ public class StudySessionController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
-    @PostMapping("/study-session/{sessionId}/card/{cardId}/complete")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Void> markCardCompleted(
-            @PathVariable String sessionId,
-            @PathVariable String cardId) {
-        studySessionService.markCardCompleted(sessionId, cardId);
-        return ResponseEntity.noContent().build();
-    }
-
     @DeleteMapping("/study-session/{sessionId}")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<Void> deleteSession(@PathVariable String sessionId) {
