@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,20 +81,38 @@ public class StudySessionService {
                 .build();
     }
 
+    @Transactional
     public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
         return studySessionRepository.findById(sessionId)
                 .flatMap(session -> {
                     LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime oneHourFromNow = now.plusHours(1);
+                    LocalDateTime recentReviewThreshold = now.minusMinutes(10);
                     List<StudySessionCard> cards = session.getCards();
+
+                    cards.removeIf(c -> c.getCard().getDue().isAfter(oneHourFromNow));
+
+                    int maxPosition = cards.stream()
+                            .mapToInt(StudySessionCard::getPosition)
+                            .max()
+                            .orElse(0);
+
+                    for (StudySessionCard c : cards) {
+                        Card card = c.getCard();
+                        boolean isDue = !card.getDue().isAfter(now);
+                        boolean wasRecentlyReviewed = card.getLastReview() != null
+                                && card.getLastReview().isAfter(recentReviewThreshold);
+
+                        if (isDue && wasRecentlyReviewed) {
+                            c.setPosition(++maxPosition);
+                        }
+                    }
+
+                    studySessionRepository.save(session);
+
                     Optional<StudySessionCard> nextCard = cards.stream()
                             .filter(c -> !c.getCard().getDue().isAfter(now))
-                            .min((c1, c2) -> {
-                                int dateCompare = c1.getCard().getDue().compareTo(c2.getCard().getDue());
-                                if (dateCompare != 0) {
-                                    return dateCompare;
-                                }
-                                return c1.getPosition().compareTo(c2.getPosition());
-                            });
+                            .min(Comparator.comparing(StudySessionCard::getPosition));
 
                     return nextCard.map(sessionCard -> {
                         String presenterName = sessionCard.getLearningPartner() != null
