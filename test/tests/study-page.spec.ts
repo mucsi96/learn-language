@@ -48,8 +48,8 @@ test('study page initial state', async ({ page }) => {
 
   await expect(page.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
-  await expect(page.getByText('Ige', { exact: true })).toBeVisible();
-  await expect(page.getByText('New', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Word type: Ige')).toBeVisible();
+  await expect(page.getByLabel('State: New')).toBeVisible();
   await expect(page.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
   await expect(page.getByText('fährt ab')).not.toBeVisible();
   await expect(page.getByText('fuhr ab')).not.toBeVisible();
@@ -104,8 +104,8 @@ test('study page revealed state', async ({ page }) => {
   await expect(page.getByText('abfahren', { exact: true })).toBeVisible();
   await expect(page.getByText('elindulni, elhagyni')).not.toBeVisible();
   await expect(page.getByText('abfahra, verlah')).not.toBeVisible();
-  await expect(page.getByText('Ige', { exact: true })).toBeVisible();
-  await expect(page.getByText('Learning', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Word type: Ige')).toBeVisible();
+  await expect(page.getByLabel('State: Learning')).toBeVisible();
   await expect(page.getByText('Gender: Neuter', { exact: true })).toBeVisible();
   await expect(page.getByText('fährt ab')).toBeVisible();
   await expect(page.getByText('fuhr ab')).toBeVisible();
@@ -292,7 +292,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
 
   await expect(page.getByRole('navigation').getByTitle('Review', { exact: true })).toHaveText('1');
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).not.toBeVisible();
-  await expect(page.getByText('Review', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('State: Review')).toBeVisible();
 });
 
 test('mark for review button visible on study page', async ({ page }) => {

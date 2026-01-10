@@ -21,6 +21,7 @@
       <div
         class="word-type-chip"
         [style.background-color]="wordTypeInfo()?.color"
+        [attr.aria-label]="'Word type: ' + wordTypeInfo()?.translation"
       >
         {{ wordTypeInfo()?.translation }}
       </div>
