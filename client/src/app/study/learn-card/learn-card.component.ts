@@ -6,6 +6,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -26,6 +27,7 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
   imports: [
     CommonModule,
     MatCardModule,
+    MatButtonModule,
     MatIconModule,
     CardGradingButtonsComponent,
     CardActionsComponent,
@@ -53,8 +55,10 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly isRevealed = signal(false);
+  readonly sessionStarted = signal(false);
   private lastPlayedTexts: string[] = [];
   readonly languageTexts = signal<LanguageTexts[]>([]);
+  private currentSourceId: string | null = null;
 
   readonly isStudyingWithPartner = computed(() => {
     const cardData = this.currentCardData.value();
@@ -66,9 +70,17 @@ export class LearnCardComponent implements OnDestroy {
   constructor() {
     this.route.params.subscribe((params) => {
       if (params['sourceId']) {
-        this.studySessionService.createSession(params['sourceId']);
+        this.currentSourceId = params['sourceId'];
+        this.sessionStarted.set(false);
       }
     });
+  }
+
+  startSession() {
+    if (this.currentSourceId) {
+      this.studySessionService.createSession(this.currentSourceId);
+      this.sessionStarted.set(true);
+    }
   }
 
   ngOnDestroy() {

@@ -11,6 +11,14 @@ import {
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 
+test('study page shows start button initially', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await expect(page.getByRole('heading', { name: 'Ready to study?' })).toBeVisible();
+  await expect(page.getByText('Click start to begin your study session.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
+});
+
 test('study page initial state', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(greenImage);
@@ -45,6 +53,7 @@ test('study page initial state', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
@@ -99,6 +108,7 @@ test('study page revealed state', async ({ page }) => {
 
   // Navigate to study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await flashcard.getByText('elindulni, elhagyni', { exact: true }).click();
@@ -169,6 +179,7 @@ test('source selector routing works', async ({ page }) => {
 
   // Start from the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).toBeVisible();
 
@@ -180,6 +191,9 @@ test('source selector routing works', async ({ page }) => {
 
   // URL should change
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/study');
+
+  // Click start button for new source
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Content should change to the card from the second source
   await expect(flashcard.getByRole('heading', { name: 'írni' })).toBeVisible();
@@ -196,6 +210,7 @@ test('source selector shows proper stats', async ({ page }) => {
 
   // Navigate to the study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
   await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
@@ -217,6 +232,7 @@ test('source selector stats update after changing source', async ({ page }) => {
 
   // Navigate to the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
   await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
@@ -226,6 +242,9 @@ test('source selector stats update after changing source', async ({ page }) => {
 
   // Select the second source
   await page.getByRole('menuitem', { name: 'Goethe A2' }).click();
+
+  // Click start button for new source
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('1');
   await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('4');
@@ -246,6 +265,7 @@ test('source selector dropdown shows stats', async ({ page }) => {
 
   // Navigate to the study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -292,6 +312,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
 
   // Navigate to the study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(page.getByRole('navigation').getByTitle('Review', { exact: true })).toHaveText('1');
@@ -322,6 +343,7 @@ test('mark for review button visible on study page', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Verify Mark for Review button is visible
   const markReviewButton = page.getByRole('button', { name: 'Mark for Review' });
@@ -353,6 +375,7 @@ test('edit card button visible on study page', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Verify Edit Card button is visible
   const editButton = page.getByRole('link', { name: 'Edit Card' });
@@ -383,6 +406,7 @@ test('mark for review button functionality', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Click the Mark for Review button
   await page.getByRole('button', { name: 'Mark for Review' }).click();
@@ -442,6 +466,7 @@ test('mark for review button loads next card', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -481,6 +506,7 @@ test('edit card button navigation', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Click the Edit Card button
   await page.getByRole('link', { name: 'Edit Card' }).click();
@@ -513,6 +539,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -576,6 +603,7 @@ test('again button functionality', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -636,6 +664,7 @@ test('hard button functionality', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -695,6 +724,7 @@ test('good button functionality', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -754,6 +784,7 @@ test('easy button functionality', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -794,6 +825,7 @@ test('grading card updates database', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -847,6 +879,7 @@ test('grading card creates review log', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -895,6 +928,7 @@ test('grading with no next card shows empty state', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -942,6 +976,7 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -1003,6 +1038,7 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
@@ -1053,6 +1089,7 @@ test('card graded with Again reappears after other due cards', async ({ page }) 
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
