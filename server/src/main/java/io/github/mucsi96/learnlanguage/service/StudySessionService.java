@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class StudySessionService {
 
     private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
+    private static final int SESSION_CARD_LIMIT = 50;
 
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
@@ -80,10 +81,14 @@ public class StudySessionService {
     }
 
     List<StudySessionCard> assignCardsSolo(List<Card> cards, StudySession session) {
-        return IntStream.range(0, cards.size())
+        List<Card> limitedCards = cards.stream()
+                .limit(SESSION_CARD_LIMIT)
+                .toList();
+
+        return IntStream.range(0, limitedCards.size())
                 .mapToObj(i -> StudySessionCard.builder()
                         .session(session)
-                        .card(cards.get(i))
+                        .card(limitedCards.get(i))
                         .position(i)
                         .learningPartner(null)
                         .build())
@@ -107,7 +112,14 @@ public class StudySessionService {
                         && r.getLearningPartner().getId().equals(partner.getId()))
                 .collect(Collectors.toMap(r -> r.getCard().getId(), Function.identity()));
 
-        List<Card> sortedByPreference = cards.stream()
+        List<Card> mostComplexCards = cards.stream()
+                .sorted(Comparator.comparingDouble(
+                        (Card card) -> calculateMaxComplexity(card.getId(), userReviews, partnerReviews))
+                        .reversed())
+                .limit(SESSION_CARD_LIMIT)
+                .toList();
+
+        List<Card> sortedByPreference = mostComplexCards.stream()
                 .sorted(Comparator.comparingDouble(
                         (Card card) -> calculatePreference(card.getId(), userReviews, partnerReviews))
                         .reversed())
@@ -135,6 +147,13 @@ public class StudySessionService {
                         .learningPartner(i % 2 == 0 ? null : partner)
                         .build())
                 .toList();
+    }
+
+    double calculateMaxComplexity(String cardId, Map<String, ReviewLog> userReviews,
+            Map<String, ReviewLog> partnerReviews) {
+        return Math.max(
+                calculateComplexity(userReviews.get(cardId)),
+                calculateComplexity(partnerReviews.get(cardId)));
     }
 
     double calculatePreference(String cardId, Map<String, ReviewLog> userReviews,

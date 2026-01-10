@@ -539,3 +539,54 @@ test('smart assignment: hardest cards for each person at front of their queue', 
   expect(sessionCards[3].cardId).toBe('partner_medium');
   expect(sessionCards[3].learningPartnerId).toBe(partnerId);
 });
+
+test('smart assignment: session limited to 50 most complex cards', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const yesterday = new Date(Date.now() - 86400000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
+  const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
+
+  for (let i = 1; i <= 60; i++) {
+    await createCard({
+      cardId: `card_${i}`,
+      sourceId: 'goethe-a1',
+      data: { word: `wort${i}`, type: 'NOUN', translation: { hu: `szó${i}` } },
+      due: yesterday,
+    });
+
+    if (i <= 50) {
+      await createReviewLog({
+        cardId: `card_${i}`,
+        learningPartnerId: null,
+        rating: 1,
+        review: tenDaysAgo,
+      });
+    } else {
+      await createReviewLog({
+        cardId: `card_${i}`,
+        learningPartnerId: null,
+        rating: 4,
+        review: twoDaysAgo,
+      });
+      await createReviewLog({
+        cardId: `card_${i}`,
+        learningPartnerId: partnerId,
+        rating: 4,
+        review: twoDaysAgo,
+      });
+    }
+  }
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessionId = new URL(page.url()).searchParams.get('session');
+  const sessionCards = await getStudySessionCards(sessionId!);
+
+  expect(sessionCards.length).toBe(50);
+
+  const cardIds = sessionCards.map((c) => c.cardId);
+  for (let i = 51; i <= 60; i++) {
+    expect(cardIds).not.toContain(`card_${i}`);
+  }
+});
