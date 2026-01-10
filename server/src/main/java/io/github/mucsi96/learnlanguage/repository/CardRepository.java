@@ -28,7 +28,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
             SELECT *,
                   ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE readiness = 'READY' AND due at time zone 'UTC' <= NOW()
+            WHERE readiness = 'READY' AND due at time zone 'UTC' <= NOW() + INTERVAL '1 hour'
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state
@@ -51,7 +51,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
       FROM learn_language.cards
       WHERE source_id = :sourceId
         AND readiness = 'READY'
-        AND due at time zone 'UTC' <= NOW()
+        AND due at time zone 'UTC' <= NOW() + INTERVAL '1 hour'
       ORDER BY due ASC
       LIMIT 50
       """, nativeQuery = true)
