@@ -121,7 +121,7 @@ public class StudySessionService {
                             .min(Comparator.comparing(StudySessionCard::getPosition));
 
                     return nextCard.map(sessionCard -> {
-                        String presenterName = sessionCard.getLearningPartner() != null
+                        String turnName = sessionCard.getLearningPartner() != null
                                 ? sessionCard.getLearningPartner().getName()
                                 : getCurrentUserFirstName();
 
@@ -130,7 +130,7 @@ public class StudySessionService {
                                 .learningPartnerId(sessionCard.getLearningPartner() != null
                                         ? sessionCard.getLearningPartner().getId()
                                         : null)
-                                .presenterName(presenterName)
+                                .turnName(turnName)
                                 .studyMode(session.getStudyMode())
                                 .build();
                     });

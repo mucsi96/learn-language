@@ -66,7 +66,7 @@ export class LearnCardComponent implements OnDestroy {
     return cardData?.studyMode === 'WITH_PARTNER';
   });
 
-  readonly currentPresenter = this.studySessionService.currentPresenter;
+  readonly currentTurn = this.studySessionService.currentTurn;
 
   constructor() {
     this.route.queryParams.subscribe((queryParams) => {

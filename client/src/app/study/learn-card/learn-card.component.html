@@ -29,8 +29,8 @@
     (click)="toggleReveal()"
   >
     @if (isStudyingWithPartner()) {
-    <span class="presenter-indicator" role="status" aria-label="Current turn" aria-live="polite">
-      {{ currentPresenter().name }}
+    <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
+      {{ currentTurn().name }}
     </span>
     }
     <app-card-actions

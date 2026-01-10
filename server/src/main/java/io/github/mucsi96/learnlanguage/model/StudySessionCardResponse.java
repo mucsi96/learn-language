@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class StudySessionCardResponse {
     private Card card;
     private Integer learningPartnerId;
-    private String presenterName;
+    private String turnName;
     private String studyMode;
 }

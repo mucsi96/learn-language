@@ -131,6 +131,6 @@ export type StudySession = {
 export type StudySessionCard = {
   card: Card;
   learningPartnerId: number | null;
-  presenterName: string;
+  turnName: string;
   studyMode: 'SOLO' | 'WITH_PARTNER';
 };
