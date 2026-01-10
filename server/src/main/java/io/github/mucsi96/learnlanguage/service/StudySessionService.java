@@ -4,7 +4,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
+import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
@@ -24,6 +27,7 @@ import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
+import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +36,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StudySessionService {
 
-    // Cards due within this window are included to account for study session duration
     private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
 
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
+    private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
     @Transactional
@@ -61,8 +65,12 @@ public class StudySessionService {
                 .cards(new ArrayList<>())
                 .build();
 
-        for (int i = 0; i < dueCards.size(); i++) {
-            Card card = dueCards.get(i);
+        List<Card> orderedCards = activePartner
+                .map(partner -> assignCardsSmartly(dueCards, partner))
+                .orElse(dueCards);
+
+        for (int i = 0; i < orderedCards.size(); i++) {
+            Card card = orderedCards.get(i);
 
             LearningPartner assignedPartner = null;
             if (activePartner.isPresent()) {
@@ -84,6 +92,132 @@ public class StudySessionService {
         return StudySessionResponse.builder()
                 .sessionId(sessionId)
                 .build();
+    }
+
+    List<Card> assignCardsSmartly(List<Card> cards, LearningPartner partner) {
+        if (cards.isEmpty()) {
+            return cards;
+        }
+
+        List<String> cardIds = cards.stream().map(Card::getId).collect(Collectors.toList());
+        List<ReviewLog> latestReviews = reviewLogRepository.findLatestReviewsByCardIds(cardIds);
+
+        Map<String, ReviewLog> userReviews = new HashMap<>();
+        Map<String, ReviewLog> partnerReviews = new HashMap<>();
+
+        for (ReviewLog review : latestReviews) {
+            String cardId = review.getCard().getId();
+            if (review.getLearningPartner() == null) {
+                userReviews.put(cardId, review);
+            } else if (review.getLearningPartner().getId().equals(partner.getId())) {
+                partnerReviews.put(cardId, review);
+            }
+        }
+
+        List<CardWithPreference> cardsWithPreference = cards.stream()
+                .map(card -> new CardWithPreference(
+                        card,
+                        calculatePreference(card.getId(), userReviews, partnerReviews)))
+                .collect(Collectors.toList());
+
+        int totalCards = cards.size();
+        int userSlots = (totalCards + 1) / 2;
+        int partnerSlots = totalCards / 2;
+
+        List<CardWithPreference> preferUser = cardsWithPreference.stream()
+                .filter(c -> c.preference > 0)
+                .sorted(Comparator.comparingInt((CardWithPreference c) -> c.preference).reversed())
+                .collect(Collectors.toList());
+
+        List<CardWithPreference> preferPartner = cardsWithPreference.stream()
+                .filter(c -> c.preference < 0)
+                .sorted(Comparator.comparingInt(c -> c.preference))
+                .collect(Collectors.toList());
+
+        List<CardWithPreference> neutral = cardsWithPreference.stream()
+                .filter(c -> c.preference == 0)
+                .collect(Collectors.toList());
+
+        List<Card> userCards = new ArrayList<>();
+        List<Card> partnerCards = new ArrayList<>();
+
+        for (CardWithPreference cwp : preferUser) {
+            if (userCards.size() < userSlots) {
+                userCards.add(cwp.card);
+            } else {
+                partnerCards.add(cwp.card);
+            }
+        }
+
+        for (CardWithPreference cwp : neutral) {
+            if (userCards.size() < userSlots) {
+                userCards.add(cwp.card);
+            } else {
+                partnerCards.add(cwp.card);
+            }
+        }
+
+        for (CardWithPreference cwp : preferPartner) {
+            if (partnerCards.size() < partnerSlots) {
+                partnerCards.add(cwp.card);
+            } else {
+                userCards.add(cwp.card);
+            }
+        }
+
+        List<Card> result = new ArrayList<>();
+        int ui = 0, pi = 0;
+        for (int i = 0; i < totalCards; i++) {
+            if (i % 2 == 0 && ui < userCards.size()) {
+                result.add(userCards.get(ui++));
+            } else if (i % 2 == 1 && pi < partnerCards.size()) {
+                result.add(partnerCards.get(pi++));
+            } else if (ui < userCards.size()) {
+                result.add(userCards.get(ui++));
+            } else if (pi < partnerCards.size()) {
+                result.add(partnerCards.get(pi++));
+            }
+        }
+
+        return result;
+    }
+
+    int calculatePreference(String cardId, Map<String, ReviewLog> userReviews,
+            Map<String, ReviewLog> partnerReviews) {
+        ReviewLog userReview = userReviews.get(cardId);
+        ReviewLog partnerReview = partnerReviews.get(cardId);
+
+        if (userReview == null && partnerReview == null) {
+            return 0;
+        }
+
+        if (userReview == null) {
+            return 1;
+        }
+
+        if (partnerReview == null) {
+            return -1;
+        }
+
+        int userRating = userReview.getRating();
+        int partnerRating = partnerReview.getRating();
+
+        if (userRating < partnerRating) {
+            return 1;
+        } else if (partnerRating < userRating) {
+            return -1;
+        }
+
+        if (userReview.getReview().isAfter(partnerReview.getReview())) {
+            return -1;
+        } else if (partnerReview.getReview().isAfter(userReview.getReview())) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    private record CardWithPreference(Card card, int preference) {
     }
 
     @Transactional
