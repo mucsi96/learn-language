@@ -60,22 +60,9 @@ export class StudySessionService {
     return session;
   }
 
-  async markCardCompleted(cardId: string): Promise<void> {
-    const sessionId = this.sessionId();
-    if (!sessionId) return;
-
-    await fetchJson<StudySession>(
-      this.http,
-      `/api/study-session/${sessionId}/card/${cardId}/complete`,
-      { method: 'POST' }
-    );
-
-    this.sessionVersion.update((v) => v + 1);
-    this.dueCardsService.refetchDueCounts();
-  }
-
   refreshSession() {
     this.sessionVersion.update((v) => v + 1);
+    this.dueCardsService.refetchDueCounts();
   }
 
   clearSession() {

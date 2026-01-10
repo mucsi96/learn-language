@@ -33,6 +33,7 @@ type ImageResource = ExampleImage & { url: string };
   ],
   templateUrl: './learn-vocabulary-card.component.html',
   styleUrl: './learn-vocabulary-card.component.css',
+  host: { role: 'article', 'aria-label': 'Flashcard' },
 })
 export class LearnVocabularyCardComponent {
   card = input<CardResourceLike | null>(null);

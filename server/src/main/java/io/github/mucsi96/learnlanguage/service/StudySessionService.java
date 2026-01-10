@@ -1,10 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +32,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StudySessionService {
 
+    // Cards due within this window are included to account for study session duration
+    private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
+
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
@@ -51,7 +57,6 @@ public class StudySessionService {
                 .id(sessionId)
                 .source(source)
                 .createdAt(LocalDateTime.now())
-                .currentIndex(0)
                 .studyMode(studyMode)
                 .cards(new ArrayList<>())
                 .build();
@@ -69,7 +74,6 @@ public class StudySessionService {
                     .card(card)
                     .position(i)
                     .learningPartner(assignedPartner)
-                    .isCompleted(false)
                     .build();
 
             session.getCards().add(sessionCard);
@@ -82,13 +86,39 @@ public class StudySessionService {
                 .build();
     }
 
+    @Transactional
     public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
-        return studySessionRepository.findById(sessionId)
+        return studySessionRepository.findByIdWithCards(sessionId)
                 .flatMap(session -> {
-                    List<StudySessionCard> cards = session.getCards();
-                    Optional<StudySessionCard> nextCard = cards.stream()
-                            .filter(c -> !c.getIsCompleted())
-                            .findFirst();
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
+
+                    List<StudySessionCard> eligibleCards = session.getCards().stream()
+                            .filter(c -> c.getCard().isReady())
+                            .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
+                            .collect(Collectors.toList());
+
+                    int maxPosition = eligibleCards.stream()
+                            .mapToInt(StudySessionCard::getPosition)
+                            .max()
+                            .orElse(0);
+
+                    int newLastPosition = maxPosition + 1;
+                    boolean positionUpdated = eligibleCards.stream()
+                            .filter(c -> c.getCard().getLastReview() != null)
+                            .max(Comparator.comparing(c -> c.getCard().getLastReview()))
+                            .map(mostRecent -> {
+                                mostRecent.setPosition(newLastPosition);
+                                return true;
+                            })
+                            .orElse(false);
+
+                    if (positionUpdated) {
+                        studySessionRepository.save(session);
+                    }
+
+                    Optional<StudySessionCard> nextCard = eligibleCards.stream()
+                            .min(Comparator.comparing(StudySessionCard::getPosition));
 
                     return nextCard.map(sessionCard -> {
                         String presenterName = sessionCard.getLearningPartner() != null
@@ -105,24 +135,6 @@ public class StudySessionService {
                                 .build();
                     });
                 });
-    }
-
-    @Transactional
-    public void markCardCompleted(String sessionId, String cardId) {
-        studySessionRepository.findById(sessionId)
-                .ifPresent(session -> {
-                    session.getCards().stream()
-                            .filter(c -> c.getCard().getId().equals(cardId))
-                            .findFirst()
-                            .ifPresent(c -> c.setIsCompleted(true));
-
-                    studySessionRepository.save(session);
-                });
-    }
-
-    @Transactional
-    public void deleteSession(String sessionId) {
-        studySessionRepository.deleteById(sessionId);
     }
 
     private String getCurrentUserFirstName() {

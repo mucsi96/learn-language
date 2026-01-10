@@ -46,10 +46,6 @@ public class CardService {
         .toList();
   }
 
-  public Optional<Card> getMostDueCardBySourceId(String sourceId) {
-    return cardRepository.findMostDueCardBySourceId(sourceId);
-  }
-
   public List<Card> getCardsByReadiness(String readiness) {
     return cardRepository.findByReadinessOrderByDueAsc(readiness);
   }

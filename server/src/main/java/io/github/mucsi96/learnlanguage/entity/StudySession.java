@@ -35,10 +35,6 @@ public class StudySession {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "current_index", nullable = false)
-    @Builder.Default
-    private Integer currentIndex = 0;
-
     @Column(name = "study_mode", nullable = false)
     private String studyMode;
 
