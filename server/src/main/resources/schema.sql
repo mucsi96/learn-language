@@ -151,6 +151,7 @@ CREATE TABLE IF NOT EXISTS learn_language.study_session_cards (
     card_id character varying(255) NOT NULL,
     position integer NOT NULL,
     learning_partner_id integer,
+    version integer DEFAULT 0,
     CONSTRAINT study_session_cards_pkey PRIMARY KEY (id),
     CONSTRAINT study_session_cards_session_fkey FOREIGN KEY (session_id) REFERENCES learn_language.study_sessions(id) ON DELETE CASCADE,
     CONSTRAINT study_session_cards_card_fkey FOREIGN KEY (card_id) REFERENCES learn_language.cards(id) ON DELETE CASCADE,
@@ -158,3 +159,4 @@ CREATE TABLE IF NOT EXISTS learn_language.study_session_cards (
 );
 
 ALTER TABLE learn_language.study_session_cards DROP COLUMN IF EXISTS is_completed;
+ALTER TABLE learn_language.study_session_cards ADD COLUMN IF NOT EXISTS version integer DEFAULT 0;

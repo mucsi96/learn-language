@@ -16,7 +16,7 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Stri
     Optional<StudySession> findBySourceId(String sourceId);
     void deleteBySourceId(String sourceId);
 
-    @Query("SELECT s FROM StudySession s LEFT JOIN FETCH s.cards sc LEFT JOIN FETCH sc.card WHERE s.id = :sessionId")
+    @Query("SELECT s FROM StudySession s LEFT JOIN FETCH s.cards sc LEFT JOIN FETCH sc.card LEFT JOIN FETCH sc.learningPartner WHERE s.id = :sessionId")
     Optional<StudySession> findByIdWithCards(@Param("sessionId") String sessionId);
 
     @Modifying

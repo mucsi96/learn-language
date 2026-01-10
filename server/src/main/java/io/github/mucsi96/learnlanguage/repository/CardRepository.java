@@ -21,6 +21,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
       """, nativeQuery = true)
   List<Card> findRandomReadyCards(int limit);
 
+  // 1-hour lookahead window accounts for study session duration
   @Query(value = """
         SELECT source_id, state, COUNT(*) AS cardCount
         FROM (
@@ -34,6 +35,7 @@ public interface CardRepository extends JpaRepository<Card, String> {
       """, nativeQuery = true)
   List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 
+  // 1-hour lookahead window accounts for study session duration
   @Query(value = """
       SELECT *
       FROM learn_language.cards

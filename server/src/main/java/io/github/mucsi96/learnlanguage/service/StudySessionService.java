@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class StudySessionService {
+
+    // Cards due within this window are included to account for study session duration
+    private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
 
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
@@ -87,11 +91,11 @@ public class StudySessionService {
         return studySessionRepository.findByIdWithCards(sessionId)
                 .flatMap(session -> {
                     LocalDateTime now = LocalDateTime.now();
-                    LocalDateTime oneHourFromNow = now.plusHours(1);
+                    LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
 
                     List<StudySessionCard> eligibleCards = session.getCards().stream()
                             .filter(c -> c.getCard().isReady())
-                            .filter(c -> !c.getCard().getDue().isAfter(oneHourFromNow))
+                            .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
                             .collect(Collectors.toList());
 
                     int maxPosition = eligibleCards.stream()
