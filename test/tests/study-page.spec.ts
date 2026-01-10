@@ -876,10 +876,13 @@ test('grading with no next card shows empty state', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  // Reveal the card
-  await page.getByRole('heading', { name: 'utolsó' }).click();
 
-  // Click Good button
+  await expect(page.getByLabel('State')).toHaveText('New');
+  await page.getByRole('heading', { name: 'utolsó' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByLabel('State')).toHaveText('Learning');
+  await page.getByRole('heading', { name: 'utolsó' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
   // Should show empty state
@@ -921,6 +924,11 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
 
   await expect(page.getByRole('heading', { name: 'most' })).toBeVisible();
 
+  await expect(page.getByLabel('State')).toHaveText('New');
+  await page.getByRole('heading', { name: 'most' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByLabel('State')).toHaveText('Learning');
   await page.getByRole('heading', { name: 'most' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
