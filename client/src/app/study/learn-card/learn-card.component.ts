@@ -75,8 +75,7 @@ export class LearnCardComponent implements OnDestroy {
         this.sessionId.set(urlSessionId);
         this.studySessionService.setSessionId(urlSessionId);
       } else if (!urlSessionId && this.sessionId()) {
-        this.sessionId.set(null);
-        this.studySessionService.clearSession();
+        this.clearSessionState();
       }
     });
 
@@ -85,15 +84,19 @@ export class LearnCardComponent implements OnDestroy {
         const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== params['sourceId'];
         this.currentSourceId = params['sourceId'];
         if (sourceChanged) {
-          this.sessionId.set(null);
-          this.studySessionService.clearSession();
-          this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { session: null },
-            queryParamsHandling: 'merge',
-          });
+          this.clearSessionState();
         }
       }
+    });
+  }
+
+  private clearSessionState() {
+    this.sessionId.set(null);
+    this.studySessionService.clearSession();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { session: null },
+      queryParamsHandling: 'merge',
     });
   }
 
