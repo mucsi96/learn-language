@@ -90,7 +90,7 @@ public class StudySessionService {
                     LocalDateTime oneHourFromNow = now.plusHours(1);
 
                     List<StudySessionCard> eligibleCards = session.getCards().stream()
-                            .filter(c -> c.getCard().hasReadiness("READY"))
+                            .filter(c -> c.getCard().isReady())
                             .filter(c -> !c.getCard().getDue().isAfter(oneHourFromNow))
                             .collect(Collectors.toList());
 

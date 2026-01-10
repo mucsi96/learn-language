@@ -133,14 +133,6 @@ public class CardController {
     return ResponseEntity.ok(response);
   }
 
-  @GetMapping("/source/{sourceId}/most-due-card")
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<Card> getMostDueCard(@PathVariable String sourceId) {
-    return cardService.getMostDueCardBySourceId(sourceId)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.noContent().build());
-  }
-
   @GetMapping("/cards/readiness/{readiness}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<List<Card>> getCardsByReadiness(@PathVariable String readiness) {
