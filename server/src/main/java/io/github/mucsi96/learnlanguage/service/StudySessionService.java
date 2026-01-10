@@ -163,7 +163,7 @@ public class StudySessionService {
     }
 
     double calculateComplexity(ReviewLog review) {
-        if (review == null) {
+        if (review == null || review.getReview() == null) {
             return 4 * 30;
         }
 
