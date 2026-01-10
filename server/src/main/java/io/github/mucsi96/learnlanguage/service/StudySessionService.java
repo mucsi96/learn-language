@@ -67,28 +67,11 @@ public class StudySessionService {
                 .cards(new ArrayList<>())
                 .build();
 
-        List<Card> orderedCards = activePartner
-                .map(partner -> assignCardsSmartly(dueCards, partner))
-                .orElse(dueCards);
+        List<StudySessionCard> sessionCards = activePartner
+                .map(partner -> assignCardsSmartly(dueCards, session, partner))
+                .orElseGet(() -> assignCardsSolo(dueCards, session));
 
-        for (int i = 0; i < orderedCards.size(); i++) {
-            Card card = orderedCards.get(i);
-
-            LearningPartner assignedPartner = null;
-            if (activePartner.isPresent()) {
-                assignedPartner = (i % 2 == 1) ? activePartner.get() : null;
-            }
-
-            StudySessionCard sessionCard = StudySessionCard.builder()
-                    .session(session)
-                    .card(card)
-                    .position(i)
-                    .learningPartner(assignedPartner)
-                    .build();
-
-            session.getCards().add(sessionCard);
-        }
-
+        session.getCards().addAll(sessionCards);
         studySessionRepository.save(session);
 
         return StudySessionResponse.builder()
@@ -96,9 +79,20 @@ public class StudySessionService {
                 .build();
     }
 
-    List<Card> assignCardsSmartly(List<Card> cards, LearningPartner partner) {
+    List<StudySessionCard> assignCardsSolo(List<Card> cards, StudySession session) {
+        return IntStream.range(0, cards.size())
+                .mapToObj(i -> StudySessionCard.builder()
+                        .session(session)
+                        .card(cards.get(i))
+                        .position(i)
+                        .learningPartner(null)
+                        .build())
+                .toList();
+    }
+
+    List<StudySessionCard> assignCardsSmartly(List<Card> cards, StudySession session, LearningPartner partner) {
         if (cards.isEmpty()) {
-            return cards;
+            return List.of();
         }
 
         List<String> cardIds = cards.stream().map(Card::getId).toList();
@@ -134,9 +128,12 @@ public class StudySessionService {
                 .toList();
 
         return IntStream.range(0, sortedByPreference.size())
-                .mapToObj(i -> i % 2 == 0
-                        ? userCards.get(i / 2)
-                        : partnerCardsReversed.get(i / 2))
+                .mapToObj(i -> StudySessionCard.builder()
+                        .session(session)
+                        .card(i % 2 == 0 ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2))
+                        .position(i)
+                        .learningPartner(i % 2 == 0 ? null : partner)
+                        .build())
                 .toList();
     }
 
