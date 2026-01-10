@@ -29,6 +29,7 @@ test('audio plays sequentially', async ({ page }) => {
 
   // Navigate to a study page with cards that have audio
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   await page.getByRole('heading', { name: 'helló' }).click();
 
@@ -119,6 +120,7 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'ház' })).toBeVisible();
 
   // Click the voice selection button
@@ -158,6 +160,7 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'autó' })).toBeVisible();
 
   // Click the voice selection button
@@ -201,6 +204,7 @@ test('voice selection dialog displays model for each voice configuration', async
   });
 
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Voice Selection' }).click();
