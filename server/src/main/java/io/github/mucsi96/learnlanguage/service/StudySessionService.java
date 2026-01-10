@@ -108,7 +108,7 @@ public class StudySessionService {
                     studySessionRepository.save(session);
 
                     Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                            .filter(c -> !c.getCard().getDue().isAfter(now))
+                            .filter(c -> !c.getCard().getDue().isAfter(oneHourFromNow))
                             .min(Comparator.comparing(StudySessionCard::getPosition));
 
                     return nextCard.map(sessionCard -> {
