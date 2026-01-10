@@ -46,19 +46,20 @@ test('study page initial state', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await expect(page.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
-  await expect(page.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
-  await expect(page.getByLabel('Word type')).toHaveText('Ige');
-  await expect(page.getByLabel('State')).toHaveText('New');
-  await expect(page.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
-  await expect(page.getByText('fährt ab')).not.toBeVisible();
-  await expect(page.getByText('fuhr ab')).not.toBeVisible();
-  await expect(page.getByText('abgefahren')).not.toBeVisible();
-  await expect(page.getByText('Tizenkét órakor indulunk.')).not.toBeVisible();
-  await expect(page.getByText('Mikor indul a vonat?')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })).not.toBeVisible();
-  await expect(page.getByRole('img', { name: 'Mikor indul a vonat?' })).toBeVisible();
-  const imageContent = await getImageContent(page.getByRole('img', { name: 'Mikor indul a vonat?' }));
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
+  await expect(flashcard.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
+  await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
+  await expect(flashcard.getByLabel('State')).toHaveText('New');
+  await expect(flashcard.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
+  await expect(flashcard.getByText('fährt ab')).not.toBeVisible();
+  await expect(flashcard.getByText('fuhr ab')).not.toBeVisible();
+  await expect(flashcard.getByText('abgefahren')).not.toBeVisible();
+  await expect(flashcard.getByText('Tizenkét órakor indulunk.')).not.toBeVisible();
+  await expect(flashcard.getByText('Mikor indul a vonat?')).toBeVisible();
+  await expect(flashcard.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })).not.toBeVisible();
+  await expect(flashcard.getByRole('img', { name: 'Mikor indul a vonat?' })).toBeVisible();
+  const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Mikor indul a vonat?' }));
   expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
 });
 
@@ -99,22 +100,23 @@ test('study page revealed state', async ({ page }) => {
   // Navigate to study page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await page.getByText('elindulni, elhagyni', { exact: true }).click();
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.getByText('elindulni, elhagyni', { exact: true }).click();
 
-  await expect(page.getByText('abfahren', { exact: true })).toBeVisible();
-  await expect(page.getByText('elindulni, elhagyni')).not.toBeVisible();
-  await expect(page.getByText('abfahra, verlah')).not.toBeVisible();
-  await expect(page.getByLabel('Word type')).toHaveText('Ige');
-  await expect(page.getByLabel('State')).toHaveText('Learning');
-  await expect(page.getByText('Gender: Neuter', { exact: true })).toBeVisible();
-  await expect(page.getByText('fährt ab')).toBeVisible();
-  await expect(page.getByText('fuhr ab')).toBeVisible();
-  await expect(page.getByText('abgefahren')).toBeVisible();
-  await expect(page.getByText('Wir fahren um zwölf Uhr ab.')).not.toBeVisible();
-  await expect(page.getByText('Wann fährt der Zug ab?')).toBeVisible();
-  await expect(page.getByText('Mikor indul a vonat?')).not.toBeVisible();
+  await expect(flashcard.getByText('abfahren', { exact: true })).toBeVisible();
+  await expect(flashcard.getByText('elindulni, elhagyni')).not.toBeVisible();
+  await expect(flashcard.getByText('abfahra, verlah')).not.toBeVisible();
+  await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
+  await expect(flashcard.getByLabel('State')).toHaveText('Learning');
+  await expect(flashcard.getByText('Gender: Neuter', { exact: true })).toBeVisible();
+  await expect(flashcard.getByText('fährt ab')).toBeVisible();
+  await expect(flashcard.getByText('fuhr ab')).toBeVisible();
+  await expect(flashcard.getByText('abgefahren')).toBeVisible();
+  await expect(flashcard.getByText('Wir fahren um zwölf Uhr ab.')).not.toBeVisible();
+  await expect(flashcard.getByText('Wann fährt der Zug ab?')).toBeVisible();
+  await expect(flashcard.getByText('Mikor indul a vonat?')).not.toBeVisible();
 
-  const imageContent = await getImageContent(page.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
+  const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
   expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Hard' })).toBeVisible();

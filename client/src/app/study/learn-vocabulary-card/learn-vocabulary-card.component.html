@@ -1,3 +1,4 @@
+<article aria-label="Flashcard">
   <div class="image-section">
     @if (exampleImages().length > 0) {
     <div class="image-gallery">
@@ -29,7 +30,7 @@
       <app-state [state]="state" />
       }
     </div>
-    
+
     <div class="word-section">
       <h2 [style.color]="genderInfo()?.color">{{ word() }}</h2>
     </div>
@@ -45,3 +46,4 @@
       <p class="centered-text">{{ example() }}</p>
     </div>
   </div>
+</article>
