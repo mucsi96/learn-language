@@ -109,7 +109,7 @@ test('study page shows presenter indicator when partner is active', async ({ pag
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('status', { name: 'Current presenter' })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'Current turn' })).toBeVisible();
 });
 
 test('study page alternates between user and active partner', async ({ page }) => {
@@ -140,7 +140,7 @@ test('study page alternates between user and active partner', async ({ page }) =
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const presenterIndicator = page.getByRole('status', { name: 'Current presenter' });
+  const presenterIndicator = page.getByRole('status', { name: 'Current turn' });
 
   await page.getByRole('heading', { name: 'első' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
@@ -163,7 +163,7 @@ test('study page does not show presenter indicator when no partner is active', a
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('status', { name: 'Current presenter' })).not.toBeVisible();
+  await expect(page.getByRole('status', { name: 'Current turn' })).not.toBeVisible();
 });
 
 test('review log records learning partner when grading', async ({ page }) => {
