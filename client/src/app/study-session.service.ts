@@ -37,13 +37,13 @@ export class StudySessionService {
     injector: this.injector,
   });
 
-  readonly currentPresenter = computed<{ name: string; partnerId: number | null }>(() => {
+  readonly currentTurn = computed<{ name: string; partnerId: number | null }>(() => {
     const cardData = this.currentCard.value();
     if (!cardData) {
       return { name: 'Myself', partnerId: null };
     }
     return {
-      name: cardData.presenterName,
+      name: cardData.turnName,
       partnerId: cardData.learningPartnerId,
     };
   });
@@ -58,6 +58,10 @@ export class StudySessionService {
       this.sessionId.set(session.sessionId);
     }
     return session;
+  }
+
+  setSessionId(sessionId: string) {
+    this.sessionId.set(sessionId);
   }
 
   refreshSession() {

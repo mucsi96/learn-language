@@ -6,8 +6,9 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
@@ -26,6 +27,7 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
   imports: [
     CommonModule,
     MatCardModule,
+    MatButtonModule,
     MatIconModule,
     CardGradingButtonsComponent,
     CardActionsComponent,
@@ -37,6 +39,7 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
 })
 export class LearnCardComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
@@ -53,22 +56,62 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly isRevealed = signal(false);
+  readonly sessionId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
   readonly languageTexts = signal<LanguageTexts[]>([]);
+  private currentSourceId: string | null = null;
 
   readonly isStudyingWithPartner = computed(() => {
     const cardData = this.currentCardData.value();
     return cardData?.studyMode === 'WITH_PARTNER';
   });
 
-  readonly currentPresenter = this.studySessionService.currentPresenter;
+  readonly currentTurn = this.studySessionService.currentTurn;
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      if (params['sourceId']) {
-        this.studySessionService.createSession(params['sourceId']);
+    this.route.queryParams.subscribe((queryParams) => {
+      const urlSessionId = queryParams['session'];
+      if (urlSessionId && urlSessionId !== this.sessionId()) {
+        this.sessionId.set(urlSessionId);
+        this.studySessionService.setSessionId(urlSessionId);
+      } else if (!urlSessionId && this.sessionId()) {
+        this.clearSessionState();
       }
     });
+
+    this.route.params.subscribe((params) => {
+      if (params['sourceId']) {
+        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== params['sourceId'];
+        this.currentSourceId = params['sourceId'];
+        if (sourceChanged) {
+          this.clearSessionState();
+        }
+      }
+    });
+  }
+
+  private clearSessionState() {
+    this.sessionId.set(null);
+    this.studySessionService.clearSession();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { session: null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  async startSession() {
+    if (this.currentSourceId) {
+      const session = await this.studySessionService.createSession(this.currentSourceId);
+      if (session) {
+        this.sessionId.set(session.sessionId);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { session: session.sessionId },
+          queryParamsHandling: 'merge',
+        });
+      }
+    }
   }
 
   ngOnDestroy() {

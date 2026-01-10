@@ -1,4 +1,14 @@
-@if (currentCardData.isLoading()) {
+@if (!sessionId()) {
+<div class="start-state">
+  <mat-icon class="start-icon">school</mat-icon>
+  <h2>Ready to study?</h2>
+  <p>Click start to begin your study session.</p>
+  <button mat-flat-button color="primary" (click)="startSession()" aria-label="Start study session">
+    <mat-icon>play_arrow</mat-icon>
+    Start
+  </button>
+</div>
+} @else if (currentCardData.isLoading()) {
 <div class="learn-card-container">
   <div class="learn-card">
     <app-learn-card-skeleton />
@@ -19,8 +29,8 @@
     (click)="toggleReveal()"
   >
     @if (isStudyingWithPartner()) {
-    <span class="presenter-indicator" role="status" aria-live="polite">
-      {{ currentPresenter().name }}
+    <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
+      {{ currentTurn().name }}
     </span>
     }
     <app-card-actions
@@ -40,7 +50,7 @@
   @if (isRevealed()) {
     <app-card-grading-buttons
       [card]="cardResource"
-      [learningPartnerId]="currentPresenter().partnerId"
+      [learningPartnerId]="currentTurn().partnerId"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
   }
