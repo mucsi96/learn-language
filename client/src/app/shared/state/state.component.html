@@ -1,3 +1,9 @@
-<span [ngStyle]="stateStyle()" [attr.aria-label]="'State: ' + stateName()" class="state-chip">
-  {{ count() ?? stateName() }}
+@if (count() !== undefined) {
+<span [ngStyle]="stateStyle()" [attr.title]="stateName()" class="state-chip">
+  {{ count() }}
 </span>
+} @else {
+<span [ngStyle]="stateStyle()" [attr.aria-label]="'State: ' + stateName()" class="state-chip">
+  {{ stateName() }}
+</span>
+}
