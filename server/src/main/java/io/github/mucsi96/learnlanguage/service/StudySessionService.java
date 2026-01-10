@@ -89,12 +89,10 @@ public class StudySessionService {
                     LocalDateTime now = LocalDateTime.now();
                     LocalDateTime oneHourFromNow = now.plusHours(1);
 
-                    List<StudySessionCard> expiredCards = session.getCards().stream()
-                            .filter(c -> c.getCard().getDue().isAfter(oneHourFromNow))
+                    List<StudySessionCard> eligibleCards = session.getCards().stream()
+                            .filter(c -> c.getCard().hasReadiness("READY"))
+                            .filter(c -> !c.getCard().getDue().isAfter(oneHourFromNow))
                             .collect(Collectors.toList());
-                    session.getCards().removeAll(expiredCards);
-
-                    List<StudySessionCard> eligibleCards = session.getCards();
 
                     int maxPosition = eligibleCards.stream()
                             .mapToInt(StudySessionCard::getPosition)
