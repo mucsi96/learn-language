@@ -191,13 +191,14 @@ test('review log records learning partner when grading', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await page.getByRole('heading', { name: 'első' }).click();
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.getByRole('heading', { name: 'első' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
-  await page.getByRole('heading', { name: 'második' }).click();
+  await flashcard.getByRole('heading', { name: 'második' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
-  await expect(page.getByText('All caught up!')).toBeVisible();
+  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(2);
@@ -219,10 +220,11 @@ test('review log has null learning partner when no partner is active', async ({ 
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
-  await page.getByRole('heading', { name: 'tanulni' }).click();
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
-  await expect(page.getByText('All caught up!')).toBeVisible();
+  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(1);
