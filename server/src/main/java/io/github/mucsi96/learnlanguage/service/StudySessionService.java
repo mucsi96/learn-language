@@ -148,10 +148,10 @@ public class StudySessionService {
 
     double calculateComplexity(ReviewLog review) {
         if (review == null) {
-            return 0.75;
+            return 4 * 30;
         }
 
-        double ratingFactor = (4.0 - review.getRating()) / 3.0;
+        double ratingFactor = 4.0 - review.getRating();
         long daysSinceReview = ChronoUnit.DAYS.between(review.getReview(), LocalDateTime.now());
 
         return ratingFactor * Math.max(daysSinceReview, 1);

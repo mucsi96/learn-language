@@ -6,7 +6,7 @@
 
 ## Completed
 - [x] add smart card assignment to maximize the study session effectiveness based on review log
-  - Complexity formula: `(1 - normalizedRating) * daysSinceReview`
+  - Complexity formula: `(4 - rating) * daysSinceReview`, default 120 for unreviewed
   - Preference = userComplexity - partnerComplexity
   - Cards sorted by preference, then split: first half to user, second half (reversed) to partner
   - Interleaved: user cards at even positions, partner cards at odd positions
