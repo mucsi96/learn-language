@@ -107,8 +107,9 @@ test('study page shows presenter indicator when partner is active', async ({ pag
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.locator('.presenter-indicator')).toBeVisible();
+  await expect(page.getByRole('status', { name: 'Current presenter' })).toBeVisible();
 });
 
 test('study page alternates between user and active partner', async ({ page }) => {
@@ -137,9 +138,9 @@ test('study page alternates between user and active partner', async ({ page }) =
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const presenterIndicator = page.locator('.presenter-indicator');
-  const initialPresenter = await presenterIndicator.textContent();
+  const presenterIndicator = page.getByRole('status', { name: 'Current presenter' });
 
   await page.getByRole('heading', { name: 'első' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
@@ -160,8 +161,9 @@ test('study page does not show presenter indicator when no partner is active', a
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.locator('.presenter-indicator')).not.toBeVisible();
+  await expect(page.getByRole('status', { name: 'Current presenter' })).not.toBeVisible();
 });
 
 test('review log records learning partner when grading', async ({ page }) => {
@@ -190,6 +192,7 @@ test('review log records learning partner when grading', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await flashcard.getByRole('heading', { name: 'első' }).click();
@@ -219,6 +222,7 @@ test('review log has null learning partner when no partner is active', async ({ 
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await flashcard.getByRole('heading', { name: 'tanulni' }).click();

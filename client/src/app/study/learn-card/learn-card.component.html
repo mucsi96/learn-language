@@ -29,7 +29,7 @@
     (click)="toggleReveal()"
   >
     @if (isStudyingWithPartner()) {
-    <span class="presenter-indicator" role="status" aria-live="polite">
+    <span class="presenter-indicator" role="status" aria-label="Current presenter" aria-live="polite">
       {{ currentPresenter().name }}
     </span>
     }
