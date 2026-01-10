@@ -2,8 +2,11 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createLearningPartner,
+  createReviewLog,
   getLearningPartners,
   getReviewLogs,
+  getStudySessionCards,
+  getStudySessions,
 } from '../utils';
 
 test('learning partners settings page displays empty state', async ({ page }) => {
@@ -233,4 +236,226 @@ test('review log has null learning partner when no partner is active', async ({ 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(1);
   expect(reviewLogs[0].learningPartnerId).toBeNull();
+});
+
+test('smart assignment distributes cards equally between myself and partner', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'eins', type: 'NOUN', translation: { en: 'one', hu: 'egy' } },
+  });
+  await createCard({
+    cardId: 'card2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'zwei', type: 'NOUN', translation: { en: 'two', hu: 'kettő' } },
+  });
+  await createCard({
+    cardId: 'card3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 12,
+    data: { word: 'drei', type: 'NOUN', translation: { en: 'three', hu: 'három' } },
+  });
+  await createCard({
+    cardId: 'card4',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 13,
+    data: { word: 'vier', type: 'NOUN', translation: { en: 'four', hu: 'négy' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  expect(sessionCards.length).toBe(4);
+
+  const myCards = sessionCards.filter(c => c.learningPartnerId === null);
+  const partnerCards = sessionCards.filter(c => c.learningPartnerId === partnerId);
+
+  expect(myCards.length).toBe(2);
+  expect(partnerCards.length).toBe(2);
+
+  expect(sessionCards[0].learningPartnerId).toBeNull();
+  expect(sessionCards[1].learningPartnerId).toBe(partnerId);
+  expect(sessionCards[2].learningPartnerId).toBeNull();
+  expect(sessionCards[3].learningPartnerId).toBe(partnerId);
+});
+
+test('smart assignment assigns card to partner when I reviewed it with good rating', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card-i-know',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'gut', type: 'ADJ', translation: { en: 'good', hu: 'jó' } },
+  });
+  await createCard({
+    cardId: 'card-neutral',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'neu', type: 'ADJ', translation: { en: 'new', hu: 'új' } },
+  });
+
+  await createReviewLog({
+    cardId: 'card-i-know',
+    learningPartnerId: null,
+    rating: 3,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  const cardIKnow = sessionCards.find(c => c.cardId === 'card-i-know');
+  expect(cardIKnow?.learningPartnerId).toBe(partnerId);
+});
+
+test('smart assignment assigns card to me when I reviewed it with bad rating', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card-i-dont-know',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'schwer', type: 'ADJ', translation: { en: 'difficult', hu: 'nehéz' } },
+  });
+  await createCard({
+    cardId: 'card-neutral',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'leicht', type: 'ADJ', translation: { en: 'easy', hu: 'könnyű' } },
+  });
+
+  await createReviewLog({
+    cardId: 'card-i-dont-know',
+    learningPartnerId: null,
+    rating: 1,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  const cardIDontKnow = sessionCards.find(c => c.cardId === 'card-i-dont-know');
+  expect(cardIDontKnow?.learningPartnerId).toBeNull();
+});
+
+test('smart assignment assigns card to me when partner reviewed it with good rating', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card-partner-knows',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'kennen', type: 'VERB', translation: { en: 'to know', hu: 'ismerni' } },
+  });
+  await createCard({
+    cardId: 'card-neutral',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'lernen', type: 'VERB', translation: { en: 'to learn', hu: 'tanulni' } },
+  });
+
+  await createReviewLog({
+    cardId: 'card-partner-knows',
+    learningPartnerId: partnerId,
+    rating: 4,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  const cardPartnerKnows = sessionCards.find(c => c.cardId === 'card-partner-knows');
+  expect(cardPartnerKnows?.learningPartnerId).toBeNull();
+});
+
+test('smart assignment assigns card to partner when partner reviewed it with bad rating', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card-partner-doesnt-know',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'vergessen', type: 'VERB', translation: { en: 'to forget', hu: 'elfelejteni' } },
+  });
+  await createCard({
+    cardId: 'card-neutral',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'erinnern', type: 'VERB', translation: { en: 'to remember', hu: 'emlékezni' } },
+  });
+
+  await createReviewLog({
+    cardId: 'card-partner-doesnt-know',
+    learningPartnerId: partnerId,
+    rating: 2,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  const cardPartnerDoesntKnow = sessionCards.find(c => c.cardId === 'card-partner-doesnt-know');
+  expect(cardPartnerDoesntKnow?.learningPartnerId).toBe(partnerId);
+});
+
+test('smart assignment respects equal distribution over optimal assignment', async ({ page }) => {
+  const partnerId = await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'card1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'eins', type: 'NOUN', translation: { en: 'one', hu: 'egy' } },
+  });
+  await createCard({
+    cardId: 'card2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'zwei', type: 'NOUN', translation: { en: 'two', hu: 'kettő' } },
+  });
+  await createCard({
+    cardId: 'card3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 12,
+    data: { word: 'drei', type: 'NOUN', translation: { en: 'three', hu: 'három' } },
+  });
+  await createCard({
+    cardId: 'card4',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 13,
+    data: { word: 'vier', type: 'NOUN', translation: { en: 'four', hu: 'négy' } },
+  });
+
+  await createReviewLog({ cardId: 'card1', learningPartnerId: null, rating: 4 });
+  await createReviewLog({ cardId: 'card2', learningPartnerId: null, rating: 4 });
+  await createReviewLog({ cardId: 'card3', learningPartnerId: null, rating: 4 });
+  await createReviewLog({ cardId: 'card4', learningPartnerId: null, rating: 4 });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessions = await getStudySessions();
+  const sessionCards = await getStudySessionCards(sessions[0].id);
+
+  const myCards = sessionCards.filter(c => c.learningPartnerId === null);
+  const partnerCards = sessionCards.filter(c => c.learningPartnerId === partnerId);
+
+  expect(myCards.length).toBe(2);
+  expect(partnerCards.length).toBe(2);
 });

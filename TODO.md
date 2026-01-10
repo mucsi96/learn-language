@@ -3,4 +3,3 @@
 - support for grammar card type
 - support multi part regions
 - support cross-page multi part regions
-- add smart card assigment to maximise the study session effectiveness based on ereview log

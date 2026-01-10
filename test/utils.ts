@@ -863,3 +863,63 @@ export async function getReviewLogs(): Promise<Array<{
     return result.rows;
   });
 }
+
+export async function createReviewLog(params: {
+  cardId: string;
+  learningPartnerId?: number | null;
+  rating: number;
+  state?: string;
+  review?: Date;
+}): Promise<number> {
+  const {
+    cardId,
+    learningPartnerId = null,
+    rating,
+    state = 'LEARNING',
+    review = new Date(),
+  } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.review_logs (
+        card_id, learning_partner_id, rating, state, due, stability,
+        difficulty, elapsed_days, scheduled_days, learning_steps, review
+      ) VALUES ($1, $2, $3, $4, NOW(), 1.0, 5.0, 0, 1, 1, $5)
+      RETURNING id`,
+      [cardId, learningPartnerId, rating, state, review]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getStudySessionCards(sessionId: string): Promise<Array<{
+  cardId: string;
+  position: number;
+  learningPartnerId: number | null;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT card_id as "cardId", position, learning_partner_id as "learningPartnerId"
+       FROM learn_language.study_session_cards
+       WHERE session_id = $1
+       ORDER BY position`,
+      [sessionId]
+    );
+    return result.rows;
+  });
+}
+
+export async function getStudySessions(): Promise<Array<{
+  id: string;
+  sourceId: string;
+  studyMode: string;
+}>> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, source_id as "sourceId", study_mode as "studyMode"
+       FROM learn_language.study_sessions
+       ORDER BY created_at DESC`
+    );
+    return result.rows;
+  });
+}
