@@ -100,15 +100,20 @@ public class StudySessionService {
                             .orElse(0);
 
                     int newLastPosition = maxPosition + 1;
-                    eligibleCards.stream()
+                    boolean positionUpdated = eligibleCards.stream()
                             .filter(c -> c.getCard().getLastReview() != null)
                             .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                            .ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
+                            .map(mostRecent -> {
+                                mostRecent.setPosition(newLastPosition);
+                                return true;
+                            })
+                            .orElse(false);
 
-                    studySessionRepository.save(session);
+                    if (positionUpdated) {
+                        studySessionRepository.save(session);
+                    }
 
                     Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                            .filter(c -> !c.getCard().getDue().isAfter(oneHourFromNow))
                             .min(Comparator.comparing(StudySessionCard::getPosition));
 
                     return nextCard.map(sessionCard -> {
