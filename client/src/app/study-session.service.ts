@@ -37,13 +37,13 @@ export class StudySessionService {
     injector: this.injector,
   });
 
-  readonly currentPresenter = computed<{ name: string; partnerId: number | null }>(() => {
+  readonly currentTurn = computed<{ name: string; partnerId: number | null }>(() => {
     const cardData = this.currentCard.value();
     if (!cardData) {
       return { name: 'Myself', partnerId: null };
     }
     return {
-      name: cardData.presenterName,
+      name: cardData.turnName,
       partnerId: cardData.learningPartnerId,
     };
   });
