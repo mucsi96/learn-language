@@ -38,10 +38,7 @@ test('smart assignment: equal distribution between user and partner', async ({ p
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  expect(sessionId).toBeTruthy();
-
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
   const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
@@ -76,8 +73,7 @@ test('smart assignment: odd number of cards gives extra card to user', async ({ 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
   const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
@@ -106,8 +102,7 @@ test('smart assignment: user gets first card, partner gets second', async ({ pag
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards[0].position).toBe(0);
   expect(sessionCards[0].learningPartnerId).toBeNull();
@@ -162,8 +157,7 @@ test('smart assignment: card with higher user complexity assigned to user', asyn
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const hardForUserCard = sessionCards.find((c) => c.cardId === 'hard_for_user');
   const hardForPartnerCard = sessionCards.find((c) => c.cardId === 'hard_for_partner');
@@ -207,8 +201,7 @@ test('smart assignment: card reviewed only by user assigned to partner', async (
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userReviewedCard = sessionCards.find((c) => c.cardId === 'user_reviewed');
   const partnerReviewedCard = sessionCards.find((c) => c.cardId === 'partner_reviewed');
@@ -265,8 +258,7 @@ test('smart assignment: elapsed days increases complexity', async ({ page }) => 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userOldReviewCard = sessionCards.find((c) => c.cardId === 'user_old_review');
   const partnerOldReviewCard = sessionCards.find((c) => c.cardId === 'partner_old_review');
@@ -325,8 +317,7 @@ test('smart assignment: primary rule (equal distribution) overrides secondary pr
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
   const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
@@ -354,8 +345,7 @@ test('smart assignment: no partner means no smart assignment', async ({ page }) 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   for (const card of sessionCards) {
     expect(card.learningPartnerId).toBeNull();
@@ -378,8 +368,7 @@ test('smart assignment: new cards without reviews distributed evenly', async ({ 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
   const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
@@ -410,8 +399,7 @@ test('smart assignment: single card goes to user', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards.length).toBe(1);
   expect(sessionCards[0].learningPartnerId).toBeNull();
@@ -465,8 +453,7 @@ test('smart assignment: complexity combines rating and elapsed days', async ({ p
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   const userHighComplexityCard = sessionCards.find((c) => c.cardId === 'user_high_complexity');
   const partnerHighComplexityCard = sessionCards.find((c) => c.cardId === 'partner_high_complexity');
@@ -524,8 +511,7 @@ test('smart assignment: hardest cards for each person at front of their queue', 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards[0].cardId).toBe('user_hardest');
   expect(sessionCards[0].learningPartnerId).toBeNull();
@@ -580,8 +566,7 @@ test('smart assignment: session limited to 50 most complex cards', async ({ page
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const sessionId = new URL(page.url()).searchParams.get('session');
-  const sessionCards = await getStudySessionCards(sessionId!);
+  const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards.length).toBe(50);
 

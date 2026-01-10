@@ -916,11 +916,14 @@ export async function createReviewLog(params: {
   });
 }
 
-export async function getStudySessionCards(sessionId: string): Promise<Array<{
+export async function getStudySessionCards(page: Page): Promise<Array<{
   cardId: string;
   position: number;
   learningPartnerId: number | null;
 }>> {
+  await page.waitForURL(/session=/);
+  const sessionId = new URL(page.url()).searchParams.get('session');
+
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT c.id as "cardId", ssc.position, ssc.learning_partner_id as "learningPartnerId"
