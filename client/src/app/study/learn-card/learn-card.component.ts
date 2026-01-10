@@ -8,7 +8,7 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
@@ -39,6 +39,7 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
 })
 export class LearnCardComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
@@ -55,7 +56,7 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly isRevealed = signal(false);
-  readonly sessionStarted = signal(false);
+  readonly sessionId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
   readonly languageTexts = signal<LanguageTexts[]>([]);
   private currentSourceId: string | null = null;
@@ -68,18 +69,45 @@ export class LearnCardComponent implements OnDestroy {
   readonly currentPresenter = this.studySessionService.currentPresenter;
 
   constructor() {
+    this.route.queryParams.subscribe((queryParams) => {
+      const urlSessionId = queryParams['session'];
+      if (urlSessionId && urlSessionId !== this.sessionId()) {
+        this.sessionId.set(urlSessionId);
+        this.studySessionService.setSessionId(urlSessionId);
+      } else if (!urlSessionId && this.sessionId()) {
+        this.sessionId.set(null);
+        this.studySessionService.clearSession();
+      }
+    });
+
     this.route.params.subscribe((params) => {
       if (params['sourceId']) {
+        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== params['sourceId'];
         this.currentSourceId = params['sourceId'];
-        this.sessionStarted.set(false);
+        if (sourceChanged) {
+          this.sessionId.set(null);
+          this.studySessionService.clearSession();
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { session: null },
+            queryParamsHandling: 'merge',
+          });
+        }
       }
     });
   }
 
-  startSession() {
+  async startSession() {
     if (this.currentSourceId) {
-      this.studySessionService.createSession(this.currentSourceId);
-      this.sessionStarted.set(true);
+      const session = await this.studySessionService.createSession(this.currentSourceId);
+      if (session) {
+        this.sessionId.set(session.sessionId);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { session: session.sessionId },
+          queryParamsHandling: 'merge',
+        });
+      }
     }
   }
 

@@ -60,6 +60,10 @@ export class StudySessionService {
     return session;
   }
 
+  setSessionId(sessionId: string) {
+    this.sessionId.set(sessionId);
+  }
+
   refreshSession() {
     this.sessionVersion.update((v) => v + 1);
     this.dueCardsService.refetchDueCounts();

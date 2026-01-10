@@ -19,6 +19,33 @@ test('study page shows start button initially', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
 });
 
+test('study session persists in URL and survives page refresh', async ({ page }) => {
+  await createCard({
+    cardId: 'persist_test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 5,
+    data: {
+      word: 'bleiben',
+      type: 'VERB',
+      translation: { en: 'to stay', hu: 'maradni', ch: 'bliibe' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
+
+  const url = page.url();
+  expect(url).toContain('session=');
+
+  await page.reload();
+
+  await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start study session' })).not.toBeVisible();
+});
+
 test('study page initial state', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(greenImage);
