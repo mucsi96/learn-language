@@ -2,14 +2,16 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -99,125 +101,60 @@ public class StudySessionService {
             return cards;
         }
 
-        List<String> cardIds = cards.stream().map(Card::getId).collect(Collectors.toList());
+        List<String> cardIds = cards.stream().map(Card::getId).toList();
         List<ReviewLog> latestReviews = reviewLogRepository.findLatestReviewsByCardIds(cardIds);
 
-        Map<String, ReviewLog> userReviews = new HashMap<>();
-        Map<String, ReviewLog> partnerReviews = new HashMap<>();
+        Map<String, ReviewLog> userReviews = latestReviews.stream()
+                .filter(r -> r.getLearningPartner() == null)
+                .collect(Collectors.toMap(r -> r.getCard().getId(), Function.identity()));
 
-        for (ReviewLog review : latestReviews) {
-            String cardId = review.getCard().getId();
-            if (review.getLearningPartner() == null) {
-                userReviews.put(cardId, review);
-            } else if (review.getLearningPartner().getId().equals(partner.getId())) {
-                partnerReviews.put(cardId, review);
-            }
-        }
+        Map<String, ReviewLog> partnerReviews = latestReviews.stream()
+                .filter(r -> r.getLearningPartner() != null
+                        && r.getLearningPartner().getId().equals(partner.getId()))
+                .collect(Collectors.toMap(r -> r.getCard().getId(), Function.identity()));
 
-        List<CardWithPreference> cardsWithPreference = cards.stream()
-                .map(card -> new CardWithPreference(
-                        card,
-                        calculatePreference(card.getId(), userReviews, partnerReviews)))
-                .collect(Collectors.toList());
+        List<Card> sortedByPreference = cards.stream()
+                .sorted(Comparator.comparingDouble(
+                        (Card card) -> calculatePreference(card.getId(), userReviews, partnerReviews))
+                        .reversed())
+                .toList();
 
-        int totalCards = cards.size();
-        int userSlots = (totalCards + 1) / 2;
-        int partnerSlots = totalCards / 2;
+        int userSlots = (sortedByPreference.size() + 1) / 2;
 
-        List<CardWithPreference> preferUser = cardsWithPreference.stream()
-                .filter(c -> c.preference > 0)
-                .sorted(Comparator.comparingInt((CardWithPreference c) -> c.preference).reversed())
-                .collect(Collectors.toList());
+        List<Card> userCards = sortedByPreference.stream()
+                .limit(userSlots)
+                .toList();
 
-        List<CardWithPreference> preferPartner = cardsWithPreference.stream()
-                .filter(c -> c.preference < 0)
-                .sorted(Comparator.comparingInt(c -> c.preference))
-                .collect(Collectors.toList());
+        List<Card> partnerCards = sortedByPreference.stream()
+                .skip(userSlots)
+                .toList();
 
-        List<CardWithPreference> neutral = cardsWithPreference.stream()
-                .filter(c -> c.preference == 0)
-                .collect(Collectors.toList());
+        List<Card> partnerCardsReversed = IntStream.range(0, partnerCards.size())
+                .mapToObj(i -> partnerCards.get(partnerCards.size() - 1 - i))
+                .toList();
 
-        List<Card> userCards = new ArrayList<>();
-        List<Card> partnerCards = new ArrayList<>();
-
-        for (CardWithPreference cwp : preferUser) {
-            if (userCards.size() < userSlots) {
-                userCards.add(cwp.card);
-            } else {
-                partnerCards.add(cwp.card);
-            }
-        }
-
-        for (CardWithPreference cwp : neutral) {
-            if (userCards.size() < userSlots) {
-                userCards.add(cwp.card);
-            } else {
-                partnerCards.add(cwp.card);
-            }
-        }
-
-        for (CardWithPreference cwp : preferPartner) {
-            if (partnerCards.size() < partnerSlots) {
-                partnerCards.add(cwp.card);
-            } else {
-                userCards.add(cwp.card);
-            }
-        }
-
-        List<Card> result = new ArrayList<>();
-        int ui = 0, pi = 0;
-        for (int i = 0; i < totalCards; i++) {
-            if (i % 2 == 0 && ui < userCards.size()) {
-                result.add(userCards.get(ui++));
-            } else if (i % 2 == 1 && pi < partnerCards.size()) {
-                result.add(partnerCards.get(pi++));
-            } else if (ui < userCards.size()) {
-                result.add(userCards.get(ui++));
-            } else if (pi < partnerCards.size()) {
-                result.add(partnerCards.get(pi++));
-            }
-        }
-
-        return result;
+        return IntStream.range(0, sortedByPreference.size())
+                .mapToObj(i -> i % 2 == 0
+                        ? userCards.get(i / 2)
+                        : partnerCardsReversed.get(i / 2))
+                .toList();
     }
 
-    int calculatePreference(String cardId, Map<String, ReviewLog> userReviews,
+    double calculatePreference(String cardId, Map<String, ReviewLog> userReviews,
             Map<String, ReviewLog> partnerReviews) {
-        ReviewLog userReview = userReviews.get(cardId);
-        ReviewLog partnerReview = partnerReviews.get(cardId);
-
-        if (userReview == null && partnerReview == null) {
-            return 0;
-        }
-
-        if (userReview == null) {
-            return 1;
-        }
-
-        if (partnerReview == null) {
-            return -1;
-        }
-
-        int userRating = userReview.getRating();
-        int partnerRating = partnerReview.getRating();
-
-        if (userRating < partnerRating) {
-            return 1;
-        } else if (partnerRating < userRating) {
-            return -1;
-        }
-
-        if (userReview.getReview().isAfter(partnerReview.getReview())) {
-            return -1;
-        } else if (partnerReview.getReview().isAfter(userReview.getReview())) {
-            return 1;
-        }
-
-        return 0;
+        return calculateComplexity(userReviews.get(cardId))
+                - calculateComplexity(partnerReviews.get(cardId));
     }
 
-    private record CardWithPreference(Card card, int preference) {
+    double calculateComplexity(ReviewLog review) {
+        if (review == null) {
+            return 0.75;
+        }
+
+        double ratingFactor = (4.0 - review.getRating()) / 3.0;
+        long daysSinceReview = ChronoUnit.DAYS.between(review.getReview(), LocalDateTime.now());
+
+        return ratingFactor * Math.max(daysSinceReview, 1);
     }
 
     @Transactional

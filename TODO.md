@@ -6,7 +6,9 @@
 
 ## Completed
 - [x] add smart card assignment to maximize the study session effectiveness based on review log
-  - Cards are distributed equally between user and partner (primary rule)
-  - First card goes to user, second to partner, alternating
-  - Cards are assigned to the person who knows them less based on last review rating
-  - If ratings are equal, assigns to person who reviewed less recently
+  - Complexity formula: `(1 - normalizedRating) * daysSinceReview`
+  - Preference = userComplexity - partnerComplexity
+  - Cards sorted by preference, then split: first half to user, second half (reversed) to partner
+  - Interleaved: user cards at even positions, partner cards at odd positions
+  - Primary rule: equal distribution between user and partner
+  - Hardest cards for each person appear first in their queue

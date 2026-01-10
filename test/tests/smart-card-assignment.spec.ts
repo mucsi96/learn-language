@@ -4,7 +4,6 @@ import {
   createLearningPartner,
   createReviewLog,
   getStudySessionCards,
-  withDbConnection,
 } from '../utils';
 
 test('smart assignment: equal distribution between user and partner', async ({ page }) => {
@@ -116,10 +115,10 @@ test('smart assignment: user gets first card, partner gets second', async ({ pag
   expect(sessionCards[1].learningPartnerId).toBe(partnerId);
 });
 
-test('smart assignment: card with bad user rating assigned to user', async ({ page }) => {
+test('smart assignment: card with higher user complexity assigned to user', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const yesterday = new Date(Date.now() - 86400000);
-  const hourAgo = new Date(Date.now() - 3600000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
   await createCard({
     cardId: 'hard_for_user',
@@ -128,7 +127,7 @@ test('smart assignment: card with bad user rating assigned to user', async ({ pa
     due: yesterday,
   });
   await createCard({
-    cardId: 'easy_for_user',
+    cardId: 'hard_for_partner',
     sourceId: 'goethe-a1',
     data: { word: 'leicht', type: 'ADJECTIVE', translation: { hu: 'könnyű' } },
     due: yesterday,
@@ -138,26 +137,26 @@ test('smart assignment: card with bad user rating assigned to user', async ({ pa
     cardId: 'hard_for_user',
     learningPartnerId: null,
     rating: 1,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
   await createReviewLog({
     cardId: 'hard_for_user',
     learningPartnerId: partnerId,
     rating: 4,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
 
   await createReviewLog({
-    cardId: 'easy_for_user',
+    cardId: 'hard_for_partner',
     learningPartnerId: null,
     rating: 4,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
   await createReviewLog({
-    cardId: 'easy_for_user',
+    cardId: 'hard_for_partner',
     learningPartnerId: partnerId,
     rating: 1,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -167,16 +166,16 @@ test('smart assignment: card with bad user rating assigned to user', async ({ pa
   const sessionCards = await getStudySessionCards(sessionId!);
 
   const hardForUserCard = sessionCards.find((c) => c.cardId === 'hard_for_user');
-  const easyForUserCard = sessionCards.find((c) => c.cardId === 'easy_for_user');
+  const hardForPartnerCard = sessionCards.find((c) => c.cardId === 'hard_for_partner');
 
   expect(hardForUserCard?.learningPartnerId).toBeNull();
-  expect(easyForUserCard?.learningPartnerId).toBe(partnerId);
+  expect(hardForPartnerCard?.learningPartnerId).toBe(partnerId);
 });
 
 test('smart assignment: card reviewed only by user assigned to partner', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const yesterday = new Date(Date.now() - 86400000);
-  const hourAgo = new Date(Date.now() - 3600000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
   await createCard({
     cardId: 'user_reviewed',
@@ -195,14 +194,14 @@ test('smart assignment: card reviewed only by user assigned to partner', async (
     cardId: 'user_reviewed',
     learningPartnerId: null,
     rating: 3,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
 
   await createReviewLog({
     cardId: 'partner_reviewed',
     learningPartnerId: partnerId,
     rating: 3,
-    review: hourAgo,
+    review: twoDaysAgo,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -218,51 +217,49 @@ test('smart assignment: card reviewed only by user assigned to partner', async (
   expect(partnerReviewedCard?.learningPartnerId).toBeNull();
 });
 
-test('smart assignment: equal ratings prefers person who reviewed less recently', async ({
-  page,
-}) => {
+test('smart assignment: elapsed days increases complexity', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const yesterday = new Date(Date.now() - 86400000);
-  const twoHoursAgo = new Date(Date.now() - 7200000);
-  const hourAgo = new Date(Date.now() - 3600000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
+  const fiveDaysAgo = new Date(Date.now() - 5 * 86400000);
 
   await createCard({
-    cardId: 'user_reviewed_recently',
-    sourceId: 'goethe-a1',
-    data: { word: 'neu', type: 'ADJECTIVE', translation: { hu: 'új' } },
-    due: yesterday,
-  });
-  await createCard({
-    cardId: 'partner_reviewed_recently',
+    cardId: 'user_old_review',
     sourceId: 'goethe-a1',
     data: { word: 'alt', type: 'ADJECTIVE', translation: { hu: 'régi' } },
     due: yesterday,
   });
-
-  await createReviewLog({
-    cardId: 'user_reviewed_recently',
-    learningPartnerId: null,
-    rating: 3,
-    review: hourAgo,
-  });
-  await createReviewLog({
-    cardId: 'user_reviewed_recently',
-    learningPartnerId: partnerId,
-    rating: 3,
-    review: twoHoursAgo,
+  await createCard({
+    cardId: 'partner_old_review',
+    sourceId: 'goethe-a1',
+    data: { word: 'neu', type: 'ADJECTIVE', translation: { hu: 'új' } },
+    due: yesterday,
   });
 
   await createReviewLog({
-    cardId: 'partner_reviewed_recently',
+    cardId: 'user_old_review',
     learningPartnerId: null,
-    rating: 3,
-    review: twoHoursAgo,
+    rating: 2,
+    review: fiveDaysAgo,
   });
   await createReviewLog({
-    cardId: 'partner_reviewed_recently',
+    cardId: 'user_old_review',
     learningPartnerId: partnerId,
-    rating: 3,
-    review: hourAgo,
+    rating: 2,
+    review: twoDaysAgo,
+  });
+
+  await createReviewLog({
+    cardId: 'partner_old_review',
+    learningPartnerId: null,
+    rating: 2,
+    review: twoDaysAgo,
+  });
+  await createReviewLog({
+    cardId: 'partner_old_review',
+    learningPartnerId: partnerId,
+    rating: 2,
+    review: fiveDaysAgo,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -271,13 +268,11 @@ test('smart assignment: equal ratings prefers person who reviewed less recently'
   const sessionId = new URL(page.url()).searchParams.get('session');
   const sessionCards = await getStudySessionCards(sessionId!);
 
-  const userReviewedRecentlyCard = sessionCards.find((c) => c.cardId === 'user_reviewed_recently');
-  const partnerReviewedRecentlyCard = sessionCards.find(
-    (c) => c.cardId === 'partner_reviewed_recently'
-  );
+  const userOldReviewCard = sessionCards.find((c) => c.cardId === 'user_old_review');
+  const partnerOldReviewCard = sessionCards.find((c) => c.cardId === 'partner_old_review');
 
-  expect(userReviewedRecentlyCard?.learningPartnerId).toBe(partnerId);
-  expect(partnerReviewedRecentlyCard?.learningPartnerId).toBeNull();
+  expect(userOldReviewCard?.learningPartnerId).toBeNull();
+  expect(partnerOldReviewCard?.learningPartnerId).toBe(partnerId);
 });
 
 test('smart assignment: primary rule (equal distribution) overrides secondary preference', async ({
@@ -285,7 +280,7 @@ test('smart assignment: primary rule (equal distribution) overrides secondary pr
 }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const yesterday = new Date(Date.now() - 86400000);
-  const hourAgo = new Date(Date.now() - 3600000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
   await createCard({
     cardId: 'card1',
@@ -317,13 +312,13 @@ test('smart assignment: primary rule (equal distribution) overrides secondary pr
       cardId,
       learningPartnerId: null,
       rating: 1,
-      review: hourAgo,
+      review: twoDaysAgo,
     });
     await createReviewLog({
       cardId,
       learningPartnerId: partnerId,
       rating: 4,
-      review: hourAgo,
+      review: twoDaysAgo,
     });
   }
 
@@ -422,49 +417,50 @@ test('smart assignment: single card goes to user', async ({ page }) => {
   expect(sessionCards[0].learningPartnerId).toBeNull();
 });
 
-test('smart assignment: mixed review history respects preferences within equal distribution', async ({
-  page,
-}) => {
+test('smart assignment: complexity combines rating and elapsed days', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const yesterday = new Date(Date.now() - 86400000);
-  const hourAgo = new Date(Date.now() - 3600000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
+  const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
 
   await createCard({
-    cardId: 'prefer_user_1',
+    cardId: 'user_high_complexity',
     sourceId: 'goethe-a1',
-    data: { word: 'user1', type: 'NOUN', translation: { hu: 'user1' } },
+    data: { word: 'komplex', type: 'ADJECTIVE', translation: { hu: 'összetett' } },
     due: yesterday,
   });
   await createCard({
-    cardId: 'prefer_user_2',
+    cardId: 'partner_high_complexity',
     sourceId: 'goethe-a1',
-    data: { word: 'user2', type: 'NOUN', translation: { hu: 'user2' } },
-    due: yesterday,
-  });
-  await createCard({
-    cardId: 'prefer_partner_1',
-    sourceId: 'goethe-a1',
-    data: { word: 'partner1', type: 'NOUN', translation: { hu: 'partner1' } },
-    due: yesterday,
-  });
-  await createCard({
-    cardId: 'prefer_partner_2',
-    sourceId: 'goethe-a1',
-    data: { word: 'partner2', type: 'NOUN', translation: { hu: 'partner2' } },
+    data: { word: 'einfach', type: 'ADJECTIVE', translation: { hu: 'egyszerű' } },
     due: yesterday,
   });
 
-  await createReviewLog({ cardId: 'prefer_user_1', learningPartnerId: null, rating: 1, review: hourAgo });
-  await createReviewLog({ cardId: 'prefer_user_1', learningPartnerId: partnerId, rating: 4, review: hourAgo });
+  await createReviewLog({
+    cardId: 'user_high_complexity',
+    learningPartnerId: null,
+    rating: 1,
+    review: tenDaysAgo,
+  });
+  await createReviewLog({
+    cardId: 'user_high_complexity',
+    learningPartnerId: partnerId,
+    rating: 4,
+    review: twoDaysAgo,
+  });
 
-  await createReviewLog({ cardId: 'prefer_user_2', learningPartnerId: null, rating: 2, review: hourAgo });
-  await createReviewLog({ cardId: 'prefer_user_2', learningPartnerId: partnerId, rating: 4, review: hourAgo });
-
-  await createReviewLog({ cardId: 'prefer_partner_1', learningPartnerId: null, rating: 4, review: hourAgo });
-  await createReviewLog({ cardId: 'prefer_partner_1', learningPartnerId: partnerId, rating: 1, review: hourAgo });
-
-  await createReviewLog({ cardId: 'prefer_partner_2', learningPartnerId: null, rating: 4, review: hourAgo });
-  await createReviewLog({ cardId: 'prefer_partner_2', learningPartnerId: partnerId, rating: 2, review: hourAgo });
+  await createReviewLog({
+    cardId: 'partner_high_complexity',
+    learningPartnerId: null,
+    rating: 4,
+    review: twoDaysAgo,
+  });
+  await createReviewLog({
+    cardId: 'partner_high_complexity',
+    learningPartnerId: partnerId,
+    rating: 1,
+    review: tenDaysAgo,
+  });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
@@ -472,17 +468,74 @@ test('smart assignment: mixed review history respects preferences within equal d
   const sessionId = new URL(page.url()).searchParams.get('session');
   const sessionCards = await getStudySessionCards(sessionId!);
 
-  const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
-  const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
+  const userHighComplexityCard = sessionCards.find((c) => c.cardId === 'user_high_complexity');
+  const partnerHighComplexityCard = sessionCards.find((c) => c.cardId === 'partner_high_complexity');
 
-  expect(userCards.length).toBe(2);
-  expect(partnerCards.length).toBe(2);
+  expect(userHighComplexityCard?.learningPartnerId).toBeNull();
+  expect(partnerHighComplexityCard?.learningPartnerId).toBe(partnerId);
+});
 
-  const userCardIds = userCards.map((c) => c.cardId);
-  const partnerCardIds = partnerCards.map((c) => c.cardId);
+test('smart assignment: hardest cards for each person at front of their queue', async ({
+  page,
+}) => {
+  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const yesterday = new Date(Date.now() - 86400000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
+  const fiveDaysAgo = new Date(Date.now() - 5 * 86400000);
+  const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
 
-  expect(userCardIds).toContain('prefer_user_1');
-  expect(userCardIds).toContain('prefer_user_2');
-  expect(partnerCardIds).toContain('prefer_partner_1');
-  expect(partnerCardIds).toContain('prefer_partner_2');
+  await createCard({
+    cardId: 'user_hardest',
+    sourceId: 'goethe-a1',
+    data: { word: 'schwerste', type: 'ADJECTIVE', translation: { hu: 'legnehezebb' } },
+    due: yesterday,
+  });
+  await createCard({
+    cardId: 'user_medium',
+    sourceId: 'goethe-a1',
+    data: { word: 'mittel', type: 'ADJECTIVE', translation: { hu: 'közepes' } },
+    due: yesterday,
+  });
+  await createCard({
+    cardId: 'partner_hardest',
+    sourceId: 'goethe-a1',
+    data: { word: 'schwerste_p', type: 'ADJECTIVE', translation: { hu: 'legnehezebb_p' } },
+    due: yesterday,
+  });
+  await createCard({
+    cardId: 'partner_medium',
+    sourceId: 'goethe-a1',
+    data: { word: 'mittel_p', type: 'ADJECTIVE', translation: { hu: 'közepes_p' } },
+    due: yesterday,
+  });
+
+  await createReviewLog({ cardId: 'user_hardest', learningPartnerId: null, rating: 1, review: tenDaysAgo });
+  await createReviewLog({ cardId: 'user_hardest', learningPartnerId: partnerId, rating: 4, review: twoDaysAgo });
+
+  await createReviewLog({ cardId: 'user_medium', learningPartnerId: null, rating: 2, review: fiveDaysAgo });
+  await createReviewLog({ cardId: 'user_medium', learningPartnerId: partnerId, rating: 3, review: twoDaysAgo });
+
+  await createReviewLog({ cardId: 'partner_hardest', learningPartnerId: null, rating: 4, review: twoDaysAgo });
+  await createReviewLog({ cardId: 'partner_hardest', learningPartnerId: partnerId, rating: 1, review: tenDaysAgo });
+
+  await createReviewLog({ cardId: 'partner_medium', learningPartnerId: null, rating: 3, review: twoDaysAgo });
+  await createReviewLog({ cardId: 'partner_medium', learningPartnerId: partnerId, rating: 2, review: fiveDaysAgo });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessionId = new URL(page.url()).searchParams.get('session');
+  const sessionCards = await getStudySessionCards(sessionId!);
+
+  expect(sessionCards[0].cardId).toBe('user_hardest');
+  expect(sessionCards[0].learningPartnerId).toBeNull();
+
+  expect(sessionCards[1].cardId).toBe('partner_hardest');
+  expect(sessionCards[1].learningPartnerId).toBe(partnerId);
+
+  expect(sessionCards[2].cardId).toBe('user_medium');
+  expect(sessionCards[2].learningPartnerId).toBeNull();
+
+  expect(sessionCards[3].cardId).toBe('partner_medium');
+  expect(sessionCards[3].learningPartnerId).toBe(partnerId);
 });
