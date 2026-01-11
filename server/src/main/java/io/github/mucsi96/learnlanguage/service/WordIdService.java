@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -9,6 +10,8 @@ import java.util.regex.Pattern;
 public class WordIdService {
 
     private static final Pattern SPLIT_PATTERN = Pattern.compile("\\s?[,/(-]");
+    private static final Pattern DIACRITICS_PATTERN = Pattern.compile("\\p{M}");
+    private static final Pattern NON_ASCII_PATTERN = Pattern.compile("[^a-z-]");
     private static final Set<String> GERMAN_ARTICLES = Set.of("der", "die", "das", "ein", "eine", "einen", "einem", "einer", "eines");
     private static final Set<String> HUNGARIAN_ARTICLES = Set.of("a", "az", "egy");
 
@@ -34,6 +37,12 @@ public class WordIdService {
         } else {
             normalized = normalized.replace(" ", "-");
         }
-        return normalized;
+        return removeSpecialCharacters(normalized);
+    }
+
+    private String removeSpecialCharacters(String text) {
+        String decomposed = Normalizer.normalize(text, Normalizer.Form.NFD);
+        String withoutDiacritics = DIACRITICS_PATTERN.matcher(decomposed).replaceAll("");
+        return NON_ASCII_PATTERN.matcher(withoutDiacritics).replaceAll("");
     }
 }

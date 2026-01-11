@@ -106,7 +106,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
   await createCard({
-    cardId: 'abfahrt-indulás',
+    cardId: 'abfahrt-indulas',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -182,7 +182,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   // Verify cards were created in database
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulás')"
+      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulas')"
     );
 
     expect(result.rows.length).toBe(3);
@@ -190,7 +190,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
     const cardIds = result.rows.map((row) => row.id);
     expect(cardIds).toContain('aber-de');
     expect(cardIds).toContain('abfahren-elindulni');
-    expect(cardIds).toContain('abfahrt-indulás');
+    expect(cardIds).toContain('abfahrt-indulas');
   });
 });
 
@@ -243,7 +243,7 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
 
-    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahrt-indulás'");
+    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahrt-indulas'");
     expect(result2.rows.length).toBe(1);
     const cardData2 = result2.rows[0].data;
 
@@ -373,7 +373,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due, readiness
        FROM learn_language.cards
-       WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulás')`
+       WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulas')`
     );
 
     expect(result.rows.length).toBe(3);
