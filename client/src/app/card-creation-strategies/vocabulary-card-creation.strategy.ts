@@ -55,6 +55,13 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     return (item as Word).word;
   }
 
+  filterItemsBySearchTerm(items: ExtractedItem[], searchTerm: string): ExtractedItem[] {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return items.filter(item =>
+      (item as Word).word.toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void

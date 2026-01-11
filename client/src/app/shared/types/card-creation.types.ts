@@ -43,6 +43,7 @@ export interface CardCreationStrategy {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
   getItemLabel(item: ExtractedItem): string;
+  filterItemsBySearchTerm(items: ExtractedItem[], searchTerm: string): ExtractedItem[];
   createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
 }
 
