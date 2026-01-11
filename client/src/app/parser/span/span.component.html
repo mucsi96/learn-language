@@ -44,13 +44,13 @@
   {{ text() }}
 </button>
 <mat-menu #menu="matMenu">
-  @for (match of matches; track match.word) {
+  @for (match of matches; track match.id) {
   <a
     mat-menu-item
     [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
     [queryParams]="{cardData: (match | compressQuery | async)}"
   >
-    {{ match.word }}
+    {{ getItemLabel(match) }}
   </a>
   }
 </mat-menu>

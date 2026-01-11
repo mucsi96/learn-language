@@ -8,7 +8,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AsyncPipe } from '@angular/common';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { RouterModule } from '@angular/router';
-import { ExtractionRegion } from '../../shared/types/card-creation.types';
+import { ExtractionRegion, ExtractedItem } from '../../shared/types/card-creation.types';
 import { CardCreationStrategyRegistry } from '../../card-creation-strategies/card-creation-strategy.registry';
 import { PageService } from '../../page.service';
 
@@ -121,5 +121,11 @@ export class SpanComponent {
 
   get ariaDescription() {
     return this.exists() ?  'Card exists' : 'Card does not exist';
+  }
+
+  getItemLabel(item: ExtractedItem): string {
+    const page = this.pageService.page.value();
+    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    return strategy.getItemLabel(item);
   }
 }
