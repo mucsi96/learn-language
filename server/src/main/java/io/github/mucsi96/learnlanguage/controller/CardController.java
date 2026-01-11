@@ -10,6 +10,7 @@ import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
+import io.github.mucsi96.learnlanguage.service.WordIdService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
@@ -32,19 +33,27 @@ public class CardController {
   private final CardService cardService;
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
+  private final WordIdService wordIdService;
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
-    // Get the source
     Source source = sourceRepository.findById(request.getSource().getId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSource().getId()));
 
     request.setSource(source);
 
+    CardData data = request.getData();
+    String germanWord = data.getWord();
+    String hungarianTranslation = data.getTranslation() != null ? data.getTranslation().get("hu") : "";
+    String cardId = wordIdService.generateMultilingualWordId(germanWord, hungarianTranslation != null ? hungarianTranslation : "");
+    request.setId(cardId);
+
     cardRepository.save(request);
 
-    return ResponseEntity.ok(new HashMap<>());
+    Map<String, String> response = new HashMap<>();
+    response.put("id", cardId);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/card/{cardId}")

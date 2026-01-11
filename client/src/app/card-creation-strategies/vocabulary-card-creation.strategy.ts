@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
-import { generateMultilingualWordId } from '../utils/word-id.util';
 import { languages } from '../shared/constants/languages';
 import { MultiModelService } from '../multi-model.service';
 import {
@@ -133,23 +132,6 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       progressCallback(80, 'Preparing vocabulary card data...');
 
-      const hungarianTranslation = translationMap['hu'] || '';
-      const wordId = generateMultilingualWordId(word.word, hungarianTranslation);
-
-      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
-        .map((_, exampleIndex) => {
-          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
-          if (!englishTranslation) {
-            return null;
-          }
-          return {
-            cardId: wordId,
-            exampleIndex,
-            englishTranslation
-          };
-        })
-        .filter((info): info is ImageGenerationInfo => info !== null);
-
       const cardData = {
         word: word.word,
         type: wordType.type,
@@ -169,7 +151,21 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         }))
       };
 
-      return { wordId, cardData, imageGenerationInfos };
+      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
+        .map((_, exampleIndex) => {
+          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
+          if (!englishTranslation) {
+            return null;
+          }
+          return {
+            cardId: word.id,
+            exampleIndex,
+            englishTranslation
+          };
+        })
+        .filter((info): info is ImageGenerationInfo => info !== null);
+
+      return { cardData, imageGenerationInfos };
 
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);
