@@ -1,4 +1,4 @@
-import { CardData, Word, WordList } from '../../parser/types';
+import { CardData, WordList } from '../../parser/types';
 
 export type CardType = 'vocabulary';
 

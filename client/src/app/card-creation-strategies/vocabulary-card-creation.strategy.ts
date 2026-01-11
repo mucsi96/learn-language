@@ -50,8 +50,8 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     );
   }
 
-  getItemLabel(item: ExtractedItem): string {
-    return (item as Word).word;
+  getItemLabel(item: Word): string {
+    return item.word;
   }
 
   getItems(result: ExtractionResult): ExtractedItem[] {

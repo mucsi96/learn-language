@@ -73,6 +73,9 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly sourceType = computed(
     () => this.pageService.page.value()?.sourceType
   );
+  readonly cardType = computed(
+    () => this.pageService.page.value()?.cardType
+  );
   readonly hasImage = computed(
     () => this.pageService.page.value()?.hasImage
   );
@@ -235,7 +238,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.pageService.reload();
   }
 
-  async addToKnownItems(itemLabel: string, itemId: string): Promise<void> {
+  async addToKnownWords(itemLabel: string, itemId: string): Promise<void> {
     await this.knownWordsService.addWord(itemLabel);
     this.candidatesService.ignoreItem(itemId);
   }

@@ -104,17 +104,17 @@
   }
 </section>
 
-@if (sourceType() === 'images' && extractedCandidates().length > 0) {
-<div class="extracted-candidates-container" role="region" aria-label="Extracted candidates">
+@if (cardType() === 'vocabulary' && sourceType() === 'images' && extractedCandidates().length > 0) {
+<div class="extracted-candidates-container" role="region" aria-label="Extracted words">
   <mat-chip-set>
     @for (item of extractedCandidates(); track item.id) {
     <button mat-chip [matMenuTriggerFor]="itemMenu">
       {{ candidatesService.getItemLabel(item) }}
     </button>
     <mat-menu #itemMenu="matMenu">
-      <button mat-menu-item (click)="addToKnownItems(candidatesService.getItemLabel(item), item.id)">
+      <button mat-menu-item (click)="addToKnownWords(candidatesService.getItemLabel(item), item.id)">
         <mat-icon>check_circle</mat-icon>
-        <span>Add to known items</span>
+        <span>Add to known words</span>
       </button>
       <button mat-menu-item (click)="ignoreItem(item.id)">
         <mat-icon>visibility_off</mat-icon>
