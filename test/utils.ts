@@ -776,37 +776,50 @@ export async function getTableData<T extends Record<string, string>>(
   ) as T[];
 }
 
-export async function createKnownWord(word: string): Promise<number> {
+export interface KnownWordInput {
+  word: string;
+  hungarianTranslation?: string | null;
+}
+
+export async function createKnownWord(
+  word: string,
+  hungarianTranslation?: string | null
+): Promise<number> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.known_words (word)
-       VALUES ($1)
+      `INSERT INTO learn_language.known_words (word, hungarian_translation)
+       VALUES ($1, $2)
        RETURNING id`,
-      [word.toLowerCase().trim()]
+      [word.toLowerCase().trim(), hungarianTranslation || null]
     );
     return result.rows[0].id;
   });
 }
 
-export async function createKnownWords(words: string[]): Promise<void> {
+export async function createKnownWords(
+  words: KnownWordInput[]
+): Promise<void> {
   await withDbConnection(async (client) => {
-    for (const word of words) {
+    for (const item of words) {
       await client.query(
-        `INSERT INTO learn_language.known_words (word)
-         VALUES ($1)
+        `INSERT INTO learn_language.known_words (word, hungarian_translation)
+         VALUES ($1, $2)
          ON CONFLICT (word) DO NOTHING`,
-        [word.toLowerCase().trim()]
+        [item.word.toLowerCase().trim(), item.hungarianTranslation || null]
       );
     }
   });
 }
 
-export async function getKnownWords(): Promise<string[]> {
+export async function getKnownWords(): Promise<
+  Array<{ word: string; hungarianTranslation: string | null }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT word FROM learn_language.known_words ORDER BY word`
+      `SELECT word, hungarian_translation as "hungarianTranslation"
+       FROM learn_language.known_words ORDER BY word`
     );
-    return result.rows.map((row) => row.word);
+    return result.rows;
   });
 }
 

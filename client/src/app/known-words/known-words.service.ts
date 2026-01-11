@@ -2,8 +2,13 @@ import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 
+export interface KnownWordDTO {
+  word: string;
+  hungarianTranslation: string | null;
+}
+
 export interface KnownWordsResponse {
-  words: string[];
+  words: KnownWordDTO[];
   count: number;
 }
 

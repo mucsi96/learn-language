@@ -25,4 +25,7 @@ public class KnownWord {
 
     @Column(name = "word", nullable = false, unique = true)
     private String word;
+
+    @Column(name = "hungarian_translation")
+    private String hungarianTranslation;
 }

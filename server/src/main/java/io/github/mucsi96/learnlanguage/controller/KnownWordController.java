@@ -36,7 +36,7 @@ public class KnownWordController {
     @PostMapping("/import")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public KnownWordsImportResponse importWords(@Valid @RequestBody KnownWordsImportRequest request) {
-        int importedCount = knownWordService.importFromText(request.getText());
+        int importedCount = knownWordService.importFromCsv(request.getText());
         return KnownWordsImportResponse.builder()
                 .importedCount(importedCount)
                 .build();

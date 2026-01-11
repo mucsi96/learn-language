@@ -228,7 +228,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
 
   const knownWords = await getKnownWords();
-  expect(knownWords).toContain('hören');
+  expect(knownWords).toContainEqual({ word: 'hören', hungarianTranslation: null });
 });
 
 test('can ignore word once from chip context menu', async ({ page }) => {
