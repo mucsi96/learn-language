@@ -1,10 +1,18 @@
-import { CardData, Word, WordList } from '../../parser/types';
+import { CardData } from '../../parser/types';
 
 export type CardType = 'vocabulary';
 
 export interface ExtractedItem {
   id: string;
   exists?: boolean;
+}
+
+export interface ExtractedItems {
+  items: ExtractedItem[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface ExtractionRequest {
@@ -34,13 +42,10 @@ export interface CardCreationResult {
   imageGenerationInfos: ImageGenerationInfo[];
 }
 
-export type ExtractionResult = WordList;
-
 export interface CardCreationStrategy {
   cardType: CardType;
-  extractItems(request: ExtractionRequest): Promise<ExtractionResult>;
+  extractItems(request: ExtractionRequest): Promise<ExtractedItems>;
   getItemLabel(item: ExtractedItem): string;
-  getItems(result: ExtractionResult): ExtractedItem[];
   createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
 }
 

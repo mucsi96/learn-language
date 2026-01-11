@@ -13,7 +13,7 @@ import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
-import { ExtractionResult } from './shared/types/card-creation.types';
+import { ExtractedItems } from './shared/types/card-creation.types';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -68,7 +68,7 @@ export class PageService {
 
   readonly selectionRegions = linkedSignal<
     SelectedRectangles,
-    ResourceRef<ExtractionResult | undefined>[]
+    ResourceRef<ExtractedItems | undefined>[]
   >({
     source: this.selectedRectangles,
     computation: (selectedRectangles, previous) => untracked(() =>{

@@ -10,7 +10,7 @@ import {
   CardType,
   ImageGenerationInfo,
   ExtractionRequest,
-  ExtractionResult,
+  ExtractedItems,
   ExtractedItem
 } from '../shared/types/card-creation.types';
 import { Word, WordList } from '../parser/types';
@@ -37,10 +37,10 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
 
-  async extractItems(request: ExtractionRequest): Promise<ExtractionResult> {
+  async extractItems(request: ExtractionRequest): Promise<ExtractedItems> {
     const { sourceId, pageNumber, x, y, width, height } = request;
 
-    return this.multiModelService.call<WordList>(
+    const wordList = await this.multiModelService.call<WordList>(
       'word_extraction',
       (model: string) =>
         fetchJson<WordList>(
@@ -48,14 +48,18 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
           `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
         )
     );
+
+    return {
+      items: wordList.words,
+      x: wordList.x,
+      y: wordList.y,
+      width: wordList.width,
+      height: wordList.height,
+    };
   }
 
   getItemLabel(item: ExtractedItem): string {
     return (item as Word).word;
-  }
-
-  getItems(result: ExtractionResult): ExtractedItem[] {
-    return result.words;
   }
 
   async createCardData(

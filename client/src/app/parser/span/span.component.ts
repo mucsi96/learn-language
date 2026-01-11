@@ -8,7 +8,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AsyncPipe } from '@angular/common';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { RouterModule } from '@angular/router';
-import { ExtractionResult } from '../../shared/types/card-creation.types';
+import { ExtractedItems } from '../../shared/types/card-creation.types';
+import { Word } from '../types';
 
 @Component({
   selector: 'app-span',
@@ -35,7 +36,7 @@ export class SpanComponent {
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
   readonly exists = input<boolean>();
-  readonly selectionRegions = input<ResourceRef<ExtractionResult | undefined>[]>();
+  readonly selectionRegions = input<ResourceRef<ExtractedItems | undefined>[]>();
   readonly dialog = inject(MatDialog);
 
   get matches() {
@@ -66,8 +67,9 @@ export class SpanComponent {
       return [];
     }
 
-    return matchingRegion.value()?.words?.filter((word) =>
-      word.word.toLowerCase().includes(this.searchTerm()!.toLowerCase())
+    const items = matchingRegion.value()?.items as Word[] | undefined;
+    return items?.filter((item) =>
+      item.word.toLowerCase().includes(this.searchTerm()!.toLowerCase())
     ) || [];
   }
 
