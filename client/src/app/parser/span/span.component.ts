@@ -8,7 +8,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AsyncPipe } from '@angular/common';
 import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { RouterModule } from '@angular/router';
-import { ExtractedItems } from '../../shared/types/card-creation.types';
+import { ExtractionRegion } from '../../shared/types/card-creation.types';
 import { Word } from '../types';
 
 @Component({
@@ -36,7 +36,7 @@ export class SpanComponent {
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
   readonly exists = input<boolean>();
-  readonly selectionRegions = input<ResourceRef<ExtractedItems | undefined>[]>();
+  readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
   readonly dialog = inject(MatDialog);
 
   get matches() {
@@ -56,7 +56,7 @@ export class SpanComponent {
         return false;
       }
 
-      const { x, y, width, height } = regionValue;
+      const { x, y, width, height } = regionValue.rectangle;
       return spanBBox.y >= y &&
         spanBBox.y <= y + height &&
         spanBBox.x >= x &&

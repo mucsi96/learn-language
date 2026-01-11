@@ -7,14 +7,6 @@ export interface ExtractedItem {
   exists?: boolean;
 }
 
-export interface ExtractedItems {
-  items: ExtractedItem[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface ExtractionRequest {
   sourceId: string;
   pageNumber: number;
@@ -22,6 +14,11 @@ export interface ExtractionRequest {
   y: number;
   width: number;
   height: number;
+}
+
+export interface ExtractionRegion {
+  rectangle: { x: number; y: number; width: number; height: number };
+  items: ExtractedItem[];
 }
 
 export interface CardCreationRequest {
@@ -44,7 +41,7 @@ export interface CardCreationResult {
 
 export interface CardCreationStrategy {
   cardType: CardType;
-  extractItems(request: ExtractionRequest): Promise<ExtractedItems>;
+  extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
   getItemLabel(item: ExtractedItem): string;
   createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
 }

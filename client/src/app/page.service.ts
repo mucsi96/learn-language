@@ -13,7 +13,7 @@ import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
-import { ExtractedItems } from './shared/types/card-creation.types';
+import { ExtractionRegion } from './shared/types/card-creation.types';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -68,7 +68,7 @@ export class PageService {
 
   readonly selectionRegions = linkedSignal<
     SelectedRectangles,
-    ResourceRef<ExtractedItems | undefined>[]
+    ResourceRef<ExtractionRegion | undefined>[]
   >({
     source: this.selectedRectangles,
     computation: (selectedRectangles, previous) => untracked(() =>{
@@ -97,18 +97,16 @@ export class PageService {
 
         return resource({
           injector: this.injector,
-          loader: async () => {
+          loader: async (): Promise<ExtractionRegion> => {
             const { sourceId, pageNumber } = selectedSource;
-            const { x, y, width, height } = rectangle;
 
-            return strategy.extractItems({
+            const items = await strategy.extractItems({
               sourceId,
               pageNumber,
-              x,
-              y,
-              width,
-              height,
+              ...rectangle,
             });
+
+            return { rectangle, items };
           },
         });
       });
