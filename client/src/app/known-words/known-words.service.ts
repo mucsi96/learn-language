@@ -2,8 +2,14 @@ import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 
+export interface KnownWordEntry {
+  wordId: string;
+  germanWord: string;
+  hungarianTranslation: string;
+}
+
 export interface KnownWordsResponse {
-  words: string[];
+  words: KnownWordEntry[];
   count: number;
 }
 
@@ -28,25 +34,21 @@ export class KnownWordsService {
     },
   });
 
-  async importWords(text: string): Promise<KnownWordsImportResponse> {
+  async importWords(words: KnownWordEntry[]): Promise<KnownWordsImportResponse> {
     const result = await fetchJson<KnownWordsImportResponse>(
       this.http,
       '/api/known-words/import',
       {
         method: 'POST',
-        body: { text },
+        body: { words },
       }
     );
     this.refresh();
     return result;
   }
 
-  async addWord(word: string): Promise<void> {
-    await this.importWords(word);
-  }
-
-  async deleteWord(word: string): Promise<void> {
-    await fetchJson(this.http, `/api/known-words/${encodeURIComponent(word)}`, {
+  async deleteWord(wordId: string): Promise<void> {
+    await fetchJson(this.http, `/api/known-words/${encodeURIComponent(wordId)}`, {
       method: 'DELETE',
     });
     this.refresh();

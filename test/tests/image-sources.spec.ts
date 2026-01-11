@@ -4,7 +4,6 @@ import {
   getSource,
   getDocuments,
   menschenA1Image,
-  getKnownWords,
   setupDefaultChatModelSettings,
 } from '../utils';
 
@@ -179,56 +178,6 @@ test('Extracted words appear as chips for image source after selection', async (
   await expect(extractedWords).toBeVisible();
   await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
   await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
-});
-
-test('can add word to known words from chip context menu', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await createSource({
-    id: 'known-words-source',
-    name: 'Known Words Source',
-    startPage: 1,
-    languageLevel: 'A1',
-    cardType: 'VOCABULARY',
-    formatType: 'FLOWING_TEXT',
-    sourceType: 'IMAGES',
-  });
-
-  await page.goto('http://localhost:8180/sources/known-words-source/page/1');
-
-  await page.getByLabel('Upload image file').setInputFiles({
-    name: 'menschen-a1-1-9.png',
-    mimeType: 'image/png',
-    buffer: menschenA1Image,
-  });
-
-  const pageContent = page.getByRole('region', { name: 'Page content' });
-  await expect(pageContent).toBeVisible();
-
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-
-  const box = await pageContent.boundingBox();
-
-  if (box) {
-    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
-    await page.mouse.up();
-  }
-
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible();
-
-  await extractedWords.getByRole('button', { name: 'hören' }).click();
-
-  await expect(page.getByRole('menuitem', { name: 'Add to known words' })).toBeVisible();
-  await page.getByRole('menuitem', { name: 'Add to known words' }).click();
-
-  await expect(extractedWords.getByRole('button', { name: 'hören' })).not.toBeVisible();
-  await expect(extractedWords.getByRole('button', { name: 'das Lied' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
-
-  const knownWords = await getKnownWords();
-  expect(knownWords).toContain('hören');
 });
 
 test('can ignore word once from chip context menu', async ({ page }) => {

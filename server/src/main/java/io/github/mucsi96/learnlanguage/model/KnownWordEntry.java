@@ -1,19 +1,16 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KnownWordsImportRequest {
-
-    @NotEmpty
-    private List<KnownWordEntry> words;
+public class KnownWordEntry {
+    private String wordId;
+    private String germanWord;
+    private String hungarianTranslation;
 }

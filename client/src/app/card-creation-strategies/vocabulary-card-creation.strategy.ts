@@ -13,6 +13,7 @@ import {
   ExtractedItem
 } from '../shared/types/card-creation.types';
 import { Word, WordList } from '../parser/types';
+import { generateCardId } from './card-id.util';
 
 interface WordTypeResponse {
   type: string;
@@ -132,6 +133,9 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       progressCallback(80, 'Preparing vocabulary card data...');
 
+      const hungarianTranslation = translationMap['hu'] || '';
+      const cardId = generateCardId(word.word, hungarianTranslation);
+
       const imageGenerationInfos: ImageGenerationInfo[] = word.examples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
@@ -139,7 +143,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
             return null;
           }
           return {
-            cardId: word.id,
+            cardId,
             exampleIndex,
             englishTranslation
           };
@@ -165,7 +169,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         }))
       };
 
-      return { cardData, imageGenerationInfos };
+      return { cardId, cardData, imageGenerationInfos };
 
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);

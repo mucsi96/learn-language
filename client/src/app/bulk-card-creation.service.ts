@@ -93,15 +93,15 @@ export class BulkCardCreationService {
     const results = await this.processWithLimitedConcurrency(
       itemsToCreate,
       async (item, index) => {
-        cardIdToProgressIndex.set(item.id, index);
         const request: CardCreationRequest = {
           item,
           sourceId,
           pageNumber,
           cardType
         };
-        const imageInfos = await this.createSingleCard(request, index);
-        allImageInfos.push(...imageInfos);
+        const { cardId, imageGenerationInfos } = await this.createSingleCard(request, index);
+        cardIdToProgressIndex.set(cardId, index);
+        allImageInfos.push(...imageGenerationInfos);
       },
       MAX_CONCURRENT_CARD_CREATIONS
     );
@@ -136,8 +136,8 @@ export class BulkCardCreationService {
   private async createSingleCard(
     request: CardCreationRequest,
     progressIndex: number
-  ): Promise<ImageGenerationInfo[]> {
-    const { item, sourceId, pageNumber, cardType } = request;
+  ): Promise<{ cardId: string; imageGenerationInfos: ImageGenerationInfo[] }> {
+    const { sourceId, pageNumber, cardType } = request;
 
     try {
       const strategy = this.strategyRegistry.getStrategy(cardType);
@@ -146,13 +146,13 @@ export class BulkCardCreationService {
         this.updateProgress(progressIndex, 'translating', progress * 0.8, step);
       };
 
-      const { cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
+      const { cardId, cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
 
       this.updateProgress(progressIndex, 'creating-card', 85, 'Creating card...');
 
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
-        id: item.id,
+        id: cardId,
         source: { id: sourceId },
         sourcePageNumber: pageNumber,
         data: cardData,
@@ -167,7 +167,7 @@ export class BulkCardCreationService {
 
       this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
 
-      return imageGenerationInfos;
+      return { cardId, imageGenerationInfos };
 
     } catch (error) {
       this.updateProgress(

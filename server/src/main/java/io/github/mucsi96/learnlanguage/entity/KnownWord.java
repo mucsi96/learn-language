@@ -23,6 +23,12 @@ public class KnownWord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "word", nullable = false, unique = true)
-    private String word;
+    @Column(name = "word_id", nullable = false, unique = true)
+    private String wordId;
+
+    @Column(name = "german_word", nullable = false)
+    private String germanWord;
+
+    @Column(name = "hungarian_translation", nullable = false)
+    private String hungarianTranslation;
 }

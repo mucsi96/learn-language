@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface KnownWordRepository extends JpaRepository<KnownWord, Integer> {
-    Optional<KnownWord> findByWord(String word);
-    boolean existsByWord(String word);
+    Optional<KnownWord> findByWordId(String wordId);
+    boolean existsByWordId(String wordId);
 }

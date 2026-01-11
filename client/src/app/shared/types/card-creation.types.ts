@@ -35,6 +35,7 @@ export interface ImageGenerationInfo {
 }
 
 export interface CardCreationResult {
+  cardId: string;
   cardData: CardData;
   imageGenerationInfos: ImageGenerationInfo[];
 }

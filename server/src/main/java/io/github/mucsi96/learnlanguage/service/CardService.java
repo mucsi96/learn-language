@@ -27,6 +27,10 @@ public class CardService {
     return cardRepository.findByIdIn(ids);
   }
 
+  public List<Card> getCardsByGermanWords(List<String> germanWords) {
+    return cardRepository.findByGermanWords(germanWords);
+  }
+
   public Card saveCard(Card card) {
     return cardRepository.save(card);
   }

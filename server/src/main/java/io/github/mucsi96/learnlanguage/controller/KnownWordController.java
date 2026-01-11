@@ -36,16 +36,16 @@ public class KnownWordController {
     @PostMapping("/import")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public KnownWordsImportResponse importWords(@Valid @RequestBody KnownWordsImportRequest request) {
-        int importedCount = knownWordService.importFromText(request.getText());
+        int importedCount = knownWordService.addWords(request.getWords());
         return KnownWordsImportResponse.builder()
                 .importedCount(importedCount)
                 .build();
     }
 
-    @DeleteMapping("/{word}")
+    @DeleteMapping("/{wordId}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Void> deleteWord(@PathVariable String word) {
-        knownWordService.deleteWord(word);
+    public ResponseEntity<Void> deleteWord(@PathVariable String wordId) {
+        knownWordService.deleteWord(wordId);
         return ResponseEntity.noContent().build();
     }
 

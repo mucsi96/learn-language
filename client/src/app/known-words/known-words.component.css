@@ -35,6 +35,7 @@ mat-card-header {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .import-result {
@@ -42,10 +43,23 @@ mat-card-header {
   font-size: 14px;
 }
 
-.words-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.import-error {
+  color: var(--mat-sys-error);
+  font-size: 14px;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-column-actions {
+  width: 48px;
+  text-align: center;
 }
 
 .skeleton {
@@ -57,20 +71,17 @@ mat-card-header {
   );
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 16px;
 }
 
-.skeleton-chip {
-  height: 32px;
-  width: 80px;
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.skeleton-chip:nth-child(2n) {
-  width: 100px;
-}
-
-.skeleton-chip:nth-child(3n) {
-  width: 60px;
+.skeleton-row {
+  height: 48px;
+  border-radius: 4px;
 }
 
 @keyframes loading {

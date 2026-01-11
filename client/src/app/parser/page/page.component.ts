@@ -28,7 +28,6 @@ import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-
 import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../../card-candidates.service';
-import { KnownWordsService } from '../../known-words/known-words.service';
 
 @Component({
   selector: 'app-page',
@@ -58,7 +57,6 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly elRef = inject(ElementRef);
   private readonly http = inject(HttpClient);
   readonly candidatesService = inject(CardCandidatesService);
-  private readonly knownWordsService = inject(KnownWordsService);
   readonly sources = this.sourcesService.sources.value;
   readonly extractedCandidates = this.candidatesService.candidates;
   readonly pageNumber = linkedSignal(
@@ -236,11 +234,6 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
     this.sourcesService.refetchSources();
     this.pageService.reload();
-  }
-
-  async addToKnownWords(itemLabel: string, itemId: string): Promise<void> {
-    await this.knownWordsService.addWord(itemLabel);
-    this.candidatesService.ignoreItem(itemId);
   }
 
   ignoreItem(itemId: string): void {

@@ -16,6 +16,12 @@ public interface CardRepository extends JpaRepository<Card, String> {
 
   @Query(value = """
       SELECT * FROM learn_language.cards
+      WHERE data->>'word' IN (:germanWords)
+      """, nativeQuery = true)
+  List<Card> findByGermanWords(List<String> germanWords);
+
+  @Query(value = """
+      SELECT * FROM learn_language.cards
       ORDER BY RANDOM()
       LIMIT :limit
       """, nativeQuery = true)

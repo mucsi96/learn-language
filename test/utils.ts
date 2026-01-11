@@ -776,37 +776,47 @@ export async function getTableData<T extends Record<string, string>>(
   ) as T[];
 }
 
-export async function createKnownWord(word: string): Promise<number> {
+export interface KnownWordEntry {
+  wordId: string;
+  germanWord: string;
+  hungarianTranslation: string;
+}
+
+export async function createKnownWord(entry: KnownWordEntry): Promise<number> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.known_words (word)
-       VALUES ($1)
+      `INSERT INTO learn_language.known_words (word_id, german_word, hungarian_translation)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      [word.toLowerCase().trim()]
+      [entry.wordId, entry.germanWord, entry.hungarianTranslation]
     );
     return result.rows[0].id;
   });
 }
 
-export async function createKnownWords(words: string[]): Promise<void> {
+export async function createKnownWords(entries: KnownWordEntry[]): Promise<void> {
   await withDbConnection(async (client) => {
-    for (const word of words) {
+    for (const entry of entries) {
       await client.query(
-        `INSERT INTO learn_language.known_words (word)
-         VALUES ($1)
-         ON CONFLICT (word) DO NOTHING`,
-        [word.toLowerCase().trim()]
+        `INSERT INTO learn_language.known_words (word_id, german_word, hungarian_translation)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (word_id) DO NOTHING`,
+        [entry.wordId, entry.germanWord, entry.hungarianTranslation]
       );
     }
   });
 }
 
-export async function getKnownWords(): Promise<string[]> {
+export async function getKnownWords(): Promise<KnownWordEntry[]> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT word FROM learn_language.known_words ORDER BY word`
+      `SELECT word_id, german_word, hungarian_translation FROM learn_language.known_words ORDER BY german_word`
     );
-    return result.rows.map((row) => row.word);
+    return result.rows.map((row) => ({
+      wordId: row.word_id,
+      germanWord: row.german_word,
+      hungarianTranslation: row.hungarian_translation,
+    }));
   });
 }
 
