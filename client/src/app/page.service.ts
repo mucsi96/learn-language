@@ -8,11 +8,12 @@ import {
   Injector,
   untracked,
 } from '@angular/core';
-import { Page, WordList } from './parser/types';
+import { Page } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
-import { MultiModelService } from './multi-model.service';
+import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
+import { ExtractionRegion } from './shared/types/card-creation.types';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -29,7 +30,7 @@ type SelectedRectangles = SelectedRectangle[];
 export class PageService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly multiModelService = inject(MultiModelService);
+  private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectangles = signal<SelectedRectangles>([]);
 
@@ -67,17 +68,19 @@ export class PageService {
 
   readonly selectionRegions = linkedSignal<
     SelectedRectangles,
-    ResourceRef<WordList | undefined>[]
+    ResourceRef<ExtractionRegion | undefined>[]
   >({
     source: this.selectedRectangles,
     computation: (selectedRectangles, previous) => untracked(() =>{
       const selectedSource = this.selectedSource();
+      const page = this.page.value();
       if (!selectedSource || selectedRectangles.length === 0) {
         return [];
       }
 
       const previousResources = previous?.value || [];
       const previousRectangles = previous?.source || [];
+      const strategy = this.strategyRegistry.getStrategy(page?.cardType);
 
       return selectedRectangles.map((rectangle) => {
         const existingIndex = previousRectangles.findIndex(
@@ -94,17 +97,16 @@ export class PageService {
 
         return resource({
           injector: this.injector,
-          loader: async () => {
+          loader: async (): Promise<ExtractionRegion> => {
             const { sourceId, pageNumber } = selectedSource;
-            const { x, y, width, height } = rectangle;
 
-            return this.multiModelService.call<WordList>(
-              'word_extraction',
-              (model: string) => fetchJson<WordList>(
-                this.http,
-                `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
-              )
-            );
+            const items = await strategy.extractItems({
+              sourceId,
+              pageNumber,
+              ...rectangle,
+            });
+
+            return { rectangle, items };
           },
         });
       });

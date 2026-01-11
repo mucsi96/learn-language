@@ -8,8 +8,11 @@ import {
   CardCreationRequest,
   CardCreationResult,
   CardType,
-  ImageGenerationInfo
+  ImageGenerationInfo,
+  ExtractionRequest,
+  ExtractedItem
 } from '../shared/types/card-creation.types';
+import { Word, WordList } from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
@@ -33,11 +36,37 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
 
+  async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
+    const { sourceId, pageNumber, x, y, width, height } = request;
+
+    const wordList = await this.multiModelService.call<WordList>(
+      'word_extraction',
+      (model: string) =>
+        fetchJson<WordList>(
+          this.http,
+          `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+        )
+    );
+
+    return wordList.words;
+  }
+
+  getItemLabel(item: Word): string {
+    return item.word;
+  }
+
+  filterItemsBySearchTerm(items: ExtractedItem[], searchTerm: string): ExtractedItem[] {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return items.filter(item =>
+      (item as Word).word.toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const { word } = request;
+    const word = request.item as Word;
 
     try {
       progressCallback(10, 'Detecting word type...');

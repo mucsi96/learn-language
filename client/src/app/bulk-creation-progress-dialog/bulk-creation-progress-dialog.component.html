@@ -2,11 +2,11 @@
 
 <mat-dialog-content class="dialog-content">
   <mat-list class="progress-list">
-    @for (progress of bulkCardService.creationProgress(); track progress.word) {
+    @for (progress of bulkCardService.creationProgress(); track progress.itemLabel) {
     <mat-list-item class="progress-item">
       <div class="card-progress">
         <div class="card-header">
-          <span class="word-name">{{ progress.word }}</span>
+          <span class="item-label">{{ progress.itemLabel }}</span>
           <mat-icon
             [class]="getStatusIconClass(progress.status)"
             [attr.aria-label]="progress.status"

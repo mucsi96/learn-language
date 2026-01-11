@@ -5,7 +5,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
-import { WordsWithoutCardsService } from '../words-without-cards.service';
+import { CardCandidatesService } from '../card-candidates.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { PageService } from '../page.service';
@@ -18,35 +18,36 @@ import { PageService } from '../page.service';
   styleUrl: './bulk-card-creation-fab.component.css',
 })
 export class BulkCardCreationFabComponent {
-  readonly wordsService = inject(WordsWithoutCardsService);
+  readonly candidatesService = inject(CardCandidatesService);
   readonly bulkCreationService = inject(BulkCardCreationService);
   readonly pageService = inject(PageService);
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
   async startBulkCreation(): Promise<void> {
-    const words = this.wordsService.wordsWithoutCards();
+    const candidates = this.candidatesService.candidates();
     const selectedSource = this.pageService['selectedSource']();
+    const page = this.pageService.page.value();
+    const cardType = page?.cardType;
 
-    if (!selectedSource || words.length === 0) {
+    if (!selectedSource || candidates.length === 0 || !cardType) {
       return;
     }
 
     this.bulkCreationService.clearProgress();
 
     this.dialog.open(BulkCreationProgressDialogComponent, {
-      data: { words: words.map((w) => w.word) },
+      data: { itemLabels: candidates.map((item) => this.candidatesService.getItemLabel(item)) },
       disableClose: true,
-      // width: '100vw',
       maxWidth: '100vw',
       maxHeight: '100vh',
     });
 
     const result = await this.bulkCreationService.createCardsInBulk(
-      words,
+      candidates,
       selectedSource.sourceId,
       selectedSource.pageNumber,
-      'vocabulary'  // For now, default to vocabulary cards
+      cardType
     );
 
     if (result.successfulCards > 0) {

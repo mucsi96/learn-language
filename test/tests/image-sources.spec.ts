@@ -141,7 +141,7 @@ test('image source shows source type in create dialog is disabled during edit', 
   await expect(sourceTypeSelect).toBeDisabled();
 });
 
-test('extracted words appear as chips for image source after selection', async ({ page }) => {
+test('Extracted words appear as chips for image source after selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
     id: 'chips-image-source',

@@ -80,6 +80,7 @@ export type Page = {
   sourceId: string;
   sourceName: string;
   sourceType?: SourceType;
+  cardType?: CardType;
   hasImage?: boolean;
   width: number;
   height: number;
