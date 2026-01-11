@@ -10,9 +10,10 @@ import {
   CardType,
   ImageGenerationInfo,
   ExtractionRequest,
-  ExtractionResult
+  ExtractionResult,
+  ExtractedItem
 } from '../shared/types/card-creation.types';
-import { WordList } from '../parser/types';
+import { Word, WordList } from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
@@ -49,11 +50,19 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     );
   }
 
+  getItemLabel(item: ExtractedItem): string {
+    return (item as Word).word;
+  }
+
+  getItems(result: ExtractionResult): ExtractedItem[] {
+    return result.words;
+  }
+
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const { word } = request;
+    const word = request.item as Word;
 
     try {
       progressCallback(10, 'Detecting word type...');

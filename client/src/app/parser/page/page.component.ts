@@ -27,7 +27,7 @@ import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
-import { WordsWithoutCardsService } from '../../words-without-cards.service';
+import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
 
 @Component({
@@ -57,10 +57,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly elRef = inject(ElementRef);
   private readonly http = inject(HttpClient);
-  private readonly wordsService = inject(WordsWithoutCardsService);
+  readonly candidatesService = inject(CardCandidatesService);
   private readonly knownWordsService = inject(KnownWordsService);
   readonly sources = this.sourcesService.sources.value;
-  readonly extractedWords = this.wordsService.wordsWithoutCards;
+  readonly extractedCandidates = this.candidatesService.candidates;
   readonly pageNumber = linkedSignal(
     () => this.pageService.page.value()?.number
   );
@@ -235,12 +235,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.pageService.reload();
   }
 
-  async addToKnownWords(word: string, wordId: string): Promise<void> {
-    await this.knownWordsService.addWord(word);
-    this.wordsService.ignoreWord(wordId);
+  async addToKnownItems(itemLabel: string, itemId: string): Promise<void> {
+    await this.knownWordsService.addWord(itemLabel);
+    this.candidatesService.ignoreItem(itemId);
   }
 
-  ignoreWord(wordId: string): void {
-    this.wordsService.ignoreWord(wordId);
+  ignoreItem(itemId: string): void {
+    this.candidatesService.ignoreItem(itemId);
   }
 }

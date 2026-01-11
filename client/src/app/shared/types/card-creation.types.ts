@@ -2,6 +2,11 @@ import { CardData, Word, WordList } from '../../parser/types';
 
 export type CardType = 'vocabulary';
 
+export interface ExtractedItem {
+  id: string;
+  exists?: boolean;
+}
+
 export interface ExtractionRequest {
   sourceId: string;
   pageNumber: number;
@@ -12,7 +17,7 @@ export interface ExtractionRequest {
 }
 
 export interface CardCreationRequest {
-  word: Word;
+  item: ExtractedItem;
   sourceId: string;
   pageNumber: number;
   cardType: CardType;
@@ -34,14 +39,16 @@ export type ExtractionResult = WordList;
 export interface CardCreationStrategy {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractionResult>;
+  getItemLabel(item: ExtractedItem): string;
+  getItems(result: ExtractionResult): ExtractedItem[];
   createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
 }
 
 export interface CardCreationProgress {
-  word: string;
+  itemLabel: string;
   cardType: CardType;
   status: 'pending' | 'word-type' | 'translating' | 'generating-images' | 'creating-card' | 'completed' | 'error';
-  progress: number; // 0-100
+  progress: number;
   error?: string;
   currentStep?: string;
 }

@@ -31,7 +31,7 @@ import { RouterLink } from '@angular/router';
 export class BulkCreationProgressDialogComponent {
   readonly bulkCardService = inject(BulkCardCreationService);
   private readonly dialogRef = inject(MatDialogRef<BulkCreationProgressDialogComponent>);
-  readonly data = inject<{ words: string[] }>(MAT_DIALOG_DATA);
+  readonly data = inject<{ itemLabels: string[] }>(MAT_DIALOG_DATA);
 
   closeDialog(): void {
     this.dialogRef.close();

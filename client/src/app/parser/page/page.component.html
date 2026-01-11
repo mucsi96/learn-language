@@ -104,19 +104,19 @@
   }
 </section>
 
-@if (sourceType() === 'images' && extractedWords().length > 0) {
-<div class="extracted-words-container" role="region" aria-label="Extracted words">
+@if (sourceType() === 'images' && extractedCandidates().length > 0) {
+<div class="extracted-candidates-container" role="region" aria-label="Extracted candidates">
   <mat-chip-set>
-    @for (word of extractedWords(); track word.id) {
-    <button mat-chip [matMenuTriggerFor]="wordMenu">
-      {{ word.word }}
+    @for (item of extractedCandidates(); track item.id) {
+    <button mat-chip [matMenuTriggerFor]="itemMenu">
+      {{ candidatesService.getItemLabel(item) }}
     </button>
-    <mat-menu #wordMenu="matMenu">
-      <button mat-menu-item (click)="addToKnownWords(word.word, word.id)">
+    <mat-menu #itemMenu="matMenu">
+      <button mat-menu-item (click)="addToKnownItems(candidatesService.getItemLabel(item), item.id)">
         <mat-icon>check_circle</mat-icon>
-        <span>Add to known words</span>
+        <span>Add to known items</span>
       </button>
-      <button mat-menu-item (click)="ignoreWord(word.id)">
+      <button mat-menu-item (click)="ignoreItem(item.id)">
         <mat-icon>visibility_off</mat-icon>
         <span>Ignore once</span>
       </button>
