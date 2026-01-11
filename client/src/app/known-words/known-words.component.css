@@ -42,10 +42,8 @@ mat-card-header {
   font-size: 14px;
 }
 
-.words-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.words-table {
+  width: 100%;
 }
 
 .skeleton {
@@ -57,20 +55,18 @@ mat-card-header {
   );
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 16px;
+  border-radius: 4px;
 }
 
-.skeleton-chip {
-  height: 32px;
-  width: 80px;
+.skeleton-text {
+  height: 16px;
+  width: 120px;
 }
 
-.skeleton-chip:nth-child(2n) {
-  width: 100px;
-}
-
-.skeleton-chip:nth-child(3n) {
-  width: 60px;
+.skeleton-button {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
 }
 
 @keyframes loading {
