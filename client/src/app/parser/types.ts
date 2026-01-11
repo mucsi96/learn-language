@@ -27,6 +27,7 @@ export type Span = {
 export type Word = {
   id: string;
   word: string;
+  hungarianTranslation?: string;
   forms: string[];
   examples: string[];
   exists?: boolean;

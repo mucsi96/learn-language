@@ -5,17 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WordResponse {
+public class KnownWordEntry {
     private String id;
-    private boolean exists;
-    private String word;
-    private String hungarianTranslation;
-    private List<String> forms;
-    private List<String> examples;
+    private String german;
+    private String hungarian;
 }

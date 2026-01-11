@@ -2,8 +2,6 @@ package io.github.mucsi96.learnlanguage.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -20,9 +18,12 @@ import lombok.NoArgsConstructor;
 public class KnownWord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
-    @Column(name = "word", nullable = false, unique = true)
-    private String word;
+    @Column(name = "german", nullable = false)
+    private String german;
+
+    @Column(name = "hungarian", nullable = false)
+    private String hungarian;
 }

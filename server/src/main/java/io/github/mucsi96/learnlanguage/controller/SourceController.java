@@ -129,7 +129,7 @@ public class SourceController {
     var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType(), source.getLanguageLevel());
 
     var filteredWords = areaWords.stream()
-        .filter(word -> !knownWordService.isWordKnown(word.getWord()))
+        .filter(word -> !knownWordService.isWordKnown(word.getId()))
         .toList();
 
     List<String> ids = filteredWords.stream()

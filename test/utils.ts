@@ -776,37 +776,86 @@ export async function getTableData<T extends Record<string, string>>(
   ) as T[];
 }
 
-export async function createKnownWord(word: string): Promise<number> {
+function generateKnownWordId(german: string, hungarian: string): string {
+  const normalizeWord = (word: string, articles: string[]): string => {
+    if (!word || word.trim() === '') return '';
+
+    const firstPart = word.split(/\s?[,/(-]/)[0].trim().toLowerCase();
+
+    let result = '';
+    for (const char of firstPart.normalize('NFD')) {
+      if (char >= 'a' && char <= 'z') {
+        result += char;
+      } else if (char === ' ' || char === '-') {
+        result += '-';
+      }
+    }
+
+    let wordId = result.replace(/-+/g, '-');
+    if (wordId.startsWith('-')) wordId = wordId.substring(1);
+    if (wordId.endsWith('-')) wordId = wordId.substring(0, wordId.length - 1);
+
+    for (const article of articles) {
+      if (wordId.startsWith(article + '-')) {
+        wordId = wordId.substring(article.length + 1);
+        break;
+      }
+    }
+
+    return wordId;
+  };
+
+  const germanArticles = ['der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'einer', 'eines'];
+  const hungarianArticles = ['a', 'az', 'egy'];
+
+  const normalizedGerman = normalizeWord(german, germanArticles);
+  const normalizedHungarian = normalizeWord(hungarian, hungarianArticles);
+
+  if (!normalizedGerman && !normalizedHungarian) return '';
+  if (!normalizedHungarian) return normalizedGerman;
+  if (!normalizedGerman) return normalizedHungarian;
+
+  return `${normalizedGerman}-${normalizedHungarian}`;
+}
+
+export interface KnownWordEntry {
+  german: string;
+  hungarian: string;
+}
+
+export async function createKnownWord(entry: KnownWordEntry): Promise<string> {
+  const id = generateKnownWordId(entry.german, entry.hungarian);
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.known_words (word)
-       VALUES ($1)
+      `INSERT INTO learn_language.known_words (id, german, hungarian)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      [word.toLowerCase().trim()]
+      [id, entry.german.trim(), entry.hungarian.trim()]
     );
     return result.rows[0].id;
   });
 }
 
-export async function createKnownWords(words: string[]): Promise<void> {
+export async function createKnownWords(entries: KnownWordEntry[]): Promise<void> {
   await withDbConnection(async (client) => {
-    for (const word of words) {
+    for (const entry of entries) {
+      const id = generateKnownWordId(entry.german, entry.hungarian);
       await client.query(
-        `INSERT INTO learn_language.known_words (word)
-         VALUES ($1)
-         ON CONFLICT (word) DO NOTHING`,
-        [word.toLowerCase().trim()]
+        `INSERT INTO learn_language.known_words (id, german, hungarian)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (id) DO NOTHING`,
+        [id, entry.german.trim(), entry.hungarian.trim()]
       );
     }
   });
 }
 
-export async function getKnownWords(): Promise<string[]> {
+export async function getKnownWords(): Promise<KnownWordEntry[]> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT word FROM learn_language.known_words ORDER BY word`
+      `SELECT german, hungarian FROM learn_language.known_words ORDER BY german`
     );
-    return result.rows.map((row) => row.word);
+    return result.rows.map((row) => ({ german: row.german, hungarian: row.hungarian }));
   });
 }
 

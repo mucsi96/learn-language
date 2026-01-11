@@ -1,6 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.KnownWord;
+import io.github.mucsi96.learnlanguage.model.KnownWordEntry;
 import io.github.mucsi96.learnlanguage.repository.KnownWordRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -17,11 +20,15 @@ import lombok.RequiredArgsConstructor;
 public class KnownWordService {
 
     private final KnownWordRepository knownWordRepository;
+    private final WordIdService wordIdService;
 
-    public List<String> getAllKnownWords() {
-        return knownWordRepository.findAll().stream()
-                .map(KnownWord::getWord)
-                .sorted()
+    public List<KnownWordEntry> getAllKnownWords() {
+        return knownWordRepository.findAllByOrderByGermanAsc().stream()
+                .map(kw -> KnownWordEntry.builder()
+                        .id(kw.getId())
+                        .german(kw.getGerman())
+                        .hungarian(kw.getHungarian())
+                        .build())
                 .toList();
     }
 
@@ -29,43 +36,77 @@ public class KnownWordService {
         return (int) knownWordRepository.count();
     }
 
-    public boolean isWordKnown(String word) {
-        return knownWordRepository.existsByWord(word.toLowerCase().trim());
+    public boolean isWordKnown(String id) {
+        return knownWordRepository.existsById(id);
+    }
+
+    public boolean isWordKnownByTranslations(String germanWord, String hungarianWord) {
+        String id = wordIdService.generateWordId(germanWord, hungarianWord);
+        return knownWordRepository.existsById(id);
     }
 
     @Transactional
-    public int addWords(List<String> words) {
-        Set<String> existingWords = knownWordRepository.findAll().stream()
-                .map(KnownWord::getWord)
+    public int addWords(List<KnownWordEntry> entries) {
+        Set<String> existingIds = knownWordRepository.findAll().stream()
+                .map(KnownWord::getId)
                 .collect(Collectors.toSet());
 
-        List<KnownWord> newWords = words.stream()
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .filter(word -> !word.isEmpty())
-                .filter(word -> !existingWords.contains(word))
-                .distinct()
-                .map(word -> KnownWord.builder().word(word).build())
-                .toList();
+        List<KnownWord> newWords = entries.stream()
+                .filter(entry -> entry.getGerman() != null && !entry.getGerman().isBlank())
+                .filter(entry -> entry.getHungarian() != null && !entry.getHungarian().isBlank())
+                .map(entry -> {
+                    String id = wordIdService.generateWordId(entry.getGerman(), entry.getHungarian());
+                    return KnownWord.builder()
+                            .id(id)
+                            .german(entry.getGerman().trim())
+                            .hungarian(entry.getHungarian().trim())
+                            .build();
+                })
+                .filter(kw -> !kw.getId().isEmpty())
+                .filter(kw -> !existingIds.contains(kw.getId()))
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(KnownWord::getId, kw -> kw, (a, b) -> a),
+                        map -> new ArrayList<>(map.values())
+                ));
 
         knownWordRepository.saveAll(newWords);
         return newWords.size();
     }
 
     @Transactional
-    public int importFromText(String text) {
-        List<String> words = Arrays.stream(text.split("[,\\n\\r\\t;]+"))
-                .map(String::trim)
-                .filter(word -> !word.isEmpty())
-                .toList();
+    public int importFromCsv(String csvText) {
+        List<KnownWordEntry> entries = new ArrayList<>();
 
-        return addWords(words);
+        try (BufferedReader reader = new BufferedReader(new StringReader(csvText))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String trimmedLine = line.trim();
+                if (trimmedLine.isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = trimmedLine.split("[,;\\t]", 2);
+                if (parts.length >= 2) {
+                    String german = parts[0].trim();
+                    String hungarian = parts[1].trim();
+                    if (!german.isEmpty() && !hungarian.isEmpty()) {
+                        entries.add(KnownWordEntry.builder()
+                                .german(german)
+                                .hungarian(hungarian)
+                                .build());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse CSV", e);
+        }
+
+        return addWords(entries);
     }
 
     @Transactional
-    public void deleteWord(String word) {
-        knownWordRepository.findByWord(word.toLowerCase().trim())
-                .ifPresent(knownWordRepository::delete);
+    public void deleteWord(String id) {
+        knownWordRepository.deleteById(id);
     }
 
     @Transactional

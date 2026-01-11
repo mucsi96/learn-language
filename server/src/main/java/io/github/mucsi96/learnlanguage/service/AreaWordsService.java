@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
+import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,8 @@ public class AreaWordsService {
   private final ObjectMapper objectMapper;
   private final WordIdService wordIdService;
   private final ChatService chatService;
+  private final TranslationService translationService;
+  private final ChatModelSettingService chatModelSettingService;
 
   private String buildSystemPrompt(SourceFormatType formatType, LanguageLevel languageLevel) {
     String basePrompt = """
@@ -88,8 +92,17 @@ public class AreaWordsService {
                 .build()),
         AreaWords.class);
 
+    Map<String, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
+    String translationModelName = primaryModels.get("translation_hu");
+    ChatModel translationModel = translationModelName != null
+        ? ChatModel.fromString(translationModelName)
+        : model;
+
     return result.wordList.stream().map(word -> {
-      word.setId(wordIdService.generateWordId(word.getWord()));
+      TranslationResponse translation = translationService.translate(word, "hu", translationModel);
+      String hungarianWord = translation.getWord();
+      word.setHungarianTranslation(hungarianWord);
+      word.setId(wordIdService.generateWordId(word.getWord(), hungarianWord));
       return word;
     }).toList();
   }

@@ -6,17 +6,18 @@
       </mat-card-header>
       <mat-card-content>
         <p class="import-description">
-          Paste a list of words you already know. Words can be separated by
-          commas, new lines, tabs, or semicolons.
+          Paste a CSV list of words you already know. Each line should contain
+          a German word and its Hungarian translation, separated by a comma,
+          semicolon, or tab.
         </p>
         <mat-form-field appearance="outline" class="import-textarea">
-          <mat-label>Words to import</mat-label>
+          <mat-label>Words to import (CSV format)</mat-label>
           <textarea
             matInput
             [ngModel]="importText()"
             (ngModelChange)="importText.set($event)"
             rows="8"
-            placeholder="word1, word2, word3&#10;word4&#10;word5"
+            placeholder="Haus, ház&#10;gehen, menni&#10;Bank, pad"
             aria-label="Words to import"
           ></textarea>
         </mat-form-field>
@@ -63,11 +64,24 @@
       </mat-card-header>
       <mat-card-content>
         @if (knownWords.isLoading()) {
-        <div class="words-grid">
-          @for (row of skeletonRows; track $index) {
-          <div class="skeleton skeleton-chip"></div>
-          }
-        </div>
+        <table class="skeleton-table" aria-label="Loading known words">
+          <thead>
+            <tr>
+              <th>German</th>
+              <th>Hungarian</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of skeletonRows; track $index) {
+            <tr>
+              <td><div class="skeleton skeleton-text"></div></td>
+              <td><div class="skeleton skeleton-text"></div></td>
+              <td><div class="skeleton skeleton-button"></div></td>
+            </tr>
+            }
+          </tbody>
+        </table>
         } @else if (words().length === 0) {
         <div class="empty-state">
           <mat-icon>library_books</mat-icon>
@@ -78,23 +92,34 @@
           </p>
         </div>
         } @else {
-        <mat-chip-set class="words-grid" role="list" aria-label="Known words">
-          @for (word of words(); track word) {
-          <mat-chip
-            (removed)="deleteWord(word)"
-            role="listitem"
-            [attr.aria-label]="'Known word: ' + word"
-          >
-            {{ word }}
-            <button
-              matChipRemove
-              aria-label="Remove word"
-            >
-              <mat-icon>cancel</mat-icon>
-            </button>
-          </mat-chip>
-          }
-        </mat-chip-set>
+        <table mat-table [dataSource]="words()" aria-label="Known words">
+          <ng-container matColumnDef="german">
+            <th mat-header-cell *matHeaderCellDef>German</th>
+            <td mat-cell *matCellDef="let entry">{{ entry.german }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="hungarian">
+            <th mat-header-cell *matHeaderCellDef>Hungarian</th>
+            <td mat-cell *matCellDef="let entry">{{ entry.hungarian }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let entry">
+              <button
+                mat-icon-button
+                (click)="deleteWord(entry)"
+                matTooltip="Remove word"
+                aria-label="Remove word"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
         }
       </mat-card-content>
     </mat-card>

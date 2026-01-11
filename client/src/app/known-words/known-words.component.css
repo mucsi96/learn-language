@@ -42,10 +42,8 @@ mat-card-header {
   font-size: 14px;
 }
 
-.words-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+table {
+  width: 100%;
 }
 
 .skeleton {
@@ -57,20 +55,36 @@ mat-card-header {
   );
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 16px;
+  border-radius: 4px;
 }
 
-.skeleton-chip {
-  height: 32px;
-  width: 80px;
-}
-
-.skeleton-chip:nth-child(2n) {
+.skeleton-text {
+  height: 20px;
   width: 100px;
 }
 
-.skeleton-chip:nth-child(3n) {
-  width: 60px;
+.skeleton-button {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+}
+
+.skeleton-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.skeleton-table th {
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 500;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.skeleton-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 @keyframes loading {

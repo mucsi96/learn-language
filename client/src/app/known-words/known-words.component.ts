@@ -6,10 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { KnownWordsService } from './known-words.service';
+import { KnownWordsService, KnownWordEntry } from './known-words.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -23,7 +23,7 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatChipsModule,
+    MatTableModule,
     MatTooltipModule,
     MatDialogModule,
   ],
@@ -42,7 +42,8 @@ export class KnownWordsComponent {
   readonly wordCount = computed(() => this.knownWords.value()?.count ?? 0);
   readonly words = computed(() => this.knownWords.value()?.words ?? []);
 
-  readonly skeletonRows = Array(20).fill({});
+  readonly displayedColumns = ['german', 'hungarian', 'actions'];
+  readonly skeletonRows = Array(10).fill({});
 
   async importWords(): Promise<void> {
     const text = this.importText();
@@ -60,8 +61,8 @@ export class KnownWordsComponent {
     }
   }
 
-  async deleteWord(word: string): Promise<void> {
-    await this.service.deleteWord(word);
+  async deleteWord(entry: KnownWordEntry): Promise<void> {
+    await this.service.deleteWord(entry.id);
   }
 
   clearAll(): void {

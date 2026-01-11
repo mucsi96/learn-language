@@ -112,7 +112,7 @@
       {{ candidatesService.getItemLabel(item) }}
     </button>
     <mat-menu #itemMenu="matMenu">
-      <button mat-menu-item (click)="addToKnownWords(candidatesService.getItemLabel(item), item.id)">
+      <button mat-menu-item (click)="addToKnownWords(item)">
         <mat-icon>check_circle</mat-icon>
         <span>Add to known words</span>
       </button>

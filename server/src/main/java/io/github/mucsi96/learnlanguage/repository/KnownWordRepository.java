@@ -4,10 +4,9 @@ import io.github.mucsi96.learnlanguage.entity.KnownWord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
-public interface KnownWordRepository extends JpaRepository<KnownWord, Integer> {
-    Optional<KnownWord> findByWord(String word);
-    boolean existsByWord(String word);
+public interface KnownWordRepository extends JpaRepository<KnownWord, String> {
+    List<KnownWord> findAllByOrderByGermanAsc();
 }

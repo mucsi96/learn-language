@@ -29,6 +29,8 @@ import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
+import { Word } from '../types';
+import { ExtractedItem } from '../../shared/types/card-creation.types';
 
 @Component({
   selector: 'app-page',
@@ -238,9 +240,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.pageService.reload();
   }
 
-  async addToKnownWords(itemLabel: string, itemId: string): Promise<void> {
-    await this.knownWordsService.addWord(itemLabel);
-    this.candidatesService.ignoreItem(itemId);
+  async addToKnownWords(item: ExtractedItem): Promise<void> {
+    const word = item as Word;
+    if (word.hungarianTranslation) {
+      await this.knownWordsService.addWord(word.word, word.hungarianTranslation);
+    }
+    this.candidatesService.ignoreItem(item.id);
   }
 
   ignoreItem(itemId: string): void {
