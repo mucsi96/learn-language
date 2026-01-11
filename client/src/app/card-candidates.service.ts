@@ -13,19 +13,17 @@ export class CardCandidatesService {
 
   readonly allExtractedItems = computed(() => {
     const selectionRegions = this.pageService.selectionRegions();
-    const page = this.pageService.page.value();
 
     if (!selectionRegions || selectionRegions.length === 0) {
       return [];
     }
 
-    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
     const allItems: ExtractedItem[] = [];
 
     for (const region of selectionRegions) {
       const result = region.value();
       if (result) {
-        allItems.push(...strategy.getItems(result));
+        allItems.push(...result.items);
       }
     }
 
