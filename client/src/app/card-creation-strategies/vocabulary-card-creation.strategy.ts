@@ -27,6 +27,11 @@ interface TranslationResponse {
   examples: string[];
 }
 
+interface WordIdResponse {
+  id: string;
+  exists: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -48,7 +53,41 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         )
     );
 
-    return wordList.words;
+    const wordsWithIds = await Promise.all(
+      wordList.words.map(async (word) => {
+        const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
+          'translation_hu',
+          (model: string) => fetchJson<TranslationResponse>(
+            this.http,
+            `/api/translate/hu?model=${model}`,
+            {
+              body: word,
+              method: 'POST',
+            }
+          )
+        );
+
+        const wordIdResponse = await fetchJson<WordIdResponse>(
+          this.http,
+          '/api/word-id',
+          {
+            body: {
+              germanWord: word.word,
+              hungarianTranslation: hungarianTranslation.translation
+            },
+            method: 'POST',
+          }
+        );
+
+        return {
+          ...word,
+          id: wordIdResponse.id,
+          exists: wordIdResponse.exists
+        };
+      })
+    );
+
+    return wordsWithIds;
   }
 
   getItemLabel(item: Word): string {
@@ -132,19 +171,19 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       progressCallback(80, 'Preparing vocabulary card data...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
+      const imageGenerationInfos: ImageGenerationInfo[] = word.id ? word.examples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
           if (!englishTranslation) {
             return null;
           }
           return {
-            cardId: word.id,
+            cardId: word.id!,
             exampleIndex,
             englishTranslation
           };
         })
-        .filter((info): info is ImageGenerationInfo => info !== null);
+        .filter((info): info is ImageGenerationInfo => info !== null) : [];
 
       const cardData = {
         word: word.word,

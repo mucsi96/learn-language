@@ -25,7 +25,7 @@ export type Span = {
 };
 
 export type Word = {
-  id: string;
+  id?: string;
   word: string;
   forms: string[];
   examples: string[];

@@ -132,19 +132,8 @@ public class SourceController {
         .filter(word -> !knownWordService.isWordKnown(word.getWord()))
         .toList();
 
-    List<String> ids = filteredWords.stream()
-        .map(word -> word.getId())
-        .toList();
-
-    var cards = cardService.getCardsByIds(ids);
-
-    var words = filteredWords.stream().map(word -> {
-      word.setExists(cards.stream().anyMatch(card -> card.getId().equals(word.getId())));
-      return word;
-    }).collect(Collectors.toList());
-
     return WordListResponse.builder()
-        .words(words)
+        .words(filteredWords)
         .x(x)
         .y(y)
         .width(width)

@@ -3,7 +3,7 @@ import { CardData } from '../../parser/types';
 export type CardType = 'vocabulary';
 
 export interface ExtractedItem {
-  id: string;
+  id?: string;
   exists?: boolean;
 }
 
