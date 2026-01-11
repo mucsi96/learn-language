@@ -14,7 +14,7 @@ import {
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -45,7 +45,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
 test('bulk create fab shows correct count for multiple regions', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -82,7 +82,7 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
 test('bulk create fab hides when all words have cards', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -94,7 +94,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -106,11 +106,11 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
   await createCard({
-    cardId: 'die-abfahrt',
+    cardId: 'abfahrt-indulás',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
-      word: 'Abfahrt',
+      word: 'die Abfahrt',
       type: 'NOUN',
       translation: { en: 'departure', hu: 'indulás', ch: 'die Abfahrt' },
       forms: [],
@@ -182,15 +182,15 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   // Verify cards were created in database
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber', 'abfahren', 'die-abfahrt')"
+      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulás')"
     );
 
     expect(result.rows.length).toBe(3);
 
     const cardIds = result.rows.map((row) => row.id);
-    expect(cardIds).toContain('aber');
-    expect(cardIds).toContain('abfahren');
-    expect(cardIds).toContain('die-abfahrt');
+    expect(cardIds).toContain('aber-de');
+    expect(cardIds).toContain('abfahren-elindulni');
+    expect(cardIds).toContain('abfahrt-indulás');
   });
 });
 
@@ -210,7 +210,7 @@ test('bulk card creation includes word data', async ({ page }) => {
 
   // Verify word data in database
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -243,7 +243,7 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
 
-    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'die-abfahrt'");
+    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahrt-indulás'");
     expect(result2.rows.length).toBe(1);
     const cardData2 = result2.rows[0].data;
 
@@ -304,7 +304,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due
        FROM learn_language.cards
-       WHERE id = 'abfahren'`
+       WHERE id = 'abfahren-elindulni'`
     );
 
     expect(result.rows.length).toBe(1);
@@ -341,7 +341,7 @@ test('bulk card creation source metadata', async ({ page }) => {
       `SELECT c.source_id, c.source_page_number, s.name
        FROM learn_language.cards c
        JOIN learn_language.sources s ON c.source_id = s.id
-       WHERE c.id = 'abfahren'`
+       WHERE c.id = 'abfahren-elindulni'`
     );
 
     expect(result.rows.length).toBe(1);
@@ -373,7 +373,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due, readiness
        FROM learn_language.cards
-       WHERE id IN ('aber', 'abfahren', 'die-abfahrt')`
+       WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulás')`
     );
 
     expect(result.rows.length).toBe(3);

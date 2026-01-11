@@ -59,6 +59,13 @@ export class KnownWordsService {
     this.refresh();
   }
 
+  async isWordIdKnown(wordId: string): Promise<boolean> {
+    return await fetchJson<boolean>(
+      this.http,
+      `/api/known-words/check/${encodeURIComponent(wordId)}`
+    );
+  }
+
   private refresh(): void {
     this.knownWords.reload();
   }

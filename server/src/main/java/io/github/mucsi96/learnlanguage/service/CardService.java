@@ -27,6 +27,10 @@ public class CardService {
     return cardRepository.findByIdIn(ids);
   }
 
+  public boolean existsCardWithPrefix(String prefix) {
+    return !cardRepository.findIdsByPrefix(prefix).isEmpty();
+  }
+
   public Card saveCard(Card card) {
     return cardRepository.save(card);
   }

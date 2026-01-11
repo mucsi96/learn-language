@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { generateMultilingualWordId } from '../utils/word-id.util';
 import { languages } from '../shared/constants/languages';
 import { MultiModelService } from '../multi-model.service';
 import {
@@ -132,6 +133,9 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       progressCallback(80, 'Preparing vocabulary card data...');
 
+      const hungarianTranslation = translationMap['hu'] || '';
+      const wordId = generateMultilingualWordId(word.word, hungarianTranslation);
+
       const imageGenerationInfos: ImageGenerationInfo[] = word.examples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
@@ -139,7 +143,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
             return null;
           }
           return {
-            cardId: word.id,
+            cardId: wordId,
             exampleIndex,
             englishTranslation
           };
@@ -165,7 +169,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         }))
       };
 
-      return { cardData, imageGenerationInfos };
+      return { wordId, cardData, imageGenerationInfos };
 
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);

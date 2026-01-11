@@ -89,7 +89,7 @@ public class AreaWordsService {
         AreaWords.class);
 
     return result.wordList.stream().map(word -> {
-      word.setId(wordIdService.generateWordId(word.getWord()));
+      word.setId(wordIdService.generateGermanBaseId(word.getWord()));
       return word;
     }).toList();
   }

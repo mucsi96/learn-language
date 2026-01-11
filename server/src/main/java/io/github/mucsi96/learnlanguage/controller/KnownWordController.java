@@ -42,6 +42,12 @@ public class KnownWordController {
                 .build();
     }
 
+    @GetMapping("/check/{wordId}")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public ResponseEntity<Boolean> isWordIdKnown(@PathVariable String wordId) {
+        return ResponseEntity.ok(knownWordService.isWordIdKnown(wordId));
+    }
+
     @DeleteMapping("/{word}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<Void> deleteWord(@PathVariable String word) {

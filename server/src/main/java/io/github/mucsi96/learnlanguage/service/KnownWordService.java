@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class KnownWordService {
 
     private final KnownWordRepository knownWordRepository;
+    private final WordIdService wordIdService;
 
     public List<String> getAllKnownWords() {
         return knownWordRepository.findAll().stream()
@@ -29,23 +30,23 @@ public class KnownWordService {
         return (int) knownWordRepository.count();
     }
 
-    public boolean isWordKnown(String word) {
-        return knownWordRepository.existsByWord(word.toLowerCase().trim());
+    public boolean isWordIdKnown(String wordId) {
+        return knownWordRepository.existsByWord(wordId.toLowerCase().trim());
     }
 
     @Transactional
-    public int addWords(List<String> words) {
-        Set<String> existingWords = knownWordRepository.findAll().stream()
+    public int addWordIds(List<String> wordIds) {
+        Set<String> existingWordIds = knownWordRepository.findAll().stream()
                 .map(KnownWord::getWord)
                 .collect(Collectors.toSet());
 
-        List<KnownWord> newWords = words.stream()
+        List<KnownWord> newWords = wordIds.stream()
                 .map(String::trim)
                 .map(String::toLowerCase)
-                .filter(word -> !word.isEmpty())
-                .filter(word -> !existingWords.contains(word))
+                .filter(wordId -> !wordId.isEmpty())
+                .filter(wordId -> !existingWordIds.contains(wordId))
                 .distinct()
-                .map(word -> KnownWord.builder().word(word).build())
+                .map(wordId -> KnownWord.builder().word(wordId).build())
                 .toList();
 
         knownWordRepository.saveAll(newWords);
@@ -54,17 +55,28 @@ public class KnownWordService {
 
     @Transactional
     public int importFromText(String text) {
-        List<String> words = Arrays.stream(text.split("[,\\n\\r\\t;]+"))
+        List<String> wordIds = Arrays.stream(text.split("[,\\n\\r\\t;]+"))
                 .map(String::trim)
-                .filter(word -> !word.isEmpty())
+                .filter(entry -> !entry.isEmpty())
+                .map(this::parseEntry)
                 .toList();
 
-        return addWords(words);
+        return addWordIds(wordIds);
+    }
+
+    private String parseEntry(String entry) {
+        if (entry.contains(" - ")) {
+            String[] parts = entry.split(" - ", 2);
+            if (parts.length == 2) {
+                return wordIdService.generateMultilingualWordId(parts[0].trim(), parts[1].trim());
+            }
+        }
+        return entry.toLowerCase();
     }
 
     @Transactional
-    public void deleteWord(String word) {
-        knownWordRepository.findByWord(word.toLowerCase().trim())
+    public void deleteWord(String wordId) {
+        knownWordRepository.findByWord(wordId.toLowerCase().trim())
                 .ifPresent(knownWordRepository::delete);
     }
 

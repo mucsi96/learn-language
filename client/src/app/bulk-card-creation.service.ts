@@ -16,6 +16,7 @@ import {
 } from './shared/types/card-creation.types';
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import { KnownWordsService } from './known-words/known-words.service';
 
 const MAX_CONCURRENT_CARD_CREATIONS = 3;
 
@@ -40,6 +41,7 @@ export class BulkCardCreationService {
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly knownWordsService = inject(KnownWordsService);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);
   readonly imageGenerationProgress = signal<{ total: number; completed: number }>({ total: 0, completed: 0 });
@@ -93,15 +95,17 @@ export class BulkCardCreationService {
     const results = await this.processWithLimitedConcurrency(
       itemsToCreate,
       async (item, index) => {
-        cardIdToProgressIndex.set(item.id, index);
         const request: CardCreationRequest = {
           item,
           sourceId,
           pageNumber,
           cardType
         };
-        const imageInfos = await this.createSingleCard(request, index);
-        allImageInfos.push(...imageInfos);
+        const { wordId, imageInfos, skipped } = await this.createSingleCard(request, index);
+        if (!skipped) {
+          cardIdToProgressIndex.set(wordId, index);
+          allImageInfos.push(...imageInfos);
+        }
       },
       MAX_CONCURRENT_CARD_CREATIONS
     );
@@ -136,7 +140,7 @@ export class BulkCardCreationService {
   private async createSingleCard(
     request: CardCreationRequest,
     progressIndex: number
-  ): Promise<ImageGenerationInfo[]> {
+  ): Promise<{ wordId: string; imageInfos: ImageGenerationInfo[]; skipped: boolean }> {
     const { item, sourceId, pageNumber, cardType } = request;
 
     try {
@@ -146,13 +150,19 @@ export class BulkCardCreationService {
         this.updateProgress(progressIndex, 'translating', progress * 0.8, step);
       };
 
-      const { cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
+      const { wordId, cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
+
+      const isKnown = await this.knownWordsService.isWordIdKnown(wordId);
+      if (isKnown) {
+        this.updateProgress(progressIndex, 'completed', 100, 'Skipped (known word)');
+        return { wordId, imageInfos: [], skipped: true };
+      }
 
       this.updateProgress(progressIndex, 'creating-card', 85, 'Creating card...');
 
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
-        id: item.id,
+        id: wordId,
         source: { id: sourceId },
         sourcePageNumber: pageNumber,
         data: cardData,
@@ -167,7 +177,7 @@ export class BulkCardCreationService {
 
       this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
 
-      return imageGenerationInfos;
+      return { wordId, imageInfos: imageGenerationInfos, skipped: false };
 
     } catch (error) {
       this.updateProgress(

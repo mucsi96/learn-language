@@ -153,3 +153,16 @@ test('settings navigation shows known words link', async ({ page }) => {
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Known Words' })).toBeVisible();
 });
+
+test('can import words using German - Hungarian format', async ({ page }) => {
+  await page.goto('http://localhost:8180/settings/known-words');
+
+  const textarea = page.getByRole('textbox', { name: 'Words to import' });
+  await textarea.fill('die Bank - a bank\ndie Bank - a pad\nder Tisch - az asztal');
+  await page.getByRole('button', { name: 'Import' }).click();
+
+  await expect(page.getByText('3 new words imported')).toBeVisible();
+
+  const words = await getKnownWords();
+  expect(words).toEqual(['bank-bank', 'bank-pad', 'tisch-asztal']);
+});

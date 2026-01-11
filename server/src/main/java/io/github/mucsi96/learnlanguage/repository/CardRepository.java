@@ -14,6 +14,9 @@ import java.util.List;
 public interface CardRepository extends JpaRepository<Card, String> {
   List<Card> findByIdIn(List<String> ids);
 
+  @Query("SELECT c.id FROM Card c WHERE c.id LIKE :prefix || '-%'")
+  List<String> findIdsByPrefix(String prefix);
+
   @Query(value = """
       SELECT * FROM learn_language.cards
       ORDER BY RANDOM()
