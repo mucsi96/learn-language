@@ -13,7 +13,7 @@ export class CardCreationStrategyRegistry {
       case 'vocabulary':
         return this.vocabularyStrategy;
       default:
-        return this.vocabularyStrategy;
+        throw new Error(`Unknown card type: ${cardType}. Please configure a valid card type.`);
     }
   }
 }
