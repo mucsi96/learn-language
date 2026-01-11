@@ -28,8 +28,9 @@ export class BulkCardCreationFabComponent {
     const candidates = this.candidatesService.candidates();
     const selectedSource = this.pageService['selectedSource']();
     const page = this.pageService.page.value();
+    const cardType = page?.cardType;
 
-    if (!selectedSource || candidates.length === 0) {
+    if (!selectedSource || candidates.length === 0 || !cardType) {
       return;
     }
 
@@ -46,7 +47,7 @@ export class BulkCardCreationFabComponent {
       candidates,
       selectedSource.sourceId,
       selectedSource.pageNumber,
-      page?.cardType ?? 'vocabulary'
+      cardType
     );
 
     if (result.successfulCards > 0) {
