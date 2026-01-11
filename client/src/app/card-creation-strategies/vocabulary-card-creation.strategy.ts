@@ -8,8 +8,11 @@ import {
   CardCreationRequest,
   CardCreationResult,
   CardType,
-  ImageGenerationInfo
+  ImageGenerationInfo,
+  ExtractionRequest,
+  ExtractionResult
 } from '../shared/types/card-creation.types';
+import { WordList } from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
@@ -32,6 +35,19 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
+
+  async extractItems(request: ExtractionRequest): Promise<ExtractionResult> {
+    const { sourceId, pageNumber, x, y, width, height } = request;
+
+    return this.multiModelService.call<WordList>(
+      'word_extraction',
+      (model: string) =>
+        fetchJson<WordList>(
+          this.http,
+          `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+        )
+    );
+  }
 
   async createCardData(
     request: CardCreationRequest,
