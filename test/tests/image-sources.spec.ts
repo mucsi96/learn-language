@@ -141,7 +141,7 @@ test('image source shows source type in create dialog is disabled during edit', 
   await expect(sourceTypeSelect).toBeDisabled();
 });
 
-test('extracted words appear as chips for image source after selection', async ({ page }) => {
+test('Extracted candidates appear as chips for image source after selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
     id: 'chips-image-source',
@@ -175,10 +175,10 @@ test('extracted words appear as chips for image source after selection', async (
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible();
-  await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
-  await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
+  const extractedCandidates = page.getByRole('region', { name: 'Extracted candidates' });
+  await expect(extractedCandidates).toBeVisible();
+  await expect(extractedCandidates.getByRole('button').first()).toHaveText('hören');
+  await expect(extractedCandidates.getByRole('button').nth(1)).toHaveText('das Lied');
 });
 
 test('can add word to known words from chip context menu', async ({ page }) => {
@@ -215,16 +215,16 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible();
+  const extractedCandidates = page.getByRole('region', { name: 'Extracted candidates' });
+  await expect(extractedCandidates).toBeVisible();
 
-  await extractedWords.getByRole('button', { name: 'hören' }).click();
+  await extractedCandidates.getByRole('button', { name: 'hören' }).click();
 
-  await expect(page.getByRole('menuitem', { name: 'Add to known words' })).toBeVisible();
-  await page.getByRole('menuitem', { name: 'Add to known words' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Add to known items' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Add to known items' }).click();
 
-  await expect(extractedWords.getByRole('button', { name: 'hören' })).not.toBeVisible();
-  await expect(extractedWords.getByRole('button', { name: 'das Lied' })).toBeVisible();
+  await expect(extractedCandidates.getByRole('button', { name: 'hören' })).not.toBeVisible();
+  await expect(extractedCandidates.getByRole('button', { name: 'das Lied' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
 
   const knownWords = await getKnownWords();
@@ -265,15 +265,15 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
-  await expect(extractedWords).toBeVisible();
+  const extractedCandidates = page.getByRole('region', { name: 'Extracted candidates' });
+  await expect(extractedCandidates).toBeVisible();
 
-  await extractedWords.getByRole('button', { name: 'hören' }).click();
+  await extractedCandidates.getByRole('button', { name: 'hören' }).click();
 
   await expect(page.getByRole('menuitem', { name: 'Ignore once' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Ignore once' }).click();
 
-  await expect(extractedWords.getByRole('button', { name: 'hören' })).not.toBeVisible();
-  await expect(extractedWords.getByRole('button', { name: 'das Lied' })).toBeVisible();
+  await expect(extractedCandidates.getByRole('button', { name: 'hören' })).not.toBeVisible();
+  await expect(extractedCandidates.getByRole('button', { name: 'das Lied' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 1 Cards');
 });
