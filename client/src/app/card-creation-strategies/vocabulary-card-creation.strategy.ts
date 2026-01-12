@@ -171,19 +171,19 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
 
       progressCallback(80, 'Preparing vocabulary card data...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = word.id ? word.examples
+      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
           if (!englishTranslation) {
             return null;
           }
           return {
-            cardId: word.id!,
+            cardId: word.id,
             exampleIndex,
             englishTranslation
           };
         })
-        .filter((info): info is ImageGenerationInfo => info !== null) : [];
+        .filter((info): info is ImageGenerationInfo => info !== null);
 
       const cardData = {
         word: word.word,
