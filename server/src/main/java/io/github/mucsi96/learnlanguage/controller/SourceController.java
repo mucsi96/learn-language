@@ -92,13 +92,6 @@ public class SourceController {
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
     var result = documentProcessorService.processDocument(source, pageNumber);
-    var ids = result.getSpans().stream().map(span -> span.getId()).collect(Collectors.toList());
-    var cards = cardService.getCardsByIds(ids);
-
-    result.setSpans(result.getSpans().stream().map(span -> {
-      span.setExists(cards.stream().anyMatch(card -> card.getId().equals(span.getId())));
-      return span;
-    }).collect(Collectors.toList()));
 
     result.setNumber(pageNumber);
     result.setSourceId(sourceId);
