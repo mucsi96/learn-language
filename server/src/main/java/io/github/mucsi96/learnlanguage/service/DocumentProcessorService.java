@@ -86,7 +86,7 @@ public class DocumentProcessorService {
       var spans = new SpanExtractor().extractSpans(bytes, pageNumber).stream()
           .map((SpanExtractor.Span span) -> {
             String searchTerm = Pattern.compile("\\s?[,/(-]").split(span.getText())[0].strip();
-            String id = wordIdService.generateWordId(span.getText());
+            String id = wordIdService.generateWordId(span.getText(), "");
             return PageResponse.Span.builder()
                 .id(id)
                 .text(span.getText())
