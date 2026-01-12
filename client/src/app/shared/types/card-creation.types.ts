@@ -3,8 +3,8 @@ import { CardData } from '../../parser/types';
 export type CardType = 'vocabulary';
 
 export interface ExtractedItem {
-  id?: string;
-  exists?: boolean;
+  id: string;
+  exists: boolean;
 }
 
 export interface ExtractionRequest {

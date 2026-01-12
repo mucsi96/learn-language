@@ -12,7 +12,7 @@ import {
   ExtractionRequest,
   ExtractedItem
 } from '../shared/types/card-creation.types';
-import { Word, WordList } from '../parser/types';
+import { WordList } from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
@@ -90,14 +90,14 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     return wordsWithIds;
   }
 
-  getItemLabel(item: Word): string {
+  getItemLabel(item: ExtractedItem & { word: string }): string {
     return item.word;
   }
 
-  filterItemsBySearchTerm(items: ExtractedItem[], searchTerm: string): ExtractedItem[] {
+  filterItemsBySearchTerm(items: (ExtractedItem & { word: string })[], searchTerm: string): ExtractedItem[] {
     const lowerSearchTerm = searchTerm.toLowerCase();
     return items.filter(item =>
-      (item as Word).word.toLowerCase().includes(lowerSearchTerm)
+      item.word.toLowerCase().includes(lowerSearchTerm)
     );
   }
 
@@ -105,7 +105,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const word = request.item as Word;
+    const word = request.item as ExtractedItem & { word: string; forms: string[]; examples: string[] };
 
     try {
       progressCallback(10, 'Detecting word type...');

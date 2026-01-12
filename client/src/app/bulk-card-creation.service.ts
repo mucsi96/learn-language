@@ -62,7 +62,7 @@ export class BulkCardCreationService {
       throw new Error('Bulk creation already in progress');
     }
 
-    const itemsToCreate = items.filter(item => !item.exists && item.id);
+    const itemsToCreate = items.filter(item => !item.exists);
 
     if (itemsToCreate.length === 0) {
       return {
@@ -93,7 +93,7 @@ export class BulkCardCreationService {
     const results = await this.processWithLimitedConcurrency(
       itemsToCreate,
       async (item, index) => {
-        cardIdToProgressIndex.set(item.id!, index);
+        cardIdToProgressIndex.set(item.id, index);
         const request: CardCreationRequest = {
           item,
           sourceId,
@@ -152,7 +152,7 @@ export class BulkCardCreationService {
 
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
-        id: item.id!,
+        id: item.id,
         source: { id: sourceId },
         sourcePageNumber: pageNumber,
         data: cardData,

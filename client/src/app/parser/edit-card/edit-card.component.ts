@@ -10,12 +10,13 @@ import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { queryParamToObject } from '../../utils/queryCompression';
-import { Word, Card } from '../types';
+import { Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { InReviewCardsService } from '../../in-review-cards.service';
 import { fetchJson } from '../../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
+import { ExtractedItem } from '../../shared/types/card-creation.types';
 
 @Component({
   selector: 'app-edit-card',
@@ -41,11 +42,11 @@ export class EditCardComponent {
   readonly cardData = injectQueryParams<string>('cardData');
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
-  readonly selectedWord = signal<Word | undefined>(undefined);
+  readonly selectedWord = signal<ExtractedItem | undefined>(undefined);
   readonly markAsReviewedAvailable = signal<boolean>(false);
   readonly pendingCardEdits = signal<any>(undefined);
 
-  readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
+  readonly card = resource<Card | undefined, { selectedWord: ExtractedItem | undefined }>({
     params: () => ({ selectedWord: this.selectedWord() }),
     loader: async ({ params: { selectedWord } }) => {
       if (!selectedWord || !selectedWord.exists) {
@@ -90,7 +91,7 @@ export class EditCardComponent {
     this.route.queryParams.subscribe(async (params) => {
       const cardData = params['cardData'];
       if (typeof cardData === 'string') {
-        const word = await queryParamToObject<Word>(cardData);
+        const word = await queryParamToObject<ExtractedItem>(cardData);
         this.selectedWord.set(word);
       }
     });
