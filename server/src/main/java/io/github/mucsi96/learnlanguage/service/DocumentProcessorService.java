@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 public class DocumentProcessorService {
 
   private final FileStorageService fileStorageService;
-  private final WordIdService wordIdService;
   private final DocumentRepository documentRepository;
 
   public PageResponse processDocument(Source source, int pageNumber) throws IOException {
@@ -86,9 +85,7 @@ public class DocumentProcessorService {
       var spans = new SpanExtractor().extractSpans(bytes, pageNumber).stream()
           .map((SpanExtractor.Span span) -> {
             String searchTerm = Pattern.compile("\\s?[,/(-]").split(span.getText())[0].strip();
-            String id = wordIdService.generateWordId(span.getText(), "");
             return PageResponse.Span.builder()
-                .id(id)
                 .text(span.getText())
                 .searchTerm(searchTerm)
                 .bbox(PageResponse.Span.Bbox.builder()
