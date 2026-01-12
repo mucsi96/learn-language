@@ -24,12 +24,10 @@ export type Span = {
   exists?: boolean;
 };
 
-export type Word = {
-  id: string;
+export type Word = ExtractedItem & {
   word: string;
   forms: string[];
   examples: string[];
-  exists: boolean;
 };
 
 export type ExampleImage = {
