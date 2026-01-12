@@ -88,6 +88,58 @@ export type Page = {
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type CardType = 'vocabulary';
+
+export type ExtractedItem = {
+  id: string;
+  exists: boolean;
+};
+
+export type ExtractionRequest = {
+  sourceId: string;
+  pageNumber: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type ExtractionRegion = {
+  rectangle: { x: number; y: number; width: number; height: number };
+  items: ExtractedItem[];
+};
+
+export type CardCreationRequest = {
+  item: ExtractedItem;
+  sourceId: string;
+  pageNumber: number;
+  cardType: CardType;
+};
+
+export type ImageGenerationInfo = {
+  cardId: string;
+  exampleIndex: number;
+  englishTranslation: string;
+};
+
+export type CardCreationResult = {
+  cardData: CardData;
+  imageGenerationInfos: ImageGenerationInfo[];
+};
+
+export type CardCreationStrategy = {
+  cardType: CardType;
+  extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
+  getItemLabel(item: ExtractedItem): string;
+  filterItemsBySearchTerm(
+    items: ExtractedItem[],
+    searchTerm: string
+  ): ExtractedItem[];
+  createCardData(
+    request: CardCreationRequest,
+    progressCallback: (progress: number, step: string) => void
+  ): Promise<CardCreationResult>;
+};
+
 export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'

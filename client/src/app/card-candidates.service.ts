@@ -1,7 +1,7 @@
 import { Injectable, inject, computed, signal } from '@angular/core';
 import { PageService } from './page.service';
 import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
-import { ExtractedItem } from './shared/types/card-creation.types';
+import { ExtractedItem } from './parser/types';
 
 @Injectable({
   providedIn: 'root',

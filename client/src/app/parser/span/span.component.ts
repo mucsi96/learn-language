@@ -5,7 +5,7 @@ import { BBox } from '../types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
-import { ExtractionRegion, ExtractedItem } from '../../shared/types/card-creation.types';
+import { ExtractionRegion, ExtractedItem } from '../types';
 import { CardCreationStrategyRegistry } from '../../card-creation-strategies/card-creation-strategy.registry';
 import { PageService } from '../../page.service';
 

@@ -8,12 +8,11 @@ import {
   Injector,
   untracked,
 } from '@angular/core';
-import { Page } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
-import { ExtractionRegion } from './shared/types/card-creation.types';
+import { ExtractionRegion, Page } from './parser/types';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {

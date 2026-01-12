@@ -7,12 +7,14 @@ import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
 import {
-  CardCreationProgress,
-  BulkCardCreationResult,
   CardCreationRequest,
   CardType,
   ImageGenerationInfo,
-  ExtractedItem
+  ExtractedItem,
+} from './parser/types';
+import {
+  CardCreationProgress,
+  BulkCardCreationResult,
 } from './shared/types/card-creation.types';
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';

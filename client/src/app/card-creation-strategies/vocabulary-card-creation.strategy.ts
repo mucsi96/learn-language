@@ -10,9 +10,9 @@ import {
   CardType,
   ImageGenerationInfo,
   ExtractionRequest,
-  ExtractedItem
-} from '../shared/types/card-creation.types';
-import { WordList } from '../parser/types';
+  ExtractedItem,
+  WordList,
+} from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
