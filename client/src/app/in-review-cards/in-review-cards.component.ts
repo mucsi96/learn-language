@@ -1,12 +1,11 @@
 import { Component, inject, computed } from '@angular/core';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { InReviewCardsService } from '../in-review-cards.service';
-import { CompressQueryPipe } from '../utils/compress-query.pipe';
 import { getWordTypeInfo } from '../shared/word-type-translations';
 import { getGenderInfo } from '../shared/gender-translations';
 import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
@@ -22,8 +21,6 @@ import { Card } from '../parser/types';
     MatIconModule,
     MatCardModule,
     RouterLink,
-    AsyncPipe,
-    CompressQueryPipe,
     BatchAudioCreationFabComponent,
   ],
   templateUrl: './in-review-cards.component.html',

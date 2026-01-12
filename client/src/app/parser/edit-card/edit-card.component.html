@@ -35,7 +35,7 @@
 
   @if (getCardType() === 'vocabulary') {
     <app-edit-vocabulary-card
-      [selectedWord]="selectedWord()"
+      [selectedCardId]="selectedCardId()"
       [selectedSourceId]="selectedSourceId()"
       [selectedPageNumber]="selectedPageNumber()"
       [card]="card.value()"

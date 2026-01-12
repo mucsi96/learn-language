@@ -17,8 +17,7 @@
 <a
   class="word"
   mat-flat-button
-  [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
-  [queryParams]="{cardData: (matches[0] | compressQuery | async)}"
+  [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', matches[0].id]"
   [style.left]="left"
   [style.top]="top"
   [style.width]="width"
@@ -47,8 +46,7 @@
   @for (match of matches; track match.id) {
   <a
     mat-menu-item
-    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards']"
-    [queryParams]="{cardData: (match | compressQuery | async)}"
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', match.id]"
   >
     {{ getItemLabel(match) }}
   </a>

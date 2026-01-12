@@ -1,10 +1,7 @@
 import { Routes, CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { MsalGuard } from '@azure/msal-angular';
-import { queryParamToObject } from './utils/queryCompression';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
-import { ExtractedItem } from './shared/types/card-creation.types';
-import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
 
 // Guard factory that checks if auth is needed
 const conditionalAuthGuard: CanActivateFn = (route, state) => {
@@ -132,16 +129,10 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'sources/:sourceId/page/:pageNumber/cards',
+    path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
     canActivate: [conditionalAuthGuard],
-    title: async (route) => {
-      const cardData = route.queryParams['cardData'];
-      const item = await queryParamToObject<ExtractedItem>(cardData);
-      const strategyRegistry = inject(CardCreationStrategyRegistry);
-      const strategy = strategyRegistry.getStrategy(cardData?.cardType);
-      return strategy.getItemLabel(item);
-    },
+    title: 'Edit Card',
   },
 ];

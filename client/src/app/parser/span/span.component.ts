@@ -4,9 +4,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { BBox } from '../types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AsyncPipe } from '@angular/common';
-import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { RouterModule } from '@angular/router';
 import { ExtractionRegion, ExtractedItem } from '../../shared/types/card-creation.types';
 import { CardCreationStrategyRegistry } from '../../card-creation-strategies/card-creation-strategy.registry';
@@ -19,9 +16,6 @@ import { PageService } from '../../page.service';
     MatIconModule,
     MatTooltipModule,
     MatMenuModule,
-    MatDialogModule,
-    AsyncPipe,
-    CompressQueryPipe,
     RouterModule,
   ],
   templateUrl: './span.component.html',
@@ -38,7 +32,6 @@ export class SpanComponent {
   readonly searchTerm = input<string>();
   readonly exists = input<boolean>();
   readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
-  readonly dialog = inject(MatDialog);
   private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
   private readonly pageService = inject(PageService);
 
@@ -113,10 +106,6 @@ export class SpanComponent {
       return '0px';
     }
     return `calc(var(--page-width) * ${height})`;
-  }
-
-  get cardHrefPrefix() {
-    return `/sources/${this.sourceId()}/page/${this.pageNumber()}/cards?cardData=`;
   }
 
   get ariaDescription() {
