@@ -10,9 +10,9 @@ import {
   CardType,
   ImageGenerationInfo,
   ExtractionRequest,
-  ExtractedItem
-} from '../shared/types/card-creation.types';
-import { Word, WordList } from '../parser/types';
+  ExtractedItem,
+  WordList,
+} from '../parser/types';
 
 interface WordTypeResponse {
   type: string;
@@ -25,6 +25,11 @@ interface GenderResponse {
 interface TranslationResponse {
   translation: string;
   examples: string[];
+}
+
+interface WordIdResponse {
+  id: string;
+  exists: boolean;
 }
 
 @Injectable({
@@ -48,17 +53,51 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
         )
     );
 
-    return wordList.words;
+    const wordsWithIds = await Promise.all(
+      wordList.words.map(async (word) => {
+        const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
+          'translation_hu',
+          (model: string) => fetchJson<TranslationResponse>(
+            this.http,
+            `/api/translate/hu?model=${model}`,
+            {
+              body: word,
+              method: 'POST',
+            }
+          )
+        );
+
+        const wordIdResponse = await fetchJson<WordIdResponse>(
+          this.http,
+          '/api/word-id',
+          {
+            body: {
+              germanWord: word.word,
+              hungarianTranslation: hungarianTranslation.translation
+            },
+            method: 'POST',
+          }
+        );
+
+        return {
+          ...word,
+          id: wordIdResponse.id,
+          exists: wordIdResponse.exists
+        };
+      })
+    );
+
+    return wordsWithIds;
   }
 
-  getItemLabel(item: Word): string {
+  getItemLabel(item: ExtractedItem & { word: string }): string {
     return item.word;
   }
 
-  filterItemsBySearchTerm(items: ExtractedItem[], searchTerm: string): ExtractedItem[] {
+  filterItemsBySearchTerm(items: (ExtractedItem & { word: string })[], searchTerm: string): ExtractedItem[] {
     const lowerSearchTerm = searchTerm.toLowerCase();
     return items.filter(item =>
-      (item as Word).word.toLowerCase().includes(lowerSearchTerm)
+      item.word.toLowerCase().includes(lowerSearchTerm)
     );
   }
 
@@ -66,7 +105,7 @@ export class VocabularyCardCreationStrategy implements CardCreationStrategy {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const word = request.item as Word;
+    const word = request.item as ExtractedItem & { word: string; forms: string[]; examples: string[] };
 
     try {
       progressCallback(10, 'Detecting word type...');

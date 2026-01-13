@@ -1,8 +1,6 @@
 import { Routes, CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { MsalGuard } from '@azure/msal-angular';
-import { queryParamToObject } from './utils/queryCompression';
-import { Word } from './parser/types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 // Guard factory that checks if auth is needed
@@ -131,14 +129,10 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'sources/:sourceId/page/:pageNumber/cards',
+    path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
     canActivate: [conditionalAuthGuard],
-    title: async (route) => {
-      const cardData = route.queryParams['cardData'];
-      const word = await queryParamToObject<Word>(cardData);
-      return word.word;
-    },
+    title: 'Edit Card',
   },
 ];

@@ -4,10 +4,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AsyncPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { fetchJson } from '../../utils/fetchJson';
-import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { AudioData } from '../types/audio-generation.types';
 import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection-dialog/voice-selection-dialog.component';
 import { CardResourceLike } from '../types/card-resource.types';
@@ -20,8 +18,6 @@ import { CardResourceLike } from '../types/card-resource.types';
     MatIconModule,
     MatTooltipModule,
     RouterModule,
-    AsyncPipe,
-    CompressQueryPipe,
   ],
   templateUrl: './card-actions.component.html',
   styleUrl: './card-actions.component.css',

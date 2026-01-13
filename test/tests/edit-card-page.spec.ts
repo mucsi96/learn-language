@@ -19,7 +19,7 @@ async function prepareCard(page: Page) {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -108,7 +108,7 @@ test('card editing page', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -175,7 +175,7 @@ test('card editing in db', async ({ page }) => {
   const image1 = uploadMockImage(blueImage);
   const image2 = uploadMockImage(yellowImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -227,7 +227,7 @@ test('card editing in db', async ({ page }) => {
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -260,7 +260,7 @@ test('favorite image in db', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -319,7 +319,7 @@ test('favorite image in db', async ({ page }) => {
 
   // Verify database state
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
 
@@ -338,7 +338,7 @@ test('word type editing', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -380,7 +380,7 @@ test('word type editing', async ({ page }) => {
 
   // Verify the change was saved in the database
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
 
@@ -399,7 +399,7 @@ test('example image addition', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(blueImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -441,7 +441,7 @@ test('example image addition', async ({ page }) => {
 test('card deletion', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -482,7 +482,7 @@ test('card deletion', async ({ page }) => {
   expect(page.url()).toContain('/sources/goethe-a1/page/9');
 
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT id FROM learn_language.cards WHERE id = 'abfahren'");
+    const result = await client.query("SELECT id FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
     expect(result.rows.length).toBe(0);
   });
 });
@@ -490,7 +490,7 @@ test('card deletion', async ({ page }) => {
 test('card edits stored locally until save', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   await createCard({
-    cardId: 'lernen',
+    cardId: 'lernen-tanulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 5,
     data: {
@@ -526,7 +526,7 @@ test('card edits stored locally until save', async ({ page }) => {
 
   // Verify both the edit and readiness were saved to database
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'lernen'");
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'lernen-tanulni'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('REVIEWED');
 
@@ -540,7 +540,7 @@ test('image model name displayed below image', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {

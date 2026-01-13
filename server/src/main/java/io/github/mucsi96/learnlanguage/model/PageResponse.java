@@ -21,10 +21,8 @@ public class PageResponse {
     @Data
     @Builder
     public static class Span {
-        private String id;
         private String text;
         private String searchTerm;
-        private boolean exists;
         private Bbox bbox;
 
         @Data

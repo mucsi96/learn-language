@@ -113,11 +113,9 @@
         row.source.id,
         'page',
         row.sourcePageNumber,
-        'cards'
+        'cards',
+        row.id
       ]"
-      [queryParams]="{
-        cardData: ({ id: row.id, exists: true } | compressQuery | async)
-      }"
       class="clickable-row"
     ></tr>
   </table>

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { VocabularyCardCreationStrategy } from './vocabulary-card-creation.strategy';
-import { CardCreationStrategy, CardType } from '../shared/types/card-creation.types';
+import { CardCreationStrategy, CardType } from '../parser/types';
 
 @Injectable({
   providedIn: 'root',

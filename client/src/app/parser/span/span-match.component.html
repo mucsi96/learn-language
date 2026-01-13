@@ -1,0 +1,42 @@
+@if (inline()) {
+  @if (exists()) {
+  <a
+    class="word"
+    mat-flat-button
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', cardId()]"
+    [style.left]="left()"
+    [style.top]="top()"
+    [style.width]="width()"
+    [style.height]="height()"
+    [ariaDescription]="ariaDescription"
+  >
+    {{ label() }}
+  </a>
+  } @else {
+  <div
+    class="word"
+    exclude-selection
+    [style.left]="left()"
+    [style.top]="top()"
+    [style.width]="width()"
+    [style.height]="height()"
+    [ariaDescription]="ariaDescription"
+  >
+    {{ label() }}
+  </div>
+  }
+} @else {
+  @if (exists()) {
+  <a
+    mat-menu-item
+    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', cardId()]"
+    [ariaDescription]="ariaDescription"
+  >
+    {{ label() }}
+  </a>
+  } @else {
+  <div mat-menu-item [ariaDescription]="ariaDescription">
+    {{ label() }}
+  </div>
+  }
+}

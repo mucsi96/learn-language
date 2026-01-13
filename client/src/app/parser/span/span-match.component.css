@@ -6,6 +6,13 @@
   align-items: center;
   padding: initial !important;
   border-radius: initial !important;
-  outline: 1px solid var(--outline, darkslategray);
-  outline-offset: 2px;
+}
+
+.word:not(a) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 1px;
+}
+
+a.word {
+  outline: 3px solid var(--mat-sys-primary);
 }

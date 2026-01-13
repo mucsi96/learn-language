@@ -19,7 +19,7 @@ test('source page title', async ({ page }) => {
 test('card page title', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -52,5 +52,5 @@ test('card page title', async ({ page }) => {
     },
   });
   await navigateToCardEditing(page);
-  await expect(page).toHaveTitle('abfahren');
+  await expect(page).toHaveTitle('Edit Card');
 });

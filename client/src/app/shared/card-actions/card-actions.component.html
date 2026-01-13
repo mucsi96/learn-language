@@ -18,8 +18,7 @@
   <a
     mat-icon-button
     class="action-button"
-    [routerLink]="['/sources', card()?.value()?.source?.id, 'page', card()?.value()?.sourcePageNumber, 'cards']"
-    [queryParams]="{cardData: ({id: card()?.value()?.id, exists: true} | compressQuery | async)}"
+    [routerLink]="['/sources', card()?.value()?.source?.id, 'page', card()?.value()?.sourcePageNumber, 'cards', card()?.value()?.id]"
     (click)="$event.stopPropagation()"
     title="Edit Card"
     matTooltip="Edit Card">

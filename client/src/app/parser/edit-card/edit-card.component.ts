@@ -8,9 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
-import { injectQueryParams } from '../../utils/inject-query-params';
-import { queryParamToObject } from '../../utils/queryCompression';
-import { Word, Card } from '../types';
+import { Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { InReviewCardsService } from '../../in-review-cards.service';
 import { fetchJson } from '../../utils/fetchJson';
@@ -38,21 +36,20 @@ export class EditCardComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
-  readonly cardData = injectQueryParams<string>('cardData');
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
-  readonly selectedWord = signal<Word | undefined>(undefined);
+  readonly selectedCardId = signal<string | undefined>(undefined);
   readonly markAsReviewedAvailable = signal<boolean>(false);
   readonly pendingCardEdits = signal<any>(undefined);
 
-  readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
-    params: () => ({ selectedWord: this.selectedWord() }),
-    loader: async ({ params: { selectedWord } }) => {
-      if (!selectedWord || !selectedWord.exists) {
+  readonly card = resource<Card | undefined, { cardId: string | undefined }>({
+    params: () => ({ cardId: this.selectedCardId() }),
+    loader: async ({ params: { cardId } }) => {
+      if (!cardId) {
         return;
       }
 
-      const card = await fetchJson<Card>(this.http, `/api/card/${selectedWord.id}`);
+      const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
       return mapCardDatesFromISOStrings(card);
     },
   });
@@ -85,14 +82,7 @@ export class EditCardComponent {
     this.route.params.subscribe((params) => {
       this.selectedSourceId.set(params['sourceId']);
       this.selectedPageNumber.set(parseInt(params['pageNumber']));
-    });
-
-    this.route.queryParams.subscribe(async (params) => {
-      const cardData = params['cardData'];
-      if (typeof cardData === 'string') {
-        const word = await queryParamToObject<Word>(cardData);
-        this.selectedWord.set(word);
-      }
+      this.selectedCardId.set(params['cardId']);
     });
   }
 
@@ -119,14 +109,14 @@ export class EditCardComponent {
   }
 
   async saveCard() {
-    const word = this.selectedWord();
+    const cardId = this.selectedCardId();
     const pendingEdits = this.pendingCardEdits();
 
-    if (!word || !pendingEdits) {
+    if (!cardId || !pendingEdits) {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       body: pendingEdits,
       method: 'PUT',
     });
@@ -136,8 +126,8 @@ export class EditCardComponent {
   }
 
   async markAsReviewed() {
-    const word = this.selectedWord();
-    if (!word) {
+    const cardId = this.selectedCardId();
+    if (!cardId) {
       return;
     }
 
@@ -146,7 +136,7 @@ export class EditCardComponent {
       ? { ...pendingEdits, readiness: 'REVIEWED' }
       : { readiness: 'REVIEWED' };
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       body: requestBody,
       method: 'PUT',
     });
@@ -174,16 +164,15 @@ export class EditCardComponent {
   }
 
   private async deleteCard() {
-    const word = this.selectedWord();
-    if (!word) {
+    const cardId = this.selectedCardId();
+    if (!cardId) {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       method: 'DELETE',
     });
 
-    // Refresh the in-review cards if we deleted an in-review card
     if (this.isInReview()) {
       this.inReviewCardsService.refetchCards();
     }

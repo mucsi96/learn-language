@@ -22,10 +22,9 @@ import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
-import { Word, Card, CardData, ExampleImage } from '../../types';
+import { Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
-
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
@@ -47,7 +46,7 @@ import { ImageSourceRequest } from '../../../shared/types/image-generation.types
   styleUrl: './edit-vocabulary-card.component.css',
 })
 export class EditVocabularyCardComponent {
-  selectedWord = input<Word | undefined>();
+  selectedCardId = input<string | undefined>();
   selectedSourceId = input<string | undefined>();
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
@@ -60,9 +59,7 @@ export class EditVocabularyCardComponent {
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
-  readonly word = linkedSignal(
-    () => this.card()?.data.word ?? this.selectedWord()?.word
-  );
+  readonly word = linkedSignal(() => this.card()?.data.word);
   readonly wordType = linkedSignal(() => this.card()?.data.type);
   readonly gender = linkedSignal(() => this.card()?.data.gender);
   readonly translation = Object.fromEntries(
@@ -72,9 +69,7 @@ export class EditVocabularyCardComponent {
     ])
   );
   readonly forms = linkedSignal(() =>
-    (this.card()?.data ?? this.selectedWord())?.forms?.map((form: string) =>
-      signal(form)
-    )
+    this.card()?.data.forms?.map((form: string) => signal(form))
   );
   readonly examples = linkedSignal(() =>
     this.card()?.data.examples?.map((example) => signal(example['de']))
@@ -97,7 +92,7 @@ export class EditVocabularyCardComponent {
   });
   readonly exampleImages = linkedSignal(() => {
     return untracked(() => {
-      if (!this.selectedWord()) {
+      if (!this.selectedCardId()) {
         return [];
       }
 
@@ -251,10 +246,10 @@ export class EditVocabularyCardComponent {
     | undefined {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
-    const word = this.selectedWord();
+    const cardId = this.selectedCardId();
     const wordText = this.word();
 
-    if (!word || !wordText || !sourceId || !pageNumber) {
+    if (!cardId || !wordText || !sourceId || !pageNumber) {
       return;
     }
 
@@ -289,7 +284,7 @@ export class EditVocabularyCardComponent {
     };
 
     return {
-      id: word.id,
+      id: cardId,
       source: { id: sourceId },
       sourcePageNumber: pageNumber,
       data,

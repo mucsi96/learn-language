@@ -22,7 +22,6 @@ public class AreaWordsService {
   }
 
   private final ObjectMapper objectMapper;
-  private final WordIdService wordIdService;
   private final ChatService chatService;
 
   private String buildSystemPrompt(SourceFormatType formatType, LanguageLevel languageLevel) {
@@ -88,9 +87,6 @@ public class AreaWordsService {
                 .build()),
         AreaWords.class);
 
-    return result.wordList.stream().map(word -> {
-      word.setId(wordIdService.generateWordId(word.getWord()));
-      return word;
-    }).toList();
+    return result.wordList;
   }
 }

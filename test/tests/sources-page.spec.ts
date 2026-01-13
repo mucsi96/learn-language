@@ -41,20 +41,25 @@ test('bookmarks last visited page', async ({ page }) => {
   await expect(page.getByText('Seite 11')).toBeVisible();
 });
 
-test('highlights existing cards', async ({ page }) => {
+test('drag to select words highlights existing cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'anfangen',
-    sourceId: 'goethe-a2',
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
-      word: 'anfangen',
+      word: 'abfahren',
       type: 'VERB',
-      translation: { en: 'to start' },
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
     },
   });
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A2' }).click();
-  await expect(page.getByText('anfangen,')).toHaveAccessibleDescription('Card exists');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 
 test('drag to select words highlights matching words', async ({ page }) => {
@@ -71,6 +76,18 @@ test('drag to select words highlights matching words', async ({ page }) => {
 
 test('drag to select multiple regions highlights matching words', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -90,11 +107,11 @@ test('drag to select multiple regions highlights matching words', async ({ page 
 
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByText('Create 6 Cards')).toBeVisible();
+  await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // Check that words from both regions are highlighted
   await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
-  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
   await expect(page.getByText('der Absender').first()).toHaveAccessibleDescription('Card does not exist');
   await expect(page.getByText('die Adresse').first()).toHaveAccessibleDescription('Card does not exist');
 });
