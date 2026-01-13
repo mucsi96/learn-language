@@ -59,7 +59,7 @@ test('drag to select words highlights existing cards', async ({ page }) => {
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  await expect(page.getByText('abfahren')).toHaveAccessibleDescription('Card exists');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 
 test('drag to select words highlights matching words', async ({ page }) => {
