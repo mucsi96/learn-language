@@ -12,11 +12,27 @@ public class WordIdService {
     private static final Pattern DIACRITICS_PATTERN = Pattern.compile("\\p{M}");
     private static final Pattern NON_ALPHA_PATTERN = Pattern.compile("[^a-z\\s-]");
     private static final Pattern MULTI_HYPHEN_PATTERN = Pattern.compile("-+");
+    private static final Pattern GERMAN_ARTICLE_PATTERN = Pattern.compile("^(der|die|das|ein|eine|einen|einem|einer|eines)\\s+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern HUNGARIAN_ARTICLE_PATTERN = Pattern.compile("^(a|az|egy)\\s+", Pattern.CASE_INSENSITIVE);
 
     public String generateWordId(String germanWord, String hungarianWord) {
-        String normalizedGerman = normalizeWord(germanWord);
-        String normalizedHungarian = normalizeWord(hungarianWord);
+        String normalizedGerman = normalizeWord(stripGermanArticle(germanWord));
+        String normalizedHungarian = normalizeWord(stripHungarianArticle(hungarianWord));
         return normalizedGerman + "-" + normalizedHungarian;
+    }
+
+    private String stripGermanArticle(String word) {
+        if (word == null || word.isBlank()) {
+            return word;
+        }
+        return GERMAN_ARTICLE_PATTERN.matcher(word.trim()).replaceFirst("");
+    }
+
+    private String stripHungarianArticle(String word) {
+        if (word == null || word.isBlank()) {
+            return word;
+        }
+        return HUNGARIAN_ARTICLE_PATTERN.matcher(word.trim()).replaceFirst("");
     }
 
     private String normalizeWord(String word) {

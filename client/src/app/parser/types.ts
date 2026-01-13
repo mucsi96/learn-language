@@ -19,9 +19,7 @@ export type Span = {
   fontSize: string;
   color: string;
   bbox: BBox;
-  id?: string;
   searchTerm?: string;
-  exists?: boolean;
 };
 
 export type Word = ExtractedItem & {

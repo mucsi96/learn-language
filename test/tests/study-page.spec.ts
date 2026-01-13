@@ -21,7 +21,7 @@ test('study page shows start button initially', async ({ page }) => {
 
 test('study session persists in URL and survives page refresh', async ({ page }) => {
   await createCard({
-    cardId: 'persist_test',
+    cardId: 'bleiben-maradni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 5,
     data: {
@@ -50,7 +50,7 @@ test('study page initial state', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(greenImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -103,7 +103,7 @@ test('study page revealed state', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(greenImage);
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -164,7 +164,7 @@ test('study page revealed state', async ({ page }) => {
 test('source selector routing works', async ({ page }) => {
   // Create a card in one source
   await createCard({
-    cardId: 'lernen',
+    cardId: 'lernen-tanulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -185,7 +185,7 @@ test('source selector routing works', async ({ page }) => {
 
   // Create a card in another source
   await createCard({
-    cardId: 'schreiben',
+    cardId: 'schreiben-irni',
     sourceId: 'goethe-a2',
     sourcePageNumber: 10,
     data: {
@@ -349,7 +349,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
 
 test('mark for review button visible on study page', async ({ page }) => {
   await createCard({
-    cardId: 'testen',
+    cardId: 'testen-tesztelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -380,7 +380,7 @@ test('mark for review button visible on study page', async ({ page }) => {
 
 test('edit card button visible on study page', async ({ page }) => {
   await createCard({
-    cardId: 'bearbeiten',
+    cardId: 'bearbeiten-szerkeszteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 20,
     data: {
@@ -412,7 +412,7 @@ test('edit card button visible on study page', async ({ page }) => {
 
 test('mark for review button functionality', async ({ page }) => {
   await createCard({
-    cardId: 'markieren',
+    cardId: 'markieren-megjelolni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 25,
     data: {
@@ -442,7 +442,7 @@ test('mark for review button functionality', async ({ page }) => {
 
   // Verify the card readiness was updated in the database
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'markieren'");
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'markieren-megjelolni'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('IN_REVIEW');
   });
@@ -451,7 +451,7 @@ test('mark for review button functionality', async ({ page }) => {
 test('mark for review button loads next card', async ({ page }) => {
   // Create two cards
   await createCard({
-    cardId: 'erste',
+    cardId: 'erste-elso',
     sourceId: 'goethe-a1',
     sourcePageNumber: 30,
     data: {
@@ -472,7 +472,7 @@ test('mark for review button loads next card', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'zweite',
+    cardId: 'zweite-masodik',
     sourceId: 'goethe-a1',
     sourcePageNumber: 31,
     data: {
@@ -510,7 +510,7 @@ test('mark for review button loads next card', async ({ page }) => {
 
 test('edit card button navigation', async ({ page }) => {
   await createCard({
-    cardId: 'navigieren',
+    cardId: 'navigieren-navigalni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 35,
     data: {
@@ -544,7 +544,7 @@ test('edit card button navigation', async ({ page }) => {
 
 test('grading buttons visibility after reveal', async ({ page }) => {
   await createCard({
-    cardId: 'grading_test',
+    cardId: 'bewerten-ertekelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 40,
     data: {
@@ -589,7 +589,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
 test('again button functionality', async ({ page }) => {
   // Create two cards for testing
   await createCard({
-    cardId: 'again_test',
+    cardId: 'wiederholen-ismetelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 42,
     data: {
@@ -610,7 +610,7 @@ test('again button functionality', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'next_card',
+    cardId: 'nachste-kovetkezo',
     sourceId: 'goethe-a1',
     sourcePageNumber: 43,
     data: {
@@ -651,7 +651,7 @@ test('again button functionality', async ({ page }) => {
 
 test('hard button functionality', async ({ page }) => {
   await createCard({
-    cardId: 'hard_test',
+    cardId: 'schwierig-nehez',
     sourceId: 'goethe-a1',
     sourcePageNumber: 44,
     data: {
@@ -671,7 +671,7 @@ test('hard button functionality', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'second_card',
+    cardId: 'zweite-masodik2',
     sourceId: 'goethe-a1',
     sourcePageNumber: 45,
     data: {
@@ -711,7 +711,7 @@ test('hard button functionality', async ({ page }) => {
 
 test('good button functionality', async ({ page }) => {
   await createCard({
-    cardId: 'good_test',
+    cardId: 'gut-jo',
     sourceId: 'goethe-a1',
     sourcePageNumber: 46,
     data: {
@@ -731,7 +731,7 @@ test('good button functionality', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'third_card',
+    cardId: 'dritte-harmadik',
     sourceId: 'goethe-a1',
     sourcePageNumber: 47,
     data: {
@@ -771,7 +771,7 @@ test('good button functionality', async ({ page }) => {
 
 test('easy button functionality', async ({ page }) => {
   await createCard({
-    cardId: 'easy_test',
+    cardId: 'einfach-konnyu',
     sourceId: 'goethe-a1',
     sourcePageNumber: 48,
     data: {
@@ -791,7 +791,7 @@ test('easy button functionality', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'fourth_card',
+    cardId: 'vierte-negyedik',
     sourceId: 'goethe-a1',
     sourcePageNumber: 49,
     data: {
@@ -831,7 +831,7 @@ test('easy button functionality', async ({ page }) => {
 
 test('grading card updates database', async ({ page }) => {
   await createCard({
-    cardId: 'database_test',
+    cardId: 'datenbank-adatbazis',
     sourceId: 'goethe-a1',
     sourcePageNumber: 50,
     data: {
@@ -870,7 +870,7 @@ test('grading card updates database', async ({ page }) => {
     const result = await client.query(
       `SELECT state, reps, stability, difficulty
        FROM learn_language.cards
-       WHERE id = 'database_test'`
+       WHERE id = 'datenbank-adatbazis'`
     );
     expect(result.rows.length).toBe(1);
     const row = result.rows[0];
@@ -885,7 +885,7 @@ test('grading card updates database', async ({ page }) => {
 
 test('grading card creates review log', async ({ page }) => {
   await createCard({
-    cardId: 'review_log_test',
+    cardId: 'protokoll-naplo',
     sourceId: 'goethe-a1',
     sourcePageNumber: 52,
     data: {
@@ -919,12 +919,12 @@ test('grading card creates review log', async ({ page }) => {
     const result = await client.query(
       `SELECT card_id, rating, state, stability, difficulty, learning_partner_id
        FROM learn_language.review_logs
-       WHERE card_id = 'review_log_test'`
+       WHERE card_id = 'protokoll-naplo'`
     );
     expect(result.rows.length).toBe(1);
     const row = result.rows[0];
 
-    expect(row.card_id).toBe('review_log_test');
+    expect(row.card_id).toBe('protokoll-naplo');
     expect(row.rating).toBe(3);
     expect(row.state).toBe('LEARNING');
     expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
@@ -935,7 +935,7 @@ test('grading card creates review log', async ({ page }) => {
 
 test('grading with no next card shows empty state', async ({ page }) => {
   await createCard({
-    cardId: 'last_card',
+    cardId: 'letzte-utolso',
     sourceId: 'goethe-a1',
     sourcePageNumber: 51,
     data: {
@@ -979,7 +979,7 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
   const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
   await createCard({
-    cardId: 'due_now_card',
+    cardId: 'jetzt-most',
     sourceId: 'goethe-a1',
     sourcePageNumber: 60,
     data: {
@@ -991,7 +991,7 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
   });
 
   await createCard({
-    cardId: 'due_later_card',
+    cardId: 'spater-kesobb',
     sourceId: 'goethe-a1',
     sourcePageNumber: 61,
     data: {
@@ -1026,7 +1026,7 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
   const yesterday = new Date(now.getTime() - 86400000);
 
   await createCard({
-    cardId: 'first_card_queue',
+    cardId: 'erste-elso2',
     sourceId: 'goethe-a1',
     sourcePageNumber: 62,
     data: {
@@ -1039,7 +1039,7 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'second_card_queue',
+    cardId: 'zweite-masodik3',
     sourceId: 'goethe-a1',
     sourcePageNumber: 63,
     data: {
@@ -1052,7 +1052,7 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'third_card_queue',
+    cardId: 'dritte-harmadik2',
     sourceId: 'goethe-a1',
     sourcePageNumber: 64,
     data: {
@@ -1092,7 +1092,7 @@ test('card graded with Again reappears after other due cards', async ({ page }) 
   const yesterday = new Date(now.getTime() - 86400000);
 
   await createCard({
-    cardId: 'reappear_card',
+    cardId: 'wiederkommen-visszajonni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 65,
     data: {
@@ -1104,7 +1104,7 @@ test('card graded with Again reappears after other due cards', async ({ page }) 
   });
 
   await createCard({
-    cardId: 'other_card',
+    cardId: 'warten-varni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 66,
     data: {

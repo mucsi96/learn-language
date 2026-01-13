@@ -28,7 +28,7 @@ async function setupVoiceConfigurations() {
 test('bulk audio fab appears when cards without audio exist', async ({ page }) => {
   // Create cards without audio
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -51,7 +51,7 @@ test('bulk audio fab appears when cards without audio exist', async ({ page }) =
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -82,7 +82,7 @@ test('bulk audio fab appears when cards without audio exist', async ({ page }) =
 test('bulk audio fab hides when all cards have audio', async ({ page }) => {
   // Create card with complete audio data
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -147,7 +147,7 @@ test('bulk audio fab hides when all cards have audio', async ({ page }) => {
 test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
   // Create one card with audio
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -205,7 +205,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 
   // Create one card without audio
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -229,7 +229,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 
   // Create another card without audio
   await createCard({
-    cardId: 'lernen',
+    cardId: 'lernen-tanulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -262,7 +262,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 test('bulk audio creation opens progress dialog', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -297,7 +297,7 @@ test('bulk audio creation opens progress dialog', async ({ page }) => {
 test('bulk audio creation shows individual progress', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -320,7 +320,7 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -355,7 +355,7 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
 test('bulk audio creation creates audio in database', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -387,7 +387,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
 
   // Verify audio data was added to database
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -423,7 +423,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
 test('bulk audio creation updates card readiness to ready', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -455,7 +455,7 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
 
   // Verify card readiness was updated
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verstehen'");
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const readiness = result.rows[0].readiness;
@@ -467,7 +467,7 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
 test('bulk audio creation updates ui after completion', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -490,7 +490,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -534,7 +534,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
   await setupVoiceConfigurations();
   // Create card with some existing audio
   await createCard({
-    cardId: 'partial-audio',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -577,7 +577,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
 
   // Verify audio data was completed
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'partial-audio'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -627,7 +627,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
   });
 
   await createCard({
-    cardId: 'test-card',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -672,7 +672,7 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
   });
 
   await createCard({
-    cardId: 'test-card',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -699,7 +699,7 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
 
   // Verify the generated audio uses the configured voice
   await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'test-card'");
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     const cardData = result.rows[0].data;
     const audioList = cardData.audio;

@@ -43,13 +43,13 @@ test('bookmarks last visited page', async ({ page }) => {
 
 test('highlights existing cards', async ({ page }) => {
   await createCard({
-    cardId: 'anfangen',
+    cardId: 'anfangen-elkezdeni',
     sourceId: 'goethe-a2',
     sourcePageNumber: 9,
     data: {
       word: 'anfangen',
       type: 'VERB',
-      translation: { en: 'to start' },
+      translation: { en: 'to start', hu: 'elkezdeni' },
     },
   });
   await page.goto('http://localhost:8180/sources');

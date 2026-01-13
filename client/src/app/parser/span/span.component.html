@@ -1,4 +1,4 @@
-@if (!matches.length || !exists()) {
+@if (matches.length === 0) {
 <div
   class="word"
   exclude-selection
@@ -6,27 +6,22 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [class.exists]="exists()"
-  [class.matches]="matches.length > 0"
-  [ariaDescription]="ariaDescription"
 >
   {{ text() }}
 </div>
-
 } @else if (matches.length === 1) {
-<a
-  class="word"
-  mat-flat-button
-  [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', matches[0].id]"
-  [style.left]="left"
-  [style.top]="top"
-  [style.width]="width"
-  [style.height]="height"
-  [class.exists]="exists()"
-  [ariaDescription]="ariaDescription"
->
-  {{ text() }}
-</a>
+<app-span-match
+  [inline]="true"
+  [sourceId]="sourceId()"
+  [pageNumber]="pageNumber()"
+  [cardId]="matches[0].id"
+  [exists]="matches[0].exists"
+  [label]="text() ?? ''"
+  [left]="left"
+  [top]="top"
+  [width]="width"
+  [height]="height"
+/>
 } @else {
 <button
   class="word"
@@ -37,19 +32,19 @@
   [style.top]="top"
   [style.width]="width"
   [style.height]="height"
-  [class.exists]="exists()"
-  [ariaDescription]="ariaDescription"
 >
   {{ text() }}
 </button>
 <mat-menu #menu="matMenu">
   @for (match of matches; track match.id) {
-  <a
-    mat-menu-item
-    [routerLink]="['/sources', sourceId(), 'page', pageNumber(), 'cards', match.id]"
-  >
-    {{ getItemLabel(match) }}
-  </a>
+  <app-span-match
+    [sourceId]="sourceId()"
+    [pageNumber]="pageNumber()"
+    [cardId]="match.id"
+    [exists]="match.exists"
+    [label]="getItemLabel(match)"
+
+  />
   }
 </mat-menu>
 }

@@ -8,6 +8,7 @@ import { RouterModule } from '@angular/router';
 import { ExtractionRegion, ExtractedItem } from '../types';
 import { CardCreationStrategyRegistry } from '../../card-creation-strategies/card-creation-strategy.registry';
 import { PageService } from '../../page.service';
+import { SpanMatchComponent } from './span-match.component';
 
 @Component({
   selector: 'app-span',
@@ -17,6 +18,7 @@ import { PageService } from '../../page.service';
     MatTooltipModule,
     MatMenuModule,
     RouterModule,
+    SpanMatchComponent,
   ],
   templateUrl: './span.component.html',
   styleUrl: './span.component.css',
@@ -30,7 +32,6 @@ export class SpanComponent {
   readonly color = input<string>();
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
-  readonly exists = input<boolean>();
   readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
   private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
   private readonly pageService = inject(PageService);
@@ -106,10 +107,6 @@ export class SpanComponent {
       return '0px';
     }
     return `calc(var(--page-width) * ${height})`;
-  }
-
-  get ariaDescription() {
-    return this.exists() ?  'Card exists' : 'Card does not exist';
   }
 
   getItemLabel(item: ExtractedItem): string {
