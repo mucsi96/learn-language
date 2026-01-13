@@ -9,8 +9,8 @@
 }
 
 .word:not(a) {
-  outline: 1px solid hsl(200, 50%, 50%);
-  outline-offset: 2px;
+  outline: 2px solid hsl(200, 50%, 50%);
+  outline-offset: 1px;
 }
 
 a.word {
