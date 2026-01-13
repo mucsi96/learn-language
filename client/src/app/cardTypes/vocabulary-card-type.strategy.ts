@@ -4,7 +4,7 @@ import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
 import { MultiModelService } from '../multi-model.service';
 import {
-  CardCreationStrategy,
+  CardTypeStrategy,
   CardCreationRequest,
   CardCreationResult,
   CardType,
@@ -35,7 +35,7 @@ interface WordIdResponse {
 @Injectable({
   providedIn: 'root',
 })
-export class VocabularyCardCreationStrategy implements CardCreationStrategy {
+export class VocabularyCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'vocabulary';
 
   private readonly http = inject(HttpClient);

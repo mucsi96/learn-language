@@ -122,7 +122,7 @@ export type CardCreationResult = {
   imageGenerationInfos: ImageGenerationInfo[];
 };
 
-export type CardCreationStrategy = {
+export type CardTypeStrategy = {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
   getItemLabel(item: ExtractedItem): string;

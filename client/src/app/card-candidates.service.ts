@@ -1,6 +1,6 @@
 import { Injectable, inject, computed, signal } from '@angular/core';
 import { PageService } from './page.service';
-import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import { ExtractedItem } from './parser/types';
 
 @Injectable({
@@ -8,7 +8,7 @@ import { ExtractedItem } from './parser/types';
 })
 export class CardCandidatesService {
   private readonly pageService = inject(PageService);
-  private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
+  private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly ignoredIds = signal<Set<string>>(new Set());
 
   readonly allExtractedItems = computed(() => {
