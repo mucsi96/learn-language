@@ -6,17 +6,27 @@
   max-width: 1200px;
 }
 
-.turn-indicator {
+.card-bottom-controls {
   position: absolute;
   bottom: 12px;
   right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.card-bottom-controls app-card-actions {
+  display: contents;
+}
+
+.turn-indicator {
   padding: 4px 10px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--mat-sys-on-surface-variant);
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
-  z-index: 10;
 }
 
 .learn-card {

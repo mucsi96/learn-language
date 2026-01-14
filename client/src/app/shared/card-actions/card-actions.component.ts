@@ -1,7 +1,7 @@
 import { Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,7 +16,7 @@ import { CardResourceLike } from '../types/card-resource.types';
   imports: [
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
+    MatMenuModule,
     RouterModule,
   ],
   templateUrl: './card-actions.component.html',

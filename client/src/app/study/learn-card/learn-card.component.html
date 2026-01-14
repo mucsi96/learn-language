@@ -28,16 +28,18 @@
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
-    @if (isStudyingWithPartner()) {
-    <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
-      {{ currentTurn().name }}
-    </span>
-    }
-    <app-card-actions
-      [card]="cardResource"
-      [languageTexts]="languageTexts()"
-      (cardProcessed)="onCardProcessed()">
-    </app-card-actions>
+    <div class="card-bottom-controls">
+      <app-card-actions
+        [card]="cardResource"
+        [languageTexts]="languageTexts()"
+        (cardProcessed)="onCardProcessed()">
+      </app-card-actions>
+      @if (isStudyingWithPartner()) {
+      <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
+        {{ currentTurn().name }}
+      </span>
+      }
+    </div>
 
     <app-learn-vocabulary-card
       [card]="cardResource"
