@@ -41,7 +41,7 @@
   margin-bottom: 1rem;
 }
 
-.learn-card:active {
+.learn-card:active:not(:has(.card-bottom-controls:active)) {
   transform: scale(0.98);
 }
 

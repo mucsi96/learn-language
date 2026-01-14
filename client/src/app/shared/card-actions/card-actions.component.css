@@ -10,6 +10,9 @@
   color: var(--mat-sys-on-surface-variant) !important;
   width: 32px !important;
   height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .menu-trigger:hover {
