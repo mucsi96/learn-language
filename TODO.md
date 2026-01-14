@@ -1,4 +1,3 @@
-- Fix ids to include both languages. Same for known words.
 - support for speech card type
 - support for grammar card type
 - support multi part regions
