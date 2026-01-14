@@ -1,27 +1,27 @@
 <div class="card-actions">
   <button
     mat-icon-button
-    class="action-button"
-    (click)="openVoiceSelection($event)"
-    title="Voice Selection"
-    matTooltip="Voice Selection">
-    <mat-icon>record_voice_over</mat-icon>
-  </button>
-  <button
-    mat-icon-button
-    class="action-button"
-    (click)="markForReview($event)"
-    title="Mark for Review"
-    matTooltip="Mark for Review">
-    <mat-icon>flag</mat-icon>
-  </button>
-  <a
-    mat-icon-button
-    class="action-button"
-    [routerLink]="['/sources', card()?.value()?.source?.id, 'page', card()?.value()?.sourcePageNumber, 'cards', card()?.value()?.id]"
+    class="menu-trigger"
+    [matMenuTriggerFor]="actionsMenu"
     (click)="$event.stopPropagation()"
-    title="Edit Card"
-    matTooltip="Edit Card">
-    <mat-icon>edit</mat-icon>
-  </a>
+    aria-label="Card actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #actionsMenu="matMenu">
+    <button mat-menu-item (click)="openVoiceSelection()">
+      <mat-icon>record_voice_over</mat-icon>
+      <span>Voice Selection</span>
+    </button>
+    <button mat-menu-item (click)="markForReview()">
+      <mat-icon>flag</mat-icon>
+      <span>Mark for Review</span>
+    </button>
+    <a
+      mat-menu-item
+      [routerLink]="['/sources', card()?.value()?.source?.id, 'page', card()?.value()?.sourcePageNumber, 'cards', card()?.value()?.id]">
+      <mat-icon>edit</mat-icon>
+      <span>Edit Card</span>
+    </a>
+  </mat-menu>
 </div>

@@ -123,8 +123,8 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'ház' })).toBeVisible();
 
-  // Click the voice selection button
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
@@ -163,8 +163,8 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
   await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'autó' })).toBeVisible();
 
-  // Click the voice selection button
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
@@ -207,7 +207,8 @@ test('voice selection dialog displays model for each voice configuration', async
   await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify both voices with their respective models are displayed

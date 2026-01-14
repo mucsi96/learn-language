@@ -347,7 +347,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   await expect(flashcard.getByLabel('State: Review')).toBeVisible();
 });
 
-test('mark for review button visible on study page', async ({ page }) => {
+test('mark for review menu item visible in context menu', async ({ page }) => {
   await createCard({
     cardId: 'testen-tesztelni',
     sourceId: 'goethe-a1',
@@ -372,13 +372,11 @@ test('mark for review button visible on study page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Verify Mark for Review button is visible
-  const markReviewButton = page.getByRole('button', { name: 'Mark for Review' });
-  await expect(markReviewButton).toBeVisible();
-  await expect(markReviewButton.getByText('flag')).toBeVisible();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Mark for Review' })).toBeVisible();
 });
 
-test('edit card button visible on study page', async ({ page }) => {
+test('edit card menu item visible in context menu', async ({ page }) => {
   await createCard({
     cardId: 'bearbeiten-szerkeszteni',
     sourceId: 'goethe-a1',
@@ -404,10 +402,8 @@ test('edit card button visible on study page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Verify Edit Card button is visible
-  const editButton = page.getByRole('link', { name: 'Edit Card' });
-  await expect(editButton).toBeVisible();
-  await expect(editButton.getByText('edit')).toBeVisible();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Edit Card' })).toBeVisible();
 });
 
 test('mark for review button functionality', async ({ page }) => {
@@ -435,8 +431,8 @@ test('mark for review button functionality', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Click the Mark for Review button
-  await page.getByRole('button', { name: 'Mark for Review' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Mark for Review' }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -500,8 +496,8 @@ test('mark for review button loads next card', async ({ page }) => {
   // Verify first card is showing (due earlier)
   await expect(flashcard.getByRole('heading', { name: 'első' })).toBeVisible();
 
-  // Click Mark for Review button
-  await page.getByRole('button', { name: 'Mark for Review' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Mark for Review' }).click();
 
   // Verify the second card is now showing
   await expect(flashcard.getByRole('heading', { name: 'második' })).toBeVisible();
@@ -535,8 +531,8 @@ test('edit card button navigation', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Click the Edit Card button
-  await page.getByRole('link', { name: 'Edit Card' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Edit Card' }).click();
 
   // Verify we navigated to the correct card editing page
   await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('navigieren');
