@@ -5,7 +5,7 @@ import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
   CardCreationRequest,
   CardType,
@@ -40,7 +40,7 @@ interface ImageGenerationResult {
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
   private readonly fsrsGradingService = inject(FsrsGradingService);
-  private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
+  private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly creationProgress = signal<CardCreationProgress[]>([]);
   readonly isCreating = signal(false);

@@ -6,7 +6,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { ExtractionRegion, ExtractedItem } from '../types';
-import { CardCreationStrategyRegistry } from '../../card-creation-strategies/card-creation-strategy.registry';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 import { PageService } from '../../page.service';
 import { SpanMatchComponent } from './span-match.component';
 
@@ -33,7 +33,7 @@ export class SpanComponent {
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
   readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
-  private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
+  private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly pageService = inject(PageService);
 
   get matches() {

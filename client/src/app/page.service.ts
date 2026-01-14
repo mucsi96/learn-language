@@ -11,7 +11,7 @@ import {
 import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
-import { CardCreationStrategyRegistry } from './card-creation-strategies/card-creation-strategy.registry';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import { ExtractionRegion, Page } from './parser/types';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
@@ -29,7 +29,7 @@ type SelectedRectangles = SelectedRectangle[];
 export class PageService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly strategyRegistry = inject(CardCreationStrategyRegistry);
+  private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly selectedRectangles = signal<SelectedRectangles>([]);
 
