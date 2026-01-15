@@ -4,11 +4,23 @@
 
 ## General Code style
 - Avoid fallback values that hide missing data - prefer crashes over silent incorrect behavior
+- Prefer functional programming over procedural
+- Avoid variable mutations - create new values instead of modifying existing ones
+- Never use imperative loops (`for`, `while`) - use functional methods instead
+- Prefer immutable data transformations over in-place modifications
 
 ## Java Code style
 - Prefer using lombok
 - Prefer using builder for models
 - Prefer constructor injection with lombok
+- Use Stream API instead of loops (`stream().map()`, `filter()`, `reduce()`, `flatMap()`, `findFirst()`, `anyMatch()`, `allMatch()`, etc.)
+- Never mutate collections - use `Stream.concat()` or create new collections instead of `add()`/`addAll()`
+- Use `final` for variables
+
+## TypeScript Code style
+- Use `const` for all variables
+- Never use `push` - use spread operator (`[...arr, newItem]`) or functional methods
+- Use functional array methods (`map`, `filter`, `reduce`, `flatMap`, `find`, `some`, `every`, etc.)
 
 ## Testing Code style
 - Try testing from users perspective.
@@ -21,7 +33,7 @@
 
 ## Angular Code style
 - Make sure the UI is testable using role based selectors and selectors based on accesibility
-- Prefer functional code over procedural
+- Follow functional programming patterns from TypeScript Code style section
 - Prefer using Angular Material components
 - Prefer using Angular signal / resource for state management
 - Prefer putting styles and templates to separate files
