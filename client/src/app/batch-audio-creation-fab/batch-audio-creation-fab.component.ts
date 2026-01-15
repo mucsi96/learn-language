@@ -56,7 +56,7 @@ export class BatchAudioCreationFabComponent {
     });
 
     try {
-      const result = await this.batchAudioService.createAudioInBatch(cards);
+      const result = await this.batchAudioService.createAudioInBatch(cards, 'vocabulary');
 
       if (result.successfulCards > 0) {
         this.cards.reload();

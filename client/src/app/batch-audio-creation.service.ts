@@ -61,7 +61,7 @@ export class BatchAudioCreationService {
     return totalProgress / progress.length;
   });
 
-  async createAudioInBatch(cards: Card[], cardType: CardType = 'vocabulary'): Promise<BatchAudioCreationResult> {
+  async createAudioInBatch(cards: Card[], cardType: CardType): Promise<BatchAudioCreationResult> {
     if (this.isCreating()) {
       throw new Error('Batch audio creation already in progress');
     }
@@ -215,10 +215,7 @@ export class BatchAudioCreationService {
     progressIndex: number,
     progressPerItem: number
   ): Promise<AudioData[]> {
-    const results: AudioData[] = [];
-    let currentProgress = 20;
-
-    for (const item of items) {
+    const generateSingleAudio = async (item: AudioGenerationItem, index: number): Promise<AudioData> => {
       const voice = this.getVoiceForLanguage(item.language);
       const audioData = await fetchJson<AudioData>(
         this.http,
@@ -234,17 +231,24 @@ export class BatchAudioCreationService {
           method: 'POST',
         }
       );
-      results.push(audioData);
-      currentProgress += progressPerItem;
+      const progress = Math.min(20 + (index + 1) * progressPerItem, 80);
       this.updateProgress(
         progressIndex,
         'generating-audio',
-        Math.min(currentProgress, 80),
+        progress,
         `Generated audio for "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
       );
-    }
+      return audioData;
+    };
 
-    return results;
+    return items.reduce<Promise<AudioData[]>>(
+      async (accPromise, item, index) => {
+        const acc = await accPromise;
+        const audioData = await generateSingleAudio(item, index);
+        return [...acc, audioData];
+      },
+      Promise.resolve([])
+    );
   }
 
   private updateProgress(
