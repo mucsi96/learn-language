@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
-import { Card, CardType, Source } from '../parser/types';
+import { Card, Source } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
@@ -65,26 +65,21 @@ export class BatchAudioCreationFabComponent {
         sources.map(source => [source.id, source.cardType])
       );
 
-      const results = await sourceIds.reduce<Promise<{ successful: number; failed: number; errors: string[] }>>(
+      const results = await sourceIds.reduce<Promise<{ successful: number; failed: number }>>(
         async (accPromise, sourceId) => {
           const acc = await accPromise;
           const sourceCards = cardsBySource[sourceId];
           const cardType = sourceCardTypes.get(sourceId);
           if (!cardType) {
-            return {
-              ...acc,
-              failed: acc.failed + sourceCards.length,
-              errors: [...acc.errors, `Source ${sourceId} has no card type configured`]
-            };
+            return { ...acc, failed: acc.failed + sourceCards.length };
           }
           const result = await this.batchAudioService.createAudioInBatch(sourceCards, cardType);
           return {
             successful: acc.successful + result.successfulCards,
-            failed: acc.failed + result.failedCards,
-            errors: [...acc.errors, ...result.errors]
+            failed: acc.failed + result.failedCards
           };
         },
-        Promise.resolve({ successful: 0, failed: 0, errors: [] })
+        Promise.resolve({ successful: 0, failed: 0 })
       );
 
       if (results.successful > 0) {
