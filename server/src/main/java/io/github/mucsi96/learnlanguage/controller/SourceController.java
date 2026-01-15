@@ -76,6 +76,7 @@ public class SourceController {
           .id(source.getId())
           .name(source.getName())
           .sourceType(source.getSourceType())
+          .cardType(source.getCardType())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
           .cardCount(cardCount)
