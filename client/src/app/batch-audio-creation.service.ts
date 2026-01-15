@@ -1,13 +1,12 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { Card } from './parser/types';
+import { Card, CardType, CardTypeStrategy, AudioGenerationItem } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
   AudioSourceRequest,
-  AudioResponse,
   AudioData,
-  LANGUAGE_CODES,
   VoiceModelPair
 } from './shared/types/audio-generation.types';
 
@@ -20,19 +19,16 @@ interface VoiceConfiguration {
   isEnabled: boolean;
 }
 
-
 export interface AudioCreationProgress {
   cardId: string;
   cardWord: string;
   status:
     | 'pending'
-    | 'generating-word-audio'
-    | 'generating-translation-audio'
-    | 'generating-example-audio'
+    | 'generating-audio'
     | 'updating-card'
     | 'completed'
     | 'error';
-  progress: number; // 0-100
+  progress: number;
   error?: string;
   currentStep?: string;
 }
@@ -49,6 +45,7 @@ export interface BatchAudioCreationResult {
 })
 export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
   private voiceConfigs: VoiceConfiguration[] = [];
@@ -64,7 +61,7 @@ export class BatchAudioCreationService {
     return totalProgress / progress.length;
   });
 
-  async createAudioInBatch(cards: Card[]): Promise<BatchAudioCreationResult> {
+  async createAudioInBatch(cards: Card[], cardType: CardType = 'vocabulary'): Promise<BatchAudioCreationResult> {
     if (this.isCreating()) {
       throw new Error('Batch audio creation already in progress');
     }
@@ -78,9 +75,10 @@ export class BatchAudioCreationService {
       };
     }
 
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+
     this.isCreating.set(true);
 
-    // Fetch enabled voice configurations from database
     try {
       this.voiceConfigs = await fetchJson<VoiceConfiguration[]>(
         this.http,
@@ -91,28 +89,15 @@ export class BatchAudioCreationService {
       throw new Error('Failed to fetch voice configurations');
     }
 
-    // Check if we have at least one voice for each language
-    const hasGermanVoice = this.voiceConfigs.some(
-      (config) => config.language === LANGUAGE_CODES.GERMAN
-    );
-    const hasHungarianVoice = this.voiceConfigs.some(
-      (config) => config.language === LANGUAGE_CODES.HUNGARIAN
-    );
-
-    if (!hasGermanVoice ) {
+    const missingLanguages = this.getMissingVoiceLanguages(strategy);
+    if (missingLanguages.length > 0) {
       this.isCreating.set(false);
-      throw new Error('No enabled voice configurations for German language');
+      throw new Error(`No enabled voice configurations for languages: ${missingLanguages.join(', ')}`);
     }
 
-    if (!hasHungarianVoice ) {
-      this.isCreating.set(false);
-      throw new Error('No enabled voice configurations for Hungarian language');
-    }
-
-    // Initialize progress tracking
     const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
       cardId: card.id,
-      cardWord: card.data.word || card.id,
+      cardWord: strategy.getCardDisplayLabel(card),
       status: 'pending',
       progress: 0,
       currentStep: 'Queued for processing',
@@ -121,7 +106,7 @@ export class BatchAudioCreationService {
     this.creationProgress.set(initialProgress);
 
     const results = await Promise.allSettled(
-      cards.map((card, index) => this.createAudioForSingleCard(card, index))
+      cards.map((card, index) => this.createAudioForSingleCard(card, index, strategy))
     );
 
     this.isCreating.set(false);
@@ -147,127 +132,52 @@ export class BatchAudioCreationService {
     };
   }
 
+  private getMissingVoiceLanguages(strategy: CardTypeStrategy): string[] {
+    const requiredLanguages = strategy.requiredAudioLanguages();
+    return requiredLanguages.filter(
+      (language) => !this.voiceConfigs.some((config) => config.language === language)
+    );
+  }
+
   private async createAudioForSingleCard(
     card: Card,
-    progressIndex: number
+    progressIndex: number,
+    strategy: CardTypeStrategy
   ): Promise<void> {
-    const audioList: AudioData[] = card.data.audio || [];
-
-    // Select one voice/model pair for each language for this card
-    const germanVoice = this.getVoiceForLanguage(LANGUAGE_CODES.GERMAN);
-    const hungarianVoice = this.getVoiceForLanguage(LANGUAGE_CODES.HUNGARIAN);
+    const existingAudioList: AudioData[] = card.data.audio || [];
 
     try {
-      // Step 0: Clean up unused audio entries (15% progress)
       this.updateProgress(
         progressIndex,
         'updating-card',
-        15,
+        10,
         'Cleaning up unused audio...'
       );
-      const cleanedAudioList = await this.cleanupUnusedAudioKeys(card, audioList);
+      const cleanedAudioList = await this.cleanupUnusedAudio(card, existingAudioList, strategy);
 
-      // Step 1: Generate audio for the German word (30% progress)
       this.updateProgress(
         progressIndex,
-        'generating-word-audio',
-        30,
-        'Generating audio for German word...'
+        'generating-audio',
+        20,
+        'Generating audio...'
       );
-      if (card.data.word && !this.hasAudioForText(cleanedAudioList, card.data.word)) {
-        const wordAudioResponse = await fetchJson<AudioData>(
-          this.http,
-          `/api/audio`,
-          {
-            body: {
-              input: card.data.word,
-              voice: germanVoice.voice,
-              model: germanVoice.model,
-              language: LANGUAGE_CODES.GERMAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          }
-        );
-        cleanedAudioList.push(wordAudioResponse);
-      }
 
-      // Step 2: Generate audio for Hungarian translation (55% progress)
-      this.updateProgress(
+      const audioItems = strategy.getAudioItems(card);
+      const itemsNeedingAudio = audioItems.filter(
+        (item) => !this.hasAudioForText(cleanedAudioList, item.text)
+      );
+
+      const totalItems = itemsNeedingAudio.length;
+      const progressPerItem = totalItems > 0 ? 60 / totalItems : 0;
+
+      const generatedAudio = await this.generateAudioForItems(
+        itemsNeedingAudio,
         progressIndex,
-        'generating-translation-audio',
-        55,
-        'Generating audio for translation...'
+        progressPerItem
       );
-      if (
-        card.data.translation?.['hu'] &&
-        !this.hasAudioForText(cleanedAudioList, card.data.translation['hu'])
-      ) {
-        const translationAudioResponse = await fetchJson<AudioData>(
-          this.http,
-          `/api/audio`,
-          {
-            body: {
-              input: card.data.translation['hu'],
-              voice: hungarianVoice.voice,
-              model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          }
-        );
-        cleanedAudioList.push(translationAudioResponse);
-      }
 
-      // Step 3: Generate audio for selected example and its translation (80% progress)
-      this.updateProgress(
-        progressIndex,
-        'generating-example-audio',
-        80,
-        'Generating audio for examples...'
-      );
-      const selectedExample = card.data.examples?.find(
-        (example: any) => example.isSelected
-      );
-      if (selectedExample) {
-        // German example
-        if (selectedExample['de'] && !this.hasAudioForText(cleanedAudioList, selectedExample['de'])) {
-          const exampleAudioResponse = await fetchJson<AudioData>(
-            this.http,
-            `/api/audio`,
-            {
-              body: {
-                input: selectedExample['de'],
-                voice: germanVoice.voice,
-                model: germanVoice.model,
-                language: LANGUAGE_CODES.GERMAN,
-                selected: true
-              } satisfies AudioSourceRequest,
-              method: 'POST',
-            }
-          );
-          cleanedAudioList.push(exampleAudioResponse);
-        }
+      const finalAudioList = [...cleanedAudioList, ...generatedAudio];
 
-        // Hungarian example translation
-        if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
-          const exampleTranslationAudioResponse = await fetchJson<AudioData>(
-            this.http, `/api/audio`, {
-            body: {
-              input: selectedExample['hu'],
-              voice: hungarianVoice.voice,
-              model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          });
-          cleanedAudioList.push(exampleTranslationAudioResponse);
-        }
-      }
-
-      // Step 4: Update card with audio IDs (90% progress)
       this.updateProgress(
         progressIndex,
         'updating-card',
@@ -275,22 +185,19 @@ export class BatchAudioCreationService {
         'Updating card with audio data...'
       );
 
-      // Create the updated card data by merging existing data with new audio
       const updatedCardData: Partial<Card> = {
         data: {
           ...card.data,
-          audio: cleanedAudioList,
+          audio: finalAudioList,
         },
         readiness: 'READY',
       };
 
-      // Update the card
       await fetchJson(this.http, `/api/card/${card.id}`, {
         body: mapCardDatesToISOStrings(updatedCardData),
         method: 'PUT',
       });
 
-      // Step 5: Complete (100% progress)
       this.updateProgress(progressIndex, 'completed', 100);
     } catch (error) {
       this.updateProgress(
@@ -303,90 +210,91 @@ export class BatchAudioCreationService {
     }
   }
 
+  private async generateAudioForItems(
+    items: AudioGenerationItem[],
+    progressIndex: number,
+    progressPerItem: number
+  ): Promise<AudioData[]> {
+    const results: AudioData[] = [];
+    let currentProgress = 20;
+
+    for (const item of items) {
+      const voice = this.getVoiceForLanguage(item.language);
+      const audioData = await fetchJson<AudioData>(
+        this.http,
+        `/api/audio`,
+        {
+          body: {
+            input: item.text,
+            voice: voice.voice,
+            model: voice.model,
+            language: item.language,
+            selected: true
+          } satisfies AudioSourceRequest,
+          method: 'POST',
+        }
+      );
+      results.push(audioData);
+      currentProgress += progressPerItem;
+      this.updateProgress(
+        progressIndex,
+        'generating-audio',
+        Math.min(currentProgress, 80),
+        `Generated audio for "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
+      );
+    }
+
+    return results;
+  }
+
   private updateProgress(
     index: number,
     status: AudioCreationProgress['status'],
     progress: number,
     currentStep?: string
   ): void {
-    this.creationProgress.update((progressList) => {
-      const newProgress = [...progressList];
-      if (newProgress[index]) {
-        newProgress[index] = {
-          ...newProgress[index],
-          status,
-          progress,
-          currentStep,
-        };
-      }
-      return newProgress;
-    });
+    this.creationProgress.update((progressList) =>
+      progressList.map((item, i) =>
+        i === index
+          ? { ...item, status, progress, currentStep }
+          : item
+      )
+    );
   }
 
-  /**
-   * Clean up audio keys that are no longer needed based on current card data
-   */
-  private async cleanupUnusedAudioKeys(
+  private async cleanupUnusedAudio(
     card: Card,
-    audioList: AudioData[]
+    audioList: AudioData[],
+    strategy: CardTypeStrategy
   ): Promise<AudioData[]> {
-    // Collect all text keys that should have audio based on current card data
-    const validAudioKeys = new Set<string>();
+    const validAudioTexts = strategy.getValidAudioTexts(card);
 
-    // Add word if exists
-    if (card.data.word) {
-      validAudioKeys.add(card.data.word);
-    }
-
-    // Add Hungarian translation if exists
-    if (card.data.translation?.['hu']) {
-      validAudioKeys.add(card.data.translation['hu']);
-    }
-
-    // Add selected example texts if they exist
-    const selectedExample = card.data.examples?.find(
-      (example: any) => example.isSelected
-    );
-    if (selectedExample) {
-      if (selectedExample['de']) {
-        validAudioKeys.add(selectedExample['de']);
-      }
-      if (selectedExample['hu']) {
-        validAudioKeys.add(selectedExample['hu']);
-      }
-    }
-
-    // Create new audio list with only valid keys
-    const cleanedAudioList: AudioData[] = [];
-    const audioKeysToDelete: string[] = [];
-
-    // Check existing audio entries
-    for (const audioEntry of audioList) {
-      if (audioEntry.text && validAudioKeys.has(audioEntry.text)) {
-        // Keep this audio entry
-        cleanedAudioList.push(audioEntry);
-      } else {
-        // Mark for deletion
-        audioKeysToDelete.push(audioEntry.id);
-      }
-    }
-
-    // Delete unused audio files from blob storage
-    if (audioKeysToDelete.length > 0) {
-      try {
-        // Call backend to delete audio files
-        for (const audioId of audioKeysToDelete) {
-          await fetchJson(this.http, `/api/audio/${audioId}`, {
-            method: 'DELETE',
-          });
+    const { toKeep, toDelete } = audioList.reduce<{
+      toKeep: AudioData[];
+      toDelete: string[];
+    }>(
+      (acc, audioEntry) => {
+        if (audioEntry.text && validAudioTexts.has(audioEntry.text)) {
+          return { ...acc, toKeep: [...acc.toKeep, audioEntry] };
         }
+        return { ...acc, toDelete: [...acc.toDelete, audioEntry.id] };
+      },
+      { toKeep: [], toDelete: [] }
+    );
+
+    if (toDelete.length > 0) {
+      try {
+        await Promise.all(
+          toDelete.map((audioId) =>
+            fetchJson(this.http, `/api/audio/${audioId}`, { method: 'DELETE' })
+          )
+        );
       } catch (error) {
         console.warn('Failed to delete some unused audio files:', error);
-        // Continue processing even if cleanup fails
       }
     }
 
-    return cleanedAudioList;
+    return toKeep;
   }
 
   private hasAudioForText(audioList: AudioData[], text: string): boolean {

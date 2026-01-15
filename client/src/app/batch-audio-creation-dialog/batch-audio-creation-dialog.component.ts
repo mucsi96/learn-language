@@ -32,17 +32,13 @@ export class BatchAudioCreationDialogComponent {
     switch (status) {
       case 'pending':
         return 'schedule';
-      case 'generating-word-audio':
-      case 'generating-translation-audio':
-      case 'generating-example-audio':
+      case 'generating-audio':
       case 'updating-card':
         return 'sync';
       case 'completed':
         return 'check_circle';
       case 'error':
         return 'error';
-      default:
-        return 'help';
     }
   }
 
@@ -50,17 +46,13 @@ export class BatchAudioCreationDialogComponent {
     switch (status) {
       case 'pending':
         return 'status-icon pending';
-      case 'generating-word-audio':
-      case 'generating-translation-audio':
-      case 'generating-example-audio':
+      case 'generating-audio':
       case 'updating-card':
         return 'status-icon in-progress';
       case 'completed':
         return 'status-icon completed';
       case 'error':
         return 'status-icon error';
-      default:
-        return 'status-icon';
     }
   }
 
