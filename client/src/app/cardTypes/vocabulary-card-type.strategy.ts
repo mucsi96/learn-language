@@ -12,7 +12,10 @@ import {
   ExtractionRequest,
   ExtractedItem,
   WordList,
+  AudioGenerationItem,
+  Card,
 } from '../parser/types';
+import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 
 interface WordTypeResponse {
   type: string;
@@ -209,5 +212,61 @@ export class VocabularyCardType implements CardTypeStrategy {
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  getRequiredLanguagesForAudio(): string[] {
+    return [LANGUAGE_CODES.GERMAN, LANGUAGE_CODES.HUNGARIAN];
+  }
+
+  getAudioItemsFromCard(card: Card): AudioGenerationItem[] {
+    const items: AudioGenerationItem[] = [];
+
+    if (card.data.word) {
+      items.push({ text: card.data.word, language: LANGUAGE_CODES.GERMAN });
+    }
+
+    if (card.data.translation?.['hu']) {
+      items.push({ text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN });
+    }
+
+    const selectedExample = card.data.examples?.find(example => example.isSelected);
+    if (selectedExample) {
+      if (selectedExample['de']) {
+        items.push({ text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN });
+      }
+      if (selectedExample['hu']) {
+        items.push({ text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN });
+      }
+    }
+
+    return items;
+  }
+
+  getValidAudioTextsFromCard(card: Card): Set<string> {
+    const validTexts = new Set<string>();
+
+    if (card.data.word) {
+      validTexts.add(card.data.word);
+    }
+
+    if (card.data.translation?.['hu']) {
+      validTexts.add(card.data.translation['hu']);
+    }
+
+    const selectedExample = card.data.examples?.find(example => example.isSelected);
+    if (selectedExample) {
+      if (selectedExample['de']) {
+        validTexts.add(selectedExample['de']);
+      }
+      if (selectedExample['hu']) {
+        validTexts.add(selectedExample['hu']);
+      }
+    }
+
+    return validTexts;
+  }
+
+  getCardDisplayLabel(card: Card): string {
+    return card.data.word || card.id;
   }
 }

@@ -122,6 +122,11 @@ export type CardCreationResult = {
   imageGenerationInfos: ImageGenerationInfo[];
 };
 
+export type AudioGenerationItem = {
+  text: string;
+  language: string;
+};
+
 export type CardTypeStrategy = {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
@@ -134,6 +139,10 @@ export type CardTypeStrategy = {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult>;
+  getRequiredLanguagesForAudio(): string[];
+  getAudioItemsFromCard(card: Card): AudioGenerationItem[];
+  getValidAudioTextsFromCard(card: Card): Set<string>;
+  getCardDisplayLabel(card: Card): string;
 };
 
 export type SourceFormatType =

@@ -32,9 +32,7 @@ export class BatchAudioCreationDialogComponent {
     switch (status) {
       case 'pending':
         return 'schedule';
-      case 'generating-word-audio':
-      case 'generating-translation-audio':
-      case 'generating-example-audio':
+      case 'generating-audio':
       case 'updating-card':
         return 'sync';
       case 'completed':
@@ -50,9 +48,7 @@ export class BatchAudioCreationDialogComponent {
     switch (status) {
       case 'pending':
         return 'status-icon pending';
-      case 'generating-word-audio':
-      case 'generating-translation-audio':
-      case 'generating-example-audio':
+      case 'generating-audio':
       case 'updating-card':
         return 'status-icon in-progress';
       case 'completed':
