@@ -4,6 +4,11 @@
 
 ## General Code style
 - Avoid fallback values that hide missing data - prefer crashes over silent incorrect behavior
+- Prefer functional programming over procedural
+- Avoid variable mutations - use `const` and create new values instead of modifying existing ones
+- Never use `push` - use spread operator (`[...arr, newItem]`) or functional methods
+- Never use `for` or `while` loops - use functional array methods (`map`, `filter`, `reduce`, `flatMap`, `find`, `some`, `every`, etc.)
+- Prefer immutable data transformations over in-place modifications
 
 ## Java Code style
 - Prefer using lombok
@@ -21,7 +26,7 @@
 
 ## Angular Code style
 - Make sure the UI is testable using role based selectors and selectors based on accesibility
-- Prefer functional code over procedural
+- Follow functional programming patterns from General Code style section
 - Prefer using Angular Material components
 - Prefer using Angular signal / resource for state management
 - Prefer putting styles and templates to separate files
