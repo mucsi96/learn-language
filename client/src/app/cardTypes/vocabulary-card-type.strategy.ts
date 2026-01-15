@@ -16,6 +16,7 @@ import {
   Card,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
+import { nonNullable } from '../utils/type-guards';
 
 interface WordTypeResponse {
   type: string;
@@ -225,13 +226,11 @@ export class VocabularyCardType implements CardTypeStrategy {
   getAudioItems(card: Card): AudioGenerationItem[] {
     const selectedExample = card.data.examples?.find(example => example.isSelected);
 
-    const items: (AudioGenerationItem | null)[] = [
+    return [
       card.data.word ? { text: card.data.word, language: LANGUAGE_CODES.GERMAN } : null,
       card.data.translation?.['hu'] ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN } : null,
       selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN } : null,
       selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN } : null,
-    ];
-
-    return items.filter((item): item is AudioGenerationItem => item !== null);
+    ].filter(nonNullable);
   }
 }

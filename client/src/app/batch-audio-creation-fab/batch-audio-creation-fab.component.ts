@@ -61,7 +61,7 @@ export class BatchAudioCreationFabComponent {
       const allSources = await fetchJson<Source[]>(this.http, '/api/sources');
       const sourceCardTypes = new Map(
         allSources
-          .filter(source => sourceIds.includes(String(source.id)))
+          .filter(source => sourceIds.includes(source.id))
           .map(source => [source.id, source.cardType])
       );
 
