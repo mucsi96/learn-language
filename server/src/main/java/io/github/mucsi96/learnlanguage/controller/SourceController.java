@@ -27,8 +27,12 @@ import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
+import io.github.mucsi96.learnlanguage.service.AreaSentencesService;
+import io.github.mucsi96.learnlanguage.service.SentenceIdService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
@@ -50,6 +54,8 @@ public class SourceController {
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
+  private final AreaSentencesService areaSentencesService;
+  private final SentenceIdService sentenceIdService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -80,6 +86,7 @@ public class SourceController {
           .pageCount(pageCount)
           .cardCount(cardCount)
           .languageLevel(source.getLanguageLevel())
+          .cardType(source.getCardType())
           .formatType(source.getFormatType())
           .build();
     }).collect(Collectors.toList());
@@ -127,6 +134,45 @@ public class SourceController {
 
     return WordListResponse.builder()
         .words(filteredWords)
+        .x(x)
+        .y(y)
+        .width(width)
+        .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/sentences")
+  public SentenceListResponse getSentences(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam Double x,
+      @RequestParam Double y,
+      @RequestParam Double width,
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
+
+    var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+
+    var areaSentences = areaSentencesService.getAreaSentences(imageData, model, source.getLanguageLevel());
+
+    var sentencesWithIds = areaSentences.stream()
+        .map(sentence -> {
+          String id = sentenceIdService.generateSentenceId(sentence);
+          boolean exists = cardService.cardExists(id);
+          return SentenceResponse.builder()
+              .id(id)
+              .exists(exists)
+              .sentence(sentence)
+              .build();
+        })
+        .toList();
+
+    return SentenceListResponse.builder()
+        .sentences(sentencesWithIds)
         .x(x)
         .y(y)
         .width(width)

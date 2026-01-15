@@ -28,6 +28,10 @@ export type Word = ExtractedItem & {
   examples: string[];
 };
 
+export type Sentence = ExtractedItem & {
+  sentence: string;
+};
+
 export type ExampleImage = {
   id: string;
   isFavorite?: boolean;
@@ -35,7 +39,8 @@ export type ExampleImage = {
 };
 
 export type CardData = {
-  word: string;
+  word?: string;
+  sentence?: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;
@@ -44,6 +49,7 @@ export type CardData = {
     isSelected?: boolean;
     images?: ExampleImage[];
   })[];
+  images?: ExampleImage[];
   audio?: AudioData[];
   audioVoice?: string;
 };
@@ -83,7 +89,7 @@ export type Page = {
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary';
+export type CardType = 'vocabulary' | 'speech';
 
 export type ExtractedItem = {
   id: string;
@@ -156,6 +162,14 @@ export type Source = {
 
 export type WordList = {
   words: Word[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type SentenceList = {
+  sentences: Sentence[];
   x: number;
   y: number;
   width: number;

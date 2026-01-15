@@ -270,8 +270,17 @@ export class BulkCardCreationService {
     await Promise.all(
       Array.from(imagesByCard.entries()).map(async ([cardId, exampleImagesMap]) => {
         const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+        const isSpeechCard = !!card.data.sentence;
 
-        if (card.data.examples) {
+        if (isSpeechCard) {
+          // Speech card: images go at card level (data.images)
+          const allImages = exampleImagesMap.get(0) || [];
+          await fetchJson(this.http, `/api/card/${cardId}`, {
+            body: { data: { ...card.data, images: [...(card.data.images || []), ...allImages] } },
+            method: 'PUT',
+          });
+        } else if (card.data.examples) {
+          // Vocabulary card: images go at example level
           const updatedExamples = card.data.examples.map((example, idx) => ({
             ...example,
             images: [...(example.images || []), ...(exampleImagesMap.get(idx) || [])]

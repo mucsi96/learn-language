@@ -112,7 +112,7 @@ export class BatchAudioCreationService {
     // Initialize progress tracking
     const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
       cardId: card.id,
-      cardWord: card.data.word || card.id,
+      cardWord: card.data.word || card.data.sentence || card.id,
       status: 'pending',
       progress: 0,
       currentStep: 'Queued for processing',
@@ -152,6 +152,7 @@ export class BatchAudioCreationService {
     progressIndex: number
   ): Promise<void> {
     const audioList: AudioData[] = card.data.audio || [];
+    const isSpeechCard = !!card.data.sentence;
 
     // Select one voice/model pair for each language for this card
     const germanVoice = this.getVoiceForLanguage(LANGUAGE_CODES.GERMAN);
@@ -167,78 +168,22 @@ export class BatchAudioCreationService {
       );
       const cleanedAudioList = await this.cleanupUnusedAudioKeys(card, audioList);
 
-      // Step 1: Generate audio for the German word (30% progress)
-      this.updateProgress(
-        progressIndex,
-        'generating-word-audio',
-        30,
-        'Generating audio for German word...'
-      );
-      if (card.data.word && !this.hasAudioForText(cleanedAudioList, card.data.word)) {
-        const wordAudioResponse = await fetchJson<AudioData>(
-          this.http,
-          `/api/audio`,
-          {
-            body: {
-              input: card.data.word,
-              voice: germanVoice.voice,
-              model: germanVoice.model,
-              language: LANGUAGE_CODES.GERMAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          }
+      if (isSpeechCard) {
+        // Speech card: Generate audio for sentence and translation
+        // Step 1: Generate audio for German sentence (50% progress)
+        this.updateProgress(
+          progressIndex,
+          'generating-word-audio',
+          50,
+          'Generating audio for German sentence...'
         );
-        cleanedAudioList.push(wordAudioResponse);
-      }
-
-      // Step 2: Generate audio for Hungarian translation (55% progress)
-      this.updateProgress(
-        progressIndex,
-        'generating-translation-audio',
-        55,
-        'Generating audio for translation...'
-      );
-      if (
-        card.data.translation?.['hu'] &&
-        !this.hasAudioForText(cleanedAudioList, card.data.translation['hu'])
-      ) {
-        const translationAudioResponse = await fetchJson<AudioData>(
-          this.http,
-          `/api/audio`,
-          {
-            body: {
-              input: card.data.translation['hu'],
-              voice: hungarianVoice.voice,
-              model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          }
-        );
-        cleanedAudioList.push(translationAudioResponse);
-      }
-
-      // Step 3: Generate audio for selected example and its translation (80% progress)
-      this.updateProgress(
-        progressIndex,
-        'generating-example-audio',
-        80,
-        'Generating audio for examples...'
-      );
-      const selectedExample = card.data.examples?.find(
-        (example: any) => example.isSelected
-      );
-      if (selectedExample) {
-        // German example
-        if (selectedExample['de'] && !this.hasAudioForText(cleanedAudioList, selectedExample['de'])) {
-          const exampleAudioResponse = await fetchJson<AudioData>(
+        if (card.data.sentence && !this.hasAudioForText(cleanedAudioList, card.data.sentence)) {
+          const sentenceAudioResponse = await fetchJson<AudioData>(
             this.http,
             `/api/audio`,
             {
               body: {
-                input: selectedExample['de'],
+                input: card.data.sentence,
                 voice: germanVoice.voice,
                 model: germanVoice.model,
                 language: LANGUAGE_CODES.GERMAN,
@@ -247,23 +192,136 @@ export class BatchAudioCreationService {
               method: 'POST',
             }
           );
-          cleanedAudioList.push(exampleAudioResponse);
+          cleanedAudioList.push(sentenceAudioResponse);
         }
 
-        // Hungarian example translation
-        if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
-          const exampleTranslationAudioResponse = await fetchJson<AudioData>(
-            this.http, `/api/audio`, {
-            body: {
-              input: selectedExample['hu'],
-              voice: hungarianVoice.voice,
-              model: hungarianVoice.model,
-              language: LANGUAGE_CODES.HUNGARIAN,
-              selected: true
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          });
-          cleanedAudioList.push(exampleTranslationAudioResponse);
+        // Step 2: Generate audio for Hungarian translation (80% progress)
+        this.updateProgress(
+          progressIndex,
+          'generating-translation-audio',
+          80,
+          'Generating audio for Hungarian translation...'
+        );
+        if (
+          card.data.translation?.['hu'] &&
+          !this.hasAudioForText(cleanedAudioList, card.data.translation['hu'])
+        ) {
+          const translationAudioResponse = await fetchJson<AudioData>(
+            this.http,
+            `/api/audio`,
+            {
+              body: {
+                input: card.data.translation['hu'],
+                voice: hungarianVoice.voice,
+                model: hungarianVoice.model,
+                language: LANGUAGE_CODES.HUNGARIAN,
+                selected: true
+              } satisfies AudioSourceRequest,
+              method: 'POST',
+            }
+          );
+          cleanedAudioList.push(translationAudioResponse);
+        }
+      } else {
+        // Vocabulary card: Original logic
+        // Step 1: Generate audio for the German word (30% progress)
+        this.updateProgress(
+          progressIndex,
+          'generating-word-audio',
+          30,
+          'Generating audio for German word...'
+        );
+        if (card.data.word && !this.hasAudioForText(cleanedAudioList, card.data.word)) {
+          const wordAudioResponse = await fetchJson<AudioData>(
+            this.http,
+            `/api/audio`,
+            {
+              body: {
+                input: card.data.word,
+                voice: germanVoice.voice,
+                model: germanVoice.model,
+                language: LANGUAGE_CODES.GERMAN,
+                selected: true
+              } satisfies AudioSourceRequest,
+              method: 'POST',
+            }
+          );
+          cleanedAudioList.push(wordAudioResponse);
+        }
+
+        // Step 2: Generate audio for Hungarian translation (55% progress)
+        this.updateProgress(
+          progressIndex,
+          'generating-translation-audio',
+          55,
+          'Generating audio for translation...'
+        );
+        if (
+          card.data.translation?.['hu'] &&
+          !this.hasAudioForText(cleanedAudioList, card.data.translation['hu'])
+        ) {
+          const translationAudioResponse = await fetchJson<AudioData>(
+            this.http,
+            `/api/audio`,
+            {
+              body: {
+                input: card.data.translation['hu'],
+                voice: hungarianVoice.voice,
+                model: hungarianVoice.model,
+                language: LANGUAGE_CODES.HUNGARIAN,
+                selected: true
+              } satisfies AudioSourceRequest,
+              method: 'POST',
+            }
+          );
+          cleanedAudioList.push(translationAudioResponse);
+        }
+
+        // Step 3: Generate audio for selected example and its translation (80% progress)
+        this.updateProgress(
+          progressIndex,
+          'generating-example-audio',
+          80,
+          'Generating audio for examples...'
+        );
+        const selectedExample = card.data.examples?.find(
+          (example: any) => example.isSelected
+        );
+        if (selectedExample) {
+          // German example
+          if (selectedExample['de'] && !this.hasAudioForText(cleanedAudioList, selectedExample['de'])) {
+            const exampleAudioResponse = await fetchJson<AudioData>(
+              this.http,
+              `/api/audio`,
+              {
+                body: {
+                  input: selectedExample['de'],
+                  voice: germanVoice.voice,
+                  model: germanVoice.model,
+                  language: LANGUAGE_CODES.GERMAN,
+                  selected: true
+                } satisfies AudioSourceRequest,
+                method: 'POST',
+              }
+            );
+            cleanedAudioList.push(exampleAudioResponse);
+          }
+
+          // Hungarian example translation
+          if (selectedExample['hu'] && !this.hasAudioForText(cleanedAudioList, selectedExample['hu'])) {
+            const exampleTranslationAudioResponse = await fetchJson<AudioData>(
+              this.http, `/api/audio`, {
+              body: {
+                input: selectedExample['hu'],
+                voice: hungarianVoice.voice,
+                model: hungarianVoice.model,
+                language: LANGUAGE_CODES.HUNGARIAN,
+                selected: true
+              } satisfies AudioSourceRequest,
+              method: 'POST',
+            });
+            cleanedAudioList.push(exampleTranslationAudioResponse);
+          }
         }
       }
 
@@ -332,27 +390,39 @@ export class BatchAudioCreationService {
   ): Promise<AudioData[]> {
     // Collect all text keys that should have audio based on current card data
     const validAudioKeys = new Set<string>();
+    const isSpeechCard = !!card.data.sentence;
 
-    // Add word if exists
-    if (card.data.word) {
-      validAudioKeys.add(card.data.word);
-    }
-
-    // Add Hungarian translation if exists
-    if (card.data.translation?.['hu']) {
-      validAudioKeys.add(card.data.translation['hu']);
-    }
-
-    // Add selected example texts if they exist
-    const selectedExample = card.data.examples?.find(
-      (example: any) => example.isSelected
-    );
-    if (selectedExample) {
-      if (selectedExample['de']) {
-        validAudioKeys.add(selectedExample['de']);
+    if (isSpeechCard) {
+      // Speech card: sentence and Hungarian translation
+      if (card.data.sentence) {
+        validAudioKeys.add(card.data.sentence);
       }
-      if (selectedExample['hu']) {
-        validAudioKeys.add(selectedExample['hu']);
+      if (card.data.translation?.['hu']) {
+        validAudioKeys.add(card.data.translation['hu']);
+      }
+    } else {
+      // Vocabulary card: word, translation, and examples
+      // Add word if exists
+      if (card.data.word) {
+        validAudioKeys.add(card.data.word);
+      }
+
+      // Add Hungarian translation if exists
+      if (card.data.translation?.['hu']) {
+        validAudioKeys.add(card.data.translation['hu']);
+      }
+
+      // Add selected example texts if they exist
+      const selectedExample = card.data.examples?.find(
+        (example: any) => example.isSelected
+      );
+      if (selectedExample) {
+        if (selectedExample['de']) {
+          validAudioKeys.add(selectedExample['de']);
+        }
+        if (selectedExample['hu']) {
+          validAudioKeys.add(selectedExample['hu']);
+        }
       }
     }
 

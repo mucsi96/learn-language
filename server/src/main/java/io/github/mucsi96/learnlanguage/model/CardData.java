@@ -17,12 +17,16 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class CardData {
     private String word;
+    @JsonInclude(Include.NON_NULL)
+    private String sentence;
     private String type;
     @JsonInclude(Include.NON_DEFAULT)
     private String gender;
     private Map<String, String> translation;
     private List<String> forms;
     private List<ExampleData> examples;
+    @JsonInclude(Include.NON_NULL)
+    private List<ExampleImageData> images;
 
     @JsonInclude(Include.NON_NULL)
     private List<AudioData> audio;

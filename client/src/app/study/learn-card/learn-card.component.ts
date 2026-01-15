@@ -15,6 +15,7 @@ import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
+import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
@@ -32,6 +33,7 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
     CardGradingButtonsComponent,
     CardActionsComponent,
     LearnVocabularyCardComponent,
+    LearnSpeechCardComponent,
     LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
@@ -53,6 +55,11 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly card = computed<Card | null | undefined>(() => {
     return this.currentCardData.value()?.card;
+  });
+
+  readonly isSpeechCard = computed(() => {
+    const cardData = this.card()?.data;
+    return cardData?.sentence !== undefined && cardData?.sentence !== null;
   });
 
   readonly isRevealed = signal(false);

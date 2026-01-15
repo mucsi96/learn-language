@@ -23,6 +23,10 @@ public class CardService {
     return cardRepository.findById(id);
   }
 
+  public boolean cardExists(String id) {
+    return cardRepository.existsById(id);
+  }
+
   public List<Card> getCardsByIds(List<String> ids) {
     return cardRepository.findByIdIn(ids);
   }
@@ -79,33 +83,50 @@ public class CardService {
 
     var cardData = card.getData();
     var audioList = cardData.getAudio() != null ? cardData.getAudio() : List.<AudioData>of();
+    boolean isSpeechCard = hasText(cardData.getSentence());
 
-    if (hasText(cardData.getWord()) && !hasAudioForText(audioList, cardData.getWord())) {
-      return true;
-    }
-
-    Map<String, String> translation = cardData.getTranslation();
-    if (translation != null) {
-      var hungarianTranslation = translation.get("hu");
-      if (hasText(hungarianTranslation) && !hasAudioForText(audioList, hungarianTranslation)) {
+    if (isSpeechCard) {
+      // Speech card: check sentence and Hungarian translation
+      if (hasText(cardData.getSentence()) && !hasAudioForText(audioList, cardData.getSentence())) {
         return true;
       }
-    }
 
-    if (cardData.getExamples() != null) {
-      var selectedExample = cardData.getExamples().stream()
-          .filter(example -> Boolean.TRUE.equals(example.getIsSelected()))
-          .findFirst();
-
-      if (selectedExample.isPresent()) {
-        var example = selectedExample.get();
-
-        if (hasText(example.getDe()) && !hasAudioForText(audioList, example.getDe())) {
+      Map<String, String> translation = cardData.getTranslation();
+      if (translation != null) {
+        var hungarianTranslation = translation.get("hu");
+        if (hasText(hungarianTranslation) && !hasAudioForText(audioList, hungarianTranslation)) {
           return true;
         }
+      }
+    } else {
+      // Vocabulary card: check word, translation, and examples
+      if (hasText(cardData.getWord()) && !hasAudioForText(audioList, cardData.getWord())) {
+        return true;
+      }
 
-        if (hasText(example.getHu()) && !hasAudioForText(audioList, example.getHu())) {
+      Map<String, String> translation = cardData.getTranslation();
+      if (translation != null) {
+        var hungarianTranslation = translation.get("hu");
+        if (hasText(hungarianTranslation) && !hasAudioForText(audioList, hungarianTranslation)) {
           return true;
+        }
+      }
+
+      if (cardData.getExamples() != null) {
+        var selectedExample = cardData.getExamples().stream()
+            .filter(example -> Boolean.TRUE.equals(example.getIsSelected()))
+            .findFirst();
+
+        if (selectedExample.isPresent()) {
+          var example = selectedExample.get();
+
+          if (hasText(example.getDe()) && !hasAudioForText(audioList, example.getDe())) {
+            return true;
+          }
+
+          if (hasText(example.getHu()) && !hasAudioForText(audioList, example.getHu())) {
+            return true;
+          }
         }
       }
     }
