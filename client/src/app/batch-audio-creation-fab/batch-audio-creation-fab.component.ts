@@ -58,11 +58,11 @@ export class BatchAudioCreationFabComponent {
     try {
       const cardsBySource = this.groupCardsBySource(cards);
       const sourceIds = Object.keys(cardsBySource);
-      const sources = await Promise.all(
-        sourceIds.map(id => fetchJson<Source>(this.http, `/api/sources/${id}`))
-      );
+      const allSources = await fetchJson<Source[]>(this.http, '/api/sources');
       const sourceCardTypes = new Map(
-        sources.map(source => [source.id, source.cardType])
+        allSources
+          .filter(source => sourceIds.includes(String(source.id)))
+          .map(source => [source.id, source.cardType])
       );
 
       const results = await sourceIds.reduce<Promise<{ successful: number; failed: number }>>(
