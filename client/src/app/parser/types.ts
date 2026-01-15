@@ -142,7 +142,6 @@ export type CardTypeStrategy = {
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
   getAudioItems(card: Card): AudioGenerationItem[];
-  getValidAudioTexts(card: Card): Set<string>;
 };
 
 export type SourceFormatType =

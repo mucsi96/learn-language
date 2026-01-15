@@ -271,7 +271,7 @@ export class BatchAudioCreationService {
     audioList: AudioData[],
     strategy: CardTypeStrategy
   ): Promise<AudioData[]> {
-    const validAudioTexts = strategy.getValidAudioTexts(card);
+    const validAudioTexts = new Set(strategy.getAudioItems(card).map(item => item.text));
 
     const { toKeep, toDelete } = audioList.reduce<{
       toKeep: AudioData[];

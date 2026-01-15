@@ -234,17 +234,4 @@ export class VocabularyCardType implements CardTypeStrategy {
 
     return items.filter((item): item is AudioGenerationItem => item !== null);
   }
-
-  getValidAudioTexts(card: Card): Set<string> {
-    const selectedExample = card.data.examples?.find(example => example.isSelected);
-
-    const texts = [
-      card.data.word,
-      card.data.translation?.['hu'],
-      selectedExample?.['de'],
-      selectedExample?.['hu'],
-    ].filter((text): text is string => text !== undefined && text !== null);
-
-    return new Set(texts);
-  }
 }
