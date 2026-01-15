@@ -651,7 +651,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
 
   // Should show error because Hungarian voice is disabled
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByText('No enabled voice configurations for Hungarian language')).toBeVisible();
+  await expect(page.getByText('No enabled voice configurations for languages: hu')).toBeVisible();
 });
 
 test('bulk audio creation succeeds with all enabled voice configurations', async ({ page }) => {
