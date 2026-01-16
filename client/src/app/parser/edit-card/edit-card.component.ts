@@ -16,6 +16,7 @@ import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
 import { EditSpeechCardComponent } from './edit-speech-card/edit-speech-card.component';
 import { CardType } from '../types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-edit-card',
@@ -34,6 +35,7 @@ import { CardType } from '../types';
 export class EditCardComponent {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
   readonly inReviewCardsService = inject(InReviewCardsService);
   readonly route = inject(ActivatedRoute);
   readonly dialog = inject(MatDialog);
@@ -89,13 +91,18 @@ export class EditCardComponent {
     });
   }
 
-  getCardType(): CardType {
-    return this.card.value()?.source.cardType ?? 'vocabulary';
+  getCardType(): CardType | undefined {
+    return this.card.value()?.source.cardType;
   }
 
   getCardTypeTitle(): string {
-    const cardType = this.getCardType();
-    return cardType === 'speech' ? 'Sentence' : 'Word';
+    const card = this.card.value();
+    const cardType = card?.source.cardType;
+    if (!card || !cardType) {
+      return '';
+    }
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getCardTypeLabel(card);
   }
 
   handleCardUpdate(cardData: any) {
