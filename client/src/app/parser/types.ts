@@ -34,16 +34,19 @@ export type ExampleImage = {
   model?: string;
 };
 
+export type Example = {
+  [key: string]: string | boolean | ExampleImage[] | undefined;
+  isSelected?: boolean;
+  images?: ExampleImage[];
+};
+
 export type CardData = {
   word: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;
   forms?: string[];
-  examples?: (Record<string, string | undefined> & {
-    isSelected?: boolean;
-    images?: ExampleImage[];
-  })[];
+  examples?: Example[];
   audio?: AudioData[];
   audioVoice?: string;
 };
