@@ -54,6 +54,7 @@ export type Card = {
     id: string;
     name?: string;
     startPage?: number;
+    cardType?: CardType;
   };
   sourcePageNumber: number;
   data: CardData;

@@ -17,9 +17,8 @@ import { CardActionsComponent } from '../../shared/card-actions/card-actions.com
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
-import { Card, LanguageTexts, CardType } from '../../parser/types';
+import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
-import { SourcesService } from '../../sources.service';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
 @Component({
@@ -44,7 +43,6 @@ export class LearnCardComponent implements OnDestroy {
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
-  private readonly sourcesService = inject(SourcesService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
   readonly currentCardData = this.studySessionService.currentCard;
@@ -63,13 +61,7 @@ export class LearnCardComponent implements OnDestroy {
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;
 
-  readonly currentCardType = computed<CardType | undefined>(() => {
-    const card = this.card();
-    if (!card) return undefined;
-    const sources = this.sourcesService.sources.value();
-    const source = sources?.find(s => s.id === card.source.id);
-    return source?.cardType;
-  });
+  readonly currentCardType = computed(() => this.card()?.source.cardType);
 
   readonly languageTexts = computed<LanguageTexts[]>(() => {
     const card = this.card();

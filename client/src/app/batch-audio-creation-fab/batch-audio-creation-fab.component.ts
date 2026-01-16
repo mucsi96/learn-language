@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
-import { Card, Source } from '../parser/types';
+import { Card, CardType } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
@@ -56,24 +56,15 @@ export class BatchAudioCreationFabComponent {
     });
 
     try {
-      const cardsBySource = this.groupCardsBySource(cards);
-      const sourceIds = Object.keys(cardsBySource);
-      const allSources = await fetchJson<Source[]>(this.http, '/api/sources');
-      const sourceCardTypes = new Map(
-        allSources
-          .filter(source => sourceIds.includes(source.id))
-          .map(source => [source.id, source.cardType])
-      );
+      const cardsByCardType = this.groupCardsByCardType(cards);
+      const cardTypes = Object.keys(cardsByCardType) as CardType[];
 
-      const results = await sourceIds.reduce<Promise<{ successful: number; failed: number }>>(
-        async (accPromise, sourceId) => {
+      const results = await cardTypes.reduce<Promise<{ successful: number; failed: number }>>(
+        async (accPromise, cardType) => {
           const acc = await accPromise;
-          const sourceCards = cardsBySource[sourceId];
-          const cardType = sourceCardTypes.get(sourceId);
-          if (!cardType) {
-            return { ...acc, failed: acc.failed + sourceCards.length };
-          }
-          const result = await this.batchAudioService.createAudioInBatch(sourceCards, cardType);
+          const typeCards = cardsByCardType[cardType] ?? [];
+          if (typeCards.length === 0) return acc;
+          const result = await this.batchAudioService.createAudioInBatch(typeCards, cardType);
           return {
             successful: acc.successful + result.successfulCards,
             failed: acc.failed + result.failedCards
@@ -119,12 +110,16 @@ export class BatchAudioCreationFabComponent {
     }
   }
 
-  private groupCardsBySource(cards: Card[]): Record<string, Card[]> {
-    return cards.reduce<Record<string, Card[]>>(
-      (acc, card) => ({
-        ...acc,
-        [card.source.id]: [...(acc[card.source.id] ?? []), card]
-      }),
+  private groupCardsByCardType(cards: Card[]): Partial<Record<CardType, Card[]>> {
+    return cards.reduce<Partial<Record<CardType, Card[]>>>(
+      (acc, card) => {
+        const cardType = card.source.cardType;
+        if (!cardType) return acc;
+        return {
+          ...acc,
+          [cardType]: [...(acc[cardType] ?? []), card]
+        };
+      },
       {}
     );
   }
