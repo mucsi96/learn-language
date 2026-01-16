@@ -26,8 +26,11 @@ import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
+import io.github.mucsi96.learnlanguage.model.SpeechListResponse;
+import io.github.mucsi96.learnlanguage.model.SpeechResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
+import io.github.mucsi96.learnlanguage.service.AreaSpeechService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
@@ -50,6 +53,7 @@ public class SourceController {
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
+  private final AreaSpeechService areaSpeechService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -128,6 +132,39 @@ public class SourceController {
 
     return WordListResponse.builder()
         .words(filteredWords)
+        .x(x)
+        .y(y)
+        .width(width)
+        .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/sentences")
+  public SpeechListResponse getSentences(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam Double x,
+      @RequestParam Double y,
+      @RequestParam Double width,
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+
+    final var areaSentences = areaSpeechService.getAreaSentences(imageData, model, source.getLanguageLevel());
+
+    final var sentences = areaSentences.stream()
+        .map(sentence -> SpeechResponse.builder()
+            .sentence(sentence)
+            .build())
+        .toList();
+
+    return SpeechListResponse.builder()
+        .sentences(sentences)
         .x(x)
         .y(y)
         .width(width)

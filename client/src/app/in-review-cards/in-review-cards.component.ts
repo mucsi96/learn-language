@@ -56,4 +56,12 @@ export class InReviewCardsComponent {
     if (card.data.translation?.['ch']) translations.push(`CH: ${card.data.translation['ch']}`);
     return translations.join(' • ');
   }
+
+  isSpeechCard(card: Card): boolean {
+    return card.source.cardType === 'speech';
+  }
+
+  getDisplayWord(card: Card): string {
+    return card.data.word || '-';
+  }
 }

@@ -67,6 +67,16 @@ p {
   gap: 0.5rem;
 }
 
+.word-cell.speech-cell {
+  max-width: 400px;
+}
+
+.word-cell.speech-cell .word-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .word-text {
   font-weight: 500;
   font-size: 1.1rem;

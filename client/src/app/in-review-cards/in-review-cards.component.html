@@ -62,11 +62,11 @@
     <ng-container matColumnDef="word">
       <th mat-header-cell *matHeaderCellDef>Word</th>
       <td mat-cell *matCellDef="let card">
-        <div class="word-cell">
+        <div class="word-cell" [class.speech-cell]="isSpeechCard(card)">
           <span class="word-text">
-            {{ card.data.word }}
+            {{ getDisplayWord(card) }}
           </span>
-          @if (getGenderInfo(card.data.gender); as genderInfo) {
+          @if (!isSpeechCard(card) && getGenderInfo(card.data.gender); as genderInfo) {
           <span class="gender-text"> ({{ genderInfo.translation }}) </span>
           }
         </div>
@@ -78,7 +78,11 @@
       <th mat-header-cell *matHeaderCellDef>Type</th>
       <td mat-cell *matCellDef="let card">
         <span class="type-text">
-          {{ getWordTypeInfo(card.data.type)?.translation || "-" }}
+          @if (isSpeechCard(card)) {
+            Sentence
+          } @else {
+            {{ getWordTypeInfo(card.data.type)?.translation || "-" }}
+          }
         </span>
       </td>
     </ng-container>

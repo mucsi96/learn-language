@@ -84,11 +84,23 @@ export type Page = {
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary';
+export type CardType = 'vocabulary' | 'speech';
 
 export type ExtractedItem = {
   id: string;
   exists: boolean;
+};
+
+export type Sentence = ExtractedItem & {
+  sentence: string;
+};
+
+export type SentenceList = {
+  sentences: Sentence[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type ExtractionRequest = {

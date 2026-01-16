@@ -686,6 +686,9 @@ const ALL_OPERATION_TYPES = [
   'translation_en',
   'translation_hu',
   'translation_ch',
+  'speech_extraction',
+  'sentence_translation_hu',
+  'sentence_translation_en',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';

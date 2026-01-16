@@ -14,6 +14,8 @@ import { InReviewCardsService } from '../../in-review-cards.service';
 import { fetchJson } from '../../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
+import { EditSpeechCardComponent } from './edit-speech-card/edit-speech-card.component';
+import { CardType } from '../types';
 
 @Component({
   selector: 'app-edit-card',
@@ -24,6 +26,7 @@ import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabul
     MatIcon,
     RouterModule,
     EditVocabularyCardComponent,
+    EditSpeechCardComponent,
   ],
   templateUrl: './edit-card.component.html',
   styleUrl: './edit-card.component.css',
@@ -86,13 +89,13 @@ export class EditCardComponent {
     });
   }
 
-  getCardType(): string {
-    // For now, we only have vocabulary cards, but this can be extended
-    return 'vocabulary';
+  getCardType(): CardType {
+    return this.card.value()?.source.cardType ?? 'vocabulary';
   }
 
   getCardTypeTitle(): string {
-    return 'Word';
+    const cardType = this.getCardType();
+    return cardType === 'speech' ? 'Sentence' : 'Word';
   }
 
   handleCardUpdate(cardData: any) {

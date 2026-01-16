@@ -1,0 +1,96 @@
+<div class="sentence">
+  <mat-form-field class="field">
+    <mat-label>German Sentence</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="sentence"
+      aria-label="German sentence"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Hungarian Translation</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="hungarianTranslation"
+      aria-label="Hungarian translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>English Translation</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="englishTranslation"
+      aria-label="English translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+</div>
+
+<h2>Images</h2>
+<div class="images-section">
+  <div class="actions">
+    <button
+      mat-icon-button
+      (click)="addImage()"
+      aria-label="Add image"
+      [disabled]="areImagesLoading()"
+    >
+      <mat-icon>add_photo_alternate</mat-icon>
+    </button>
+  </div>
+  @let imgs = images(); @if (imgs && imgs.length) { @let imageResource =
+  imgs[imageCarouselIndex()]; @let url = imageResource?.value()?.url;
+  <div class="image">
+    @if(!imageResource) {
+    <mat-icon>image_not_supported</mat-icon>
+    } @else if(imageResource.isLoading()) {
+    <div class="skeleton"></div>
+    } @else if (url) {
+    <img [src]="url" [alt]="sentence()" />
+    <div
+      class="image-overlay"
+      [class.image-overlay-favorite]="imageResource.value()?.isFavorite"
+    >
+      <button
+        mat-icon-button
+        (click)="toggleFavorite(imageCarouselIndex())"
+        aria-label="Toggle favorite"
+        [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
+        [attr.aria-pressed]="imageResource.value()?.isFavorite"
+      >
+        <mat-icon>{{
+          imageResource.value()?.isFavorite ? "favorite" : "favorite_border"
+        }}</mat-icon>
+      </button>
+    </div>
+    } @else {
+    <mat-icon>image_not_supported</mat-icon>
+    } @if (imageResource?.value()?.model) {
+    <span class="model-name">{{ imageResource.value()?.model }}</span>
+    }
+    <div class="carousel-controls">
+      <button
+        mat-icon-button
+        (click)="prevImage()"
+        [disabled]="imgs.length < 2 || imageCarouselIndex() === 0"
+        aria-label="Previous image"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span class="carousel-indicator">
+        {{ imageCarouselIndex() + 1 }} / {{ imgs.length }}
+      </span>
+      <button
+        mat-icon-button
+        (click)="nextImage()"
+        [disabled]="imgs.length < 2 || imageCarouselIndex() === imgs.length - 1"
+        aria-label="Next image"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+  }
+</div>
