@@ -14,6 +14,8 @@ import {
   WordList,
   AudioGenerationItem,
   Card,
+  CardData,
+  ImagesByIndex,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
@@ -232,5 +234,22 @@ export class VocabularyCardType implements CardTypeStrategy {
       selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN } : null,
       selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN } : null,
     ].filter(nonNullable);
+  }
+
+  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData {
+    if (!cardData.examples) {
+      return cardData;
+    }
+
+    const updatedExamples = cardData.examples.map((example, idx) => {
+      const existingImages = example.images ?? [];
+      const newImages = images.get(idx) ?? [];
+      return {
+        ...example,
+        images: [...existingImages, ...newImages]
+      } as typeof example;
+    });
+
+    return { ...cardData, examples: updatedExamples };
   }
 }

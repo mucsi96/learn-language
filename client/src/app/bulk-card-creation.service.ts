@@ -11,6 +11,7 @@ import {
   CardType,
   ImageGenerationInfo,
   ExtractedItem,
+  ImagesByIndex,
 } from './parser/types';
 import {
   CardCreationProgress,
@@ -115,7 +116,7 @@ export class BulkCardCreationService {
       .map(result => result.reason?.message || 'Unknown error');
 
     if (allImageInfos.length > 0) {
-      await this.generateAllImagesInParallel(allImageInfos, cardIdToProgressIndex);
+      await this.generateAllImagesInParallel(allImageInfos, cardIdToProgressIndex, cardType);
     } else {
       this.creationProgress.update(progressList =>
         progressList.map(p => p.status === 'generating-images'
@@ -184,8 +185,10 @@ export class BulkCardCreationService {
 
   private async generateAllImagesInParallel(
     imageInfos: ImageGenerationInfo[],
-    cardIdToProgressIndex: Map<string, number>
+    cardIdToProgressIndex: Map<string, number>,
+    cardType: CardType
   ): Promise<void> {
+    const strategy = this.strategyRegistry.getStrategy(cardType);
     const imageModels = this.environmentConfig.imageModels;
     const tasksPerCard = new Map<string, number>();
     const completedPerCard = new Map<string, number>();
@@ -255,33 +258,26 @@ export class BulkCardCreationService {
 
     const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
 
-    const imagesByCard = new Map<string, Map<number, ExampleImage[]>>();
-    for (const result of successfulResults) {
-      if (!imagesByCard.has(result.cardId)) {
-        imagesByCard.set(result.cardId, new Map());
-      }
-      const exampleImages = imagesByCard.get(result.cardId)!;
-      if (!exampleImages.has(result.exampleIndex)) {
-        exampleImages.set(result.exampleIndex, []);
-      }
-      exampleImages.get(result.exampleIndex)!.push(result.image);
-    }
+    const imagesByCard = successfulResults.reduce(
+      (acc, result) => {
+        const cardImages = acc.get(result.cardId) ?? new Map<number, ExampleImage[]>();
+        const indexImages = cardImages.get(result.exampleIndex) ?? [];
+        cardImages.set(result.exampleIndex, [...indexImages, result.image]);
+        acc.set(result.cardId, cardImages);
+        return acc;
+      },
+      new Map<string, ImagesByIndex>()
+    );
 
     await Promise.all(
-      Array.from(imagesByCard.entries()).map(async ([cardId, exampleImagesMap]) => {
+      Array.from(imagesByCard.entries()).map(async ([cardId, imagesMap]) => {
         const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+        const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
 
-        if (card.data.examples) {
-          const updatedExamples = card.data.examples.map((example, idx) => ({
-            ...example,
-            images: [...(example.images || []), ...(exampleImagesMap.get(idx) || [])]
-          }));
-
-          await fetchJson(this.http, `/api/card/${cardId}`, {
-            body: { data: { ...card.data, examples: updatedExamples } },
-            method: 'PUT',
-          });
-        }
+        await fetchJson(this.http, `/api/card/${cardId}`, {
+          body: { data: updatedData },
+          method: 'PUT',
+        });
 
         const progressIndex = cardIdToProgressIndex.get(cardId);
         if (progressIndex !== undefined) {
