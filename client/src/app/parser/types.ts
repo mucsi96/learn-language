@@ -127,6 +127,8 @@ export type AudioGenerationItem = {
   language: string;
 };
 
+export type ImagesByIndex = Map<number, ExampleImage[]>;
+
 export type CardTypeStrategy = {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
@@ -142,6 +144,7 @@ export type CardTypeStrategy = {
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
   getAudioItems(card: Card): AudioGenerationItem[];
+  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData;
 };
 
 export type SourceFormatType =

@@ -214,9 +214,8 @@ test('card editing in db', async ({ page }) => {
   const imageLocator = page.getByRole('img', {
     name: 'Wann fährt der Zug ab?',
   });
-  const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 
   const imageContent2 = await getImageContent(imageLocator);
 
@@ -428,14 +427,12 @@ test('example image addition', async ({ page }) => {
     name: 'Wir fahren um zwölf Uhr ab.',
   });
   await imageLocator.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
-  const originalSrc = await imageLocator.getAttribute('src');
   await page.getByRole('button', { name: 'Add example image' }).first().click();
-  await expect(imageLocator).not.toHaveAttribute('src', originalSrc!);
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 
   const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
   expect(regeneratedImageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
 
-  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 });
 
 test('card deletion', async ({ page }) => {

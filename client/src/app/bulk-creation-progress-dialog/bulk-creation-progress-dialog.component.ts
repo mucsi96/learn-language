@@ -41,7 +41,6 @@ export class BulkCreationProgressDialogComponent {
     switch (status) {
       case 'pending':
         return 'schedule';
-      case 'word-type':
       case 'translating':
       case 'generating-images':
       case 'creating-card':
@@ -50,8 +49,6 @@ export class BulkCreationProgressDialogComponent {
         return 'check_circle';
       case 'error':
         return 'error';
-      default:
-        return 'help';
     }
   }
 
@@ -59,7 +56,6 @@ export class BulkCreationProgressDialogComponent {
     switch (status) {
       case 'pending':
         return 'status-icon pending';
-      case 'word-type':
       case 'translating':
       case 'generating-images':
       case 'creating-card':
@@ -68,8 +64,6 @@ export class BulkCreationProgressDialogComponent {
         return 'status-icon completed';
       case 'error':
         return 'status-icon error';
-      default:
-        return 'status-icon';
     }
   }
 
