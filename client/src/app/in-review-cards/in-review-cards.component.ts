@@ -6,10 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { InReviewCardsService } from '../in-review-cards.service';
-import { getWordTypeInfo } from '../shared/word-type-translations';
-import { getGenderInfo } from '../shared/gender-translations';
 import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
 import { Card } from '../parser/types';
+import { CardTypeRegistry } from '../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-in-review-cards',
@@ -28,6 +27,7 @@ import { Card } from '../parser/types';
 })
 export class InReviewCardsComponent {
   private readonly inReviewCardsService = inject(InReviewCardsService);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
   readonly cards = this.inReviewCardsService.cards.value;
   readonly loading = computed(() => this.inReviewCardsService.cards.isLoading());
@@ -39,15 +39,7 @@ export class InReviewCardsComponent {
     'source',
   ];
 
-  readonly skeletonData = Array(5).fill({}); // Create 5 empty objects for skeleton rows
-
-  getWordTypeInfo(type: string | undefined) {
-    return type ? getWordTypeInfo(type) : undefined;
-  }
-
-  getGenderInfo(gender: string | undefined) {
-    return gender ? getGenderInfo(gender) : undefined;
-  }
+  readonly skeletonData = Array(5).fill({});
 
   getTranslationText(card: Card): string {
     const translations = [];
@@ -57,11 +49,18 @@ export class InReviewCardsComponent {
     return translations.join(' • ');
   }
 
-  isSpeechCard(card: Card): boolean {
-    return card.source.cardType === 'speech';
+  getDisplayLabel(card: Card): string {
+    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
+    return strategy.getCardDisplayLabel(card);
   }
 
-  getDisplayWord(card: Card): string {
-    return card.data.word || '-';
+  getTypeLabel(card: Card): string {
+    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
+    return strategy.getCardTypeLabel(card);
+  }
+
+  getAdditionalInfo(card: Card): string | undefined {
+    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
+    return strategy.getCardAdditionalInfo(card);
   }
 }

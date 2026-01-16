@@ -161,6 +161,8 @@ export type CardTypeStrategy = {
   ): Promise<CardCreationResult>;
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
+  getCardTypeLabel(card: Card): string;
+  getCardAdditionalInfo(card: Card): string | undefined;
   getAudioItems(card: Card): AudioGenerationItem[];
   updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData;
   getLanguageTexts(card: Card): LanguageTexts[];

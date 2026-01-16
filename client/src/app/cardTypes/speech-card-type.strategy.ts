@@ -169,6 +169,14 @@ export class SpeechCardType implements CardTypeStrategy {
     return card.data.word || card.id;
   }
 
+  getCardTypeLabel(_card: Card): string {
+    return 'Sentence';
+  }
+
+  getCardAdditionalInfo(_card: Card): string | undefined {
+    return undefined;
+  }
+
   getAudioItems(card: Card): AudioGenerationItem[] {
     return [
       card.data.word

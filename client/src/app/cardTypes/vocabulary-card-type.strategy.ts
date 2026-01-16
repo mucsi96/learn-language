@@ -20,6 +20,8 @@ import {
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
+import { getWordTypeInfo } from '../shared/word-type-translations';
+import { getGenderInfo } from '../shared/gender-translations';
 
 interface WordTypeResponse {
   type: string;
@@ -224,6 +226,17 @@ export class VocabularyCardType implements CardTypeStrategy {
 
   getCardDisplayLabel(card: Card): string {
     return card.data.word || card.id;
+  }
+
+  getCardTypeLabel(card: Card): string {
+    const type = card.data.type;
+    return type ? (getWordTypeInfo(type)?.translation ?? '-') : '-';
+  }
+
+  getCardAdditionalInfo(card: Card): string | undefined {
+    const gender = card.data.gender;
+    const genderInfo = gender ? getGenderInfo(gender) : undefined;
+    return genderInfo?.translation;
   }
 
   getAudioItems(card: Card): AudioGenerationItem[] {
