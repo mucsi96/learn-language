@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpeechIdRequest {
+public class SentenceIdRequest {
     private String germanSentence;
 }

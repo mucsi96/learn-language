@@ -21,7 +21,7 @@ import {
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 
-interface SpeechIdResponse {
+interface SentenceIdResponse {
   id: string;
   exists: boolean;
 }
@@ -43,7 +43,7 @@ export class SpeechCardType implements CardTypeStrategy {
     const { sourceId, pageNumber, x, y, width, height } = request;
 
     const sentenceList = await this.multiModelService.call<SentenceList>(
-      'speech_extraction',
+      'sentence_extraction',
       (model: string) =>
         fetchJson<SentenceList>(
           this.http,
@@ -53,9 +53,9 @@ export class SpeechCardType implements CardTypeStrategy {
 
     const sentencesWithIds = await Promise.all(
       sentenceList.sentences.map(async (item) => {
-        const speechIdResponse = await fetchJson<SpeechIdResponse>(
+        const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
-          '/api/speech-id',
+          '/api/sentence-id',
           {
             body: { germanSentence: item.sentence },
             method: 'POST',
@@ -64,8 +64,8 @@ export class SpeechCardType implements CardTypeStrategy {
 
         return {
           ...item,
-          id: speechIdResponse.id,
-          exists: speechIdResponse.exists,
+          id: sentenceIdResponse.id,
+          exists: sentenceIdResponse.exists,
         };
       })
     );

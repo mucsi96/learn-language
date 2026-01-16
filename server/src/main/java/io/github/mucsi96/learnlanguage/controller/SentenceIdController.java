@@ -1,9 +1,9 @@
 package io.github.mucsi96.learnlanguage.controller;
 
-import io.github.mucsi96.learnlanguage.model.SpeechIdRequest;
+import io.github.mucsi96.learnlanguage.model.SentenceIdRequest;
 import io.github.mucsi96.learnlanguage.model.WordIdResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
-import io.github.mucsi96.learnlanguage.service.SpeechIdService;
+import io.github.mucsi96.learnlanguage.service.SentenceIdService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-public class SpeechIdController {
+public class SentenceIdController {
 
-    private final SpeechIdService speechIdService;
+    private final SentenceIdService sentenceIdService;
     private final CardRepository cardRepository;
 
-    @PostMapping("/speech-id")
+    @PostMapping("/sentence-id")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<WordIdResponse> generateSpeechId(@RequestBody SpeechIdRequest request) {
-        final String id = speechIdService.generateSpeechId(request.getGermanSentence());
+    public ResponseEntity<WordIdResponse> generateSentenceId(@RequestBody SentenceIdRequest request) {
+        final String id = sentenceIdService.generateSentenceId(request.getGermanSentence());
         final boolean exists = cardRepository.existsById(id);
 
         final WordIdResponse response = WordIdResponse.builder()

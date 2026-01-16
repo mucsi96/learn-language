@@ -7,9 +7,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @Service
-public class SpeechIdService {
+public class SentenceIdService {
 
-    public String generateSpeechId(String germanSentence) {
+    public String generateSentenceId(String germanSentence) {
         if (germanSentence == null || germanSentence.isBlank()) {
             return "";
         }

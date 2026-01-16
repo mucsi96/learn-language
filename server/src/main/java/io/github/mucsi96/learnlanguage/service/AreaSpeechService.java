@@ -49,7 +49,7 @@ public class AreaSpeechService {
   public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel) {
     final var result = chatService.callWithLoggingAndMedia(
         model,
-        "speech_extraction",
+        "sentence_extraction",
         buildSystemPrompt(languageLevel),
         u -> u
             .text("Here is the image of the page")
