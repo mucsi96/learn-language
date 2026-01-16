@@ -17,9 +17,9 @@ import { CardActionsComponent } from '../../shared/card-actions/card-actions.com
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
-import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
-import { Card } from '../../parser/types';
+import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-learn-card',
@@ -43,6 +43,7 @@ export class LearnCardComponent implements OnDestroy {
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
   readonly currentCardData = this.studySessionService.currentCard;
 
@@ -58,8 +59,17 @@ export class LearnCardComponent implements OnDestroy {
   readonly isRevealed = signal(false);
   readonly sessionId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
-  readonly languageTexts = signal<LanguageTexts[]>([]);
   private currentSourceId: string | null = null;
+
+  readonly currentCardType = computed(() => this.card()?.source.cardType);
+
+  readonly languageTexts = computed<LanguageTexts[]>(() => {
+    const card = this.card();
+    const cardType = this.currentCardType();
+    if (!card || !cardType) return [];
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getLanguageTexts(card);
+  });
 
   readonly isStudyingWithPartner = computed(() => {
     const cardData = this.currentCardData.value();
@@ -153,9 +163,5 @@ export class LearnCardComponent implements OnDestroy {
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();
     this.studySessionService.refreshSession();
-  }
-
-  onLanguageTextsReady(texts: LanguageTexts[]) {
-    this.languageTexts.set(texts);
   }
 }

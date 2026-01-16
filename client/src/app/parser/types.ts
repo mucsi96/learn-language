@@ -54,6 +54,7 @@ export type Card = {
     id: string;
     name?: string;
     startPage?: number;
+    cardType?: CardType;
   };
   sourcePageNumber: number;
   data: CardData;
@@ -129,6 +130,11 @@ export type AudioGenerationItem = {
 
 export type ImagesByIndex = Map<number, ExampleImage[]>;
 
+export type LanguageTexts = {
+  language: string;
+  texts: string[];
+};
+
 export type CardTypeStrategy = {
   cardType: CardType;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
@@ -145,6 +151,7 @@ export type CardTypeStrategy = {
   getCardDisplayLabel(card: Card): string;
   getAudioItems(card: Card): AudioGenerationItem[];
   updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData;
+  getLanguageTexts(card: Card): LanguageTexts[];
 };
 
 export type SourceFormatType =

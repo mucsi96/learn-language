@@ -7,7 +7,8 @@ import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { fetchJson } from '../../utils/fetchJson';
 import { AudioData } from '../types/audio-generation.types';
-import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../types/card-resource.types';
 
 @Component({

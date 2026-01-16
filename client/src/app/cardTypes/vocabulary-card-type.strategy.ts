@@ -16,6 +16,7 @@ import {
   Card,
   CardData,
   ImagesByIndex,
+  LanguageTexts,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
@@ -251,5 +252,24 @@ export class VocabularyCardType implements CardTypeStrategy {
     });
 
     return { ...cardData, examples: updatedExamples };
+  }
+
+  getLanguageTexts(card: Card): LanguageTexts[] {
+    const selectedExample = card.data.examples?.find(ex => ex.isSelected);
+
+    const germanTexts = [
+      card.data.word,
+      selectedExample?.['de']
+    ].filter(nonNullable);
+
+    const hungarianTexts = [
+      card.data.translation?.['hu'],
+      selectedExample?.['hu']
+    ].filter(nonNullable);
+
+    return [
+      ...(germanTexts.length > 0 ? [{ language: 'de', texts: germanTexts }] : []),
+      ...(hungarianTexts.length > 0 ? [{ language: 'hu', texts: hungarianTexts }] : [])
+    ];
   }
 }
