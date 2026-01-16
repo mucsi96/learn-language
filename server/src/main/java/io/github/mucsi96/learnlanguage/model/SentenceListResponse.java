@@ -6,8 +6,8 @@ import java.util.List;
 
 @Data
 @Builder
-public class SpeechListResponse {
-    private List<SpeechResponse> sentences;
+public class SentenceListResponse {
+    private List<SentenceResponse> sentences;
     private double x;
     private double y;
     private double width;

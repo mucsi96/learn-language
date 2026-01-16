@@ -10,14 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
-import io.github.mucsi96.learnlanguage.model.SpeechResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AreaSpeechService {
+public class AreaSentenceService {
 
-  record AreaSpeech(List<String> sentences) {
+  record AreaSentences(List<String> sentences) {
   }
 
   private final ObjectMapper objectMapper;
@@ -33,7 +32,7 @@ public class AreaSpeechService {
         Each sentence should be a standalone German sentence that makes sense on its own.
         Do not include partial sentences or sentence fragments.""".formatted(languageLevel.name());
 
-    final AreaSpeech example = new AreaSpeech(List.of(
+    final AreaSentences example = new AreaSentences(List.of(
         "Guten Morgen, wie geht es Ihnen?",
         "Ich fahre jeden Tag mit dem Bus zur Arbeit.",
         "Das Wetter ist heute sehr schön."));
@@ -57,7 +56,7 @@ public class AreaSpeechService {
                 .data(imageData)
                 .mimeType(MimeTypeUtils.IMAGE_PNG)
                 .build()),
-        AreaSpeech.class);
+        AreaSentences.class);
 
     return result.sentences;
   }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpeechResponse {
+public class SentenceResponse {
     private String id;
     private boolean exists;
     private String sentence;

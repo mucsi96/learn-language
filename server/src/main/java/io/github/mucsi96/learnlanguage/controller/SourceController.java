@@ -26,11 +26,11 @@ import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
-import io.github.mucsi96.learnlanguage.model.SpeechListResponse;
-import io.github.mucsi96.learnlanguage.model.SpeechResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
-import io.github.mucsi96.learnlanguage.service.AreaSpeechService;
+import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
@@ -53,7 +53,7 @@ public class SourceController {
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
-  private final AreaSpeechService areaSpeechService;
+  private final AreaSentenceService areaSentenceService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -141,7 +141,7 @@ public class SourceController {
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/source/{sourceId}/page/{pageNumber}/sentences")
-  public SpeechListResponse getSentences(
+  public SentenceListResponse getSentences(
       @PathVariable String sourceId,
       @PathVariable int pageNumber,
       @RequestParam Double x,
@@ -155,15 +155,15 @@ public class SourceController {
 
     final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    final var areaSentences = areaSpeechService.getAreaSentences(imageData, model, source.getLanguageLevel());
+    final var areaSentences = areaSentenceService.getAreaSentences(imageData, model, source.getLanguageLevel());
 
     final var sentences = areaSentences.stream()
-        .map(sentence -> SpeechResponse.builder()
+        .map(sentence -> SentenceResponse.builder()
             .sentence(sentence)
             .build())
         .toList();
 
-    return SpeechListResponse.builder()
+    return SentenceListResponse.builder()
         .sentences(sentences)
         .x(x)
         .y(y)
