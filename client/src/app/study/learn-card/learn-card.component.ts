@@ -15,6 +15,7 @@ import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
+import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { Card, LanguageTexts } from '../../parser/types';
@@ -32,6 +33,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     CardGradingButtonsComponent,
     CardActionsComponent,
     LearnVocabularyCardComponent,
+    LearnSpeechCardComponent,
     LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
