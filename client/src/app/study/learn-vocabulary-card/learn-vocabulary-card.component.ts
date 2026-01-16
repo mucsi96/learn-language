@@ -3,7 +3,6 @@ import {
   computed,
   inject,
   input,
-  output,
   Injector,
   resource,
   linkedSignal,
@@ -18,7 +17,6 @@ import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
-import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 
 type ImageResource = ExampleImage & { url: string };
@@ -39,7 +37,6 @@ export class LearnVocabularyCardComponent {
   card = input<CardResourceLike | null>(null);
   isRevealed = input<boolean>(false);
   onPlayAudio = input<((texts: string[]) => void) | null>(null);
-  languageTextsReady = output<LanguageTexts[]>();
 
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
@@ -96,7 +93,6 @@ export class LearnVocabularyCardComponent {
   });
 
   constructor() {
-    // Play audio based on what text is currently displayed
     effect(() => {
       const currentWord = this.word();
       const currentExample = this.example();
@@ -107,39 +103,5 @@ export class LearnVocabularyCardComponent {
         playAudioFn(texts);
       }
     });
-
-    // Emit language texts when card changes
-    effect(() => {
-      const card = this.card();
-      if (card?.value()) {
-        this.languageTextsReady.emit(this.getLanguageTextsForVoiceDialog());
-      }
-    });
-  }
-
-  getLanguageTextsForVoiceDialog(): LanguageTexts[] {
-    const card = this.card()?.value();
-    if (!card?.data) return [];
-
-    const selectedExample = card.data.examples?.find(ex => ex.isSelected);
-    const result: LanguageTexts[] = [];
-
-    // German texts
-    const germanTexts: string[] = [];
-    if (card.data.word) germanTexts.push(card.data.word);
-    if (selectedExample?.['de']) germanTexts.push(selectedExample['de']);
-    if (germanTexts.length > 0) {
-      result.push({ language: 'de', texts: germanTexts });
-    }
-
-    // Hungarian texts
-    const hungarianTexts: string[] = [];
-    if (card.data.translation?.['hu']) hungarianTexts.push(card.data.translation['hu']);
-    if (selectedExample?.['hu']) hungarianTexts.push(selectedExample['hu']);
-    if (hungarianTexts.length > 0) {
-      result.push({ language: 'hu', texts: hungarianTexts });
-    }
-
-    return result;
   }
 }

@@ -22,6 +22,8 @@ import { MatCardModule } from '@angular/material/card';
 import { fetchJson } from '../../utils/fetchJson';
 import { AudioData, AudioResponse } from '../types/audio-generation.types';
 import { AudioPlaybackService } from '../services/audio-playback.service';
+import { LanguageTexts } from '../../parser/types';
+export { LanguageTexts } from '../../parser/types';
 
 interface VoiceConfiguration {
   id: number;
@@ -39,11 +41,6 @@ interface VoiceCardData {
   audioData?: AudioData;
   isGenerating?: boolean;
   isPlaying?: boolean;
-}
-
-export interface LanguageTexts {
-  language: string;
-  texts: string[];
 }
 
 export interface VoiceSelectionDialogData {
