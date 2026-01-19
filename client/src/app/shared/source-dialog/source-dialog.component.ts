@@ -45,6 +45,10 @@ export class SourceDialogComponent {
   readonly languageLevels = this.environment.languageLevels;
   readonly formatTypes = this.environment.sourceFormatTypes;
   readonly sourceTypes = this.environment.sourceTypes;
+  readonly cardTypes = [
+    { code: 'vocabulary', displayName: 'Vocabulary' },
+    { code: 'speech', displayName: 'Speech' },
+  ];
 
   formData: Partial<Source> & { fileName?: string } = {
     id: this.data.source?.id || '',
@@ -53,7 +57,7 @@ export class SourceDialogComponent {
     fileName: '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel,
-    cardType: 'vocabulary',
+    cardType: this.data.source?.cardType,
     formatType: this.data.source?.formatType,
   };
 
@@ -74,22 +78,29 @@ export class SourceDialogComponent {
           return;
         }
       }
+      if (this.formData.cardType === 'speech') {
+        this.formData.formatType = 'flowingText';
+      }
       this.dialogRef.close(this.formData);
     }
   }
 
   isValid(): boolean {
-    const hasRequiredFields = !!(
+    const hasBaseFields = !!(
       this.formData.id &&
       this.formData.name &&
+      this.formData.cardType &&
       this.formData.sourceType &&
       this.formData.startPage &&
       this.formData.startPage > 0 &&
-      this.formData.languageLevel &&
-      this.formData.formatType
+      this.formData.languageLevel
     );
 
-    if (!hasRequiredFields) {
+    if (!hasBaseFields) {
+      return false;
+    }
+
+    if (this.formData.cardType !== 'speech' && !this.formData.formatType) {
       return false;
     }
 
