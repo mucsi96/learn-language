@@ -91,8 +91,6 @@ export class SourceDialogComponent {
       this.formData.name &&
       this.formData.cardType &&
       this.formData.sourceType &&
-      this.formData.startPage &&
-      this.formData.startPage > 0 &&
       this.formData.languageLevel
     );
 
@@ -106,6 +104,10 @@ export class SourceDialogComponent {
 
     if (this.formData.sourceType === 'images') {
       return true;
+    }
+
+    if (!this.formData.startPage || this.formData.startPage <= 0) {
+      return false;
     }
 
     if (this.data.mode === 'edit') {

@@ -130,6 +130,7 @@
     <p class="hint-text">Images will be added from the page view after creating the source.</p>
     }
 
+    @if (formData.sourceType === 'pdf') {
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Start Page</mat-label>
       <input
@@ -141,6 +142,7 @@
         required
       />
     </mat-form-field>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
