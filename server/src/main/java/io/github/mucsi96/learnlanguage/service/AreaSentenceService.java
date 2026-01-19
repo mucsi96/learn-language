@@ -6,6 +6,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -40,7 +41,7 @@ public class AreaSentenceService {
     try {
       final String exampleJson = objectMapper.writeValueAsString(example);
       return basePrompt + "\nExample of the expected JSON response:\n" + exampleJson;
-    } catch (Exception e) {
+    } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to serialize example to JSON", e);
     }
   }

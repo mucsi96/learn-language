@@ -43,7 +43,7 @@ export class EditSpeechCardComponent {
   selectedSourceId = input<string | undefined>();
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
-  cardUpdate = output<any>();
+  cardUpdate = output<Partial<Card>>();
   markAsReviewedAvailable = output<boolean>();
 
   private readonly injector = inject(Injector);

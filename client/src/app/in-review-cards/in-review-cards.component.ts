@@ -42,10 +42,11 @@ export class InReviewCardsComponent {
   readonly skeletonData = Array(5).fill({});
 
   getTranslationText(card: Card): string {
-    const translations = [];
-    if (card.data.translation?.['hu']) translations.push(`HU: ${card.data.translation['hu']}`);
-    if (card.data.translation?.['en']) translations.push(`EN: ${card.data.translation['en']}`);
-    if (card.data.translation?.['ch']) translations.push(`CH: ${card.data.translation['ch']}`);
+    const translations = [
+      card.data.translation?.['hu'] ? `HU: ${card.data.translation['hu']}` : null,
+      card.data.translation?.['en'] ? `EN: ${card.data.translation['en']}` : null,
+      card.data.translation?.['ch'] ? `CH: ${card.data.translation['ch']}` : null,
+    ].filter((t): t is string => t !== null);
     return translations.join(' • ');
   }
 
