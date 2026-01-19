@@ -40,7 +40,7 @@ export class LearnSpeechCardComponent {
 
   readonly sentence = computed(() =>
     this.isRevealed()
-      ? this.card()?.value()?.data.word
+      ? this.card()?.value()?.data.sentence
       : this.card()?.value()?.data.translation?.['hu']
   );
 

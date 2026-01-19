@@ -44,7 +44,8 @@ export type Example = {
 };
 
 export type CardData = {
-  word: string;
+  word?: string;
+  sentence?: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;
