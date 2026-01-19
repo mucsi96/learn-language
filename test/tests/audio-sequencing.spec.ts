@@ -221,9 +221,7 @@ test('voice selection dialog displays model for each voice configuration', async
 test('speech card audio plays on study page', async ({ page }) => {
   await createCard({
     cardId: 'speech-audio-test',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 15,
-    cardType: 'SPEECH',
+    sourceId: 'speech-a1',
     data: {
       sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {
@@ -244,16 +242,16 @@ test('speech card audio plays on study page', async ({ page }) => {
   const consoleMessages: any[] = [];
   page.on('console', (msg) => consoleMessages.push(msg));
 
-  await page.goto('/sources/goethe-a1/study');
+  await page.goto('/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Jó reggelt, hogy van?' })).toBeVisible();
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await page.getByRole('heading', { name: 'Jó reggelt, hogy van?' }).click();
+  await expect(flashcard.getByText('Jó reggelt, hogy van?' )).toBeVisible();
 
-  await page.waitForTimeout(500);
+  await flashcard.click();
 
-  await expect(page.getByRole('heading', { name: 'Guten Morgen, wie geht es Ihnen?' })).toBeVisible();
+  await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?' )).toBeVisible();
 
   const audioErrors = consoleMessages.filter(
     (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'

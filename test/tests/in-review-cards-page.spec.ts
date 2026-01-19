@@ -503,9 +503,8 @@ test('displays speech cards in review with correct type', async ({ page }) => {
 
   await createCard({
     cardId: 'a1b2c3d4',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 20,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {
@@ -537,9 +536,8 @@ test('speech card navigation from in-review page', async ({ page }) => {
 
   await createCard({
     cardId: 'e5f6g7h8',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 21,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Ich fahre mit dem Bus.',
       translation: {

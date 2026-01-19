@@ -577,9 +577,8 @@ test('speech card editing page displays sentence and translations', async ({ pag
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'a1b2c3d4',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 10,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {
@@ -611,9 +610,8 @@ test('speech card editing updates sentence in database', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'e5f6g7h8',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 11,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Ich fahre mit dem Bus.',
       translation: {
@@ -652,9 +650,8 @@ test('speech card back navigation works', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'i9j0k1l2',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 12,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Das Wetter ist schön.',
       translation: {

@@ -1133,9 +1133,8 @@ test('speech card study page initial state shows Hungarian translation', async (
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'a1b2c3d4',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 5,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {
@@ -1170,9 +1169,8 @@ test('speech card study page revealed state shows German sentence', async ({ pag
   const image1 = uploadMockImage(greenImage);
   await createCard({
     cardId: 'e5f6g7h8',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 6,
-    cardType: 'SPEECH',
     state: 'LEARNING',
     data: {
       sentence: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
@@ -1212,9 +1210,8 @@ test('speech card grading functionality', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'i9j0k1l2',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 7,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Das Wetter ist heute sehr schön.',
       translation: {

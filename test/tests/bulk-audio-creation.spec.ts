@@ -727,9 +727,8 @@ test('bulk audio creation for speech cards', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'a1b2c3d4',
-    sourceId: 'goethe-a1',
+    sourceId: 'speech-a1',
     sourcePageNumber: 20,
-    cardType: 'SPEECH',
     data: {
       sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {

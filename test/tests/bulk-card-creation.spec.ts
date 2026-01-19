@@ -475,7 +475,6 @@ test('bulk speech card creation creates cards in database', async ({ page }) => 
     const card2 = result.rows.find((row) => row.data.sentence === 'Ich fahre jeden Tag mit dem Bus zur Arbeit.');
 
     expect(card1).toBeDefined();
-    expect(card1?.card_type).toBe('SPEECH');
     expect(card1?.data.translation.hu).toBe('Jó reggelt, hogy van?');
     expect(card1?.data.translation.en).toBe('Good morning, how are you?');
     expect(card1?.data.examples[0].de).toBe('Guten Morgen, wie geht es Ihnen?');
@@ -483,7 +482,6 @@ test('bulk speech card creation creates cards in database', async ({ page }) => 
     expect(card1?.data.examples[0].en).toBe('Good morning, how are you?');
 
     expect(card2).toBeDefined();
-    expect(card2?.card_type).toBe('SPEECH');
     expect(card2?.data.translation.hu).toBe('Minden nap busszal járok dolgozni.');
     expect(card2?.data.translation.en).toBe('I take the bus to work every day.');
   });
