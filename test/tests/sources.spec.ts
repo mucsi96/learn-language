@@ -308,3 +308,35 @@ test('displays empty state when no sources exist', async ({ page }) => {
   // Check that the sources grid is not displayed
   await expect(page.getByRole('region', { name: 'Sources list' })).not.toBeVisible();
 });
+
+test('can create a speech source with image collection', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByLabel('Source ID').fill('test-speech-source');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Speech Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Speech' }).click();
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await expect(page.getByLabel('Format Type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Speech Source')).toBeVisible();
+
+  const createdSource = await getSource('test-speech-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.name).toBe('Test Speech Source');
+  expect(createdSource?.cardType).toBe('SPEECH');
+  expect(createdSource?.formatType).toBe('FLOWING_TEXT');
+  expect(createdSource?.sourceType).toBe('IMAGES');
+});

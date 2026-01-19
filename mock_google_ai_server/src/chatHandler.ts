@@ -1,5 +1,5 @@
 import { GeminiRequest, GeminiPart, GeminiTextPart } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
@@ -139,6 +139,58 @@ export class ChatHandler {
     return null;
   }
 
+  async handleSentenceExtraction(request: GeminiRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'extract German sentences from the provided page image',
+        'Here is the image of the page',
+        []
+      )
+    ) {
+      return createGeminiResponse({
+        sentences: SENTENCE_LISTS['speech_sentences'],
+      });
+    }
+
+    return null;
+  }
+
+  handleSentenceTranslation(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent || !userContent) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (
+      systemContent.includes('translate the given German sentence to Hungarian')
+    ) {
+      targetLanguage = 'hungarian';
+    } else if (
+      systemContent.includes('translate the given German sentence to English')
+    ) {
+      targetLanguage = 'english';
+    }
+
+    if (!targetLanguage) {
+      return null;
+    }
+
+    const translations = SENTENCE_TRANSLATIONS[targetLanguage];
+    for (const sentence of Object.keys(translations)) {
+      if (userContent.includes(sentence)) {
+        return createGeminiResponse({
+          translation: translations[sentence],
+        });
+      }
+    }
+
+    return null;
+  }
+
   async processRequest(request: GeminiRequest): Promise<any> {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
@@ -155,6 +207,12 @@ export class ChatHandler {
 
     const wordTypeResponse = this.handleWordType(request);
     if (wordTypeResponse) return wordTypeResponse;
+
+    const sentenceExtractionResponse = await this.handleSentenceExtraction(request);
+    if (sentenceExtractionResponse) return sentenceExtractionResponse;
+
+    const sentenceTranslationResponse = this.handleSentenceTranslation(request);
+    if (sentenceTranslationResponse) return sentenceTranslationResponse;
 
     console.log('Received unprocessed request:', JSON.stringify(request, null, 2));
 

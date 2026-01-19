@@ -172,3 +172,21 @@ export const WORD_TYPES: Record<string, string> = {
   'Achtung': 'NOUN',
   'die Adresse': 'NOUN',
 };
+
+export const SENTENCE_LISTS: Record<string, string[]> = {
+  'speech_sentences': [
+    'Guten Morgen, wie geht es Ihnen?',
+    'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
+  ],
+};
+
+export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  hungarian: {
+    'Guten Morgen, wie geht es Ihnen?': 'Jó reggelt, hogy van?',
+    'Ich fahre jeden Tag mit dem Bus zur Arbeit.': 'Minden nap busszal járok dolgozni.',
+  },
+  english: {
+    'Guten Morgen, wie geht es Ihnen?': 'Good morning, how are you?',
+    'Ich fahre jeden Tag mit dem Bus zur Arbeit.': 'I take the bus to work every day.',
+  },
+};

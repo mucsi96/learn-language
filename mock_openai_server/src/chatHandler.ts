@@ -1,7 +1,7 @@
 import {
   ChatMessage,
 } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
 import { messagesMatch, createAssistantResponse } from './utils';
 import { imageMessagesMatch, extractTextFromImageUrl } from './ocr';
 
@@ -135,6 +135,58 @@ export class ChatHandler {
     return null;
   }
 
+  async handleSentenceExtraction(messages: ChatMessage[]): Promise<any | null> {
+    if (
+      await imageMessagesMatch(
+        messages,
+        'extract German sentences from the provided page image',
+        'Here is the image of the page',
+        []
+      )
+    ) {
+      return createAssistantResponse({
+        sentences: SENTENCE_LISTS['speech_sentences'],
+      });
+    }
+
+    return null;
+  }
+
+  handleSentenceTranslation(messages: ChatMessage[]): any | null {
+    const systemMessage = messages[0]?.content;
+    const userMessage = messages[1]?.content;
+
+    if (!systemMessage || !userMessage) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (
+      systemMessage.includes('translate the given German sentence to Hungarian')
+    ) {
+      targetLanguage = 'hungarian';
+    } else if (
+      systemMessage.includes('translate the given German sentence to English')
+    ) {
+      targetLanguage = 'english';
+    }
+
+    if (!targetLanguage) {
+      return null;
+    }
+
+    const translations = SENTENCE_TRANSLATIONS[targetLanguage];
+    for (const sentence of Object.keys(translations)) {
+      if (typeof userMessage === 'string' && userMessage.includes(sentence)) {
+        return createAssistantResponse({
+          translation: translations[sentence],
+        });
+      }
+    }
+
+    return null;
+  }
+
   async handleOCRDebug(messages: ChatMessage[]): Promise<void> {
     if (messages[1]?.content[1]?.image_url?.url) {
       console.log(
@@ -167,6 +219,14 @@ export class ChatHandler {
     // Try word type
     const wordTypeResponse = this.handleWordType(messages);
     if (wordTypeResponse) return wordTypeResponse;
+
+    // Try sentence extraction
+    const sentenceExtractionResponse = await this.handleSentenceExtraction(messages);
+    if (sentenceExtractionResponse) return sentenceExtractionResponse;
+
+    // Try sentence translation
+    const sentenceTranslationResponse = this.handleSentenceTranslation(messages);
+    if (sentenceTranslationResponse) return sentenceTranslationResponse;
 
     console.log('Received unprocessed messages:', messages);
 

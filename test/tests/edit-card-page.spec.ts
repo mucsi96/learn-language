@@ -571,3 +571,111 @@ test('image model name displayed below image', async ({ page }) => {
   await page.getByRole('button', { name: 'Next image' }).first().click();
   await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
 });
+
+test('speech card editing page displays sentence and translations', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    cardType: 'SPEECH',
+    data: {
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
+      translation: {
+        hu: 'Jó reggelt, hogy van?',
+        en: 'Good morning, how are you?',
+      },
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/10/card/a1b2c3d4');
+
+  await expect(page.getByLabel('German Sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
+  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
+  const imageContent = await getImageContent(page.getByRole('img', { name: 'Guten Morgen, wie geht es Ihnen?' }));
+  expect(imageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
+});
+
+test('speech card editing updates sentence in database', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'e5f6g7h8',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    cardType: 'SPEECH',
+    data: {
+      sentence: 'Ich fahre mit dem Bus.',
+      translation: {
+        hu: 'Busszal megyek.',
+        en: 'I take the bus.',
+      },
+      examples: [
+        {
+          de: 'Ich fahre mit dem Bus.',
+          hu: 'Busszal megyek.',
+          en: 'I take the bus.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/11/card/e5f6g7h8');
+
+  await page.getByLabel('Hungarian translation', { exact: true }).fill('Busszal utazom.');
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'e5f6g7h8'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    expect(cardData.sentence).toBe('Ich fahre mit dem Bus.');
+    expect(cardData.translation.hu).toBe('Busszal utazom.');
+  });
+});
+
+test('speech card back navigation works', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'i9j0k1l2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 12,
+    cardType: 'SPEECH',
+    data: {
+      sentence: 'Das Wetter ist schön.',
+      translation: {
+        hu: 'Szép az idő.',
+        en: 'The weather is nice.',
+      },
+      examples: [
+        {
+          de: 'Das Wetter ist schön.',
+          hu: 'Szép az idő.',
+          en: 'The weather is nice.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/12/card/i9j0k1l2');
+
+  await page.getByRole('link', { name: 'Back' }).click();
+  await expect(page.getByText('Seite 12')).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('12');
+});
