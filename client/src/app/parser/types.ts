@@ -35,7 +35,10 @@ export type ExampleImage = {
 };
 
 export type Example = {
-  [key: string]: string | boolean | ExampleImage[] | undefined;
+  de?: string;
+  hu?: string;
+  en?: string;
+  ch?: string;
   isSelected?: boolean;
   images?: ExampleImage[];
 };
