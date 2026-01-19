@@ -38,7 +38,7 @@ export async function cleanupDb(): Promise<void> {
 export async function createSource(params: {
   id: string;
   name: string;
-  startPage: number;
+  startPage?: number;
   languageLevel: string;
   cardType: string;
   formatType: string;
@@ -184,6 +184,14 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       sourceId: 'goethe-b1',
       fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
     });
+    await createSource({
+        id: 'speech-a1',
+        name: 'Speech A1',
+        languageLevel: 'A1',
+        cardType: 'SPEECH',
+        formatType: 'FLOWING_TEXT',
+        sourceType: 'IMAGES',
+      });
   }
 }
 

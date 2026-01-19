@@ -7,24 +7,7 @@ import {
   getImageContent,
   getColorImageBytes,
   withDbConnection,
-  createSource,
 } from '../utils';
-
-async function createSpeechSource(): Promise<void> {
-  await createSource({
-    id: 'speech-a1',
-    name: 'Speech A1',
-    startPage: 1,
-    languageLevel: 'A1',
-    cardType: 'SPEECH',
-    formatType: 'FLOWING_TEXT',
-    sourceType: 'IMAGES',
-  });
-}
-
-test.beforeEach(async () => {
-  await createSpeechSource();
-});
 
 test('speech card displays Hungarian sentence on front side', async ({ page }) => {
   const imageId = uploadMockImage(yellowImage);
