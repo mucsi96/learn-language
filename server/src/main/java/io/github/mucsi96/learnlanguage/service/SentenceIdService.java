@@ -5,13 +5,15 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class SentenceIdService {
 
     public String generateSentenceId(String germanSentence) {
         if (germanSentence == null || germanSentence.isBlank()) {
-            return "";
+            throw new IllegalArgumentException("German sentence cannot be null or blank");
         }
 
         final String normalized = germanSentence.trim().toLowerCase();
@@ -22,15 +24,9 @@ public class SentenceIdService {
         try {
             final MessageDigest digest = MessageDigest.getInstance("SHA-256");
             final byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            final StringBuilder hexString = new StringBuilder();
-            for (int i = 0; i < 8 && i < hash.length; i++) {
-                final String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            return hexString.toString();
+            return IntStream.range(0, Math.min(8, hash.length))
+                    .mapToObj(i -> String.format("%02x", hash[i]))
+                    .collect(Collectors.joining());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found", e);
         }
