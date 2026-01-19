@@ -84,6 +84,7 @@ export type Page = {
   sourceName: string;
   sourceType?: SourceType;
   cardType?: CardType;
+  formatType?: SourceFormatType;
   hasImage?: boolean;
   width: number;
   height: number;

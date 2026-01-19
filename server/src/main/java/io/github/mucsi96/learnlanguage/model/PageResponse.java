@@ -15,6 +15,7 @@ public class PageResponse {
     private String sourceName;
     private SourceType sourceType;
     private CardType cardType;
+    private SourceFormatType formatType;
     private Boolean hasImage;
     private List<Span> spans;
 

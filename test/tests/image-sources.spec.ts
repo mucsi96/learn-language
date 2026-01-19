@@ -141,7 +141,7 @@ test('image source shows source type in create dialog is disabled during edit', 
   await expect(sourceTypeSelect).toBeDisabled();
 });
 
-test('Extracted words appear as chips for image source after selection', async ({ page }) => {
+test('Extracted items appear as chips for flowing text format after selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
     id: 'chips-image-source',
@@ -175,7 +175,7 @@ test('Extracted words appear as chips for image source after selection', async (
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
   await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
   await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
@@ -215,7 +215,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
 
   await extractedWords.getByRole('button', { name: 'hören' }).click();
@@ -265,7 +265,7 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
 
   await extractedWords.getByRole('button', { name: 'hören' }).click();

@@ -51,6 +51,7 @@ public class DocumentProcessorService {
           .sourceName(source.getName())
           .sourceType(SourceType.IMAGES)
           .cardType(source.getCardType())
+          .formatType(source.getFormatType())
           .hasImage(false)
           .spans(Collections.emptyList())
           .build();
@@ -68,6 +69,7 @@ public class DocumentProcessorService {
         .sourceName(source.getName())
         .sourceType(SourceType.IMAGES)
         .cardType(source.getCardType())
+        .formatType(source.getFormatType())
         .hasImage(true)
         .spans(Collections.emptyList())
         .build();
@@ -106,6 +108,7 @@ public class DocumentProcessorService {
           .sourceName(source.getName())
           .sourceType(SourceType.PDF)
           .cardType(source.getCardType())
+          .formatType(source.getFormatType())
           .spans(spans)
           .build();
     }
