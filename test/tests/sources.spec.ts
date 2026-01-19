@@ -92,6 +92,9 @@ test('can create a new source', async ({ page }) => {
   await page.getByLabel('Source ID').fill('test-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
 
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
 
@@ -264,11 +267,13 @@ test('validates required fields when creating source', async ({ page }) => {
   // Fill in only some fields
   await page.getByLabel('Source ID').fill('test-id');
 
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
 
   await expect(createButton).toBeDisabled();
-
 
   // Fill in all required fields
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Name');

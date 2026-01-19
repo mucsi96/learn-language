@@ -16,12 +16,15 @@ test('can create an image source', async ({ page }) => {
   await page.getByLabel('Source ID').fill('test-image-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Image Source');
 
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'Image Collection' }).click();
 
   await expect(page.getByText('Images will be added from the page view')).toBeVisible();
 
-  await page.getByLabel('Start Page').fill('1');
+  await expect(page.getByLabel('Start Page')).not.toBeVisible();
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
   await page.getByLabel('Format Type').click();

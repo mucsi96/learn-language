@@ -234,8 +234,8 @@ export function populateStorage(): void {
 }
 
 interface CardData {
-  word: string;
-  type: string;
+  word?: string;
+  type?: string;
   translation?: Record<string, string>;
   forms?: any[];
   examples?: any[];
