@@ -58,6 +58,21 @@
       </mat-select>
     </mat-form-field>
 
+    @if (formData.cardType !== 'speech') {
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Format Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.formatType"
+        name="formatType"
+        required
+      >
+        @for (formatType of formatTypes; track formatType.code) {
+        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    }
+
     @if (formData.sourceType === 'pdf') {
     <div
       class="dropzone"
@@ -113,21 +128,6 @@
     </div>
     } @else {
     <p class="hint-text">Images will be added from the page view after creating the source.</p>
-    }
-
-    @if (formData.cardType !== 'speech') {
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Format Type</mat-label>
-      <mat-select
-        [(ngModel)]="formData.formatType"
-        name="formatType"
-        required
-      >
-        @for (formatType of formatTypes; track formatType.code) {
-        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
     }
 
     <mat-form-field appearance="fill" class="full-width">
