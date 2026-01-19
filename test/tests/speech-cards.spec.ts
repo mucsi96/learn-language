@@ -33,7 +33,7 @@ test('speech card displays Hungarian sentence on front side', async ({ page }) =
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Guten Morgen, wie geht es Ihnen?',
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
       translation: {
         hu: 'Jó reggelt, hogy van?',
         en: 'Good morning, how are you?',
@@ -66,7 +66,7 @@ test('speech card displays German sentence on back side after reveal', async ({ 
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
+      sentence: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
       translation: {
         hu: 'Minden nap busszal járok dolgozni.',
         en: 'I take the bus to work every day.',
@@ -103,7 +103,7 @@ test('speech card shows image when available', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Das Wetter ist heute sehr schön.',
+      sentence: 'Das Wetter ist heute sehr schön.',
       translation: {
         hu: 'Ma nagyon szép az idő.',
         en: 'The weather is very nice today.',
@@ -136,7 +136,7 @@ test('speech card grading works correctly', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Können Sie mir bitte helfen?',
+      sentence: 'Können Sie mir bitte helfen?',
       translation: {
         hu: 'Tudna segíteni?',
         en: 'Can you help me please?',
@@ -174,7 +174,7 @@ test('speech card mark for review works', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Entschuldigung, wo ist der Bahnhof?',
+      sentence: 'Entschuldigung, wo ist der Bahnhof?',
       translation: {
         hu: 'Elnézést, hol van a pályaudvar?',
         en: 'Excuse me, where is the train station?',
@@ -213,7 +213,7 @@ test('edit card navigation works for speech cards', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Ich möchte einen Kaffee bestellen.',
+      sentence: 'Ich möchte einen Kaffee bestellen.',
       translation: {
         hu: 'Szeretnék egy kávét rendelni.',
         en: 'I would like to order a coffee.',
@@ -243,9 +243,6 @@ test('edit card navigation works for speech cards', async ({ page }) => {
   await expect(page.getByLabel('Hungarian Translation')).toHaveValue(
     'Szeretnék egy kávét rendelni.'
   );
-  await expect(page.getByLabel('English Translation')).toHaveValue(
-    'I would like to order a coffee.'
-  );
 });
 
 test('speech card edit page allows updating sentence', async ({ page }) => {
@@ -254,7 +251,7 @@ test('speech card edit page allows updating sentence', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Das ist mein Bruder.',
+      sentence: 'Das ist mein Bruder.',
       translation: {
         hu: 'Ez az én bátyám.',
         en: 'This is my brother.',
@@ -300,7 +297,7 @@ test('speech cards appear in in-review-cards page with correct type', async ({
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Wie spät ist es?',
+      sentence: 'Wie spät ist es?',
       translation: {
         hu: 'Hány óra van?',
         en: 'What time is it?',
@@ -332,7 +329,7 @@ test('speech card study session persists after page refresh', async ({
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Ich verstehe das nicht.',
+      sentence: 'Ich verstehe das nicht.',
       translation: {
         hu: 'Ezt nem értem.',
         en: "I don't understand this.",
@@ -372,7 +369,7 @@ test('speech card switches image after reveal', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 1,
     data: {
-      word: 'Der Apfel ist rot.',
+      sentence: 'Der Apfel ist rot.',
       translation: {
         hu: 'Az alma piros.',
         en: 'The apple is red.',

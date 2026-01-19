@@ -50,7 +50,7 @@ export class EditSpeechCardComponent {
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
-  readonly sentence = linkedSignal(() => this.card()?.data.word);
+  readonly sentence = linkedSignal(() => this.card()?.data.sentence);
   readonly hungarianTranslation = linkedSignal(
     () => this.card()?.data.translation?.['hu']
   );
@@ -176,7 +176,7 @@ export class EditSpeechCardComponent {
     }
 
     const data: CardData = {
-      word: sentenceText,
+      sentence: sentenceText,
       translation: {
         hu: this.hungarianTranslation(),
         en: this.englishTranslation(),

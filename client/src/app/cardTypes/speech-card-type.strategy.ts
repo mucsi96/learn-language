@@ -137,7 +137,7 @@ export class SpeechCardType implements CardTypeStrategy {
         : [];
 
       const cardData: CardData = {
-        word: sentence.sentence,
+        sentence: sentence.sentence,
         translation: {
           hu: hungarianTranslation.translation,
           en: englishTranslation.translation,
@@ -166,7 +166,7 @@ export class SpeechCardType implements CardTypeStrategy {
   }
 
   getCardDisplayLabel(card: Card): string {
-    return card.data.word || card.id;
+    return card.data.sentence || card.id;
   }
 
   getCardTypeLabel(_card: Card): string {
@@ -179,8 +179,8 @@ export class SpeechCardType implements CardTypeStrategy {
 
   getAudioItems(card: Card): AudioGenerationItem[] {
     return [
-      card.data.word
-        ? { text: card.data.word, language: LANGUAGE_CODES.GERMAN }
+      card.data.sentence
+        ? { text: card.data.sentence, language: LANGUAGE_CODES.GERMAN }
         : null,
       card.data.translation?.['hu']
         ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN }
@@ -206,7 +206,7 @@ export class SpeechCardType implements CardTypeStrategy {
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {
-    const germanTexts = [card.data.word].filter(nonNullable);
+    const germanTexts = [card.data.sentence].filter(nonNullable);
 
     const hungarianTexts = [card.data.translation?.['hu']].filter(nonNullable);
 
