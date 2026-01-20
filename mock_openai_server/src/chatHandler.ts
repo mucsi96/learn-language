@@ -141,7 +141,7 @@ export class ChatHandler {
         messages,
         'extract German sentences from the provided page image',
         'Here is the image of the page',
-        []
+        ['Hören', 'Lied']
       )
     ) {
       return createAssistantResponse({

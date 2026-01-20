@@ -134,7 +134,7 @@ export class ChatHandler {
         request,
         'extract German sentences from the provided page image',
         'Here is the image of the page',
-        []
+        ['Hören', 'Lied']
       )
     ) {
       return createClaudeResponse({

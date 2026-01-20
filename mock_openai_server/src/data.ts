@@ -174,19 +174,16 @@ export const WORD_TYPES: Record<string, string> = {
 };
 
 export const SENTENCE_LISTS: Record<string, string[]> = {
-  'speech_sentences': [
-    'Guten Morgen, wie geht es Ihnen?',
-    'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
-  ],
+  speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
 };
 
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
-    'Guten Morgen, wie geht es Ihnen?': 'Jó reggelt, hogy van?',
-    'Ich fahre jeden Tag mit dem Bus zur Arbeit.': 'Minden nap busszal járok dolgozni.',
+    'Hören Sie.': 'Hallgasson.',
+    'Wie heißt das Lied?': 'Hogy hívják a dalt?',
   },
   english: {
-    'Guten Morgen, wie geht es Ihnen?': 'Good morning, how are you?',
-    'Ich fahre jeden Tag mit dem Bus zur Arbeit.': 'I take the bus to work every day.',
+    'Hören Sie.': 'Listen.',
+    'Wie heißt das Lied?': 'What is the name of the song?',
   },
 };
