@@ -11,6 +11,7 @@ import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.SentenceTranslationRequest;
 import io.github.mucsi96.learnlanguage.model.SentenceTranslationResponse;
 import io.github.mucsi96.learnlanguage.service.SentenceTranslationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,7 +23,7 @@ public class SentenceTranslationController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PostMapping("/translate-sentence/{languageCode}")
     public SentenceTranslationResponse translateSentence(
-            @RequestBody SentenceTranslationRequest request,
+            @Valid @RequestBody SentenceTranslationRequest request,
             @PathVariable String languageCode,
             @RequestParam ChatModel model) {
 

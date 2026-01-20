@@ -4,6 +4,7 @@ import io.github.mucsi96.learnlanguage.model.SentenceIdRequest;
 import io.github.mucsi96.learnlanguage.model.WordIdResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.service.SentenceIdService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,7 @@ public class SentenceIdController {
 
     @PostMapping("/sentence-id")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<WordIdResponse> generateSentenceId(@RequestBody SentenceIdRequest request) {
+    public ResponseEntity<WordIdResponse> generateSentenceId(@Valid @RequestBody SentenceIdRequest request) {
         final String id = sentenceIdService.generateSentenceId(request.getGermanSentence());
         final boolean exists = cardRepository.existsById(id);
 

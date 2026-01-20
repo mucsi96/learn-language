@@ -5,7 +5,6 @@ import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.ExampleData;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,34 +25,25 @@ public class VocabularyCardTypeStrategy implements CardTypeStrategy {
         }
 
         final CardData cardData = card.getData();
-        final List<AudioTextItem> texts = new ArrayList<>();
-
-        if (hasText(cardData.getWord())) {
-            texts.add(new AudioTextItem(cardData.getWord(), "de"));
-        }
-
-        final Map<String, String> translation = cardData.getTranslation();
-        if (translation != null) {
-            final String hungarianTranslation = translation.get("hu");
-            if (hasText(hungarianTranslation)) {
-                texts.add(new AudioTextItem(hungarianTranslation, "hu"));
-            }
-        }
-
         final Optional<ExampleData> selectedExample = findSelectedExample(cardData);
-        if (selectedExample.isPresent()) {
-            final ExampleData example = selectedExample.get();
 
-            if (hasText(example.getDe())) {
-                texts.add(new AudioTextItem(example.getDe(), "de"));
-            }
-
-            if (hasText(example.getHu())) {
-                texts.add(new AudioTextItem(example.getHu(), "hu"));
-            }
-        }
-
-        return texts;
+        return Stream.of(
+                Optional.ofNullable(cardData.getWord())
+                        .filter(this::hasText)
+                        .map(word -> new AudioTextItem(word, "de")),
+                Optional.ofNullable(cardData.getTranslation())
+                        .map(t -> t.get("hu"))
+                        .filter(this::hasText)
+                        .map(hu -> new AudioTextItem(hu, "hu")),
+                selectedExample
+                        .map(ExampleData::getDe)
+                        .filter(this::hasText)
+                        .map(de -> new AudioTextItem(de, "de")),
+                selectedExample
+                        .map(ExampleData::getHu)
+                        .filter(this::hasText)
+                        .map(hu -> new AudioTextItem(hu, "hu"))
+        ).flatMap(Optional::stream).toList();
     }
 
     private Optional<ExampleData> findSelectedExample(CardData cardData) {

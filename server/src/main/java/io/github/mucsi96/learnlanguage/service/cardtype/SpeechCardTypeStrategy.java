@@ -4,9 +4,9 @@ import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Component
 public class SpeechCardTypeStrategy implements CardTypeStrategy {
@@ -23,21 +23,16 @@ public class SpeechCardTypeStrategy implements CardTypeStrategy {
         }
 
         final CardData cardData = card.getData();
-        final List<AudioTextItem> texts = new ArrayList<>();
 
-        if (hasText(cardData.getSentence())) {
-            texts.add(new AudioTextItem(cardData.getSentence(), "de"));
-        }
-
-        final Map<String, String> translation = cardData.getTranslation();
-        if (translation != null) {
-            final String hungarianTranslation = translation.get("hu");
-            if (hasText(hungarianTranslation)) {
-                texts.add(new AudioTextItem(hungarianTranslation, "hu"));
-            }
-        }
-
-        return texts;
+        return Stream.of(
+                Optional.ofNullable(cardData.getSentence())
+                        .filter(this::hasText)
+                        .map(sentence -> new AudioTextItem(sentence, "de")),
+                Optional.ofNullable(cardData.getTranslation())
+                        .map(t -> t.get("hu"))
+                        .filter(this::hasText)
+                        .map(hu -> new AudioTextItem(hu, "hu"))
+        ).flatMap(Optional::stream).toList();
     }
 
     private boolean hasText(String value) {
