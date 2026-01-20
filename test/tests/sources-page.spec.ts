@@ -186,7 +186,7 @@ test('speech source selector routing works', async ({ page }) => {
     buffer: menschenA1Image,
   });
 
-  await expect(page.getByText('Seite 1')).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
 
   await page.getByRole('button', { name: 'Speech A1' }).click();
   await page.getByRole('menuitem', { name: 'Goethe A1' }).click();

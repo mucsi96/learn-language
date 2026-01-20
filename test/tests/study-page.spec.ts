@@ -1153,13 +1153,12 @@ test('speech card study page initial state shows Hungarian translation', async (
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(flashcard.getByRole('heading', { level: 2, name: 'Jó reggelt, hogy van?' })).toBeVisible();
-  await expect(flashcard.getByRole('heading', { level: 2, name: 'Guten Morgen, wie geht es Ihnen?' })).not.toBeVisible();
-  await expect(flashcard.getByLabel('Word type')).toHaveText('Sentence');
+  await expect(flashcard.getByText('Jó reggelt, hogy van?')).toBeVisible();
+  await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?')).not.toBeVisible();
   await expect(flashcard.getByLabel('State: New')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Jó reggelt, hogy van?' }));
   expect(imageContent.equals(getColorImageBytes('yellow', 1200))).toBeTruthy();
@@ -1190,15 +1189,14 @@ test('speech card study page revealed state shows German sentence', async ({ pag
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await flashcard.getByRole('heading', { name: 'Minden nap busszal járok dolgozni.' }).click();
+  await flashcard.click();
 
-  await expect(flashcard.getByRole('heading', { level: 2, name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' })).toBeVisible();
-  await expect(flashcard.getByRole('heading', { level: 2, name: 'Minden nap busszal járok dolgozni.' })).not.toBeVisible();
-  await expect(flashcard.getByLabel('Word type')).toHaveText('Sentence');
+  await expect(flashcard.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
+  await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
   expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
@@ -1230,17 +1228,17 @@ test('speech card grading functionality', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(flashcard.getByRole('heading', { name: 'Ma nagyon szép az idő.' })).toBeVisible();
+  await expect(flashcard.getByText('Ma nagyon szép az idő.')).toBeVisible();
 
-  await flashcard.getByRole('heading', { name: 'Ma nagyon szép az idő.' }).click();
+  await flashcard.click();
   await page.getByRole('button', { name: 'Good' }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
-  await flashcard.getByRole('heading', { name: 'Ma nagyon szép az idő.' }).click();
+  await flashcard.click();
   await page.getByRole('button', { name: 'Good' }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();

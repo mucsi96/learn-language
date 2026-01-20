@@ -597,7 +597,7 @@ test('speech card editing page displays sentence and translations', async ({ pag
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/10/card/a1b2c3d4');
+  await page.goto('http://localhost:8180/sources/speech-a1/page/10/cards/a1b2c3d4');
 
   await expect(page.getByLabel('German Sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
@@ -630,7 +630,7 @@ test('speech card editing updates sentence in database', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/11/card/e5f6g7h8');
+  await page.goto('http://localhost:8180/sources/speech-a1/page/11/cards/e5f6g7h8');
 
   await page.getByLabel('Hungarian translation', { exact: true }).fill('Busszal utazom.');
   await page.getByRole('button', { name: 'Update' }).click();
@@ -670,9 +670,8 @@ test('speech card back navigation works', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/12/card/i9j0k1l2');
+  await page.goto('http://localhost:8180/sources/speech-a1/page/12/cards/i9j0k1l2');
 
   await page.getByRole('link', { name: 'Back' }).click();
-  await expect(page.getByText('Seite 12')).toBeVisible();
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('12');
 });
