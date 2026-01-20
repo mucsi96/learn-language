@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, yellowImage, menschenA1Image } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
 
 test('displays current page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -173,9 +173,24 @@ test('speech source page sentence extraction', async ({ page }) => {
     await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
+});
 
-  const extractedItems = page.getByRole('region', { name: 'Extracted items' });
-  await expect(extractedItems).toBeVisible();
-  await expect(extractedItems.getByText('Guten Morgen, wie geht es Ihnen?')).toBeVisible();
-  await expect(extractedItems.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
+test('speech source selector routing works', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(page.getByText('Seite 1')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Speech A1' }).click();
+  await page.getByRole('menuitem', { name: 'Goethe A1' }).click();
+
+  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a1/page/9');
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
 });

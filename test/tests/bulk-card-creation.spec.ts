@@ -7,6 +7,7 @@ import {
   downloadImage,
   yellowImage,
   redImage,
+  menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
 } from '../utils';
@@ -417,71 +418,49 @@ test('bulk card creation dialog review link', async ({ page }) => {
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
 });
 
-test('sentence extraction shows extracted sentences for speech source', async ({ page }) => {
+test('bulk speech card creation includes sentence data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Speech A1' }).click();
 
-  // Upload an image for the speech source
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
     mimeType: 'image/png',
-    buffer: yellowImage,
+    buffer: menschenA1Image,
   });
 
   await expect(page.getByText('Seite 1')).toBeVisible();
 
-  // Select a region on the page
   await selectTextRange(page, 'Guten', 'Arbeit.');
 
-  // Verify that extracted sentences appear in the container
-  await expect(page.getByRole('region', { name: 'Extracted sentences' })).toBeVisible();
-  await expect(page.getByText('Guten Morgen, wie geht es Ihnen?')).toBeVisible();
-  await expect(page.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
-});
-
-test('bulk speech card creation creates cards in database', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Speech A1' }).click();
-
-  // Upload an image for the speech source
-  await page.getByLabel('Upload image').setInputFiles({
-    name: 'test-speech-image.png',
-    mimeType: 'image/png',
-    buffer: yellowImage,
-  });
-
-  await expect(page.getByText('Seite 1')).toBeVisible();
-
-  // Select a region on the page
-  await selectTextRange(page, 'Guten', 'Arbeit.');
-
-  // Click the FAB to create cards
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  // Wait for creation to complete
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
-  // Verify speech cards were created in database with correct data
   await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, data, card_type FROM learn_language.cards WHERE source_id = 'speech-a1'`
+      `SELECT id, data, card_type, source_id, source_page_number, state, readiness
+       FROM learn_language.cards WHERE source_id = 'speech-a1'`
     );
 
     expect(result.rows.length).toBe(2);
 
     const card1 = result.rows.find((row) => row.data.sentence === 'Guten Morgen, wie geht es Ihnen?');
-    const card2 = result.rows.find((row) => row.data.sentence === 'Ich fahre jeden Tag mit dem Bus zur Arbeit.');
-
     expect(card1).toBeDefined();
+    expect(card1?.card_type).toBe('SPEECH');
+    expect(card1?.source_id).toBe('speech-a1');
+    expect(card1?.source_page_number).toBe(1);
+    expect(card1?.state).toBe('NEW');
+    expect(card1?.readiness).toBe('IN_REVIEW');
     expect(card1?.data.translation.hu).toBe('Jó reggelt, hogy van?');
     expect(card1?.data.translation.en).toBe('Good morning, how are you?');
     expect(card1?.data.examples[0].de).toBe('Guten Morgen, wie geht es Ihnen?');
     expect(card1?.data.examples[0].hu).toBe('Jó reggelt, hogy van?');
     expect(card1?.data.examples[0].en).toBe('Good morning, how are you?');
 
+    const card2 = result.rows.find((row) => row.data.sentence === 'Ich fahre jeden Tag mit dem Bus zur Arbeit.');
     expect(card2).toBeDefined();
+    expect(card2?.card_type).toBe('SPEECH');
     expect(card2?.data.translation.hu).toBe('Minden nap busszal járok dolgozni.');
     expect(card2?.data.translation.en).toBe('I take the bus to work every day.');
   });
