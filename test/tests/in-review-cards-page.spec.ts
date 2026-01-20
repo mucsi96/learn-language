@@ -497,3 +497,71 @@ test('mark as reviewed button enabled after toggling favorite', async ({ page })
   // Verify the button becomes disabled again
   await expect(markAsReviewedBtn).toBeDisabled();
 });
+
+test('displays speech cards in review with correct type', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 20,
+    data: {
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
+      translation: {
+        hu: 'Jó reggelt, hogy van?',
+        en: 'Good morning, how are you?',
+      },
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(page.getByText('Guten Morgen, wie geht es Ihnen?', { exact: true })).toBeVisible();
+  await expect(page.getByText('Sentence', { exact: true })).toBeVisible();
+  await expect(page.getByText('HU: Jó reggelt, hogy van? • EN: Good morning, how are you?')).toBeVisible();
+});
+
+test('speech card navigation from in-review page', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'e5f6g7h8',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 21,
+    data: {
+      sentence: 'Ich fahre mit dem Bus.',
+      translation: {
+        hu: 'Busszal megyek.',
+        en: 'I take the bus.',
+      },
+      examples: [
+        {
+          de: 'Ich fahre mit dem Bus.',
+          hu: 'Busszal megyek.',
+          en: 'I take the bus.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  const row = page.getByRole('row').filter({ hasText: 'Ich fahre mit dem Bus.' });
+  await row.click();
+
+  await expect(page.getByLabel('German Sentence')).toHaveValue('Ich fahre mit dem Bus.');
+  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Busszal megyek.');
+});

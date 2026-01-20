@@ -16,12 +16,15 @@ test('can create an image source', async ({ page }) => {
   await page.getByLabel('Source ID').fill('test-image-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Image Source');
 
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'Image Collection' }).click();
 
   await expect(page.getByText('Images will be added from the page view')).toBeVisible();
 
-  await page.getByLabel('Start Page').fill('1');
+  await expect(page.getByLabel('Start Page')).not.toBeVisible();
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
   await page.getByLabel('Format Type').click();
@@ -141,7 +144,7 @@ test('image source shows source type in create dialog is disabled during edit', 
   await expect(sourceTypeSelect).toBeDisabled();
 });
 
-test('Extracted words appear as chips for image source after selection', async ({ page }) => {
+test('Extracted items appear as chips for flowing text format after selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
     id: 'chips-image-source',
@@ -175,7 +178,7 @@ test('Extracted words appear as chips for image source after selection', async (
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
   await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
   await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
@@ -215,7 +218,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
 
   await extractedWords.getByRole('button', { name: 'hören' }).click();
@@ -265,7 +268,7 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     await page.mouse.up();
   }
 
-  const extractedWords = page.getByRole('region', { name: 'Extracted words' });
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
 
   await extractedWords.getByRole('button', { name: 'hören' }).click();

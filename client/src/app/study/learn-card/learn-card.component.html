@@ -49,6 +49,13 @@
           [onPlayAudio]="playAudioForContent.bind(this)">
         </app-learn-vocabulary-card>
       }
+      @case ('speech') {
+        <app-learn-speech-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()"
+          [onPlayAudio]="playAudioForContent.bind(this)">
+        </app-learn-speech-card>
+      }
     }
   </div>
 

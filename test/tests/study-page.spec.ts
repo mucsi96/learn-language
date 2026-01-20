@@ -1128,3 +1128,118 @@ test('card graded with Again reappears after other due cards', async ({ page }) 
 
   await expect(flashcard.getByRole('heading', { name: 'visszajönni' })).toBeVisible();
 });
+
+test('speech card study page initial state shows Hungarian translation', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 5,
+    data: {
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
+      translation: {
+        hu: 'Jó reggelt, hogy van?',
+        en: 'Good morning, how are you?',
+      },
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText('Jó reggelt, hogy van?')).toBeVisible();
+  await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?')).not.toBeVisible();
+  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Jó reggelt, hogy van?' }));
+  expect(imageContent.equals(getColorImageBytes('yellow', 1200))).toBeTruthy();
+});
+
+test('speech card study page revealed state shows German sentence', async ({ page }) => {
+  const image1 = uploadMockImage(greenImage);
+  await createCard({
+    cardId: 'e5f6g7h8',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 6,
+    state: 'LEARNING',
+    data: {
+      sentence: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
+      translation: {
+        hu: 'Minden nap busszal járok dolgozni.',
+        en: 'I take the bus to work every day.',
+      },
+      examples: [
+        {
+          de: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
+          hu: 'Minden nap busszal járok dolgozni.',
+          en: 'I take the bus to work every day.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.click();
+
+  await expect(flashcard.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
+  await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
+  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
+  expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
+  await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
+});
+
+test('speech card grading functionality', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'i9j0k1l2',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 7,
+    data: {
+      sentence: 'Das Wetter ist heute sehr schön.',
+      translation: {
+        hu: 'Ma nagyon szép az idő.',
+        en: 'The weather is very nice today.',
+      },
+      examples: [
+        {
+          de: 'Das Wetter ist heute sehr schön.',
+          hu: 'Ma nagyon szép az idő.',
+          en: 'The weather is very nice today.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText('Ma nagyon szép az idő.')).toBeVisible();
+
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+});

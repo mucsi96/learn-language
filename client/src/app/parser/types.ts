@@ -34,16 +34,23 @@ export type ExampleImage = {
   model?: string;
 };
 
+export type Example = {
+  de?: string;
+  hu?: string;
+  en?: string;
+  ch?: string;
+  isSelected?: boolean;
+  images?: ExampleImage[];
+};
+
 export type CardData = {
-  word: string;
+  word?: string;
+  sentence?: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;
   forms?: string[];
-  examples?: (Record<string, string | undefined> & {
-    isSelected?: boolean;
-    images?: ExampleImage[];
-  })[];
+  examples?: Example[];
   audio?: AudioData[];
   audioVoice?: string;
 };
@@ -78,17 +85,30 @@ export type Page = {
   sourceName: string;
   sourceType?: SourceType;
   cardType?: CardType;
+  formatType?: SourceFormatType;
   hasImage?: boolean;
   width: number;
   height: number;
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary';
+export type CardType = 'vocabulary' | 'speech';
 
 export type ExtractedItem = {
   id: string;
   exists: boolean;
+};
+
+export type Sentence = ExtractedItem & {
+  sentence: string;
+};
+
+export type SentenceList = {
+  sentences: Sentence[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type ExtractionRequest = {
@@ -149,6 +169,8 @@ export type CardTypeStrategy = {
   ): Promise<CardCreationResult>;
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
+  getCardTypeLabel(card: Card): string;
+  getCardAdditionalInfo(card: Card): string | undefined;
   getAudioItems(card: Card): AudioGenerationItem[];
   updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData;
   getLanguageTexts(card: Card): LanguageTexts[];

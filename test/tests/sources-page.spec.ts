@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
 
 test('displays current page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -147,4 +147,50 @@ test('source selector dropdown content', async ({ page }) => {
   await expect(page.getByRole('menuitem', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Goethe A2' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Goethe B1' })).toBeVisible();
+});
+
+test('speech source page sentence extraction', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
+    await page.mouse.up();
+  }
+});
+
+test('speech source selector routing works', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
+
+  await page.getByRole('button', { name: 'Speech A1' }).click();
+  await page.getByRole('menuitem', { name: 'Goethe A1' }).click();
+
+  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a1/page/9');
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
 });

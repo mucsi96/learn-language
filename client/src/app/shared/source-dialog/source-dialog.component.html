@@ -18,6 +18,33 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Card Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.cardType"
+        name="cardType"
+        [disabled]="data.mode === 'edit'"
+        required
+      >
+        @for (cardType of cardTypes; track cardType.code) {
+        <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Language Level</mat-label>
+      <mat-select
+        [(ngModel)]="formData.languageLevel"
+        name="languageLevel"
+        required
+      >
+        @for (level of languageLevels; track level.code) {
+        <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
       <mat-label>Source Type</mat-label>
       <mat-select
         [(ngModel)]="formData.sourceType"
@@ -30,6 +57,21 @@
         }
       </mat-select>
     </mat-form-field>
+
+    @if (formData.cardType !== 'speech') {
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Format Type</mat-label>
+      <mat-select
+        [(ngModel)]="formData.formatType"
+        name="formatType"
+        required
+      >
+        @for (formatType of formatTypes; track formatType.code) {
+        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    }
 
     @if (formData.sourceType === 'pdf') {
     <div
@@ -88,6 +130,7 @@
     <p class="hint-text">Images will be added from the page view after creating the source.</p>
     }
 
+    @if (formData.sourceType === 'pdf') {
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Start Page</mat-label>
       <input
@@ -99,39 +142,7 @@
         required
       />
     </mat-form-field>
-
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Language Level</mat-label>
-      <mat-select
-        [(ngModel)]="formData.languageLevel"
-        name="languageLevel"
-        required
-      >
-        @for (level of languageLevels; track level.code) {
-        <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Format Type</mat-label>
-      <mat-select
-        [(ngModel)]="formData.formatType"
-        name="formatType"
-        required
-      >
-        @for (formatType of formatTypes; track formatType.code) {
-        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Card Type</mat-label>
-      <mat-select [(ngModel)]="formData.cardType" name="cardType" disabled>
-        <mat-option value="vocabulary">Vocabulary</mat-option>
-      </mat-select>
-    </mat-form-field>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

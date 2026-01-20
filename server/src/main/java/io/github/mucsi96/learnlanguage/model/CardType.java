@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.util.Arrays;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -7,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum CardType {
-    VOCABULARY("vocabulary");
+    VOCABULARY("vocabulary"),
+    SPEECH("speech");
 
     private final String typeName;
 
@@ -17,12 +20,10 @@ public enum CardType {
     }
 
     @JsonCreator
-    public static CardType fromString(String typeName) {
-        for (CardType type : values()) {
-            if (type.typeName.equalsIgnoreCase(typeName)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown card type: " + typeName);
+    public static CardType fromString(final String typeName) {
+        return Arrays.stream(values())
+            .filter(type -> type.typeName.equalsIgnoreCase(typeName))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown card type: " + typeName));
     }
 }

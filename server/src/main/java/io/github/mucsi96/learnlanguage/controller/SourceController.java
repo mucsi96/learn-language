@@ -26,8 +26,11 @@ import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
+import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
+import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
@@ -50,6 +53,7 @@ public class SourceController {
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
+  private final AreaSentenceService areaSentenceService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -135,6 +139,39 @@ public class SourceController {
         .build();
   }
 
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/sentences")
+  public SentenceListResponse getSentences(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam Double x,
+      @RequestParam Double y,
+      @RequestParam Double width,
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+
+    final var areaSentences = areaSentenceService.getAreaSentences(imageData, model, source.getLanguageLevel());
+
+    final var sentences = areaSentences.stream()
+        .map(sentence -> SentenceResponse.builder()
+            .sentence(sentence)
+            .build())
+        .toList();
+
+    return SentenceListResponse.builder()
+        .sentences(sentences)
+        .x(x)
+        .y(y)
+        .width(width)
+        .height(height)
+        .build();
+  }
+
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource() {
@@ -148,7 +185,7 @@ public class SourceController {
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
-        .startPage(request.getStartPage())
+        .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())

@@ -93,7 +93,7 @@
   margin-top: 1rem;
 }
 
-.extracted-words-container {
+.extracted-candidates-container {
   position: fixed;
   bottom: 1rem;
   left: 50%;
@@ -106,14 +106,14 @@
   z-index: 100;
 }
 
-.extracted-words-container mat-chip-set {
+.extracted-candidates-container mat-chip-set {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
 }
 
-.extracted-words-container button[mat-chip] {
+.extracted-candidates-container button[mat-chip] {
   cursor: pointer;
   border: unset;
 }

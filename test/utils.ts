@@ -8,9 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const STORAGE_DIR = path.join(__dirname, 'storage');
 
 // Database connection helper
-export async function withDbConnection<T>(
-  callback: (client: Client) => Promise<T>
-): Promise<T> {
+export async function withDbConnection<T>(callback: (client: Client) => Promise<T>): Promise<T> {
   const client = new Client({
     host: 'localhost',
     port: 5460,
@@ -38,7 +36,7 @@ export async function cleanupDb(): Promise<void> {
 export async function createSource(params: {
   id: string;
   name: string;
-  startPage: number;
+  startPage?: number;
   languageLevel: string;
   cardType: string;
   formatType: string;
@@ -83,11 +81,13 @@ export async function createDocument(params: {
   });
 }
 
-export async function getDocuments(sourceId: string): Promise<Array<{
-  id: number;
-  fileName: string;
-  pageNumber: number | null;
-}>> {
+export async function getDocuments(sourceId: string): Promise<
+  Array<{
+    id: number;
+    fileName: string;
+    pageNumber: number | null;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, file_name as "fileName", page_number as "pageNumber"
@@ -184,6 +184,15 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       sourceId: 'goethe-b1',
       fileName: 'Goethe-Zertifikat_B1_Wortliste.pdf',
     });
+    await createSource({
+      id: 'speech-a1',
+      name: 'Speech A1',
+      startPage: 1,
+      languageLevel: 'A1',
+      cardType: 'SPEECH',
+      formatType: 'FLOWING_TEXT',
+      sourceType: 'IMAGES',
+    });
   }
 }
 
@@ -234,8 +243,8 @@ export function populateStorage(): void {
 }
 
 interface CardData {
-  word: string;
-  type: string;
+  word?: string;
+  type?: string;
   translation?: Record<string, string>;
   forms?: any[];
   examples?: any[];
@@ -329,10 +338,7 @@ export async function createCardsWithStates(
       word,
       type: 'NOUN',
       translation: Object.fromEntries(
-        Object.entries(baseTranslations).map(([code, trans]) => [
-          code,
-          `${trans}_${word}`,
-        ])
+        Object.entries(baseTranslations).map(([code, trans]) => [code, `${trans}_${word}`])
       ),
       forms: [],
       examples: [],
@@ -403,19 +409,17 @@ export async function getImageContent(imageElement: Locator): Promise<Buffer> {
 
   if (imageSrc.startsWith('blob:')) {
     // Use browser context to fetch blob and return as base64
-    const base64Data = await imageElement.evaluate(
-      async (el: HTMLImageElement) => {
-        const response = await fetch(el.src);
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary);
+    const base64Data = await imageElement.evaluate(async (el: HTMLImageElement) => {
+      const response = await fetch(el.src);
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
       }
-    );
+      return btoa(binary);
+    });
     return Buffer.from(base64Data, 'base64');
   } else {
     const response = await fetch(imageSrc);
@@ -433,11 +437,7 @@ export function getColorImageBytes(color: string, size: number = 600): Buffer {
   return fs.readFileSync(path.join(imagesDir, filename));
 }
 
-export async function selectTextRange(
-  page: Page,
-  startText: string,
-  endText: string
-): Promise<void> {
+export async function selectTextRange(page: Page, startText: string, endText: string): Promise<void> {
   const startElement = page.getByText(startText, { exact: true });
   const endElement = page.getByText(endText, { exact: true });
 
@@ -455,24 +455,15 @@ export async function selectTextRange(
 
   await page.mouse.move(startBox.x - 5, startBox.y - 5);
   await page.mouse.down();
-  await page.mouse.move(
-    endBox.x + endBox.width + 5,
-    endBox.y + endBox.height + 5
-  );
+  await page.mouse.move(endBox.x + endBox.width + 5, endBox.y + endBox.height + 5);
   await page.mouse.up();
   await page.waitForTimeout(2000);
 }
 
-export async function scrollElementToTop(
-  page: Page,
-  selectorText: string,
-  exact: boolean = true
-): Promise<void> {
+export async function scrollElementToTop(page: Page, selectorText: string, exact: boolean = true): Promise<void> {
   const element = page.getByText(selectorText, { exact });
   await expect(element).toBeVisible();
-  await element.evaluate((el) =>
-    el.scrollIntoView({ block: 'start', behavior: 'instant' })
-  );
+  await element.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
   await page.waitForLoadState('networkidle');
 }
 
@@ -525,15 +516,17 @@ export function ensureTimezoneAware(dt: Date): Date {
   // PostgreSQL stores dates as timestamp (without timezone)
   // The pg library interprets these as local time, but they are actually stored in UTC
   // We need to create a new Date treating the components as UTC
-  return new Date(Date.UTC(
-    dt.getFullYear(),
-    dt.getMonth(),
-    dt.getDate(),
-    dt.getHours(),
-    dt.getMinutes(),
-    dt.getSeconds(),
-    dt.getMilliseconds()
-  ));
+  return new Date(
+    Date.UTC(
+      dt.getFullYear(),
+      dt.getMonth(),
+      dt.getDate(),
+      dt.getHours(),
+      dt.getMinutes(),
+      dt.getSeconds(),
+      dt.getMilliseconds()
+    )
+  );
 }
 
 export async function createModelUsageLog(params: {
@@ -589,15 +582,17 @@ export async function createModelUsageLog(params: {
   });
 }
 
-export async function getModelUsageLogs(): Promise<Array<{
-  id: number;
-  modelName: string;
-  modelType: string;
-  operationType: string;
-  inputTokens: number | null;
-  outputTokens: number | null;
-  rating: number | null;
-}>> {
+export async function getModelUsageLogs(): Promise<
+  Array<{
+    id: number;
+    modelName: string;
+    modelType: string;
+    operationType: string;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    rating: number | null;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, model_name as "modelName", model_type as "modelType",
@@ -617,13 +612,7 @@ export async function createVoiceConfiguration(params: {
   displayName?: string | null;
   isEnabled?: boolean;
 }): Promise<number> {
-  const {
-    voiceId,
-    model,
-    language,
-    displayName = null,
-    isEnabled = true,
-  } = params;
+  const { voiceId, model, language, displayName = null, isEnabled = true } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
@@ -636,14 +625,16 @@ export async function createVoiceConfiguration(params: {
   });
 }
 
-export async function getVoiceConfigurations(): Promise<Array<{
-  id: number;
-  voiceId: string;
-  model: string;
-  language: string;
-  displayName: string | null;
-  isEnabled: boolean;
-}>> {
+export async function getVoiceConfigurations(): Promise<
+  Array<{
+    id: number;
+    voiceId: string;
+    model: string;
+    language: string;
+    displayName: string | null;
+    isEnabled: boolean;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, voice_id as "voiceId", model, language,
@@ -661,12 +652,7 @@ export async function createChatModelSetting(params: {
   isEnabled?: boolean;
   isPrimary?: boolean;
 }): Promise<number> {
-  const {
-    modelName,
-    operationType,
-    isEnabled = true,
-    isPrimary = false,
-  } = params;
+  const { modelName, operationType, isEnabled = true, isPrimary = false } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
@@ -686,6 +672,9 @@ const ALL_OPERATION_TYPES = [
   'translation_en',
   'translation_hu',
   'translation_ch',
+  'sentence_extraction',
+  'sentence_translation_hu',
+  'sentence_translation_en',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';
@@ -707,13 +696,15 @@ export async function clearChatModelSettings(): Promise<void> {
   });
 }
 
-export async function getChatModelSettings(): Promise<Array<{
-  id: number;
-  modelName: string;
-  operationType: string;
-  isEnabled: boolean;
-  isPrimary: boolean;
-}>> {
+export async function getChatModelSettings(): Promise<
+  Array<{
+    id: number;
+    modelName: string;
+    operationType: string;
+    isEnabled: boolean;
+    isPrimary: boolean;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, model_name as "modelName", operation_type as "operationType",
@@ -733,47 +724,40 @@ export async function getTableData<T extends Record<string, string>>(
 
   await expect(table).toBeVisible();
 
-  return await table.evaluate(
-    (tableEl, excludeSelector) => {
-      function getTextContent(element: Element): string {
-        let text = '';
-        for (const node of Array.from(element.childNodes)) {
-          if (node.nodeType === Node.TEXT_NODE) {
-            text += node.textContent || '';
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const el = node as Element;
-            if (el.getAttribute('role') !== 'img') {
-              text += getTextContent(el);
-            }
+  return (await table.evaluate((tableEl, excludeSelector) => {
+    function getTextContent(element: Element): string {
+      let text = '';
+      for (const node of Array.from(element.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          text += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as Element;
+          if (el.getAttribute('role') !== 'img') {
+            text += getTextContent(el);
           }
         }
-        return text.trim().replace(/\s+/g, ' ');
       }
+      return text.trim().replace(/\s+/g, ' ');
+    }
 
-      const headers = Array.from(tableEl.querySelectorAll('thead th')).map(
-        (th) => getTextContent(th)
-      );
+    const headers = Array.from(tableEl.querySelectorAll('thead th')).map((th) => getTextContent(th));
 
-      const rowSelector = excludeSelector
-        ? `tbody tr:not(${excludeSelector})`
-        : 'tbody tr';
-      const rows = Array.from(tableEl.querySelectorAll(rowSelector));
+    const rowSelector = excludeSelector ? `tbody tr:not(${excludeSelector})` : 'tbody tr';
+    const rows = Array.from(tableEl.querySelectorAll(rowSelector));
 
-      return rows.map((row) => {
-        const cells = Array.from(row.querySelectorAll('td'));
-        const rowData: Record<string, string> = {};
+    return rows.map((row) => {
+      const cells = Array.from(row.querySelectorAll('td'));
+      const rowData: Record<string, string> = {};
 
-        headers.forEach((header, index) => {
-          if (header) {
-            rowData[header] = cells[index] ? getTextContent(cells[index]) : '';
-          }
-        });
-
-        return rowData;
+      headers.forEach((header, index) => {
+        if (header) {
+          rowData[header] = cells[index] ? getTextContent(cells[index]) : '';
+        }
       });
-    },
-    excludeRowSelector
-  ) as T[];
+
+      return rowData;
+    });
+  }, excludeRowSelector)) as T[];
 }
 
 export interface KnownWordInput {
@@ -781,10 +765,7 @@ export interface KnownWordInput {
   hungarianTranslation?: string | null;
 }
 
-export async function createKnownWord(
-  word: string,
-  hungarianTranslation?: string | null
-): Promise<number> {
+export async function createKnownWord(word: string, hungarianTranslation?: string | null): Promise<number> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `INSERT INTO learn_language.known_words (word, hungarian_translation)
@@ -796,9 +777,7 @@ export async function createKnownWord(
   });
 }
 
-export async function createKnownWords(
-  words: KnownWordInput[]
-): Promise<void> {
+export async function createKnownWords(words: KnownWordInput[]): Promise<void> {
   await withDbConnection(async (client) => {
     for (const item of words) {
       await client.query(
@@ -811,9 +790,7 @@ export async function createKnownWords(
   });
 }
 
-export async function getKnownWords(): Promise<
-  Array<{ word: string; hungarianTranslation: string | null }>
-> {
+export async function getKnownWords(): Promise<Array<{ word: string; hungarianTranslation: string | null }>> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT word, hungarian_translation as "hungarianTranslation"
@@ -829,10 +806,7 @@ export async function clearKnownWords(): Promise<void> {
   });
 }
 
-export async function createLearningPartner(params: {
-  name: string;
-  isActive?: boolean;
-}): Promise<number> {
+export async function createLearningPartner(params: { name: string; isActive?: boolean }): Promise<number> {
   const { name, isActive = false } = params;
 
   return await withDbConnection(async (client) => {
@@ -846,11 +820,13 @@ export async function createLearningPartner(params: {
   });
 }
 
-export async function getLearningPartners(): Promise<Array<{
-  id: number;
-  name: string;
-  isActive: boolean;
-}>> {
+export async function getLearningPartners(): Promise<
+  Array<{
+    id: number;
+    name: string;
+    isActive: boolean;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, name, is_active as "isActive"
@@ -861,12 +837,14 @@ export async function getLearningPartners(): Promise<Array<{
   });
 }
 
-export async function getReviewLogs(): Promise<Array<{
-  id: number;
-  cardId: string;
-  learningPartnerId: number | null;
-  rating: number;
-}>> {
+export async function getReviewLogs(): Promise<
+  Array<{
+    id: number;
+    cardId: string;
+    learningPartnerId: number | null;
+    rating: number;
+  }>
+> {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, card_id as "cardId", learning_partner_id as "learningPartnerId", rating
@@ -929,11 +907,13 @@ export async function createReviewLog(params: {
   });
 }
 
-export async function getStudySessionCards(page: Page): Promise<Array<{
-  cardId: string;
-  position: number;
-  learningPartnerId: number | null;
-}>> {
+export async function getStudySessionCards(page: Page): Promise<
+  Array<{
+    cardId: string;
+    position: number;
+    learningPartnerId: number | null;
+  }>
+> {
   await page.waitForURL(/session=/);
   const sessionId = new URL(page.url()).searchParams.get('session');
 

@@ -103,8 +103,8 @@
   }
 </section>
 
-@if (cardType() === 'vocabulary' && sourceType() === 'images' && extractedCandidates().length > 0) {
-<div class="extracted-candidates-container" role="region" aria-label="Extracted words">
+@if (formatType() === 'flowingText' && extractedCandidates().length > 0) {
+<div class="extracted-candidates-container" role="region" aria-label="Extracted items">
   <mat-chip-set>
     @for (item of extractedCandidates(); track item.id) {
     <button mat-chip [matMenuTriggerFor]="itemMenu">

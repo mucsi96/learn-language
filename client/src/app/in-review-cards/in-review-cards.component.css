@@ -73,7 +73,7 @@ p {
   color: white;
 }
 
-.gender-text {
+.additional-info-text {
   font-size: 0.875rem;
   color: var(--mat-app-text-color);
   font-style: italic;

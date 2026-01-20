@@ -7,6 +7,7 @@ import {
   downloadImage,
   yellowImage,
   redImage,
+  menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
 } from '../utils';
@@ -415,4 +416,59 @@ test('bulk card creation dialog review link', async ({ page }) => {
 
   // Verify that we navigate to the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
+});
+
+test('bulk speech card creation includes sentence data', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, source_id, source_page_number, state, readiness
+       FROM learn_language.cards WHERE source_id = 'speech-a1'`
+    );
+
+    expect(result.rows.length).toBe(2);
+
+    const card1 = result.rows.find((row) => row.data.sentence === 'Wie heißt das Lied?');
+    expect(card1).toBeDefined();
+    expect(card1?.source_id).toBe('speech-a1');
+    expect(card1?.source_page_number).toBe(1);
+    expect(card1?.state).toBe('NEW');
+    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.data.translation.hu).toBe('Hogy hívják a dalt?');
+    expect(card1?.data.translation.en).toBe('What is the name of the song?');
+    expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
+    expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
+    expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
+    const card2 = result.rows.find((row) => row.data.sentence === 'Hören Sie.');
+    expect(card2).toBeDefined();
+    expect(card2?.data.translation.hu).toBe('Hallgasson.');
+    expect(card2?.data.translation.en).toBe('Listen.');
+  });
 });

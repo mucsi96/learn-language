@@ -76,6 +76,9 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly cardType = computed(
     () => this.pageService.page.value()?.cardType
   );
+  readonly formatType = computed(
+    () => this.pageService.page.value()?.formatType
+  );
   readonly hasImage = computed(
     () => this.pageService.page.value()?.hasImage
   );

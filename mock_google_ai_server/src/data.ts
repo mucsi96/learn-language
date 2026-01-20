@@ -176,3 +176,18 @@ export const WORD_TYPES: Record<string, string> = {
   'Achtung': 'NOUN',
   'die Adresse': 'NOUN',
 };
+
+export const SENTENCE_LISTS: Record<string, string[]> = {
+  speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
+};
+
+export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  hungarian: {
+    'Hören Sie.': 'Hallgasson.',
+    'Wie heißt das Lied?': 'Hogy hívják a dalt?',
+  },
+  english: {
+    'Hören Sie.': 'Listen.',
+    'Wie heißt das Lied?': 'What is the name of the song?',
+  },
+};

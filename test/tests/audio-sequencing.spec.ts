@@ -217,3 +217,44 @@ test('voice selection dialog displays model for each voice configuration', async
   await expect(page.getByText('eleven_v3')).toBeVisible();
   await expect(page.getByText('eleven_turbo_v2_5')).toBeVisible();
 });
+
+test('speech card audio plays on study page', async ({ page }) => {
+  await createCard({
+    cardId: 'speech-audio-test',
+    sourceId: 'speech-a1',
+    data: {
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
+      translation: {
+        hu: 'Jó reggelt, hogy van?',
+        en: 'Good morning, how are you?',
+      },
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  const consoleMessages: any[] = [];
+  page.on('console', (msg) => consoleMessages.push(msg));
+
+  await page.goto('/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard.getByText('Jó reggelt, hogy van?' )).toBeVisible();
+
+  await flashcard.click();
+
+  await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?' )).toBeVisible();
+
+  const audioErrors = consoleMessages.filter(
+    (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
+  );
+  expect(audioErrors.length).toBe(0);
+});

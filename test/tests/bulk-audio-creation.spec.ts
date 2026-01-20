@@ -722,3 +722,60 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
     });
   });
 });
+
+test('bulk audio creation for speech cards', async ({ page }) => {
+  await setupVoiceConfigurations();
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 20,
+    data: {
+      sentence: 'Guten Morgen, wie geht es Ihnen?',
+      translation: {
+        hu: 'Jó reggelt, hogy van?',
+        en: 'Good morning, how are you?',
+      },
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: 'test-image-id', isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  const fab = page.getByRole('button', { name: 'Generate audio for cards' });
+  await expect(fab).toBeVisible();
+  await expect(fab).toContainText('Generate audio for 1 card');
+
+  await fab.click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'a1b2c3d4'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.audio).toBeDefined();
+    const audioList = cardData.audio;
+    expect(Array.isArray(audioList)).toBeTruthy();
+
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
+
+    const germanSentenceAudio = findAudioByText('Guten Morgen, wie geht es Ihnen?');
+    expect(germanSentenceAudio).toBeDefined();
+    expect(downloadAudio(germanSentenceAudio.id).equals(germanAudioSample)).toBeTruthy();
+
+    const hungarianTranslationAudio = findAudioByText('Jó reggelt, hogy van?');
+    expect(hungarianTranslationAudio).toBeDefined();
+    expect(downloadAudio(hungarianTranslationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+  });
+});
