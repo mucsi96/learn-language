@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, yellowImage } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
 
 test('displays current page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -157,7 +157,7 @@ test('speech source page navigation and image upload', async ({ page }) => {
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
     mimeType: 'image/png',
-    buffer: yellowImage,
+    buffer: menschenA1Image,
   });
 
   await expect(page.getByText('Seite 1')).toBeVisible();
@@ -172,7 +172,7 @@ test('speech source selector routing works', async ({ page }) => {
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
     mimeType: 'image/png',
-    buffer: yellowImage,
+    buffer: menschenA1Image,
   });
 
   await expect(page.getByText('Seite 1')).toBeVisible();
