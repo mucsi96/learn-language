@@ -5,10 +5,10 @@ import {
   computed,
   inject,
   linkedSignal,
-  signal,
   untracked,
   effect,
   Injector,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -23,6 +23,7 @@ import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
+import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -34,6 +35,7 @@ import { ImageSourceRequest } from '../../../shared/types/image-generation.types
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    ImageCarouselComponent,
   ],
   templateUrl: './edit-speech-card.component.html',
   styleUrl: './edit-speech-card.component.css',
@@ -49,6 +51,7 @@ export class EditSpeechCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageCarousel = viewChild(ImageCarouselComponent);
 
   readonly sentence = linkedSignal(() => this.card()?.data.sentence);
   readonly hungarianTranslation = linkedSignal(
@@ -71,8 +74,6 @@ export class EditSpeechCardComponent {
       );
     });
   });
-
-  imageCarouselIndex = signal(0);
 
   readonly canMarkAsReviewed = computed(() => {
     if (this.card()?.readiness !== 'IN_REVIEW') {
@@ -109,9 +110,7 @@ export class EditSpeechCardComponent {
       ...imgs,
       ...imageModels.map((model) => this.createExampleImageResource(model.id)),
     ]);
-
-    const length = this.images().length;
-    this.imageCarouselIndex.set(length - 1);
+    this.imageCarousel()?.goToLast();
   }
 
   areImagesLoading() {
@@ -119,21 +118,7 @@ export class EditSpeechCardComponent {
     return imgs.some((image) => image.isLoading());
   }
 
-  prevImage() {
-    const imgs = this.images() || [];
-    if (!imgs.length) return;
-    this.imageCarouselIndex.update(
-      (idx) => (idx - 1 + imgs.length) % imgs.length
-    );
-  }
-
-  nextImage() {
-    const imgs = this.images() || [];
-    if (!imgs.length) return;
-    this.imageCarouselIndex.update((idx) => (idx + 1) % imgs.length);
-  }
-
-  async toggleFavorite(imageIdx: number) {
+  onFavoriteToggled(imageIdx: number) {
     const imgs = this.images();
     if (!imgs?.length) return;
 
