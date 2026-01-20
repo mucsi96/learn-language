@@ -185,7 +185,7 @@ public class SourceController {
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
-        .startPage(request.getStartPage())
+        .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())
