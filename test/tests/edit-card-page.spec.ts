@@ -215,11 +215,17 @@ test('card editing in db', async ({ page }) => {
     name: 'Wann fährt der Zug ab?',
   });
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
+  await expect(page.getByText('1 / 5')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next image' }).nth(1).click();
+
+  await expect(page.getByText('2 / 5')).toBeVisible();
+  await expect(page.getByText('GPT Image 1')).toBeVisible();
+
 
   const imageContent2 = await getImageContent(imageLocator);
 
-  expect(imageContent2.equals(getColorImageBytes('green'))).toBeTruthy();
+  expect(imageContent2.equals(getColorImageBytes('red'))).toBeTruthy();
 
   await page.getByRole('radio').nth(1).click();
   await page.getByRole('button', { name: 'Update' }).click();
@@ -427,8 +433,13 @@ test('example image addition', async ({ page }) => {
     name: 'Wir fahren um zwölf Uhr ab.',
   });
   await imageLocator.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
-  await page.getByRole('button', { name: 'Add example image' }).first().click();
-  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
+  await page.getByRole('button', { name: 'Add example image' }).click();
+  await expect(page.getByText('1 / 5')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next image' }).click();
+
+  await expect(page.getByText('2 / 5')).toBeVisible();
+  await expect(page.getByText('GPT Image 1')).toBeVisible();
 
   const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
   expect(regeneratedImageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
