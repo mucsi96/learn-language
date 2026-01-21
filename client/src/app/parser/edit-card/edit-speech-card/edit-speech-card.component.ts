@@ -9,6 +9,7 @@ import {
   effect,
   Injector,
   viewChild,
+  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -110,7 +111,9 @@ export class EditSpeechCardComponent {
       ...imgs,
       ...imageModels.map((model) => this.createExampleImageResource(model.id)),
     ]);
-    this.imageCarousel()?.goToLast();
+    afterNextRender(() => this.imageCarousel()?.goToLast(), {
+      injector: this.injector,
+    });
   }
 
   areImagesLoading() {

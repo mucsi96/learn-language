@@ -10,6 +10,7 @@ import {
   effect,
   Injector,
   viewChildren,
+  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -169,7 +170,9 @@ export class EditVocabularyCardComponent {
       ];
       return images;
     });
-    this.imageCarousels()[exampleIdx]?.goToLast();
+    afterNextRender(() => this.imageCarousels()[exampleIdx]?.goToLast(), {
+      injector: this.injector,
+    });
   }
 
   areImagesLoading(exampleIdx: number) {
