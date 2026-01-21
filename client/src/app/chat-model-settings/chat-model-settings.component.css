@@ -45,10 +45,8 @@ mat-card-header {
 }
 
 .operation-header {
-  min-width: 70px;
-  height: 160px;
-  vertical-align: bottom;
-  padding-bottom: 8px !important;
+  min-width: 120px;
+  vertical-align: middle;
 }
 
 .operation-header-content {
@@ -56,15 +54,11 @@ mat-card-header {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  height: 100%;
-  justify-content: flex-end;
 }
 
 .operation-name {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
   white-space: nowrap;
-  text-align: left;
+  text-align: center;
 }
 
 .enable-all-button {
