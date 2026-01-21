@@ -54,7 +54,7 @@ export class VocabularyCardType implements CardTypeStrategy {
     const { sourceId, pageNumber, x, y, width, height } = request;
 
     const wordList = await this.multiModelService.call<WordList>(
-      'word_extraction',
+      'extraction',
       (model: string) =>
         fetchJson<WordList>(
           this.http,
@@ -65,7 +65,7 @@ export class VocabularyCardType implements CardTypeStrategy {
     const wordsWithIds = await Promise.all(
       wordList.words.map(async (word) => {
         const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
-          'translation_hu',
+          'translation',
           (model: string) => fetchJson<TranslationResponse>(
             this.http,
             `/api/translate/hu?model=${model}`,
@@ -119,7 +119,7 @@ export class VocabularyCardType implements CardTypeStrategy {
     try {
       progressCallback(10, 'Detecting word type...');
       const wordType = await this.multiModelService.call<WordTypeResponse>(
-        'word_type',
+        'classification',
         (model: string) => fetchJson<WordTypeResponse>(
           this.http,
           `/api/word-type?model=${model}`,
@@ -134,7 +134,7 @@ export class VocabularyCardType implements CardTypeStrategy {
       if (wordType.type === 'NOUN') {
         progressCallback(30, 'Detecting gender...');
         const genderResponse = await this.multiModelService.call<GenderResponse>(
-          'gender',
+          'classification',
           (model: string) => fetchJson<GenderResponse>(
             this.http,
             `/api/gender?model=${model}`,
@@ -151,7 +151,7 @@ export class VocabularyCardType implements CardTypeStrategy {
       const translations = await Promise.all(
         languages.map(async (languageCode) => {
           const translation = await this.multiModelService.call<TranslationResponse>(
-            `translation_${languageCode}`,
+            'translation',
             (model: string) => fetchJson<TranslationResponse>(
               this.http,
               `/api/translate/${languageCode}?model=${model}`,
