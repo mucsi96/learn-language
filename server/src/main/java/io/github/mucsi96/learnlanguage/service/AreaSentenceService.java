@@ -31,7 +31,12 @@ public class AreaSentenceService {
         !IMPORTANT! In response please provide all extracted sentences in JSON format with a "sentences" array containing strings.
         Extract complete, meaningful sentences that are suitable for %s level learners.
         Each sentence should be a standalone German sentence that makes sense on its own.
-        Do not include partial sentences or sentence fragments.""".formatted(languageLevel.name());
+
+        CRITICAL: Do not include partial sentences or sentence fragments:
+        - Skip sentences that appear to be cut off at the beginning (e.g., starting with lowercase, missing subject, or continuing from previous context with "und", "oder", "aber", "dass", etc.)
+        - Skip sentences that appear to be cut off at the end (e.g., ending abruptly without proper punctuation like period, question mark, or exclamation mark)
+        - Only include sentences that have both a clear beginning (typically starting with a capital letter and a subject/verb) and a clear ending (proper sentence-ending punctuation)
+        - If the visible text in the selected area only shows a fragment of a sentence, do not include it""".formatted(languageLevel.name());
 
     final AreaSentences example = new AreaSentences(List.of(
         "Guten Morgen, wie geht es Ihnen?",
