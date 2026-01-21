@@ -9,6 +9,8 @@ import {
   untracked,
   effect,
   Injector,
+  viewChildren,
+  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -28,6 +30,7 @@ import { fetchJson } from '../../../utils/fetchJson';
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
+import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -41,6 +44,7 @@ import { ImageSourceRequest } from '../../../shared/types/image-generation.types
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    ImageCarouselComponent,
   ],
   templateUrl: './edit-vocabulary-card.component.html',
   styleUrl: './edit-vocabulary-card.component.css',
@@ -56,6 +60,7 @@ export class EditVocabularyCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageCarousels = viewChildren(ImageCarouselComponent);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
@@ -112,11 +117,6 @@ export class EditVocabularyCardComponent {
       0
   );
 
-  exampleImageCarouselIndices = linkedSignal<number[]>(() => {
-    const examples = this.examples();
-    return examples?.map(() => 0) ?? [];
-  });
-
   readonly canMarkAsReviewed = computed(() => {
     if (this.card()?.readiness !== 'IN_REVIEW') {
       return false;
@@ -147,7 +147,6 @@ export class EditVocabularyCardComponent {
   });
 
   constructor() {
-    // Watch for changes and emit card updates
     effect(() => {
       const cardData = this.getCardData();
       if (cardData) {
@@ -155,15 +154,8 @@ export class EditVocabularyCardComponent {
       }
     });
 
-    // Watch for mark as reviewed availability changes
     effect(() => {
       this.markAsReviewedAvailable.emit(this.canMarkAsReviewed());
-    });
-
-    // Initialize carousel indices when examples change
-    effect(() => {
-      const examples = this.examples();
-      this.exampleImageCarouselIndices.set(examples?.map(() => 0) ?? []);
     });
   }
 
@@ -178,11 +170,8 @@ export class EditVocabularyCardComponent {
       ];
       return images;
     });
-
-    const length = this.exampleImages()[exampleIdx].length;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = length - 1;
-      return indices;
+    afterNextRender(() => this.imageCarousels()[exampleIdx]?.goToLast(), {
+      injector: this.injector,
     });
   }
 
@@ -191,26 +180,7 @@ export class EditVocabularyCardComponent {
     return images.some((image) => image.isLoading());
   }
 
-  prevImage(exampleIdx: number) {
-    const images = this.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] =
-        (indices[exampleIdx] - 1 + images.length) % images.length;
-      return indices;
-    });
-  }
-
-  nextImage(exampleIdx: number) {
-    const images = this.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = (indices[exampleIdx] + 1) % images.length;
-      return indices;
-    });
-  }
-
-  async toggleFavorite(exampleIdx: number, imageIdx: number) {
+  onFavoriteToggled(exampleIdx: number, imageIdx: number) {
     const images = this.exampleImages()?.[exampleIdx];
     if (!images?.length) return;
 
@@ -225,7 +195,6 @@ export class EditVocabularyCardComponent {
       isFavorite: !imageValue.isFavorite,
     });
 
-    // Trigger exampleImages signal update to recompute canMarkAsReviewed
     this.exampleImages.update((currentImages) => [...currentImages]);
   }
 

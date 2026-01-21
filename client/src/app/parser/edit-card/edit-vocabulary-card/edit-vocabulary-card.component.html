@@ -107,68 +107,13 @@
         aria-label="Example in Swiss German"
       />
     </mat-form-field>
-    <div class="image">
-      @if (images && images.length) { @let imageResource =
-      images[exampleImageCarouselIndices()[$index]]; @let url =
-      imageResource?.value()?.url; @if(!imageResource) {
-      <mat-icon>image_not_supported</mat-icon>
-      } @else if(imageResource.isLoading()) {
-      <div class="skeleton"></div>
-      } @else if (url) {
-      <img [src]="url" [alt]="example()" />
-      <div
-        class="image-overlay"
-        [class.image-overlay-favorite]="imageResource.value()?.isFavorite"
-      >
-        <button
-          mat-icon-button
-          (click)="
-            toggleFavorite($index, exampleImageCarouselIndices()[$index])
-          "
-          aria-label="Toggle favorite"
-          [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
-          [attr.aria-pressed]="imageResource.value()?.isFavorite"
-        >
-          <mat-icon>{{
-            imageResource.value()?.isFavorite ? "favorite" : "favorite_border"
-          }}</mat-icon>
-        </button>
-      </div>
-      } @else {
-      <mat-icon>image_not_supported</mat-icon>
-      }
-      @if (imageResource?.value()?.model) {
-      <span class="model-name">{{ imageResource.value()?.model }}</span>
-      }
-      <div class="carousel-controls">
-        <button
-          mat-icon-button
-          (click)="prevImage($index)"
-          [disabled]="
-            images.length < 2 || exampleImageCarouselIndices()[$index] === 0
-          "
-          aria-label="Previous image"
-        >
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-        <span class="carousel-indicator">
-          {{ exampleImageCarouselIndices()[$index] + 1 }} /
-          {{ images.length }}
-        </span>
-        <button
-          mat-icon-button
-          (click)="nextImage($index)"
-          [disabled]="
-            images.length < 2 ||
-            exampleImageCarouselIndices()[$index] === images.length - 1
-          "
-          aria-label="Next image"
-        >
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-      }
-    </div>
+    @if (images && images.length) {
+      <app-image-carousel
+        [images]="images"
+        [altText]="example() ?? ''"
+        (favoriteToggled)="onFavoriteToggled($index, $event)"
+      />
+    }
     }
   </div>
   }
