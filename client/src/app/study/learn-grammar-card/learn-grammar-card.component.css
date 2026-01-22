@@ -65,9 +65,18 @@
   text-align: center;
 }
 
-.sentence-text.with-gaps {
-  font-family: monospace;
-  letter-spacing: 0.05em;
+.gap-word.masked {
+  background-color: var(--mat-sys-on-surface);
+  color: transparent;
+  border-radius: 4px;
+}
+
+.gap-word.highlighted {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-radius: 4px;
+  padding: 0 2px;
+  margin: 0 -2px;
 }
 
 .skeleton {
