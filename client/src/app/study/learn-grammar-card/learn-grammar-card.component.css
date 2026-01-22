@@ -72,8 +72,8 @@
 }
 
 .gap-word.highlighted {
-  background-color: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  background-color: #28a745;
+  color: white;
   border-radius: 4px;
   padding: 0 2px;
   margin: 0 -2px;
