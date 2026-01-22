@@ -70,14 +70,12 @@
   color: transparent;
   border-radius: 4px;
   padding: 0 1em;
-  margin: 0 1em;
 }
 
 .gap-word.highlighted {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  padding: 0 2px;
-  margin: 0 -2px;
+  padding: 0 1em;
 }
 
 .skeleton {
