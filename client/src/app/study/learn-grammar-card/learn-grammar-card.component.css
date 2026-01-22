@@ -66,9 +66,11 @@
 }
 
 .gap-word.masked {
-  background-color: var(--mat-sys-on-surface);
+  background: rgba(255, 255, 255, 0.1);
   color: transparent;
   border-radius: 4px;
+  padding: 0 1em;
+  margin: 0 -1em;
 }
 
 .gap-word.highlighted {
