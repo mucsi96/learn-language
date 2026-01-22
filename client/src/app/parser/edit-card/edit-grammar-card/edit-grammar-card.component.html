@@ -1,0 +1,79 @@
+<div class="sentence">
+  <mat-form-field class="field">
+    <mat-label>German Sentence</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="sentence"
+      aria-label="German sentence"
+      rows="3"
+      (select)="onTextSelect($event)"
+      (mouseup)="onTextSelect($event)"
+    ></textarea>
+  </mat-form-field>
+
+  <div class="gap-section">
+    <div class="gap-controls">
+      <button
+        mat-stroked-button
+        (click)="addGap()"
+        [disabled]="!hasValidSelection()"
+        aria-label="Add gap from selection"
+      >
+        <mat-icon>add</mat-icon>
+        Add gap from selection
+      </button>
+    </div>
+
+    @if (gaps().length > 0) {
+      <div class="gaps-list" role="list" aria-label="Gaps">
+        @for (gap of gaps(); track $index) {
+          <mat-chip-row (removed)="removeGap($index)">
+            {{ gap.text }}
+            <button matChipRemove aria-label="Remove gap">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </div>
+    }
+
+    @if (sentenceWithHighlightedGaps()) {
+      <div class="preview-section">
+        <span class="preview-label">Preview:</span>
+        <span class="preview-text">{{ sentenceWithHighlightedGaps() }}</span>
+      </div>
+    }
+  </div>
+
+  <mat-form-field class="field">
+    <mat-label>English Translation</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="englishTranslation"
+      aria-label="English translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+</div>
+
+<h2>Images</h2>
+<div class="images-section">
+  <div class="actions">
+    <button
+      mat-icon-button
+      (click)="addImage()"
+      aria-label="Add image"
+      [disabled]="areImagesLoading()"
+    >
+      <mat-icon>add_photo_alternate</mat-icon>
+    </button>
+  </div>
+  @let imgs = images();
+  @if (imgs && imgs.length) {
+    <app-image-carousel
+      [images]="imgs"
+      [altText]="sentence() ?? ''"
+      (favoriteToggled)="onFavoriteToggled($event)"
+    />
+  }
+</div>

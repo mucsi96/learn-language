@@ -11,6 +11,7 @@ public class CardTypeStrategyFactory {
 
     private final VocabularyCardTypeStrategy vocabularyCardTypeStrategy;
     private final SpeechCardTypeStrategy speechCardTypeStrategy;
+    private final GrammarCardTypeStrategy grammarCardTypeStrategy;
 
     public CardTypeStrategy getStrategy(Card card) {
         if (card == null || card.getSource() == null) {
@@ -28,6 +29,7 @@ public class CardTypeStrategyFactory {
         return switch (cardType) {
             case VOCABULARY -> vocabularyCardTypeStrategy;
             case SPEECH -> speechCardTypeStrategy;
+            case GRAMMAR -> grammarCardTypeStrategy;
         };
     }
 }

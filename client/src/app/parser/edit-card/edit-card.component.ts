@@ -15,6 +15,7 @@ import { fetchJson } from '../../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
 import { EditSpeechCardComponent } from './edit-speech-card/edit-speech-card.component';
+import { EditGrammarCardComponent } from './edit-grammar-card/edit-grammar-card.component';
 import { CardType } from '../types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
@@ -28,6 +29,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     RouterModule,
     EditVocabularyCardComponent,
     EditSpeechCardComponent,
+    EditGrammarCardComponent,
   ],
   templateUrl: './edit-card.component.html',
   styleUrl: './edit-card.component.css',

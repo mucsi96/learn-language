@@ -28,9 +28,12 @@ import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.SentenceResponse;
+import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
+import io.github.mucsi96.learnlanguage.service.AreaGrammarSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
@@ -54,6 +57,7 @@ public class SourceController {
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
   private final AreaSentenceService areaSentenceService;
+  private final AreaGrammarSentenceService areaGrammarSentenceService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -164,6 +168,40 @@ public class SourceController {
         .toList();
 
     return SentenceListResponse.builder()
+        .sentences(sentences)
+        .x(x)
+        .y(y)
+        .width(width)
+        .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/grammar-sentences")
+  public GrammarSentenceListResponse getGrammarSentences(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam Double x,
+      @RequestParam Double y,
+      @RequestParam Double width,
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+
+    final var areaGrammarSentences = areaGrammarSentenceService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
+
+    final var sentences = areaGrammarSentences.stream()
+        .map(sentence -> GrammarSentenceResponse.builder()
+            .sentence(sentence.sentence())
+            .gaps(sentence.gaps())
+            .build())
+        .toList();
+
+    return GrammarSentenceListResponse.builder()
         .sentences(sentences)
         .x(x)
         .y(y)

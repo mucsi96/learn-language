@@ -1,0 +1,23 @@
+<div class="image-section">
+  @if (exampleImages().length > 0) {
+  <div class="image-gallery">
+    @for (imageResource of exampleImages(); track $index) { @if (imageResource.value()?.url) {
+    <img [src]="imageResource.value()?.url" [alt]="sentence()" class="learn-card-image" />
+    } @else if (imageResource.isLoading()) {
+    <div class="skeleton"></div>
+    } }
+  </div>
+  }
+</div>
+
+<div class="content-section">
+  <div class="chips-corner">
+    @let state = card()?.value()?.state; @if (state !== undefined) {
+    <app-state [state]="state" />
+    }
+  </div>
+
+  <div class="sentence-section">
+    <p class="sentence-text" [class.gap-sentence]="!isRevealed()">{{ sentence() }}</p>
+  </div>
+</div>
