@@ -193,6 +193,16 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       formatType: 'FLOWING_TEXT',
       sourceType: 'IMAGES',
     });
+
+    await createSource({
+      id: 'grammar-a1',
+      name: 'Grammar A1',
+      startPage: 1,
+      languageLevel: 'A1',
+      cardType: 'GRAMMAR',
+      formatType: 'FLOWING_TEXT',
+      sourceType: 'IMAGES',
+    });
   }
 }
 

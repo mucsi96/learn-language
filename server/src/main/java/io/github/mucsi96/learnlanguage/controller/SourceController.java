@@ -29,7 +29,11 @@ import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
+import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
+import io.github.mucsi96.learnlanguage.model.GrammarGapResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
+import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
@@ -54,6 +58,7 @@ public class SourceController {
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
   private final AreaSentenceService areaSentenceService;
+  private final AreaGrammarService areaGrammarService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
@@ -164,6 +169,45 @@ public class SourceController {
         .toList();
 
     return SentenceListResponse.builder()
+        .sentences(sentences)
+        .x(x)
+        .y(y)
+        .width(width)
+        .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/page/{pageNumber}/grammar")
+  public GrammarSentenceListResponse getGrammarSentences(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam Double x,
+      @RequestParam Double y,
+      @RequestParam Double width,
+      @RequestParam Double height,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+
+    final var areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
+
+    final var sentences = areaGrammarSentences.stream()
+        .map(grammarSentence -> GrammarSentenceResponse.builder()
+            .sentence(grammarSentence.sentence())
+            .gaps(grammarSentence.gaps().stream()
+                .map(gap -> GrammarGapResponse.builder()
+                    .startIndex(gap.startIndex())
+                    .length(gap.length())
+                    .build())
+                .toList())
+            .build())
+        .toList();
+
+    return GrammarSentenceListResponse.builder()
         .sentences(sentences)
         .x(x)
         .y(y)

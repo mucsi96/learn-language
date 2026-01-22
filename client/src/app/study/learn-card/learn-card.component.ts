@@ -16,6 +16,7 @@ import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/c
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
+import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { Card, LanguageTexts } from '../../parser/types';
@@ -34,6 +35,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     CardActionsComponent,
     LearnVocabularyCardComponent,
     LearnSpeechCardComponent,
+    LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',

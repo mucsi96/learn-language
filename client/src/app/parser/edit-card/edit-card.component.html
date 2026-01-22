@@ -54,5 +54,15 @@
         (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
       />
     }
+    @case ('grammar') {
+      <app-edit-grammar-card
+        [selectedCardId]="selectedCardId()"
+        [selectedSourceId]="selectedSourceId()"
+        [selectedPageNumber]="selectedPageNumber()"
+        [card]="card.value()"
+        (cardUpdate)="handleCardUpdate($event)"
+        (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+      />
+    }
   }
 }

@@ -181,6 +181,18 @@ export const SENTENCE_LISTS: Record<string, string[]> = {
   speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
 };
 
+interface GrammarSentence {
+  sentence: string;
+  gaps: { startIndex: number; length: number }[];
+}
+
+export const GRAMMAR_SENTENCE_LISTS: Record<string, GrammarSentence[]> = {
+  grammar_sentences: [
+    { sentence: 'Wie heißt das Lied?', gaps: [{ startIndex: 4, length: 5 }] },
+    { sentence: 'Hören Sie.', gaps: [] },
+  ],
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',
