@@ -193,18 +193,21 @@ public class SourceController {
 
     final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    final var areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
+    final List<AreaGrammarService.GrammarSentence> areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
 
-    final var sentences = areaGrammarSentences.stream()
-        .map(grammarSentence -> GrammarSentenceResponse.builder()
-            .sentence(grammarSentence.sentence())
-            .gaps(grammarSentence.gaps().stream()
+    final List<GrammarSentenceResponse> sentences = areaGrammarSentences.stream()
+        .map(grammarSentence -> {
+            final List<GrammarGapResponse> gaps = grammarSentence.gaps().stream()
                 .map(gap -> GrammarGapResponse.builder()
                     .startIndex(gap.startIndex())
                     .length(gap.length())
                     .build())
-                .toList())
-            .build())
+                .toList();
+            return GrammarSentenceResponse.builder()
+                .sentence(grammarSentence.sentence())
+                .gaps(gaps)
+                .build();
+        })
         .toList();
 
     return GrammarSentenceListResponse.builder()

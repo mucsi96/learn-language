@@ -17,10 +17,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AreaGrammarService {
 
-  record GapInfo(int startIndex, int length) {
+  public record GapInfo(int startIndex, int length) {
   }
 
-  record GrammarSentence(String sentence, List<GapInfo> gaps) {
+  public record GrammarSentence(String sentence, List<GapInfo> gaps) {
   }
 
   record AreaGrammarSentences(List<GrammarSentence> sentences) {

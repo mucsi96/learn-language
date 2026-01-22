@@ -8,6 +8,7 @@ import {
   uploadMockImage,
   createCardsWithStates,
   withDbConnection,
+  setupDefaultChatModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -1233,6 +1234,78 @@ test('speech card grading functionality', async ({ page }) => {
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText('Ma nagyon szép az idő.')).toBeVisible();
+
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+});
+
+test('grammar card study shows sentence with gaps on front, full sentence on reveal', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'grammar-test-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 1,
+    data: {
+      sentence: 'Ich gehe jeden Tag in die Schule.',
+      translation: { en: 'I go to school every day.' },
+      gaps: [{ startIndex: 10, length: 5 }],
+      examples: [
+        {
+          de: 'Ich gehe jeden Tag in die Schule.',
+          en: 'I go to school every day.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+      audio: [{ id: 'test-audio', text: 'Ich gehe jeden Tag in die Schule.', language: 'de' }],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText('Ich gehe _____ Tag in die Schule.')).toBeVisible();
+
+  await flashcard.click();
+
+  await expect(flashcard.getByText('Ich gehe jeden Tag in die Schule.')).toBeVisible();
+});
+
+test('grammar card grading functionality', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(greenImage);
+  await createCard({
+    cardId: 'grammar-grade-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 2,
+    data: {
+      sentence: 'Er trinkt jeden Morgen Kaffee.',
+      translation: { en: 'He drinks coffee every morning.' },
+      gaps: [{ startIndex: 3, length: 6 }],
+      examples: [
+        {
+          de: 'Er trinkt jeden Morgen Kaffee.',
+          en: 'He drinks coffee every morning.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText('Er ______ jeden Morgen Kaffee.')).toBeVisible();
 
   await flashcard.click();
   await page.getByRole('button', { name: 'Good' }).click();
