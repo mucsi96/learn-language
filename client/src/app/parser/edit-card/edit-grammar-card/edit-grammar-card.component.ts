@@ -81,15 +81,13 @@ export class EditGrammarCardComponent {
 
     const sortedGaps = [...gapsList].sort((a, b) => b.startIndex - a.startIndex);
 
-    let result = sentence;
-    for (const gap of sortedGaps) {
-      const gapPlaceholder = '_'.repeat(gap.length);
-      result =
+    return sortedGaps.reduce(
+      (result, gap) =>
         result.slice(0, gap.startIndex) +
-        gapPlaceholder +
-        result.slice(gap.startIndex + gap.length);
-    }
-    return result;
+        '_'.repeat(gap.length) +
+        result.slice(gap.startIndex + gap.length),
+      sentence
+    );
   });
 
   readonly images = linkedSignal(() => {

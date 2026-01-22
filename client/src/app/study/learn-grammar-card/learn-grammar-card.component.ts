@@ -96,30 +96,30 @@ export class LearnGrammarCardComponent {
 
   private buildSentenceParts(sentence: string, gaps: Gap[]): SentencePart[] {
     const sortedGaps = [...gaps].sort((a, b) => a.startIndex - b.startIndex);
-    const parts: SentencePart[] = [];
-    let currentIndex = 0;
 
-    sortedGaps.forEach((gap) => {
-      if (gap.startIndex > currentIndex) {
-        parts.push({
-          text: sentence.slice(currentIndex, gap.startIndex),
-          isGap: false,
-        });
-      }
-      parts.push({
-        text: sentence.slice(gap.startIndex, gap.startIndex + gap.length),
-        isGap: true,
-      });
-      currentIndex = gap.startIndex + gap.length;
-    });
+    const { parts, currentIndex } = sortedGaps.reduce(
+      (acc, gap) => {
+        const textBefore =
+          gap.startIndex > acc.currentIndex
+            ? [{ text: sentence.slice(acc.currentIndex, gap.startIndex), isGap: false }]
+            : [];
+        const gapPart = {
+          text: sentence.slice(gap.startIndex, gap.startIndex + gap.length),
+          isGap: true,
+        };
+        return {
+          parts: [...acc.parts, ...textBefore, gapPart],
+          currentIndex: gap.startIndex + gap.length,
+        };
+      },
+      { parts: [] as SentencePart[], currentIndex: 0 }
+    );
 
-    if (currentIndex < sentence.length) {
-      parts.push({
-        text: sentence.slice(currentIndex),
-        isGap: false,
-      });
-    }
+    const remainingText =
+      currentIndex < sentence.length
+        ? [{ text: sentence.slice(currentIndex), isGap: false }]
+        : [];
 
-    return parts;
+    return [...parts, ...remainingText];
   }
 }
