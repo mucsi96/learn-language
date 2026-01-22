@@ -46,6 +46,10 @@ export class LearnGrammarCardComponent {
   readonly sentence = computed(() => this.card()?.value()?.data.sentence ?? '');
   readonly gaps = computed(() => this.card()?.value()?.data.gaps ?? []);
 
+  readonly audioSentence = computed(() =>
+    this.isRevealed() ? this.sentence() : undefined
+  );
+
   readonly sentenceParts = computed(() => {
     const sentence = this.sentence();
     const gaps = this.gaps();
@@ -84,11 +88,10 @@ export class LearnGrammarCardComponent {
 
   constructor() {
     effect(() => {
-      const revealed = this.isRevealed();
-      const currentSentence = this.sentence();
+      const currentSentence = this.audioSentence();
       const playAudioFn = this.onPlayAudio();
 
-      if (revealed && currentSentence && playAudioFn) {
+      if (currentSentence && playAudioFn) {
         playAudioFn([currentSentence]);
       }
     });

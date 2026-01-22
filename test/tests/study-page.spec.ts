@@ -1272,11 +1272,13 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(flashcard.getByText('Ich gehe _____ Tag in die Schule.')).toBeVisible();
+  await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
+  await expect(flashcard.locator('.gap-word.masked')).toHaveText('jeden');
 
   await flashcard.click();
 
-  await expect(flashcard.getByText('Ich gehe jeden Tag in die Schule.')).toBeVisible();
+  await expect(flashcard.locator('.gap-word.highlighted')).toBeVisible();
+  await expect(flashcard.locator('.gap-word.highlighted')).toHaveText('jeden');
 });
 
 test('grammar card grading functionality', async ({ page }) => {
@@ -1305,7 +1307,7 @@ test('grammar card grading functionality', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(flashcard.getByText('Er ______ jeden Morgen Kaffee.')).toBeVisible();
+  await expect(flashcard.locator('.gap-word.masked')).toHaveText('trinkt');
 
   await flashcard.click();
   await page.getByRole('button', { name: 'Good' }).click();
