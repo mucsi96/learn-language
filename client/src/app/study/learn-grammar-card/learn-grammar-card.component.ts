@@ -18,6 +18,11 @@ import { CardResourceLike } from '../../shared/types/card-resource.types';
 
 type ImageResource = ExampleImage & { url: string };
 
+type SentencePart = {
+  text: string;
+  isGap: boolean;
+};
+
 @Component({
   selector: 'app-learn-grammar-card',
   standalone: true,
@@ -41,16 +46,15 @@ export class LearnGrammarCardComponent {
   readonly sentence = computed(() => this.card()?.value()?.data.sentence ?? '');
   readonly gaps = computed(() => this.card()?.value()?.data.gaps ?? []);
 
-  readonly displaySentence = computed(() => {
+  readonly sentenceParts = computed(() => {
     const sentence = this.sentence();
     const gaps = this.gaps();
-    const revealed = this.isRevealed();
 
-    if (revealed || gaps.length === 0) {
-      return sentence;
+    if (!gaps.length) {
+      return [{ text: sentence, isGap: false }];
     }
 
-    return this.applySentenceGaps(sentence, gaps);
+    return this.buildSentenceParts(sentence, gaps);
   });
 
   readonly exampleImages = linkedSignal(() => {
@@ -90,19 +94,32 @@ export class LearnGrammarCardComponent {
     });
   }
 
-  private applySentenceGaps(sentence: string, gaps: Gap[]): string {
-    if (!gaps.length) return sentence;
+  private buildSentenceParts(sentence: string, gaps: Gap[]): SentencePart[] {
+    const sortedGaps = [...gaps].sort((a, b) => a.startIndex - b.startIndex);
+    const parts: SentencePart[] = [];
+    let currentIndex = 0;
 
-    const sortedGaps = [...gaps].sort((a, b) => b.startIndex - a.startIndex);
+    sortedGaps.forEach((gap) => {
+      if (gap.startIndex > currentIndex) {
+        parts.push({
+          text: sentence.slice(currentIndex, gap.startIndex),
+          isGap: false,
+        });
+      }
+      parts.push({
+        text: sentence.slice(gap.startIndex, gap.startIndex + gap.length),
+        isGap: true,
+      });
+      currentIndex = gap.startIndex + gap.length;
+    });
 
-    let result = sentence;
-    for (const gap of sortedGaps) {
-      const gapPlaceholder = '_'.repeat(gap.length);
-      result =
-        result.slice(0, gap.startIndex) +
-        gapPlaceholder +
-        result.slice(gap.startIndex + gap.length);
+    if (currentIndex < sentence.length) {
+      parts.push({
+        text: sentence.slice(currentIndex),
+        isGap: false,
+      });
     }
-    return result;
+
+    return parts;
   }
 }
