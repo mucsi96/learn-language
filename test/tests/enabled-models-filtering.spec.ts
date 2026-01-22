@@ -2,23 +2,17 @@ import { test, expect } from '../fixtures';
 import { clearChatModelSettings, createChatModelSetting, getModelUsageLogs, selectTextRange } from '../utils';
 
 async function setupChatModelsForAllOperations(config: {
-  word_extraction?: string[];
-  word_type?: string[];
-  gender?: string[];
-  translation_en?: string[];
-  translation_hu?: string[];
-  translation_ch?: string[];
+  extraction?: string[];
+  classification?: string[];
+  translation?: string[];
 }): Promise<void> {
   await clearChatModelSettings();
 
   const defaultModel = 'gemini-3-pro-preview';
   const operations = [
-    'word_extraction',
-    'word_type',
-    'gender',
-    'translation_en',
-    'translation_hu',
-    'translation_ch',
+    'extraction',
+    'classification',
+    'translation',
   ] as const;
 
   for (const op of operations) {
@@ -31,9 +25,9 @@ async function setupChatModelsForAllOperations(config: {
   }
 }
 
-test('word extraction only uses enabled models for word_extraction operation', async ({ page }) => {
+test('word extraction only uses enabled models for extraction operation', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    word_extraction: ['gpt-4o', 'gemini-3-pro-preview'],
+    extraction: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -44,7 +38,7 @@ test('word extraction only uses enabled models for word_extraction operation', a
   await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   const logs = await getModelUsageLogs();
-  const wordExtractionLogs = logs.filter((log) => log.operationType === 'word_extraction');
+  const wordExtractionLogs = logs.filter((log) => log.operationType === 'extraction');
 
   expect(wordExtractionLogs.length).toBe(2);
 
@@ -55,9 +49,9 @@ test('word extraction only uses enabled models for word_extraction operation', a
   expect(modelNames).not.toContain('gpt-4.1');
 });
 
-test('bulk card creation only uses enabled models for word_type operation', async ({ page }) => {
+test('bulk card creation only uses enabled models for classification operation', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    word_type: ['gpt-4o', 'gemini-3-pro-preview'],
+    classification: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -70,7 +64,7 @@ test('bulk card creation only uses enabled models for word_type operation', asyn
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const logs = await getModelUsageLogs();
-  const wordTypeLogs = logs.filter((log) => log.operationType === 'word_type');
+  const wordTypeLogs = logs.filter((log) => log.operationType === 'classification');
 
   expect(wordTypeLogs.length).toBeGreaterThan(0);
 
@@ -81,36 +75,9 @@ test('bulk card creation only uses enabled models for word_type operation', asyn
   expect(modelNames).not.toContain('gpt-4.1');
 });
 
-test('bulk card creation only uses enabled models for gender operation', async ({ page }) => {
-  await setupChatModelsForAllOperations({
-    gender: ['claude-sonnet-4-5', 'gemini-3-pro-preview'],
-  });
-
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
-
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
-
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
-
-  const logs = await getModelUsageLogs();
-  const genderLogs = logs.filter((log) => log.operationType === 'gender');
-
-  expect(genderLogs.length).toBeGreaterThan(0);
-
-  const modelNames = [...new Set(genderLogs.map((log) => log.modelName))];
-  expect(modelNames).toContain('claude-sonnet-4-5');
-  expect(modelNames).toContain('gemini-3-pro-preview');
-  expect(modelNames).not.toContain('gpt-4o');
-});
-
 test('bulk card creation only uses enabled models for translation operations', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    translation_en: ['gpt-4o', 'gemini-3-pro-preview'],
-    translation_hu: ['gpt-4o', 'gemini-3-pro-preview'],
-    translation_ch: ['gpt-4o', 'gemini-3-pro-preview'],
+    translation: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -124,34 +91,20 @@ test('bulk card creation only uses enabled models for translation operations', a
 
   const logs = await getModelUsageLogs();
 
-  const translationEnLogs = logs.filter((log) => log.operationType === 'translation_en');
-  const translationHuLogs = logs.filter((log) => log.operationType === 'translation_hu');
-  const translationChLogs = logs.filter((log) => log.operationType === 'translation_ch');
+  const translationLogs = logs.filter((log) => log.operationType === 'translation');
 
-  expect(translationEnLogs.length).toBeGreaterThan(0);
-  expect(translationHuLogs.length).toBeGreaterThan(0);
-  expect(translationChLogs.length).toBeGreaterThan(0);
+  expect(translationLogs.length).toBeGreaterThan(0);
+  const modelNames = [...new Set(translationLogs.map((log) => log.modelName))];
 
-  const enModelNames = [...new Set(translationEnLogs.map((log) => log.modelName))];
-  const huModelNames = [...new Set(translationHuLogs.map((log) => log.modelName))];
-  const chModelNames = [...new Set(translationChLogs.map((log) => log.modelName))];
-
-  expect(enModelNames).toContain('gpt-4o');
-  expect(enModelNames).toContain('gemini-3-pro-preview');
-  expect(enModelNames).not.toContain('claude-sonnet-4-5');
-  expect(huModelNames).toContain('gpt-4o');
-  expect(huModelNames).toContain('gemini-3-pro-preview');
-  expect(chModelNames).toContain('gpt-4o');
-  expect(chModelNames).toContain('gemini-3-pro-preview');
+  expect(modelNames).toContain('gpt-4o');
+  expect(modelNames).toContain('gemini-3-pro-preview');
+  expect(modelNames).not.toContain('claude-sonnet-4-5');
 });
 
 test('different operation types can have different enabled models', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    word_type: ['gpt-4o', 'gemini-3-pro-preview'],
-    gender: ['claude-sonnet-4-5', 'gemini-3-pro-preview'],
-    translation_en: ['gemini-3-pro-preview'],
-    translation_hu: ['gemini-3-pro-preview'],
-    translation_ch: ['gemini-3-pro-preview'],
+    classification: ['gpt-4o', 'gemini-3-pro-preview'],
+    translation: ['gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -165,17 +118,12 @@ test('different operation types can have different enabled models', async ({ pag
 
   const logs = await getModelUsageLogs();
 
-  const wordTypeLogs = logs.filter((log) => log.operationType === 'word_type');
-  const genderLogs = logs.filter((log) => log.operationType === 'gender');
-  const translationEnLogs = logs.filter((log) => log.operationType === 'translation_en');
+  const classificationLogs = logs.filter((log) => log.operationType === 'classification');
+  const translationLogs = logs.filter((log) => log.operationType === 'translation');
 
-  const wordTypeModels = [...new Set(wordTypeLogs.map((log) => log.modelName))];
-  const genderModels = [...new Set(genderLogs.map((log) => log.modelName))];
-  const translationEnModels = [...new Set(translationEnLogs.map((log) => log.modelName))];
-
-  expect(wordTypeModels).toContain('gpt-4o');
-  expect(wordTypeModels).toContain('gemini-3-pro-preview');
-  expect(genderModels).toContain('claude-sonnet-4-5');
-  expect(genderModels).toContain('gemini-3-pro-preview');
+  const classificationModels = [...new Set(classificationLogs.map((log) => log.modelName))];
+  const translationEnModels = [...new Set(translationLogs.map((log) => log.modelName))];
+  expect(classificationModels).toContain('gpt-4o');
+  expect(classificationModels).toContain('gemini-3-pro-preview');
   expect(translationEnModels).toEqual(['gemini-3-pro-preview']);
 });
