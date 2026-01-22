@@ -1,4 +1,3 @@
-- make sure we don't extract sentence chunks
 - support for grammar card type
 - support multi part regions
 - support cross-page multi part regions
