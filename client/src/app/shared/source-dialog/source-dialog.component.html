@@ -58,7 +58,7 @@
       </mat-select>
     </mat-form-field>
 
-    @if (formData.cardType !== 'speech') {
+    @if (formData.cardType !== 'speech' && formData.cardType !== 'grammar') {
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Format Type</mat-label>
       <mat-select

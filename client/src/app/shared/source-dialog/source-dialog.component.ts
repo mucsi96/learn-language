@@ -48,6 +48,7 @@ export class SourceDialogComponent {
   readonly cardTypes = [
     { code: 'vocabulary', displayName: 'Vocabulary' },
     { code: 'speech', displayName: 'Speech' },
+    { code: 'grammar', displayName: 'Grammar' },
   ];
 
   formData: Partial<Source> & { fileName?: string } = {
@@ -78,7 +79,7 @@ export class SourceDialogComponent {
           return;
         }
       }
-      if (this.formData.cardType === 'speech') {
+      if (this.formData.cardType === 'speech' || this.formData.cardType === 'grammar') {
         this.formData.formatType = 'flowingText';
       }
       this.dialogRef.close(this.formData);
@@ -98,7 +99,7 @@ export class SourceDialogComponent {
       return false;
     }
 
-    if (this.formData.cardType !== 'speech' && !this.formData.formatType) {
+    if (this.formData.cardType !== 'speech' && this.formData.cardType !== 'grammar' && !this.formData.formatType) {
       return false;
     }
 
