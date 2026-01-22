@@ -77,7 +77,7 @@ public class AreaWordsService {
   public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType, LanguageLevel languageLevel) {
     var result = chatService.callWithLoggingAndMedia(
         model,
-        "word_extraction",
+        "extraction",
         buildSystemPrompt(formatType, languageLevel),
         u -> u
             .text("Here is the image of the page")

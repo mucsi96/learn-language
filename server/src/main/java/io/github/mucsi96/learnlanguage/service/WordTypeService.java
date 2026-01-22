@@ -35,7 +35,7 @@ public class WordTypeService {
   public String detectWordType(String word, ChatModel model) {
     var result = chatService.callWithLogging(
         model,
-        "word_type",
+        "classification",
         SYSTEM_PROMPT,
         "The word is: %s.".formatted(word),
         WordTypeResult.class);

@@ -57,7 +57,7 @@ public class TranslationService {
 
     return chatService.callWithLogging(
         model,
-        "translation_" + languageCode,
+        "translation",
         systemPrompt,
         translationRequestJson,
         TranslationResponse.class);

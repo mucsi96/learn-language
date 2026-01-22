@@ -54,7 +54,7 @@ public class AreaSentenceService {
   public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel) {
     final var result = chatService.callWithLoggingAndMedia(
         model,
-        "sentence_extraction",
+        "extraction",
         buildSystemPrompt(languageLevel),
         u -> u
             .text("Here is the image of the page")

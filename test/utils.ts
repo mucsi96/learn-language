@@ -666,15 +666,9 @@ export async function createChatModelSetting(params: {
 }
 
 const ALL_OPERATION_TYPES = [
-  'word_extraction',
-  'word_type',
-  'gender',
-  'translation_en',
-  'translation_hu',
-  'translation_ch',
-  'sentence_extraction',
-  'sentence_translation_hu',
-  'sentence_translation_en',
+  'translation',
+  'extraction',
+  'classification',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';

@@ -23,7 +23,7 @@ public class SentenceTranslationService {
 
     final var result = chatService.callWithLogging(
         model,
-        "sentence_translation_hu",
+        "translation",
         systemPrompt,
         germanSentence,
         SentenceTranslationResponse.class);
@@ -40,7 +40,7 @@ public class SentenceTranslationService {
 
     final var result = chatService.callWithLogging(
         model,
-        "sentence_translation_en",
+        "translation",
         systemPrompt,
         germanSentence,
         SentenceTranslationResponse.class);

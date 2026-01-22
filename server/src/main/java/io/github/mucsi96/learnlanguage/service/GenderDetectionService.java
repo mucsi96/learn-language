@@ -23,7 +23,7 @@ public class GenderDetectionService {
   public String detectGender(String noun, ChatModel model) {
     var result = chatService.callWithLogging(
         model,
-        "gender",
+        "classification",
         SYSTEM_PROMPT,
         "The noun is: %s.".formatted(noun),
         GenderResult.class);

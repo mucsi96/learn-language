@@ -16,21 +16,21 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3-pro-preview')).toBeVisible();
 
-  await expect(page.getByText('English Translation')).toBeVisible();
-  await expect(page.getByText('Gender Detection')).toBeVisible();
-  await expect(page.getByText('Word Type')).toBeVisible();
+  await expect(page.getByText('Translation')).toBeVisible();
+  await expect(page.getByText('Extraction')).toBeVisible();
+  await expect(page.getByText('Classification')).toBeVisible();
 });
 
 test('can set primary model for operation type', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation_en',
+    operationType: 'translation',
     isEnabled: true,
     isPrimary: false,
   });
   await createChatModelSetting({
     modelName: 'gemini-3-pro-preview',
-    operationType: 'translation_en',
+    operationType: 'translation',
     isEnabled: true,
     isPrimary: true,
   });
@@ -52,9 +52,9 @@ test('can set primary model for operation type', async ({ page }) => {
   await expect(geminiPrimaryRadio).not.toBeChecked();
 
   const settings = await getChatModelSettings();
-  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'translation_en');
+  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'translation');
   const geminiSetting = settings.find(
-    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation_en'
+    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation'
   );
 
   expect(gptSetting?.isPrimary).toBe(true);
@@ -73,7 +73,7 @@ test('primary radio is disabled when model is not enabled', async ({ page }) => 
 test('shows primary model indicator for enabled model', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation_en',
+    operationType: 'translation',
     isEnabled: true,
     isPrimary: true,
   });
@@ -111,12 +111,12 @@ test('can toggle model setting', async ({ page }) => {
 test('displays existing enabled settings from database', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation_en',
+    operationType: 'translation',
     isEnabled: true,
   });
   await createChatModelSetting({
     modelName: 'gpt-4o-mini',
-    operationType: 'gender',
+    operationType: 'classification',
     isEnabled: true,
   });
 
@@ -129,24 +129,24 @@ test('displays existing enabled settings from database', async ({ page }) => {
 
   const gptMiniRow = page.getByRole('row', { name: 'gpt-4o-mini' });
   const gptMiniToggles = gptMiniRow.getByRole('switch');
-  const genderToggle = gptMiniToggles.nth(3);
-  await expect(genderToggle).toBeChecked();
+  const classificationToggle = gptMiniToggles.nth(2);
+  await expect(classificationToggle).toBeChecked();
 });
 
 test('can enable all models for an operation type', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
-  const enableAllButton = page.getByRole('button', { name: 'Enable all models for English Translation' });
+  const enableAllButton = page.getByRole('button', { name: 'Enable all models for Translation' });
   await expect(enableAllButton).toBeVisible();
 
   await enableAllButton.click();
   await page.waitForTimeout(500);
 
   const settings = await getChatModelSettings();
-  const translationEnSettings = settings.filter((s) => s.operationType === 'translation_en');
+  const translationSettings = settings.filter((s) => s.operationType === 'translation');
 
-  expect(translationEnSettings.length).toBeGreaterThan(0);
-  expect(translationEnSettings.every((s) => s.isEnabled)).toBe(true);
+  expect(translationSettings.length).toBeGreaterThan(0);
+  expect(translationSettings.every((s) => s.isEnabled)).toBe(true);
 });
 
 test('toggle performs optimistic update', async ({ page }) => {

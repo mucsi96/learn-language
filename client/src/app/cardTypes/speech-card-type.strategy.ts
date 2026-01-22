@@ -43,7 +43,7 @@ export class SpeechCardType implements CardTypeStrategy {
     const { sourceId, pageNumber, x, y, width, height } = request;
 
     const sentenceList = await this.multiModelService.call<SentenceList>(
-      'sentence_extraction',
+      'extraction',
       (model: string) =>
         fetchJson<SentenceList>(
           this.http,
@@ -97,7 +97,7 @@ export class SpeechCardType implements CardTypeStrategy {
       progressCallback(20, 'Translating to Hungarian...');
       const hungarianTranslation =
         await this.multiModelService.call<SentenceTranslationResponse>(
-          'sentence_translation_hu',
+          'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,
@@ -112,7 +112,7 @@ export class SpeechCardType implements CardTypeStrategy {
       progressCallback(50, 'Translating to English...');
       const englishTranslation =
         await this.multiModelService.call<SentenceTranslationResponse>(
-          'sentence_translation_en',
+          'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,

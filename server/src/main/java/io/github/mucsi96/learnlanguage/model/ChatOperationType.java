@@ -9,15 +9,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ChatOperationType {
-    TRANSLATION_EN("translation_en", "English Translation"),
-    TRANSLATION_CH("translation_ch", "Swiss German Translation"),
-    TRANSLATION_HU("translation_hu", "Hungarian Translation"),
-    GENDER("gender", "Gender Detection"),
-    WORD_TYPE("word_type", "Word Type"),
-    WORD_EXTRACTION("word_extraction", "Word Extraction"),
-    SENTENCE_EXTRACTION("sentence_extraction", "Sentence Extraction"),
-    SENTENCE_TRANSLATION_HU("sentence_translation_hu", "Sentence Translation (Hungarian)"),
-    SENTENCE_TRANSLATION_EN("sentence_translation_en", "Sentence Translation (English)");
+    TRANSLATION("translation", "Translation"),
+    EXTRACTION("extraction", "Extraction"),
+    CLASSIFICATION("classification", "Classification");
 
     private final String code;
     private final String displayName;
