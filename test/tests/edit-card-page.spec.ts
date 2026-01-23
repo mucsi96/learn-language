@@ -700,7 +700,7 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('link', { name: 'Der Hund läuft schnell.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Der Hund läuft schnell.' }).click();
 
   await expect(page.getByRole('heading', { name: 'Grammar' })).toBeVisible();
   await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund läuft schnell.');
@@ -731,7 +731,7 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('link', { name: 'Sie trinkt Kaffee.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Sie trinkt Kaffee.' }).click();
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
@@ -768,7 +768,7 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('link', { name: 'Wir gehen ins Kino.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Wir gehen ins Kino.' }).click();
 
   await expect(page.locator('.sentence-preview')).toContainText('Wir _____ ins Kino.');
 
@@ -801,7 +801,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('link', { name: 'Das Kind spielt im Garten.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Das Kind spielt im Garten.' }).click();
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();

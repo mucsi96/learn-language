@@ -1255,7 +1255,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
     data: {
       sentence: 'Ich gehe jeden Tag in die Schule.',
       translation: { en: 'I go to school every day.' },
-      gaps: [{ startIndex: 10, length: 5 }],
+      gaps: [{ startIndex: 9, length: 5 }],
       examples: [
         {
           de: 'Ich gehe jeden Tag in die Schule.',
