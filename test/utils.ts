@@ -395,6 +395,7 @@ export const greenImage = Buffer.from(
 );
 
 export const menschenA1Image = fs.readFileSync(path.join(__dirname, 'menshcen-a1-1-9.png'));
+export const menschenA1GrammarImage = fs.readFileSync(path.join(__dirname, 'menshcen-a1-1-11.png'));
 
 export const germanAudioSample = Buffer.from(
   'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaBC+Ezm4=',

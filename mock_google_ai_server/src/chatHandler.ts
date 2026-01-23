@@ -1,5 +1,13 @@
 import { GeminiRequest, GeminiPart, GeminiTextPart } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, SENTENCE_TRANSLATIONS, GRAMMAR_SENTENCE_LISTS } from './data';
+import {
+  WORD_LISTS,
+  TRANSLATIONS,
+  WORD_TYPES,
+  GENDERS,
+  SENTENCE_LISTS,
+  SENTENCE_TRANSLATIONS,
+  GRAMMAR_SENTENCE_LISTS,
+} from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
@@ -66,23 +74,11 @@ export class ChatHandler {
     }
 
     let targetLanguage: string | null = null;
-    if (
-      systemContent.includes(
-        'translate the given German word and examples to English'
-      )
-    ) {
+    if (systemContent.includes('translate the given German word and examples to English')) {
       targetLanguage = 'english';
-    } else if (
-      systemContent.includes(
-        'translate the given German word and examples to Hungarian'
-      )
-    ) {
+    } else if (systemContent.includes('translate the given German word and examples to Hungarian')) {
       targetLanguage = 'hungarian';
-    } else if (
-      systemContent.includes(
-        'translate the given German word and examples to Swiss German'
-      )
-    ) {
+    } else if (systemContent.includes('translate the given German word and examples to Swiss German')) {
       targetLanguage = 'swiss-german';
     }
 
@@ -91,13 +87,7 @@ export class ChatHandler {
     }
 
     for (const word of Object.keys(TRANSLATIONS[targetLanguage])) {
-      if (
-        messagesMatch(
-          request,
-          'translate the given German word and examples',
-          word
-        )
-      ) {
+      if (messagesMatch(request, 'translate the given German word and examples', word)) {
         const translation = TRANSLATIONS[targetLanguage][word];
         return createGeminiResponse({
           translation: translation.translation,
@@ -112,11 +102,7 @@ export class ChatHandler {
   handleGenderDetection(request: GeminiRequest): any | null {
     for (const noun of Object.keys(GENDERS)) {
       if (
-        messagesMatch(
-          request,
-          'Your task is to determine the gender of the given German noun',
-          `The noun is: ${noun}.`
-        )
+        messagesMatch(request, 'Your task is to determine the gender of the given German noun', `The noun is: ${noun}.`)
       ) {
         return createGeminiResponse({
           gender: GENDERS[noun],
@@ -162,7 +148,7 @@ export class ChatHandler {
         request,
         'extract German sentences from the provided page image that can be used for grammar practice',
         'Here is the image of the page',
-        ['Hören', 'Lied']
+        ['Paco', 'Frau Wachter']
       )
     ) {
       return createGeminiResponse({
@@ -182,13 +168,9 @@ export class ChatHandler {
     }
 
     let targetLanguage: string | null = null;
-    if (
-      systemContent.includes('translate the given German sentence to Hungarian')
-    ) {
+    if (systemContent.includes('translate the given German sentence to Hungarian')) {
       targetLanguage = 'hungarian';
-    } else if (
-      systemContent.includes('translate the given German sentence to English')
-    ) {
+    } else if (systemContent.includes('translate the given German sentence to English')) {
       targetLanguage = 'english';
     }
 
@@ -236,8 +218,6 @@ export class ChatHandler {
 
     console.log('Received unprocessed request:', JSON.stringify(request, null, 2));
 
-    return createGeminiResponse(
-      'This is a mock response from the Google Gemini API.'
-    );
+    return createGeminiResponse('This is a mock response from the Google Gemini API.');
   }
 }

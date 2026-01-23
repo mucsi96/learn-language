@@ -10,6 +10,7 @@ import {
   menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
+  menschenA1GrammarImage,
 } from '../utils';
 
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
@@ -481,20 +482,24 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-grammar-image.png',
     mimeType: 'image/png',
-    buffer: menschenA1Image,
+    buffer: menschenA1GrammarImage,
   });
 
   const pageContent = page.getByRole('region', { name: 'Page content' });
   await expect(pageContent).toBeVisible();
 
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const boxBefore = await pageContent.boundingBox();
+
+  if (boxBefore) {
+    await page.evaluate((y) => window.scrollTo(0, y), boxBefore.y);
+  }
 
   const box = await pageContent.boundingBox();
 
   if (box) {
-    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
+    await page.mouse.move(box.x + box.width * 0.173, box.height * 0.366);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
+    await page.mouse.move(box.x + box.width * 0.518, box.height * 0.389);
     await page.mouse.up();
   }
 
@@ -508,23 +513,26 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
        FROM learn_language.cards WHERE source_id = 'grammar-a1'`
     );
 
+
     expect(result.rows.length).toBe(2);
 
-    const card1 = result.rows.find((row) => row.data.sentence === 'Wie heißt das Lied?');
+    const card1 = result.rows.find((row) => row.data.sentence === 'Das ict Paco.');
     expect(card1).toBeDefined();
     expect(card1?.source_id).toBe('grammar-a1');
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
     expect(card1?.readiness).toBe('IN_REVIEW');
-    expect(card1?.data.translation?.en).toBeDefined();
+    expect(card1?.data.translation?.en).toBe('This is Paco.');
     expect(card1?.data.gaps).toBeDefined();
     expect(card1?.data.gaps.length).toBe(1);
-    expect(card1?.data.gaps[0].startIndex).toBe(4);
-    expect(card1?.data.gaps[0].length).toBe(5);
+    expect(card1?.data.gaps[0].startIndex).toBe(5);
+    expect(card1?.data.gaps[0].length).toBe(3);
 
-    const card2 = result.rows.find((row) => row.data.sentence === 'Hören Sie.');
+    const card2 = result.rows.find((row) => row.data.sentence === 'Und das ist Frau Wachter.');
     expect(card2).toBeDefined();
     expect(card2?.data.gaps).toBeDefined();
-    expect(card2?.data.gaps.length).toBe(0);
+    expect(card2?.data.gaps.length).toBe(1);
+    expect(card2?.data.gaps[0].startIndex).toBe(5);
+    expect(card2?.data.gaps[0].length).toBe(3);
   });
 });

@@ -177,6 +177,18 @@ export const SENTENCE_LISTS: Record<string, string[]> = {
   speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
 };
 
+interface GrammarSentence {
+  sentence: string;
+  gaps: { startIndex: number; length: number }[];
+}
+
+export const GRAMMAR_SENTENCE_LISTS: Record<string, GrammarSentence[]> = {
+  grammar_sentences: [
+    { sentence: 'Das ict Paco.', gaps: [{ startIndex: 5, length: 3 }] },
+    { sentence: 'Und das ist Frau Wachter.', gaps: [{ startIndex: 5, length: 3 }] },
+  ],
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',
@@ -185,5 +197,7 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   english: {
     'Hören Sie.': 'Listen.',
     'Wie heißt das Lied?': 'What is the name of the song?',
+    'Das ict Paco.': 'This is Paco.',
+    'Und das ist Frau Wachter.': 'And this is Frau Wachter.',
   },
 };

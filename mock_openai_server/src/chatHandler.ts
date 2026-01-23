@@ -1,7 +1,7 @@
 import {
   ChatMessage,
 } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
 import { messagesMatch, createAssistantResponse } from './utils';
 import { imageMessagesMatch, extractTextFromImageUrl } from './ocr';
 
@@ -152,6 +152,23 @@ export class ChatHandler {
     return null;
   }
 
+  async handleGrammarExtraction(messages: ChatMessage[]): Promise<any | null> {
+    if (
+      await imageMessagesMatch(
+        messages,
+        'extract German sentences from the provided page image that can be used for grammar practice',
+        'Here is the image of the page',
+        ['Paco', 'Frau Wachter']
+      )
+    ) {
+      return createAssistantResponse({
+        sentences: GRAMMAR_SENTENCE_LISTS['grammar_sentences'],
+      });
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(messages: ChatMessage[]): any | null {
     const systemMessage = messages[0]?.content;
     const userMessage = messages[1]?.content;
@@ -223,6 +240,9 @@ export class ChatHandler {
     // Try sentence extraction
     const sentenceExtractionResponse = await this.handleSentenceExtraction(messages);
     if (sentenceExtractionResponse) return sentenceExtractionResponse;
+
+    const grammarExtractionResponse = await this.handleGrammarExtraction(messages);
+    if (grammarExtractionResponse) return grammarExtractionResponse;
 
     // Try sentence translation
     const sentenceTranslationResponse = this.handleSentenceTranslation(messages);

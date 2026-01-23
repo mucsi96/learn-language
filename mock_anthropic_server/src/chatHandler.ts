@@ -1,5 +1,5 @@
 import { ClaudeRequest } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
 import { messagesMatch, createClaudeResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
@@ -145,6 +145,23 @@ export class ChatHandler {
     return null;
   }
 
+  async handleGrammarExtraction(request: ClaudeRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'extract German sentences from the provided page image that can be used for grammar practice',
+        'Here is the image of the page',
+        ['Paco', 'Frau Wachter']
+      )
+    ) {
+      return createClaudeResponse({
+        sentences: GRAMMAR_SENTENCE_LISTS['grammar_sentences'],
+      });
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: ClaudeRequest): any | null {
     const systemContent = request.system || '';
 
@@ -201,6 +218,9 @@ export class ChatHandler {
 
     const sentenceExtractionResponse = await this.handleSentenceExtraction(request);
     if (sentenceExtractionResponse) return sentenceExtractionResponse;
+
+    const grammarExtractionResponse = await this.handleGrammarExtraction(request);
+    if (grammarExtractionResponse) return grammarExtractionResponse;
 
     const sentenceTranslationResponse = this.handleSentenceTranslation(request);
     if (sentenceTranslationResponse) return sentenceTranslationResponse;
