@@ -730,11 +730,6 @@ test('bulk audio creation for speech cards', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 20,
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',

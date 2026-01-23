@@ -50,7 +50,6 @@ export type Gap = {
 
 export type CardData = {
   word?: string;
-  sentence?: string;
   type?: string;
   gender?: string;
   translation?: Record<string, string | undefined>;

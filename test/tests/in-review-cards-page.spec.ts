@@ -506,11 +506,6 @@ test('displays speech cards in review with correct type', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 20,
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',
@@ -539,11 +534,6 @@ test('speech card navigation from in-review page', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 21,
     data: {
-      sentence: 'Ich fahre mit dem Bus.',
-      translation: {
-        hu: 'Busszal megyek.',
-        en: 'I take the bus.',
-      },
       examples: [
         {
           de: 'Ich fahre mit dem Bus.',

@@ -43,7 +43,7 @@ export class LearnGrammarCardComponent {
     this.card()?.value()?.data.examples?.find((ex) => ex.isSelected)
   );
 
-  readonly sentence = computed(() => this.card()?.value()?.data.sentence ?? '');
+  readonly sentence = computed(() => this.selectedExample()?.de ?? '');
   readonly gaps = computed(() => this.card()?.value()?.data.gaps ?? []);
 
   readonly audioSentence = computed(() =>

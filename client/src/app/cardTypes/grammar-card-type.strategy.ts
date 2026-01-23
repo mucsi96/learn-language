@@ -123,10 +123,6 @@ export class GrammarCardType implements CardTypeStrategy {
         : [];
 
       const cardData: CardData = {
-        sentence: grammarSentence.sentence,
-        translation: {
-          en: englishTranslation.translation,
-        },
         gaps: grammarSentence.gaps,
         examples: [
           {
@@ -151,7 +147,7 @@ export class GrammarCardType implements CardTypeStrategy {
   }
 
   getCardDisplayLabel(card: Card): string {
-    return card.data.sentence || card.id;
+    return card.data.examples?.[0]?.de ?? card.id;
   }
 
   getCardTypeLabel(_card: Card): string {
@@ -163,9 +159,10 @@ export class GrammarCardType implements CardTypeStrategy {
   }
 
   getAudioItems(card: Card): AudioGenerationItem[] {
+    const example = card.data.examples?.[0];
     return [
-      card.data.sentence
-        ? { text: card.data.sentence, language: LANGUAGE_CODES.GERMAN }
+      example?.de
+        ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
         : null,
     ].filter(nonNullable);
   }
@@ -188,7 +185,8 @@ export class GrammarCardType implements CardTypeStrategy {
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {
-    const germanTexts = [card.data.sentence].filter(nonNullable);
+    const example = card.data.examples?.[0];
+    const germanTexts = [example?.de].filter(nonNullable);
 
     return [
       ...(germanTexts.length > 0 ? [{ language: 'de', texts: germanTexts }] : []),
