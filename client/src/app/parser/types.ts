@@ -43,6 +43,11 @@ export type Example = {
   images?: ExampleImage[];
 };
 
+export type Gap = {
+  startIndex: number;
+  length: number;
+};
+
 export type CardData = {
   word?: string;
   sentence?: string;
@@ -53,6 +58,7 @@ export type CardData = {
   examples?: Example[];
   audio?: AudioData[];
   audioVoice?: string;
+  gaps?: Gap[];
 };
 
 export type Card = {
@@ -92,7 +98,7 @@ export type Page = {
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary' | 'speech';
+export type CardType = 'vocabulary' | 'speech' | 'grammar';
 
 export type ExtractedItem = {
   id: string;
@@ -101,6 +107,19 @@ export type ExtractedItem = {
 
 export type Sentence = ExtractedItem & {
   sentence: string;
+};
+
+export type GrammarSentence = ExtractedItem & {
+  sentence: string;
+  gaps: Gap[];
+};
+
+export type GrammarSentenceList = {
+  sentences: GrammarSentence[];
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type SentenceList = {

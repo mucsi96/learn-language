@@ -10,6 +10,7 @@ import {
   menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
+  menschenA1GrammarImage,
 } from '../utils';
 
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
@@ -470,5 +471,68 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card2).toBeDefined();
     expect(card2?.data.translation.hu).toBe('Hallgasson.');
     expect(card2?.data.translation.en).toBe('Listen.');
+  });
+});
+
+test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Grammar A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-grammar-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1GrammarImage,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  const boxBefore = await pageContent.boundingBox();
+
+  if (boxBefore) {
+    await page.evaluate((y) => window.scrollTo(0, y), boxBefore.y);
+  }
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.173, box.height * 0.366);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.518, box.height * 0.389);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, source_id, source_page_number, state, readiness
+       FROM learn_language.cards WHERE source_id = 'grammar-a1'`
+    );
+
+
+    expect(result.rows.length).toBe(2);
+
+    const card1 = result.rows.find((row) => row.data.sentence === 'Das ict Paco.');
+    expect(card1).toBeDefined();
+    expect(card1?.source_id).toBe('grammar-a1');
+    expect(card1?.source_page_number).toBe(1);
+    expect(card1?.state).toBe('NEW');
+    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.data.translation?.en).toBe('This is Paco.');
+    expect(card1?.data.gaps).toBeDefined();
+    expect(card1?.data.gaps.length).toBe(1);
+    expect(card1?.data.gaps[0].startIndex).toBe(5);
+    expect(card1?.data.gaps[0].length).toBe(3);
+
+    const card2 = result.rows.find((row) => row.data.sentence === 'Und das ist Frau Wachter.');
+    expect(card2).toBeDefined();
+    expect(card2?.data.gaps).toBeDefined();
+    expect(card2?.data.gaps.length).toBe(1);
+    expect(card2?.data.gaps[0].startIndex).toBe(5);
+    expect(card2?.data.gaps[0].length).toBe(3);
   });
 });

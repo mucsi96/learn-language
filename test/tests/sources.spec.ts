@@ -340,3 +340,35 @@ test('can create a speech source with image collection', async ({ page }) => {
   expect(createdSource?.formatType).toBe('FLOWING_TEXT');
   expect(createdSource?.sourceType).toBe('IMAGES');
 });
+
+test('can create a grammar source with image collection', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByLabel('Source ID').fill('test-grammar-source');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Grammar Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await expect(page.getByLabel('Format Type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Grammar Source')).toBeVisible();
+
+  const createdSource = await getSource('test-grammar-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.name).toBe('Test Grammar Source');
+  expect(createdSource?.cardType).toBe('GRAMMAR');
+  expect(createdSource?.formatType).toBe('FLOWING_TEXT');
+  expect(createdSource?.sourceType).toBe('IMAGES');
+});

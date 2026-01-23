@@ -56,6 +56,13 @@
           [onPlayAudio]="playAudioForContent.bind(this)">
         </app-learn-speech-card>
       }
+      @case ('grammar') {
+        <app-learn-grammar-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()"
+          [onPlayAudio]="playAudioForContent.bind(this)">
+        </app-learn-grammar-card>
+      }
     }
   </div>
 
