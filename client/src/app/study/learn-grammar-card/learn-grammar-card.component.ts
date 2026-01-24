@@ -15,7 +15,7 @@ import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
-import { GRAMMAR_GAP_REGEX } from '../../shared/constants/grammar.constants';
+import { createGrammarGapRegex } from '../../shared/constants/grammar.constants';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -48,7 +48,7 @@ export class LearnGrammarCardComponent {
 
   readonly audioSentence = computed(() => {
     if (!this.isRevealed()) return undefined;
-    return this.sentence().replace(GRAMMAR_GAP_REGEX, '$1');
+    return this.sentence().replace(createGrammarGapRegex(), '$1');
   });
 
   readonly sentenceParts = computed(() => {
@@ -93,7 +93,7 @@ export class LearnGrammarCardComponent {
   }
 
   private buildSentenceParts(sentence: string): SentencePart[] {
-    const matches = [...sentence.matchAll(GRAMMAR_GAP_REGEX)];
+    const matches = [...sentence.matchAll(createGrammarGapRegex())];
 
     if (matches.length === 0) {
       return [{ text: sentence, isGap: false }];

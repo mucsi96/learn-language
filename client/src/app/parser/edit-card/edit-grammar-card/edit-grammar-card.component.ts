@@ -27,7 +27,7 @@ import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
 import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
-import { GRAMMAR_GAP_REGEX } from '../../../shared/constants/grammar.constants';
+import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
   selector: 'app-edit-grammar-card',
@@ -66,7 +66,7 @@ export class EditGrammarCardComponent {
 
   readonly gapsDisplay = computed(() => {
     const sentence = this.sentence() ?? '';
-    const matches = [...sentence.matchAll(GRAMMAR_GAP_REGEX)];
+    const matches = [...sentence.matchAll(createGrammarGapRegex())];
     return matches.map((match) => ({
       text: match[1],
     }));
@@ -74,7 +74,7 @@ export class EditGrammarCardComponent {
 
   readonly sentenceWithGaps = computed(() => {
     const sentence = this.sentence() ?? '';
-    return sentence.replace(GRAMMAR_GAP_REGEX, (_match, content) => '_'.repeat(content.length));
+    return sentence.replace(createGrammarGapRegex(), (_match, content) => '_'.repeat(content.length));
   });
 
   readonly images = linkedSignal(() => {
@@ -148,7 +148,7 @@ export class EditGrammarCardComponent {
     if (indexToRemove < 0 || indexToRemove >= gaps.length) return;
 
     const currentSentence = this.sentence() ?? '';
-    const matches = [...currentSentence.matchAll(GRAMMAR_GAP_REGEX)];
+    const matches = [...currentSentence.matchAll(createGrammarGapRegex())];
 
     const newSentence = matches.reduceRight(
       (sentence, match, idx) =>

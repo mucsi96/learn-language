@@ -1,1 +1,1 @@
-export const GRAMMAR_GAP_REGEX = /\[([^\]]+)\]/g;
+export const createGrammarGapRegex = () => /\[([^\]]+)\]/g;
