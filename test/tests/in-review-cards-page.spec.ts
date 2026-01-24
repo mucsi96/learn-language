@@ -516,8 +516,8 @@ test('displays speech cards in review with correct type', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  await expect(page.getByText('Guten Morgen, wie geht es Ihnen?', { exact: true })).toBeVisible();
-  await expect(page.getByText('Sentence', { exact: true })).toBeVisible();
+  const row = page.getByRole('row').filter({ hasText: 'Guten Morgen, wie geht es Ihnen?' });
+  await expect(row.getByText('Sentence', { exact: true })).toBeVisible();
 });
 
 test('speech card navigation from in-review page', async ({ page }) => {
