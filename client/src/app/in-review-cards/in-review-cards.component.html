@@ -25,14 +25,6 @@
       </td>
     </ng-container>
 
-    <!-- Translation Column -->
-    <ng-container matColumnDef="translation">
-      <th mat-header-cell *matHeaderCellDef>Translation</th>
-      <td mat-cell *matCellDef="let card">
-        <div class="skeleton skeleton-text-large"></div>
-      </td>
-    </ng-container>
-
     <!-- Source Column -->
     <ng-container matColumnDef="source">
       <th mat-header-cell *matHeaderCellDef>Source</th>
@@ -76,16 +68,6 @@
       <th mat-header-cell *matHeaderCellDef>Type</th>
       <td mat-cell *matCellDef="let card">
         <span class="type-text">{{ getTypeLabel(card) }}</span>
-      </td>
-    </ng-container>
-
-    <!-- Translation Column -->
-    <ng-container matColumnDef="translation">
-      <th mat-header-cell *matHeaderCellDef>Translation</th>
-      <td mat-cell *matCellDef="let card">
-        <div class="translation-cell">
-          {{ getTranslationText(card) }}
-        </div>
       </td>
     </ng-container>
 
