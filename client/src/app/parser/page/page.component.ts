@@ -83,7 +83,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     () => this.pageService.page.value()?.hasImage
   );
   readonly documentImage = this.pageService.documentImage;
-  readonly selectionRegions = this.pageService.selectionRegions
+  readonly selectionRegions = this.pageService.selectionRegions;
+  readonly selectedRectangles = computed(() => {
+    const pageNumber = this.pageNumber();
+    return this.pageService.allSelectedRectangles()
+      .filter(r => r.pageNumber === pageNumber);
+  });
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
   );
@@ -152,7 +157,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     return `calc(var(--page-width) * ${height})`;
   }
 
-  onSelection(event: { x: number; y: number; width: number; height: number }) {
+  onSelection(event: { x: number; y: number; width: number; height: number; addToGroup: boolean }) {
     const pageWidth = this.width();
     const parentRect = this.elRef.nativeElement.getBoundingClientRect();
     const parentWidth = parentRect.width;
@@ -165,7 +170,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     const y = pageWidth * event.y / parentWidth;
     const width = pageWidth * event.width / parentWidth;
     const height = pageWidth * event.height / parentWidth;
-    this.pageService.addSelectedRectangle({ x, y, width, height });
+    this.pageService.addSelectedRectangle({ x, y, width, height }, event.addToGroup);
   }
 
   onDragOver(event: DragEvent): void {

@@ -31,6 +31,7 @@ import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
+import io.github.mucsi96.learnlanguage.model.MultiRegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
@@ -206,6 +207,81 @@ public class SourceController {
         .y(y)
         .width(width)
         .height(height)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/words")
+  public WordListResponse getWordsFromRegions(
+      @PathVariable String sourceId,
+      @RequestBody MultiRegionExtractionRequest request,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final byte[] imageData = documentProcessorService.getMultiplePageAreas(source, request.getRegions());
+
+    final var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType(), source.getLanguageLevel());
+
+    final var filteredWords = areaWords.stream()
+        .filter(word -> !knownWordService.isWordKnown(word.getWord()))
+        .toList();
+
+    return WordListResponse.builder()
+        .words(filteredWords)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/sentences")
+  public SentenceListResponse getSentencesFromRegions(
+      @PathVariable String sourceId,
+      @RequestBody MultiRegionExtractionRequest request,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final boolean isMultiRegion = request.getRegions().size() > 1;
+    final byte[] imageData = documentProcessorService.getMultiplePageAreas(source, request.getRegions());
+
+    final var areaSentences = areaSentenceService.getAreaSentences(imageData, model, source.getLanguageLevel(), isMultiRegion);
+
+    final var sentences = areaSentences.stream()
+        .map(sentence -> SentenceResponse.builder()
+            .sentence(sentence)
+            .build())
+        .toList();
+
+    return SentenceListResponse.builder()
+        .sentences(sentences)
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/grammar")
+  public GrammarSentenceListResponse getGrammarSentencesFromRegions(
+      @PathVariable String sourceId,
+      @RequestBody MultiRegionExtractionRequest request,
+      @RequestParam ChatModel model) throws IOException {
+
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final boolean isMultiRegion = request.getRegions().size() > 1;
+    final byte[] imageData = documentProcessorService.getMultiplePageAreas(source, request.getRegions());
+
+    final List<AreaGrammarService.GrammarSentence> areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel(), isMultiRegion);
+
+    final List<GrammarSentenceResponse> sentences = areaGrammarSentences.stream()
+        .map(grammarSentence -> GrammarSentenceResponse.builder()
+            .sentence(grammarSentence.sentence())
+            .build())
+        .toList();
+
+    return GrammarSentenceListResponse.builder()
+        .sentences(sentences)
         .build();
   }
 

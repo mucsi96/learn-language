@@ -88,7 +88,23 @@
   <div class="area-loading">
     <mat-spinner></mat-spinner>
   </div>
-  } @for (span of spans(); track $index) {
+  }
+  @for (rect of selectedRectangles(); track $index) {
+  <div
+    class="selection-rectangle"
+    [class.grouped]="rect.isGrouped"
+    [style.left]="'calc(var(--page-width) * ' + rect.x + ')'"
+    [style.top]="'calc(var(--page-width) * ' + rect.y + ')'"
+    [style.width]="'calc(var(--page-width) * ' + rect.width + ')'"
+    [style.height]="'calc(var(--page-width) * ' + rect.height + ')'"
+    [attr.data-group]="rect.groupIndex"
+  >
+    @if (rect.isGrouped) {
+    <span class="group-badge">{{ rect.groupIndex + 1 }}</span>
+    }
+  </div>
+  }
+  @for (span of spans(); track $index) {
   <app-span
     [sourceId]="selectedSourceId()"
     [pageNumber]="pageNumber()"

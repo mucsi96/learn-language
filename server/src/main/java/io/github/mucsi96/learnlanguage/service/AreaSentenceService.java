@@ -23,20 +23,31 @@ public class AreaSentenceService {
   private final ObjectMapper objectMapper;
   private final ChatService chatService;
 
-  private String buildSystemPrompt(LanguageLevel languageLevel) {
+  private String buildSystemPrompt(LanguageLevel languageLevel, boolean isMultiRegion) {
     final String basePrompt = """
         You are a linguistic expert.
         Your task is to extract German sentences from the provided page image.
         These sentences will be used for speech practice and listening comprehension.
         !IMPORTANT! In response please provide all extracted sentences in JSON format with a "sentences" array containing strings.
         Extract complete, meaningful sentences that are suitable for %s level learners.
-        Each sentence should be a standalone German sentence that makes sense on its own.
+        Each sentence should be a standalone German sentence that makes sense on its own.""".formatted(languageLevel.name());
+
+    final String multiRegionInstructions = isMultiRegion ? """
+
+        IMPORTANT - MULTI-REGION EXTRACTION:
+        The image contains multiple selected regions separated by gray horizontal lines.
+        These regions may contain parts of the same sentence that spans across page columns or pages.
+        When you detect that text from one region continues into the next region (forming a complete sentence together):
+        - Join the sentence parts into a single complete sentence
+        - Remove any hyphenation at line breaks (e.g., "Kin-" + "der" becomes "Kinder")
+        - Ensure proper spacing when joining parts
+        Only include sentences that are complete after joining parts from multiple regions if needed.""" : """
 
         CRITICAL: Do not include partial sentences or sentence fragments:
         - Skip sentences that appear to be cut off at the beginning (e.g., starting with lowercase, missing subject, or continuing from previous context with "und", "oder", "aber", "dass", etc.)
         - Skip sentences that appear to be cut off at the end (e.g., ending abruptly without proper punctuation like period, question mark, or exclamation mark)
         - Only include sentences that have both a clear beginning (typically starting with a capital letter and a subject/verb) and a clear ending (proper sentence-ending punctuation)
-        - If the visible text in the selected area only shows a fragment of a sentence, do not include it""".formatted(languageLevel.name());
+        - If the visible text in the selected area only shows a fragment of a sentence, do not include it""";
 
     final AreaSentences example = new AreaSentences(List.of(
         "Guten Morgen, wie geht es Ihnen?",
@@ -45,17 +56,21 @@ public class AreaSentenceService {
 
     try {
       final String exampleJson = objectMapper.writeValueAsString(example);
-      return basePrompt + "\nExample of the expected JSON response:\n" + exampleJson;
+      return basePrompt + multiRegionInstructions + "\nExample of the expected JSON response:\n" + exampleJson;
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to serialize example to JSON", e);
     }
   }
 
   public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel) {
+    return getAreaSentences(imageData, model, languageLevel, false);
+  }
+
+  public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel, boolean isMultiRegion) {
     final var result = chatService.callWithLoggingAndMedia(
         model,
         "extraction",
-        buildSystemPrompt(languageLevel),
+        buildSystemPrompt(languageLevel, isMultiRegion),
         u -> u
             .text("Here is the image of the page")
             .media(Media.builder()

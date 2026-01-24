@@ -18,12 +18,14 @@ export class DraggableSelectionDirective {
   private startX = 0;
   private startY = 0;
   private rect: HTMLElement | null = null;
+  private shiftKeyPressed = false;
 
   readonly selectionBox = output<{
     x: number;
     y: number;
     width: number;
     height: number;
+    addToGroup: boolean;
   }>();
 
   @HostListener('mousedown', ['$event'])
@@ -38,6 +40,7 @@ export class DraggableSelectionDirective {
     const parentRect = this.el.nativeElement.getBoundingClientRect();
     this.startX = event.pageX - parentRect.left - window.scrollX;
     this.startY = event.pageY - parentRect.top - window.scrollY;
+    this.shiftKeyPressed = event.shiftKey;
     this.createRectangle();
   }
 
@@ -77,7 +80,7 @@ export class DraggableSelectionDirective {
       const y = Math.min(this.startY, endY);
 
       if (width > 5 && height > 5) {
-        this.selectionBox.emit({ x, y, width, height });
+        this.selectionBox.emit({ x, y, width, height, addToGroup: this.shiftKeyPressed });
       }
 
       this.removeRectangle();
@@ -87,12 +90,9 @@ export class DraggableSelectionDirective {
   private createRectangle() {
     this.rect = this.renderer.createElement('div');
     this.renderer.setStyle(this.rect, 'position', 'absolute');
-    this.renderer.setStyle(
-      this.rect,
-      'border',
-      '2px dashed hsl(220, 89%, 53%)'
-    );
-    this.renderer.setStyle(this.rect, 'background', 'hsla(220, 89%, 53%, 0.2)');
+    const color = this.shiftKeyPressed ? 'hsl(280, 89%, 53%)' : 'hsl(220, 89%, 53%)';
+    this.renderer.setStyle(this.rect, 'border', `2px dashed ${color}`);
+    this.renderer.setStyle(this.rect, 'background', this.shiftKeyPressed ? 'hsla(280, 89%, 53%, 0.2)' : 'hsla(220, 89%, 53%, 0.2)');
     this.renderer.appendChild(this.el.nativeElement, this.rect);
   }
 

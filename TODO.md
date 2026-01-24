@@ -1,3 +1,3 @@
-- support for grammar card type
-- support multi part regions
+- ~~support for grammar card type~~ (completed)
+- ~~support multi part regions~~ (completed)
 - support cross-page multi part regions
