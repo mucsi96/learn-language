@@ -1,4 +1,5 @@
 import {
+  computed,
   inject,
   Injectable,
   resource,
@@ -34,7 +35,8 @@ export class PageService {
   private readonly injector = inject(Injector);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly selectedSource = signal<SelectedSource>(undefined);
-  private readonly regionGroups = signal<RegionGroups>([]);
+  private readonly pendingRegionGroups = signal<RegionGroups>([]);
+  private readonly confirmedRegionGroups = signal<RegionGroups>([]);
 
   readonly page = resource({
     params: () => ({
@@ -72,7 +74,7 @@ export class PageService {
     RegionGroups,
     ResourceRef<ExtractionRegion | undefined>[]
   >({
-    source: this.regionGroups,
+    source: this.confirmedRegionGroups,
     computation: (regionGroups, previous) => untracked(() =>{
       const selectedSource = this.selectedSource();
       const page = this.page.value();
@@ -118,16 +120,36 @@ export class PageService {
     }),
   });
 
-  readonly allSelectedRectangles = () => {
-    return this.regionGroups().flatMap((group, groupIndex) =>
+  readonly hasPendingSelection = computed(() => this.pendingRegionGroups().length > 0);
+
+  readonly pendingRectangles = computed(() => {
+    return this.pendingRegionGroups().flatMap((group, groupIndex) =>
       group.regions.map((region, regionIndex) => ({
         ...region,
         groupIndex,
         isFirstInGroup: regionIndex === 0,
         isGrouped: group.regions.length > 1,
+        isPending: true,
       }))
     );
-  };
+  });
+
+  readonly confirmedRectangles = computed(() => {
+    const pendingCount = this.pendingRegionGroups().length;
+    return this.confirmedRegionGroups().flatMap((group, groupIndex) =>
+      group.regions.map((region, regionIndex) => ({
+        ...region,
+        groupIndex: groupIndex + pendingCount,
+        isFirstInGroup: regionIndex === 0,
+        isGrouped: group.regions.length > 1,
+        isPending: false,
+      }))
+    );
+  });
+
+  readonly allSelectedRectangles = computed(() => {
+    return [...this.pendingRectangles(), ...this.confirmedRectangles()];
+  });
 
   private regionGroupsEqual(a: RegionGroup, b: RegionGroup): boolean {
     if (a.regions.length !== b.regions.length) return false;
@@ -185,17 +207,21 @@ export class PageService {
 
     const regionWithPage = { ...rectangle, pageNumber: selectedSource.pageNumber };
 
-    this.regionGroups.update((groups) => {
-      const allRegions = groups.flatMap(g => g.regions);
-      const hasOverlap = allRegions.some(existing =>
-        existing.pageNumber === regionWithPage.pageNumber &&
-        this.rectanglesOverlap(existing, regionWithPage)
-      );
+    const allExistingRegions = [
+      ...this.pendingRegionGroups().flatMap(g => g.regions),
+      ...this.confirmedRegionGroups().flatMap(g => g.regions),
+    ];
 
-      if (hasOverlap) {
-        return groups;
-      }
+    const hasOverlap = allExistingRegions.some(existing =>
+      existing.pageNumber === regionWithPage.pageNumber &&
+      this.rectanglesOverlap(existing, regionWithPage)
+    );
 
+    if (hasOverlap) {
+      return;
+    }
+
+    this.pendingRegionGroups.update((groups) => {
       if (addToGroup && groups.length > 0) {
         const lastGroupIndex = groups.length - 1;
         return groups.map((group, index) =>
@@ -209,6 +235,18 @@ export class PageService {
     });
   }
 
+  confirmSelection() {
+    const pending = this.pendingRegionGroups();
+    if (pending.length === 0) return;
+
+    this.confirmedRegionGroups.update((confirmed) => [...confirmed, ...pending]);
+    this.pendingRegionGroups.set([]);
+  }
+
+  cancelPendingSelection() {
+    this.pendingRegionGroups.set([]);
+  }
+
   private rectanglesOverlap(rect1: SelectedRectangle, rect2: SelectedRectangle): boolean {
     return !(
       rect1.x + rect1.width <= rect2.x ||
@@ -219,6 +257,7 @@ export class PageService {
   }
 
   clearSelection() {
-    this.regionGroups.set([]);
+    this.pendingRegionGroups.set([]);
+    this.confirmedRegionGroups.set([]);
   }
 }

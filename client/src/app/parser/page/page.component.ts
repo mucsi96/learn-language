@@ -84,6 +84,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   );
   readonly documentImage = this.pageService.documentImage;
   readonly selectionRegions = this.pageService.selectionRegions;
+  readonly hasPendingSelection = this.pageService.hasPendingSelection;
   readonly selectedRectangles = computed(() => {
     const pageNumber = this.pageNumber();
     return this.pageService.allSelectedRectangles()
@@ -253,5 +254,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
   ignoreItem(itemId: string): void {
     this.candidatesService.ignoreItem(itemId);
+  }
+
+  confirmSelection(): void {
+    this.pageService.confirmSelection();
+  }
+
+  cancelSelection(): void {
+    this.pageService.cancelPendingSelection();
   }
 }
