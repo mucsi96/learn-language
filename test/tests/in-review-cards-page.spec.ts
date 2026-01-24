@@ -65,17 +65,12 @@ test('displays in review cards in table', async ({ page }) => {
   // Check table headers
   await expect(page.getByRole('columnheader', { name: 'Word' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Type' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Translation' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Source' })).toBeVisible();
 
   // Check that IN_REVIEW cards are displayed
   await expect(page.getByText('verstehen', { exact: true })).toBeVisible();
   await expect(page.getByText('sprechen', { exact: true })).toBeVisible();
   await expect(page.getByText('Ige', { exact: true })).toHaveCount(2); // Hungarian for "verb"
-
-  // Check translations are displayed
-  await expect(page.getByText('HU: érteni • EN: to understand • CH: verstoh')).toBeVisible();
-  await expect(page.getByText('HU: beszélni • EN: to speak')).toBeVisible();
 
   // Check source information
   await expect(page.getByText('Goethe A1')).toBeVisible();
@@ -506,11 +501,6 @@ test('displays speech cards in review with correct type', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 20,
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',
@@ -526,9 +516,8 @@ test('displays speech cards in review with correct type', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  await expect(page.getByText('Guten Morgen, wie geht es Ihnen?', { exact: true })).toBeVisible();
-  await expect(page.getByText('Sentence', { exact: true })).toBeVisible();
-  await expect(page.getByText('HU: Jó reggelt, hogy van? • EN: Good morning, how are you?')).toBeVisible();
+  const row = page.getByRole('row').filter({ hasText: 'Guten Morgen, wie geht es Ihnen?' });
+  await expect(row.getByText('Sentence', { exact: true })).toBeVisible();
 });
 
 test('speech card navigation from in-review page', async ({ page }) => {
@@ -539,11 +528,6 @@ test('speech card navigation from in-review page', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 21,
     data: {
-      sentence: 'Ich fahre mit dem Bus.',
-      translation: {
-        hu: 'Busszal megyek.',
-        en: 'I take the bus.',
-      },
       examples: [
         {
           de: 'Ich fahre mit dem Bus.',

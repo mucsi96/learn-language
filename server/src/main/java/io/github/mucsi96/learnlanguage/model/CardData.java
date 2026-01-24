@@ -17,7 +17,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class CardData {
     private String word;
-    private String sentence;
     private String type;
     @JsonInclude(Include.NON_DEFAULT)
     private String gender;

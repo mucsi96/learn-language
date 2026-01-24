@@ -38,11 +38,10 @@ export class LearnSpeechCardComponent {
     this.card()?.value()?.data.examples?.find((ex) => ex.isSelected)
   );
 
-  readonly sentence = computed(() =>
-    this.isRevealed()
-      ? this.card()?.value()?.data.sentence
-      : this.card()?.value()?.data.translation?.['hu']
-  );
+  readonly sentence = computed(() => {
+    const example = this.selectedExample();
+    return this.isRevealed() ? example?.de : example?.hu;
+  });
 
   readonly exampleImages = linkedSignal(() => {
     const example = this.selectedExample();

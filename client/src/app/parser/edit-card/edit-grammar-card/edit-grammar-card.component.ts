@@ -59,9 +59,9 @@ export class EditGrammarCardComponent {
   private readonly imageCarousel = viewChild(ImageCarouselComponent);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
-  readonly sentence = linkedSignal(() => this.card()?.data.sentence);
+  readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
   readonly englishTranslation = linkedSignal(
-    () => this.card()?.data.translation?.['en']
+    () => this.card()?.data.examples?.[0]?.en
   );
   readonly gaps = linkedSignal(() => this.card()?.data.gaps ?? []);
 
@@ -222,10 +222,6 @@ export class EditGrammarCardComponent {
     }
 
     const data: CardData = {
-      sentence: sentenceText,
-      translation: {
-        en: this.englishTranslation(),
-      },
       gaps: this.gaps(),
       examples: [
         {

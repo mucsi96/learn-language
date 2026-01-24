@@ -137,11 +137,6 @@ export class SpeechCardType implements CardTypeStrategy {
         : [];
 
       const cardData: CardData = {
-        sentence: sentence.sentence,
-        translation: {
-          hu: hungarianTranslation.translation,
-          en: englishTranslation.translation,
-        },
         examples: [
           {
             de: sentence.sentence,
@@ -166,7 +161,7 @@ export class SpeechCardType implements CardTypeStrategy {
   }
 
   getCardDisplayLabel(card: Card): string {
-    return card.data.sentence || card.id;
+    return card.data.examples?.[0]?.de ?? card.id;
   }
 
   getCardTypeLabel(_card: Card): string {
@@ -178,12 +173,13 @@ export class SpeechCardType implements CardTypeStrategy {
   }
 
   getAudioItems(card: Card): AudioGenerationItem[] {
+    const example = card.data.examples?.[0];
     return [
-      card.data.sentence
-        ? { text: card.data.sentence, language: LANGUAGE_CODES.GERMAN }
+      example?.de
+        ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
         : null,
-      card.data.translation?.['hu']
-        ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN }
+      example?.hu
+        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN }
         : null,
     ].filter(nonNullable);
   }
@@ -206,9 +202,9 @@ export class SpeechCardType implements CardTypeStrategy {
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {
-    const germanTexts = [card.data.sentence].filter(nonNullable);
-
-    const hungarianTexts = [card.data.translation?.['hu']].filter(nonNullable);
+    const example = card.data.examples?.[0];
+    const germanTexts = [example?.de].filter(nonNullable);
+    const hungarianTexts = [example?.hu].filter(nonNullable);
 
     return [
       ...(germanTexts.length > 0 ? [{ language: 'de', texts: germanTexts }] : []),

@@ -580,11 +580,6 @@ test('speech card editing page displays sentence and translations', async ({ pag
     sourceId: 'speech-a1',
     sourcePageNumber: 10,
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',
@@ -613,11 +608,6 @@ test('speech card editing updates sentence in database', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 11,
     data: {
-      sentence: 'Ich fahre mit dem Bus.',
-      translation: {
-        hu: 'Busszal megyek.',
-        en: 'I take the bus.',
-      },
       examples: [
         {
           de: 'Ich fahre mit dem Bus.',
@@ -640,8 +630,8 @@ test('speech card editing updates sentence in database', async ({ page }) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'e5f6g7h8'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
-    expect(cardData.sentence).toBe('Ich fahre mit dem Bus.');
-    expect(cardData.translation.hu).toBe('Busszal utazom.');
+    expect(cardData.examples[0].de).toBe('Ich fahre mit dem Bus.');
+    expect(cardData.examples[0].hu).toBe('Busszal utazom.');
   });
 });
 
@@ -653,11 +643,6 @@ test('speech card back navigation works', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 12,
     data: {
-      sentence: 'Das Wetter ist schön.',
-      translation: {
-        hu: 'Szép az idő.',
-        en: 'The weather is nice.',
-      },
       examples: [
         {
           de: 'Das Wetter ist schön.',
@@ -684,8 +669,6 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
     sourceId: 'grammar-a1',
     sourcePageNumber: 1,
     data: {
-      sentence: 'Der Hund läuft schnell.',
-      translation: { en: 'The dog runs fast.' },
       gaps: [{ startIndex: 9, length: 5 }],
       examples: [
         {
@@ -715,8 +698,6 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
     sourceId: 'grammar-a1',
     sourcePageNumber: 2,
     data: {
-      sentence: 'Sie trinkt Kaffee.',
-      translation: { en: 'She drinks coffee.' },
       gaps: [],
       examples: [
         {
@@ -752,8 +733,6 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 3,
     data: {
-      sentence: 'Wir gehen ins Kino.',
-      translation: { en: 'We go to the cinema.' },
       gaps: [{ startIndex: 4, length: 5 }],
       examples: [
         {
@@ -785,8 +764,6 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 4,
     data: {
-      sentence: 'Das Kind spielt im Garten.',
-      translation: { en: 'The child plays in the garden.' },
       gaps: [],
       examples: [
         {

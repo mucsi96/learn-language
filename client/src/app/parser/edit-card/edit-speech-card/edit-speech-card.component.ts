@@ -54,12 +54,12 @@ export class EditSpeechCardComponent {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   private readonly imageCarousel = viewChild(ImageCarouselComponent);
 
-  readonly sentence = linkedSignal(() => this.card()?.data.sentence);
+  readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
   readonly hungarianTranslation = linkedSignal(
-    () => this.card()?.data.translation?.['hu']
+    () => this.card()?.data.examples?.[0]?.hu
   );
   readonly englishTranslation = linkedSignal(
-    () => this.card()?.data.translation?.['en']
+    () => this.card()?.data.examples?.[0]?.en
   );
 
   readonly images = linkedSignal(() => {
@@ -164,11 +164,6 @@ export class EditSpeechCardComponent {
     }
 
     const data: CardData = {
-      sentence: sentenceText,
-      translation: {
-        hu: this.hungarianTranslation(),
-        en: this.englishTranslation(),
-      },
       examples: [
         {
           de: sentenceText,

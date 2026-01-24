@@ -1137,11 +1137,6 @@ test('speech card study page initial state shows Hungarian translation', async (
     sourceId: 'speech-a1',
     sourcePageNumber: 5,
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',
@@ -1173,11 +1168,6 @@ test('speech card study page revealed state shows German sentence', async ({ pag
     sourcePageNumber: 6,
     state: 'LEARNING',
     data: {
-      sentence: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
-      translation: {
-        hu: 'Minden nap busszal járok dolgozni.',
-        en: 'I take the bus to work every day.',
-      },
       examples: [
         {
           de: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.',
@@ -1212,11 +1202,6 @@ test('speech card grading functionality', async ({ page }) => {
     sourceId: 'speech-a1',
     sourcePageNumber: 7,
     data: {
-      sentence: 'Das Wetter ist heute sehr schön.',
-      translation: {
-        hu: 'Ma nagyon szép az idő.',
-        en: 'The weather is very nice today.',
-      },
       examples: [
         {
           de: 'Das Wetter ist heute sehr schön.',
@@ -1253,8 +1238,6 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
     sourceId: 'grammar-a1',
     sourcePageNumber: 1,
     data: {
-      sentence: 'Ich gehe jeden Tag in die Schule.',
-      translation: { en: 'I go to school every day.' },
       gaps: [{ startIndex: 9, length: 5 }],
       examples: [
         {
@@ -1289,8 +1272,6 @@ test('grammar card grading functionality', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 2,
     data: {
-      sentence: 'Er trinkt jeden Morgen Kaffee.',
-      translation: { en: 'He drinks coffee every morning.' },
       gaps: [{ startIndex: 3, length: 6 }],
       examples: [
         {

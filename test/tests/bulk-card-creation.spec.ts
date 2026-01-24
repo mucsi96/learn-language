@@ -456,21 +456,19 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
 
     expect(result.rows.length).toBe(2);
 
-    const card1 = result.rows.find((row) => row.data.sentence === 'Wie heißt das Lied?');
+    const card1 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Wie heißt das Lied?');
     expect(card1).toBeDefined();
     expect(card1?.source_id).toBe('speech-a1');
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
     expect(card1?.readiness).toBe('IN_REVIEW');
-    expect(card1?.data.translation.hu).toBe('Hogy hívják a dalt?');
-    expect(card1?.data.translation.en).toBe('What is the name of the song?');
     expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
     expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
     expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
-    const card2 = result.rows.find((row) => row.data.sentence === 'Hören Sie.');
+    const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Hören Sie.');
     expect(card2).toBeDefined();
-    expect(card2?.data.translation.hu).toBe('Hallgasson.');
-    expect(card2?.data.translation.en).toBe('Listen.');
+    expect(card2?.data.examples[0].hu).toBe('Hallgasson.');
+    expect(card2?.data.examples[0].en).toBe('Listen.');
   });
 });
 
@@ -516,19 +514,19 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
 
     expect(result.rows.length).toBe(2);
 
-    const card1 = result.rows.find((row) => row.data.sentence === 'Das ict Paco.');
+    const card1 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Das ict Paco.');
     expect(card1).toBeDefined();
     expect(card1?.source_id).toBe('grammar-a1');
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
     expect(card1?.readiness).toBe('IN_REVIEW');
-    expect(card1?.data.translation?.en).toBe('This is Paco.');
+    expect(card1?.data.examples[0].en).toBe('This is Paco.');
     expect(card1?.data.gaps).toBeDefined();
     expect(card1?.data.gaps.length).toBe(1);
     expect(card1?.data.gaps[0].startIndex).toBe(5);
     expect(card1?.data.gaps[0].length).toBe(3);
 
-    const card2 = result.rows.find((row) => row.data.sentence === 'Und das ist Frau Wachter.');
+    const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Und das ist Frau Wachter.');
     expect(card2).toBeDefined();
     expect(card2?.data.gaps).toBeDefined();
     expect(card2?.data.gaps.length).toBe(1);

@@ -223,11 +223,6 @@ test('speech card audio plays on study page', async ({ page }) => {
     cardId: 'speech-audio-test',
     sourceId: 'speech-a1',
     data: {
-      sentence: 'Guten Morgen, wie geht es Ihnen?',
-      translation: {
-        hu: 'Jó reggelt, hogy van?',
-        en: 'Good morning, how are you?',
-      },
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',

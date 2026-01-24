@@ -32,23 +32,9 @@ export class InReviewCardsComponent {
   readonly cards = this.inReviewCardsService.cards.value;
   readonly loading = computed(() => this.inReviewCardsService.cards.isLoading());
 
-  readonly displayedColumns: string[] = [
-    'word',
-    'type',
-    'translation',
-    'source',
-  ];
+  readonly displayedColumns: string[] = ['word', 'type', 'source'];
 
   readonly skeletonData = Array(5).fill({});
-
-  getTranslationText(card: Card): string {
-    const translations = [
-      card.data.translation?.['hu'] ? `HU: ${card.data.translation['hu']}` : null,
-      card.data.translation?.['en'] ? `EN: ${card.data.translation['en']}` : null,
-      card.data.translation?.['ch'] ? `CH: ${card.data.translation['ch']}` : null,
-    ].filter((t): t is string => t !== null);
-    return translations.join(' • ');
-  }
 
   getDisplayLabel(card: Card): string {
     const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
