@@ -126,7 +126,13 @@
   box-sizing: border-box;
 }
 
-.selection-rectangle.grouped {
+.selection-rectangle.pending {
+  border-style: dashed;
+  border-color: hsl(280, 89%, 53%);
+  background-color: hsla(280, 89%, 53%, 0.15);
+}
+
+.selection-rectangle.grouped:not(.pending) {
   border-color: hsl(280, 89%, 53%);
   background-color: hsla(280, 89%, 53%, 0.1);
 }
@@ -145,4 +151,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.pending-selection-actions {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  z-index: 100;
 }

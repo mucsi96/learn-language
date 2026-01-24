@@ -93,13 +93,14 @@
   <div
     class="selection-rectangle"
     [class.grouped]="rect.isGrouped"
+    [class.pending]="rect.isPending"
     [style.left]="'calc(var(--page-width) * ' + rect.x + ')'"
     [style.top]="'calc(var(--page-width) * ' + rect.y + ')'"
     [style.width]="'calc(var(--page-width) * ' + rect.width + ')'"
     [style.height]="'calc(var(--page-width) * ' + rect.height + ')'"
     [attr.data-group]="rect.groupIndex"
   >
-    @if (rect.isGrouped) {
+    @if (rect.isPending) {
     <span class="group-badge">{{ rect.groupIndex + 1 }}</span>
     }
   </div>
@@ -118,6 +119,19 @@
   ></app-span>
   }
 </section>
+
+@if (hasPendingSelection()) {
+<div class="pending-selection-actions" role="region" aria-label="Selection actions">
+  <button mat-fab extended color="primary" (click)="confirmSelection()" aria-label="Extract text from selection">
+    <mat-icon>check</mat-icon>
+    Extract
+  </button>
+  <button mat-fab extended (click)="cancelSelection()" aria-label="Cancel selection">
+    <mat-icon>close</mat-icon>
+    Cancel
+  </button>
+</div>
+}
 
 @if (formatType() === 'flowingText' && extractedCandidates().length > 0) {
 <div class="extracted-candidates-container" role="region" aria-label="Extracted items">
