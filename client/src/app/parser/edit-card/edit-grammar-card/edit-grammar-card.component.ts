@@ -27,6 +27,7 @@ import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
 import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
+import { GRAMMAR_GAP_REGEX } from '../../../shared/constants/grammar.constants';
 
 @Component({
   selector: 'app-edit-grammar-card',
@@ -65,7 +66,7 @@ export class EditGrammarCardComponent {
 
   readonly gapsDisplay = computed(() => {
     const sentence = this.sentence() ?? '';
-    const matches = [...sentence.matchAll(/\[([^\]]+)\]/g)];
+    const matches = [...sentence.matchAll(GRAMMAR_GAP_REGEX)];
     return matches.map((match) => ({
       text: match[1],
     }));
@@ -73,7 +74,7 @@ export class EditGrammarCardComponent {
 
   readonly sentenceWithGaps = computed(() => {
     const sentence = this.sentence() ?? '';
-    return sentence.replace(/\[([^\]]+)\]/g, (_match, content) => '_'.repeat(content.length));
+    return sentence.replace(GRAMMAR_GAP_REGEX, (_match, content) => '_'.repeat(content.length));
   });
 
   readonly images = linkedSignal(() => {
@@ -132,6 +133,7 @@ export class EditGrammarCardComponent {
     const selectedText = currentSentence.slice(start, end);
 
     if (selectedText.includes('[') || selectedText.includes(']')) return;
+    if (selectedText.trim().length === 0) return;
 
     const newSentence =
       currentSentence.slice(0, start) +
@@ -141,21 +143,20 @@ export class EditGrammarCardComponent {
     this.sentence.set(newSentence);
   }
 
-  removeGap(index: number) {
+  removeGap(indexToRemove: number) {
     const gaps = this.gapsDisplay();
-    if (index < 0 || index >= gaps.length) return;
+    if (indexToRemove < 0 || indexToRemove >= gaps.length) return;
 
     const currentSentence = this.sentence() ?? '';
+    const matches = [...currentSentence.matchAll(GRAMMAR_GAP_REGEX)];
 
-    let count = 0;
-    const newSentence = currentSentence.replace(/\[([^\]]+)\]/g, (match, content) => {
-      if (count === index) {
-        count++;
-        return content;
-      }
-      count++;
-      return match;
-    });
+    const newSentence = matches.reduceRight(
+      (sentence, match, idx) =>
+        idx === indexToRemove
+          ? sentence.slice(0, match.index) + match[1] + sentence.slice(match.index + match[0].length)
+          : sentence,
+      currentSentence
+    );
 
     this.sentence.set(newSentence);
   }

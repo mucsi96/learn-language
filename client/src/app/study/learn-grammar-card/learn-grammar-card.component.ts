@@ -15,6 +15,7 @@ import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { GRAMMAR_GAP_REGEX } from '../../shared/constants/grammar.constants';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -47,7 +48,7 @@ export class LearnGrammarCardComponent {
 
   readonly audioSentence = computed(() => {
     if (!this.isRevealed()) return undefined;
-    return this.sentence().replace(/\[([^\]]+)\]/g, '$1');
+    return this.sentence().replace(GRAMMAR_GAP_REGEX, '$1');
   });
 
   readonly sentenceParts = computed(() => {
@@ -92,23 +93,31 @@ export class LearnGrammarCardComponent {
   }
 
   private buildSentenceParts(sentence: string): SentencePart[] {
-    const parts: SentencePart[] = [];
-    const regex = /\[([^\]]+)\]/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
+    const matches = [...sentence.matchAll(GRAMMAR_GAP_REGEX)];
 
-    while ((match = regex.exec(sentence)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ text: sentence.slice(lastIndex, match.index), isGap: false });
-      }
-      parts.push({ text: match[1], isGap: true });
-      lastIndex = regex.lastIndex;
+    if (matches.length === 0) {
+      return [{ text: sentence, isGap: false }];
     }
 
-    if (lastIndex < sentence.length) {
-      parts.push({ text: sentence.slice(lastIndex), isGap: false });
-    }
+    const { parts, lastIndex } = matches.reduce(
+      (acc, match) => {
+        const textBefore = match.index > acc.lastIndex
+          ? [{ text: sentence.slice(acc.lastIndex, match.index), isGap: false }]
+          : [];
+        const gapPart = { text: match[1], isGap: true };
 
-    return parts.length > 0 ? parts : [{ text: sentence, isGap: false }];
+        return {
+          parts: [...acc.parts, ...textBefore, gapPart],
+          lastIndex: match.index + match[0].length,
+        };
+      },
+      { parts: [] as SentencePart[], lastIndex: 0 }
+    );
+
+    const remainingText = lastIndex < sentence.length
+      ? [{ text: sentence.slice(lastIndex), isGap: false }]
+      : [];
+
+    return [...parts, ...remainingText];
   }
 }
