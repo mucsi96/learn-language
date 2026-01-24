@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.service.cardtype;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.ExampleData;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class GrammarCardTypeStrategy implements CardTypeStrategy {
 
     @Override
     public String getPrimaryText(CardData cardData) {
-        return cardData != null ? cardData.getSentence() : null;
+        return getFirstExample(cardData).map(ExampleData::getDe).orElse(null);
     }
 
     @Override
@@ -22,13 +23,20 @@ public class GrammarCardTypeStrategy implements CardTypeStrategy {
             return List.of();
         }
 
-        final CardData cardData = card.getData();
+        final Optional<ExampleData> example = getFirstExample(card.getData());
 
         return Stream.of(
-                Optional.ofNullable(cardData.getSentence())
+                example.map(ExampleData::getDe)
                         .filter(this::hasText)
-                        .map(sentence -> new AudioTextItem(sentence, "de"))
+                        .map(de -> new AudioTextItem(de, "de"))
         ).flatMap(Optional::stream).toList();
+    }
+
+    private Optional<ExampleData> getFirstExample(CardData cardData) {
+        return Optional.ofNullable(cardData)
+                .map(CardData::getExamples)
+                .filter(examples -> !examples.isEmpty())
+                .map(examples -> examples.get(0));
     }
 
     private boolean hasText(String value) {
