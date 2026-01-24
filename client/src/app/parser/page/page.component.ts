@@ -111,7 +111,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     this.route.params.subscribe((params) =>
-      this.pageService.setSource(params['sourceId'], params['pageNumber'])
+      this.pageService.setSource(params['sourceId'], Number(params['pageNumber']))
     );
 
     effect(() => {
