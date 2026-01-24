@@ -187,7 +187,7 @@ interface GrammarSentence {
 
 export const GRAMMAR_SENTENCE_LISTS: Record<string, GrammarSentence[]> = {
   grammar_sentences: [
-    { sentence: 'Das [ict] Paco.' },
+    { sentence: 'Das [ist] Paco.' },
     { sentence: 'Und [das] ist Frau Wachter.' },
   ],
 };
@@ -200,7 +200,7 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   english: {
     'Hören Sie.': 'Listen.',
     'Wie heißt das Lied?': 'What is the name of the song?',
-    'Das [ict] Paco.': 'This is Paco.',
+    'Das [ist] Paco.': 'This is Paco.',
     'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
   },
 };
