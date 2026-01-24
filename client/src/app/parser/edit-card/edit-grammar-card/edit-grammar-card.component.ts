@@ -11,7 +11,6 @@ import {
   viewChild,
   afterNextRender,
   ElementRef,
-  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -22,7 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
-import { Card, CardData, ExampleImage, Gap } from '../../types';
+import { Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
@@ -63,31 +62,18 @@ export class EditGrammarCardComponent {
   readonly englishTranslation = linkedSignal(
     () => this.card()?.data.examples?.[0]?.en
   );
-  readonly gaps = linkedSignal(() => this.card()?.data.gaps ?? []);
 
   readonly gapsDisplay = computed(() => {
     const sentence = this.sentence() ?? '';
-    const gapsList = this.gaps();
-    return gapsList.map((gap) => ({
-      ...gap,
-      text: sentence.slice(gap.startIndex, gap.startIndex + gap.length),
+    const matches = [...sentence.matchAll(/\[([^\]]+)\]/g)];
+    return matches.map((match) => ({
+      text: match[1],
     }));
   });
 
   readonly sentenceWithGaps = computed(() => {
     const sentence = this.sentence() ?? '';
-    const gapsList = this.gaps();
-    if (gapsList.length === 0) return sentence;
-
-    const sortedGaps = [...gapsList].sort((a, b) => b.startIndex - a.startIndex);
-
-    return sortedGaps.reduce(
-      (result, gap) =>
-        result.slice(0, gap.startIndex) +
-        '_'.repeat(gap.length) +
-        result.slice(gap.startIndex + gap.length),
-      sentence
-    );
+    return sentence.replace(/\[([^\]]+)\]/g, (_match, content) => '_'.repeat(content.length));
   });
 
   readonly images = linkedSignal(() => {
@@ -142,25 +128,36 @@ export class EditGrammarCardComponent {
 
     if (start === end) return;
 
-    const newGap: Gap = {
-      startIndex: start,
-      length: end - start,
-    };
+    const currentSentence = this.sentence() ?? '';
+    const selectedText = currentSentence.slice(start, end);
 
-    const currentGaps = this.gaps();
-    const overlaps = currentGaps.some(
-      (gap) =>
-        (newGap.startIndex < gap.startIndex + gap.length &&
-          newGap.startIndex + newGap.length > gap.startIndex)
-    );
+    if (selectedText.includes('[') || selectedText.includes(']')) return;
 
-    if (overlaps) return;
+    const newSentence =
+      currentSentence.slice(0, start) +
+      '[' + selectedText + ']' +
+      currentSentence.slice(end);
 
-    this.gaps.update((gaps) => [...gaps, newGap].sort((a, b) => a.startIndex - b.startIndex));
+    this.sentence.set(newSentence);
   }
 
   removeGap(index: number) {
-    this.gaps.update((gaps) => gaps.filter((_, i) => i !== index));
+    const gaps = this.gapsDisplay();
+    if (index < 0 || index >= gaps.length) return;
+
+    const currentSentence = this.sentence() ?? '';
+
+    let count = 0;
+    const newSentence = currentSentence.replace(/\[([^\]]+)\]/g, (match, content) => {
+      if (count === index) {
+        count++;
+        return content;
+      }
+      count++;
+      return match;
+    });
+
+    this.sentence.set(newSentence);
   }
 
   addImage() {
@@ -222,7 +219,6 @@ export class EditGrammarCardComponent {
     }
 
     const data: CardData = {
-      gaps: this.gaps(),
       examples: [
         {
           de: sentenceText,

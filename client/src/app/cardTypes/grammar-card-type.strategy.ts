@@ -17,7 +17,6 @@ import {
   CardData,
   ImagesByIndex,
   LanguageTexts,
-  Gap,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
@@ -123,7 +122,6 @@ export class GrammarCardType implements CardTypeStrategy {
         : [];
 
       const cardData: CardData = {
-        gaps: grammarSentence.gaps,
         examples: [
           {
             de: grammarSentence.sentence,
