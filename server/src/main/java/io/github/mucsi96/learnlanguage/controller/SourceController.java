@@ -31,7 +31,6 @@ import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
-import io.github.mucsi96.learnlanguage.model.GrammarGapResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
@@ -196,18 +195,9 @@ public class SourceController {
     final List<AreaGrammarService.GrammarSentence> areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
 
     final List<GrammarSentenceResponse> sentences = areaGrammarSentences.stream()
-        .map(grammarSentence -> {
-            final List<GrammarGapResponse> gaps = grammarSentence.gaps().stream()
-                .map(gap -> GrammarGapResponse.builder()
-                    .startIndex(gap.startIndex())
-                    .length(gap.length())
-                    .build())
-                .toList();
-            return GrammarSentenceResponse.builder()
-                .sentence(grammarSentence.sentence())
-                .gaps(gaps)
-                .build();
-        })
+        .map(grammarSentence -> GrammarSentenceResponse.builder()
+            .sentence(grammarSentence.sentence())
+            .build())
         .toList();
 
     return GrammarSentenceListResponse.builder()

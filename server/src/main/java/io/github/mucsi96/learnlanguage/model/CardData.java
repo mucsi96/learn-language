@@ -26,7 +26,4 @@ public class CardData {
 
     @JsonInclude(Include.NON_NULL)
     private List<AudioData> audio;
-
-    @JsonInclude(Include.NON_NULL)
-    private List<GapData> gaps;
 }

@@ -669,10 +669,9 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
     sourceId: 'grammar-a1',
     sourcePageNumber: 1,
     data: {
-      gaps: [{ startIndex: 9, length: 5 }],
       examples: [
         {
-          de: 'Der Hund läuft schnell.',
+          de: 'Der Hund [läuft] schnell.',
           en: 'The dog runs fast.',
           isSelected: true,
           images: [{ id: image1, isFavorite: true }],
@@ -683,10 +682,10 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Der Hund läuft schnell.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Der Hund [läuft] schnell.' }).click();
 
   await expect(page.getByRole('heading', { name: 'Grammar' })).toBeVisible();
-  await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund läuft schnell.');
+  await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
   await expect(page.locator('.sentence-preview')).toContainText('Der Hund _____ schnell.');
 });
 
@@ -698,7 +697,6 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
     sourceId: 'grammar-a1',
     sourcePageNumber: 2,
     data: {
-      gaps: [],
       examples: [
         {
           de: 'Sie trinkt Kaffee.',
@@ -733,10 +731,9 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 3,
     data: {
-      gaps: [{ startIndex: 4, length: 5 }],
       examples: [
         {
-          de: 'Wir gehen ins Kino.',
+          de: 'Wir [gehen] ins Kino.',
           en: 'We go to the cinema.',
           isSelected: true,
           images: [{ id: image1, isFavorite: true }],
@@ -747,7 +744,7 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Wir gehen ins Kino.' }).click();
+  await page.getByRole('row').filter({ hasText: 'Wir [gehen] ins Kino.' }).click();
 
   await expect(page.locator('.sentence-preview')).toContainText('Wir _____ ins Kino.');
 
@@ -764,7 +761,6 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 4,
     data: {
-      gaps: [],
       examples: [
         {
           de: 'Das Kind spielt im Garten.',
@@ -794,9 +790,6 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'grammar-save-card'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
-    expect(cardData.gaps).toBeDefined();
-    expect(cardData.gaps.length).toBe(1);
-    expect(cardData.gaps[0].startIndex).toBe(9);
-    expect(cardData.gaps[0].length).toBe(6);
+    expect(cardData.examples[0].de).toBe('Das Kind [spielt] im Garten.');
   });
 });

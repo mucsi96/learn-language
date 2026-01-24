@@ -12,9 +12,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
-import { ExampleImage, Gap } from '../../parser/types';
+import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { createGrammarGapRegex } from '../../shared/constants/grammar.constants';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -44,21 +45,15 @@ export class LearnGrammarCardComponent {
   );
 
   readonly sentence = computed(() => this.selectedExample()?.de ?? '');
-  readonly gaps = computed(() => this.card()?.value()?.data.gaps ?? []);
 
-  readonly audioSentence = computed(() =>
-    this.isRevealed() ? this.sentence() : undefined
-  );
+  readonly audioSentence = computed(() => {
+    if (!this.isRevealed()) return undefined;
+    return this.sentence().replace(createGrammarGapRegex(), '$1');
+  });
 
   readonly sentenceParts = computed(() => {
     const sentence = this.sentence();
-    const gaps = this.gaps();
-
-    if (!gaps.length) {
-      return [{ text: sentence, isGap: false }];
-    }
-
-    return this.buildSentenceParts(sentence, gaps);
+    return this.buildSentenceParts(sentence);
   });
 
   readonly exampleImages = linkedSignal(() => {
@@ -97,31 +92,31 @@ export class LearnGrammarCardComponent {
     });
   }
 
-  private buildSentenceParts(sentence: string, gaps: Gap[]): SentencePart[] {
-    const sortedGaps = [...gaps].sort((a, b) => a.startIndex - b.startIndex);
+  private buildSentenceParts(sentence: string): SentencePart[] {
+    const matches = [...sentence.matchAll(createGrammarGapRegex())];
 
-    const { parts, currentIndex } = sortedGaps.reduce(
-      (acc, gap) => {
-        const textBefore =
-          gap.startIndex > acc.currentIndex
-            ? [{ text: sentence.slice(acc.currentIndex, gap.startIndex), isGap: false }]
-            : [];
-        const gapPart = {
-          text: sentence.slice(gap.startIndex, gap.startIndex + gap.length),
-          isGap: true,
-        };
+    if (matches.length === 0) {
+      return [{ text: sentence, isGap: false }];
+    }
+
+    const { parts, lastIndex } = matches.reduce(
+      (acc, match) => {
+        const textBefore = match.index > acc.lastIndex
+          ? [{ text: sentence.slice(acc.lastIndex, match.index), isGap: false }]
+          : [];
+        const gapPart = { text: match[1], isGap: true };
+
         return {
           parts: [...acc.parts, ...textBefore, gapPart],
-          currentIndex: gap.startIndex + gap.length,
+          lastIndex: match.index + match[0].length,
         };
       },
-      { parts: [] as SentencePart[], currentIndex: 0 }
+      { parts: [] as SentencePart[], lastIndex: 0 }
     );
 
-    const remainingText =
-      currentIndex < sentence.length
-        ? [{ text: sentence.slice(currentIndex), isGap: false }]
-        : [];
+    const remainingText = lastIndex < sentence.length
+      ? [{ text: sentence.slice(lastIndex), isGap: false }]
+      : [];
 
     return [...parts, ...remainingText];
   }

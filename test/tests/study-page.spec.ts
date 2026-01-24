@@ -1238,10 +1238,9 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
     sourceId: 'grammar-a1',
     sourcePageNumber: 1,
     data: {
-      gaps: [{ startIndex: 9, length: 5 }],
       examples: [
         {
-          de: 'Ich gehe jeden Tag in die Schule.',
+          de: 'Ich gehe [jeden] Tag in die Schule.',
           en: 'I go to school every day.',
           isSelected: true,
           images: [{ id: image1, isFavorite: true }],
@@ -1272,10 +1271,9 @@ test('grammar card grading functionality', async ({ page }) => {
     sourceId: 'grammar-a1',
     sourcePageNumber: 2,
     data: {
-      gaps: [{ startIndex: 3, length: 6 }],
       examples: [
         {
-          de: 'Er trinkt jeden Morgen Kaffee.',
+          de: 'Er [trinkt] jeden Morgen Kaffee.',
           en: 'He drinks coffee every morning.',
           isSelected: true,
           images: [{ id: image1, isFavorite: true }],

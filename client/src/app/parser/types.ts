@@ -43,11 +43,6 @@ export type Example = {
   images?: ExampleImage[];
 };
 
-export type Gap = {
-  startIndex: number;
-  length: number;
-};
-
 export type CardData = {
   word?: string;
   type?: string;
@@ -57,7 +52,6 @@ export type CardData = {
   examples?: Example[];
   audio?: AudioData[];
   audioVoice?: string;
-  gaps?: Gap[];
 };
 
 export type Card = {
@@ -110,7 +104,6 @@ export type Sentence = ExtractedItem & {
 
 export type GrammarSentence = ExtractedItem & {
   sentence: string;
-  gaps: Gap[];
 };
 
 export type GrammarSentenceList = {
