@@ -29,6 +29,9 @@ import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
+import { SelectionStateService } from '../../selection-state.service';
+import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
+import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
 
 @Component({
   selector: 'app-page',
@@ -45,7 +48,9 @@ import { KnownWordsService } from '../../known-words/known-words.service';
     MatLabel,
     MatInputModule,
     MatChipsModule,
-    BulkCardCreationFabComponent
+    BulkCardCreationFabComponent,
+    SelectionRectangleComponent,
+    SelectionActionsComponent,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -59,6 +64,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly http = inject(HttpClient);
   readonly candidatesService = inject(CardCandidatesService);
   private readonly knownWordsService = inject(KnownWordsService);
+  readonly selectionStateService = inject(SelectionStateService);
   readonly sources = this.sourcesService.sources.value;
   readonly extractedCandidates = this.candidatesService.candidates;
   readonly pageNumber = linkedSignal(
@@ -96,6 +102,17 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   );
   readonly isEmptyImageSource = computed(() =>
     this.sourceType() === 'images' && !this.hasImage()
+  );
+  readonly currentPageSelections = computed(() => {
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.pageNumber();
+    if (!sourceId || !pageNumber) {
+      return [];
+    }
+    return this.selectionStateService.getSelectionsForPage(sourceId, pageNumber)();
+  });
+  readonly hasExtractionStarted = computed(() =>
+    this.selectionRegions().length > 0
   );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
