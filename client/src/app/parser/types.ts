@@ -122,6 +122,14 @@ export type SentenceList = {
   height: number;
 };
 
+export type RegionCoordinates = {
+  pageNumber: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type ExtractionRequest = {
   sourceId: string;
   pageNumber: number;
@@ -129,6 +137,11 @@ export type ExtractionRequest = {
   y: number;
   width: number;
   height: number;
+};
+
+export type MultiRegionExtractionRequest = {
+  sourceId: string;
+  regions: RegionCoordinates[];
 };
 
 export type ExtractionRegion = {
@@ -168,7 +181,7 @@ export type LanguageTexts = {
 
 export type CardTypeStrategy = {
   cardType: CardType;
-  extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
+  extractItems(request: MultiRegionExtractionRequest): Promise<ExtractedItem[]>;
   getItemLabel(item: ExtractedItem): string;
   filterItemsBySearchTerm(
     items: ExtractedItem[],

@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,8 +9,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import io.github.mucsi96.learnlanguage.model.RegionCoordinates;
 
 import javax.imageio.ImageIO;
 
@@ -168,6 +173,59 @@ public class DocumentProcessorService {
       ImageIO.write(croppedImage, "png", outputStream);
       return outputStream.toByteArray();
     }
+  }
+
+  public byte[] getMultiplePageAreas(Source source, List<RegionCoordinates> regions) throws IOException {
+    if (regions.isEmpty()) {
+      throw new IllegalArgumentException("At least one region is required");
+    }
+
+    if (regions.size() == 1) {
+      final RegionCoordinates region = regions.get(0);
+      return getPageArea(source, region.getPageNumber(), region.getX(), region.getY(), region.getWidth(), region.getHeight());
+    }
+
+    final List<BufferedImage> regionImages = regions.stream()
+        .map(region -> {
+          try {
+            final byte[] imageBytes = getPageArea(source, region.getPageNumber(), region.getX(), region.getY(), region.getWidth(), region.getHeight());
+            return ImageIO.read(new ByteArrayInputStream(imageBytes));
+          } catch (IOException e) {
+            throw new RuntimeException("Failed to get page area for region", e);
+          }
+        })
+        .collect(Collectors.toList());
+
+    final int totalWidth = regionImages.stream().mapToInt(BufferedImage::getWidth).max().orElse(0);
+    final int separatorHeight = 20;
+    final int totalHeight = regionImages.stream().mapToInt(BufferedImage::getHeight).sum() + (separatorHeight * (regionImages.size() - 1));
+
+    final BufferedImage combinedImage = new BufferedImage(totalWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
+    final Graphics2D g2d = combinedImage.createGraphics();
+
+    g2d.setColor(Color.WHITE);
+    g2d.fillRect(0, 0, totalWidth, totalHeight);
+
+    int currentY = 0;
+    for (int i = 0; i < regionImages.size(); i++) {
+      final BufferedImage regionImage = regionImages.get(i);
+      g2d.drawImage(regionImage, 0, currentY, null);
+      currentY += regionImage.getHeight();
+
+      if (i < regionImages.size() - 1) {
+        g2d.setColor(new Color(200, 200, 200));
+        g2d.fillRect(0, currentY, totalWidth, separatorHeight);
+        g2d.setColor(new Color(150, 150, 150));
+        g2d.drawLine(0, currentY + separatorHeight / 2, totalWidth, currentY + separatorHeight / 2);
+        currentY += separatorHeight;
+      }
+    }
+
+    g2d.dispose();
+
+    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(combinedImage, "png", outputStream);
+    return outputStream.toByteArray();
   }
 
   private byte[] fetchAndCacheFile(String filePath) throws IOException {

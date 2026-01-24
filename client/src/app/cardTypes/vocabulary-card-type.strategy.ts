@@ -9,7 +9,7 @@ import {
   CardCreationResult,
   CardType,
   ImageGenerationInfo,
-  ExtractionRequest,
+  MultiRegionExtractionRequest,
   ExtractedItem,
   WordList,
   AudioGenerationItem,
@@ -50,15 +50,19 @@ export class VocabularyCardType implements CardTypeStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
 
-  async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
-    const { sourceId, pageNumber, x, y, width, height } = request;
+  async extractItems(request: MultiRegionExtractionRequest): Promise<ExtractedItem[]> {
+    const { sourceId, regions } = request;
 
     const wordList = await this.multiModelService.call<WordList>(
       'extraction',
       (model: string) =>
         fetchJson<WordList>(
           this.http,
-          `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+          `/api/source/${sourceId}/words?model=${model}`,
+          {
+            body: { regions },
+            method: 'POST',
+          }
         )
     );
 

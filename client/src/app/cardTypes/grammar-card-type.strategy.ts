@@ -8,7 +8,7 @@ import {
   CardCreationResult,
   CardType,
   ImageGenerationInfo,
-  ExtractionRequest,
+  MultiRegionExtractionRequest,
   ExtractedItem,
   GrammarSentenceList,
   GrammarSentence,
@@ -39,15 +39,19 @@ export class GrammarCardType implements CardTypeStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
 
-  async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
-    const { sourceId, pageNumber, x, y, width, height } = request;
+  async extractItems(request: MultiRegionExtractionRequest): Promise<ExtractedItem[]> {
+    const { sourceId, regions } = request;
 
     const grammarSentenceList = await this.multiModelService.call<GrammarSentenceList>(
       'extraction',
       (model: string) =>
         fetchJson<GrammarSentenceList>(
           this.http,
-          `/api/source/${sourceId}/page/${pageNumber}/grammar?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+          `/api/source/${sourceId}/grammar?model=${model}`,
+          {
+            body: { regions },
+            method: 'POST',
+          }
         )
     );
 
