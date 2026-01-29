@@ -10,8 +10,8 @@ import {
   ImageGenerationInfo,
   ExtractionRequest,
   ExtractedItem,
-  GrammarSentenceList,
-  GrammarSentence,
+  SentenceList,
+  Sentence,
   AudioGenerationItem,
   Card,
   CardData,
@@ -42,17 +42,17 @@ export class GrammarCardType implements CardTypeStrategy {
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, pageNumber, x, y, width, height } = request;
 
-    const grammarSentenceList = await this.multiModelService.call<GrammarSentenceList>(
+    const sentenceList = await this.multiModelService.call<SentenceList>(
       'extraction',
       (model: string) =>
-        fetchJson<GrammarSentenceList>(
+        fetchJson<SentenceList>(
           this.http,
           `/api/source/${sourceId}/page/${pageNumber}/grammar?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
         )
     );
 
     const sentencesWithIds = await Promise.all(
-      grammarSentenceList.sentences.map(async (item) => {
+      sentenceList.sentences.map(async (item) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
@@ -91,7 +91,7 @@ export class GrammarCardType implements CardTypeStrategy {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const grammarSentence = request.item as GrammarSentence;
+    const sentence = request.item as Sentence;
 
     try {
       progressCallback(30, 'Translating to English...');
@@ -103,7 +103,7 @@ export class GrammarCardType implements CardTypeStrategy {
               this.http,
               `/api/translate-sentence/en?model=${model}`,
               {
-                body: { sentence: grammarSentence.sentence },
+                body: { sentence: sentence.sentence },
                 method: 'POST',
               }
             )
@@ -114,7 +114,7 @@ export class GrammarCardType implements CardTypeStrategy {
       const imageGenerationInfos: ImageGenerationInfo[] = englishTranslation.translation
         ? [
             {
-              cardId: grammarSentence.id,
+              cardId: sentence.id,
               exampleIndex: 0,
               englishTranslation: englishTranslation.translation,
             },
@@ -124,7 +124,7 @@ export class GrammarCardType implements CardTypeStrategy {
       const cardData: CardData = {
         examples: [
           {
-            de: grammarSentence.sentence,
+            de: sentence.sentence,
             en: englishTranslation.translation,
             isSelected: true,
             images: [],

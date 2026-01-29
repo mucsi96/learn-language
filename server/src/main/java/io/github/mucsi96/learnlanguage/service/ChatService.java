@@ -2,11 +2,13 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.azure.core.util.BinaryData;
@@ -29,6 +31,7 @@ public class ChatService {
     private final ModelUsageLoggingService usageLoggingService;
     private final ObjectMapper objectMapper;
     private final FileStorageService fileStorageService;
+    private final Environment environment;
 
     public <T> T callWithLogging(
             ChatModel model,
@@ -79,6 +82,9 @@ public class ChatService {
     }
 
     private void saveDebugImage(byte[] imageData, OperationType operationType) {
+        if (!Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+            return;
+        }
         final String timestamp = LocalDateTime.now().format(DEBUG_FILE_FORMATTER);
         final String fileName = "debug/" + operationType.getCode() + "_" + timestamp + ".png";
         log.info("Saving debug image to: {}", fileName);
