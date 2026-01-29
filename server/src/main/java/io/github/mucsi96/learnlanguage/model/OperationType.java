@@ -8,10 +8,12 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public enum ChatOperationType {
+public enum OperationType {
     TRANSLATION("translation", "Translation"),
     EXTRACTION("extraction", "Extraction"),
-    CLASSIFICATION("classification", "Classification");
+    CLASSIFICATION("classification", "Classification"),
+    IMAGE_GENERATION("image_generation", "Image Generation"),
+    AUDIO_GENERATION("audio_generation", "Audio Generation");
 
     private final String code;
     private final String displayName;
@@ -22,8 +24,8 @@ public enum ChatOperationType {
     }
 
     @JsonCreator
-    public static ChatOperationType fromString(String code) {
-        for (ChatOperationType type : values()) {
+    public static OperationType fromString(String code) {
+        for (OperationType type : values()) {
             if (type.code.equals(code)) {
                 return type;
             }

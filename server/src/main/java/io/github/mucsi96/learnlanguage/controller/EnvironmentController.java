@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
-import io.github.mucsi96.learnlanguage.model.ChatOperationType;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
@@ -47,10 +47,10 @@ public class EnvironmentController {
 
   @GetMapping("/environment")
   public ConfigResponse getConfig() {
-    Map<String, List<String>> enabledModelsByOperation = chatModelSettingService.getEnabledModelsByOperation();
-    Map<String, String> primaryModelByOperation = chatModelSettingService.getPrimaryModelByOperation();
+    Map<OperationType, List<String>> enabledModelsByOperation = chatModelSettingService.getEnabledModelsByOperation();
+    Map<OperationType, String> primaryModelByOperation = chatModelSettingService.getPrimaryModelByOperation();
 
-    List<OperationTypeInfo> operationTypes = Arrays.stream(ChatOperationType.values())
+    List<OperationTypeInfo> operationTypes = Arrays.stream(OperationType.values())
         .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
         .toList();
 
@@ -116,8 +116,8 @@ public class EnvironmentController {
       List<AudioModelResponse> audioModels,
       List<VoiceResponse> voices,
       List<SupportedLanguage> supportedLanguages,
-      Map<String, List<String>> enabledModelsByOperation,
-      Map<String, String> primaryModelByOperation,
+      Map<OperationType, List<String>> enabledModelsByOperation,
+      Map<OperationType, String> primaryModelByOperation,
       List<OperationTypeInfo> operationTypes,
       List<LanguageLevelInfo> languageLevels,
       List<SourceFormatTypeInfo> sourceFormatTypes,

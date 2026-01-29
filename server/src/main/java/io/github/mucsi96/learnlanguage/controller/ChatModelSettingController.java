@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingRequest;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingResponse;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class ChatModelSettingController {
 
     @PostMapping("/enable-all/{operationType}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Void> enableAllModelsForOperation(@PathVariable String operationType) {
+    public ResponseEntity<Void> enableAllModelsForOperation(@PathVariable OperationType operationType) {
         chatModelSettingService.enableAllModelsForOperation(operationType);
         return ResponseEntity.ok().build();
     }

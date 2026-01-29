@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.openai.client.OpenAIClient;
 import com.openai.models.images.ImageGenerateParams;
 
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +46,7 @@ public class OpenAIImageService {
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
 
             long processingTime = System.currentTimeMillis() - startTime;
-            usageLoggingService.logImageUsage(modelName, "image_generation", 1, processingTime);
+            usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, 1, processingTime);
 
             return Base64.getDecoder().decode(imageB64Json);
 

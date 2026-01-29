@@ -7,6 +7,7 @@ import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.LanguageResponse;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,7 @@ public class ElevenLabsAudioService {
       byte[] result = textToSpeechModel.call(speechPrompt).getResult().getOutput();
 
       long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logAudioUsage(model, "audio_generation", input.length(), processingTime);
+      usageLoggingService.logAudioUsage(model, OperationType.AUDIO_GENERATION, input.length(), processingTime);
 
       return result;
 

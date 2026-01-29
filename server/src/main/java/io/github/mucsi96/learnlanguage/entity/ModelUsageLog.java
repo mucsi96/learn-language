@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import io.github.mucsi96.learnlanguage.model.ModelType;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,7 +38,8 @@ public class ModelUsageLog {
     private ModelType modelType;
 
     @Column(name = "operation_type", nullable = false)
-    private String operationType;
+    @Enumerated(EnumType.STRING)
+    private OperationType operationType;
 
     @Column(name = "input_tokens")
     private Long inputTokens;

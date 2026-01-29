@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -54,8 +55,9 @@ public class AreaSentenceService {
   public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel) {
     final var result = chatService.callWithLoggingAndMedia(
         model,
-        "extraction",
+        OperationType.EXTRACTION,
         buildSystemPrompt(languageLevel),
+        imageData,
         u -> u
             .text("Here is the image of the page")
             .media(Media.builder()
