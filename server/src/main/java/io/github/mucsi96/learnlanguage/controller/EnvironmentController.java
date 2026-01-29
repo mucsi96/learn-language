@@ -51,6 +51,7 @@ public class EnvironmentController {
     Map<OperationType, String> primaryModelByOperation = chatModelSettingService.getPrimaryModelByOperation();
 
     List<OperationTypeInfo> operationTypes = Arrays.stream(OperationType.values())
+        .filter(OperationType::isChatOperation)
         .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
         .toList();
 

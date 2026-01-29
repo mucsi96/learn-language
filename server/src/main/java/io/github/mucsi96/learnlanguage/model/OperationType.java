@@ -9,14 +9,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum OperationType {
-    TRANSLATION("translation", "Translation"),
-    EXTRACTION("extraction", "Extraction"),
-    CLASSIFICATION("classification", "Classification"),
-    IMAGE_GENERATION("image_generation", "Image Generation"),
-    AUDIO_GENERATION("audio_generation", "Audio Generation");
+    TRANSLATION("translation", "Translation", true),
+    EXTRACTION("extraction", "Extraction", true),
+    CLASSIFICATION("classification", "Classification", true),
+    IMAGE_GENERATION("image_generation", "Image Generation", false),
+    AUDIO_GENERATION("audio_generation", "Audio Generation", false);
 
     private final String code;
     private final String displayName;
+    private final boolean chatOperation;
 
     @JsonValue
     public String getCode() {
