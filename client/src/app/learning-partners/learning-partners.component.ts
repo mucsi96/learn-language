@@ -10,6 +10,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import {
   LearningPartnersService,
   LearningPartner,
@@ -71,10 +72,9 @@ export class LearningPartnersComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (confirmed) {
-        await this.service.deletePartner(partner.id);
-      }
-    });
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed) {
+      await this.service.deletePartner(partner.id);
+    }
   }
 }

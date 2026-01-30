@@ -73,15 +73,17 @@ public class ChatModelSettingService {
                         return toResponse(setting);
                     }
 
-                    setting.setIsEnabled(newIsEnabled);
                     if (newIsPrimary) {
                         clearPrimaryForOperation(request.getOperationType());
-                        setting.setIsPrimary(true);
-                    } else if (request.getIsPrimary() != null) {
-                        setting.setIsPrimary(false);
                     }
+                    final boolean updatedIsPrimary = newIsPrimary
+                            || (request.getIsPrimary() == null && Boolean.TRUE.equals(setting.getIsPrimary()));
+                    final ChatModelSetting updatedSetting = setting.toBuilder()
+                            .isEnabled(newIsEnabled)
+                            .isPrimary(updatedIsPrimary)
+                            .build();
 
-                    return toResponse(chatModelSettingRepository.save(setting));
+                    return toResponse(chatModelSettingRepository.save(updatedSetting));
                 })
                 .orElseGet(() -> {
                     if (!newIsEnabled && !newIsPrimary) {
@@ -109,13 +111,12 @@ public class ChatModelSettingService {
     }
 
     private void clearPrimaryForOperation(OperationType operationType) {
-        List<ChatModelSetting> settings = chatModelSettingRepository.findByOperationType(operationType);
-        settings.stream()
+        final List<ChatModelSetting> settings = chatModelSettingRepository.findByOperationType(operationType);
+        final List<ChatModelSetting> updatedSettings = settings.stream()
                 .filter(s -> Boolean.TRUE.equals(s.getIsPrimary()))
-                .forEach(s -> {
-                    s.setIsPrimary(false);
-                    chatModelSettingRepository.save(s);
-                });
+                .map(s -> s.toBuilder().isPrimary(false).build())
+                .toList();
+        chatModelSettingRepository.saveAll(updatedSettings);
     }
 
     public void enableAllModelsForOperation(OperationType operationType) {
@@ -126,11 +127,10 @@ public class ChatModelSettingService {
         List<ChatModelSetting> settingsToSave = Arrays.stream(ChatModel.values())
                 .map(model -> {
                     if (existingModels.contains(model.getModelName())) {
-                        ChatModelSetting existing = chatModelSettingRepository
+                        final ChatModelSetting existing = chatModelSettingRepository
                                 .findByModelNameAndOperationType(model.getModelName(), operationType)
                                 .orElseThrow();
-                        existing.setIsEnabled(true);
-                        return existing;
+                        return existing.toBuilder().isEnabled(true).build();
                     } else {
                         return ChatModelSetting.builder()
                                 .modelName(model.getModelName())

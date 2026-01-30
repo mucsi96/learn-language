@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "chat_model_settings", schema = "learn_language")
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatModelSetting {
