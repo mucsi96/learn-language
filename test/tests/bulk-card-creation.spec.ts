@@ -85,13 +85,13 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
   // Cancel button should also be visible
   await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
 
-  // Confirm all selections - only first region will be extracted
+  // Confirm all selections - both regions are combined into one extraction
   await confirmSelection(page);
 
-  // FAB should show count from first region only (2 cards: abfahren, die Abfahrt - aber already exists)
+  // FAB should show count from both regions (5 cards: abfahren, die Abfahrt, der Absender, Achtung, die Adresse - aber already exists)
   const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
-  await expect(fab).toContainText('Create 2 Cards');
+  await expect(fab).toContainText('Create 5 Cards');
 });
 
 test('selections persist across page navigation', async ({ page }) => {

@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,7 @@ import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.RegionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
@@ -168,6 +171,37 @@ public class DocumentProcessorService {
       ImageIO.write(croppedImage, "png", outputStream);
       return outputStream.toByteArray();
     }
+  }
+
+  public byte[] combinePageAreas(Source source, List<RegionRequest> regions) throws IOException {
+    final List<BufferedImage> images = regions.stream()
+        .map(region -> {
+          try {
+            final byte[] imageData = getPageArea(source, region.getPageNumber(), region.getX(), region.getY(),
+                region.getWidth(), region.getHeight());
+            return ImageIO.read(new ByteArrayInputStream(imageData));
+          } catch (IOException e) {
+            throw new RuntimeException("Failed to clip region", e);
+          }
+        })
+        .toList();
+
+    final int totalHeight = images.stream().mapToInt(BufferedImage::getHeight).sum();
+    final int maxWidth = images.stream().mapToInt(BufferedImage::getWidth).max().orElse(0);
+
+    final BufferedImage combined = new BufferedImage(maxWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
+    final Graphics2D g = combined.createGraphics();
+
+    int yOffset = 0;
+    for (final BufferedImage img : images) {
+      g.drawImage(img, 0, yOffset, null);
+      yOffset += img.getHeight();
+    }
+    g.dispose();
+
+    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(combined, "png", outputStream);
+    return outputStream.toByteArray();
   }
 
   private byte[] fetchAndCacheFile(String filePath) throws IOException {

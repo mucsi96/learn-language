@@ -48,17 +48,23 @@ export class SpanComponent {
       return [];
     }
 
+    const currentPageNumber = this.pageNumber();
     const matchingRegion = selectionRegions.find(region => {
       const regionValue = region.value();
       if (!regionValue) {
         return false;
       }
 
-      const { x, y, width, height } = regionValue.rectangle;
-      return spanBBox.y >= y &&
-        spanBBox.y <= y + height &&
-        spanBBox.x >= x &&
-        spanBBox.x <= x + width;
+      return regionValue.selections.some(sel => {
+        if (sel.pageNumber !== currentPageNumber) {
+          return false;
+        }
+        const { x, y, width, height } = sel.rectangle;
+        return spanBBox.y >= y &&
+          spanBBox.y <= y + height &&
+          spanBBox.x >= x &&
+          spanBBox.x <= x + width;
+      });
     });
 
     const items = matchingRegion?.value()?.items;

@@ -40,14 +40,18 @@ export class SpeechCardType implements CardTypeStrategy {
   private readonly multiModelService = inject(MultiModelService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
-    const { sourceId, pageNumber, x, y, width, height } = request;
+    const { sourceId, regions } = request;
 
     const sentenceList = await this.multiModelService.call<SentenceList>(
       'extraction',
       (model: string) =>
         fetchJson<SentenceList>(
           this.http,
-          `/api/source/${sourceId}/page/${pageNumber}/sentences?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+          `/api/source/${sourceId}/extract/sentences`,
+          {
+            body: { regions, model },
+            method: 'POST',
+          }
         )
     );
 

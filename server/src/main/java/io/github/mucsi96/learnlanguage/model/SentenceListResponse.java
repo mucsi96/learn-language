@@ -8,8 +8,4 @@ import java.util.List;
 @Builder
 public class SentenceListResponse {
     private List<SentenceResponse> sentences;
-    private double x;
-    private double y;
-    private double width;
-    private double height;
 }
