@@ -132,9 +132,9 @@
 </div>
 }
 
-@if (hasExtractionStarted()) {
-<app-bulk-card-creation-fab></app-bulk-card-creation-fab>
-} @else {
+@if (selectionStateService.hasSelections()) {
 <app-selection-actions></app-selection-actions>
+} @else if (hasExtractionStarted()) {
+<app-bulk-card-creation-fab></app-bulk-card-creation-fab>
 }
 }

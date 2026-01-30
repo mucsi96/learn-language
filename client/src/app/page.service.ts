@@ -161,7 +161,7 @@ export class PageService {
 
     const firstSelection = allSelections[0];
     this.selectionStateService.clearSelections();
-    this.extractionRectangles.set([firstSelection.rectangle]);
+    this.extractionRectangles.update((current) => [...current, firstSelection.rectangle]);
   }
 
   cancelSelection() {
