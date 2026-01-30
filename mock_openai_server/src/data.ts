@@ -177,14 +177,10 @@ export const SENTENCE_LISTS: Record<string, string[]> = {
   speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
 };
 
-interface GrammarSentence {
-  sentence: string;
-}
-
-export const GRAMMAR_SENTENCE_LISTS: Record<string, GrammarSentence[]> = {
+export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   grammar_sentences: [
-    { sentence: 'Das [ist] Paco.' },
-    { sentence: 'Und [das] ist Frau Wachter.' },
+    'Das [ist] Paco.',
+    'Und [das] ist Frau Wachter.',
   ],
 };
 
