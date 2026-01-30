@@ -5,8 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -61,7 +59,7 @@ public class DocumentProcessorService {
     }
 
     Document document = documentOptional.get();
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + source.getId() + "/" + document.getFileName()).toBytes();
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
     return PageResponse.builder()
@@ -81,7 +79,7 @@ public class DocumentProcessorService {
   private PageResponse processPdfDocument(Source source, int pageNumber) throws IOException {
     Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
         .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
-    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -130,7 +128,7 @@ public class DocumentProcessorService {
     Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
         .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
 
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + source.getId() + "/" + document.getFileName()).toBytes();
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
     int imageWidth = image.getWidth();
@@ -151,7 +149,7 @@ public class DocumentProcessorService {
       throws IOException {
     Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
         .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
-    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -202,17 +200,5 @@ public class DocumentProcessorService {
     final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(combined, "png", outputStream);
     return outputStream.toByteArray();
-  }
-
-  private byte[] fetchAndCacheFile(String filePath) throws IOException {
-    Path cachePath = Path.of(System.getProperty("java.io.tmpdir"), filePath);
-    if (Files.exists(cachePath)) {
-      return Files.readAllBytes(cachePath);
-    }
-
-    byte[] fileData = fileStorageService.fetchFile(filePath).toBytes();
-    Files.createDirectories(cachePath.getParent());
-    Files.write(cachePath, fileData);
-    return fileData;
   }
 }
