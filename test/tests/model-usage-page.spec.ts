@@ -69,7 +69,7 @@ test('displays chat model usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 150,
     outputTokens: 50,
     costUsd: 0.0025,
@@ -79,7 +79,7 @@ test('displays chat model usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gemini-3-pro-preview',
     modelType: 'CHAT',
-    operationType: 'word_type_detection',
+    operationType: 'CLASSIFICATION',
     inputTokens: 100,
     outputTokens: 25,
     costUsd: 0.0012,
@@ -97,20 +97,20 @@ test('displays chat model usage logs', async ({ page }) => {
 
   expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
     {
+      Model: 'gemini-3-pro-preview',
+      Type: 'CHAT',
+      Operation: 'classification',
+      Usage: '100 / 25 tokens',
+      'Per $1': '833',
+      Seconds: '0.8',
+    },
+    {
       Model: 'gpt-4o',
       Type: 'CHAT',
       Operation: 'translation',
       Usage: '150 / 50 tokens',
       'Per $1': '400',
       Seconds: '1.2',
-    },
-    {
-      Model: 'gemini-3-pro-preview',
-      Type: 'CHAT',
-      Operation: 'word_type_detection',
-      Usage: '100 / 25 tokens',
-      'Per $1': '833',
-      Seconds: '0.8',
     },
   ]);
 });
@@ -119,7 +119,7 @@ test('displays image model usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-image-1',
     modelType: 'IMAGE',
-    operationType: 'image_generation',
+    operationType: 'IMAGE_GENERATION',
     imageCount: 1,
     costUsd: 0.04,
     processingTimeMs: 5000,
@@ -148,7 +148,7 @@ test('displays audio model usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'eleven_v3',
     modelType: 'AUDIO',
-    operationType: 'audio_generation',
+    operationType: 'AUDIO_GENERATION',
     inputCharacters: 250,
     costUsd: 0.005,
     processingTimeMs: 3000,
@@ -177,7 +177,7 @@ test('expands chat log to show request and response', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -199,7 +199,7 @@ test('allows rating usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -238,7 +238,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -249,7 +249,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -260,7 +260,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -293,7 +293,7 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -326,7 +326,7 @@ test('does not show rating for image models', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-image-1',
     modelType: 'IMAGE',
-    operationType: 'image_generation',
+    operationType: 'IMAGE_GENERATION',
     imageCount: 1,
     costUsd: 0.04,
     processingTimeMs: 5000,
@@ -341,7 +341,7 @@ test('does not show rating for audio models', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'eleven_v3',
     modelType: 'AUDIO',
-    operationType: 'audio_generation',
+    operationType: 'AUDIO_GENERATION',
     inputCharacters: 250,
     costUsd: 0.005,
     processingTimeMs: 3000,
@@ -356,7 +356,7 @@ test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -367,7 +367,7 @@ test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 150,
     outputTokens: 75,
     costUsd: 0.003,
@@ -378,7 +378,7 @@ test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gemini-3-pro-preview',
     modelType: 'CHAT',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.001,

@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,7 +24,7 @@ public class SentenceTranslationService {
 
     final var result = chatService.callWithLogging(
         model,
-        "translation",
+        OperationType.TRANSLATION,
         systemPrompt,
         germanSentence,
         SentenceTranslationResponse.class);
@@ -40,7 +41,7 @@ public class SentenceTranslationService {
 
     final var result = chatService.callWithLogging(
         model,
-        "translation",
+        OperationType.TRANSLATION,
         systemPrompt,
         germanSentence,
         SentenceTranslationResponse.class);

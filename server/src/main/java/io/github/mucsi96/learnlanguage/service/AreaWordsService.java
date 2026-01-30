@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
@@ -75,10 +76,11 @@ public class AreaWordsService {
   }
 
   public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType, LanguageLevel languageLevel) {
-    var result = chatService.callWithLoggingAndMedia(
+    final var result = chatService.callWithLoggingAndMedia(
         model,
-        "extraction",
+        OperationType.EXTRACTION,
         buildSystemPrompt(formatType, languageLevel),
+        imageData,
         u -> u
             .text("Here is the image of the page")
             .media(Media.builder()

@@ -102,18 +102,6 @@ export type Sentence = ExtractedItem & {
   sentence: string;
 };
 
-export type GrammarSentence = ExtractedItem & {
-  sentence: string;
-};
-
-export type GrammarSentenceList = {
-  sentences: GrammarSentence[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
 export type SentenceList = {
   sentences: Sentence[];
   x: number;

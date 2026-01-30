@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +15,8 @@ public class ChatModelSettingRequest {
     @NotBlank
     private String modelName;
 
-    @NotBlank
-    private String operationType;
+    @NotNull
+    private OperationType operationType;
 
     @Builder.Default
     private Boolean isEnabled = true;

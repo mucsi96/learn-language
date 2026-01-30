@@ -2,6 +2,8 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   selectTextRange,
+  selectRegion,
+  confirmSelection,
   scrollElementToTop,
   withDbConnection,
   downloadImage,
@@ -44,7 +46,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await expect(fab).toContainText('Create 2 Cards');
 });
 
-test('bulk create fab shows correct count for multiple regions', async ({ page }) => {
+test('multiple regions can be selected before confirmation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
     cardId: 'aber-de',
@@ -65,20 +67,84 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
 
   await scrollElementToTop(page, 'A', true);
 
-  // Select first region
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  // Select first region (without confirming yet)
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  // Confirm button should show with badge count 1
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
-  // Select second region
-  await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
+  // Select second region (without confirming yet)
+  await selectRegion(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
-  await expect(page.getByText('Create 5 Cards')).toBeVisible();
+  // Badge should now show 2 selections
+  const confirmButton = page.getByRole('button', { name: 'Confirm selection' });
+  await expect(confirmButton).toBeVisible();
 
-  // FAB should show total count from both regions
+  // Cancel button should also be visible
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
+
+  // Confirm all selections - only first region will be extracted
+  await confirmSelection(page);
+
+  // FAB should show count from first region only (2 cards: abfahren, die Abfahrt - aber already exists)
   const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
-  await expect(fab).toContainText('Create 5 Cards');
+  await expect(fab).toContainText('Create 2 Cards');
+});
+
+test('selections persist across page navigation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Select a region on page 9
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  // Confirm button should show with badge
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  // Navigate to the next page
+  await page.getByRole('link', { name: 'Next page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Confirm button should still be visible (selection persisted)
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  // Navigate back to page 9
+  await page.getByRole('link', { name: 'Previous page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Selection rectangle should be visible on the page
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).toBeVisible();
+});
+
+test('cancel selection clears all selections', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Select a region
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  // Confirm and cancel buttons should appear
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
+
+  // Click cancel
+  await page.getByRole('button', { name: 'Cancel selection' }).click();
+
+  // Buttons should disappear
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).not.toBeVisible();
+
+  // Selection rectangle should not be visible
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).not.toBeVisible();
 });
 
 test('bulk create fab hides when all words have cards', async ({ page }) => {
@@ -444,6 +510,9 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     await page.mouse.up();
   }
 
+  // Confirm the selection
+  await confirmSelection(page);
+
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
@@ -500,6 +569,9 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     await page.mouse.move(box.x + box.width * 0.518, box.height * 0.389);
     await page.mouse.up();
   }
+
+  // Confirm the selection
+  await confirmSelection(page);
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 

@@ -12,6 +12,7 @@ import io.github.mucsi96.learnlanguage.entity.ChatModelSetting;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingRequest;
 import io.github.mucsi96.learnlanguage.model.ChatModelSettingResponse;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.repository.ChatModelSettingRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -33,13 +34,13 @@ public class ChatModelSettingService {
                 .toList();
     }
 
-    public List<String> getEnabledModelsForOperation(String operationType) {
+    public List<String> getEnabledModelsForOperation(OperationType operationType) {
         return chatModelSettingRepository.findByOperationTypeAndIsEnabledTrue(operationType).stream()
                 .map(ChatModelSetting::getModelName)
                 .toList();
     }
 
-    public Map<String, List<String>> getEnabledModelsByOperation() {
+    public Map<OperationType, List<String>> getEnabledModelsByOperation() {
         List<ChatModelSetting> enabledSettings = chatModelSettingRepository.findByIsEnabledTrue();
 
         return enabledSettings.stream()
@@ -49,7 +50,7 @@ public class ChatModelSettingService {
                 ));
     }
 
-    public Map<String, String> getPrimaryModelByOperation() {
+    public Map<OperationType, String> getPrimaryModelByOperation() {
         List<ChatModelSetting> primarySettings = chatModelSettingRepository.findByIsPrimaryTrue();
 
         return primarySettings.stream()
@@ -61,36 +62,63 @@ public class ChatModelSettingService {
     }
 
     public ChatModelSettingResponse updateSetting(ChatModelSettingRequest request) {
-        ChatModelSetting setting = chatModelSettingRepository
+        final boolean newIsEnabled = Boolean.TRUE.equals(request.getIsEnabled());
+        final boolean newIsPrimary = Boolean.TRUE.equals(request.getIsPrimary());
+
+        return chatModelSettingRepository
                 .findByModelNameAndOperationType(request.getModelName(), request.getOperationType())
-                .orElseGet(() -> ChatModelSetting.builder()
-                        .modelName(request.getModelName())
-                        .operationType(request.getOperationType())
-                        .build());
+                .map(setting -> {
+                    if (!newIsEnabled && !newIsPrimary) {
+                        chatModelSettingRepository.delete(setting);
+                        return toResponse(setting);
+                    }
 
-        setting.setIsEnabled(request.getIsEnabled());
+                    setting.setIsEnabled(newIsEnabled);
+                    if (newIsPrimary) {
+                        clearPrimaryForOperation(request.getOperationType());
+                        setting.setIsPrimary(true);
+                    } else if (request.getIsPrimary() != null) {
+                        setting.setIsPrimary(false);
+                    }
 
-        if (Boolean.TRUE.equals(request.getIsPrimary())) {
-            clearPrimaryForOperation(request.getOperationType());
-            setting.setIsPrimary(true);
-        } else if (request.getIsPrimary() != null) {
-            setting.setIsPrimary(false);
-        }
+                    return toResponse(chatModelSettingRepository.save(setting));
+                })
+                .orElseGet(() -> {
+                    if (!newIsEnabled && !newIsPrimary) {
+                        return ChatModelSettingResponse.builder()
+                                .modelName(request.getModelName())
+                                .operationType(request.getOperationType())
+                                .isEnabled(false)
+                                .isPrimary(false)
+                                .build();
+                    }
 
-        return toResponse(chatModelSettingRepository.save(setting));
+                    if (newIsPrimary) {
+                        clearPrimaryForOperation(request.getOperationType());
+                    }
+
+                    final ChatModelSetting newSetting = ChatModelSetting.builder()
+                            .modelName(request.getModelName())
+                            .operationType(request.getOperationType())
+                            .isEnabled(newIsEnabled)
+                            .isPrimary(newIsPrimary)
+                            .build();
+
+                    return toResponse(chatModelSettingRepository.save(newSetting));
+                });
     }
 
-    private void clearPrimaryForOperation(String operationType) {
+    private void clearPrimaryForOperation(OperationType operationType) {
         List<ChatModelSetting> settings = chatModelSettingRepository.findByOperationType(operationType);
-        for (ChatModelSetting s : settings) {
-            if (Boolean.TRUE.equals(s.getIsPrimary())) {
-                s.setIsPrimary(false);
-                chatModelSettingRepository.save(s);
-            }
-        }
+        settings.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getIsPrimary()))
+                .forEach(s -> {
+                    s.setIsPrimary(false);
+                    chatModelSettingRepository.save(s);
+                });
     }
 
-    public void enableAllModelsForOperation(String operationType) {
+    public void enableAllModelsForOperation(OperationType operationType) {
         Set<String> existingModels = chatModelSettingRepository.findByOperationType(operationType).stream()
                 .map(ChatModelSetting::getModelName)
                 .collect(Collectors.toSet());

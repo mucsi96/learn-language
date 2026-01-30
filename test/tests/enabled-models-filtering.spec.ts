@@ -2,17 +2,17 @@ import { test, expect } from '../fixtures';
 import { clearChatModelSettings, createChatModelSetting, getModelUsageLogs, selectTextRange } from '../utils';
 
 async function setupChatModelsForAllOperations(config: {
-  extraction?: string[];
-  classification?: string[];
-  translation?: string[];
+  EXTRACTION?: string[];
+  CLASSIFICATION?: string[];
+  TRANSLATION?: string[];
 }): Promise<void> {
   await clearChatModelSettings();
 
   const defaultModel = 'gemini-3-pro-preview';
   const operations = [
-    'extraction',
-    'classification',
-    'translation',
+    'EXTRACTION',
+    'CLASSIFICATION',
+    'TRANSLATION',
   ] as const;
 
   for (const op of operations) {
@@ -27,7 +27,7 @@ async function setupChatModelsForAllOperations(config: {
 
 test('word extraction only uses enabled models for extraction operation', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    extraction: ['gpt-4o', 'gemini-3-pro-preview'],
+    EXTRACTION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -38,7 +38,7 @@ test('word extraction only uses enabled models for extraction operation', async 
   await expect(page.getByText('Create 3 Cards')).toBeVisible();
 
   const logs = await getModelUsageLogs();
-  const wordExtractionLogs = logs.filter((log) => log.operationType === 'extraction');
+  const wordExtractionLogs = logs.filter((log) => log.operationType === 'EXTRACTION');
 
   expect(wordExtractionLogs.length).toBe(2);
 
@@ -51,7 +51,7 @@ test('word extraction only uses enabled models for extraction operation', async 
 
 test('bulk card creation only uses enabled models for classification operation', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    classification: ['gpt-4o', 'gemini-3-pro-preview'],
+    CLASSIFICATION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -64,7 +64,7 @@ test('bulk card creation only uses enabled models for classification operation',
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const logs = await getModelUsageLogs();
-  const wordTypeLogs = logs.filter((log) => log.operationType === 'classification');
+  const wordTypeLogs = logs.filter((log) => log.operationType === 'CLASSIFICATION');
 
   expect(wordTypeLogs.length).toBeGreaterThan(0);
 
@@ -77,7 +77,7 @@ test('bulk card creation only uses enabled models for classification operation',
 
 test('bulk card creation only uses enabled models for translation operations', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    translation: ['gpt-4o', 'gemini-3-pro-preview'],
+    TRANSLATION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -91,7 +91,7 @@ test('bulk card creation only uses enabled models for translation operations', a
 
   const logs = await getModelUsageLogs();
 
-  const translationLogs = logs.filter((log) => log.operationType === 'translation');
+  const translationLogs = logs.filter((log) => log.operationType === 'TRANSLATION');
 
   expect(translationLogs.length).toBeGreaterThan(0);
   const modelNames = [...new Set(translationLogs.map((log) => log.modelName))];
@@ -103,8 +103,8 @@ test('bulk card creation only uses enabled models for translation operations', a
 
 test('different operation types can have different enabled models', async ({ page }) => {
   await setupChatModelsForAllOperations({
-    classification: ['gpt-4o', 'gemini-3-pro-preview'],
-    translation: ['gemini-3-pro-preview'],
+    CLASSIFICATION: ['gpt-4o', 'gemini-3-pro-preview'],
+    TRANSLATION: ['gemini-3-pro-preview'],
   });
 
   await page.goto('http://localhost:8180/sources');
@@ -118,8 +118,8 @@ test('different operation types can have different enabled models', async ({ pag
 
   const logs = await getModelUsageLogs();
 
-  const classificationLogs = logs.filter((log) => log.operationType === 'classification');
-  const translationLogs = logs.filter((log) => log.operationType === 'translation');
+  const classificationLogs = logs.filter((log) => log.operationType === 'CLASSIFICATION');
+  const translationLogs = logs.filter((log) => log.operationType === 'TRANSLATION');
 
   const classificationModels = [...new Set(classificationLogs.map((log) => log.modelName))];
   const translationEnModels = [...new Set(translationLogs.map((log) => log.modelName))];

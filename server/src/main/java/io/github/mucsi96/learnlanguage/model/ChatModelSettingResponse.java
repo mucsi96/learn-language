@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ChatModelSettingResponse {
     private Integer id;
     private String modelName;
-    private String operationType;
+    private OperationType operationType;
     private Boolean isEnabled;
     private Boolean isPrimary;
 }

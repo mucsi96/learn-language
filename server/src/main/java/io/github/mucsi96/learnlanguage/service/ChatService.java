@@ -1,16 +1,22 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.azure.core.util.BinaryData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,13 +25,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChatService {
 
+    private static final DateTimeFormatter DEBUG_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
+
     private final ChatClientService chatClientService;
     private final ModelUsageLoggingService usageLoggingService;
     private final ObjectMapper objectMapper;
+    private final FileStorageService fileStorageService;
+    private final Environment environment;
 
     public <T> T callWithLogging(
             ChatModel model,
-            String operationType,
+            OperationType operationType,
             String systemPrompt,
             String userMessage,
             Class<T> responseType) {
@@ -40,7 +50,7 @@ public class ChatService {
 
     public <T> T callWithLoggingAndMedia(
             ChatModel model,
-            String operationType,
+            OperationType operationType,
             String systemPrompt,
             Consumer<PromptUserSpec> userBuilder,
             Class<T> responseType) {
@@ -53,9 +63,37 @@ public class ChatService {
                 responseType);
     }
 
+    public <T> T callWithLoggingAndMedia(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            byte[] imageData,
+            Consumer<PromptUserSpec> userBuilder,
+            Class<T> responseType) {
+
+        saveDebugImage(imageData, operationType);
+
+        return callWithLoggingInternal(
+                model,
+                operationType,
+                systemPrompt,
+                userBuilder,
+                responseType);
+    }
+
+    private void saveDebugImage(byte[] imageData, OperationType operationType) {
+        if (!Arrays.asList(environment.getActiveProfiles()).contains("local")) {
+            return;
+        }
+        final String timestamp = LocalDateTime.now().format(DEBUG_FILE_FORMATTER);
+        final String fileName = "debug/" + operationType.getCode() + "_" + timestamp + ".png";
+        log.info("Saving debug image to: {}", fileName);
+        fileStorageService.saveFile(BinaryData.fromBytes(imageData), fileName);
+    }
+
     private <T> T callWithLoggingInternal(
             ChatModel model,
-            String operationType,
+            OperationType operationType,
             String systemPrompt,
             Consumer<PromptUserSpec> userBuilder,
             Class<T> responseType) {
@@ -85,7 +123,7 @@ public class ChatService {
         return entity;
     }
 
-    private void logUsage(ChatModel model, String operationType, ChatResponse chatResponse, String text, long processingTime) {
+    private void logUsage(ChatModel model, OperationType operationType, ChatResponse chatResponse, String text, long processingTime) {
         try {
             var usage = chatResponse.getMetadata().getUsage();
             long inputTokens = usage.getPromptTokens();

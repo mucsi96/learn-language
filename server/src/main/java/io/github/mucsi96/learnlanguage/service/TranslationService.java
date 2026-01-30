@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
@@ -57,7 +58,7 @@ public class TranslationService {
 
     return chatService.callWithLogging(
         model,
-        "translation",
+        OperationType.TRANSLATION,
         systemPrompt,
         translationRequestJson,
         TranslationResponse.class);

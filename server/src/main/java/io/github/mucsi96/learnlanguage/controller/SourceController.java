@@ -29,8 +29,6 @@ import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
-import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
-import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
@@ -178,7 +176,7 @@ public class SourceController {
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/source/{sourceId}/page/{pageNumber}/grammar")
-  public GrammarSentenceListResponse getGrammarSentences(
+  public SentenceListResponse getGrammarSentences(
       @PathVariable String sourceId,
       @PathVariable int pageNumber,
       @RequestParam Double x,
@@ -192,15 +190,15 @@ public class SourceController {
 
     final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
 
-    final List<AreaGrammarService.GrammarSentence> areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
+    final List<String> areaSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
 
-    final List<GrammarSentenceResponse> sentences = areaGrammarSentences.stream()
-        .map(grammarSentence -> GrammarSentenceResponse.builder()
-            .sentence(grammarSentence.sentence())
+    final var sentences = areaSentences.stream()
+        .map(sentence -> SentenceResponse.builder()
+            .sentence(sentence)
             .build())
         .toList();
 
-    return GrammarSentenceListResponse.builder()
+    return SentenceListResponse.builder()
         .sentences(sentences)
         .x(x)
         .y(y)
