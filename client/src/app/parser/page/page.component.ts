@@ -29,7 +29,7 @@ import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
-import { SelectionStateService } from '../../selection-state.service';
+import { PagedSelection, SelectionStateService } from '../../selection-state.service';
 import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
 import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
 
@@ -110,11 +110,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
       return [];
     }
     return this.selectionStateService.allSelections()
-      .map((selection, index) => ({ selection, displayIndex: index + 1 }))
-      .filter(
-        ({ selection }) =>
-          selection.sourceId === sourceId &&
-          selection.pageNumber === pageNumber
+      .reduce<{ selection: PagedSelection; displayIndex: number }[]>(
+        (acc, selection, index) =>
+          selection.sourceId === sourceId && selection.pageNumber === pageNumber
+            ? [...acc, { selection, displayIndex: index + 1 }]
+            : acc,
+        []
       );
   });
   readonly hasExtractionStarted = computed(() =>
