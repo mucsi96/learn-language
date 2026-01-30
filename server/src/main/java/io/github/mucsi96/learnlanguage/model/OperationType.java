@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.util.Arrays;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -25,12 +27,10 @@ public enum OperationType {
     }
 
     @JsonCreator
-    public static OperationType fromString(String code) {
-        for (OperationType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown operation type: " + code);
+    public static OperationType fromString(final String code) {
+        return Arrays.stream(values())
+            .filter(type -> type.code.equalsIgnoreCase(code))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown operation type: " + code));
     }
 }
