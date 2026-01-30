@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -16,13 +15,9 @@ import { PageService } from '../page.service';
 export class SelectionActionsComponent {
   readonly selectionStateService = inject(SelectionStateService);
   private readonly pageService = inject(PageService);
-  private readonly router = inject(Router);
 
   confirmSelection() {
-    const result = this.pageService.confirmSelection();
-    if (result) {
-      this.router.navigate(['/sources', result.sourceId, 'page', result.pageNumber]);
-    }
+    this.pageService.confirmSelection();
   }
 
   cancelSelection() {

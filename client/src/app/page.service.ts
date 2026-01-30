@@ -153,23 +153,14 @@ export class PageService {
     });
   }
 
-  confirmSelection(): { sourceId: string; pageNumber: number } | undefined {
+  confirmSelection() {
     const allSelections = this.selectionStateService.allSelections();
     if (allSelections.length === 0) {
-      return undefined;
+      return;
     }
 
     const firstSelection = allSelections[0];
-    this.selectedSource.set({
-      sourceId: firstSelection.sourceId,
-      pageNumber: firstSelection.pageNumber,
-    });
     this.extractionRectangles.set([firstSelection.rectangle]);
-
-    return {
-      sourceId: firstSelection.sourceId,
-      pageNumber: firstSelection.pageNumber,
-    };
   }
 
   cancelSelection() {
