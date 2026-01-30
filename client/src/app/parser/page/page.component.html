@@ -89,10 +89,10 @@
     <mat-spinner></mat-spinner>
   </div>
   }
-  @for (selection of currentPageSelections(); track selection.index) {
+  @for (entry of currentPageSelections(); track entry.displayIndex) {
   <app-selection-rectangle
-    [rectangle]="selection.rectangle"
-    [index]="selection.index"
+    [selection]="entry.selection"
+    [displayIndex]="entry.displayIndex"
   ></app-selection-rectangle>
   }
   @for (span of spans(); track $index) {

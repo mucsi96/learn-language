@@ -109,7 +109,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     if (!sourceId || !pageNumber) {
       return [];
     }
-    return this.selectionStateService.getSelectionsForPage(sourceId, pageNumber)();
+    return this.selectionStateService.allSelections()
+      .map((selection, index) => ({ selection, displayIndex: index + 1 }))
+      .filter(
+        ({ selection }) =>
+          selection.sourceId === sourceId &&
+          selection.pageNumber === pageNumber
+      );
   });
   readonly hasExtractionStarted = computed(() =>
     this.selectionRegions().length > 0
