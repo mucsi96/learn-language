@@ -1,5 +1,6 @@
 import {
   Component,
+  effect,
   inject,
   signal,
   computed,
@@ -9,6 +10,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { injectParams } from '../../utils/inject-params';
+import { injectQueryParams } from '../../utils/inject-query-params';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
@@ -44,6 +47,8 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 export class LearnCardComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routeSessionId = injectQueryParams('session');
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
@@ -83,20 +88,21 @@ export class LearnCardComponent implements OnDestroy {
   readonly currentTurn = this.studySessionService.currentTurn;
 
   constructor() {
-    this.route.queryParams.subscribe((queryParams) => {
-      const urlSessionId = queryParams['session'];
+    effect(() => {
+      const urlSessionId = this.routeSessionId();
       if (urlSessionId && urlSessionId !== this.sessionId()) {
-        this.sessionId.set(urlSessionId);
-        this.studySessionService.setSessionId(urlSessionId);
+        this.sessionId.set(String(urlSessionId));
+        this.studySessionService.setSessionId(String(urlSessionId));
       } else if (!urlSessionId && this.sessionId()) {
         this.clearSessionState();
       }
     });
 
-    this.route.params.subscribe((params) => {
-      if (params['sourceId']) {
-        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== params['sourceId'];
-        this.currentSourceId = params['sourceId'];
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      if (sourceId) {
+        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== String(sourceId);
+        this.currentSourceId = String(sourceId);
         if (sourceChanged) {
           this.clearSessionState();
         }

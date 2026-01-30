@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { KnownWordsService } from './known-words.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 
@@ -65,18 +66,17 @@ export class KnownWordsComponent {
     await this.service.deleteWord(word);
   }
 
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         message: `Delete all ${this.wordCount()} known words?`,
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (confirmed) {
-        await this.service.deleteAllWords();
-        this.lastImportCount.set(null);
-      }
-    });
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed) {
+      await this.service.deleteAllWords();
+      this.lastImportCount.set(null);
+    }
   }
 }

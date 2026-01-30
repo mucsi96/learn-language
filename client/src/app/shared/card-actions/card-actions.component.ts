@@ -5,6 +5,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../../utils/fetchJson';
 import { AudioData } from '../types/audio-generation.types';
 import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
@@ -77,11 +78,10 @@ export class CardActionsComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe(async (updatedAudio: AudioData[] | undefined) => {
-      if (updatedAudio) {
-        await this.updateCardAudio(updatedAudio);
-      }
-    });
+    const updatedAudio = await firstValueFrom(dialogRef.afterClosed());
+    if (updatedAudio) {
+      await this.updateCardAudio(updatedAudio);
+    }
   }
 
   private async updateCardAudio(audio: AudioData[]) {

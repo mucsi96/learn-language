@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { VoiceConfigService, VoiceConfiguration } from './voice-config.service';
 import { CardPreviewComponent } from './card-preview/card-preview.component';
 import { AddVoiceDialogComponent } from './add-voice-dialog/add-voice-dialog.component';
@@ -131,7 +132,7 @@ export class VoiceConfigComponent {
     await this.service.toggleEnabled(config);
   }
 
-  openAddDialog(): void {
+  async openAddDialog(): Promise<void> {
     const dialogRef = this.dialog.open(AddVoiceDialogComponent, {
       width: '500px',
       data: {
@@ -142,11 +143,10 @@ export class VoiceConfigComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (result) => {
-      if (result) {
-        await this.service.createConfiguration(result);
-      }
-    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      await this.service.createConfiguration(result);
+    }
   }
 
   async deleteConfiguration(config: VoiceConfiguration): Promise<void> {
@@ -156,11 +156,10 @@ export class VoiceConfigComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
-      if (confirmed) {
-        await this.service.deleteConfiguration(config.id);
-      }
-    });
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed) {
+      await this.service.deleteConfiguration(config.id);
+    }
   }
 
   async previewVoice(config: VoiceConfiguration): Promise<void> {
