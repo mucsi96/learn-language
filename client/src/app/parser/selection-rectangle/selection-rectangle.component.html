@@ -1,5 +1,7 @@
 <div
   class="selection-rectangle"
+  role="region"
+  [attr.aria-label]="'Selected area ' + displayIndex()"
   [style.left]="style().left"
   [style.top]="style().top"
   [style.width]="style().width"

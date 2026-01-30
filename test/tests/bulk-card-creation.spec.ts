@@ -119,8 +119,7 @@ test('selections persist across page navigation', async ({ page }) => {
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   // Selection rectangle should be visible on the page
-  const selectionRectangle = page.locator('.selection-rectangle');
-  await expect(selectionRectangle).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).toBeVisible();
 });
 
 test('cancel selection clears all selections', async ({ page }) => {
@@ -145,8 +144,7 @@ test('cancel selection clears all selections', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Cancel selection' })).not.toBeVisible();
 
   // Selection rectangle should not be visible
-  const selectionRectangle = page.locator('.selection-rectangle');
-  await expect(selectionRectangle).not.toBeVisible();
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).not.toBeVisible();
 });
 
 test('bulk create fab hides when all words have cards', async ({ page }) => {
