@@ -143,7 +143,7 @@ test('can enable all models for an operation type', async ({ page }) => {
   await page.waitForTimeout(500);
 
   const settings = await getChatModelSettings();
-  const translationSettings = settings.filter((s) => s.operationType === 'translation');
+  const translationSettings = settings.filter((s) => s.operationType === 'TRANSLATION');
 
   expect(translationSettings.length).toBeGreaterThan(0);
   expect(translationSettings.every((s) => s.isEnabled)).toBe(true);
