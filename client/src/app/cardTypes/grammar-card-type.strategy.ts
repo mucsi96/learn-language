@@ -97,8 +97,8 @@ export class GrammarCardType implements CardTypeStrategy {
 
     try {
       progressCallback(30, 'Translating to English...');
-      const englishTranslation =
-        await this.multiModelService.call<SentenceTranslationResponse>(
+      const englishResult =
+        await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
@@ -113,12 +113,12 @@ export class GrammarCardType implements CardTypeStrategy {
 
       progressCallback(80, 'Preparing grammar card data...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = englishTranslation.translation
+      const imageGenerationInfos: ImageGenerationInfo[] = englishResult.response.translation
         ? [
             {
               cardId: sentence.id,
               exampleIndex: 0,
-              englishTranslation: englishTranslation.translation,
+              englishTranslation: englishResult.response.translation,
             },
           ]
         : [];
@@ -127,11 +127,12 @@ export class GrammarCardType implements CardTypeStrategy {
         examples: [
           {
             de: sentence.sentence,
-            en: englishTranslation.translation,
+            en: englishResult.response.translation,
             isSelected: true,
             images: [],
           },
         ],
+        translationModel: englishResult.model,
       };
 
       return { cardData, imageGenerationInfos };

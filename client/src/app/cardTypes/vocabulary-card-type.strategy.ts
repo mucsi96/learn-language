@@ -122,7 +122,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
     try {
       progressCallback(10, 'Detecting word type...');
-      const wordType = await this.multiModelService.call<WordTypeResponse>(
+      const wordTypeResult = await this.multiModelService.callWithModel<WordTypeResponse>(
         'classification',
         (model: string) => fetchJson<WordTypeResponse>(
           this.http,
@@ -133,9 +133,10 @@ export class VocabularyCardType implements CardTypeStrategy {
           }
         )
       );
+      const classificationModel = wordTypeResult.model;
 
       let gender: string | undefined;
-      if (wordType.type === 'NOUN') {
+      if (wordTypeResult.response.type === 'NOUN') {
         progressCallback(30, 'Detecting gender...');
         const genderResponse = await this.multiModelService.call<GenderResponse>(
           'classification',
@@ -152,9 +153,9 @@ export class VocabularyCardType implements CardTypeStrategy {
       }
 
       progressCallback(50, 'Translating to multiple languages...');
-      const translations = await Promise.all(
+      const translationResults = await Promise.all(
         languages.map(async (languageCode) => {
-          const translation = await this.multiModelService.call<TranslationResponse>(
+          const result = await this.multiModelService.callWithModel<TranslationResponse>(
             'translation',
             (model: string) => fetchJson<TranslationResponse>(
               this.http,
@@ -165,18 +166,19 @@ export class VocabularyCardType implements CardTypeStrategy {
               }
             )
           );
-          return { languageCode, translation };
+          return { languageCode, translation: result.response, model: result.model };
         })
       );
 
+      const translationModel = translationResults[0]?.model;
       const translationMap = Object.fromEntries(
-        translations.map(({ languageCode, translation }) => [
+        translationResults.map(({ languageCode, translation }) => [
           languageCode,
           translation.translation
         ])
       );
       const exampleTranslations = Object.fromEntries(
-        translations.map(({ languageCode, translation }) => [
+        translationResults.map(({ languageCode, translation }) => [
           languageCode,
           translation.examples || []
         ])
@@ -200,7 +202,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       const cardData = {
         word: word.word,
-        type: wordType.type,
+        type: wordTypeResult.response.type,
         gender: gender,
         translation: translationMap,
         forms: word.forms,
@@ -214,7 +216,9 @@ export class VocabularyCardType implements CardTypeStrategy {
           ]),
           isSelected: index === 0,
           images: []
-        }))
+        })),
+        translationModel,
+        classificationModel,
       };
 
       return { cardData, imageGenerationInfos };

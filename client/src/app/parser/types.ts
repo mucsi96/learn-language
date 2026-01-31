@@ -52,6 +52,8 @@ export type CardData = {
   examples?: Example[];
   audio?: AudioData[];
   audioVoice?: string;
+  translationModel?: string;
+  classificationModel?: string;
 };
 
 export type Card = {
