@@ -1,13 +1,14 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -21,6 +22,7 @@ import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.RegionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class DocumentProcessorService {
     }
 
     Document document = documentOptional.get();
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + source.getId() + "/" + document.getFileName()).toBytes();
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
     return PageResponse.builder()
@@ -78,7 +80,7 @@ public class DocumentProcessorService {
   private PageResponse processPdfDocument(Source source, int pageNumber) throws IOException {
     Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
         .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
-    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -127,7 +129,7 @@ public class DocumentProcessorService {
     Document document = documentRepository.findBySourceAndPageNumber(source, pageNumber)
         .orElseThrow(() -> new ResourceNotFoundException("Document not found for page " + pageNumber));
 
-    byte[] bytes = fetchAndCacheFile("sources/" + source.getId() + "/" + document.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + source.getId() + "/" + document.getFileName()).toBytes();
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
 
     int imageWidth = image.getWidth();
@@ -148,7 +150,7 @@ public class DocumentProcessorService {
       throws IOException {
     Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
         .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
-    byte[] bytes = fetchAndCacheFile("sources/" + pdfDocument.getFileName());
+    final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
       var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
@@ -170,15 +172,39 @@ public class DocumentProcessorService {
     }
   }
 
-  private byte[] fetchAndCacheFile(String filePath) throws IOException {
-    Path cachePath = Path.of(System.getProperty("java.io.tmpdir"), filePath);
-    if (Files.exists(cachePath)) {
-      return Files.readAllBytes(cachePath);
+  public byte[] combinePageAreas(Source source, List<RegionRequest> regions) throws IOException {
+    final List<BufferedImage> images = regions.stream()
+        .map(region -> {
+          try {
+            final byte[] imageData = getPageArea(source, region.getPageNumber(), region.getX(), region.getY(),
+                region.getWidth(), region.getHeight());
+            return ImageIO.read(new ByteArrayInputStream(imageData));
+          } catch (IOException e) {
+            throw new RuntimeException("Failed to clip region", e);
+          }
+        })
+        .toList();
+
+    final int totalHeight = images.stream().mapToInt(BufferedImage::getHeight).sum();
+    final int maxWidth = images.stream().mapToInt(BufferedImage::getWidth).max().orElse(0);
+
+    final BufferedImage combined = new BufferedImage(maxWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
+    final Graphics2D g = combined.createGraphics();
+
+    try {
+      final List<Integer> cumulativeHeights = IntStream.range(0, images.size())
+          .map(i -> images.stream().limit(i).mapToInt(BufferedImage::getHeight).sum())
+          .boxed()
+          .toList();
+
+      IntStream.range(0, images.size())
+          .forEach(i -> g.drawImage(images.get(i), 0, cumulativeHeights.get(i), null));
+    } finally {
+      g.dispose();
     }
 
-    byte[] fileData = fileStorageService.fetchFile(filePath).toBytes();
-    Files.createDirectories(cachePath.getParent());
-    Files.write(cachePath, fileData);
-    return fileData;
+    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(combined, "png", outputStream);
+    return outputStream.toByteArray();
   }
 }

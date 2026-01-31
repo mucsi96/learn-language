@@ -12,6 +12,19 @@ export class ChatHandler {
         messages,
         'You task is to extract the wordlist data from provided page image.',
         'Here is the image of the page',
+        ['aber', 'abfahren', 'der Absender', 'die Adresse']
+      )
+    ) {
+      return createAssistantResponse({
+        wordList: WORD_LISTS['aber_absender_combined'],
+      });
+    }
+
+    if (
+      await imageMessagesMatch(
+        messages,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
         ['Hören', 'Lied']
       )
     ) {
@@ -20,7 +33,6 @@ export class ChatHandler {
       });
     }
 
-    // Check for first word list (aber, abfahren)
     if (
       await imageMessagesMatch(
         messages,
@@ -34,7 +46,6 @@ export class ChatHandler {
       });
     }
 
-    // Check for second word list (der Absender, die Adresse)
     if (
       await imageMessagesMatch(
         messages,

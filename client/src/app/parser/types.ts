@@ -103,24 +103,28 @@ export type Sentence = ExtractedItem & {
 };
 
 export type SentenceList = {
-  sentences: Sentence[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  sentences: string[];
+};
+
+export type ExtractionRegionSelection = {
+  sourceId: string;
+  pageNumber: number;
+  rectangle: { x: number; y: number; width: number; height: number };
 };
 
 export type ExtractionRequest = {
   sourceId: string;
-  pageNumber: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  regions: Array<{
+    pageNumber: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
 };
 
 export type ExtractionRegion = {
-  rectangle: { x: number; y: number; width: number; height: number };
+  selections: ExtractionRegionSelection[];
   items: ExtractedItem[];
 };
 
@@ -195,10 +199,6 @@ export type Source = {
 
 export type WordList = {
   words: Word[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 };
 
 export type Translation = {

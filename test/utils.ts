@@ -471,14 +471,9 @@ export async function selectRegion(page: Page, startText: string, endText: strin
   await page.waitForTimeout(500);
 }
 
-export async function confirmSelection(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Confirm selection' }).click();
-  await page.waitForTimeout(2000);
-}
-
 export async function selectTextRange(page: Page, startText: string, endText: string): Promise<void> {
   await selectRegion(page, startText, endText);
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 }
 
 export async function scrollElementToTop(page: Page, selectorText: string, exact: boolean = true): Promise<void> {

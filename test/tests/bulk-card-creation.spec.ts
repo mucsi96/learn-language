@@ -1,9 +1,9 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createSource,
   selectTextRange,
   selectRegion,
-  confirmSelection,
   scrollElementToTop,
   withDbConnection,
   downloadImage,
@@ -85,13 +85,12 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
   // Cancel button should also be visible
   await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
 
-  // Confirm all selections - only first region will be extracted
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
-  // FAB should show count from first region only (2 cards: abfahren, die Abfahrt - aber already exists)
+  // FAB should show count from both regions (5 cards: abfahren, die Abfahrt, der Absender, Achtung, die Adresse - aber already exists)
   const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
-  await expect(fab).toContainText('Create 2 Cards');
+  await expect(fab).toContainText('Create 5 Cards');
 });
 
 test('selections persist across page navigation', async ({ page }) => {
@@ -120,6 +119,67 @@ test('selections persist across page navigation', async ({ page }) => {
 
   // Selection rectangle should be visible on the page
   await expect(page.getByRole('region', { name: 'Selected area 1' })).toBeVisible();
+});
+
+test('regions from different pages are combined into single extraction', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'cross-page-source',
+    name: 'Cross Page Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/cross-page-source/page/1');
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-1.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box1 = await pageContent.boundingBox();
+  if (box1) {
+    await page.mouse.move(box1.x + box1.width * 0.155, box1.y + box1.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box1.x + box1.width * 0.434, box1.y + box1.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Next page' }).click();
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-2.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box2 = await pageContent.boundingBox();
+  if (box2) {
+    await page.mouse.move(box2.x + box2.width * 0.155, box2.y + box2.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box2.x + box2.width * 0.434, box2.y + box2.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
+  await expect(extractedWords).toBeVisible();
+  await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
+  await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
 });
 
 test('cancel selection clears all selections', async ({ page }) => {
@@ -510,8 +570,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     await page.mouse.up();
   }
 
-  // Confirm the selection
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
@@ -570,8 +629,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     await page.mouse.up();
   }
 
-  // Confirm the selection
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
