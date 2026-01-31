@@ -27,7 +27,6 @@ import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
-import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
@@ -144,14 +143,8 @@ public class SourceController {
 
     final byte[] imageData = documentProcessorService.combinePageAreas(source, request.getRegions());
 
-    final var areaSentences = areaSentenceService.getAreaSentences(imageData, request.getModel(),
+    final var sentences = areaSentenceService.getAreaSentences(imageData, request.getModel(),
         source.getLanguageLevel());
-
-    final var sentences = areaSentences.stream()
-        .map(sentence -> SentenceResponse.builder()
-            .sentence(sentence)
-            .build())
-        .toList();
 
     return SentenceListResponse.builder()
         .sentences(sentences)
@@ -169,14 +162,8 @@ public class SourceController {
 
     final byte[] imageData = documentProcessorService.combinePageAreas(source, request.getRegions());
 
-    final List<String> areaSentences = areaGrammarService.getAreaGrammarSentences(imageData, request.getModel(),
+    final var sentences = areaGrammarService.getAreaGrammarSentences(imageData, request.getModel(),
         source.getLanguageLevel());
-
-    final var sentences = areaSentences.stream()
-        .map(sentence -> SentenceResponse.builder()
-            .sentence(sentence)
-            .build())
-        .toList();
 
     return SentenceListResponse.builder()
         .sentences(sentences)

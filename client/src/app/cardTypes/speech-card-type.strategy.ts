@@ -11,7 +11,6 @@ import {
   ExtractionRequest,
   ExtractedItem,
   SentenceList,
-  Sentence,
   AudioGenerationItem,
   Card,
   CardData,
@@ -55,26 +54,24 @@ export class SpeechCardType implements CardTypeStrategy {
         )
     );
 
-    const sentencesWithIds = await Promise.all(
-      sentenceList.sentences.map(async (item) => {
+    return Promise.all(
+      sentenceList.sentences.map(async (sentence) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
           {
-            body: { germanSentence: item.sentence },
+            body: { germanSentence: sentence },
             method: 'POST',
           }
         );
 
         return {
-          ...item,
+          sentence,
           id: sentenceIdResponse.id,
           exists: sentenceIdResponse.exists,
         };
       })
     );
-
-    return sentencesWithIds;
   }
 
   getItemLabel(item: ExtractedItem & { sentence?: string }): string {

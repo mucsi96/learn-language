@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 @Builder
 public class SentenceListResponse {
-    private List<SentenceResponse> sentences;
+    private List<String> sentences;
 }
