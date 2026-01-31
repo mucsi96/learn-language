@@ -128,6 +128,10 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-elevenlabs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-model-anthropic</artifactId>
     </dependency>
     <dependency>
