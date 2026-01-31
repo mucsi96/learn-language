@@ -53,7 +53,7 @@ export class VocabularyCardType implements CardTypeStrategy {
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
 
-    const wordList = await this.multiModelService.call<WordList>(
+    const extractionResult = await this.multiModelService.callWithModel<WordList>(
       'extraction',
       (model: string) =>
         fetchJson<WordList>(
@@ -67,7 +67,7 @@ export class VocabularyCardType implements CardTypeStrategy {
     );
 
     const wordsWithIds = await Promise.all(
-      wordList.words.map(async (word) => {
+      extractionResult.response.words.map(async (word) => {
         const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
           'translation',
           (model: string) => fetchJson<TranslationResponse>(
@@ -95,7 +95,8 @@ export class VocabularyCardType implements CardTypeStrategy {
         return {
           ...word,
           id: wordIdResponse.id,
-          exists: wordIdResponse.exists
+          exists: wordIdResponse.exists,
+          extractionModel: extractionResult.model,
         };
       })
     );
@@ -219,6 +220,7 @@ export class VocabularyCardType implements CardTypeStrategy {
         })),
         translationModel,
         classificationModel,
+        extractionModel: word.extractionModel,
       };
 
       return { cardData, imageGenerationInfos };

@@ -54,6 +54,7 @@ export type CardData = {
   audioVoice?: string;
   translationModel?: string;
   classificationModel?: string;
+  extractionModel?: string;
 };
 
 export type Card = {
@@ -98,6 +99,7 @@ export type CardType = 'vocabulary' | 'speech' | 'grammar';
 export type ExtractedItem = {
   id: string;
   exists: boolean;
+  extractionModel?: string;
 };
 
 export type Sentence = ExtractedItem & {

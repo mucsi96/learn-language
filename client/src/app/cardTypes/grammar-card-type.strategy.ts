@@ -42,7 +42,7 @@ export class GrammarCardType implements CardTypeStrategy {
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
 
-    const sentenceList = await this.multiModelService.call<SentenceList>(
+    const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
       'extraction',
       (model: string) =>
         fetchJson<SentenceList>(
@@ -56,7 +56,7 @@ export class GrammarCardType implements CardTypeStrategy {
     );
 
     return Promise.all(
-      sentenceList.sentences.map(async (sentence) => {
+      extractionResult.response.sentences.map(async (sentence) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
@@ -70,6 +70,7 @@ export class GrammarCardType implements CardTypeStrategy {
           sentence,
           id: sentenceIdResponse.id,
           exists: sentenceIdResponse.exists,
+          extractionModel: extractionResult.model,
         };
       })
     );
@@ -133,6 +134,7 @@ export class GrammarCardType implements CardTypeStrategy {
           },
         ],
         translationModel: englishResult.model,
+        extractionModel: sentence.extractionModel,
       };
 
       return { cardData, imageGenerationInfos };

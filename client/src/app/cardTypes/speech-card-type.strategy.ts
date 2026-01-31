@@ -41,7 +41,7 @@ export class SpeechCardType implements CardTypeStrategy {
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
 
-    const sentenceList = await this.multiModelService.call<SentenceList>(
+    const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
       'extraction',
       (model: string) =>
         fetchJson<SentenceList>(
@@ -55,7 +55,7 @@ export class SpeechCardType implements CardTypeStrategy {
     );
 
     return Promise.all(
-      sentenceList.sentences.map(async (sentence) => {
+      extractionResult.response.sentences.map(async (sentence) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
@@ -69,6 +69,7 @@ export class SpeechCardType implements CardTypeStrategy {
           sentence,
           id: sentenceIdResponse.id,
           exists: sentenceIdResponse.exists,
+          extractionModel: extractionResult.model,
         };
       })
     );
@@ -148,6 +149,7 @@ export class SpeechCardType implements CardTypeStrategy {
           },
         ],
         translationModel: hungarianResult.model,
+        extractionModel: sentence.extractionModel,
       };
 
       return { cardData, imageGenerationInfos };

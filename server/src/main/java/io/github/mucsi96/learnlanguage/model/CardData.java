@@ -32,4 +32,7 @@ public class CardData {
 
     @JsonInclude(Include.NON_NULL)
     private String classificationModel;
+
+    @JsonInclude(Include.NON_NULL)
+    private String extractionModel;
 }
