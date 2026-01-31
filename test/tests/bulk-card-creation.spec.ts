@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createSource,
   selectTextRange,
   selectRegion,
   confirmSelection,
@@ -120,6 +121,67 @@ test('selections persist across page navigation', async ({ page }) => {
 
   // Selection rectangle should be visible on the page
   await expect(page.getByRole('region', { name: 'Selected area 1' })).toBeVisible();
+});
+
+test('regions from different pages are combined into single extraction', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'cross-page-source',
+    name: 'Cross Page Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/cross-page-source/page/1');
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-1.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box1 = await pageContent.boundingBox();
+  if (box1) {
+    await page.mouse.move(box1.x + box1.width * 0.155, box1.y + box1.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box1.x + box1.width * 0.434, box1.y + box1.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Next page' }).click();
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-2.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box2 = await pageContent.boundingBox();
+  if (box2) {
+    await page.mouse.move(box2.x + box2.width * 0.155, box2.y + box2.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box2.x + box2.width * 0.434, box2.y + box2.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await confirmSelection(page);
+
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
+  await expect(extractedWords).toBeVisible();
+  await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
+  await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
 });
 
 test('cancel selection clears all selections', async ({ page }) => {

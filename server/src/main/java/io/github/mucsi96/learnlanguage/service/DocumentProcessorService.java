@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -190,12 +191,17 @@ public class DocumentProcessorService {
     final BufferedImage combined = new BufferedImage(maxWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D g = combined.createGraphics();
 
-    int yOffset = 0;
-    for (final BufferedImage img : images) {
-      g.drawImage(img, 0, yOffset, null);
-      yOffset += img.getHeight();
+    try {
+      final List<Integer> cumulativeHeights = IntStream.range(0, images.size())
+          .map(i -> images.stream().limit(i).mapToInt(BufferedImage::getHeight).sum())
+          .boxed()
+          .toList();
+
+      IntStream.range(0, images.size())
+          .forEach(i -> g.drawImage(images.get(i), 0, cumulativeHeights.get(i), null));
+    } finally {
+      g.dispose();
     }
-    g.dispose();
 
     final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(combined, "png", outputStream);
