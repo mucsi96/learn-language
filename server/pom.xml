@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.8</version>
+    <version>3.5.10</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.github.mucsi96</groupId>
@@ -95,7 +95,7 @@
     <dependency>
       <groupId>io.hypersistence</groupId>
       <artifactId>hypersistence-utils-hibernate-63</artifactId>
-      <version>3.13.2</version>
+      <version>3.14.1</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -134,14 +134,14 @@
       <dependency>
         <groupId>com.azure.spring</groupId>
         <artifactId>spring-cloud-azure-dependencies</artifactId>
-        <version>6.0.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
+        <version>6.1.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-bom</artifactId>
-        <version>1.1.1</version>
+        <version>1.1.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
