@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
-interface ModelResponse<T> {
+export interface ModelResponse<T> {
   model: string;
   response: T;
 }
@@ -16,6 +16,14 @@ export class MultiModelService {
     operationType: string,
     apiCall: (model: string) => Promise<T>
   ): Promise<T> {
+    const result = await this.callWithModel(operationType, apiCall);
+    return result.response;
+  }
+
+  async callWithModel<T>(
+    operationType: string,
+    apiCall: (model: string) => Promise<T>
+  ): Promise<ModelResponse<T>> {
     const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType] ?? [];
     const modelsToUse = this.environmentConfig.chatModels.filter(m =>
       enabledModelNames.includes(m.modelName)
@@ -43,11 +51,11 @@ export class MultiModelService {
 
     if (!primaryResponse) {
       if (successfulResponses.length > 0) {
-        return successfulResponses[0].response;
+        return successfulResponses[0];
       }
       throw new Error(`Primary model ${primaryModelName} failed and no other models succeeded`);
     }
 
-    return primaryResponse.response;
+    return primaryResponse;
   }
 }

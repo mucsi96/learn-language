@@ -371,6 +371,10 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
 
+    expect(cardData.translationModel).toBe('gemini-3-pro-preview');
+    expect(cardData.classificationModel).toBe('gemini-3-pro-preview');
+    expect(cardData.extractionModel).toBe('gemini-3-pro-preview');
+
     const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahrt-indulas'");
     expect(result2.rows.length).toBe(1);
     const cardData2 = result2.rows[0].data;
@@ -380,6 +384,9 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData2.type).toBe('NOUN');
     expect(cardData2.gender).toBe('FEMININE');
     expect(cardData2.forms).toEqual(['die Abfahrten']);
+    expect(cardData2.translationModel).toBe('gemini-3-pro-preview');
+    expect(cardData2.classificationModel).toBe('gemini-3-pro-preview');
+    expect(cardData2.extractionModel).toBe('gemini-3-pro-preview');
   });
 });
 
@@ -593,10 +600,15 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
     expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
     expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
+    expect(card1?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card1?.data.extractionModel).toBe('gemini-3-pro-preview');
+
     const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Hören Sie.');
     expect(card2).toBeDefined();
     expect(card2?.data.examples[0].hu).toBe('Hallgasson.');
     expect(card2?.data.examples[0].en).toBe('Listen.');
+    expect(card2?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card2?.data.extractionModel).toBe('gemini-3-pro-preview');
   });
 });
 
@@ -653,8 +665,13 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card1?.data.examples[0].en).toBe('This is Paco.');
     expect(card1?.data.examples[0].de).toContain('[ist]');
 
+    expect(card1?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card1?.data.extractionModel).toBe('gemini-3-pro-preview');
+
     const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Und [das] ist Frau Wachter.');
     expect(card2).toBeDefined();
     expect(card2?.data.examples[0].de).toContain('[das]');
+    expect(card2?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card2?.data.extractionModel).toBe('gemini-3-pro-preview');
   });
 });
