@@ -1,0 +1,22 @@
+@if (selectionStateService.hasSelections()) {
+<div class="selection-actions">
+  <button
+    mat-mini-fab
+    color="warn"
+    (click)="cancelSelection()"
+    aria-label="Cancel selection"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+  <button
+    mat-mini-fab
+    color="primary"
+    [matBadge]="selectionStateService.selectionCount()"
+    matBadgeColor="accent"
+    (click)="confirmSelection()"
+    aria-label="Confirm selection"
+  >
+    <mat-icon>check</mat-icon>
+  </button>
+</div>
+}

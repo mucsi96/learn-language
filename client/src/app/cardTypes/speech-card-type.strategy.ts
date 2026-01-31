@@ -11,7 +11,6 @@ import {
   ExtractionRequest,
   ExtractedItem,
   SentenceList,
-  Sentence,
   AudioGenerationItem,
   Card,
   CardData,
@@ -40,37 +39,40 @@ export class SpeechCardType implements CardTypeStrategy {
   private readonly multiModelService = inject(MultiModelService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
-    const { sourceId, pageNumber, x, y, width, height } = request;
+    const { sourceId, regions } = request;
 
-    const sentenceList = await this.multiModelService.call<SentenceList>(
+    const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
       'extraction',
       (model: string) =>
         fetchJson<SentenceList>(
           this.http,
-          `/api/source/${sourceId}/page/${pageNumber}/sentences?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+          `/api/source/${sourceId}/extract/sentences`,
+          {
+            body: { regions, model },
+            method: 'POST',
+          }
         )
     );
 
-    const sentencesWithIds = await Promise.all(
-      sentenceList.sentences.map(async (item) => {
+    return Promise.all(
+      extractionResult.response.sentences.map(async (sentence) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
           {
-            body: { germanSentence: item.sentence },
+            body: { germanSentence: sentence },
             method: 'POST',
           }
         );
 
         return {
-          ...item,
+          sentence,
           id: sentenceIdResponse.id,
           exists: sentenceIdResponse.exists,
+          extractionModel: extractionResult.model,
         };
       })
     );
-
-    return sentencesWithIds;
   }
 
   getItemLabel(item: ExtractedItem & { sentence?: string }): string {
@@ -95,8 +97,8 @@ export class SpeechCardType implements CardTypeStrategy {
 
     try {
       progressCallback(20, 'Translating to Hungarian...');
-      const hungarianTranslation =
-        await this.multiModelService.call<SentenceTranslationResponse>(
+      const hungarianResult =
+        await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
@@ -110,8 +112,8 @@ export class SpeechCardType implements CardTypeStrategy {
         );
 
       progressCallback(50, 'Translating to English...');
-      const englishTranslation =
-        await this.multiModelService.call<SentenceTranslationResponse>(
+      const englishResult =
+        await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
@@ -126,12 +128,12 @@ export class SpeechCardType implements CardTypeStrategy {
 
       progressCallback(80, 'Preparing speech card data...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = englishTranslation.translation
+      const imageGenerationInfos: ImageGenerationInfo[] = englishResult.response.translation
         ? [
             {
               cardId: sentence.id,
               exampleIndex: 0,
-              englishTranslation: englishTranslation.translation,
+              englishTranslation: englishResult.response.translation,
             },
           ]
         : [];
@@ -140,12 +142,14 @@ export class SpeechCardType implements CardTypeStrategy {
         examples: [
           {
             de: sentence.sentence,
-            hu: hungarianTranslation.translation,
-            en: englishTranslation.translation,
+            hu: hungarianResult.response.translation,
+            en: englishResult.response.translation,
             isSelected: true,
             images: [],
           },
         ],
+        translationModel: hungarianResult.model,
+        extractionModel: sentence.extractionModel,
       };
 
       return { cardData, imageGenerationInfos };

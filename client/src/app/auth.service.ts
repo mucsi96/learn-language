@@ -1,4 +1,5 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, Signal, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import {
   AuthenticationResult,
@@ -19,32 +20,45 @@ export class AuthService {
   readonly msalService = !this.mockAuth
     ? inject(MsalService)
     : undefined;
-  readonly msalBroadcastService = !this.mockAuth
+  private readonly msalBroadcastService = !this.mockAuth
     ? inject(MsalBroadcastService)
     : undefined;
 
-  constructor() {
-    this.msalBroadcastService?.msalSubject$
-      .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS)
+  private readonly loginSuccess: Signal<EventMessage | undefined> = this.msalBroadcastService
+    ? toSignal(
+        this.msalBroadcastService.msalSubject$.pipe(
+          filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS)
+        )
       )
-      .subscribe((result: EventMessage) => {
+    : signal(undefined);
+
+  private readonly interactionIdle: Signal<InteractionStatus | undefined> = this.msalBroadcastService
+    ? toSignal(
+        this.msalBroadcastService.inProgress$.pipe(
+          filter((status: InteractionStatus) => status === InteractionStatus.None)
+        )
+      )
+    : signal(undefined);
+
+  constructor() {
+    effect(() => {
+      const result = this.loginSuccess();
+      if (result) {
         console.log(result);
         const payload = result.payload as AuthenticationResult;
         this.msalService?.instance.setActiveAccount(payload.account);
-      });
+      }
+    });
 
-    this.msalBroadcastService?.inProgress$
-      .pipe(
-        filter((status: InteractionStatus) => status === InteractionStatus.None)
-      )
-      .subscribe(() => {
-        if (
-          this.msalService &&
-          this.msalService.instance.getAllAccounts().length > 0
-        ) {
-          this.isAuthenticated.set(true);
-        }
-      });
+    effect(() => {
+      const status = this.interactionIdle();
+      if (
+        status === InteractionStatus.None &&
+        this.msalService &&
+        this.msalService.instance.getAllAccounts().length > 0
+      ) {
+        this.isAuthenticated.set(true);
+      }
+    });
   }
 }

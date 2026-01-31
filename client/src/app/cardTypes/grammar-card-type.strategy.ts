@@ -10,8 +10,8 @@ import {
   ImageGenerationInfo,
   ExtractionRequest,
   ExtractedItem,
-  GrammarSentenceList,
-  GrammarSentence,
+  SentenceList,
+  Sentence,
   AudioGenerationItem,
   Card,
   CardData,
@@ -40,37 +40,40 @@ export class GrammarCardType implements CardTypeStrategy {
   private readonly multiModelService = inject(MultiModelService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
-    const { sourceId, pageNumber, x, y, width, height } = request;
+    const { sourceId, regions } = request;
 
-    const grammarSentenceList = await this.multiModelService.call<GrammarSentenceList>(
+    const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
       'extraction',
       (model: string) =>
-        fetchJson<GrammarSentenceList>(
+        fetchJson<SentenceList>(
           this.http,
-          `/api/source/${sourceId}/page/${pageNumber}/grammar?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
+          `/api/source/${sourceId}/extract/grammar`,
+          {
+            body: { regions, model },
+            method: 'POST',
+          }
         )
     );
 
-    const sentencesWithIds = await Promise.all(
-      grammarSentenceList.sentences.map(async (item) => {
+    return Promise.all(
+      extractionResult.response.sentences.map(async (sentence) => {
         const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
           this.http,
           '/api/sentence-id',
           {
-            body: { germanSentence: item.sentence },
+            body: { germanSentence: sentence },
             method: 'POST',
           }
         );
 
         return {
-          ...item,
+          sentence,
           id: sentenceIdResponse.id,
           exists: sentenceIdResponse.exists,
+          extractionModel: extractionResult.model,
         };
       })
     );
-
-    return sentencesWithIds;
   }
 
   getItemLabel(item: ExtractedItem & { sentence?: string }): string {
@@ -91,19 +94,19 @@ export class GrammarCardType implements CardTypeStrategy {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult> {
-    const grammarSentence = request.item as GrammarSentence;
+    const sentence = request.item as Sentence;
 
     try {
       progressCallback(30, 'Translating to English...');
-      const englishTranslation =
-        await this.multiModelService.call<SentenceTranslationResponse>(
+      const englishResult =
+        await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,
               `/api/translate-sentence/en?model=${model}`,
               {
-                body: { sentence: grammarSentence.sentence },
+                body: { sentence: sentence.sentence },
                 method: 'POST',
               }
             )
@@ -111,12 +114,12 @@ export class GrammarCardType implements CardTypeStrategy {
 
       progressCallback(80, 'Preparing grammar card data...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = englishTranslation.translation
+      const imageGenerationInfos: ImageGenerationInfo[] = englishResult.response.translation
         ? [
             {
-              cardId: grammarSentence.id,
+              cardId: sentence.id,
               exampleIndex: 0,
-              englishTranslation: englishTranslation.translation,
+              englishTranslation: englishResult.response.translation,
             },
           ]
         : [];
@@ -124,12 +127,14 @@ export class GrammarCardType implements CardTypeStrategy {
       const cardData: CardData = {
         examples: [
           {
-            de: grammarSentence.sentence,
-            en: englishTranslation.translation,
+            de: sentence.sentence,
+            en: englishResult.response.translation,
             isSelected: true,
             images: [],
           },
         ],
+        translationModel: englishResult.model,
+        extractionModel: sentence.extractionModel,
       };
 
       return { cardData, imageGenerationInfos };

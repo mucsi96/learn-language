@@ -8,8 +8,4 @@ import java.util.List;
 @Builder
 public class WordListResponse {
     private List<WordResponse> words;
-    private double x;
-    private double y;
-    private double width;
-    private double height;
 }

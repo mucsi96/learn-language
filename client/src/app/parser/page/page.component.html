@@ -88,7 +88,14 @@
   <div class="area-loading">
     <mat-spinner></mat-spinner>
   </div>
-  } @for (span of spans(); track $index) {
+  }
+  @for (entry of currentPageSelections(); track entry.displayIndex) {
+  <app-selection-rectangle
+    [selection]="entry.selection"
+    [displayIndex]="entry.displayIndex"
+  ></app-selection-rectangle>
+  }
+  @for (span of spans(); track $index) {
   <app-span
     [sourceId]="selectedSourceId()"
     [pageNumber]="pageNumber()"
@@ -125,5 +132,9 @@
 </div>
 }
 
+@if (selectionStateService.hasSelections()) {
+<app-selection-actions></app-selection-actions>
+} @else if (hasExtractionStarted()) {
 <app-bulk-card-creation-fab></app-bulk-card-creation-fab>
+}
 }

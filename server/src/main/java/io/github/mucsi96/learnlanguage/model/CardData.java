@@ -26,4 +26,13 @@ public class CardData {
 
     @JsonInclude(Include.NON_NULL)
     private List<AudioData> audio;
+
+    @JsonInclude(Include.NON_NULL)
+    private String translationModel;
+
+    @JsonInclude(Include.NON_NULL)
+    private String classificationModel;
+
+    @JsonInclude(Include.NON_NULL)
+    private String extractionModel;
 }

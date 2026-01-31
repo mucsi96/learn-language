@@ -24,13 +24,13 @@ test('displays matrix with all chat models and operation types', async ({ page }
 test('can set primary model for operation type', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: false,
   });
   await createChatModelSetting({
     modelName: 'gemini-3-pro-preview',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: true,
   });
@@ -52,9 +52,9 @@ test('can set primary model for operation type', async ({ page }) => {
   await expect(geminiPrimaryRadio).not.toBeChecked();
 
   const settings = await getChatModelSettings();
-  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'translation');
+  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'TRANSLATION');
   const geminiSetting = settings.find(
-    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'translation'
+    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'TRANSLATION'
   );
 
   expect(gptSetting?.isPrimary).toBe(true);
@@ -73,7 +73,7 @@ test('primary radio is disabled when model is not enabled', async ({ page }) => 
 test('shows primary model indicator for enabled model', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: true,
   });
@@ -111,12 +111,12 @@ test('can toggle model setting', async ({ page }) => {
 test('displays existing enabled settings from database', async ({ page }) => {
   await createChatModelSetting({
     modelName: 'gpt-4o',
-    operationType: 'translation',
+    operationType: 'TRANSLATION',
     isEnabled: true,
   });
   await createChatModelSetting({
     modelName: 'gpt-4o-mini',
-    operationType: 'classification',
+    operationType: 'CLASSIFICATION',
     isEnabled: true,
   });
 
@@ -143,7 +143,7 @@ test('can enable all models for an operation type', async ({ page }) => {
   await page.waitForTimeout(500);
 
   const settings = await getChatModelSettings();
-  const translationSettings = settings.filter((s) => s.operationType === 'translation');
+  const translationSettings = settings.filter((s) => s.operationType === 'TRANSLATION');
 
   expect(translationSettings.length).toBeGreaterThan(0);
   expect(translationSettings.every((s) => s.isEnabled)).toBe(true);

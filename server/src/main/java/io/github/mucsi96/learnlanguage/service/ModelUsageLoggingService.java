@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import io.github.mucsi96.learnlanguage.config.ModelPricingConfig;
 import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
 import io.github.mucsi96.learnlanguage.model.ModelType;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ public class ModelUsageLoggingService {
 
     public void logChatUsage(
             String modelName,
-            String operationType,
+            OperationType operationType,
             long inputTokens,
             long outputTokens,
             long processingTimeMs,
@@ -50,7 +51,7 @@ public class ModelUsageLoggingService {
 
     public void logImageUsage(
             String modelName,
-            String operationType,
+            OperationType operationType,
             int imageCount,
             long processingTimeMs) {
 
@@ -74,7 +75,7 @@ public class ModelUsageLoggingService {
 
     public void logAudioUsage(
             String modelName,
-            String operationType,
+            OperationType operationType,
             long characterCount,
             long processingTimeMs) {
 

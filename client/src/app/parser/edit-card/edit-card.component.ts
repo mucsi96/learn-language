@@ -1,13 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { injectParams } from '../../utils/inject-params';
 import { Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { InReviewCardsService } from '../../in-review-cards.service';
@@ -38,8 +40,10 @@ export class EditCardComponent {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routePageNumber = injectParams('pageNumber');
+  private readonly routeCardId = injectParams('cardId');
   readonly inReviewCardsService = inject(InReviewCardsService);
-  readonly route = inject(ActivatedRoute);
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
@@ -86,10 +90,13 @@ export class EditCardComponent {
   });
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      this.selectedSourceId.set(params['sourceId']);
-      this.selectedPageNumber.set(parseInt(params['pageNumber']));
-      this.selectedCardId.set(params['cardId']);
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      const pageNumber = this.routePageNumber();
+      const cardId = this.routeCardId();
+      if (sourceId) this.selectedSourceId.set(String(sourceId));
+      if (pageNumber) this.selectedPageNumber.set(parseInt(String(pageNumber)));
+      if (cardId) this.selectedCardId.set(String(cardId));
     });
   }
 
@@ -165,14 +172,12 @@ export class EditCardComponent {
       data: { message: 'Are you sure you want to delete this card?' },
     });
 
-    dialogRef.afterClosed().subscribe(async (result) => {
-      if (result) {
-        await this.deleteCard();
-        this.showSnackBar('Card deleted successfully');
-        // Navigate back to the appropriate page after deletion
-        await this.router.navigate(this.backNavigationUrl());
-      }
-    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      await this.deleteCard();
+      this.showSnackBar('Card deleted successfully');
+      await this.router.navigate(this.backNavigationUrl());
+    }
   }
 
   private async deleteCard() {

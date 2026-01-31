@@ -10,6 +10,8 @@ import com.google.genai.types.GenerateImagesResponse;
 import com.google.genai.types.Image;
 import com.google.genai.types.ImageConfig;
 import com.google.genai.types.Part;
+
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +46,7 @@ public class GoogleImageService {
       Image generatedImage = generatedImagesResponse.images().get(0);
 
       long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logImageUsage(IMAGEN_MODEL, "image_generation", 1, processingTime);
+      usageLoggingService.logImageUsage(IMAGEN_MODEL, OperationType.IMAGE_GENERATION, 1, processingTime);
 
       return generatedImage.imageBytes().orElseThrow(
           () -> new RuntimeException("No image bytes in generated image"));
@@ -78,7 +80,7 @@ public class GoogleImageService {
       for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
         if (part.inlineData().isPresent()) {
           long processingTime = System.currentTimeMillis() - startTime;
-          usageLoggingService.logImageUsage(GEMINI_3_PRO_IMAGE_PREVIEW_MODEL, "image_generation", 1, processingTime);
+          usageLoggingService.logImageUsage(GEMINI_3_PRO_IMAGE_PREVIEW_MODEL, OperationType.IMAGE_GENERATION, 1, processingTime);
           return part.inlineData().get().data().get();
         }
       }

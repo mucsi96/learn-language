@@ -178,6 +178,8 @@ test('Extracted items appear as chips for flowing text format after selection', 
     await page.mouse.up();
   }
 
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
   const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
   await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
@@ -217,6 +219,8 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
@@ -267,6 +271,8 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
     await page.mouse.up();
   }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();

@@ -448,7 +448,7 @@ export function getColorImageBytes(color: string, size: number = 600): Buffer {
   return fs.readFileSync(path.join(imagesDir, filename));
 }
 
-export async function selectTextRange(page: Page, startText: string, endText: string): Promise<void> {
+export async function selectRegion(page: Page, startText: string, endText: string): Promise<void> {
   const startElement = page.getByText(startText, { exact: true });
   const endElement = page.getByText(endText, { exact: true });
 
@@ -468,7 +468,12 @@ export async function selectTextRange(page: Page, startText: string, endText: st
   await page.mouse.down();
   await page.mouse.move(endBox.x + endBox.width + 5, endBox.y + endBox.height + 5);
   await page.mouse.up();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(500);
+}
+
+export async function selectTextRange(page: Page, startText: string, endText: string): Promise<void> {
+  await selectRegion(page, startText, endText);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 }
 
 export async function scrollElementToTop(page: Page, selectorText: string, exact: boolean = true): Promise<void> {
@@ -677,9 +682,9 @@ export async function createChatModelSetting(params: {
 }
 
 const ALL_OPERATION_TYPES = [
-  'translation',
-  'extraction',
-  'classification',
+  'TRANSLATION',
+  'EXTRACTION',
+  'CLASSIFICATION',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';

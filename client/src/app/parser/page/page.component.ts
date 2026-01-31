@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { PageService } from '../../page.service';
 import { SpanComponent } from '../span/span.component';
@@ -29,6 +29,10 @@ import { uploadDocument } from '../../utils/uploadDocument';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
+import { PagedSelection, SelectionStateService } from '../../selection-state.service';
+import { injectParams } from '../../utils/inject-params';
+import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
+import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
 
 @Component({
   selector: 'app-page',
@@ -45,7 +49,9 @@ import { KnownWordsService } from '../../known-words/known-words.service';
     MatLabel,
     MatInputModule,
     MatChipsModule,
-    BulkCardCreationFabComponent
+    BulkCardCreationFabComponent,
+    SelectionRectangleComponent,
+    SelectionActionsComponent,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -54,11 +60,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly sourcesService = inject(SourcesService);
   private readonly pageService = inject(PageService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routePageNumber = injectParams('pageNumber');
   private readonly elRef = inject(ElementRef);
   private readonly http = inject(HttpClient);
   readonly candidatesService = inject(CardCandidatesService);
   private readonly knownWordsService = inject(KnownWordsService);
+  readonly selectionStateService = inject(SelectionStateService);
   readonly sources = this.sourcesService.sources.value;
   readonly extractedCandidates = this.candidatesService.candidates;
   readonly pageNumber = linkedSignal(
@@ -97,6 +105,24 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly isEmptyImageSource = computed(() =>
     this.sourceType() === 'images' && !this.hasImage()
   );
+  readonly currentPageSelections = computed(() => {
+    const sourceId = this.selectedSourceId();
+    const pageNumber = this.pageNumber();
+    if (!sourceId || !pageNumber) {
+      return [];
+    }
+    return this.selectionStateService.allSelections()
+      .reduce<{ selection: PagedSelection; displayIndex: number }[]>(
+        (acc, selection, index) =>
+          selection.sourceId === sourceId && selection.pageNumber === pageNumber
+            ? [...acc, { selection, displayIndex: index + 1 }]
+            : acc,
+        []
+      );
+  });
+  readonly hasExtractionStarted = computed(() =>
+    this.selectionRegions().length > 0
+  );
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
   readonly uploading = signal(false);
@@ -104,9 +130,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly isDragging = signal(false);
 
   constructor() {
-    this.route.params.subscribe((params) =>
-      this.pageService.setSource(params['sourceId'], params['pageNumber'])
-    );
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      const pageNumber = this.routePageNumber();
+      if (sourceId && pageNumber) {
+        this.pageService.setSource(String(sourceId), Number(pageNumber));
+      }
+    });
 
     effect(() => {
       if (this.pageService.page.status() === 'resolved' && this.pageService.page.value()) {
@@ -119,12 +149,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      entries.forEach((entry) => {
         this.elRef.nativeElement.style.setProperty(
           '--page-width',
           `calc(${entry.contentRect.width}px / ${this.width()})`
         );
-      }
+      });
     });
 
     this.resizeObserver.observe(this.elRef.nativeElement.parentElement);

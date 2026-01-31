@@ -1,0 +1,42 @@
+.selection-rectangle {
+  position: absolute;
+  border: 2px solid hsl(220, 89%, 53%);
+  background: hsla(220, 89%, 53%, 0.15);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.selection-badge {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: hsl(220, 89%, 53%);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.remove-button {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px !important;
+  height: 24px !important;
+  pointer-events: auto;
+  background: hsl(0, 65%, 50%);
+  color: white;
+}
+
+.remove-button mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+}

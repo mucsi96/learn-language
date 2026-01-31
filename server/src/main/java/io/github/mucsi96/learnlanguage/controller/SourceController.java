@@ -20,17 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
-import io.github.mucsi96.learnlanguage.model.SentenceResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
-import io.github.mucsi96.learnlanguage.model.GrammarSentenceListResponse;
-import io.github.mucsi96.learnlanguage.model.GrammarSentenceResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
@@ -113,99 +110,63 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @GetMapping("/source/{sourceId}/page/{pageNumber}/words")
-  public WordListResponse getWords(
+  @PostMapping("/source/{sourceId}/extract/words")
+  public WordListResponse extractWords(
       @PathVariable String sourceId,
-      @PathVariable int pageNumber,
-      @RequestParam Double x,
-      @RequestParam Double y,
-      @RequestParam Double width,
-      @RequestParam Double height,
-      @RequestParam ChatModel model) throws IOException {
+      @RequestBody RegionExtractionRequest request) throws IOException {
 
-    var source = sourceService.getSourceById(sourceId)
+    final var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-    byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+    final byte[] imageData = documentProcessorService.combinePageAreas(source, request.getRegions());
 
-    var areaWords = areaWordsService.getAreaWords(imageData, model, source.getFormatType(), source.getLanguageLevel());
+    final var areaWords = areaWordsService.getAreaWords(imageData, request.getModel(), source.getFormatType(),
+        source.getLanguageLevel());
 
-    var filteredWords = areaWords.stream()
+    final var filteredWords = areaWords.stream()
         .filter(word -> !knownWordService.isWordKnown(word.getWord()))
         .toList();
 
     return WordListResponse.builder()
         .words(filteredWords)
-        .x(x)
-        .y(y)
-        .width(width)
-        .height(height)
         .build();
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @GetMapping("/source/{sourceId}/page/{pageNumber}/sentences")
-  public SentenceListResponse getSentences(
+  @PostMapping("/source/{sourceId}/extract/sentences")
+  public SentenceListResponse extractSentences(
       @PathVariable String sourceId,
-      @PathVariable int pageNumber,
-      @RequestParam Double x,
-      @RequestParam Double y,
-      @RequestParam Double width,
-      @RequestParam Double height,
-      @RequestParam ChatModel model) throws IOException {
+      @RequestBody RegionExtractionRequest request) throws IOException {
 
     final var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+    final byte[] imageData = documentProcessorService.combinePageAreas(source, request.getRegions());
 
-    final var areaSentences = areaSentenceService.getAreaSentences(imageData, model, source.getLanguageLevel());
-
-    final var sentences = areaSentences.stream()
-        .map(sentence -> SentenceResponse.builder()
-            .sentence(sentence)
-            .build())
-        .toList();
+    final var sentences = areaSentenceService.getAreaSentences(imageData, request.getModel(),
+        source.getLanguageLevel());
 
     return SentenceListResponse.builder()
         .sentences(sentences)
-        .x(x)
-        .y(y)
-        .width(width)
-        .height(height)
         .build();
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @GetMapping("/source/{sourceId}/page/{pageNumber}/grammar")
-  public GrammarSentenceListResponse getGrammarSentences(
+  @PostMapping("/source/{sourceId}/extract/grammar")
+  public SentenceListResponse extractGrammarSentences(
       @PathVariable String sourceId,
-      @PathVariable int pageNumber,
-      @RequestParam Double x,
-      @RequestParam Double y,
-      @RequestParam Double width,
-      @RequestParam Double height,
-      @RequestParam ChatModel model) throws IOException {
+      @RequestBody RegionExtractionRequest request) throws IOException {
 
     final var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-    final byte[] imageData = documentProcessorService.getPageArea(source, pageNumber, x, y, width, height);
+    final byte[] imageData = documentProcessorService.combinePageAreas(source, request.getRegions());
 
-    final List<AreaGrammarService.GrammarSentence> areaGrammarSentences = areaGrammarService.getAreaGrammarSentences(imageData, model, source.getLanguageLevel());
+    final var sentences = areaGrammarService.getAreaGrammarSentences(imageData, request.getModel(),
+        source.getLanguageLevel());
 
-    final List<GrammarSentenceResponse> sentences = areaGrammarSentences.stream()
-        .map(grammarSentence -> GrammarSentenceResponse.builder()
-            .sentence(grammarSentence.sentence())
-            .build())
-        .toList();
-
-    return GrammarSentenceListResponse.builder()
+    return SentenceListResponse.builder()
         .sentences(sentences)
-        .x(x)
-        .y(y)
-        .width(width)
-        .height(height)
         .build();
   }
 

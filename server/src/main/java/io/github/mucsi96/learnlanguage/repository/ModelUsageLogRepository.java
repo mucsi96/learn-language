@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
 import io.github.mucsi96.learnlanguage.model.ModelType;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 
 @Repository
 public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Long> {
     List<ModelUsageLog> findAllByOrderByCreatedAtDesc();
     List<ModelUsageLog> findByModelTypeOrderByCreatedAtDesc(ModelType modelType);
-    List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(String operationType);
+    List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(OperationType operationType);
     List<ModelUsageLog> findByResponseContent(String responseContent);
 
     @Query("""

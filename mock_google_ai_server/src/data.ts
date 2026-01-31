@@ -5,6 +5,38 @@ interface WordData {
 }
 
 export const WORD_LISTS: Record<string, WordData[]> = {
+  aber_absender_combined: [
+    {
+      word: 'aber',
+      forms: [],
+      examples: ['Ab morgen muss ich arbeiten.'],
+    },
+    {
+      word: 'abfahren',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      examples: ['Wir fahren um zwölf Uhr ab.', 'Wann fährt der Zug ab?'],
+    },
+    {
+      word: 'die Abfahrt',
+      forms: ['die Abfahrten'],
+      examples: ['Vor der Abfahrt rufe ich an.'],
+    },
+    {
+      word: 'der Absender',
+      forms: [],
+      examples: ['Da ist ein Brief für dich ohne Absender.'],
+    },
+    {
+      word: 'Achtung',
+      forms: [],
+      examples: ['Achtung! Das dürfen Sie nicht tun.'],
+    },
+    {
+      word: 'die Adresse',
+      forms: ['die Adressen'],
+      examples: ['Können Sie mir seine Adresse sagen?'],
+    },
+  ],
   hoeren_lied: [
     {
       word: 'hören',
@@ -181,14 +213,10 @@ export const SENTENCE_LISTS: Record<string, string[]> = {
   speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
 };
 
-interface GrammarSentence {
-  sentence: string;
-}
-
-export const GRAMMAR_SENTENCE_LISTS: Record<string, GrammarSentence[]> = {
+export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   grammar_sentences: [
-    { sentence: 'Das [ist] Paco.' },
-    { sentence: 'Und [das] ist Frau Wachter.' },
+    'Das [ist] Paco.',
+    'Und [das] ist Frau Wachter.',
   ],
 };
 

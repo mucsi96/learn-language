@@ -1,7 +1,10 @@
 package io.github.mucsi96.learnlanguage.entity;
 
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "chat_model_settings", schema = "learn_language")
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatModelSetting {
@@ -27,7 +30,8 @@ public class ChatModelSetting {
     private String modelName;
 
     @Column(name = "operation_type", nullable = false)
-    private String operationType;
+    @Enumerated(EnumType.STRING)
+    private OperationType operationType;
 
     @Column(name = "is_enabled", nullable = false)
     @Builder.Default
