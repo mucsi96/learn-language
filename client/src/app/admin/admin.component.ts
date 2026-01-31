@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { SourceDialogComponent } from '../shared/source-dialog/source-dialog.component';
@@ -29,24 +30,23 @@ export class AdminComponent {
   readonly sources = this.sourcesService.sources.value;
   readonly loading = this.sourcesService.sources.isLoading;
 
-  openAddSourceDialog(): void {
+  async openAddSourceDialog(): Promise<void> {
     const dialogRef = this.dialog.open(SourceDialogComponent, {
       width: '500px',
       data: { mode: 'create' },
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Partial<Source> | undefined) => {
-      if (result) {
-        try {
-          await this.sourcesService.createSource(result);
-        } catch (error) {
-          console.error('Error creating source:', error);
-        }
+    const result: Partial<Source> | undefined = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      try {
+        await this.sourcesService.createSource(result);
+      } catch (error) {
+        console.error('Error creating source:', error);
       }
-    });
+    }
   }
 
-  openEditSourceDialog(source: Source, event: Event): void {
+  async openEditSourceDialog(source: Source, event: Event): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -55,18 +55,17 @@ export class AdminComponent {
       data: { source, mode: 'edit' },
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Partial<Source> | undefined) => {
-      if (result) {
-        try {
-          await this.sourcesService.updateSource(source.id, result);
-        } catch (error) {
-          console.error('Error updating source:', error);
-        }
+    const result: Partial<Source> | undefined = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      try {
+        await this.sourcesService.updateSource(source.id, result);
+      } catch (error) {
+        console.error('Error updating source:', error);
       }
-    });
+    }
   }
 
-  openDeleteConfirmDialog(source: Source, event: Event): void {
+  async openDeleteConfirmDialog(source: Source, event: Event): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -76,14 +75,13 @@ export class AdminComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (confirmed) {
-        try {
-          await this.sourcesService.deleteSource(source.id);
-        } catch (error) {
-          console.error('Error deleting source:', error);
-        }
+    const confirmed: boolean = await firstValueFrom(dialogRef.afterClosed());
+    if (confirmed) {
+      try {
+        await this.sourcesService.deleteSource(source.id);
+      } catch (error) {
+        console.error('Error deleting source:', error);
       }
-    });
+    }
   }
 }

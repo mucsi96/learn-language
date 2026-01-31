@@ -1,14 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
-import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
+import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -18,6 +17,7 @@ public class CardService {
   public static record SourceCardCount(String sourceId, Integer count) {}
 
   private final CardRepository cardRepository;
+  private final CardTypeStrategyFactory cardTypeStrategyFactory;
 
   public Optional<Card> getCardById(String id) {
     return cardRepository.findById(id);
@@ -44,10 +44,6 @@ public class CardService {
             .count(((Long) record[2]))
             .build())
         .toList();
-  }
-
-  public Optional<Card> getMostDueCardBySourceId(String sourceId) {
-    return cardRepository.findMostDueCardBySourceId(sourceId);
   }
 
   public List<Card> getCardsByReadiness(String readiness) {
@@ -77,57 +73,7 @@ public class CardService {
   }
 
   private boolean isMissingAudio(Card card) {
-    if (card == null || card.getData() == null) {
-      return false;
-    }
-
-    var cardData = card.getData();
-    var audioList = cardData.getAudio() != null ? cardData.getAudio() : List.<AudioData>of();
-
-    if (hasText(cardData.getWord()) && !hasAudioForText(audioList, cardData.getWord())) {
-      return true;
-    }
-
-    Map<String, String> translation = cardData.getTranslation();
-    if (translation != null) {
-      var hungarianTranslation = translation.get("hu");
-      if (hasText(hungarianTranslation) && !hasAudioForText(audioList, hungarianTranslation)) {
-        return true;
-      }
-    }
-
-    if (cardData.getExamples() != null) {
-      var selectedExample = cardData.getExamples().stream()
-          .filter(example -> Boolean.TRUE.equals(example.getIsSelected()))
-          .findFirst();
-
-      if (selectedExample.isPresent()) {
-        var example = selectedExample.get();
-
-        if (hasText(example.getDe()) && !hasAudioForText(audioList, example.getDe())) {
-          return true;
-        }
-
-        if (hasText(example.getHu()) && !hasAudioForText(audioList, example.getHu())) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private boolean hasAudioForText(List<AudioData> audioList, String text) {
-    if (!hasText(text)) {
-      return false;
-    }
-
-    return audioList.stream()
-        .filter(audio -> audio != null && hasText(audio.getText()))
-        .anyMatch(audio -> text.equals(audio.getText()));
-  }
-
-  private boolean hasText(String value) {
-    return value != null && !value.isBlank();
+    final var strategy = cardTypeStrategyFactory.getStrategy(card);
+    return strategy.isMissingAudio(card);
   }
 }

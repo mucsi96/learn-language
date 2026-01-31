@@ -1,18 +1,24 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createSource,
   selectTextRange,
+  selectRegion,
   scrollElementToTop,
   withDbConnection,
   downloadImage,
   yellowImage,
   redImage,
+  menschenA1Image,
   ensureTimezoneAware,
+  setupDefaultChatModelSettings,
+  menschenA1GrammarImage,
 } from '../utils';
 
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -27,9 +33,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
   // Initially no FAB should be visible
-  await expect(
-    page.locator("button:has-text('Create')").filter({ hasText: 'Cards' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
 
   // Select a region with words that don't have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -37,14 +41,15 @@ test('bulk create fab appears when words without cards selected', async ({ page 
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
 
   // FAB should now be visible with correct count
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
   await expect(fab).toContainText('Create 2 Cards');
 });
 
-test('bulk create fab shows correct count for multiple regions', async ({ page }) => {
+test('multiple regions can be selected before confirmation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -58,29 +63,154 @@ test('bulk create fab shows correct count for multiple regions', async ({ page }
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
-  // Select first region
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  // Select first region (without confirming yet)
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  // Confirm button should show with badge count 1
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
 
-  // Select second region
-  await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
-  await expect(page.getByText('Create 5 Cards')).toBeVisible();
+  // Select second region (without confirming yet)
+  await selectRegion(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
-  // FAB should show total count from both regions
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  // Badge should now show 2 selections
+  const confirmButton = page.getByRole('button', { name: 'Confirm selection' });
+  await expect(confirmButton).toBeVisible();
+
+  // Cancel button should also be visible
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
+  // FAB should show count from both regions (5 cards: abfahren, die Abfahrt, der Absender, Achtung, die Adresse - aber already exists)
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
   await expect(fab).toBeVisible();
   await expect(fab).toContainText('Create 5 Cards');
 });
 
+test('selections persist across page navigation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Select a region on page 9
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  // Confirm button should show with badge
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  // Navigate to the next page
+  await page.getByRole('link', { name: 'Next page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Confirm button should still be visible (selection persisted)
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  // Navigate back to page 9
+  await page.getByRole('link', { name: 'Previous page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Selection rectangle should be visible on the page
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).toBeVisible();
+});
+
+test('regions from different pages are combined into single extraction', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'cross-page-source',
+    name: 'Cross Page Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'IMAGES',
+  });
+
+  await page.goto('http://localhost:8180/sources/cross-page-source/page/1');
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-1.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box1 = await pageContent.boundingBox();
+  if (box1) {
+    await page.mouse.move(box1.x + box1.width * 0.155, box1.y + box1.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box1.x + box1.width * 0.434, box1.y + box1.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Next page' }).click();
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'cross-page-2.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(pageContent).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box2 = await pageContent.boundingBox();
+  if (box2) {
+    await page.mouse.move(box2.x + box2.width * 0.155, box2.y + box2.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box2.x + box2.width * 0.434, box2.y + box2.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
+  const extractedWords = page.getByRole('region', { name: 'Extracted items' });
+  await expect(extractedWords).toBeVisible();
+  await expect(extractedWords.getByRole('button').first()).toHaveText('hören');
+  await expect(extractedWords.getByRole('button').nth(1)).toHaveText('das Lied');
+});
+
+test('cancel selection clears all selections', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  // Select a region
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  // Confirm and cancel buttons should appear
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
+
+  // Click cancel
+  await page.getByRole('button', { name: 'Cancel selection' }).click();
+
+  // Buttons should disappear
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel selection' })).not.toBeVisible();
+
+  // Selection rectangle should not be visible
+  await expect(page.getByRole('region', { name: 'Selected area 1' })).not.toBeVisible();
+});
+
 test('bulk create fab hides when all words have cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'aber',
+    cardId: 'aber-de',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -92,7 +222,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
   await createCard({
-    cardId: 'abfahren',
+    cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -104,7 +234,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
   await createCard({
-    cardId: 'die-abfahrt',
+    cardId: 'abfahrt-indulas',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -125,12 +255,11 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
 
   // FAB should not be visible
-  await expect(
-    page.locator("button:has-text('Create')").filter({ hasText: 'Cards' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
 });
 
 test('bulk card creation opens progress dialog', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -138,13 +267,14 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Progress dialog should open
-  await expect(page.locator("h2:has-text('Creating Cards')")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
 });
 
 test('bulk card creation shows individual progress', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -152,7 +282,7 @@ test('bulk card creation shows individual progress', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Check that individual words are listed within the progress dialog
   await expect(page.getByRole('dialog').getByText('aber')).toBeVisible();
@@ -164,6 +294,7 @@ test('bulk card creation shows individual progress', async ({ page }) => {
 });
 
 test('bulk card creation creates cards in database', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -171,29 +302,28 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify cards were created in database
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber', 'abfahren', 'die-abfahrt')"
+      "SELECT id, data FROM learn_language.cards WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulas')"
     );
 
     expect(result.rows.length).toBe(3);
 
     const cardIds = result.rows.map((row) => row.id);
-    expect(cardIds).toContain('aber');
-    expect(cardIds).toContain('abfahren');
-    expect(cardIds).toContain('die-abfahrt');
+    expect(cardIds).toContain('aber-de');
+    expect(cardIds).toContain('abfahren-elindulni');
+    expect(cardIds).toContain('abfahrt-indulas');
   });
 });
 
 test('bulk card creation includes word data', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -201,18 +331,14 @@ test('bulk card creation includes word data', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify word data in database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'abfahren'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -245,9 +371,11 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
 
-    const result2 = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'die-abfahrt'"
-    );
+    expect(cardData.translationModel).toBe('gemini-3-pro-preview');
+    expect(cardData.classificationModel).toBe('gemini-3-pro-preview');
+    expect(cardData.extractionModel).toBe('gemini-3-pro-preview');
+
+    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahrt-indulas'");
     expect(result2.rows.length).toBe(1);
     const cardData2 = result2.rows[0].data;
 
@@ -256,10 +384,14 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData2.type).toBe('NOUN');
     expect(cardData2.gender).toBe('FEMININE');
     expect(cardData2.forms).toEqual(['die Abfahrten']);
+    expect(cardData2.translationModel).toBe('gemini-3-pro-preview');
+    expect(cardData2.classificationModel).toBe('gemini-3-pro-preview');
+    expect(cardData2.extractionModel).toBe('gemini-3-pro-preview');
   });
 });
 
 test('bulk card creation updates ui after completion', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -267,36 +399,29 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Verify FAB is initially visible
-  const fab = page.locator("button:has-text('Create')").filter({ hasText: 'Cards' });
+  const fab = page.getByRole('button', { name: 'Create cards in bulk' });
 
   await fab.click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Close the dialog
-  await page.locator("button:has-text('Close')").click();
+  await page.getByRole('button', { name: 'Close' }).click();
 
   // FAB should no longer be visible since cards now exist
   await expect(fab).not.toBeVisible();
 
   await expect(page.getByRole('link', { name: 'aber' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'aber' })).toHaveAccessibleDescription(
-    'Card exists'
-  );
+  await expect(page.getByRole('link', { name: 'aber' })).toHaveAccessibleDescription('Card exists');
   await expect(page.getByRole('link', { name: 'abfahren' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription(
-    'Card exists'
-  );
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
   await expect(page.getByRole('link', { name: 'die Abfahrt' })).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'die Abfahrt' })
-  ).toHaveAccessibleDescription('Card exists');
+  await expect(page.getByRole('link', { name: 'die Abfahrt' })).toHaveAccessibleDescription('Card exists');
 });
 
 test('bulk card creation fsrs attributes', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -304,19 +429,17 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify FSRS attributes in database
   await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due
        FROM learn_language.cards
-       WHERE id = 'abfahren'`
+       WHERE id = 'abfahren-elindulni'`
     );
 
     expect(result.rows.length).toBe(1);
@@ -334,6 +457,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
 });
 
 test('bulk card creation source metadata', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -341,12 +465,10 @@ test('bulk card creation source metadata', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify source metadata in database
   await withDbConnection(async (client) => {
@@ -354,7 +476,7 @@ test('bulk card creation source metadata', async ({ page }) => {
       `SELECT c.source_id, c.source_page_number, s.name
        FROM learn_language.cards c
        JOIN learn_language.sources s ON c.source_id = s.id
-       WHERE c.id = 'abfahren'`
+       WHERE c.id = 'abfahren-elindulni'`
     );
 
     expect(result.rows.length).toBe(1);
@@ -367,6 +489,7 @@ test('bulk card creation source metadata', async ({ page }) => {
 });
 
 test('bulk card creation learning parameters and review state', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -374,12 +497,10 @@ test('bulk card creation learning parameters and review state', async ({ page })
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify learning parameters and review state in database
   await withDbConnection(async (client) => {
@@ -387,7 +508,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due, readiness
        FROM learn_language.cards
-       WHERE id IN ('aber', 'abfahren', 'die-abfahrt')`
+       WHERE id IN ('aber-de', 'abfahren-elindulni', 'abfahrt-indulas')`
     );
 
     expect(result.rows.length).toBe(3);
@@ -406,9 +527,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
       expect(row.lapses).toBe(0);
 
       expect(row.due).not.toBeNull();
-      const timeDifference = Math.abs(
-        (ensureTimezoneAware(row.due).getTime() - currentTime.getTime()) / 1000
-      );
+      const timeDifference = Math.abs((ensureTimezoneAware(row.due).getTime() - currentTime.getTime()) / 1000);
       expect(timeDifference).toBeLessThan(60); // Within 1 minute of test execution
       expect(row.readiness).toBe('IN_REVIEW');
     }
@@ -416,6 +535,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
 });
 
 test('bulk card creation dialog review link', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -423,11 +543,135 @@ test('bulk card creation dialog review link', async ({ page }) => {
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   // Click the FAB to open the dialog
-  await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Click the review link
   await page.getByRole('dialog').getByRole('link', { name: 'Review' }).click();
 
   // Verify that we navigate to the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
+});
+
+test('bulk speech card creation includes sentence data', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, source_id, source_page_number, state, readiness
+       FROM learn_language.cards WHERE source_id = 'speech-a1'`
+    );
+
+    expect(result.rows.length).toBe(2);
+
+    const card1 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Wie heißt das Lied?');
+    expect(card1).toBeDefined();
+    expect(card1?.source_id).toBe('speech-a1');
+    expect(card1?.source_page_number).toBe(1);
+    expect(card1?.state).toBe('NEW');
+    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
+    expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
+    expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
+    expect(card1?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card1?.data.extractionModel).toBe('gemini-3-pro-preview');
+
+    const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Hören Sie.');
+    expect(card2).toBeDefined();
+    expect(card2?.data.examples[0].hu).toBe('Hallgasson.');
+    expect(card2?.data.examples[0].en).toBe('Listen.');
+    expect(card2?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card2?.data.extractionModel).toBe('gemini-3-pro-preview');
+  });
+});
+
+test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Grammar A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-grammar-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1GrammarImage,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  const boxBefore = await pageContent.boundingBox();
+
+  if (boxBefore) {
+    await page.evaluate((y) => window.scrollTo(0, y), boxBefore.y);
+  }
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.173, box.height * 0.366);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.518, box.height * 0.389);
+    await page.mouse.up();
+  }
+
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, source_id, source_page_number, state, readiness
+       FROM learn_language.cards WHERE source_id = 'grammar-a1'`
+    );
+
+
+    expect(result.rows.length).toBe(2);
+
+    const card1 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Das [ist] Paco.');
+    expect(card1).toBeDefined();
+    expect(card1?.source_id).toBe('grammar-a1');
+    expect(card1?.source_page_number).toBe(1);
+    expect(card1?.state).toBe('NEW');
+    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.data.examples[0].en).toBe('This is Paco.');
+    expect(card1?.data.examples[0].de).toContain('[ist]');
+
+    expect(card1?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card1?.data.extractionModel).toBe('gemini-3-pro-preview');
+
+    const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Und [das] ist Frau Wachter.');
+    expect(card2).toBeDefined();
+    expect(card2?.data.examples[0].de).toContain('[das]');
+    expect(card2?.data.translationModel).toBe('gemini-3-pro-preview');
+    expect(card2?.data.extractionModel).toBe('gemini-3-pro-preview');
+  });
 });

@@ -1,0 +1,135 @@
+<div class="known-words-container">
+  <div class="import-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title><h2>Import Known Words</h2></mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="import-description">
+          Paste CSV data with German words and Hungarian translations. Each line
+          should have format: german word, hungarian translation
+        </p>
+        <mat-form-field appearance="outline" class="import-textarea">
+          <mat-label>Words to import (CSV)</mat-label>
+          <textarea
+            matInput
+            [ngModel]="importText()"
+            (ngModelChange)="importText.set($event)"
+            rows="8"
+            placeholder="Haus, ház&#10;Baum, fa&#10;Wasser, víz"
+            aria-label="Words to import"
+          ></textarea>
+        </mat-form-field>
+        <div class="import-actions">
+          <button
+            mat-flat-button
+            (click)="importWords()"
+            [disabled]="!importText().trim() || isImporting()"
+            aria-label="Import words"
+          >
+            @if (isImporting()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>upload</mat-icon>
+            }
+            Import
+          </button>
+          @if (lastImportCount() !== null) {
+          <span class="import-result">
+            {{ lastImportCount() }} new words imported
+          </span>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="words-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>Known Words ({{ wordCount() }})</h2>
+        </mat-card-title>
+        @if (wordCount() > 0) {
+        <button
+          mat-icon-button
+          (click)="clearAll()"
+          matTooltip="Clear all words"
+          aria-label="Clear all known words"
+        >
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+        }
+      </mat-card-header>
+      <mat-card-content>
+        @if (knownWords.isLoading()) {
+        <table mat-table [dataSource]="skeletonRows" class="words-table">
+          <ng-container matColumnDef="word">
+            <th mat-header-cell *matHeaderCellDef>German</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="skeleton skeleton-text"></div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="hungarianTranslation">
+            <th mat-header-cell *matHeaderCellDef>Hungarian</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="skeleton skeleton-text"></div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row">
+              <div class="skeleton skeleton-button"></div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        } @else if (words().length === 0) {
+        <div class="empty-state">
+          <mat-icon>library_books</mat-icon>
+          <p>No known words yet</p>
+          <p class="empty-state-hint">
+            Import words from other applications to skip them during card
+            creation
+          </p>
+        </div>
+        } @else {
+        <table mat-table [dataSource]="words()" class="words-table">
+          <ng-container matColumnDef="word">
+            <th mat-header-cell *matHeaderCellDef>German</th>
+            <td mat-cell *matCellDef="let item">{{ item.word }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="hungarianTranslation">
+            <th mat-header-cell *matHeaderCellDef>Hungarian</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.hungarianTranslation || "-" }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let item">
+              <button
+                mat-icon-button
+                (click)="deleteWord(item.word)"
+                matTooltip="Delete word"
+                aria-label="Delete word"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -1,10 +1,20 @@
-@if (card.isLoading()) {
+@if (!sessionId()) {
+<div class="start-state">
+  <mat-icon class="start-icon">school</mat-icon>
+  <h2>Ready to study?</h2>
+  <p>Click start to begin your study session.</p>
+  <button mat-flat-button color="primary" (click)="startSession()" aria-label="Start study session">
+    <mat-icon>play_arrow</mat-icon>
+    Start
+  </button>
+</div>
+} @else if (currentCardData.isLoading()) {
 <div class="learn-card-container">
   <div class="learn-card">
     <app-learn-card-skeleton />
   </div>
 </div>
-} @else if (card.value() === null) {
+} @else if (card() === null || card() === undefined) {
 <div class="empty-state">
   <mat-icon class="empty-icon">school</mat-icon>
   <h2>All caught up!</h2>
@@ -18,23 +28,48 @@
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
-    <app-card-actions
-      [card]="card"
-      [languageTexts]="languageTexts()"
-      (cardProcessed)="onCardProcessed()">
-    </app-card-actions>
+    <div class="card-bottom-controls">
+      @if (isStudyingWithPartner()) {
+      <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
+        {{ currentTurn().name }}
+      </span>
+      }
+      <app-card-actions
+        [card]="cardResource"
+        [languageTexts]="languageTexts()"
+        (cardProcessed)="onCardProcessed()">
+      </app-card-actions>
+    </div>
 
-    <app-learn-vocabulary-card
-      [card]="card"
-      [isRevealed]="isRevealed()"
-      [onPlayAudio]="playAudioForContent.bind(this)"
-      (languageTextsReady)="onLanguageTextsReady($event)">
-    </app-learn-vocabulary-card>
+    @switch (currentCardType()) {
+      @case ('vocabulary') {
+        <app-learn-vocabulary-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()"
+          [onPlayAudio]="playAudioForContent.bind(this)">
+        </app-learn-vocabulary-card>
+      }
+      @case ('speech') {
+        <app-learn-speech-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()"
+          [onPlayAudio]="playAudioForContent.bind(this)">
+        </app-learn-speech-card>
+      }
+      @case ('grammar') {
+        <app-learn-grammar-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()"
+          [onPlayAudio]="playAudioForContent.bind(this)">
+        </app-learn-grammar-card>
+      }
+    }
   </div>
 
   @if (isRevealed()) {
     <app-card-grading-buttons
-      [card]="card"
+      [card]="cardResource"
+      [learningPartnerId]="currentTurn().partnerId"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
   }

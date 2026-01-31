@@ -16,9 +16,9 @@
   </button>
 </div>
 @if (sources()?.length) {
-<section class="sources">
+<section class="sources" aria-label="Sources list">
   @for (source of sources(); track source.id) {
-  <div class="card-wrapper">
+  <article class="card-wrapper" [attr.aria-label]="source.name">
     <a
       [routerLink]="['/sources', source.id, 'page', source.startPage]"
       class="card-link"
@@ -55,7 +55,7 @@
         <mat-icon>delete</mat-icon>
       </button>
     </div>
-  </div>
+  </article>
   }
 </section>
 } @else {

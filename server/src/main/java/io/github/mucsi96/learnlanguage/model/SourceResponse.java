@@ -8,7 +8,11 @@ import lombok.Data;
 public class SourceResponse {
     private String id;
     private String name;
-    private String fileName;
+    private SourceType sourceType;
+    private CardType cardType;
     private Integer startPage;
+    private Integer pageCount;
     private Integer cardCount;
+    private LanguageLevel languageLevel;
+    private SourceFormatType formatType;
 }

@@ -39,7 +39,19 @@ public class ModelUsageLogController {
         return repository.findById(id)
             .map(log -> {
                 log.setRating(request.rating());
-                return ResponseEntity.ok(repository.save(log));
+                repository.save(log);
+
+                if (log.getResponseContent() != null) {
+                    List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
+                    for (ModelUsageLog duplicate : duplicates) {
+                        if (!duplicate.getId().equals(id)) {
+                            duplicate.setRating(request.rating());
+                            repository.save(duplicate);
+                        }
+                    }
+                }
+
+                return ResponseEntity.ok(log);
             })
             .orElse(ResponseEntity.notFound().build());
     }

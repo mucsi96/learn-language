@@ -1,11 +1,9 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Sources' })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe A2' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Goethe B1' })).toBeVisible();
@@ -13,18 +11,9 @@ test('displays sources', async ({ page }) => {
 
 test('sources have links', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByRole('link', { name: 'Goethe A1' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-a1/page/9'
-  );
-  await expect(page.getByRole('link', { name: 'Goethe A2' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-a2/page/8'
-  );
-  await expect(page.getByRole('link', { name: 'Goethe B1' })).toHaveAttribute(
-    'href',
-    '/sources/goethe-b1/page/16'
-  );
+  await expect(page.getByRole('link', { name: 'Goethe A1' })).toHaveAttribute('href', '/sources/goethe-a1/page/9');
+  await expect(page.getByRole('link', { name: 'Goethe A2' })).toHaveAttribute('href', '/sources/goethe-a2/page/8');
+  await expect(page.getByRole('link', { name: 'Goethe B1' })).toHaveAttribute('href', '/sources/goethe-b1/page/16');
 });
 
 test('displays card counts', async ({ page }) => {
@@ -88,15 +77,9 @@ test('displays card count for sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Check that card counts are displayed
-  await expect(
-    page.locator('text=Goethe A1').locator('..').getByText('2 cards')
-  ).toBeVisible();
-  await expect(
-    page.locator('text=Goethe A2').locator('..').getByText('1 cards')
-  ).toBeVisible();
-  await expect(
-    page.locator('text=Goethe B1').locator('..').getByText('0 cards')
-  ).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')).toBeVisible();
 });
 
 test('can create a new source', async ({ page }) => {
@@ -109,17 +92,24 @@ test('can create a new source', async ({ page }) => {
   await page.getByLabel('Source ID').fill('test-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
 
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'PDF Document' }).click();
+
   // Upload a PDF file via the file input
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test-file.pdf',
     mimeType: 'application/pdf',
-    buffer: Buffer.from('PDF content')
+    buffer: Buffer.from('PDF content'),
   });
 
   await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
+  await page.getByLabel('Format Type').click();
+  await page.getByRole('option', { name: 'Word list with examples' }).click();
 
   // Click Create button
   await page.getByRole('button', { name: 'Create' }).click();
@@ -134,10 +124,16 @@ test('can create a new source', async ({ page }) => {
   const createdSource = await getSource('test-source');
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Source');
-  expect(createdSource?.fileName).toBe('test-file.pdf');
   expect(createdSource?.startPage).toBe(1);
   expect(createdSource?.languageLevel).toBe('B2');
   expect(createdSource?.cardType).toBe('VOCABULARY');
+  expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
+
+  // Verify the PDF document was created
+  const documents = await getDocuments('test-source');
+  expect(documents).toHaveLength(1);
+  expect(documents[0].fileName).toBe('test-file.pdf');
+  expect(documents[0].pageNumber).toBeNull();
 });
 
 test('can edit an existing source', async ({ page }) => {
@@ -148,7 +144,7 @@ test('can edit an existing source', async ({ page }) => {
   expect(initialSource?.name).toBe('Goethe A1');
 
   // Hover over a source card to reveal action buttons
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
+  const sourceCard = page.getByRole('article', { name: 'Goethe A1' });
   await sourceCard.hover();
 
   // Click the edit button
@@ -175,53 +171,6 @@ test('can edit an existing source', async ({ page }) => {
   // Verify the source was updated in the database
   const updatedSource = await getSource('goethe-a1');
   expect(updatedSource?.name).toBe('Goethe A1 Updated');
-  expect(updatedSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
-});
-
-test('can replace PDF file when editing source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-
-  // Verify the initial file name in the database
-  const initialSource = await getSource('goethe-a1');
-  expect(initialSource?.fileName).toBe('A1_SD1_Wortliste_02.pdf');
-
-  // Hover over a source card to reveal action buttons
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe A1') });
-  await sourceCard.hover();
-
-  // Click the edit button
-  await sourceCard.getByRole('button', { name: 'Edit source' }).click();
-
-  // Verify the dialog opened and shows the current file
-  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
-  await expect(page.getByText('A1_SD1_Wortliste_02.pdf')).toBeVisible();
-
-  // Remove the current file
-  await page.getByRole('button', { name: 'Remove file' }).click();
-
-  // Verify dropzone is empty after removal
-  await expect(page.getByText('Drag and drop a PDF file here')).toBeVisible();
-
-  // Upload a new PDF file
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
-    name: 'new-document.pdf',
-    mimeType: 'application/pdf',
-    buffer: Buffer.from('New PDF content')
-  });
-
-  // Verify the new file is shown
-  await expect(page.getByText('new-document.pdf')).toBeVisible();
-
-  // Click Update button
-  await page.getByRole('button', { name: 'Update' }).click();
-
-  // Wait for dialog to close
-  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
-
-  // Verify the fileName is updated in the database
-  const updatedSource = await getSource('goethe-a1');
-  expect(updatedSource?.fileName).toBe('new-document.pdf');
 });
 
 test('can delete a source and its cards', async ({ page }) => {
@@ -255,12 +204,10 @@ test('can delete a source and its cards', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Verify source has cards
-  await expect(
-    page.locator('text=Goethe B1').locator('..').getByText('2 cards')
-  ).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')).toBeVisible();
 
   // Hover over the source card
-  const sourceCard = page.locator('.card-wrapper', { has: page.getByText('Goethe B1') });
+  const sourceCard = page.getByRole('article', { name: 'Goethe B1' });
   await sourceCard.hover();
 
   // Click the delete button
@@ -319,20 +266,30 @@ test('validates required fields when creating source', async ({ page }) => {
 
   // Fill in only some fields
   await page.getByLabel('Source ID').fill('test-id');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'PDF Document' }).click();
+
   await expect(createButton).toBeDisabled();
 
   // Fill in all required fields
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Name');
 
   // Upload a PDF file
-  const fileInput = page.locator('input[type="file"]');
-  await fileInput.setInputFiles({
+  await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'test.pdf',
     mimeType: 'application/pdf',
-    buffer: Buffer.from('PDF content')
+    buffer: Buffer.from('PDF content'),
   });
 
   await page.getByLabel('Start Page').fill('1');
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+  await page.getByLabel('Format Type').click();
+  await page.getByRole('option', { name: 'Word list with forms and examples' }).click();
 
   // Create button should now be enabled
   await expect(createButton).toBeEnabled();
@@ -344,14 +301,74 @@ test('displays empty state when no sources exist', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
 
   // Check that empty state is displayed
-  await expect(
-    page.getByRole('heading', { name: 'No sources yet', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByText('Create your first source to start adding cards.')
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No sources yet', exact: true })).toBeVisible();
+  await expect(page.getByText('Create your first source to start adding cards.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add Source' })).toBeVisible();
 
   // Check that the sources grid is not displayed
-  await expect(page.locator('.sources')).not.toBeVisible();
+  await expect(page.getByRole('region', { name: 'Sources list' })).not.toBeVisible();
+});
+
+test('can create a speech source with image collection', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByLabel('Source ID').fill('test-speech-source');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Speech Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Speech' }).click();
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await expect(page.getByLabel('Format Type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Speech Source')).toBeVisible();
+
+  const createdSource = await getSource('test-speech-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.name).toBe('Test Speech Source');
+  expect(createdSource?.cardType).toBe('SPEECH');
+  expect(createdSource?.formatType).toBe('FLOWING_TEXT');
+  expect(createdSource?.sourceType).toBe('IMAGES');
+});
+
+test('can create a grammar source with image collection', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByLabel('Source ID').fill('test-grammar-source');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Grammar Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await expect(page.getByLabel('Format Type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Grammar Source')).toBeVisible();
+
+  const createdSource = await getSource('test-grammar-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.name).toBe('Test Grammar Source');
+  expect(createdSource?.cardType).toBe('GRAMMAR');
+  expect(createdSource?.formatType).toBe('FLOWING_TEXT');
+  expect(createdSource?.sourceType).toBe('IMAGES');
 });

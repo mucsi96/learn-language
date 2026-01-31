@@ -1,46 +1,38 @@
-  <div class="image-section">
-    @if (exampleImages().length > 0) {
-    <div class="image-gallery">
-      @for (imageResource of exampleImages(); track $index) { @if
-      (imageResource.value()?.url) {
-      <img
-        [src]="imageResource.value()?.url"
-        [alt]="example()"
-        class="learn-card-image"
-      />
-      } @else if (imageResource.isLoading()) {
-      <div class="skeleton"></div>
-      } }
+<div class="image-section">
+  @if (exampleImages().length > 0) {
+  <div class="image-gallery">
+    @for (imageResource of exampleImages(); track $index) { @if (imageResource.value()?.url) {
+    <img [src]="imageResource.value()?.url" [alt]="example()" class="learn-card-image" />
+    } @else if (imageResource.isLoading()) {
+    <div class="skeleton"></div>
+    } }
+  </div>
+  }
+</div>
+
+<div class="content-section">
+  <div class="chips-corner">
+    @if (wordTypeInfo()) {
+    <div class="word-type-chip" [style.background-color]="wordTypeInfo()?.color" aria-label="Word type">
+      {{ wordTypeInfo()?.translation }}
     </div>
+    } @let state = card()?.value()?.state; @if (state !== undefined) {
+    <app-state [state]="state" />
     }
   </div>
 
-  <div class="content-section">
-    <div class="chips-corner">
-      @if (wordTypeInfo()) {
-      <div
-        class="word-type-chip"
-        [style.background-color]="wordTypeInfo()?.color"
-      >
-        {{ wordTypeInfo()?.translation }}
-      </div>
-      } @let state = card()?.value()?.state; @if (state !== undefined) {
-      <app-state [state]="state" />
-      }
-    </div>
-    
-    <div class="word-section">
-      <h2 [style.color]="genderInfo()?.color">{{ word() }}</h2>
-    </div>
-
-    @if(genderInfo(); as genderInfo) {
-    <span class="sr-only">Gender: {{ genderInfo.translation }}</span>
-    } @if (forms()?.length) {
-    <div class="forms">
-      <p class="centered-text">{{ forms()?.join(", ") }}</p>
-    </div>
-    }
-    <div class="example">
-      <p class="centered-text">{{ example() }}</p>
-    </div>
+  <div class="word-section">
+    <h2 [style.color]="genderInfo()?.color">{{ word() }}</h2>
   </div>
+
+  @if(genderInfo(); as genderInfo) {
+  <span class="sr-only">Gender: {{ genderInfo.translation }}</span>
+  } @if (forms()?.length) {
+  <div class="forms">
+    <p class="centered-text">{{ forms()?.join(', ') }}</p>
+  </div>
+  }
+  <div class="example">
+    <p class="centered-text">{{ example() }}</p>
+  </div>
+</div>

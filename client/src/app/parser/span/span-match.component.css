@@ -1,0 +1,18 @@
+.word {
+  position: absolute;
+  display: flex;
+  text-align: initial;
+  justify-content: flex-start;
+  align-items: center;
+  padding: initial !important;
+  border-radius: initial !important;
+}
+
+.word:not(a) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 1px;
+}
+
+a.word {
+  outline: 3px solid var(--mat-sys-primary);
+}

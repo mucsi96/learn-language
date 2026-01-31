@@ -1,21 +1,30 @@
 import {
   Component,
+  effect,
   inject,
   signal,
+  computed,
   OnDestroy,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MostDueCardService } from '../../most-due-card.service';
-import { ActivatedRoute } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { StudySessionService } from '../../study-session.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { injectParams } from '../../utils/inject-params';
+import { injectQueryParams } from '../../utils/inject-query-params';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
 import { CardActionsComponent } from '../../shared/card-actions/card-actions.component';
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
+import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
+import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
-import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selection-dialog.component';
+import { Card, LanguageTexts } from '../../parser/types';
+import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-learn-card',
@@ -23,10 +32,13 @@ import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selecti
   imports: [
     CommonModule,
     MatCardModule,
+    MatButtonModule,
     MatIconModule,
     CardGradingButtonsComponent,
     CardActionsComponent,
     LearnVocabularyCardComponent,
+    LearnSpeechCardComponent,
+    LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
   ],
   templateUrl: './learn-card.component.html',
@@ -34,30 +46,100 @@ import { LanguageTexts } from '../../shared/voice-selection-dialog/voice-selecti
 })
 export class LearnCardComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
-  private readonly mostDueCardService = inject(MostDueCardService);
+  private readonly router = inject(Router);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routeSessionId = injectQueryParams('session');
+  private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
-  readonly card = this.mostDueCardService.card;
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
+
+  readonly currentCardData = this.studySessionService.currentCard;
+
+  readonly cardResource: CardResourceLike = {
+    value: () => this.currentCardData.value()?.card,
+    isLoading: () => this.currentCardData.isLoading(),
+  };
+
+  readonly card = computed<Card | null | undefined>(() => {
+    return this.currentCardData.value()?.card;
+  });
 
   readonly isRevealed = signal(false);
+  readonly sessionId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
-  readonly languageTexts = signal<LanguageTexts[]>([]);
+  private currentSourceId: string | null = null;
+
+  readonly currentCardType = computed(() => this.card()?.source.cardType);
+
+  readonly languageTexts = computed<LanguageTexts[]>(() => {
+    const card = this.card();
+    const cardType = this.currentCardType();
+    if (!card || !cardType) return [];
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getLanguageTexts(card);
+  });
+
+  readonly isStudyingWithPartner = computed(() => {
+    const cardData = this.currentCardData.value();
+    return cardData?.studyMode === 'WITH_PARTNER';
+  });
+
+  readonly currentTurn = this.studySessionService.currentTurn;
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      params['sourceId'] &&
-        this.mostDueCardService.setSelectedSourceId(params['sourceId']);
+    effect(() => {
+      const urlSessionId = this.routeSessionId();
+      if (urlSessionId && urlSessionId !== this.sessionId()) {
+        this.sessionId.set(String(urlSessionId));
+        this.studySessionService.setSessionId(String(urlSessionId));
+      } else if (!urlSessionId && this.sessionId()) {
+        this.clearSessionState();
+      }
+    });
+
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      if (sourceId) {
+        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== String(sourceId);
+        this.currentSourceId = String(sourceId);
+        if (sourceChanged) {
+          this.clearSessionState();
+        }
+      }
     });
   }
 
-  ngOnDestroy() {
-    // Clean up audio when component is destroyed
-    this.audioPlaybackService.stopPlayback();
+  private clearSessionState() {
+    this.sessionId.set(null);
+    this.studySessionService.clearSession();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { session: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
-  // Public method for child components to trigger audio playback
+  async startSession() {
+    if (this.currentSourceId) {
+      const session = await this.studySessionService.createSession(this.currentSourceId);
+      if (session) {
+        this.sessionId.set(session.sessionId);
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { session: session.sessionId },
+          queryParamsHandling: 'merge',
+        });
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.audioPlaybackService.stopPlayback();
+    this.studySessionService.clearSession();
+  }
+
   playAudioForContent(texts: string[]) {
-    // Check if the same texts are being requested
     const textsChanged = texts.length !== this.lastPlayedTexts.length ||
                         texts.some((text, index) => text !== this.lastPlayedTexts[index]);
 
@@ -72,10 +154,9 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   private async playAudioSequence(texts: string[]) {
-    const audioList = this.card.value()?.data.audio;
+    const audioList = this.card()?.data.audio;
     if (!audioList || audioList.length === 0) return;
 
-    // Use the shared service to play audio
     await this.audioPlaybackService.playAudioForTexts(
       this.http,
       texts,
@@ -89,13 +170,8 @@ export class LearnCardComponent implements OnDestroy {
 
   onCardProcessed() {
     this.isRevealed.set(false);
-    // Reset last played texts when card changes
     this.lastPlayedTexts = [];
-    // Stop any ongoing audio playback
     this.audioPlaybackService.stopPlayback();
-  }
-
-  onLanguageTextsReady(texts: LanguageTexts[]) {
-    this.languageTexts.set(texts);
+    this.studySessionService.refreshSession();
   }
 }

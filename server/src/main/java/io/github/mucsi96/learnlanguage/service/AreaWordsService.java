@@ -9,6 +9,9 @@ import org.springframework.util.MimeTypeUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
+import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.WordResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -20,18 +23,37 @@ public class AreaWordsService {
   }
 
   private final ObjectMapper objectMapper;
-  private final WordIdService wordIdService;
   private final ChatService chatService;
 
-  private String buildSystemPrompt() {
+  private String buildSystemPrompt(SourceFormatType formatType, LanguageLevel languageLevel) {
     String basePrompt = """
         You are a linguistic expert.
         You task is to extract the wordlist data from provided page image.
         !IMPORTANT! In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
-        The word property holds a string. it's the basic form of the word without any forms.
-        The forms is a string array representing the different forms. In case of a noun it the plural form.
-        In case of verb it's the 3 forms of conjugation (Eg. Du gehst, Er/Sie/Es geht, Er/Sie/Es ist gegangen). Please enhance it to make those full words. Not just endings.
-        The examples property is a string array enlisting the examples provided in the document.""";
+        The word property holds a string. it's the basic form of the word without any forms.""";
+
+    String formsPrompt = switch (formatType) {
+      case WORD_LIST_WITH_FORMS_AND_EXAMPLES -> """
+
+          The forms is a string array representing the different forms extracted from the document.
+          In case of a noun it's the plural form.
+          In case of verb it's the 3 forms of conjugation. Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g., "gehst", "geht", "ist gegangen").""";
+      case null, default -> """
+
+          The forms is a string array representing the different forms. Since the document does not contain word forms, you must generate them.
+          In case of a noun generate the plural form.
+          In case of verb generate the 3 forms of conjugation. Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g., "gehst", "geht", "ist gegangen").""";
+    };
+
+    String examplesPrompt = switch (formatType) {
+      case WORD_LIST_WITH_EXAMPLES, WORD_LIST_WITH_FORMS_AND_EXAMPLES -> """
+
+          The examples property is a string array enlisting the examples provided in the document.""";
+      case null, default -> """
+
+          The examples property is a string array. Since the document is flowing text without explicit examples, you must generate one context-relevant example sentence for each word that demonstrates its meaning and usage. The generated examples must be appropriate for %s level learners - use vocabulary and grammar structures suitable for this proficiency level."""
+          .formatted(languageLevel.name());
+    };
 
     AreaWords example = new AreaWords(List.of(
         WordResponse.builder()
@@ -47,17 +69,18 @@ public class AreaWordsService {
 
     try {
       String exampleJson = objectMapper.writeValueAsString(example);
-      return basePrompt + "\nExample of the expected JSON response:\n" + exampleJson;
+      return basePrompt + formsPrompt + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
     } catch (Exception e) {
       throw new RuntimeException("Failed to serialize example to JSON", e);
     }
   }
 
-  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model) {
-    var result = chatService.callWithLoggingAndMedia(
+  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType, LanguageLevel languageLevel) {
+    final var result = chatService.callWithLoggingAndMedia(
         model,
-        "word_extraction",
-        buildSystemPrompt(),
+        OperationType.EXTRACTION,
+        buildSystemPrompt(formatType, languageLevel),
+        imageData,
         u -> u
             .text("Here is the image of the page")
             .media(Media.builder()
@@ -66,9 +89,6 @@ public class AreaWordsService {
                 .build()),
         AreaWords.class);
 
-    return result.wordList.stream().map(word -> {
-      word.setId(wordIdService.generateWordId(word.getWord()));
-      return word;
-    }).toList();
+    return result.wordList;
   }
 }

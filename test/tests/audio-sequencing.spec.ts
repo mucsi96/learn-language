@@ -29,15 +29,9 @@ test('audio plays sequentially', async ({ page }) => {
 
   // Navigate to a study page with cards that have audio
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Wait for the learn card component to load
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
-
-  // Click reveal to trigger audio playback
-  const revealButton = page.locator("button:has-text('Reveal')");
-  if (await revealButton.isVisible()) {
-    await revealButton.click();
-  }
+  await page.getByRole('heading', { name: 'helló' }).click();
 
   // Wait a moment for audio to start
   await page.waitForTimeout(500);
@@ -45,25 +39,14 @@ test('audio plays sequentially', async ({ page }) => {
   // Check that the component is present and audio would be playing
   // Note: We can't directly test audio playback in headless mode,
   // but we can verify the component structure is correct
-  const learnCard = page.locator('app-learn-card');
-  await expect(learnCard).toBeVisible();
+  await expect(page.getByRole('main')).toBeVisible();
 
-  // Verify the vocabulary card component is present
-  const vocabCard = page.locator('app-learn-vocabulary-card');
-  await expect(vocabCard).toBeVisible();
+  // Verify the vocabulary card is present by checking for the word
+  await expect(page.getByRole('heading', { name: 'Hallo' })).toBeVisible();
 
-  // Test toggling reveal again
-  const hideButton = page.locator('button').filter({ hasText: 'Hide' });
-  if (await hideButton.isVisible()) {
-    await hideButton.click();
-    await page.waitForTimeout(500);
-  }
+  await page.getByRole('heading', { name: 'Hallo' }).click();
 
-  // Click reveal again to test audio restart
-  const revealButton2 = page.locator('button').filter({ hasText: 'Reveal' });
-  if (await revealButton2.isVisible()) {
-    await revealButton2.click();
-  }
+  await page.getByRole('heading', { name: 'helló' }).click();
 
   // Check for audio-related errors
   const audioErrors = consoleMessages.filter(
@@ -86,8 +69,7 @@ test('voice selection dialog audio', async ({ page }) => {
 
   // Check for service-related errors
   const serviceErrors = consoleMessages.filter(
-    (msg) =>
-      msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
+    (msg) => msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
   );
   expect(serviceErrors.length).toBe(0);
 });
@@ -138,10 +120,11 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('heading', { name: 'ház' })).toBeVisible();
 
-  // Click the voice selection button
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
@@ -177,16 +160,17 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('heading', { name: 'autó' })).toBeVisible();
 
-  // Click the voice selection button
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
 
   // Wait for dialog to open
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify no voice cards are visible (both language groups should be empty)
-  const voiceCards = page.locator('.voice-card:not(.skeleton)');
+  const voiceCards = page.getByRole('dialog').getByRole('button', { name: /^Voice:/ });
   await expect(voiceCards).toHaveCount(0);
 });
 
@@ -220,9 +204,11 @@ test('voice selection dialog displays model for each voice configuration', async
   });
 
   await page.goto('/sources/goethe-a1/study');
-  await page.waitForSelector('app-learn-card', { timeout: 10000 });
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Voice Selection' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
   await expect(page.getByRole('heading', { name: 'Voice Selection' })).toBeVisible();
 
   // Verify both voices with their respective models are displayed
@@ -230,4 +216,40 @@ test('voice selection dialog displays model for each voice configuration', async
   await expect(page.getByText('German Turbo Voice')).toBeVisible();
   await expect(page.getByText('eleven_v3')).toBeVisible();
   await expect(page.getByText('eleven_turbo_v2_5')).toBeVisible();
+});
+
+test('speech card audio plays on study page', async ({ page }) => {
+  await createCard({
+    cardId: 'speech-audio-test',
+    sourceId: 'speech-a1',
+    data: {
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  const consoleMessages: any[] = [];
+  page.on('console', (msg) => consoleMessages.push(msg));
+
+  await page.goto('/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard.getByText('Jó reggelt, hogy van?' )).toBeVisible();
+
+  await flashcard.click();
+
+  await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?' )).toBeVisible();
+
+  const audioErrors = consoleMessages.filter(
+    (msg) => msg.text().toLowerCase().includes('audio') && msg.type() === 'error'
+  );
+  expect(audioErrors.length).toBe(0);
 });

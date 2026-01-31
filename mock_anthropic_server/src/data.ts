@@ -5,7 +5,19 @@ interface WordData {
 }
 
 export const WORD_LISTS: Record<string, WordData[]> = {
-  'aber_abfahren': [
+  hoeren_lied: [
+    {
+      word: 'hören',
+      forms: ['hört', 'hörte', 'gehört'],
+      examples: ['Hören Sie. Wie heißt das Lied?'],
+    },
+    {
+      word: 'das Lied',
+      forms: ['die Lieder'],
+      examples: ['Das Lied ist sehr schön.'],
+    },
+  ],
+  aber_abfahren: [
     {
       word: 'aber',
       forms: [],
@@ -22,7 +34,7 @@ export const WORD_LISTS: Record<string, WordData[]> = {
       examples: ['Vor der Abfahrt rufe ich an.'],
     },
   ],
-  'absender_adresse': [
+  absender_adresse: [
     {
       word: 'der Absender',
       forms: [],
@@ -43,11 +55,19 @@ export const WORD_LISTS: Record<string, WordData[]> = {
 
 export const TRANSLATIONS: Record<string, Record<string, { translation: string; examples: string[] }>> = {
   english: {
-    'aber': {
+    hören: {
+      translation: 'to hear, to listen',
+      examples: ['Listen. What is the song called?'],
+    },
+    'das Lied': {
+      translation: 'the song',
+      examples: ['The song is very beautiful.'],
+    },
+    aber: {
       translation: 'but, however',
       examples: ['From tomorrow I have to work.'],
     },
-    'abfahren': {
+    abfahren: {
       translation: 'to depart, to leave',
       examples: ["We are departing at twelve o'clock.", 'When does the train leave?'],
     },
@@ -59,7 +79,7 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'sender',
       examples: ['There is a letter for you without a sender.'],
     },
-    'Achtung': {
+    Achtung: {
       translation: 'attention, watch out',
       examples: ['Attention! You must not do that.'],
     },
@@ -69,11 +89,19 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   hungarian: {
-    'aber': {
+    hören: {
+      translation: 'hallani, hallgatni',
+      examples: ['Figyeljen. Hogy hívják a dalt?'],
+    },
+    'das Lied': {
+      translation: 'a dal',
+      examples: ['A dal nagyon szép.'],
+    },
+    aber: {
       translation: 'de, azonban',
       examples: ['Holnaptól dolgoznom kell.'],
     },
-    'abfahren': {
+    abfahren: {
       translation: 'elindulni, elhagyni',
       examples: ['Tizenkét órakor indulunk.', 'Mikor indul a vonat?'],
     },
@@ -85,7 +113,7 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'feladó',
       examples: ['Itt van egy levél neked feladó nélkül.'],
     },
-    'Achtung': {
+    Achtung: {
       translation: 'figyelem, vigyázat',
       examples: ['Figyelem! Ezt nem szabad csinálni.'],
     },
@@ -95,11 +123,19 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   'swiss-german': {
-    'aber': {
+    hören: {
+      translation: 'ghöra, lose',
+      examples: ['Losed Sie. Wie heisst s Lied?'],
+    },
+    'das Lied': {
+      translation: 's Lied',
+      examples: ['S Lied isch sehr schön.'],
+    },
+    aber: {
       translation: 'aber, doch',
       examples: ['Ab morn muesi schaffe.'],
     },
-    'abfahren': {
+    abfahren: {
       translation: 'abfahra, verlah',
       examples: ['Mir fahred am zwöufi ab.', 'Wänn fahrt de Zug ab?'],
     },
@@ -111,7 +147,7 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'de Absänder',
       examples: ['Da isch en Brief für di ohni Absänder.'],
     },
-    'Achtung': {
+    Achtung: {
       translation: 'Achtig, pass uf',
       examples: ['Achtig! Das dörfed Sie nöd mache.'],
     },
@@ -123,17 +159,44 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
 };
 
 export const GENDERS: Record<string, string> = {
+  'das Lied': 'NEUTER',
   'die Abfahrt': 'FEMININE',
   'der Absender': 'MASCULINE',
-  'Achtung': 'FEMININE',
-  'die Adresse': 'FEMININE'
+  Achtung: 'FEMININE',
+  'die Adresse': 'FEMININE',
 };
 
 export const WORD_TYPES: Record<string, string> = {
-  'aber': 'CONJUNCTION',
-  'abfahren': 'VERB',
+  hören: 'VERB',
+  'das Lied': 'NOUN',
+  aber: 'CONJUNCTION',
+  abfahren: 'VERB',
   'die Abfahrt': 'NOUN',
   'der Absender': 'NOUN',
-  'Achtung': 'NOUN',
+  Achtung: 'NOUN',
   'die Adresse': 'NOUN',
+};
+
+export const SENTENCE_LISTS: Record<string, string[]> = {
+  speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
+};
+
+export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
+  grammar_sentences: [
+    'Das [ist] Paco.',
+    'Und [das] ist Frau Wachter.',
+  ],
+};
+
+export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  hungarian: {
+    'Hören Sie.': 'Hallgasson.',
+    'Wie heißt das Lied?': 'Hogy hívják a dalt?',
+  },
+  english: {
+    'Hören Sie.': 'Listen.',
+    'Wie heißt das Lied?': 'What is the name of the song?',
+    'Das [ist] Paco.': 'This is Paco.',
+    'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
+  },
 };

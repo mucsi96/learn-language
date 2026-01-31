@@ -8,10 +8,12 @@ import {
   Injector,
   untracked,
 } from '@angular/core';
-import { Page, WordList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
+import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
-import { MultiModelService } from './multi-model.service';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
+import { ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
+import { PagedSelection, SelectionStateService } from './selection-state.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
 type SelectedRectangle = {
@@ -20,7 +22,7 @@ type SelectedRectangle = {
   width: number;
   height: number;
 };
-type SelectedRectangles = SelectedRectangle[];
+type ExtractionGroup = PagedSelection[];
 
 @Injectable({
   providedIn: 'root',
@@ -28,9 +30,10 @@ type SelectedRectangles = SelectedRectangle[];
 export class PageService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
-  private readonly multiModelService = inject(MultiModelService);
+  private readonly strategyRegistry = inject(CardTypeRegistry);
+  private readonly selectionStateService = inject(SelectionStateService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
-  private readonly selectedRectangles = signal<SelectedRectangles>([]);
+  private readonly extractionGroups = signal<ExtractionGroup[]>([]);
 
   readonly page = resource({
     params: () => ({
@@ -48,27 +51,41 @@ export class PageService {
     },
   });
 
+  readonly documentImage = resource({
+    params: () => ({
+      page: this.page.value(),
+    }),
+    loader: async ({ params: { page } }) => {
+      if (!page || page.sourceType !== 'images' || !page.hasImage) {
+        return null;
+      }
+
+      return fetchAsset(
+        this.http,
+        `/api/source/${page.sourceId}/document/${page.number}/image`
+      );
+    },
+  });
+
   readonly selectionRegions = linkedSignal<
-    SelectedRectangles,
-    ResourceRef<WordList | undefined>[]
+    ExtractionGroup[],
+    ResourceRef<ExtractionRegion | undefined>[]
   >({
-    source: this.selectedRectangles,
-    computation: (selectedRectangles, previous) => untracked(() =>{
+    source: this.extractionGroups,
+    computation: (groups, previous) => untracked(() =>{
       const selectedSource = this.selectedSource();
-      if (!selectedSource || selectedRectangles.length === 0) {
+      const page = this.page.value();
+      if (!selectedSource || groups.length === 0) {
         return [];
       }
 
       const previousResources = previous?.value || [];
-      const previousRectangles = previous?.source || [];
+      const previousGroups = previous?.source || [];
+      const strategy = this.strategyRegistry.getStrategy(page?.cardType);
 
-      return selectedRectangles.map((rectangle) => {
-        const existingIndex = previousRectangles.findIndex(
-          (prevRect) =>
-            prevRect.x === rectangle.x &&
-            prevRect.y === rectangle.y &&
-            prevRect.width === rectangle.width &&
-            prevRect.height === rectangle.height
+      return groups.map((group) => {
+        const existingIndex = previousGroups.findIndex(
+          (prevGroup) => this.groupsEqual(prevGroup, group)
         );
 
         if (existingIndex !== -1 && previousResources[existingIndex]) {
@@ -77,16 +94,26 @@ export class PageService {
 
         return resource({
           injector: this.injector,
-          loader: async () => {
-            const { sourceId, pageNumber } = selectedSource;
-            const { x, y, width, height } = rectangle;
+          loader: async (): Promise<ExtractionRegion> => {
+            const { sourceId } = selectedSource;
 
-            return this.multiModelService.call<WordList>(
-              (model: string) => fetchJson<WordList>(
-                this.http,
-                `/api/source/${sourceId}/page/${pageNumber}/words?x=${x}&y=${y}&width=${width}&height=${height}&model=${model}`
-              )
-            );
+            const regions = group.map((sel) => ({
+              pageNumber: sel.pageNumber,
+              ...sel.rectangle,
+            }));
+
+            const items = await strategy.extractItems({
+              sourceId,
+              regions,
+            });
+
+            const selections: ExtractionRegionSelection[] = group.map((sel) => ({
+              sourceId: sel.sourceId,
+              pageNumber: sel.pageNumber,
+              rectangle: sel.rectangle,
+            }));
+
+            return { selections, items };
           },
         });
       });
@@ -95,6 +122,7 @@ export class PageService {
 
   reload() {
     this.page.reload();
+    this.documentImage.reload();
     this.selectionRegions().forEach((region) => {
       region.reload();
     });
@@ -111,7 +139,6 @@ export class PageService {
         sourceId: selectedSource.sourceId,
         pageNumber,
       });
-      this.clearSelection();
     }
   }
 
@@ -120,29 +147,49 @@ export class PageService {
   }
 
   addSelectedRectangle(rectangle: SelectedRectangle) {
-    this.selectedRectangles.update((rectangles) => {
-      const hasOverlap = rectangles.some(existing =>
-        this.rectanglesOverlap(existing, rectangle)
-      );
+    const selectedSource = this.selectedSource();
+    if (!selectedSource) {
+      return;
+    }
 
-      if (hasOverlap) {
-        return rectangles;
-      }
-
-      return [...rectangles, rectangle];
+    this.selectionStateService.addSelection({
+      sourceId: selectedSource.sourceId,
+      pageNumber: selectedSource.pageNumber,
+      rectangle,
     });
   }
 
-  private rectanglesOverlap(rect1: SelectedRectangle, rect2: SelectedRectangle): boolean {
-    return !(
-      rect1.x + rect1.width <= rect2.x ||
-      rect2.x + rect2.width <= rect1.x ||
-      rect1.y + rect1.height <= rect2.y ||
-      rect2.y + rect2.height <= rect1.y
-    );
+  confirmSelection() {
+    const allSelections = this.selectionStateService.allSelections();
+    if (allSelections.length === 0) {
+      return;
+    }
+
+    this.selectionStateService.clearSelections();
+    this.extractionGroups.update((current) => [...current, [...allSelections]]);
   }
 
-  clearSelection() {
-    this.selectedRectangles.set([]);
+  cancelSelection() {
+    this.selectionStateService.clearSelections();
+    this.extractionGroups.set([]);
+  }
+
+  clearExtraction() {
+    this.extractionGroups.set([]);
+  }
+
+  private groupsEqual(a: ExtractionGroup, b: ExtractionGroup): boolean {
+    if (a.length !== b.length) {
+      return false;
+    }
+    return a.every((selA, i) => {
+      const selB = b[i];
+      return selA.sourceId === selB.sourceId &&
+        selA.pageNumber === selB.pageNumber &&
+        selA.rectangle.x === selB.rectangle.x &&
+        selA.rectangle.y === selB.rectangle.y &&
+        selA.rectangle.width === selB.rectangle.width &&
+        selA.rectangle.height === selB.rectangle.height;
+    });
   }
 }

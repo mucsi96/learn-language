@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class SourceRequest {
     private String id;
     private String name;
+    private SourceType sourceType;
     private String fileName;
     private Integer startPage;
     private LanguageLevel languageLevel;
     private CardType cardType;
+    private SourceFormatType formatType;
 }

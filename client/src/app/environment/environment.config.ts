@@ -1,8 +1,10 @@
 import { InjectionToken } from '@angular/core';
 
+export type ModelProvider = 'openai' | 'anthropic' | 'google';
+
 export interface ChatModelInfo {
   modelName: string;
-  primary: boolean;
+  provider: ModelProvider;
 }
 
 export interface ImageModel {
@@ -28,6 +30,26 @@ export interface SupportedLanguage {
   displayName: string;
 }
 
+export interface OperationTypeInfo {
+  code: string;
+  displayName: string;
+}
+
+export interface LanguageLevelInfo {
+  code: string;
+  displayName: string;
+}
+
+export interface SourceFormatTypeInfo {
+  code: string;
+  displayName: string;
+}
+
+export interface SourceTypeInfo {
+  code: string;
+  displayName: string;
+}
+
 export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
@@ -38,6 +60,12 @@ export interface EnvironmentConfig {
   audioModels: AudioModel[];
   voices: Voice[];
   supportedLanguages: SupportedLanguage[];
+  enabledModelsByOperation: Record<string, string[]>;
+  primaryModelByOperation: Record<string, string>;
+  operationTypes: OperationTypeInfo[];
+  languageLevels: LanguageLevelInfo[];
+  sourceFormatTypes: SourceFormatTypeInfo[];
+  sourceTypes: SourceTypeInfo[];
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');

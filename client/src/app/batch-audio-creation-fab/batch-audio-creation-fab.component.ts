@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
-import { Card } from '../parser/types';
+import { Card, CardType } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
@@ -56,12 +56,27 @@ export class BatchAudioCreationFabComponent {
     });
 
     try {
-      const result = await this.batchAudioService.createAudioInBatch(cards);
+      const cardsByCardType = this.groupCardsByCardType(cards);
+      const cardTypes = Object.keys(cardsByCardType) as CardType[];
 
-      if (result.successfulCards > 0) {
+      const results = await cardTypes.reduce<Promise<{ successful: number; failed: number }>>(
+        async (accPromise, cardType) => {
+          const acc = await accPromise;
+          const typeCards = cardsByCardType[cardType] ?? [];
+          if (typeCards.length === 0) return acc;
+          const result = await this.batchAudioService.createAudioInBatch(typeCards, cardType);
+          return {
+            successful: acc.successful + result.successfulCards,
+            failed: acc.failed + result.failedCards
+          };
+        },
+        Promise.resolve({ successful: 0, failed: 0 })
+      );
+
+      if (results.successful > 0) {
         this.cards.reload();
         this.snackBar.open(
-          `Audio generated successfully for ${result.successfulCards} card${result.successfulCards === 1 ? '' : 's'}!`,
+          `Audio generated successfully for ${results.successful} card${results.successful === 1 ? '' : 's'}!`,
           'Close',
           {
             duration: 5000,
@@ -71,9 +86,9 @@ export class BatchAudioCreationFabComponent {
         );
       }
 
-      if (result.failedCards > 0) {
+      if (results.failed > 0) {
         this.snackBar.open(
-          `Failed to generate audio for ${result.failedCards} card${result.failedCards === 1 ? '' : 's'}. Check the console for details.`,
+          `Failed to generate audio for ${results.failed} card${results.failed === 1 ? '' : 's'}. Check the console for details.`,
           'Close',
           {
             duration: 8000,
@@ -93,5 +108,19 @@ export class BatchAudioCreationFabComponent {
         }
       );
     }
+  }
+
+  private groupCardsByCardType(cards: Card[]): Partial<Record<CardType, Card[]>> {
+    return cards.reduce<Partial<Record<CardType, Card[]>>>(
+      (acc, card) => {
+        const cardType = card.source.cardType;
+        if (!cardType) return acc;
+        return {
+          ...acc,
+          [cardType]: [...(acc[cardType] ?? []), card]
+        };
+      },
+      {}
+    );
   }
 }

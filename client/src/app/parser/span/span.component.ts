@@ -1,13 +1,14 @@
 import { Component, HostBinding, inject, input, ResourceRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { BBox, WordList } from '../types';
+import { BBox } from '../types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AsyncPipe } from '@angular/common';
-import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { RouterModule } from '@angular/router';
+import { ExtractionRegion, ExtractedItem } from '../types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
+import { PageService } from '../../page.service';
+import { SpanMatchComponent } from './span-match.component';
 
 @Component({
   selector: 'app-span',
@@ -16,10 +17,8 @@ import { RouterModule } from '@angular/router';
     MatIconModule,
     MatTooltipModule,
     MatMenuModule,
-    MatDialogModule,
-    AsyncPipe,
-    CompressQueryPipe,
     RouterModule,
+    SpanMatchComponent,
   ],
   templateUrl: './span.component.html',
   styleUrl: './span.component.css',
@@ -33,13 +32,14 @@ export class SpanComponent {
   readonly color = input<string>();
   readonly bbox = input<BBox>();
   readonly searchTerm = input<string>();
-  readonly exists = input<boolean>();
-  readonly selectionRegions = input<ResourceRef<WordList | undefined>[]>();
-  readonly dialog = inject(MatDialog);
+  readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
+  private readonly strategyRegistry = inject(CardTypeRegistry);
+  private readonly pageService = inject(PageService);
 
   get matches() {
     const selectionRegions = this.selectionRegions();
-    if (!this.searchTerm() || !selectionRegions?.length) {
+    const searchTerm = this.searchTerm();
+    if (!searchTerm || !selectionRegions?.length) {
       return [];
     }
 
@@ -48,26 +48,33 @@ export class SpanComponent {
       return [];
     }
 
+    const currentPageNumber = this.pageNumber();
     const matchingRegion = selectionRegions.find(region => {
       const regionValue = region.value();
       if (!regionValue) {
         return false;
       }
 
-      const { x, y, width, height } = regionValue;
-      return spanBBox.y >= y &&
-        spanBBox.y <= y + height &&
-        spanBBox.x >= x &&
-        spanBBox.x <= x + width;
+      return regionValue.selections.some(sel => {
+        if (sel.pageNumber !== currentPageNumber) {
+          return false;
+        }
+        const { x, y, width, height } = sel.rectangle;
+        return spanBBox.y >= y &&
+          spanBBox.y <= y + height &&
+          spanBBox.x >= x &&
+          spanBBox.x <= x + width;
+      });
     });
 
-    if (!matchingRegion) {
+    const items = matchingRegion?.value()?.items;
+    if (!items) {
       return [];
     }
 
-    return matchingRegion.value()?.words?.filter((word) =>
-      word.word.toLowerCase().includes(this.searchTerm()!.toLowerCase())
-    ) || [];
+    const page = this.pageService.page.value();
+    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    return strategy.filterItemsBySearchTerm(items, searchTerm);
   }
 
   @HostBinding('style.top') get top() {
@@ -108,11 +115,9 @@ export class SpanComponent {
     return `calc(var(--page-width) * ${height})`;
   }
 
-  get cardHrefPrefix() {
-    return `/sources/${this.sourceId()}/page/${this.pageNumber()}/cards?cardData=`;
-  }
-
-  get ariaDescription() {
-    return this.exists() ?  'Card exists' : 'Card does not exist';
+  getItemLabel(item: ExtractedItem): string {
+    const page = this.pageService.page.value();
+    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    return strategy.getItemLabel(item);
   }
 }

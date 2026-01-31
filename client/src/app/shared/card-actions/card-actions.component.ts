@@ -1,15 +1,16 @@
-import { Component, inject, input, output, ResourceRef } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AsyncPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../../utils/fetchJson';
-import { CompressQueryPipe } from '../../utils/compress-query.pipe';
 import { AudioData } from '../types/audio-generation.types';
-import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { LanguageTexts } from '../../parser/types';
+import { CardResourceLike } from '../types/card-resource.types';
 
 @Component({
   selector: 'app-card-actions',
@@ -17,16 +18,14 @@ import { VoiceSelectionDialogComponent, LanguageTexts } from '../voice-selection
   imports: [
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
+    MatMenuModule,
     RouterModule,
-    AsyncPipe,
-    CompressQueryPipe,
   ],
   templateUrl: './card-actions.component.html',
   styleUrl: './card-actions.component.css',
 })
 export class CardActionsComponent {
-  card = input<ResourceRef<any>>();
+  card = input<CardResourceLike>();
   languageTexts = input<LanguageTexts[]>([]);
   markedForReview = output<void>();
   cardProcessed = output<void>();
@@ -46,7 +45,7 @@ export class CardActionsComponent {
         body: { readiness: 'IN_REVIEW' },
         method: 'PUT',
       });
-      this.card()?.reload();
+      this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {
       console.error('Error marking card for review:', error);
@@ -79,11 +78,10 @@ export class CardActionsComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe(async (updatedAudio: AudioData[] | undefined) => {
-      if (updatedAudio) {
-        await this.updateCardAudio(updatedAudio);
-      }
-    });
+    const updatedAudio = await firstValueFrom(dialogRef.afterClosed());
+    if (updatedAudio) {
+      await this.updateCardAudio(updatedAudio);
+    }
   }
 
   private async updateCardAudio(audio: AudioData[]) {
@@ -107,7 +105,7 @@ export class CardActionsComponent {
           },
         },
       });
-      this.card()?.reload();
+      this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {
       console.error('Error saving voice selection:', error);

@@ -1,6 +1,50 @@
 import { WordData } from './types';
 
 export const WORD_LISTS: Record<string, WordData[]> = {
+  'aber_absender_combined': [
+    {
+      word: 'aber',
+      forms: [],
+      examples: ['Ab morgen muss ich arbeiten.'],
+    },
+    {
+      word: 'abfahren',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      examples: ['Wir fahren um zwölf Uhr ab.', 'Wann fährt der Zug ab?'],
+    },
+    {
+      word: 'die Abfahrt',
+      forms: ['die Abfahrten'],
+      examples: ['Vor der Abfahrt rufe ich an.'],
+    },
+    {
+      word: 'der Absender',
+      forms: [],
+      examples: ['Da ist ein Brief für dich ohne Absender.'],
+    },
+    {
+      word: 'Achtung',
+      forms: [],
+      examples: ['Achtung! Das dürfen Sie nicht tun.'],
+    },
+    {
+      word: 'die Adresse',
+      forms: ['die Adressen'],
+      examples: ['Können Sie mir seine Adresse sagen?'],
+    },
+  ],
+  'hoeren_lied': [
+    {
+      word: 'hören',
+      forms: ['hört', 'hörte', 'gehört'],
+      examples: ['Hören Sie. Wie heißt das Lied?'],
+    },
+    {
+      word: 'das Lied',
+      forms: ['die Lieder'],
+      examples: ['Das Lied ist sehr schön.'],
+    },
+  ],
   'aber_abfahren': [
     {
       word: 'aber',
@@ -39,6 +83,14 @@ export const WORD_LISTS: Record<string, WordData[]> = {
 
 export const TRANSLATIONS: Record<string, Record<string, { translation: string; examples: string[] }>> = {
   english: {
+    'hören': {
+      translation: 'to hear, to listen',
+      examples: ['Listen. What is the song called?'],
+    },
+    'das Lied': {
+      translation: 'the song',
+      examples: ['The song is very beautiful.'],
+    },
     'aber': {
       translation: 'but, however',
       examples: ['From tomorrow I have to work.'],
@@ -65,6 +117,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   hungarian: {
+    'hören': {
+      translation: 'hallani, hallgatni',
+      examples: ['Figyeljen. Hogy hívják a dalt?'],
+    },
+    'das Lied': {
+      translation: 'a dal',
+      examples: ['A dal nagyon szép.'],
+    },
     'aber': {
       translation: 'de, azonban',
       examples: ['Holnaptól dolgoznom kell.'],
@@ -91,6 +151,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   'swiss-german': {
+    'hören': {
+      translation: 'ghöra, lose',
+      examples: ['Losed Sie. Wie heisst s Lied?'],
+    },
+    'das Lied': {
+      translation: 's Lied',
+      examples: ['S Lied isch sehr schön.'],
+    },
     'aber': {
       translation: 'aber, doch',
       examples: ['Ab morn muesi schaffe.'],
@@ -119,6 +187,7 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
 };
 
 export const GENDERS: Record<string, string> = {
+  'das Lied': 'NEUTER',
   'die Abfahrt': 'FEMININE',
   'der Absender': 'MASCULINE',
   'Achtung': 'FEMININE',
@@ -126,10 +195,36 @@ export const GENDERS: Record<string, string> = {
 };
 
 export const WORD_TYPES: Record<string, string> = {
+  'hören': 'VERB',
+  'das Lied': 'NOUN',
   'aber': 'CONJUNCTION',
   'abfahren': 'VERB',
   'die Abfahrt': 'NOUN',
   'der Absender': 'NOUN',
   'Achtung': 'NOUN',
   'die Adresse': 'NOUN',
+};
+
+export const SENTENCE_LISTS: Record<string, string[]> = {
+  speech_sentences: ['Hören Sie.', 'Wie heißt das Lied?'],
+};
+
+export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
+  grammar_sentences: [
+    'Das [ist] Paco.',
+    'Und [das] ist Frau Wachter.',
+  ],
+};
+
+export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  hungarian: {
+    'Hören Sie.': 'Hallgasson.',
+    'Wie heißt das Lied?': 'Hogy hívják a dalt?',
+  },
+  english: {
+    'Hören Sie.': 'Listen.',
+    'Wie heißt das Lied?': 'What is the name of the song?',
+    'Das [ist] Paco.': 'This is Paco.',
+    'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
+  },
 };

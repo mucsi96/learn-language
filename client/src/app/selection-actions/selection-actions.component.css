@@ -1,0 +1,28 @@
+.selection-actions {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  gap: 12px;
+}
+
+.selection-actions button {
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.14),
+              0 7px 10px -5px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+}
+
+.selection-actions button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.2),
+              0 10px 15px -5px rgba(0, 0, 0, 0.4);
+}
+
+:host {
+  pointer-events: none;
+}
+
+.selection-actions {
+  pointer-events: auto;
+}

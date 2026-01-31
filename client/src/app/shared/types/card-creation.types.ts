@@ -1,35 +1,10 @@
-import { CardData, Word } from '../../parser/types';
+import { CardType } from '../../parser/types';
 
-export type CardType = 'vocabulary';
-
-export interface CardCreationRequest {
-  word: Word;
-  sourceId: string;
-  pageNumber: number;
+export type CardCreationProgress = {
+  itemLabel: string;
   cardType: CardType;
-}
-
-export interface ImageGenerationInfo {
-  cardId: string;
-  exampleIndex: number;
-  englishTranslation: string;
-}
-
-export interface CardCreationResult {
-  cardData: CardData;
-  imageGenerationInfos: ImageGenerationInfo[];
-}
-
-export interface CardCreationStrategy {
-  cardType: CardType;
-  createCardData(request: CardCreationRequest, progressCallback: (progress: number, step: string) => void): Promise<CardCreationResult>;
-}
-
-export interface CardCreationProgress {
-  word: string;
-  cardType: CardType;
-  status: 'pending' | 'word-type' | 'translating' | 'generating-images' | 'creating-card' | 'completed' | 'error';
-  progress: number; // 0-100
+  status: 'pending' | 'translating' | 'generating-images' | 'creating-card' | 'completed' | 'error';
+  progress: number;
   error?: string;
   currentStep?: string;
 }

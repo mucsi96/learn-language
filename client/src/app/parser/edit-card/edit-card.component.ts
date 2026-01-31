@@ -1,21 +1,25 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
-import { injectQueryParams } from '../../utils/inject-query-params';
-import { queryParamToObject } from '../../utils/queryCompression';
-import { Word, Card } from '../types';
+import { firstValueFrom } from 'rxjs';
+import { injectParams } from '../../utils/inject-params';
+import { Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { InReviewCardsService } from '../../in-review-cards.service';
 import { fetchJson } from '../../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
+import { EditSpeechCardComponent } from './edit-speech-card/edit-speech-card.component';
+import { EditGrammarCardComponent } from './edit-grammar-card/edit-grammar-card.component';
+import { CardType } from '../types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-edit-card',
@@ -26,6 +30,8 @@ import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabul
     MatIcon,
     RouterModule,
     EditVocabularyCardComponent,
+    EditSpeechCardComponent,
+    EditGrammarCardComponent,
   ],
   templateUrl: './edit-card.component.html',
   styleUrl: './edit-card.component.css',
@@ -33,26 +39,28 @@ import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabul
 export class EditCardComponent {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routePageNumber = injectParams('pageNumber');
+  private readonly routeCardId = injectParams('cardId');
   readonly inReviewCardsService = inject(InReviewCardsService);
-  readonly route = inject(ActivatedRoute);
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
-  readonly cardData = injectQueryParams<string>('cardData');
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
-  readonly selectedWord = signal<Word | undefined>(undefined);
+  readonly selectedCardId = signal<string | undefined>(undefined);
   readonly markAsReviewedAvailable = signal<boolean>(false);
   readonly pendingCardEdits = signal<any>(undefined);
 
-  readonly card = resource<Card | undefined, { selectedWord: Word | undefined }>({
-    params: () => ({ selectedWord: this.selectedWord() }),
-    loader: async ({ params: { selectedWord } }) => {
-      if (!selectedWord || !selectedWord.exists) {
+  readonly card = resource<Card | undefined, { cardId: string | undefined }>({
+    params: () => ({ cardId: this.selectedCardId() }),
+    loader: async ({ params: { cardId } }) => {
+      if (!cardId) {
         return;
       }
 
-      const card = await fetchJson<Card>(this.http, `/api/card/${selectedWord.id}`);
+      const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
       return mapCardDatesFromISOStrings(card);
     },
   });
@@ -82,27 +90,28 @@ export class EditCardComponent {
   });
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      this.selectedSourceId.set(params['sourceId']);
-      this.selectedPageNumber.set(parseInt(params['pageNumber']));
-    });
-
-    this.route.queryParams.subscribe(async (params) => {
-      const cardData = params['cardData'];
-      if (typeof cardData === 'string') {
-        const word = await queryParamToObject<Word>(cardData);
-        this.selectedWord.set(word);
-      }
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      const pageNumber = this.routePageNumber();
+      const cardId = this.routeCardId();
+      if (sourceId) this.selectedSourceId.set(String(sourceId));
+      if (pageNumber) this.selectedPageNumber.set(parseInt(String(pageNumber)));
+      if (cardId) this.selectedCardId.set(String(cardId));
     });
   }
 
-  getCardType(): string {
-    // For now, we only have vocabulary cards, but this can be extended
-    return 'vocabulary';
+  getCardType(): CardType | undefined {
+    return this.card.value()?.source.cardType;
   }
 
   getCardTypeTitle(): string {
-    return 'Word';
+    const card = this.card.value();
+    const cardType = card?.source.cardType;
+    if (!card || !cardType) {
+      return '';
+    }
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getCardTypeLabel(card);
   }
 
   handleCardUpdate(cardData: any) {
@@ -119,14 +128,14 @@ export class EditCardComponent {
   }
 
   async saveCard() {
-    const word = this.selectedWord();
+    const cardId = this.selectedCardId();
     const pendingEdits = this.pendingCardEdits();
 
-    if (!word || !pendingEdits) {
+    if (!cardId || !pendingEdits) {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       body: pendingEdits,
       method: 'PUT',
     });
@@ -136,8 +145,8 @@ export class EditCardComponent {
   }
 
   async markAsReviewed() {
-    const word = this.selectedWord();
-    if (!word) {
+    const cardId = this.selectedCardId();
+    if (!cardId) {
       return;
     }
 
@@ -146,7 +155,7 @@ export class EditCardComponent {
       ? { ...pendingEdits, readiness: 'REVIEWED' }
       : { readiness: 'REVIEWED' };
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       body: requestBody,
       method: 'PUT',
     });
@@ -163,27 +172,24 @@ export class EditCardComponent {
       data: { message: 'Are you sure you want to delete this card?' },
     });
 
-    dialogRef.afterClosed().subscribe(async (result) => {
-      if (result) {
-        await this.deleteCard();
-        this.showSnackBar('Card deleted successfully');
-        // Navigate back to the appropriate page after deletion
-        await this.router.navigate(this.backNavigationUrl());
-      }
-    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      await this.deleteCard();
+      this.showSnackBar('Card deleted successfully');
+      await this.router.navigate(this.backNavigationUrl());
+    }
   }
 
   private async deleteCard() {
-    const word = this.selectedWord();
-    if (!word) {
+    const cardId = this.selectedCardId();
+    if (!cardId) {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${word.id}`, {
+    await fetchJson(this.http, `/api/card/${cardId}`, {
       method: 'DELETE',
     });
 
-    // Refresh the in-review cards if we deleted an in-review card
     if (this.isInReview()) {
       this.inReviewCardsService.refetchCards();
     }

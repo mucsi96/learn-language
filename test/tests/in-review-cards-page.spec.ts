@@ -1,18 +1,12 @@
 import { test, expect } from '../fixtures';
-import {
-  createCard,
-  uploadMockImage,
-  yellowImage,
-  redImage,
-  withDbConnection,
-} from '../utils';
+import { createCard, uploadMockImage, yellowImage, redImage, withDbConnection } from '../utils';
 
 test('displays in review cards in table', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   // Create cards with IN_REVIEW readiness
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -36,7 +30,7 @@ test('displays in review cards in table', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-b1',
     sourcePageNumber: 22,
     data: {
@@ -51,7 +45,7 @@ test('displays in review cards in table', async ({ page }) => {
 
   // Create a card that should not appear (READY readiness)
   await createCard({
-    cardId: 'lernen',
+    cardId: 'lernen-tanulni',
     sourceId: 'goethe-a2',
     sourcePageNumber: 10,
     data: {
@@ -65,25 +59,18 @@ test('displays in review cards in table', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // Check page title and description
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
   await expect(page.getByText('These cards are currently being reviewed')).toBeVisible();
 
   // Check table headers
   await expect(page.getByRole('columnheader', { name: 'Word' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Type' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Translation' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Source' })).toBeVisible();
 
   // Check that IN_REVIEW cards are displayed
   await expect(page.getByText('verstehen', { exact: true })).toBeVisible();
   await expect(page.getByText('sprechen', { exact: true })).toBeVisible();
   await expect(page.getByText('Ige', { exact: true })).toHaveCount(2); // Hungarian for "verb"
-
-  // Check translations are displayed
-  await expect(page.getByText('HU: érteni • EN: to understand • CH: verstoh')).toBeVisible();
-  await expect(page.getByText('HU: beszélni • EN: to speak')).toBeVisible();
 
   // Check source information
   await expect(page.getByText('Goethe A1')).toBeVisible();
@@ -97,7 +84,7 @@ test('displays in review cards in table', async ({ page }) => {
 
 test('navigation on row click', async ({ page }) => {
   await createCard({
-    cardId: 'schreiben',
+    cardId: 'schreiben-irni',
     sourceId: 'goethe-a2',
     sourcePageNumber: 18,
     data: {
@@ -125,7 +112,7 @@ test('navigation on row click', async ({ page }) => {
 
 test('navigation back after row click', async ({ page }) => {
   await createCard({
-    cardId: 'lesen',
+    cardId: 'lesen-olvasni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 12,
     data: {
@@ -153,16 +140,14 @@ test('navigation back after row click', async ({ page }) => {
 
   // Verify we're back on the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
   await expect(page.getByText('lesen', { exact: true })).toBeVisible();
 });
 
 test('displays empty state when no cards in review', async ({ page }) => {
   // Create cards that are not IN_REVIEW
   await createCard({
-    cardId: 'ready_card',
+    cardId: 'fertig-kesz',
     sourceId: 'goethe-a1',
     sourcePageNumber: 5,
     data: {
@@ -176,9 +161,7 @@ test('displays empty state when no cards in review', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // Check that empty state is displayed
-  await expect(
-    page.getByRole('heading', { name: 'No cards in review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
   // Check that table is not displayed
   await expect(page.getByRole('table')).not.toBeVisible();
 });
@@ -193,7 +176,7 @@ test('mark as reviewed button disabled when no example selected', async ({ page 
   const image2 = uploadMockImage(redImage);
 
   await createCard({
-    cardId: 'testen',
+    cardId: 'testen-tesztelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
@@ -231,7 +214,7 @@ test('mark as reviewed button disabled when no favorite image', async ({ page })
   const image2 = uploadMockImage(redImage);
 
   await createCard({
-    cardId: 'pruefen',
+    cardId: 'prufen-ellenorizni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 10,
     data: {
@@ -270,7 +253,7 @@ test('mark as reviewed button enabled when conditions met', async ({ page }) => 
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'kontrollieren',
+    cardId: 'kontrollieren-iranyitani',
     sourceId: 'goethe-a1',
     sourcePageNumber: 11,
     data: {
@@ -310,7 +293,7 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'verwalten',
+    cardId: 'verwalten-kezelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 12,
     data: {
@@ -349,9 +332,7 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
 
   // Verify readiness was updated in database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness FROM learn_language.cards WHERE id = 'verwalten'"
-    );
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verwalten-kezelni'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('REVIEWED');
   });
@@ -361,7 +342,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'organisieren',
+    cardId: 'organisieren-szervezni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 13,
     data: {
@@ -403,9 +384,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
 
   // Verify both readiness and card data were updated in database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness, data FROM learn_language.cards WHERE id = 'organisieren'"
-    );
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'organisieren-szervezni'");
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('REVIEWED');
 
@@ -418,7 +397,7 @@ test('navigation back after mark as reviewed', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'koordinieren',
+    cardId: 'koordinieren-koordinalni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 14,
     data: {
@@ -460,9 +439,7 @@ test('navigation back after mark as reviewed', async ({ page }) => {
 
   // Verify we're back on the in-review-cards page
   await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(
-    page.getByRole('heading', { name: 'Cards In Review', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
 
   await expect(page.getByRole('row').filter({ hasText: 'koordinieren' })).not.toBeVisible();
 });
@@ -471,7 +448,7 @@ test('mark as reviewed button enabled after toggling favorite', async ({ page })
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'bewerten',
+    cardId: 'bewerten-ertekelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -514,4 +491,61 @@ test('mark as reviewed button enabled after toggling favorite', async ({ page })
 
   // Verify the button becomes disabled again
   await expect(markAsReviewedBtn).toBeDisabled();
+});
+
+test('displays speech cards in review with correct type', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 20,
+    data: {
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  const row = page.getByRole('row').filter({ hasText: 'Guten Morgen, wie geht es Ihnen?' });
+  await expect(row.getByText('Sentence', { exact: true })).toBeVisible();
+});
+
+test('speech card navigation from in-review page', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'e5f6g7h8',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 21,
+    data: {
+      examples: [
+        {
+          de: 'Ich fahre mit dem Bus.',
+          hu: 'Busszal megyek.',
+          en: 'I take the bus.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  const row = page.getByRole('row').filter({ hasText: 'Ich fahre mit dem Bus.' });
+  await row.click();
+
+  await expect(page.getByLabel('German Sentence')).toHaveValue('Ich fahre mit dem Bus.');
+  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Busszal megyek.');
 });

@@ -28,7 +28,7 @@ async function setupVoiceConfigurations() {
 test('bulk audio fab appears when cards without audio exist', async ({ page }) => {
   // Create cards without audio
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -51,7 +51,7 @@ test('bulk audio fab appears when cards without audio exist', async ({ page }) =
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -82,7 +82,7 @@ test('bulk audio fab appears when cards without audio exist', async ({ page }) =
 test('bulk audio fab hides when all cards have audio', async ({ page }) => {
   // Create card with complete audio data
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -141,15 +141,13 @@ test('bulk audio fab hides when all cards have audio', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
 
   // FAB should not be visible since card has complete audio
-  await expect(
-    page.getByRole('button', { name: 'Generate audio for cards' })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
 
 test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
   // Create one card with audio
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -207,7 +205,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 
   // Create one card without audio
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -231,7 +229,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 
   // Create another card without audio
   await createCard({
-    cardId: 'lernen',
+    cardId: 'lernen-tanulni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -264,7 +262,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
 test('bulk audio creation opens progress dialog', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -293,15 +291,13 @@ test('bulk audio creation opens progress dialog', async ({ page }) => {
 
   // Progress dialog should open
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(
-    page.getByRole('dialog').getByRole('heading', { name: 'Creating Audio' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Creating Audio' })).toBeVisible();
 });
 
 test('bulk audio creation shows individual progress', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -324,7 +320,7 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -352,14 +348,14 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Check that individual cards are listed within the progress dialog
-  await expect(page.getByRole('dialog').getByText('verstehen')).toBeVisible();
-  await expect(page.getByRole('dialog').getByText('sprechen')).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('verstehen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('sprechen', { exact: true })).toBeVisible();
 });
 
 test('bulk audio creation creates audio in database', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -387,15 +383,11 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify audio data was added to database
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'verstehen'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -406,8 +398,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
     expect(Array.isArray(audioList)).toBeTruthy();
 
     // Helper function to find audio by text
-    const findAudioByText = (text: string) =>
-      audioList.find((audio: any) => audio.text === text);
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
 
     // Should have audio for German word (German samples)
     const verstehenAudio = findAudioByText('verstehen');
@@ -425,16 +416,14 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(
-      downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)
-    ).toBeTruthy();
+    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });
 
 test('bulk audio creation updates card readiness to ready', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -462,15 +451,11 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify card readiness was updated
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT readiness FROM learn_language.cards WHERE id = 'verstehen'"
-    );
+    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const readiness = result.rows[0].readiness;
@@ -482,7 +467,7 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
 test('bulk audio creation updates ui after completion', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
-    cardId: 'verstehen',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -505,7 +490,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
   });
 
   await createCard({
-    cardId: 'sprechen',
+    cardId: 'sprechen-beszelni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -536,9 +521,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
   await fab.click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 2 cards!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
 
   // Close the dialog
   await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
@@ -551,7 +534,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
   await setupVoiceConfigurations();
   // Create card with some existing audio
   await createCard({
-    cardId: 'partial-audio',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -590,15 +573,11 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Wait for creation to complete
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify audio data was completed
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'partial-audio'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
@@ -607,8 +586,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
     expect(Array.isArray(audioList)).toBeTruthy();
 
     // Helper function to find audio by text
-    const findAudioByText = (text: string) =>
-      audioList.find((audio: any) => audio.text === text);
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
 
     // Should preserve existing audio
     const verstehenAudio = findAudioByText('verstehen');
@@ -626,9 +604,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(
-      downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)
-    ).toBeTruthy();
+    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });
 
@@ -651,7 +627,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
   });
 
   await createCard({
-    cardId: 'test-card',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -675,7 +651,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
 
   // Should show error because Hungarian voice is disabled
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByText('No enabled voice configurations for Hungarian language')).toBeVisible();
+  await expect(page.getByText('No enabled voice configurations for languages: hu')).toBeVisible();
 });
 
 test('bulk audio creation succeeds with all enabled voice configurations', async ({ page }) => {
@@ -696,7 +672,7 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
   });
 
   await createCard({
-    cardId: 'test-card',
+    cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 15,
     data: {
@@ -719,15 +695,11 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   // Should complete successfully
-  await expect(
-    page.getByText('Audio generated successfully for 1 card!')
-  ).toBeVisible();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
   // Verify the generated audio uses the configured voice
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'test-card'"
-    );
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
 
     const cardData = result.rows[0].data;
     const audioList = cardData.audio;
@@ -748,5 +720,57 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
       expect(audio.voice).toBe('test-voice-hu');
       expect(audio.model).toBe('eleven_v3');
     });
+  });
+});
+
+test('bulk audio creation for speech cards', async ({ page }) => {
+  await setupVoiceConfigurations();
+  await createCard({
+    cardId: 'a1b2c3d4',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 20,
+    data: {
+      examples: [
+        {
+          de: 'Guten Morgen, wie geht es Ihnen?',
+          hu: 'Jó reggelt, hogy van?',
+          en: 'Good morning, how are you?',
+          isSelected: true,
+          images: [{ id: 'test-image-id', isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  const fab = page.getByRole('button', { name: 'Generate audio for cards' });
+  await expect(fab).toBeVisible();
+  await expect(fab).toContainText('Generate audio for 1 card');
+
+  await fab.click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'a1b2c3d4'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.audio).toBeDefined();
+    const audioList = cardData.audio;
+    expect(Array.isArray(audioList)).toBeTruthy();
+
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
+
+    const germanSentenceAudio = findAudioByText('Guten Morgen, wie geht es Ihnen?');
+    expect(germanSentenceAudio).toBeDefined();
+    expect(downloadAudio(germanSentenceAudio.id).equals(germanAudioSample)).toBeTruthy();
+
+    const hungarianTranslationAudio = findAudioByText('Jó reggelt, hogy van?');
+    expect(hungarianTranslationAudio).toBeDefined();
+    expect(downloadAudio(hungarianTranslationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });

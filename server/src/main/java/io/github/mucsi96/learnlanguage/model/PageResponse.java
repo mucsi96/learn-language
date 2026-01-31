@@ -13,15 +13,17 @@ public class PageResponse {
     private double height;
     private String sourceId;
     private String sourceName;
+    private SourceType sourceType;
+    private CardType cardType;
+    private SourceFormatType formatType;
+    private Boolean hasImage;
     private List<Span> spans;
 
     @Data
     @Builder
     public static class Span {
-        private String id;
         private String text;
         private String searchTerm;
-        private boolean exists;
         private Bbox bbox;
 
         @Data

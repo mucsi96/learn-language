@@ -1,0 +1,137 @@
+.chat-model-settings-container {
+  max-width: 100%;
+}
+
+mat-card {
+  height: fit-content;
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}
+
+.matrix-container {
+  overflow-x: auto;
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.matrix-table th,
+.matrix-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.matrix-table th {
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.model-header {
+  text-align: left !important;
+  width: 180px;
+  min-width: 180px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.operation-header {
+  min-width: 120px;
+  vertical-align: middle;
+}
+
+.operation-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.operation-name {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.enable-all-button {
+  transform: scale(0.8);
+}
+
+.model-name-cell {
+  text-align: left !important;
+  font-weight: 500;
+  background: var(--mat-sys-surface);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.model-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-logo {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.model-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggle-cell {
+  vertical-align: middle;
+}
+
+.cell-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.primary-radio {
+  transform: scale(0.85);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+tbody tr:hover {
+  background: var(--mat-sys-surface-container-low);
+}
+
+tbody tr:hover .model-name-cell {
+  background: var(--mat-sys-surface-container-low);
+}

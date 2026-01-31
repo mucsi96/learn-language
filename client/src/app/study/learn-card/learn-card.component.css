@@ -6,6 +6,29 @@
   max-width: 1200px;
 }
 
+.card-bottom-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.card-bottom-controls app-card-actions {
+  display: contents;
+}
+
+.turn-indicator {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--mat-sys-on-surface-variant);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .learn-card {
   position: relative;
   width: 100%;
@@ -18,8 +41,46 @@
   margin-bottom: 1rem;
 }
 
-.learn-card:active {
+.learn-card:active:not(:has(.card-bottom-controls:active)) {
   transform: scale(0.98);
+}
+
+.start-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem;
+  min-height: 400px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.start-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.start-state h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.start-state p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0 1.5rem 0;
+  max-width: 400px;
+}
+
+.start-state button {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
 }
 
 .empty-state {

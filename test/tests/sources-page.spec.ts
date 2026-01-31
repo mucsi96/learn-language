@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
 
 test('displays current page', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -41,23 +41,29 @@ test('bookmarks last visited page', async ({ page }) => {
   await expect(page.getByText('Seite 11')).toBeVisible();
 });
 
-test('highlights existing cards', async ({ page }) => {
+test('drag to select words highlights existing cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await createCard({
-    cardId: 'anfangen',
-    sourceId: 'goethe-a2',
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: {
-      word: 'anfangen',
+      word: 'abfahren',
       type: 'VERB',
-      translation: { en: 'to start' },
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
     },
   });
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A2' }).click();
-  await expect(page.getByText('anfangen,')).toHaveAccessibleDescription('Card exists');
+  await page.getByRole('link', { name: 'Goethe A1' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 
 test('drag to select words highlights matching words', async ({ page }) => {
+  await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
@@ -69,10 +75,23 @@ test('drag to select words highlights matching words', async ({ page }) => {
 });
 
 test('drag to select multiple regions highlights matching words', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
 
-  await page.locator('section[data-ready="true"]').waitFor();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
 
   await scrollElementToTop(page, 'A', true);
 
@@ -82,17 +101,17 @@ test('drag to select multiple regions highlights matching words', async ({ page 
   await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
 
   // Second region selection
-  await selectTextRange(
-    page,
-    'der Absender',
-    'Können Sie mir seine Adresse sagen?'
-  );
+  await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
-  await expect(page.getByText('Create 6 Cards')).toBeVisible();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.getByText('Create 5 Cards')).toBeVisible();
 
   // Check that words from both regions are highlighted
   await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
-  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
   await expect(page.getByText('der Absender').first()).toHaveAccessibleDescription('Card does not exist');
   await expect(page.getByText('die Adresse').first()).toHaveAccessibleDescription('Card does not exist');
 });
@@ -128,4 +147,50 @@ test('source selector dropdown content', async ({ page }) => {
   await expect(page.getByRole('menuitem', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Goethe A2' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Goethe B1' })).toBeVisible();
+});
+
+test('speech source page sentence extraction', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image file').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  const pageContent = page.getByRole('region', { name: 'Page content' });
+  await expect(pageContent).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+  const box = await pageContent.boundingBox();
+
+  if (box) {
+    await page.mouse.move(box.x + box.width * 0.155, box.y + box.height * 0.696);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.434, box.y + box.height * 0.715);
+    await page.mouse.up();
+  }
+});
+
+test('speech source selector routing works', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('link', { name: 'Speech A1' }).click();
+
+  await page.getByLabel('Upload image').setInputFiles({
+    name: 'test-speech-image.png',
+    mimeType: 'image/png',
+    buffer: menschenA1Image,
+  });
+
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
+
+  await page.getByRole('button', { name: 'Speech A1' }).click();
+  await page.getByRole('menuitem', { name: 'Goethe A1' }).click();
+
+  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a1/page/9');
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
 });

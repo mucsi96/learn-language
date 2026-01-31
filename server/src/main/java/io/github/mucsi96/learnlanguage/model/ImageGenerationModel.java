@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 public enum ImageGenerationModel {
     GPT_IMAGE_1("gpt-image-1", "GPT Image 1"),
     GPT_IMAGE_1_5("gpt-image-1.5", "GPT Image 1.5"),
-    IMAGEN_4_ULTRA("imagen-4.0-ultra", "Imagen 4 Ultra"),
+    IMAGEN_4_ULTRA("imagen-4.0-ultra-generate-001", "Imagen 4 Ultra"),
     GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "Gemini 3 Pro");
 
     private final String modelName;

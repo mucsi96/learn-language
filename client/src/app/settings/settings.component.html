@@ -1,0 +1,25 @@
+<div class="settings-container">
+  <nav class="settings-nav" aria-label="Settings navigation">
+    <mat-nav-list>
+      <a mat-list-item routerLink="voices" routerLinkActive="active">
+        <mat-icon matListItemIcon>record_voice_over</mat-icon>
+        <span matListItemTitle>Voices</span>
+      </a>
+      <a mat-list-item routerLink="data-models" routerLinkActive="active">
+        <mat-icon matListItemIcon>model_training</mat-icon>
+        <span matListItemTitle>Data Models</span>
+      </a>
+      <a mat-list-item routerLink="known-words" routerLinkActive="active">
+        <mat-icon matListItemIcon>library_books</mat-icon>
+        <span matListItemTitle>Known Words</span>
+      </a>
+      <a mat-list-item routerLink="learning-partners" routerLinkActive="active">
+        <mat-icon matListItemIcon>group</mat-icon>
+        <span matListItemTitle>Learning Partners</span>
+      </a>
+    </mat-nav-list>
+  </nav>
+  <main class="settings-content">
+    <router-outlet />
+  </main>
+</div>

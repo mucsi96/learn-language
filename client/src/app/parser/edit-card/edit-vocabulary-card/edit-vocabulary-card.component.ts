@@ -9,6 +9,8 @@ import {
   untracked,
   effect,
   Injector,
+  viewChildren,
+  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -22,13 +24,13 @@ import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
-import { Word, Card, CardData, ExampleImage } from '../../types';
+import { Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
-
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
+import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -42,12 +44,13 @@ import { ImageSourceRequest } from '../../../shared/types/image-generation.types
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    ImageCarouselComponent,
   ],
   templateUrl: './edit-vocabulary-card.component.html',
   styleUrl: './edit-vocabulary-card.component.css',
 })
 export class EditVocabularyCardComponent {
-  selectedWord = input<Word | undefined>();
+  selectedCardId = input<string | undefined>();
   selectedSourceId = input<string | undefined>();
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
@@ -57,12 +60,11 @@ export class EditVocabularyCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageCarousels = viewChildren(ImageCarouselComponent);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
-  readonly word = linkedSignal(
-    () => this.card()?.data.word ?? this.selectedWord()?.word
-  );
+  readonly word = linkedSignal(() => this.card()?.data.word);
   readonly wordType = linkedSignal(() => this.card()?.data.type);
   readonly gender = linkedSignal(() => this.card()?.data.gender);
   readonly translation = Object.fromEntries(
@@ -72,9 +74,7 @@ export class EditVocabularyCardComponent {
     ])
   );
   readonly forms = linkedSignal(() =>
-    (this.card()?.data ?? this.selectedWord())?.forms?.map((form: string) =>
-      signal(form)
-    )
+    this.card()?.data.forms?.map((form: string) => signal(form))
   );
   readonly examples = linkedSignal(() =>
     this.card()?.data.examples?.map((example) => signal(example['de']))
@@ -97,7 +97,7 @@ export class EditVocabularyCardComponent {
   });
   readonly exampleImages = linkedSignal(() => {
     return untracked(() => {
-      if (!this.selectedWord()) {
+      if (!this.selectedCardId()) {
         return [];
       }
 
@@ -116,11 +116,6 @@ export class EditVocabularyCardComponent {
       this.card()?.data.examples?.findIndex((example) => example.isSelected) ??
       0
   );
-
-  exampleImageCarouselIndices = linkedSignal<number[]>(() => {
-    const examples = this.examples();
-    return examples?.map(() => 0) ?? [];
-  });
 
   readonly canMarkAsReviewed = computed(() => {
     if (this.card()?.readiness !== 'IN_REVIEW') {
@@ -152,7 +147,6 @@ export class EditVocabularyCardComponent {
   });
 
   constructor() {
-    // Watch for changes and emit card updates
     effect(() => {
       const cardData = this.getCardData();
       if (cardData) {
@@ -160,15 +154,8 @@ export class EditVocabularyCardComponent {
       }
     });
 
-    // Watch for mark as reviewed availability changes
     effect(() => {
       this.markAsReviewedAvailable.emit(this.canMarkAsReviewed());
-    });
-
-    // Initialize carousel indices when examples change
-    effect(() => {
-      const examples = this.examples();
-      this.exampleImageCarouselIndices.set(examples?.map(() => 0) ?? []);
     });
   }
 
@@ -183,11 +170,8 @@ export class EditVocabularyCardComponent {
       ];
       return images;
     });
-
-    const length = this.exampleImages()[exampleIdx].length;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = length - 1;
-      return indices;
+    afterNextRender(() => this.imageCarousels()[exampleIdx]?.goToLast(), {
+      injector: this.injector,
     });
   }
 
@@ -196,26 +180,7 @@ export class EditVocabularyCardComponent {
     return images.some((image) => image.isLoading());
   }
 
-  prevImage(exampleIdx: number) {
-    const images = this.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] =
-        (indices[exampleIdx] - 1 + images.length) % images.length;
-      return indices;
-    });
-  }
-
-  nextImage(exampleIdx: number) {
-    const images = this.exampleImages()?.[exampleIdx] || [];
-    if (!images.length) return;
-    this.exampleImageCarouselIndices.update((indices) => {
-      indices[exampleIdx] = (indices[exampleIdx] + 1) % images.length;
-      return indices;
-    });
-  }
-
-  async toggleFavorite(exampleIdx: number, imageIdx: number) {
+  onFavoriteToggled(exampleIdx: number, imageIdx: number) {
     const images = this.exampleImages()?.[exampleIdx];
     if (!images?.length) return;
 
@@ -230,7 +195,6 @@ export class EditVocabularyCardComponent {
       isFavorite: !imageValue.isFavorite,
     });
 
-    // Trigger exampleImages signal update to recompute canMarkAsReviewed
     this.exampleImages.update((currentImages) => [...currentImages]);
   }
 
@@ -251,10 +215,10 @@ export class EditVocabularyCardComponent {
     | undefined {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
-    const word = this.selectedWord();
+    const cardId = this.selectedCardId();
     const wordText = this.word();
 
-    if (!word || !wordText || !sourceId || !pageNumber) {
+    if (!cardId || !wordText || !sourceId || !pageNumber) {
       return;
     }
 
@@ -289,7 +253,7 @@ export class EditVocabularyCardComponent {
     };
 
     return {
-      id: word.id,
+      id: cardId,
       source: { id: sourceId },
       sourcePageNumber: pageNumber,
       data,

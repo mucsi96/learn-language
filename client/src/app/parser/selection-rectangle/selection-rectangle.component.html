@@ -1,0 +1,19 @@
+<div
+  class="selection-rectangle"
+  role="region"
+  [attr.aria-label]="'Selected area ' + displayIndex()"
+  [style.left]="style().left"
+  [style.top]="style().top"
+  [style.width]="style().width"
+  [style.height]="style().height"
+>
+  <span class="selection-badge">{{ displayIndex() }}</span>
+  <button
+    mat-mini-fab
+    class="remove-button"
+    (click)="removeSelection()"
+    aria-label="Remove selection"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

@@ -1,9 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { injectParams } from '../../utils/inject-params';
 import { SourcesService } from '../../sources.service';
 import { DueCardsService } from '../../due-cards.service';
 import { CardState } from '../state/card-state';
@@ -24,17 +25,26 @@ import { StateComponent } from '../state/state.component';
   styleUrl: './source-selector.component.css',
 })
 export class SourceSelectorComponent {
-  private route = inject(ActivatedRoute);
+  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routePageNumber = injectParams('pageNumber');
 
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
   mode = computed(() => (this.selectedPageNumber() ? 'page' : 'study'));
 
   constructor() {
-    this.route.params.subscribe((params) => {
-      params['sourceId'] && this.selectedSourceId.set(params['sourceId']);
-      params['pageNumber'] &&
-        this.selectedPageNumber.set(parseInt(params['pageNumber']));
+    effect(() => {
+      const sourceId = this.routeSourceId();
+      if (sourceId) {
+        this.selectedSourceId.set(String(sourceId));
+      }
+    });
+
+    effect(() => {
+      const pageNumber = this.routePageNumber();
+      if (pageNumber) {
+        this.selectedPageNumber.set(parseInt(String(pageNumber)));
+      }
     });
   }
 
@@ -43,6 +53,7 @@ export class SourceSelectorComponent {
 
   readonly sources = this.sourcesService.sources.value;
   readonly dueCounts = this.dueCardsService.dueCounts.value;
+
   readonly loading = computed(
     () =>
       !this.selectedSourceId() ||

@@ -11,6 +11,7 @@
   display: grid;
   grid-template-columns: 1fr auto auto auto;
   column-gap: 1rem;
+  padding-bottom: 1rem;
 }
 
 .field {

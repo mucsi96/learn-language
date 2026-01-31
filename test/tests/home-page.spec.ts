@@ -4,22 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 test('displays welcome message', async ({ page }) => {
   await page.goto('http://localhost:8180');
-  await expect(
-    page.getByRole('heading', { name: 'Welcome to Learn Language', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome to Learn Language', exact: true })).toBeVisible();
 });
 
 test('displays source list', async ({ page }) => {
   await page.goto('http://localhost:8180');
-  await expect(
-    page.getByRole('heading', { name: 'Goethe A1', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Goethe A2', exact: true })
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Goethe B1', exact: true })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A1', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A2', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe B1', exact: true })).toBeVisible();
 });
 
 test('due cards count by state', async ({ page }) => {
@@ -70,12 +62,13 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
 
   await page.goto('http://localhost:8180');
 
-  await page.waitForLoadState('networkidle');
+  const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
+  await expect(goetheA1Card).toBeVisible();
 
-  await expect(page.getByTitle('New', { exact: true })).toContainText('20');
-  await expect(page.getByTitle('Learning', { exact: true })).toContainText('15');
-  await expect(page.getByTitle('Review', { exact: true })).toContainText('10');
-  await expect(page.getByTitle('Relearning', { exact: true })).toContainText('5');
+  await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('20');
+  await expect(goetheA1Card.getByTitle('Learning', { exact: true })).toContainText('15');
+  await expect(goetheA1Card.getByTitle('Review', { exact: true })).toContainText('10');
+  await expect(goetheA1Card.getByTitle('Relearning', { exact: true })).toContainText('5');
 });
 
 test('in review cards not on home page', async ({ page }) => {

@@ -1,8 +1,6 @@
 import { Routes, CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { MsalGuard } from '@azure/msal-angular';
-import { queryParamToObject } from './utils/queryCompression';
-import { Word } from './parser/types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 // Guard factory that checks if auth is needed
@@ -41,11 +39,41 @@ export const routes: Routes = [
     title: 'Model Usage',
   },
   {
-    path: 'voice-config',
+    path: 'settings',
     loadComponent: () =>
-      import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
+      import('./settings/settings.component').then((m) => m.SettingsComponent),
     canActivate: [conditionalAuthGuard],
-    title: 'Voice Configuration',
+    children: [
+      {
+        path: '',
+        redirectTo: 'voices',
+        pathMatch: 'full',
+      },
+      {
+        path: 'voices',
+        loadComponent: () =>
+          import('./voice-config/voice-config.component').then((m) => m.VoiceConfigComponent),
+        title: 'Voice Settings',
+      },
+      {
+        path: 'data-models',
+        loadComponent: () =>
+          import('./chat-model-settings/chat-model-settings.component').then((m) => m.ChatModelSettingsComponent),
+        title: 'Data Model Settings',
+      },
+      {
+        path: 'known-words',
+        loadComponent: () =>
+          import('./known-words/known-words.component').then((m) => m.KnownWordsComponent),
+        title: 'Known Words',
+      },
+      {
+        path: 'learning-partners',
+        loadComponent: () =>
+          import('./learning-partners/learning-partners.component').then((m) => m.LearningPartnersComponent),
+        title: 'Learning Partners',
+      },
+    ],
   },
   {
     path: 'sources/:sourceId/study',
@@ -101,14 +129,10 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'sources/:sourceId/page/:pageNumber/cards',
+    path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
     canActivate: [conditionalAuthGuard],
-    title: async (route) => {
-      const cardData = route.queryParams['cardData'];
-      const word = await queryParamToObject<Word>(cardData);
-      return word.word;
-    },
+    title: 'Edit Card',
   },
 ];

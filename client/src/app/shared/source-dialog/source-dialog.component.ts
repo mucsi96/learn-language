@@ -11,11 +11,12 @@ import {
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { LanguageLevel, Source } from '../../parser/types';
+import { Source } from '../../parser/types';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 
 @Component({
   selector: 'app-source-dialog',
@@ -37,18 +38,28 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 })
 export class SourceDialogComponent {
   private readonly http = inject(HttpClient);
+  private readonly environment = inject(ENVIRONMENT_CONFIG);
   data: { source?: Source; mode: 'create' | 'edit' } = inject(MAT_DIALOG_DATA);
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
-  languageLevels: LanguageLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  readonly languageLevels = this.environment.languageLevels;
+  readonly formatTypes = this.environment.sourceFormatTypes;
+  readonly sourceTypes = this.environment.sourceTypes;
+  readonly cardTypes = [
+    { code: 'vocabulary', displayName: 'Vocabulary' },
+    { code: 'speech', displayName: 'Speech' },
+    { code: 'grammar', displayName: 'Grammar' },
+  ];
 
-  formData: Partial<Source> = {
+  formData: Partial<Source> & { fileName?: string } = {
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
-    fileName: this.data.source?.fileName || '',
+    sourceType: this.data.source?.sourceType,
+    fileName: '',
     startPage: this.data.source?.startPage || 1,
-    languageLevel: this.data.source?.languageLevel || 'A1',
-    cardType: 'vocabulary', // Only vocabulary is supported for now
+    languageLevel: this.data.source?.languageLevel,
+    cardType: this.data.source?.cardType,
+    formatType: this.data.source?.formatType,
   };
 
   uploadedFile = signal<File | null>(null);
@@ -62,28 +73,46 @@ export class SourceDialogComponent {
 
   async onSaveClick(): Promise<void> {
     if (this.isValid()) {
-      // If a new file was uploaded, upload it first
       if (this.uploadedFile()) {
         await this.uploadFile();
         if (this.uploadError()) {
           return;
         }
       }
+      if (this.formData.cardType === 'speech' || this.formData.cardType === 'grammar') {
+        this.formData.formatType = 'flowingText';
+      }
       this.dialogRef.close(this.formData);
     }
   }
 
   isValid(): boolean {
-    const hasRequiredFields = !!(
+    const hasBaseFields = !!(
       this.formData.id &&
       this.formData.name &&
-      this.formData.startPage &&
-      this.formData.startPage > 0 &&
+      this.formData.cardType &&
+      this.formData.sourceType &&
       this.formData.languageLevel
     );
 
-    if (!hasRequiredFields) {
+    if (!hasBaseFields) {
       return false;
+    }
+
+    if (this.formData.cardType !== 'speech' && this.formData.cardType !== 'grammar' && !this.formData.formatType) {
+      return false;
+    }
+
+    if (this.formData.sourceType === 'images') {
+      return true;
+    }
+
+    if (!this.formData.startPage || this.formData.startPage <= 0) {
+      return false;
+    }
+
+    if (this.data.mode === 'edit') {
+      return true;
     }
 
     return this.hasFile();
@@ -120,7 +149,6 @@ export class SourceDialogComponent {
   }
 
   handleFile(file: File): void {
-    // Validate file type
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       this.uploadError.set('Only PDF files are allowed');
       return;

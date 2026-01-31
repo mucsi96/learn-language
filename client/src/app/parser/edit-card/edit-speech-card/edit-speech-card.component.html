@@ -1,0 +1,42 @@
+<div class="sentence">
+  <mat-form-field class="field">
+    <mat-label>German Sentence</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="sentence"
+      aria-label="German sentence"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Hungarian Translation</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="hungarianTranslation"
+      aria-label="Hungarian translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+</div>
+
+<h2>Images</h2>
+<div class="images-section">
+  <div class="actions">
+    <button
+      mat-icon-button
+      (click)="addImage()"
+      aria-label="Add image"
+      [disabled]="areImagesLoading()"
+    >
+      <mat-icon>add_photo_alternate</mat-icon>
+    </button>
+  </div>
+  @let imgs = images();
+  @if (imgs && imgs.length) {
+    <app-image-carousel
+      [images]="imgs"
+      [altText]="sentence() ?? ''"
+      (favoriteToggled)="onFavoriteToggled($event)"
+    />
+  }
+</div>

@@ -1,10 +1,23 @@
 import { ClaudeRequest } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
 import { messagesMatch, createClaudeResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
 export class ChatHandler {
   async handleWordListExtraction(request: ClaudeRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'You task is to extract the wordlist data from provided page image.',
+        'Here is the image of the page',
+        ['Hören', 'Lied']
+      )
+    ) {
+      return createClaudeResponse({
+        wordList: WORD_LISTS['hoeren_lied'],
+      });
+    }
+
     if (
       await imageRequestMatch(
         request,
@@ -115,6 +128,77 @@ export class ChatHandler {
     return null;
   }
 
+  async handleSentenceExtraction(request: ClaudeRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'extract German sentences from the provided page image',
+        'Here is the image of the page',
+        ['Hören', 'Lied']
+      )
+    ) {
+      return createClaudeResponse({
+        sentences: SENTENCE_LISTS['speech_sentences'],
+      });
+    }
+
+    return null;
+  }
+
+  async handleGrammarExtraction(request: ClaudeRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'extract German sentences from the provided page image that can be used for grammar practice',
+        'Here is the image of the page',
+        ['Paco', 'Frau Wachter']
+      )
+    ) {
+      return createClaudeResponse({
+        sentences: GRAMMAR_SENTENCE_LISTS['grammar_sentences'],
+      });
+    }
+
+    return null;
+  }
+
+  handleSentenceTranslation(request: ClaudeRequest): any | null {
+    const systemContent = request.system || '';
+
+    if (!systemContent) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (
+      systemContent.includes('translate the given German sentence to Hungarian')
+    ) {
+      targetLanguage = 'hungarian';
+    } else if (
+      systemContent.includes('translate the given German sentence to English')
+    ) {
+      targetLanguage = 'english';
+    }
+
+    if (!targetLanguage) {
+      return null;
+    }
+
+    const translations = SENTENCE_TRANSLATIONS[targetLanguage];
+    const userMessage = request.messages?.[0]?.content;
+    if (typeof userMessage === 'string') {
+      for (const sentence of Object.keys(translations)) {
+        if (userMessage.includes(sentence)) {
+          return createClaudeResponse({
+            translation: translations[sentence],
+          });
+        }
+      }
+    }
+
+    return null;
+  }
+
   async processRequest(request: ClaudeRequest): Promise<any> {
     if (!request.messages || !Array.isArray(request.messages)) {
       throw new Error('Invalid request format');
@@ -131,6 +215,15 @@ export class ChatHandler {
 
     const wordTypeResponse = this.handleWordType(request);
     if (wordTypeResponse) return wordTypeResponse;
+
+    const sentenceExtractionResponse = await this.handleSentenceExtraction(request);
+    if (sentenceExtractionResponse) return sentenceExtractionResponse;
+
+    const grammarExtractionResponse = await this.handleGrammarExtraction(request);
+    if (grammarExtractionResponse) return grammarExtractionResponse;
+
+    const sentenceTranslationResponse = this.handleSentenceTranslation(request);
+    if (sentenceTranslationResponse) return sentenceTranslationResponse;
 
     console.log('Received unprocessed request:', JSON.stringify(request, null, 2));
 

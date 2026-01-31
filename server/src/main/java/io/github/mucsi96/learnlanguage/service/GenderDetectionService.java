@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,7 +24,7 @@ public class GenderDetectionService {
   public String detectGender(String noun, ChatModel model) {
     var result = chatService.callWithLogging(
         model,
-        "gender",
+        OperationType.CLASSIFICATION,
         SYSTEM_PROMPT,
         "The noun is: %s.".formatted(noun),
         GenderResult.class);
