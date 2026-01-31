@@ -103,7 +103,7 @@ export type Sentence = ExtractedItem & {
 };
 
 export type SentenceList = {
-  sentences: Sentence[];
+  sentences: { sentence: string }[];
 };
 
 export type ExtractionRegionSelection = {

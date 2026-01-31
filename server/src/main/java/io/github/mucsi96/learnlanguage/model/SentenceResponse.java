@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SentenceResponse {
-    private String id;
-    private boolean exists;
     private String sentence;
 }
