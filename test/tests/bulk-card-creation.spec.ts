@@ -4,7 +4,6 @@ import {
   createSource,
   selectTextRange,
   selectRegion,
-  confirmSelection,
   scrollElementToTop,
   withDbConnection,
   downloadImage,
@@ -86,8 +85,7 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
   // Cancel button should also be visible
   await expect(page.getByRole('button', { name: 'Cancel selection' })).toBeVisible();
 
-  // Confirm all selections - both regions are combined into one extraction
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   // FAB should show count from both regions (5 cards: abfahren, die Abfahrt, der Absender, Achtung, die Adresse - aber already exists)
   const fab = page.getByRole('button', { name: 'Create cards in bulk' });
@@ -176,7 +174,7 @@ test('regions from different pages are combined into single extraction', async (
     await page.mouse.up();
   }
 
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   const extractedWords = page.getByRole('region', { name: 'Extracted items' });
   await expect(extractedWords).toBeVisible();
@@ -572,8 +570,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     await page.mouse.up();
   }
 
-  // Confirm the selection
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
@@ -632,8 +629,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     await page.mouse.up();
   }
 
-  // Confirm the selection
-  await confirmSelection(page);
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
