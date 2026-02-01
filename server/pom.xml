@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.2</version>
+    <version>3.5.10</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>io.github.mucsi96</groupId>
@@ -66,12 +66,6 @@
       <groupId>com.azure.spring</groupId>
       <artifactId>spring-cloud-azure-starter-active-directory</artifactId>
     </dependency>
-    <!-- TODO: Remove once https://github.com/Azure/azure-sdk-for-java/issues/47600 is fixed -->
-    <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>oauth2-oidc-sdk</artifactId>
-      <version>9.43.6</version>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -100,7 +94,7 @@
     </dependency>
     <dependency>
       <groupId>io.hypersistence</groupId>
-      <artifactId>hypersistence-utils-hibernate-71</artifactId>
+      <artifactId>hypersistence-utils-hibernate-63</artifactId>
       <version>3.14.1</version>
     </dependency>
     <dependency>
@@ -128,10 +122,6 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-elevenlabs</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-model-anthropic</artifactId>
     </dependency>
     <dependency>
@@ -144,14 +134,14 @@
       <dependency>
         <groupId>com.azure.spring</groupId>
         <artifactId>spring-cloud-azure-dependencies</artifactId>
-        <version>7.0.0-beta.1</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping https://github.com/Azure/azure-sdk-for-java/blob/ad06402a6a388b4c6772056a6e995042d8b758bb/sdk/boms/spring-cloud-azure-dependencies/pom.xml#L9 -->
+        <version>6.1.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-bom</artifactId>
-        <version>2.0.0-M1</version>
+        <version>1.1.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
