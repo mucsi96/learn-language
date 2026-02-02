@@ -20,7 +20,7 @@ test('study page shows start button initially', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
 });
 
-test('study session automatically resumes on same day', async ({ page }) => {
+test('study session shows continue button when returning same day', async ({ page }) => {
   await createCard({
     cardId: 'bleiben-maradni',
     sourceId: 'goethe-a1',
@@ -42,13 +42,13 @@ test('study session automatically resumes on same day', async ({ page }) => {
 
   await page.reload();
 
-  await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Continue study session' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start study session' })).not.toBeVisible();
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Continue study session' }).click();
 
   await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Start study session' })).not.toBeVisible();
 });
 
 test('study page initial state', async ({ page }) => {

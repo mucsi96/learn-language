@@ -62,6 +62,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly isRevealed = signal(false);
   readonly hasSession = this.studySessionService.hasSession;
+  readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;

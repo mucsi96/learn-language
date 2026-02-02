@@ -15,6 +15,7 @@ export class StudySessionService {
 
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
+  readonly hasExistingSession = signal(false);
   private sessionVersion = signal(0);
 
   readonly currentCard = resource({
@@ -57,7 +58,7 @@ export class StudySessionService {
     );
     const exists = session !== null;
     this.sourceId.set(sourceId);
-    this.hasSession.set(exists);
+    this.hasExistingSession.set(exists);
     return exists;
   }
 
@@ -82,5 +83,6 @@ export class StudySessionService {
   clearSession() {
     this.sourceId.set(undefined);
     this.hasSession.set(false);
+    this.hasExistingSession.set(false);
   }
 }
