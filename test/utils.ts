@@ -924,17 +924,19 @@ export async function getStudySessionCards(page: Page): Promise<
     learningPartnerId: number | null;
   }>
 > {
-  await page.waitForURL(/session=/);
-  const sessionId = new URL(page.url()).searchParams.get('session');
+  await page.getByRole('article', { name: 'Flashcard' }).waitFor();
+  const sourceId = page.url().match(/sources\/([^/]+)\/study/)?.[1];
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT c.id as "cardId", ssc.position, ssc.learning_partner_id as "learningPartnerId"
        FROM learn_language.study_session_cards ssc
        JOIN learn_language.cards c ON ssc.card_id = c.id
-       WHERE ssc.session_id = $1
+       JOIN learn_language.study_sessions ss ON ssc.session_id = ss.id
+       WHERE ss.source_id = $1
+         AND ss.created_at >= CURRENT_DATE
        ORDER BY ssc.position`,
-      [sessionId]
+      [sourceId]
     );
     return result.rows;
   });

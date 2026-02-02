@@ -18,10 +18,26 @@ public class StudySessionController {
 
     private final StudySessionService studySessionService;
 
+    @GetMapping("/source/{sourceId}/study-session")
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    public ResponseEntity<StudySessionResponse> getExistingSession(@PathVariable String sourceId) {
+        return studySessionService.getExistingSession(sourceId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @PostMapping("/source/{sourceId}/study-session")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<StudySessionResponse> createSession(@PathVariable String sourceId) {
         return ResponseEntity.ok(studySessionService.createSession(sourceId));
+    }
+
+    @GetMapping("/source/{sourceId}/study-session/current-card")
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(@PathVariable String sourceId) {
+        return studySessionService.getCurrentCardBySourceId(sourceId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping("/study-session/{sessionId}/current-card")

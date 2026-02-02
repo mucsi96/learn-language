@@ -20,7 +20,7 @@ test('study page shows start button initially', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
 });
 
-test('study session persists in URL and survives page refresh', async ({ page }) => {
+test('study session automatically resumes on same day', async ({ page }) => {
   await createCard({
     cardId: 'bleiben-maradni',
     sourceId: 'goethe-a1',
@@ -38,10 +38,14 @@ test('study session persists in URL and survives page refresh', async ({ page })
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
 
-  const url = page.url();
-  expect(url).toContain('session=');
+  expect(page.url()).not.toContain('session=');
 
   await page.reload();
+
+  await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start study session' })).not.toBeVisible();
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
   await expect(flashcard.getByRole('heading', { name: 'maradni' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start study session' })).not.toBeVisible();
@@ -163,7 +167,6 @@ test('study page revealed state', async ({ page }) => {
 });
 
 test('source selector routing works', async ({ page }) => {
-  // Create a card in one source
   await createCard({
     cardId: 'lernen-tanulni',
     sourceId: 'goethe-a1',
@@ -184,7 +187,6 @@ test('source selector routing works', async ({ page }) => {
     },
   });
 
-  // Create a card in another source
   await createCard({
     cardId: 'schreiben-irni',
     sourceId: 'goethe-a2',
@@ -205,25 +207,18 @@ test('source selector routing works', async ({ page }) => {
     },
   });
 
-  // Start from the first source
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).toBeVisible();
 
-  // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
-
-  // Select the second source
   await page.getByRole('menuitem', { name: 'Goethe A2' }).click();
 
-  // URL should change
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/study');
 
-  // Click start button for new source
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  // Content should change to the card from the second source
   await expect(flashcard.getByRole('heading', { name: 'írni' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });

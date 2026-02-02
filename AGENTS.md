@@ -134,6 +134,9 @@ Tracks review history and performance metrics for spaced repetition
 - `POST /api/translations` - AI-powered translations
 - `POST /api/audio` - Generate pronunciation audio
 - `GET /api/cards/due` - Spaced repetition due cards query
+- `GET /api/source/{sourceId}/study-session` - Get today's existing study session (204 if none)
+- `POST /api/source/{sourceId}/study-session` - Create or resume today's study session (idempotent)
+- `GET /api/source/{sourceId}/study-session/current-card` - Get next card for today's session
 
 ### Frontend Routes
 - `/` - Home dashboard with study overview
@@ -176,6 +179,13 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Cards have states: New, Learning, Review, Relearning
 - FSRS algorithm tracks stability, difficulty, repetitions, lapses
 - Due card queries optimized for study session efficiency
+
+### Daily Study Sessions
+- Study sessions are day-based: one session per source per day
+- Sessions automatically resume when returning to the study page on the same day
+- No session IDs in browser URLs - sessions are resolved server-side by source and date
+- POST to create session is idempotent - returns existing today's session if one exists
+- Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support
 - German as primary language with smart context-aware translations

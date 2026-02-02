@@ -1,4 +1,10 @@
-@if (!sessionId()) {
+@if (isCheckingSession()) {
+<div class="learn-card-container">
+  <div class="learn-card">
+    <app-learn-card-skeleton />
+  </div>
+</div>
+} @else if (!hasSession()) {
 <div class="start-state">
   <mat-icon class="start-icon">school</mat-icon>
   <h2>Ready to study?</h2>
