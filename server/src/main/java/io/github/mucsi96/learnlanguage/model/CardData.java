@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CardData {
+public class CardData implements Serializable {
     private String word;
     private String type;
     @JsonInclude(Include.NON_DEFAULT)

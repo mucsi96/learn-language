@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -12,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ExampleImageData {
+public class ExampleImageData implements Serializable {
   private String id;
 
   @JsonInclude(Include.NON_DEFAULT)
