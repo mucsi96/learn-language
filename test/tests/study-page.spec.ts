@@ -1399,7 +1399,7 @@ test('Green color key grades card as Good when revealed', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
 
-  await pressRemoteKey(page, 'ColorF1Green');
+  await pressRemoteKey(page, 'Green');
 
   await expect(flashcard.getByRole('heading', { name: 'televízió' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
@@ -1468,19 +1468,19 @@ test('all color keys map to correct grades', async ({ page }) => {
 
   await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
   await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'ColorF0Red');
+  await pressRemoteKey(page, 'Red');
   await expect(flashcard.getByRole('heading', { name: 'sárga' })).toBeVisible();
 
   await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'ColorF2Yellow');
+  await pressRemoteKey(page, 'Yellow');
   await expect(flashcard.getByRole('heading', { name: 'zöld' })).toBeVisible();
 
   await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'ColorF1Green');
+  await pressRemoteKey(page, 'Green');
   await expect(flashcard.getByRole('heading', { name: 'kék' })).toBeVisible();
 
   await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'ColorF3Blue');
+  await pressRemoteKey(page, 'Blue');
   await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
 });
 
@@ -1511,10 +1511,10 @@ test('color keys do not grade when card is not revealed', async ({ page }) => {
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
 
-  await pressRemoteKey(page, 'ColorF1Green');
-  await pressRemoteKey(page, 'ColorF0Red');
-  await pressRemoteKey(page, 'ColorF2Yellow');
-  await pressRemoteKey(page, 'ColorF3Blue');
+  await pressRemoteKey(page, 'Green');
+  await pressRemoteKey(page, 'Red');
+  await pressRemoteKey(page, 'Yellow');
+  await pressRemoteKey(page, 'Blue');
 
   await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();

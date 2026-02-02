@@ -139,10 +139,10 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   private static readonly GRADE_BY_KEY: Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'> = {
-    'ColorF0Red': 'Again',
-    'ColorF2Yellow': 'Hard',
-    'ColorF1Green': 'Good',
-    'ColorF3Blue': 'Easy',
+    'Red': 'Again',
+    'Yellow': 'Hard',
+    'Green': 'Good',
+    'Blue': 'Easy',
   };
 
   @HostListener('document:keydown', ['$event'])
