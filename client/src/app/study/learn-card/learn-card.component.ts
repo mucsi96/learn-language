@@ -5,6 +5,8 @@ import {
   signal,
   computed,
   OnDestroy,
+  HostListener,
+  viewChild,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,6 +55,8 @@ export class LearnCardComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+
+  private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
 
   readonly currentCardData = this.studySessionService.currentCard;
 
@@ -130,6 +134,35 @@ export class LearnCardComponent implements OnDestroy {
           queryParams: { session: session.sessionId },
           queryParamsHandling: 'merge',
         });
+      }
+    }
+  }
+
+  private static readonly GRADE_BY_KEY: Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'> = {
+    'ColorF0Red': 'Again',
+    'ColorF2Yellow': 'Hard',
+    'ColorF1Green': 'Good',
+    'ColorF3Blue': 'Easy',
+  };
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (!this.card()) return;
+
+    const target = event.target as HTMLElement;
+    const isInteractiveElement = target.closest('button, a, input, select, textarea');
+
+    if (event.key === 'Enter' && !isInteractiveElement) {
+      event.preventDefault();
+      this.toggleReveal();
+      return;
+    }
+
+    if (this.isRevealed()) {
+      const grade = LearnCardComponent.GRADE_BY_KEY[event.key];
+      if (grade) {
+        event.preventDefault();
+        this.gradingButtons()?.gradeCard(grade);
       }
     }
   }

@@ -11,6 +11,17 @@ import {
   setupDefaultChatModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
+import { Page } from '@playwright/test';
+
+async function pressRemoteKey(page: Page, key: string) {
+  await page.evaluate(
+    (k) =>
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true })
+      ),
+    key
+  );
+}
 
 test('study page shows start button initially', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -1296,4 +1307,215 @@ test('grammar card grading functionality', async ({ page }) => {
   await page.getByRole('button', { name: 'Good' }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
+});
+
+test('Enter key reveals and unreveals card', async ({ page }) => {
+  await createCard({
+    cardId: 'keyboard-reveal-test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 70,
+    data: {
+      word: 'Tastatur',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'keyboard', hu: 'billentyűzet', ch: 'Tastatur' },
+      examples: [
+        {
+          de: 'Ich benutze eine Tastatur.',
+          hu: 'Billentyűzetet használok.',
+          en: 'I use a keyboard.',
+          isSelected: true,
+        },
+      ],
+    },
+    state: 'LEARNING',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+
+  await page.keyboard.press('Enter');
+
+  await expect(flashcard.getByText('Tastatur', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+
+  await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('Green color key grades card as Good when revealed', async ({ page }) => {
+  await createCard({
+    cardId: 'green-key-test-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 71,
+    data: {
+      word: 'Fernbedienung',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'remote control', hu: 'távirányító', ch: 'Fernbediänig' },
+      examples: [
+        {
+          de: 'Wo ist die Fernbedienung?',
+          hu: 'Hol van a távirányító?',
+          en: 'Where is the remote control?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await createCard({
+    cardId: 'green-key-test-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 72,
+    data: {
+      word: 'Fernseher',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'television', hu: 'televízió', ch: 'Fernseh' },
+      examples: [
+        {
+          de: 'Der Fernseher ist an.',
+          hu: 'A televízió be van kapcsolva.',
+          en: 'The television is on.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'távirányító' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
+
+  await pressRemoteKey(page, 'ColorF1Green');
+
+  await expect(flashcard.getByRole('heading', { name: 'televízió' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('all color keys map to correct grades', async ({ page }) => {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+
+  await createCard({
+    cardId: 'color-keys-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 73,
+    data: {
+      word: 'rot',
+      type: 'ADJECTIVE',
+      translation: { en: 'red', hu: 'piros', ch: 'rot' },
+    },
+    state: 'LEARNING',
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 74,
+    data: {
+      word: 'gelb',
+      type: 'ADJECTIVE',
+      translation: { en: 'yellow', hu: 'sárga', ch: 'gäub' },
+    },
+    state: 'LEARNING',
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 75,
+    data: {
+      word: 'grün',
+      type: 'ADJECTIVE',
+      translation: { en: 'green', hu: 'zöld', ch: 'grüen' },
+    },
+    state: 'LEARNING',
+    due: yesterday,
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-4',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 76,
+    data: {
+      word: 'blau',
+      type: 'ADJECTIVE',
+      translation: { en: 'blue', hu: 'kék', ch: 'blau' },
+    },
+    state: 'LEARNING',
+    due: yesterday,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
+  await page.keyboard.press('Enter');
+  await pressRemoteKey(page, 'ColorF0Red');
+  await expect(flashcard.getByRole('heading', { name: 'sárga' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await pressRemoteKey(page, 'ColorF2Yellow');
+  await expect(flashcard.getByRole('heading', { name: 'zöld' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await pressRemoteKey(page, 'ColorF1Green');
+  await expect(flashcard.getByRole('heading', { name: 'kék' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await pressRemoteKey(page, 'ColorF3Blue');
+  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
+});
+
+test('color keys do not grade when card is not revealed', async ({ page }) => {
+  await createCard({
+    cardId: 'no-grade-unrevealed',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 77,
+    data: {
+      word: 'Schutz',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'protection', hu: 'védelem', ch: 'Schutz' },
+      examples: [
+        {
+          de: 'Der Schutz ist wichtig.',
+          hu: 'A védelem fontos.',
+          en: 'Protection is important.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
+
+  await pressRemoteKey(page, 'ColorF1Green');
+  await pressRemoteKey(page, 'ColorF0Red');
+  await pressRemoteKey(page, 'ColorF2Yellow');
+  await pressRemoteKey(page, 'ColorF3Blue');
+
+  await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
 });
