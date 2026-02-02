@@ -25,4 +25,5 @@ public class CardUpdateRequest {
     private String state;
     private LocalDateTime lastReview;
     private Integer learningPartnerId;
+    private Integer rating;
 }

@@ -63,7 +63,7 @@ public class CardController {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    boolean isGrading = request.getState() != null && request.getReps() != null;
+    boolean isGrading = request.getRating() != null;
 
     if (request.getData() != null) existingCard.setData(request.getData());
     if (request.getReadiness() != null) existingCard.setReadiness(request.getReadiness());
@@ -86,12 +86,10 @@ public class CardController {
         partner = learningPartnerService.getLearningPartnerById(request.getLearningPartnerId());
       }
 
-      int rating = mapStateToRating(request.getState(), request.getReps());
-
       ReviewLog reviewLog = ReviewLog.builder()
           .card(existingCard)
           .learningPartner(partner)
-          .rating(rating)
+          .rating(request.getRating())
           .state(request.getState())
           .due(request.getDue())
           .stability(request.getStability() != null ? request.getStability().doubleValue() : 0.0)
@@ -108,16 +106,6 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
     return ResponseEntity.ok(response);
-  }
-
-  private int mapStateToRating(String state, Integer reps) {
-    if ("NEW".equals(state) || "RELEARNING".equals(state)) {
-      return 1;
-    }
-    if (reps != null && reps == 1) {
-      return 3;
-    }
-    return 3;
   }
 
   @DeleteMapping("/card/{cardId}")

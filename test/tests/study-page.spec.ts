@@ -7,7 +7,9 @@ import {
   createCard,
   uploadMockImage,
   createCardsWithStates,
-  withDbConnection,
+  getReviewLogsByCardId,
+  getCardFromDb,
+  getReviewLogs,
   setupDefaultChatModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -448,12 +450,8 @@ test('mark for review button functionality', async ({ page }) => {
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  // Verify the card readiness was updated in the database
-  await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'markieren-megjelolni'");
-    expect(result.rows.length).toBe(1);
-    expect(result.rows[0].readiness).toBe('IN_REVIEW');
-  });
+  const card = await getCardFromDb('markieren-megjelolni');
+  expect(card.readiness).toBe('IN_REVIEW');
 });
 
 test('mark for review button loads next card', async ({ page }) => {
@@ -655,6 +653,11 @@ test('again button functionality', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { name: 'következő' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'ismételni' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Again' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('wiederholen-ismetelni');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'wiederholen-ismetelni', rating: 1 }),
+  ]);
 });
 
 test('hard button functionality', async ({ page }) => {
@@ -715,6 +718,11 @@ test('hard button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'második' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'nehéz' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('schwierig-nehez');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'schwierig-nehez', rating: 2 }),
+  ]);
 });
 
 test('good button functionality', async ({ page }) => {
@@ -775,6 +783,11 @@ test('good button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'harmadik' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'jó' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('gut-jo');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'gut-jo', rating: 3 }),
+  ]);
 });
 
 test('easy button functionality', async ({ page }) => {
@@ -835,6 +848,11 @@ test('easy button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'negyedik' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'könnyű' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('einfach-konnyu');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'einfach-konnyu', rating: 4 }),
+  ]);
 });
 
 test('grading card updates database', async ({ page }) => {
@@ -873,22 +891,11 @@ test('grading card updates database', async ({ page }) => {
   // Wait a moment for the database update
   await page.waitForTimeout(500);
 
-  // Verify the card's FSRS data was updated in the database
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT state, reps, stability, difficulty
-       FROM learn_language.cards
-       WHERE id = 'datenbank-adatbazis'`
-    );
-    expect(result.rows.length).toBe(1);
-    const row = result.rows[0];
-
-    // After first Good rating from NEW state, should move to LEARNING
-    expect(row.state).toBe('LEARNING');
-    expect(row.reps).toBe(1);
-    expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
-    expect(parseFloat(row.difficulty)).toBeGreaterThan(0.0);
-  });
+  const card = await getCardFromDb('datenbank-adatbazis');
+  expect(card.state).toBe('LEARNING');
+  expect(card.reps).toBe(1);
+  expect(card.stability).toBeGreaterThan(0.0);
+  expect(card.difficulty).toBeGreaterThan(0.0);
 });
 
 test('grading card creates review log', async ({ page }) => {
@@ -923,22 +930,14 @@ test('grading card creates review log', async ({ page }) => {
 
   await page.waitForTimeout(500);
 
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT card_id, rating, state, stability, difficulty, learning_partner_id
-       FROM learn_language.review_logs
-       WHERE card_id = 'protokoll-naplo'`
-    );
-    expect(result.rows.length).toBe(1);
-    const row = result.rows[0];
-
-    expect(row.card_id).toBe('protokoll-naplo');
-    expect(row.rating).toBe(3);
-    expect(row.state).toBe('LEARNING');
-    expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
-    expect(parseFloat(row.difficulty)).toBeGreaterThan(0.0);
-    expect(row.learning_partner_id).toBeNull();
-  });
+  const reviewLogs = await getReviewLogsByCardId('protokoll-naplo');
+  expect(reviewLogs).toHaveLength(1);
+  expect(reviewLogs[0].cardId).toBe('protokoll-naplo');
+  expect(reviewLogs[0].rating).toBe(3);
+  expect(reviewLogs[0].state).toBe('LEARNING');
+  expect(reviewLogs[0].stability).toBeGreaterThan(0.0);
+  expect(reviewLogs[0].difficulty).toBeGreaterThan(0.0);
+  expect(reviewLogs[0].learningPartnerId).toBeNull();
 });
 
 test('grading with no next card shows empty state', async ({ page }) => {
@@ -1407,7 +1406,16 @@ test('Green color key grades card as Good when revealed', async ({ page }) => {
 
 test('all color keys map to correct grades', async ({ page }) => {
   const now = new Date();
-  const yesterday = new Date(now.getTime() - 86400000);
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86400000);
+
+  const learningCardDefaults = {
+    state: 'LEARNING' as const,
+    stability: 0.4,
+    difficulty: 5.0,
+    lastReview: twoDaysAgo,
+    reps: 1,
+    learningSteps: 1,
+  };
 
   await createCard({
     cardId: 'color-keys-card-1',
@@ -1418,8 +1426,8 @@ test('all color keys map to correct grades', async ({ page }) => {
       type: 'ADJECTIVE',
       translation: { en: 'red', hu: 'piros', ch: 'rot' },
     },
-    state: 'LEARNING',
-    due: yesterday,
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 4 * 3600000),
   });
 
   await createCard({
@@ -1431,8 +1439,8 @@ test('all color keys map to correct grades', async ({ page }) => {
       type: 'ADJECTIVE',
       translation: { en: 'yellow', hu: 'sárga', ch: 'gäub' },
     },
-    state: 'LEARNING',
-    due: yesterday,
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 3 * 3600000),
   });
 
   await createCard({
@@ -1444,8 +1452,8 @@ test('all color keys map to correct grades', async ({ page }) => {
       type: 'ADJECTIVE',
       translation: { en: 'green', hu: 'zöld', ch: 'grüen' },
     },
-    state: 'LEARNING',
-    due: yesterday,
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 2 * 3600000),
   });
 
   await createCard({
@@ -1457,31 +1465,28 @@ test('all color keys map to correct grades', async ({ page }) => {
       type: 'ADJECTIVE',
       translation: { en: 'blue', hu: 'kék', ch: 'blau' },
     },
-    state: 'LEARNING',
-    due: yesterday,
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 1 * 3600000),
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const gradeButtons = page.getByRole('button', { name: 'Again' });
 
-  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
-  await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'Red');
-  await expect(flashcard.getByRole('heading', { name: 'sárga' })).toBeVisible();
+  for (const key of ['Red', 'Yellow', 'Green', 'Blue']) {
+    await expect(flashcard.getByRole('heading')).toBeVisible();
+    await flashcard.click();
+    await expect(gradeButtons).toBeVisible();
+    await pressRemoteKey(page, key);
+  }
 
-  await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'Yellow');
-  await expect(flashcard.getByRole('heading', { name: 'zöld' })).toBeVisible();
+  await expect(flashcard).toBeVisible();
 
-  await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'Green');
-  await expect(flashcard.getByRole('heading', { name: 'kék' })).toBeVisible();
-
-  await page.keyboard.press('Enter');
-  await pressRemoteKey(page, 'Blue');
-  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
+  const reviewLogs = await getReviewLogs();
+  const ratings = reviewLogs.map((log) => log.rating).sort();
+  expect(ratings).toEqual([1, 2, 3, 4]);
 });
 
 test('color keys do not grade when card is not revealed', async ({ page }) => {
