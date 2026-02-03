@@ -87,8 +87,11 @@ public class StudySessionService {
                 .map(partner -> assignCardsSmartly(dueCards, session, partner))
                 .orElseGet(() -> assignCardsSolo(dueCards, session));
 
-        session.getCards().addAll(sessionCards);
-        studySessionRepository.save(session);
+        final StudySession sessionWithCards = session.toBuilder()
+                .cards(new ArrayList<>(sessionCards))
+                .build();
+
+        studySessionRepository.save(sessionWithCards);
 
         return StudySessionResponse.builder()
                 .sessionId(sessionId)
