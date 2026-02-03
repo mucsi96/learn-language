@@ -88,13 +88,10 @@ public class CardTableController {
     @PutMapping("/cards/mark-known")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
-        final List<Card> cards = cardRepository.findByIdIn(cardIds);
-
-        cards.forEach(card -> card.setReadiness(CardReadiness.KNOWN));
-        cardRepository.saveAll(cards);
+        cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
 
         return ResponseEntity.ok(Map.of("detail",
-                String.format("%d card(s) marked as known", cards.size())));
+                String.format("%d card(s) marked as known", cardIds.size())));
     }
 
     private Specification<Card> buildSpecification(

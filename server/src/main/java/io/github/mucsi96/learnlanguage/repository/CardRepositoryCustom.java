@@ -12,4 +12,6 @@ public interface CardRepositoryCustom {
     List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 
     List<Object[]> countCardsBySourceGroupBySource();
+
+    void updateReadinessByIds(List<String> ids, String readiness);
 }

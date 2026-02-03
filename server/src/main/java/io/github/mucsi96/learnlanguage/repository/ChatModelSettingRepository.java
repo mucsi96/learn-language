@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ChatModelSettingRepository extends JpaRepository<ChatModelSetting, Integer> {
+public interface ChatModelSettingRepository
+        extends JpaRepository<ChatModelSetting, Integer>, ChatModelSettingRepositoryCustom {
     List<ChatModelSetting> findByIsEnabledTrue();
     List<ChatModelSetting> findByIsPrimaryTrue();
     List<ChatModelSetting> findByOperationType(OperationType operationType);

@@ -111,37 +111,28 @@ public class ChatModelSettingService {
     }
 
     private void clearPrimaryForOperation(OperationType operationType) {
-        final List<ChatModelSetting> settings = chatModelSettingRepository.findByOperationType(operationType);
-        final List<ChatModelSetting> updatedSettings = settings.stream()
-                .filter(s -> Boolean.TRUE.equals(s.getIsPrimary()))
-                .map(s -> s.toBuilder().isPrimary(false).build())
-                .toList();
-        chatModelSettingRepository.saveAll(updatedSettings);
+        chatModelSettingRepository.clearPrimaryByOperationType(operationType);
     }
 
     public void enableAllModelsForOperation(OperationType operationType) {
-        Set<String> existingModels = chatModelSettingRepository.findByOperationType(operationType).stream()
+        chatModelSettingRepository.enableByOperationType(operationType);
+
+        final Set<String> existingModels = chatModelSettingRepository.findByOperationType(operationType).stream()
                 .map(ChatModelSetting::getModelName)
                 .collect(Collectors.toSet());
 
-        List<ChatModelSetting> settingsToSave = Arrays.stream(ChatModel.values())
-                .map(model -> {
-                    if (existingModels.contains(model.getModelName())) {
-                        final ChatModelSetting existing = chatModelSettingRepository
-                                .findByModelNameAndOperationType(model.getModelName(), operationType)
-                                .orElseThrow();
-                        return existing.toBuilder().isEnabled(true).build();
-                    } else {
-                        return ChatModelSetting.builder()
-                                .modelName(model.getModelName())
-                                .operationType(operationType)
-                                .isEnabled(true)
-                                .build();
-                    }
-                })
+        final List<ChatModelSetting> newSettings = Arrays.stream(ChatModel.values())
+                .filter(model -> !existingModels.contains(model.getModelName()))
+                .map(model -> ChatModelSetting.builder()
+                        .modelName(model.getModelName())
+                        .operationType(operationType)
+                        .isEnabled(true)
+                        .build())
                 .toList();
 
-        chatModelSettingRepository.saveAll(settingsToSave);
+        if (!newSettings.isEmpty()) {
+            chatModelSettingRepository.saveAll(newSettings);
+        }
     }
 
     private ChatModelSettingResponse toResponse(ChatModelSetting setting) {

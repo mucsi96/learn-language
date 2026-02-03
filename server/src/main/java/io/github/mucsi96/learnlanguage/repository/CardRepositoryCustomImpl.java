@@ -5,12 +5,12 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,5 +88,17 @@ public class CardRepositoryCustomImpl implements CardRepositoryCustom {
         query.groupBy(root.get("source"));
 
         return entityManager.createQuery(query).getResultList();
+    }
+
+    @Override
+    public void updateReadinessByIds(List<String> ids, String readiness) {
+        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        final CriteriaUpdate<Card> update = cb.createCriteriaUpdate(Card.class);
+        final Root<Card> root = update.from(Card.class);
+
+        update.set(root.<String>get("readiness"), readiness);
+        update.where(root.get("id").in(ids));
+
+        entityManager.createQuery(update).executeUpdate();
     }
 }
