@@ -31,6 +31,7 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -44,12 +45,13 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
+    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedAtAfter(sourceId, startOfDay)
+        return studySessionRepository.findBySourceIdAndCreatedSince(sourceId, startOfDay)
                 .map(session -> StudySessionResponse.builder()
                         .sessionId(session.getId())
                         .build());
@@ -60,7 +62,7 @@ public class StudySessionService {
         studySessionRepository.deleteOlderThan(startOfDay);
 
         final Optional<StudySession> existingSession = studySessionRepository
-                .findBySourceIdAndCreatedAtAfter(sourceId, startOfDay);
+                .findBySourceIdAndCreatedSince(sourceId, startOfDay);
         if (existingSession.isPresent()) {
             return StudySessionResponse.builder()
                     .sessionId(existingSession.get().getId())
@@ -199,7 +201,7 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedAtAfterWithCards(sourceId, startOfDay)
+        return studySessionRepository.findBySourceIdAndCreatedSinceWithCards(sourceId, startOfDay)
                 .flatMap(this::findNextCard);
     }
 
@@ -218,18 +220,11 @@ public class StudySessionService {
                 .orElse(0);
 
         final int newLastPosition = maxPosition + 1;
-        final boolean positionUpdated = eligibleCards.stream()
+        eligibleCards.stream()
                 .filter(c -> c.getCard().getLastReview() != null)
                 .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                .map(mostRecent -> {
-                    mostRecent.setPosition(newLastPosition);
-                    return true;
-                })
-                .orElse(false);
-
-        if (positionUpdated) {
-            studySessionRepository.save(session);
-        }
+                .ifPresent(mostRecent ->
+                        studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
                 .min(Comparator.comparing(StudySessionCard::getPosition));

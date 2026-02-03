@@ -20,10 +20,10 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Stri
     Optional<StudySession> findByIdWithCards(@Param("sessionId") String sessionId);
 
     @Query("SELECT s FROM StudySession s WHERE s.source.id = :sourceId AND s.createdAt >= :since")
-    Optional<StudySession> findBySourceIdAndCreatedAtAfter(@Param("sourceId") String sourceId, @Param("since") LocalDateTime since);
+    Optional<StudySession> findBySourceIdAndCreatedSince(@Param("sourceId") String sourceId, @Param("since") LocalDateTime since);
 
     @Query("SELECT s FROM StudySession s LEFT JOIN FETCH s.cards sc LEFT JOIN FETCH sc.card LEFT JOIN FETCH sc.learningPartner WHERE s.source.id = :sourceId AND s.createdAt >= :since")
-    Optional<StudySession> findBySourceIdAndCreatedAtAfterWithCards(@Param("sourceId") String sourceId, @Param("since") LocalDateTime since);
+    Optional<StudySession> findBySourceIdAndCreatedSinceWithCards(@Param("sourceId") String sourceId, @Param("since") LocalDateTime since);
 
     @Modifying
     @Query("DELETE FROM StudySession s WHERE s.createdAt < :cutoff")
