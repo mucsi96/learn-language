@@ -59,11 +59,11 @@ public class CardService {
   }
 
   public List<Card> getRandomReadyCards(int limit) {
-    return cardRepository.findRandomReadyCards(limit);
+    return cardRepository.findRandomCards(limit);
   }
 
   public List<SourceCardCount> getCardCountsBySource() {
-    return cardRepository.countBySourceGroupBySource()
+    return cardRepository.countCardsBySourceGroupBySource()
         .stream()
         .map(record -> new SourceCardCount(
             (String) record[0],

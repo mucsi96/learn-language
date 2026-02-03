@@ -31,7 +31,6 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
-import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -45,13 +44,12 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
-    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedSince(sourceId, startOfDay)
+        return studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .map(session -> StudySessionResponse.builder()
                         .sessionId(session.getId())
                         .build());
@@ -59,13 +57,13 @@ public class StudySessionService {
 
     @Transactional
     public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
-        final Source source = sourceRepository.findByIdWithLock(sourceId)
+        final Source source = sourceRepository.findLockedById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
-        studySessionRepository.deleteOlderThan(startOfDay);
+        studySessionRepository.deleteByCreatedAtBefore(startOfDay);
 
         final Optional<StudySession> existingSession = studySessionRepository
-                .findBySourceIdAndCreatedSince(sourceId, startOfDay);
+                .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay);
         if (existingSession.isPresent()) {
             return StudySessionResponse.builder()
                     .sessionId(existingSession.get().getId())
@@ -195,7 +193,7 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedSinceWithCards(sourceId, startOfDay)
+        return studySessionRepository.findWithCardsBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(this::findNextCard);
     }
 
@@ -219,8 +217,7 @@ public class StudySessionService {
                 .filter(c -> c.getCard().getLastReview() != null)
                 .max(Comparator.comparing(c -> c.getCard().getLastReview()));
 
-        movedCard.ifPresent(mostRecent ->
-                studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
+        movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
         final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
 
