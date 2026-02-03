@@ -18,6 +18,11 @@ export class StudySessionService {
   readonly hasExistingSession = signal(false);
   private sessionVersion = signal(0);
 
+  private getStartOfDay(): string {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  }
+
   readonly currentCard = resource({
     params: () => ({
       sourceId: this.sourceId(),
@@ -28,9 +33,10 @@ export class StudySessionService {
       if (!sourceId || !hasSession) {
         return null;
       }
+      const startOfDay = this.getStartOfDay();
       const result = await fetchJson<StudySessionCard>(
         this.http,
-        `/api/source/${sourceId}/study-session/current-card`
+        `/api/source/${sourceId}/study-session/current-card?startOfDay=${startOfDay}`
       );
       if (result && result.card) {
         result.card = mapCardDatesFromISOStrings(result.card);
@@ -52,9 +58,10 @@ export class StudySessionService {
   });
 
   async checkExistingSession(sourceId: string): Promise<boolean> {
+    const startOfDay = this.getStartOfDay();
     const session = await fetchJson<StudySession>(
       this.http,
-      `/api/source/${sourceId}/study-session`
+      `/api/source/${sourceId}/study-session?startOfDay=${startOfDay}`
     );
     const exists = session !== null;
     this.sourceId.set(sourceId);
@@ -63,9 +70,10 @@ export class StudySessionService {
   }
 
   async createSession(sourceId: string): Promise<StudySession | null> {
+    const startOfDay = this.getStartOfDay();
     const session = await fetchJson<StudySession>(
       this.http,
-      `/api/source/${sourceId}/study-session`,
+      `/api/source/${sourceId}/study-session?startOfDay=${startOfDay}`,
       { method: 'POST' }
     );
     if (session) {

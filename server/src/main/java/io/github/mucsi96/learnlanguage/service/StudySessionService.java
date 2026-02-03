@@ -1,9 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -50,8 +48,7 @@ public class StudySessionService {
     private final LearningPartnerService learningPartnerService;
 
     @Transactional(readOnly = true)
-    public Optional<StudySessionResponse> getExistingSession(String sourceId) {
-        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
+    public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findBySourceIdAndCreatedAtAfter(sourceId, startOfDay)
                 .map(session -> StudySessionResponse.builder()
                         .sessionId(session.getId())
@@ -59,9 +56,7 @@ public class StudySessionService {
     }
 
     @Transactional
-    public StudySessionResponse createSession(String sourceId) {
-        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
-
+    public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySourceIdAndCreatedAtAfter(sourceId, startOfDay);
         if (existingSession.isPresent()) {
@@ -200,8 +195,7 @@ public class StudySessionService {
     }
 
     @Transactional
-    public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId) {
-        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
+    public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findBySourceIdAndCreatedAtAfterWithCards(sourceId, startOfDay)
                 .flatMap(this::findNextCard);
     }

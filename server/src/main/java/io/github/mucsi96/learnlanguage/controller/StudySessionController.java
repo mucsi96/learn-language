@@ -1,10 +1,15 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
@@ -20,22 +25,28 @@ public class StudySessionController {
 
     @GetMapping("/source/{sourceId}/study-session")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<StudySessionResponse> getExistingSession(@PathVariable String sourceId) {
-        return studySessionService.getExistingSession(sourceId)
+    public ResponseEntity<StudySessionResponse> getExistingSession(
+            @PathVariable String sourceId,
+            @RequestParam String startOfDay) {
+        return studySessionService.getExistingSession(sourceId, parseStartOfDay(startOfDay))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/source/{sourceId}/study-session")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<StudySessionResponse> createSession(@PathVariable String sourceId) {
-        return ResponseEntity.ok(studySessionService.createSession(sourceId));
+    public ResponseEntity<StudySessionResponse> createSession(
+            @PathVariable String sourceId,
+            @RequestParam String startOfDay) {
+        return ResponseEntity.ok(studySessionService.createSession(sourceId, parseStartOfDay(startOfDay)));
     }
 
     @GetMapping("/source/{sourceId}/study-session/current-card")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(@PathVariable String sourceId) {
-        return studySessionService.getCurrentCardBySourceId(sourceId)
+    public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(
+            @PathVariable String sourceId,
+            @RequestParam String startOfDay) {
+        return studySessionService.getCurrentCardBySourceId(sourceId, parseStartOfDay(startOfDay))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
@@ -46,5 +57,9 @@ public class StudySessionController {
         return studySessionService.getCurrentCard(sessionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
+    }
+
+    private static LocalDateTime parseStartOfDay(String startOfDay) {
+        return Instant.parse(startOfDay).atZone(ZoneOffset.UTC).toLocalDateTime();
     }
 }
