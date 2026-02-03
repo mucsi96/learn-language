@@ -1030,6 +1030,8 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
 
 test('most recently reviewed card moves to back of queue', async ({ page }) => {
   const now = new Date();
+  const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86400000);
   const yesterday = new Date(now.getTime() - 86400000);
 
   await createCard({
@@ -1042,7 +1044,11 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
       translation: { en: 'first', hu: 'első', ch: 'erschti' },
     },
     state: 'LEARNING',
-    due: yesterday,
+    due: threeDaysAgo,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: threeDaysAgo,
   });
 
   await createCard({
@@ -1055,7 +1061,11 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
       translation: { en: 'second', hu: 'második', ch: 'zwöiti' },
     },
     state: 'LEARNING',
-    due: yesterday,
+    due: twoDaysAgo,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: twoDaysAgo,
   });
 
   await createCard({
@@ -1069,6 +1079,10 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
     },
     state: 'LEARNING',
     due: yesterday,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: yesterday,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
