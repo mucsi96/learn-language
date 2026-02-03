@@ -1,0 +1,137 @@
+:host {
+  display: block;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container {
+  padding: 2rem 0;
+}
+
+h1 {
+  color: var(--mat-sys-on-surface);
+  margin-bottom: 1.5rem;
+}
+
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.filter-field {
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.actions-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--mat-sys-secondary-container);
+  border-radius: 8px;
+  align-items: center;
+}
+
+.cards-grid {
+  width: 100%;
+}
+
+.cards-grid :deep(.ag-row) {
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  margin-top: 2rem;
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-surface-container);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: var(--mat-sys-primary);
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  color: var(--mat-sys-on-surface);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--mat-app-text-color);
+  margin: 0;
+}
+
+.grid-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 2rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-small {
+  height: 16px;
+  width: 60px;
+}
+
+.skeleton-text-medium {
+  height: 18px;
+  width: 120px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 1rem 0;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .filter-field {
+    max-width: 100%;
+  }
+}

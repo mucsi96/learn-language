@@ -1,0 +1,106 @@
+<div class="container">
+  <h1>All Cards</h1>
+
+  @if (hasRows()) {
+  <div class="filters-section">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Reviews</mat-label>
+      <mat-select
+        [value]="reviewCountFilter()"
+        (selectionChange)="onReviewCountFilterChange($event.value)"
+        aria-label="Filter by review count"
+      >
+        <mat-option value="ALL">All</mat-option>
+        <mat-option value="0">0</mat-option>
+        <mat-option value="1-5">1 - 5</mat-option>
+        <mat-option value="6-10">6 - 10</mat-option>
+        <mat-option value="10+">10+</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Last Review Date</mat-label>
+      <mat-select
+        [value]="lastReviewDateFilter()"
+        (selectionChange)="onLastReviewDateFilterChange($event.value)"
+        aria-label="Filter by last review date"
+      >
+        <mat-option value="ALL">All dates</mat-option>
+        @for (option of availableDates(); track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Grade</mat-label>
+      <mat-select
+        [value]="lastReviewGradeFilter()"
+        (selectionChange)="onLastReviewGradeFilterChange($event.value)"
+        aria-label="Filter by last review grade"
+      >
+        <mat-option value="ALL">All grades</mat-option>
+        <mat-option value="1">Again</mat-option>
+        <mat-option value="2">Hard</mat-option>
+        <mat-option value="3">Good</mat-option>
+        <mat-option value="4">Easy</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  }
+
+  @if (selectionCount() > 0) {
+  <div class="actions-bar">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="markSelectedAsKnown()"
+      aria-label="Mark selected cards as known"
+    >
+      <mat-icon>check_circle</mat-icon>
+      Mark {{ selectionCount() }} card(s) as known
+    </button>
+  </div>
+  }
+
+  @if (loading()) {
+  <div class="grid-skeleton">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+    <div class="skeleton-row">
+      <div class="skeleton skeleton-text-small"></div>
+      <div class="skeleton skeleton-text-medium"></div>
+      <div class="skeleton skeleton-text-small"></div>
+      <div class="skeleton skeleton-text-medium"></div>
+      <div class="skeleton skeleton-text-small"></div>
+      <div class="skeleton skeleton-text-medium"></div>
+      <div class="skeleton skeleton-text-small"></div>
+    </div>
+    }
+  </div>
+  } @else if (hasRows()) {
+  <ag-grid-angular
+    class="cards-grid"
+    [theme]="theme"
+    [rowData]="rows()"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [rowSelection]="'multiple'"
+    [suppressRowClickSelection]="true"
+    [animateRows]="true"
+    [rowHeight]="48"
+    [headerHeight]="48"
+    [domLayout]="'autoHeight'"
+    (gridReady)="onGridReady($event)"
+    (selectionChanged)="onSelectionChanged($event)"
+    (rowClicked)="onRowClicked($event)"
+  />
+  } @else {
+  <mat-card class="empty-state">
+    <mat-card-content>
+      <mat-icon class="empty-icon">style</mat-icon>
+      <h2>No cards yet</h2>
+      <p>Cards will appear here once created from source pages.</p>
+    </mat-card-content>
+  </mat-card>
+  }
+</div>

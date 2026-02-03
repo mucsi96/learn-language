@@ -32,6 +32,13 @@ export const routes: Routes = [
     title: 'Cards In Review',
   },
   {
+    path: 'cards',
+    loadComponent: () =>
+      import('./cards-table/cards-table.component').then((m) => m.CardsTableComponent),
+    canActivate: [conditionalAuthGuard],
+    title: 'All Cards',
+  },
+  {
     path: 'model-usage',
     loadComponent: () =>
       import('./model-usage-logs/model-usage-logs.component').then((m) => m.ModelUsageLogsComponent),

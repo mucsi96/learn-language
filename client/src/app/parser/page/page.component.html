@@ -31,6 +31,12 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
+  <a
+    mat-icon-button
+    routerLink="/cards"
+    aria-label="All cards"
+    ><mat-icon>table_chart</mat-icon></a
+  >
   @if (sourceType() === 'images' && hasImage()) {
   <button mat-icon-button aria-label="Delete image" (click)="deleteImage()">
     <mat-icon>delete</mat-icon>

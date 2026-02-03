@@ -19,4 +19,12 @@ public interface ReviewLogRepository extends JpaRepository<ReviewLog, Integer> {
         ORDER BY card_id, COALESCE(learning_partner_id, 0), review DESC
         """, nativeQuery = true)
     List<ReviewLog> findLatestReviewsByCardIds(@Param("cardIds") List<String> cardIds);
+
+    @Query(value = """
+        SELECT DISTINCT ON (card_id) *
+        FROM learn_language.review_logs
+        WHERE card_id IN :cardIds
+        ORDER BY card_id, review DESC
+        """, nativeQuery = true)
+    List<ReviewLog> findLatestReviewByCardIds(@Param("cardIds") List<String> cardIds);
 }

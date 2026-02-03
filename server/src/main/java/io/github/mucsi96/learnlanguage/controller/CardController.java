@@ -12,6 +12,7 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardTableRowResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -133,6 +134,19 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/cards/table")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<List<CardTableRowResponse>> getCardTableRows() {
+    return ResponseEntity.ok(cardService.getCardTableRows());
+  }
+
+  @PutMapping("/cards/mark-known")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
+    cardService.markCardsAsKnown(cardIds);
+    return ResponseEntity.ok(Map.of("detail", "Cards marked as known"));
   }
 
   @GetMapping("/cards/readiness/{readiness}")

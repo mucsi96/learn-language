@@ -92,4 +92,8 @@ public class Card {
     public boolean isReviewed() {
         return hasReadiness(CardReadiness.REVIEWED);
     }
+
+    public boolean isKnown() {
+        return hasReadiness(CardReadiness.KNOWN);
+    }
 }
