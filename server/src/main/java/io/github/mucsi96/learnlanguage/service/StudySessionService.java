@@ -214,14 +214,19 @@ public class StudySessionService {
                 .orElse(0);
 
         final int newLastPosition = maxPosition + 1;
-        eligibleCards.stream()
+
+        final Optional<StudySessionCard> movedCard = eligibleCards.stream()
                 .filter(c -> c.getCard().getLastReview() != null)
-                .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                .ifPresent(mostRecent ->
-                        studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
+                .max(Comparator.comparing(c -> c.getCard().getLastReview()));
+
+        movedCard.ifPresent(mostRecent ->
+                studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
+
+        final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                .min(Comparator.comparing(StudySessionCard::getPosition));
+                .min(Comparator.comparingInt(c ->
+                        c.getId().equals(movedCardId) ? newLastPosition : c.getPosition()));
 
         return nextCard.map(sessionCard -> {
             final String turnName = sessionCard.getLearningPartner() != null
