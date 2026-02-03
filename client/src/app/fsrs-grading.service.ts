@@ -88,6 +88,7 @@ export class FsrsGradingService {
       body: {
         ...mapCardDatesToISOStrings(cardUpdateData),
         learningPartnerId: learningPartnerId ?? null,
+        rating,
       },
     });
   }

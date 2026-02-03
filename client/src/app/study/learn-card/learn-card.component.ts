@@ -5,6 +5,8 @@ import {
   signal,
   computed,
   OnDestroy,
+  HostListener,
+  viewChild,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -49,6 +51,8 @@ export class LearnCardComponent implements OnDestroy {
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
+  private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
+
   readonly currentCardData = this.studySessionService.currentCard;
 
   readonly cardResource: CardResourceLike = {
@@ -64,6 +68,7 @@ export class LearnCardComponent implements OnDestroy {
   readonly hasSession = this.studySessionService.hasSession;
   readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
+  private readonly isGrading = signal(false);
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;
 
@@ -108,6 +113,40 @@ export class LearnCardComponent implements OnDestroy {
   async startSession() {
     if (this.currentSourceId) {
       await this.studySessionService.createSession(this.currentSourceId);
+    }
+  }
+
+  private static readonly GRADE_BY_KEY = {
+    'Red': 'Again',
+    'Yellow': 'Hard',
+    'Green': 'Good',
+    'Blue': 'Easy',
+  } as const satisfies Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'>;
+
+  @HostListener('document:keydown', ['$event'])
+  async handleKeydown(event: KeyboardEvent) {
+    if (!this.card()) return;
+
+    const target = event.target as HTMLElement;
+    const isInteractiveElement = target?.closest?.('button, a, input, select, textarea');
+
+    if (event.key === 'Enter' && !isInteractiveElement && !this.isGrading()) {
+      event.preventDefault();
+      this.toggleReveal();
+      return;
+    }
+
+    if (this.isRevealed() && !this.isGrading()) {
+      const grade = LearnCardComponent.GRADE_BY_KEY[event.key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
+      if (grade) {
+        event.preventDefault();
+        this.isGrading.set(true);
+        try {
+          await this.gradingButtons()?.gradeCard(grade);
+        } finally {
+          this.isGrading.set(false);
+        }
+      }
     }
   }
 

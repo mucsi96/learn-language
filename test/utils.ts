@@ -865,6 +865,49 @@ export async function getReviewLogs(): Promise<
   });
 }
 
+export async function getReviewLogsByCardId(cardId: string): Promise<
+  Array<{
+    cardId: string;
+    rating: number;
+    state: string;
+    stability: number;
+    difficulty: number;
+    learningPartnerId: number | null;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT card_id as "cardId", rating, state,
+              stability::float as stability, difficulty::float as difficulty,
+              learning_partner_id as "learningPartnerId"
+       FROM learn_language.review_logs
+       WHERE card_id = $1
+       ORDER BY id`,
+      [cardId]
+    );
+    return result.rows;
+  });
+}
+
+export async function getCardFromDb(cardId: string): Promise<{
+  state: string;
+  reps: number;
+  stability: number;
+  difficulty: number;
+  readiness: string;
+}> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT state, reps, stability::float as stability,
+              difficulty::float as difficulty, readiness
+       FROM learn_language.cards
+       WHERE id = $1`,
+      [cardId]
+    );
+    return result.rows[0];
+  });
+}
+
 export async function createReviewLog(params: {
   cardId: string;
   learningPartnerId?: number | null;
