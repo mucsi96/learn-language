@@ -57,15 +57,21 @@ export class StudySessionService {
   });
 
   async checkExistingSession(sourceId: string): Promise<boolean> {
-    const session = await fetchJson<StudySession>(
-      this.http,
-      `/api/source/${sourceId}/study-session`,
-      { headers: this.timezoneHeaders }
-    );
-    const exists = session !== null;
-    this.sourceId.set(sourceId);
-    this.hasExistingSession.set(exists);
-    return exists;
+    try {
+      const session = await fetchJson<StudySession>(
+        this.http,
+        `/api/source/${sourceId}/study-session`,
+        { headers: this.timezoneHeaders }
+      );
+      const exists = session !== null;
+      this.sourceId.set(sourceId);
+      this.hasExistingSession.set(exists);
+      return exists;
+    } catch {
+      this.sourceId.set(sourceId);
+      this.hasExistingSession.set(false);
+      return false;
+    }
   }
 
   async createSession(sourceId: string): Promise<StudySession | null> {

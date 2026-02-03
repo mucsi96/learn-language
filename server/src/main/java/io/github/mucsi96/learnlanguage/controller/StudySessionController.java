@@ -1,9 +1,11 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
@@ -52,6 +55,10 @@ public class StudySessionController {
     }
 
     private static LocalDateTime startOfDay(String timezone) {
-        return LocalDate.now(ZoneId.of(timezone)).atStartOfDay();
+        try {
+            return LocalDate.now(ZoneId.of(timezone)).atStartOfDay();
+        } catch (DateTimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid timezone: " + timezone);
+        }
     }
 }

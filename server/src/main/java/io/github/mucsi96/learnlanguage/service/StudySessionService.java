@@ -59,6 +59,9 @@ public class StudySessionService {
 
     @Transactional
     public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
+        final Source source = sourceRepository.findByIdWithLock(sourceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
+
         studySessionRepository.deleteOlderThan(startOfDay);
 
         final Optional<StudySession> existingSession = studySessionRepository
@@ -68,9 +71,6 @@ public class StudySessionService {
                     .sessionId(existingSession.get().getId())
                     .build();
         }
-
-        final Source source = sourceRepository.findById(sourceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
         final List<Card> dueCards = cardRepository.findDueCardsBySourceId(sourceId);
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();

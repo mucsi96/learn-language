@@ -106,8 +106,11 @@ export class LearnCardComponent implements OnDestroy {
 
   private async checkForExistingSession(sourceId: string) {
     this.isCheckingSession.set(true);
-    await this.studySessionService.checkExistingSession(sourceId);
-    this.isCheckingSession.set(false);
+    try {
+      await this.studySessionService.checkExistingSession(sourceId);
+    } finally {
+      this.isCheckingSession.set(false);
+    }
   }
 
   async startSession() {
