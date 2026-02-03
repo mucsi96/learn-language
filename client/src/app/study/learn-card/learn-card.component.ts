@@ -147,7 +147,7 @@ export class LearnCardComponent implements OnDestroy {
   } as const satisfies Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'>;
 
   @HostListener('document:keydown', ['$event'])
-  handleKeydown(event: KeyboardEvent) {
+  async handleKeydown(event: KeyboardEvent) {
     if (!this.card()) return;
 
     const target = event.target as HTMLElement;
@@ -164,7 +164,11 @@ export class LearnCardComponent implements OnDestroy {
       if (grade) {
         event.preventDefault();
         this.isGrading = true;
-        this.gradingButtons()?.gradeCard(grade);
+        try {
+          await this.gradingButtons()?.gradeCard(grade);
+        } finally {
+          this.isGrading = false;
+        }
       }
     }
   }
@@ -204,7 +208,6 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   onCardProcessed() {
-    this.isGrading = false;
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();

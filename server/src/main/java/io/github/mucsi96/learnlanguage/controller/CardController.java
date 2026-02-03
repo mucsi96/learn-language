@@ -27,6 +27,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CardController {
 
+  private static final int MIN_FSRS_RATING = 1;
+  private static final int MAX_FSRS_RATING = 4;
+
   private final CardRepository cardRepository;
   private final SourceRepository sourceRepository;
   private final CardService cardService;
@@ -87,8 +90,9 @@ public class CardController {
             "stability, difficulty, elapsedDays, and scheduledDays are required for grading");
       }
 
-      if (request.getRating() < 1 || request.getRating() > 4) {
-        throw new IllegalArgumentException("rating must be between 1 and 4");
+      if (request.getRating() < MIN_FSRS_RATING || request.getRating() > MAX_FSRS_RATING) {
+        throw new IllegalArgumentException(
+            String.format("rating must be between %d and %d", MIN_FSRS_RATING, MAX_FSRS_RATING));
       }
 
       LearningPartner partner = null;
