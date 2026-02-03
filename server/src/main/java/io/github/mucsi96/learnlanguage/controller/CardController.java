@@ -11,7 +11,9 @@ import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
+import io.github.mucsi96.learnlanguage.model.BulkReadinessUpdateRequest;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -202,6 +204,42 @@ public class CardController {
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Audio added successfully");
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/source/{sourceId}/cards")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<CardTableResponse> getCardsForSource(
+      @PathVariable String sourceId,
+      @RequestParam(defaultValue = "0") int startRow,
+      @RequestParam(defaultValue = "100") int endRow,
+      @RequestParam(required = false) String sortField,
+      @RequestParam(required = false, defaultValue = "asc") String sortDir,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) Integer lastReviewGrade,
+      @RequestParam(required = false) Integer minReviews,
+      @RequestParam(required = false) Integer maxReviews,
+      @RequestParam(required = false) String lastReviewDate) {
+
+    CardTableResponse response = cardService.getCardsForTable(
+        sourceId, startRow, endRow,
+        sortField, sortDir,
+        state, lastReviewGrade,
+        minReviews, maxReviews,
+        lastReviewDate);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PutMapping("/cards/readiness")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> updateCardsReadiness(
+      @RequestBody BulkReadinessUpdateRequest request) {
+
+    cardService.updateReadinessForCards(request.getCardIds(), request.getReadiness());
+
+    Map<String, String> response = new HashMap<>();
+    response.put("detail", "Cards readiness updated successfully");
     return ResponseEntity.ok(response);
   }
 }

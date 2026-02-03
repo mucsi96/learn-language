@@ -1,0 +1,98 @@
+:host {
+  display: block;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container {
+  padding: 2rem 0;
+}
+
+h1 {
+  color: var(--mat-sys-on-surface);
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: var(--mat-app-text-color);
+  margin-bottom: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.breadcrumb-link {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.5rem;
+  color: var(--mat-app-text-color);
+}
+
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.filter-field {
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--mat-sys-secondary-container);
+  border-radius: 8px;
+}
+
+.selection-count {
+  color: var(--mat-sys-on-secondary-container);
+  font-weight: 500;
+}
+
+.grid-container {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 1rem 0;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .filter-field {
+    max-width: 100%;
+  }
+}

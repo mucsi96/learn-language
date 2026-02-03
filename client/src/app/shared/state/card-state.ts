@@ -1,6 +1,6 @@
 import { State } from 'ts-fsrs';
 
-export type CardState = 'NEW' | 'LEARNING' | 'REVIEW' | 'RELEARNING';
+export type CardState = 'NEW' | 'LEARNING' | 'REVIEW' | 'RELEARNING' | 'KNOWN';
 
 export function mapTsfsrsStateToCardState(state: State): CardState {
   switch (state) {
@@ -22,6 +22,7 @@ export function mapCardStateToTsfsrsState(state: CardState): State {
     case 'LEARNING':
       return State.Learning;
     case 'REVIEW':
+    case 'KNOWN':
       return State.Review;
     case 'RELEARNING':
       return State.Relearning;

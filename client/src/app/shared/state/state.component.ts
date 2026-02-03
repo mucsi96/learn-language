@@ -18,14 +18,16 @@ export class StateComponent {
     'NEW': 'New',
     'LEARNING': 'Learning',
     'REVIEW': 'Review',
-    'RELEARNING': 'Relearning'
+    'RELEARNING': 'Relearning',
+    'KNOWN': 'Known',
   };
 
   private readonly stateColorMap: Record<CardState, string> = {
-    'NEW': '#2196F3', // Blue
-    'LEARNING': '#4CAF50', // Green
-    'REVIEW': '#FFC107', // Amber
-    'RELEARNING': '#F44336', // Red
+    'NEW': '#2196F3',
+    'LEARNING': '#4CAF50',
+    'REVIEW': '#FFC107',
+    'RELEARNING': '#F44336',
+    'KNOWN': '#9E9E9E',
   };
 
   stateStyle = computed(() => {

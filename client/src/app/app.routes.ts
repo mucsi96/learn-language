@@ -105,6 +105,13 @@ export const routes: Routes = [
     title: 'Sources',
   },
   {
+    path: 'sources/:sourceId/cards',
+    loadComponent: () =>
+      import('./source-cards/source-cards.component').then((m) => m.SourceCardsComponent),
+    canActivate: [conditionalAuthGuard],
+    title: 'Source Cards',
+  },
+  {
     path: 'sources/:sourceId/page/:pageNumber',
     canActivate: [conditionalAuthGuard],
     title: (route) => {

@@ -7,7 +7,7 @@
     <p>Select a source to edit or create a new one:</p>
   </div>
   <button
-    mat-flat-button
+    mat-button
     (click)="openAddSourceDialog()"
     class="add-button"
   >
@@ -38,21 +38,33 @@
       </mat-card>
     </a>
     <div class="card-actions">
+      <a
+        mat-button
+        [routerLink]="['/sources', source.id, 'cards']"
+        (click)="$event.stopPropagation()"
+        aria-label="View cards"
+        class="action-button"
+      >
+        <mat-icon>table_chart</mat-icon>
+        Cards
+      </a>
       <button
-        mat-icon-button
+        mat-button
         (click)="openEditSourceDialog(source, $event)"
         aria-label="Edit source"
         class="action-button"
       >
         <mat-icon>edit</mat-icon>
+        Edit
       </button>
       <button
-        mat-icon-button
+        mat-button
         (click)="openDeleteConfirmDialog(source, $event)"
         aria-label="Delete source"
         class="action-button delete-button"
       >
         <mat-icon>delete</mat-icon>
+        Delete
       </button>
     </div>
   </article>

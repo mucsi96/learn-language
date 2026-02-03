@@ -69,6 +69,7 @@ p {
 .action-button {
   background: var(--mat-sys-surface);
   border: 1px solid var(--mat-sys-surface-container);
+  font-size: 0.8rem;
 }
 
 .action-button:hover {
@@ -77,6 +78,11 @@ p {
 
 .delete-button:hover {
   color: var(--mat-sys-error);
+}
+
+.action-button a {
+  text-decoration: none;
+  color: inherit;
 }
 
 .sources mat-card {
