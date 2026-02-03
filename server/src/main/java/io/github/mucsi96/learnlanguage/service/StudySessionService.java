@@ -1,7 +1,9 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -49,7 +51,7 @@ public class StudySessionService {
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId) {
-        final LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
         return studySessionRepository.findBySourceIdAndCreatedAtAfter(sourceId, startOfDay)
                 .map(session -> StudySessionResponse.builder()
                         .sessionId(session.getId())
@@ -58,7 +60,7 @@ public class StudySessionService {
 
     @Transactional
     public StudySessionResponse createSession(String sourceId) {
-        final LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
 
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySourceIdAndCreatedAtAfter(sourceId, startOfDay);
@@ -68,8 +70,7 @@ public class StudySessionService {
                     .build();
         }
 
-        studySessionRepository.deleteBySourceId(sourceId);
-        studySessionRepository.deleteOlderThan(LocalDateTime.now().minusDays(1));
+        studySessionRepository.deleteOlderThan(startOfDay);
 
         final Source source = sourceRepository.findById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
@@ -200,7 +201,7 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId) {
-        final LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
         return studySessionRepository.findBySourceIdAndCreatedAtAfterWithCards(sourceId, startOfDay)
                 .flatMap(this::findNextCard);
     }
@@ -212,7 +213,7 @@ public class StudySessionService {
         final List<StudySessionCard> eligibleCards = session.getCards().stream()
                 .filter(c -> c.getCard().isReady())
                 .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
-                .collect(Collectors.toList());
+                .toList();
 
         final int maxPosition = eligibleCards.stream()
                 .mapToInt(StudySessionCard::getPosition)
