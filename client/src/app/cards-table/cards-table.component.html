@@ -1,13 +1,5 @@
 <div class="container">
-  <div class="header">
-    <a mat-button [routerLink]="['/sources', sourceId(), 'page', 1]">
-      <mat-icon>arrow_back</mat-icon>
-      Back to pages
-    </a>
-    <h1>Cards</h1>
-  </div>
-
-  <div class="filters-section" role="region" aria-label="Card filters">
+<div class="filters-section" role="region" aria-label="Card filters">
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Readiness</mat-label>
       <mat-select
@@ -49,21 +41,21 @@
         }
       </mat-select>
     </mat-form-field>
-  </div>
 
-  @if (selectedCount() > 0) {
-    <div class="actions-bar">
-      <span>{{ selectedCount() }} card(s) selected</span>
-      <button
-        mat-button
-        (click)="markSelectedAsKnown()"
-        aria-label="Mark selected as known"
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Last review</mat-label>
+      <mat-select
+        [value]="lastReviewDaysAgoFilter()"
+        (selectionChange)="onLastReviewDaysAgoFilterChange($event.value)"
+        aria-label="Filter by last review time"
       >
-        <mat-icon>check_circle</mat-icon>
-        Mark as known
-      </button>
-    </div>
-  }
+        <mat-option value="">All</mat-option>
+        @for (option of lastReviewDaysAgoOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
 
   <ag-grid-angular
     class="cards-grid"
@@ -80,4 +72,18 @@
     (selectionChanged)="onSelectionChanged()"
     (rowClicked)="onRowClicked($event)"
   />
+
+  @if (selectedCount() > 0) {
+    <button
+      mat-fab
+      extended
+      color="primary"
+      class="mark-known-fab"
+      (click)="markSelectedAsKnown()"
+      aria-label="Mark selected as known"
+    >
+      <mat-icon>check_circle</mat-icon>
+      Mark {{ selectedCount() }} as known
+    </button>
+  }
 </div>

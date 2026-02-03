@@ -9,18 +9,6 @@
   padding: 2rem 0;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.header h1 {
-  color: var(--mat-sys-on-surface);
-  margin: 0;
-}
-
 .filters-section {
   display: flex;
   flex-wrap: wrap;
@@ -37,15 +25,20 @@
   max-width: 200px;
 }
 
-.actions-bar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
-  background: var(--mat-sys-surface-container);
-  border-radius: 8px;
-  color: var(--mat-sys-on-surface);
+.mark-known-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.14),
+              0 7px 10px -5px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+}
+
+.mark-known-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.2),
+              0 10px 15px -5px rgba(0, 0, 0, 0.4);
 }
 
 .cards-grid {

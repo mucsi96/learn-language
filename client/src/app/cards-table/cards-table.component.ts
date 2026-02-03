@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,7 +23,8 @@ import {
   NumberFilterModule,
   DateFilterModule,
   RowSelectionModule,
-  themeQuartz,
+  themeMaterial,
+  colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
@@ -33,6 +34,41 @@ const RATING_LABELS: Record<number, string> = {
   2: '2 - Hard',
   3: '3 - Good',
   4: '4 - Easy',
+};
+
+const RATING_COLORS: Record<number, string> = {
+  1: '#dc3545',
+  2: '#fd7e14',
+  3: '#28a745',
+  4: '#0d6efd',
+};
+
+const STATE_COLORS: Record<string, string> = {
+  NEW: '#2196F3',
+  LEARNING: '#4CAF50',
+  REVIEW: '#FFC107',
+  RELEARNING: '#F44336',
+};
+
+const READINESS_COLORS: Record<string, string> = {
+  READY: '#4CAF50',
+  IN_REVIEW: '#2196F3',
+  REVIEWED: '#00BCD4',
+  KNOWN: '#9C27B0',
+  NEW: '#78909C',
+};
+
+const badgeHtml = (label: string, color: string): string =>
+  `<span style="padding:1px 6px;border-radius:4px;font-size:0.7rem;font-weight:500;color:${color};background-color:${color}20;border:1px solid ${color}40">${label}</span>`;
+
+const formatDaysAgo = (days: number): string => {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30) return `${days} days ago`;
+  if (days < 60) return '1 month ago';
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  if (days < 730) return '1 year ago';
+  return `${Math.floor(days / 365)} years ago`;
 };
 
 ModuleRegistry.registerModules([
@@ -50,7 +86,6 @@ ModuleRegistry.registerModules([
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
@@ -70,11 +105,22 @@ export class CardsTableComponent {
 
   private gridApi: GridApi | null = null;
 
-  readonly theme = themeQuartz.withParams({ spacing: 6 });
+  readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
+    backgroundColor: 'hsl(215, 28%, 17%)',
+    foregroundColor: 'hsl(220, 13%, 91%)',
+    headerBackgroundColor: 'hsl(217, 19%, 27%)',
+    headerTextColor: 'hsl(220, 13%, 91%)',
+    headerFontWeight: 500,
+    rowHoverColor: 'hsl(217, 19%, 22%)',
+    accentColor: 'hsl(220, 89%, 53%)',
+    selectedRowBackgroundColor: 'hsl(220, 89%, 53%, 0.15)',
+    fontFamily: 'system-ui',
+  });
 
   readonly readinessFilter = signal<string>('');
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
+  readonly lastReviewDaysAgoFilter = signal<string>('');
 
   readonly selectedCount = signal(0);
   readonly selectedIds = signal<readonly string[]>([]);
@@ -87,16 +133,15 @@ export class CardsTableComponent {
     { value: '3', label: '3 - Good' },
     { value: '4', label: '4 - Easy' },
   ];
+  readonly lastReviewDaysAgoOptions = [
+    { value: '0', label: 'Today' },
+    { value: '3', label: 'Last 3 days' },
+    { value: '7', label: 'Last 7 days' },
+    { value: '30', label: 'Last 30 days' },
+    { value: '90', label: 'Last 90 days' },
+  ];
 
   readonly columnDefs: ColDef[] = [
-    {
-      headerName: '',
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
-      width: 50,
-      suppressSizeToFit: true,
-      sortable: false,
-    },
     {
       headerName: 'Card',
       field: 'label',
@@ -104,10 +149,24 @@ export class CardsTableComponent {
       sortable: false,
     },
     {
+      headerName: 'Readiness',
+      field: 'readiness',
+      width: 120,
+      sortable: false,
+      cellRenderer: (params: { value: string | null }) => {
+        if (!params.value) return '';
+        return badgeHtml(params.value, READINESS_COLORS[params.value] ?? '#666');
+      },
+    },
+    {
       headerName: 'State',
       field: 'state',
-      width: 120,
+      width: 130,
       sortable: true,
+      cellRenderer: (params: { value: string | null }) => {
+        if (!params.value) return '';
+        return badgeHtml(params.value, STATE_COLORS[params.value] ?? '#666');
+      },
     },
     {
       headerName: 'Reviews',
@@ -117,22 +176,22 @@ export class CardsTableComponent {
     },
     {
       headerName: 'Last review',
-      field: 'lastReview',
+      field: 'lastReviewDaysAgo',
       width: 150,
       sortable: true,
-      valueFormatter: (params) => {
-        if (!params.value) return '';
-        const date = new Date(params.value);
-        return date.toLocaleDateString();
-      },
+      valueFormatter: (params) =>
+        params.value != null ? formatDaysAgo(params.value) : '',
     },
     {
       headerName: 'Grade',
       field: 'lastReviewRating',
       width: 110,
       sortable: false,
-      valueFormatter: (params) =>
-        params.value != null ? (RATING_LABELS[params.value] ?? String(params.value)) : '',
+      cellRenderer: (params: { value: number | null }) => {
+        if (params.value == null) return '';
+        const label = RATING_LABELS[params.value] ?? String(params.value);
+        return badgeHtml(label, RATING_COLORS[params.value] ?? '#666');
+      },
     },
     {
       headerName: 'Person',
@@ -149,6 +208,7 @@ export class CardsTableComponent {
 
   readonly rowSelection = {
     mode: 'multiRow' as const,
+    headerCheckbox: true,
   };
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
@@ -206,6 +266,11 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  onLastReviewDaysAgoFilterChange(value: string): void {
+    this.lastReviewDaysAgoFilter.set(value);
+    this.refreshGrid();
+  }
+
   async markSelectedAsKnown(): Promise<void> {
     const ids = this.selectedIds();
     if (ids.length === 0) return;
@@ -238,6 +303,9 @@ export class CardsTableComponent {
         sortDirection,
         readiness: this.readinessFilter() || undefined,
         state: this.stateFilter() || undefined,
+        lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+          ? Number(this.lastReviewDaysAgoFilter())
+          : undefined,
         lastReviewRating: this.lastReviewRatingFilter()
           ? Number(this.lastReviewRatingFilter())
           : undefined,

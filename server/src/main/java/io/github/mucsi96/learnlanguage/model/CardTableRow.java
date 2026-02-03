@@ -1,7 +1,5 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +15,7 @@ public class CardTableRow {
     private String readiness;
     private String state;
     private Integer reps;
-    private LocalDateTime lastReview;
+    private Integer lastReviewDaysAgo;
     private Integer lastReviewRating;
     private String lastReviewPerson;
     private Integer sourcePageNumber;

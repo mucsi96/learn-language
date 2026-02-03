@@ -8,7 +8,7 @@ export type CardTableRow = {
   readiness: string;
   state: string;
   reps: number;
-  lastReview: string | null;
+  lastReviewDaysAgo: number | null;
   lastReviewRating: number | null;
   lastReviewPerson: string | null;
   sourcePageNumber: number;
@@ -29,8 +29,7 @@ export type CardTableParams = {
   state?: string;
   minReps?: number;
   maxReps?: number;
-  lastReviewFrom?: string;
-  lastReviewTo?: string;
+  lastReviewDaysAgo?: number;
   lastReviewRating?: number;
 };
 
@@ -48,8 +47,9 @@ export class CardsTableService {
       ...(params.state ? { state: params.state } : {}),
       ...(params.minReps !== undefined ? { minReps: params.minReps } : {}),
       ...(params.maxReps !== undefined ? { maxReps: params.maxReps } : {}),
-      ...(params.lastReviewFrom ? { lastReviewFrom: params.lastReviewFrom } : {}),
-      ...(params.lastReviewTo ? { lastReviewTo: params.lastReviewTo } : {}),
+      ...(params.lastReviewDaysAgo !== undefined
+        ? { lastReviewDaysAgo: params.lastReviewDaysAgo }
+        : {}),
       ...(params.lastReviewRating !== undefined
         ? { lastReviewRating: params.lastReviewRating }
         : {}),

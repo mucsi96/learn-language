@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,6 +30,8 @@ import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -51,13 +54,12 @@ public class CardTableController {
             @RequestParam(required = false) String state,
             @RequestParam(required = false) Integer minReps,
             @RequestParam(required = false) Integer maxReps,
-            @RequestParam(required = false) String lastReviewFrom,
-            @RequestParam(required = false) String lastReviewTo,
+            @RequestParam(required = false) Integer lastReviewDaysAgo,
             @RequestParam(required = false) Integer lastReviewRating) {
 
         final Specification<Card> spec = buildSpecification(
                 sourceId, readiness, state, minReps, maxReps,
-                lastReviewFrom, lastReviewTo);
+                lastReviewDaysAgo, lastReviewRating);
 
         final int pageSize = Math.max(1, endRow - startRow);
         final int page = startRow / pageSize;
@@ -72,7 +74,6 @@ public class CardTableController {
         final Map<String, ReviewLog> latestReviews = getLatestReviews(cardIds);
 
         final List<CardTableRow> rows = cards.stream()
-                .filter(card -> matchesReviewRatingFilter(card.getId(), latestReviews, lastReviewRating))
                 .map(card -> mapToRow(card, latestReviews))
                 .toList();
 
@@ -103,7 +104,7 @@ public class CardTableController {
     private Specification<Card> buildSpecification(
             String sourceId, String readiness, String state,
             Integer minReps, Integer maxReps,
-            String lastReviewFrom, String lastReviewTo) {
+            Integer lastReviewDaysAgo, Integer lastReviewRating) {
 
         return (root, query, cb) -> {
             Predicate predicate = cb.equal(root.get("source").get("id"), sourceId);
@@ -124,14 +125,26 @@ public class CardTableController {
                 predicate = cb.and(predicate, cb.lessThanOrEqualTo(root.get("reps"), maxReps));
             }
 
-            if (lastReviewFrom != null && !lastReviewFrom.isEmpty()) {
-                final LocalDateTime from = LocalDate.parse(lastReviewFrom).atStartOfDay();
+            if (lastReviewDaysAgo != null) {
+                final LocalDateTime from = LocalDate.now().minusDays(lastReviewDaysAgo).atStartOfDay();
                 predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("lastReview"), from));
             }
 
-            if (lastReviewTo != null && !lastReviewTo.isEmpty()) {
-                final LocalDateTime to = LocalDate.parse(lastReviewTo).plusDays(1).atStartOfDay();
-                predicate = cb.and(predicate, cb.lessThan(root.get("lastReview"), to));
+            if (lastReviewRating != null) {
+                final Subquery<LocalDateTime> maxReviewSub = query.subquery(LocalDateTime.class);
+                final Root<ReviewLog> rlMax = maxReviewSub.from(ReviewLog.class);
+                maxReviewSub.select(cb.greatest(rlMax.<LocalDateTime>get("review")))
+                        .where(cb.equal(rlMax.get("card"), root));
+
+                final Subquery<Integer> existsSub = query.subquery(Integer.class);
+                final Root<ReviewLog> rl = existsSub.from(ReviewLog.class);
+                existsSub.select(rl.get("id"))
+                        .where(
+                                cb.equal(rl.get("card"), root),
+                                cb.equal(rl.get("review"), maxReviewSub),
+                                cb.equal(rl.get("rating"), lastReviewRating));
+
+                predicate = cb.and(predicate, cb.exists(existsSub));
             }
 
             return predicate;
@@ -149,7 +162,7 @@ public class CardTableController {
 
         final String mappedField = switch (sortField) {
             case "reps" -> "reps";
-            case "lastReview" -> "lastReview";
+            case "lastReviewDaysAgo" -> "lastReview";
             case "state" -> "state";
             case "readiness" -> "readiness";
             default -> "due";
@@ -170,19 +183,13 @@ public class CardTableController {
                         (a, b) -> a.getReview().isAfter(b.getReview()) ? a : b));
     }
 
-    private boolean matchesReviewRatingFilter(String cardId, Map<String, ReviewLog> latestReviews,
-            Integer lastReviewRating) {
-        if (lastReviewRating == null) {
-            return true;
-        }
-        final ReviewLog review = latestReviews.get(cardId);
-        return review != null && review.getRating().equals(lastReviewRating);
-    }
-
     private CardTableRow mapToRow(Card card, Map<String, ReviewLog> latestReviews) {
         final var strategy = cardTypeStrategyFactory.getStrategy(card);
         final String label = strategy.getPrimaryText(card.getData());
         final ReviewLog review = latestReviews.get(card.getId());
+        final Integer lastReviewDaysAgo = card.getLastReview() != null
+                ? (int) ChronoUnit.DAYS.between(card.getLastReview().toLocalDate(), LocalDate.now())
+                : null;
 
         return CardTableRow.builder()
                 .id(card.getId())
@@ -190,7 +197,7 @@ public class CardTableController {
                 .readiness(card.getReadiness())
                 .state(card.getState())
                 .reps(card.getReps())
-                .lastReview(card.getLastReview())
+                .lastReviewDaysAgo(lastReviewDaysAgo)
                 .lastReviewRating(review != null ? review.getRating() : null)
                 .lastReviewPerson(review != null && review.getLearningPartner() != null
                         ? review.getLearningPartner().getName()
