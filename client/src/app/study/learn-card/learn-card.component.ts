@@ -153,7 +153,7 @@ export class LearnCardComponent implements OnDestroy {
     const target = event.target as HTMLElement;
     const isInteractiveElement = target?.closest?.('button, a, input, select, textarea');
 
-    if (event.key === 'Enter' && !isInteractiveElement) {
+    if (event.key === 'Enter' && !isInteractiveElement && !this.isGrading()) {
       event.preventDefault();
       this.toggleReveal();
       return;
