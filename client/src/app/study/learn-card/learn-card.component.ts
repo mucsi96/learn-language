@@ -11,9 +11,7 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { injectParams } from '../../utils/inject-params';
-import { injectQueryParams } from '../../utils/inject-query-params';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
@@ -47,10 +45,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
   styleUrl: './learn-card.component.css',
 })
 export class LearnCardComponent implements OnDestroy {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly routeSourceId = injectParams('sourceId');
-  private readonly routeSessionId = injectQueryParams('session');
   private readonly studySessionService = inject(StudySessionService);
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
@@ -70,7 +65,9 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly isRevealed = signal(false);
-  readonly sessionId = signal<string | null>(null);
+  readonly hasSession = this.studySessionService.hasSession;
+  readonly hasExistingSession = this.studySessionService.hasExistingSession;
+  readonly isCheckingSession = signal(true);
   private readonly isGrading = signal(false);
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;
@@ -94,48 +91,31 @@ export class LearnCardComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const urlSessionId = this.routeSessionId();
-      if (urlSessionId && urlSessionId !== this.sessionId()) {
-        this.sessionId.set(String(urlSessionId));
-        this.studySessionService.setSessionId(String(urlSessionId));
-      } else if (!urlSessionId && this.sessionId()) {
-        this.clearSessionState();
-      }
-    });
-
-    effect(() => {
       const sourceId = this.routeSourceId();
       if (sourceId) {
         const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== String(sourceId);
         this.currentSourceId = String(sourceId);
         if (sourceChanged) {
-          this.clearSessionState();
+          this.studySessionService.clearSession();
+          this.isCheckingSession.set(true);
         }
+        this.checkForExistingSession(String(sourceId));
       }
     });
   }
 
-  private clearSessionState() {
-    this.sessionId.set(null);
-    this.studySessionService.clearSession();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { session: null },
-      queryParamsHandling: 'merge',
-    });
+  private async checkForExistingSession(sourceId: string) {
+    this.isCheckingSession.set(true);
+    try {
+      await this.studySessionService.checkExistingSession(sourceId);
+    } finally {
+      this.isCheckingSession.set(false);
+    }
   }
 
   async startSession() {
     if (this.currentSourceId) {
-      const session = await this.studySessionService.createSession(this.currentSourceId);
-      if (session) {
-        this.sessionId.set(session.sessionId);
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { session: session.sessionId },
-          queryParamsHandling: 'merge',
-        });
-      }
+      await this.studySessionService.createSession(this.currentSourceId);
     }
   }
 

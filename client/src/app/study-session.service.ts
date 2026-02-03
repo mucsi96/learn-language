@@ -13,21 +13,29 @@ export class StudySessionService {
   private readonly injector = inject(Injector);
   private readonly dueCardsService = inject(DueCardsService);
 
-  readonly sessionId = signal<string | undefined>(undefined);
+  readonly sourceId = signal<string | undefined>(undefined);
+  readonly hasSession = signal(false);
+  readonly hasExistingSession = signal(false);
   private sessionVersion = signal(0);
+
+  private readonly timezoneHeaders = {
+    'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
 
   readonly currentCard = resource({
     params: () => ({
-      sessionId: this.sessionId(),
+      sourceId: this.sourceId(),
+      hasSession: this.hasSession(),
       version: this.sessionVersion(),
     }),
-    loader: async ({ params: { sessionId } }) => {
-      if (!sessionId) {
+    loader: async ({ params: { sourceId, hasSession } }) => {
+      if (!sourceId || !hasSession) {
         return null;
       }
       const result = await fetchJson<StudySessionCard>(
         this.http,
-        `/api/study-session/${sessionId}/current-card`
+        `/api/source/${sourceId}/study-session/current-card`,
+        { headers: this.timezoneHeaders }
       );
       if (result && result.card) {
         result.card = mapCardDatesFromISOStrings(result.card);
@@ -48,20 +56,35 @@ export class StudySessionService {
     };
   });
 
+  async checkExistingSession(sourceId: string): Promise<boolean> {
+    try {
+      const session = await fetchJson<StudySession>(
+        this.http,
+        `/api/source/${sourceId}/study-session`,
+        { headers: this.timezoneHeaders }
+      );
+      const exists = session !== null;
+      this.sourceId.set(sourceId);
+      this.hasExistingSession.set(exists);
+      return exists;
+    } catch {
+      this.sourceId.set(sourceId);
+      this.hasExistingSession.set(false);
+      return false;
+    }
+  }
+
   async createSession(sourceId: string): Promise<StudySession | null> {
     const session = await fetchJson<StudySession>(
       this.http,
       `/api/source/${sourceId}/study-session`,
-      { method: 'POST' }
+      { method: 'POST', headers: this.timezoneHeaders }
     );
     if (session) {
-      this.sessionId.set(session.sessionId);
+      this.sourceId.set(sourceId);
+      this.hasSession.set(true);
     }
     return session;
-  }
-
-  setSessionId(sessionId: string) {
-    this.sessionId.set(sessionId);
   }
 
   refreshSession() {
@@ -70,6 +93,8 @@ export class StudySessionService {
   }
 
   clearSession() {
-    this.sessionId.set(undefined);
+    this.sourceId.set(undefined);
+    this.hasSession.set(false);
+    this.hasExistingSession.set(false);
   }
 }

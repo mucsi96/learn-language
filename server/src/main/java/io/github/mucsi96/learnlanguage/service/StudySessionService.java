@@ -31,6 +31,7 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -44,23 +45,39 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
+    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
-    @Transactional
-    public StudySessionResponse createSession(String sourceId) {
-        studySessionRepository.deleteBySourceId(sourceId);
-        studySessionRepository.deleteOlderThan(LocalDateTime.now().minusDays(1));
+    @Transactional(readOnly = true)
+    public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
+        return studySessionRepository.findBySourceIdAndCreatedSince(sourceId, startOfDay)
+                .map(session -> StudySessionResponse.builder()
+                        .sessionId(session.getId())
+                        .build());
+    }
 
-        Source source = sourceRepository.findById(sourceId)
+    @Transactional
+    public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
+        final Source source = sourceRepository.findByIdWithLock(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
-        List<Card> dueCards = cardRepository.findDueCardsBySourceId(sourceId);
-        Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
+        studySessionRepository.deleteOlderThan(startOfDay);
 
-        String sessionId = UUID.randomUUID().toString();
-        String studyMode = activePartner.isPresent() ? "WITH_PARTNER" : "SOLO";
-        StudySession session = StudySession.builder()
+        final Optional<StudySession> existingSession = studySessionRepository
+                .findBySourceIdAndCreatedSince(sourceId, startOfDay);
+        if (existingSession.isPresent()) {
+            return StudySessionResponse.builder()
+                    .sessionId(existingSession.get().getId())
+                    .build();
+        }
+
+        final List<Card> dueCards = cardRepository.findDueCardsBySourceId(sourceId);
+        final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
+
+        final String sessionId = UUID.randomUUID().toString();
+        final String studyMode = activePartner.isPresent() ? "WITH_PARTNER" : "SOLO";
+        final StudySession session = StudySession.builder()
                 .id(sessionId)
                 .source(source)
                 .createdAt(LocalDateTime.now())
@@ -68,12 +85,15 @@ public class StudySessionService {
                 .cards(new ArrayList<>())
                 .build();
 
-        List<StudySessionCard> sessionCards = activePartner
+        final List<StudySessionCard> sessionCards = activePartner
                 .map(partner -> assignCardsSmartly(dueCards, session, partner))
                 .orElseGet(() -> assignCardsSolo(dueCards, session));
 
-        session.getCards().addAll(sessionCards);
-        studySessionRepository.save(session);
+        final StudySession sessionWithCards = session.toBuilder()
+                .cards(new ArrayList<>(sessionCards))
+                .build();
+
+        studySessionRepository.save(sessionWithCards);
 
         return StudySessionResponse.builder()
                 .sessionId(sessionId)
@@ -174,54 +194,54 @@ public class StudySessionService {
     }
 
     @Transactional
-    public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
-        return studySessionRepository.findByIdWithCards(sessionId)
-                .flatMap(session -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
+    public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
+        return studySessionRepository.findBySourceIdAndCreatedSinceWithCards(sourceId, startOfDay)
+                .flatMap(this::findNextCard);
+    }
 
-                    List<StudySessionCard> eligibleCards = session.getCards().stream()
-                            .filter(c -> c.getCard().isReady())
-                            .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
-                            .collect(Collectors.toList());
+    private Optional<StudySessionCardResponse> findNextCard(StudySession session) {
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
 
-                    int maxPosition = eligibleCards.stream()
-                            .mapToInt(StudySessionCard::getPosition)
-                            .max()
-                            .orElse(0);
+        final List<StudySessionCard> eligibleCards = session.getCards().stream()
+                .filter(c -> c.getCard().isReady())
+                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
+                .toList();
 
-                    int newLastPosition = maxPosition + 1;
-                    boolean positionUpdated = eligibleCards.stream()
-                            .filter(c -> c.getCard().getLastReview() != null)
-                            .max(Comparator.comparing(c -> c.getCard().getLastReview()))
-                            .map(mostRecent -> {
-                                mostRecent.setPosition(newLastPosition);
-                                return true;
-                            })
-                            .orElse(false);
+        final int maxPosition = eligibleCards.stream()
+                .mapToInt(StudySessionCard::getPosition)
+                .max()
+                .orElse(0);
 
-                    if (positionUpdated) {
-                        studySessionRepository.save(session);
-                    }
+        final int newLastPosition = maxPosition + 1;
 
-                    Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                            .min(Comparator.comparing(StudySessionCard::getPosition));
+        final Optional<StudySessionCard> movedCard = eligibleCards.stream()
+                .filter(c -> c.getCard().getLastReview() != null)
+                .max(Comparator.comparing(c -> c.getCard().getLastReview()));
 
-                    return nextCard.map(sessionCard -> {
-                        String turnName = sessionCard.getLearningPartner() != null
-                                ? sessionCard.getLearningPartner().getName()
-                                : getCurrentUserFirstName();
+        movedCard.ifPresent(mostRecent ->
+                studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
 
-                        return StudySessionCardResponse.builder()
-                                .card(sessionCard.getCard())
-                                .learningPartnerId(sessionCard.getLearningPartner() != null
-                                        ? sessionCard.getLearningPartner().getId()
-                                        : null)
-                                .turnName(turnName)
-                                .studyMode(session.getStudyMode())
-                                .build();
-                    });
-                });
+        final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
+
+        final Optional<StudySessionCard> nextCard = eligibleCards.stream()
+                .min(Comparator.comparingInt(c ->
+                        c.getId().equals(movedCardId) ? newLastPosition : c.getPosition()));
+
+        return nextCard.map(sessionCard -> {
+            final String turnName = sessionCard.getLearningPartner() != null
+                    ? sessionCard.getLearningPartner().getName()
+                    : getCurrentUserFirstName();
+
+            return StudySessionCardResponse.builder()
+                    .card(sessionCard.getCard())
+                    .learningPartnerId(sessionCard.getLearningPartner() != null
+                            ? sessionCard.getLearningPartner().getId()
+                            : null)
+                    .turnName(turnName)
+                    .studyMode(session.getStudyMode())
+                    .build();
+        });
     }
 
     private String getCurrentUserFirstName() {
