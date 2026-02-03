@@ -1,0 +1,88 @@
+<div class="container">
+<div class="filters-section" role="region" aria-label="Card filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Readiness</mat-label>
+      <mat-select
+        [value]="readinessFilter()"
+        (selectionChange)="onReadinessFilterChange($event.value)"
+        aria-label="Filter by readiness"
+      >
+        <mat-option value="">All</mat-option>
+        @for (option of readinessOptions; track option) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>State</mat-label>
+      <mat-select
+        [value]="stateFilter()"
+        (selectionChange)="onStateFilterChange($event.value)"
+        aria-label="Filter by state"
+      >
+        <mat-option value="">All</mat-option>
+        @for (option of stateOptions; track option) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Last review grade</mat-label>
+      <mat-select
+        [value]="lastReviewRatingFilter()"
+        (selectionChange)="onRatingFilterChange($event.value)"
+        aria-label="Filter by last review grade"
+      >
+        <mat-option value="">All</mat-option>
+        @for (option of ratingOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Last review</mat-label>
+      <mat-select
+        [value]="lastReviewDaysAgoFilter()"
+        (selectionChange)="onLastReviewDaysAgoFilterChange($event.value)"
+        aria-label="Filter by last review time"
+      >
+        <mat-option value="">All</mat-option>
+        @for (option of lastReviewDaysAgoOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <ag-grid-angular
+    class="cards-grid"
+    [theme]="theme"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [rowModelType]="'infinite'"
+    [cacheBlockSize]="100"
+    [maxBlocksInCache]="10"
+    [rowSelection]="rowSelection"
+    [getRowId]="getRowId"
+    (gridReady)="onGridReady($event)"
+    (sortChanged)="onSortChanged($event)"
+    (selectionChanged)="onSelectionChanged()"
+    (rowClicked)="onRowClicked($event)"
+  />
+
+  @if (selectedCount() > 0) {
+    <button
+      mat-fab
+      extended
+      color="primary"
+      class="mark-known-fab"
+      (click)="markSelectedAsKnown()"
+    >
+      <mat-icon>check_circle</mat-icon>
+      Mark {{ selectedCount() }} as known
+    </button>
+  }
+</div>

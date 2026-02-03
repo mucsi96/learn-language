@@ -8,6 +8,7 @@ public class CardReadiness {
     public static final String IN_REVIEW = "IN_REVIEW";
     public static final String REVIEWED = "REVIEWED";
     public static final String READY = "READY";
+    public static final String KNOWN = "KNOWN";
 
     // Private constructor to prevent instantiation
     private CardReadiness() {

@@ -129,6 +129,13 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'sources/:sourceId/cards',
+    loadComponent: () =>
+      import('./cards-table/cards-table.component').then((m) => m.CardsTableComponent),
+    canActivate: [conditionalAuthGuard],
+    title: 'Cards',
+  },
+  {
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),

@@ -1,0 +1,67 @@
+:host {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container {
+  padding: 2rem 0;
+}
+
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.filter-field {
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.mark-known-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.14),
+              0 7px 10px -5px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+}
+
+.mark-known-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.2),
+              0 10px 15px -5px rgba(0, 0, 0, 0.4);
+}
+
+.cards-grid {
+  width: 100%;
+  height: 600px;
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 0 1rem;
+  }
+
+  .container {
+    padding: 1rem 0;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .filter-field {
+    max-width: 100%;
+  }
+}
