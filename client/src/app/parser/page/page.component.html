@@ -31,9 +31,18 @@
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
+  <a
+    mat-button
+    [routerLink]="['/sources', selectedSourceId(), 'cards']"
+    aria-label="View all cards"
+  >
+    <mat-icon>table_view</mat-icon>
+    Cards
+  </a>
   @if (sourceType() === 'images' && hasImage()) {
-  <button mat-icon-button aria-label="Delete image" (click)="deleteImage()">
+  <button mat-button (click)="deleteImage()">
     <mat-icon>delete</mat-icon>
+    Delete image
   </button>
   }
 </div>
