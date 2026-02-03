@@ -71,6 +71,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly isRevealed = signal(false);
   readonly sessionId = signal<string | null>(null);
+  private isGrading = false;
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;
 
@@ -138,12 +139,12 @@ export class LearnCardComponent implements OnDestroy {
     }
   }
 
-  private static readonly GRADE_BY_KEY: Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'> = {
+  private static readonly GRADE_BY_KEY = {
     'Red': 'Again',
     'Yellow': 'Hard',
     'Green': 'Good',
     'Blue': 'Easy',
-  };
+  } as const satisfies Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'>;
 
   @HostListener('document:keydown', ['$event'])
   handleKeydown(event: KeyboardEvent) {
@@ -158,10 +159,11 @@ export class LearnCardComponent implements OnDestroy {
       return;
     }
 
-    if (this.isRevealed()) {
-      const grade = LearnCardComponent.GRADE_BY_KEY[event.key];
+    if (this.isRevealed() && !this.isGrading) {
+      const grade = LearnCardComponent.GRADE_BY_KEY[event.key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
       if (grade) {
         event.preventDefault();
+        this.isGrading = true;
         this.gradingButtons()?.gradeCard(grade);
       }
     }
@@ -202,6 +204,7 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   onCardProcessed() {
+    this.isGrading = false;
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();

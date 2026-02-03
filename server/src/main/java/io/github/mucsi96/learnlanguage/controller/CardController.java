@@ -81,21 +81,31 @@ public class CardController {
     cardRepository.save(existingCard);
 
     if (isGrading) {
+      if (request.getStability() == null || request.getDifficulty() == null
+          || request.getElapsedDays() == null || request.getScheduledDays() == null) {
+        throw new IllegalArgumentException(
+            "stability, difficulty, elapsedDays, and scheduledDays are required for grading");
+      }
+
+      if (request.getRating() < 1 || request.getRating() > 4) {
+        throw new IllegalArgumentException("rating must be between 1 and 4");
+      }
+
       LearningPartner partner = null;
       if (request.getLearningPartnerId() != null) {
         partner = learningPartnerService.getLearningPartnerById(request.getLearningPartnerId());
       }
 
-      ReviewLog reviewLog = ReviewLog.builder()
+      final ReviewLog reviewLog = ReviewLog.builder()
           .card(existingCard)
           .learningPartner(partner)
           .rating(request.getRating())
           .state(request.getState())
           .due(request.getDue())
-          .stability(request.getStability() != null ? request.getStability().doubleValue() : 0.0)
-          .difficulty(request.getDifficulty() != null ? request.getDifficulty().doubleValue() : 0.0)
-          .elapsedDays(request.getElapsedDays() != null ? request.getElapsedDays().doubleValue() : 0.0)
-          .scheduledDays(request.getScheduledDays() != null ? request.getScheduledDays().doubleValue() : 0.0)
+          .stability(request.getStability().doubleValue())
+          .difficulty(request.getDifficulty().doubleValue())
+          .elapsedDays(request.getElapsedDays().doubleValue())
+          .scheduledDays(request.getScheduledDays().doubleValue())
           .learningSteps(request.getLearningSteps())
           .review(LocalDateTime.now())
           .build();
