@@ -57,6 +57,8 @@ public class StudySessionService {
 
     @Transactional
     public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
+        studySessionRepository.deleteOlderThan(startOfDay);
+
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySourceIdAndCreatedAtAfter(sourceId, startOfDay);
         if (existingSession.isPresent()) {
@@ -64,8 +66,6 @@ public class StudySessionService {
                     .sessionId(existingSession.get().getId())
                     .build();
         }
-
-        studySessionRepository.deleteOlderThan(startOfDay);
 
         final Source source = sourceRepository.findById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
