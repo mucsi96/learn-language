@@ -51,14 +51,6 @@ public class StudySessionController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
-    @GetMapping("/study-session/{sessionId}/current-card")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-    public ResponseEntity<StudySessionCardResponse> getCurrentCard(@PathVariable String sessionId) {
-        return studySessionService.getCurrentCard(sessionId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
-    }
-
     private static LocalDateTime startOfDay(String timezone) {
         return LocalDate.now(ZoneId.of(timezone)).atStartOfDay();
     }

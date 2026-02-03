@@ -194,12 +194,6 @@ public class StudySessionService {
     }
 
     @Transactional
-    public Optional<StudySessionCardResponse> getCurrentCard(String sessionId) {
-        return studySessionRepository.findByIdWithCards(sessionId)
-                .flatMap(this::findNextCard);
-    }
-
-    @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findBySourceIdAndCreatedSinceWithCards(sourceId, startOfDay)
                 .flatMap(this::findNextCard);
