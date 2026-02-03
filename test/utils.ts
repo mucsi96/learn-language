@@ -770,6 +770,51 @@ export async function getTableData<T extends Record<string, string>>(
   }, excludeRowSelector)) as T[];
 }
 
+export async function getGridData<T extends Record<string, string>>(
+  grid: Locator
+): Promise<T[]> {
+  await expect(grid).toBeVisible();
+
+  return (await grid.evaluate((gridEl) => {
+    function getTextContent(element: Element): string {
+      let text = '';
+      for (const node of Array.from(element.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          text += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as Element;
+          if (el.getAttribute('role') !== 'img') {
+            text += getTextContent(el);
+          }
+        }
+      }
+      return text.trim().replace(/\s+/g, ' ');
+    }
+
+    const headers = Array.from(gridEl.querySelectorAll('[role="columnheader"]'))
+      .map((h) => {
+        const textEl = h.querySelector('.ag-header-cell-text');
+        return textEl ? textEl.textContent?.trim() || '' : '';
+      });
+
+    const bodyRows = Array.from(gridEl.querySelectorAll('[role="row"]'))
+      .filter((row) => row.querySelector('[role="gridcell"]'));
+
+    return bodyRows.map((row) => {
+      const cells = Array.from(row.querySelectorAll('[role="gridcell"]'));
+      const rowData: Record<string, string> = {};
+
+      headers.forEach((header, index) => {
+        if (header) {
+          rowData[header] = cells[index] ? getTextContent(cells[index]) : '';
+        }
+      });
+
+      return rowData;
+    });
+  })) as T[];
+}
+
 export interface KnownWordInput {
   word: string;
   hungarianTranslation?: string | null;

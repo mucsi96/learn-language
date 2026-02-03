@@ -1,12 +1,16 @@
 import { test, expect } from '../fixtures';
-import { createCard, createReviewLog, createLearningPartner } from '../utils';
+import {
+  createCard,
+  createReviewLog,
+  createLearningPartner,
+  getGridData,
+} from '../utils';
 
 test('navigates to cards table from page view', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
   await page.getByRole('link', { name: 'View all cards' }).click();
   await expect(page).toHaveTitle('Cards');
-  await expect(page.getByRole('heading', { name: 'Cards' })).toBeVisible();
 });
 
 test('displays cards in table', async ({ page }) => {
@@ -39,9 +43,13 @@ test('displays cards in table', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('heading', { name: 'Cards' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'Hund' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'Katze' })).toBeVisible();
+  const rows = await getGridData(page.getByRole('grid'));
+  expect(rows).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ Card: 'Hund', State: 'NEW', Reviews: '0' }),
+      expect.objectContaining({ Card: 'Katze', State: 'REVIEW', Reviews: '5' }),
+    ])
+  );
 });
 
 test('filters cards by state', async ({ page }) => {
@@ -64,14 +72,17 @@ test('filters cards by state', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('gridcell', { name: 'neu' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'alt' })).toBeVisible();
+  const grid = page.getByRole('grid');
+  const before = await getGridData(grid);
+  expect(before.map((r) => r.Card)).toEqual(expect.arrayContaining(['neu', 'alt']));
 
   await page.getByLabel('Filter by state').click();
   await page.getByRole('option', { name: 'NEW' }).click();
 
-  await expect(page.getByRole('gridcell', { name: 'neu' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'alt' })).not.toBeVisible();
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['neu']);
+  }).toPass();
 });
 
 test('filters cards by readiness', async ({ page }) => {
@@ -93,14 +104,19 @@ test('filters cards by readiness', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('gridcell', { name: 'bereit' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'bekannt' })).toBeVisible();
+  const grid = page.getByRole('grid');
+  const before = await getGridData(grid);
+  expect(before.map((r) => r.Card)).toEqual(
+    expect.arrayContaining(['bereit', 'bekannt'])
+  );
 
   await page.getByLabel('Filter by readiness').click();
   await page.getByRole('option', { name: 'KNOWN' }).click();
 
-  await expect(page.getByRole('gridcell', { name: 'bekannt' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'bereit' })).not.toBeVisible();
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['bekannt']);
+  }).toPass();
 });
 
 test('marks selected cards as known', async ({ page }) => {
@@ -114,14 +130,13 @@ test('marks selected cards as known', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('gridcell', { name: 'markieren' })).toBeVisible();
+  const rows = await getGridData(page.getByRole('grid'));
+  expect(rows[0]).toEqual(expect.objectContaining({ Card: 'markieren' }));
 
   const checkbox = page.getByRole('row', { name: /markieren/ }).getByRole('checkbox');
   await checkbox.click();
 
-  await expect(page.getByText('1 card(s) selected')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Mark as known' }).click();
+  await page.getByRole('button', { name: /Mark 1 as known/ }).click();
 
   await expect(page.getByText('1 card(s) marked as known')).toBeVisible();
 });
@@ -148,10 +163,15 @@ test('displays review information in table', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('gridcell', { name: 'lernen' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: '3' }).first()).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: /3 - Good/ })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'Anna' })).toBeVisible();
+  const rows = await getGridData(page.getByRole('grid'));
+  expect(rows).toEqual([
+    expect.objectContaining({
+      Card: 'lernen',
+      Reviews: '3',
+      Grade: '3 - Good',
+      Person: 'Anna',
+    }),
+  ]);
 });
 
 test('navigates to card editing on row click', async ({ page }) => {
@@ -168,17 +188,12 @@ test('navigates to card editing on row click', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await page.getByRole('gridcell', { name: 'klicken' }).click();
+  const rows = await getGridData(page.getByRole('grid'));
+  expect(rows[0]).toEqual(expect.objectContaining({ Card: 'klicken' }));
+
+  await page.getByRole('row', { name: /klicken/ }).click();
 
   await expect(page).toHaveTitle('Edit Card');
-});
-
-test('navigates back to pages from cards table', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
-
-  await page.getByRole('link', { name: 'Back to pages' }).click();
-
-  await expect(page).toHaveURL(/\/sources\/goethe-a1\/page\/1/);
 });
 
 test('filters cards by last review grade', async ({ page }) => {
@@ -216,14 +231,175 @@ test('filters cards by last review grade', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await expect(page.getByRole('gridcell', { name: 'einfach' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'schwer' })).toBeVisible();
+  const grid = page.getByRole('grid');
+  const before = await getGridData(grid);
+  expect(before.map((r) => r.Card)).toEqual(
+    expect.arrayContaining(['einfach', 'schwer'])
+  );
 
   await page.getByLabel('Filter by last review grade').click();
   await page.getByRole('option', { name: '4 - Easy' }).click();
 
-  await expect(page.getByRole('gridcell', { name: 'einfach' })).toBeVisible();
-  await expect(page.getByRole('gridcell', { name: 'schwer' })).not.toBeVisible();
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['einfach']);
+  }).toPass();
+});
+
+test('filters cards by last review time', async ({ page }) => {
+  await createCard({
+    cardId: 'recent-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'heute', type: 'ADVERB', translation: { en: 'today' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createCard({
+    cardId: 'old-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'gestern', type: 'ADVERB', translation: { en: 'yesterday' } },
+    state: 'REVIEW',
+    reps: 4,
+    lastReview: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  const before = await getGridData(grid);
+  expect(before.map((r) => r.Card)).toEqual(
+    expect.arrayContaining(['heute', 'gestern'])
+  );
+
+  await page.getByLabel('Filter by last review time').click();
+  await page.getByRole('option', { name: 'Today' }).click();
+
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['heute']);
+  }).toPass();
+});
+
+test('sorts cards by reviews count', async ({ page }) => {
+  await createCard({
+    cardId: 'few-reviews',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'wenig', type: 'ADJECTIVE', translation: { en: 'few' } },
+    state: 'REVIEW',
+    reps: 1,
+  });
+
+  await createCard({
+    cardId: 'many-reviews',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'viel', type: 'ADJECTIVE', translation: { en: 'many' } },
+    state: 'REVIEW',
+    reps: 10,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await getGridData(grid);
+
+  await page.getByRole('columnheader', { name: 'Reviews' }).click();
+  await expect(async () => {
+    const asc = await getGridData(grid);
+    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'wenig' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'viel' }));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Reviews' }).click();
+  await expect(async () => {
+    const desc = await getGridData(grid);
+    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'viel' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'wenig' }));
+  }).toPass();
+});
+
+test('sorts cards by state', async ({ page }) => {
+  await createCard({
+    cardId: 'new-state-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Anfang', type: 'NOUN', translation: { en: 'beginning' } },
+    state: 'NEW',
+  });
+
+  await createCard({
+    cardId: 'review-state-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Wiederholung', type: 'NOUN', translation: { en: 'review' } },
+    state: 'REVIEW',
+    reps: 3,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await getGridData(grid);
+
+  await page.getByRole('columnheader', { name: 'State' }).click();
+  await expect(async () => {
+    const asc = await getGridData(grid);
+    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'Anfang' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'Wiederholung' }));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'State' }).click();
+  await expect(async () => {
+    const desc = await getGridData(grid);
+    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'Wiederholung' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'Anfang' }));
+  }).toPass();
+});
+
+test('sorts cards by last review', async ({ page }) => {
+  await createCard({
+    cardId: 'reviewed-recently',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'frisch', type: 'ADJECTIVE', translation: { en: 'fresh' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createCard({
+    cardId: 'reviewed-long-ago',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'vergessen', type: 'VERB', translation: { en: 'to forget' } },
+    state: 'REVIEW',
+    reps: 5,
+    lastReview: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await getGridData(grid);
+
+  await page.getByRole('columnheader', { name: 'Last review' }).click();
+  await expect(async () => {
+    const asc = await getGridData(grid);
+    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'vergessen' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'frisch' }));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Last review' }).click();
+  await expect(async () => {
+    const desc = await getGridData(grid);
+    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'frisch' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'vergessen' }));
+  }).toPass();
 });
 
 test('page title shows Cards', async ({ page }) => {

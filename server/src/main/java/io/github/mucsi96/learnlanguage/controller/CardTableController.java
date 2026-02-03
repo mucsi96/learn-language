@@ -90,12 +90,8 @@ public class CardTableController {
     public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
         final List<Card> cards = cardRepository.findByIdIn(cardIds);
 
-        cards.stream()
-                .map(card -> {
-                    card.setReadiness(CardReadiness.KNOWN);
-                    return card;
-                })
-                .forEach(cardRepository::save);
+        cards.forEach(card -> card.setReadiness(CardReadiness.KNOWN));
+        cardRepository.saveAll(cards);
 
         return ResponseEntity.ok(Map.of("detail",
                 String.format("%d card(s) marked as known", cards.size())));
