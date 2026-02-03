@@ -7,10 +7,23 @@ import {
   createCard,
   uploadMockImage,
   createCardsWithStates,
-  withDbConnection,
+  getReviewLogsByCardId,
+  getCardFromDb,
+  getReviewLogs,
   setupDefaultChatModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
+import { Page } from '@playwright/test';
+
+async function pressRemoteKey(page: Page, key: string) {
+  await page.evaluate(
+    (k) =>
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: k, bubbles: true })
+      ),
+    key
+  );
+}
 
 test('study page shows start button initially', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -437,12 +450,8 @@ test('mark for review button functionality', async ({ page }) => {
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  // Verify the card readiness was updated in the database
-  await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'markieren-megjelolni'");
-    expect(result.rows.length).toBe(1);
-    expect(result.rows[0].readiness).toBe('IN_REVIEW');
-  });
+  const card = await getCardFromDb('markieren-megjelolni');
+  expect(card.readiness).toBe('IN_REVIEW');
 });
 
 test('mark for review button loads next card', async ({ page }) => {
@@ -644,6 +653,11 @@ test('again button functionality', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { name: 'következő' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'ismételni' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Again' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('wiederholen-ismetelni');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'wiederholen-ismetelni', rating: 1 }),
+  ]);
 });
 
 test('hard button functionality', async ({ page }) => {
@@ -704,6 +718,11 @@ test('hard button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'második' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'nehéz' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('schwierig-nehez');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'schwierig-nehez', rating: 2 }),
+  ]);
 });
 
 test('good button functionality', async ({ page }) => {
@@ -764,6 +783,11 @@ test('good button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'harmadik' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'jó' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('gut-jo');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'gut-jo', rating: 3 }),
+  ]);
 });
 
 test('easy button functionality', async ({ page }) => {
@@ -824,6 +848,11 @@ test('easy button functionality', async ({ page }) => {
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'negyedik' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'könnyű' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('einfach-konnyu');
+  expect(reviewLogs).toEqual([
+    expect.objectContaining({ cardId: 'einfach-konnyu', rating: 4 }),
+  ]);
 });
 
 test('grading card updates database', async ({ page }) => {
@@ -862,22 +891,11 @@ test('grading card updates database', async ({ page }) => {
   // Wait a moment for the database update
   await page.waitForTimeout(500);
 
-  // Verify the card's FSRS data was updated in the database
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT state, reps, stability, difficulty
-       FROM learn_language.cards
-       WHERE id = 'datenbank-adatbazis'`
-    );
-    expect(result.rows.length).toBe(1);
-    const row = result.rows[0];
-
-    // After first Good rating from NEW state, should move to LEARNING
-    expect(row.state).toBe('LEARNING');
-    expect(row.reps).toBe(1);
-    expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
-    expect(parseFloat(row.difficulty)).toBeGreaterThan(0.0);
-  });
+  const card = await getCardFromDb('datenbank-adatbazis');
+  expect(card.state).toBe('LEARNING');
+  expect(card.reps).toBe(1);
+  expect(card.stability).toBeGreaterThan(0.0);
+  expect(card.difficulty).toBeGreaterThan(0.0);
 });
 
 test('grading card creates review log', async ({ page }) => {
@@ -912,22 +930,14 @@ test('grading card creates review log', async ({ page }) => {
 
   await page.waitForTimeout(500);
 
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT card_id, rating, state, stability, difficulty, learning_partner_id
-       FROM learn_language.review_logs
-       WHERE card_id = 'protokoll-naplo'`
-    );
-    expect(result.rows.length).toBe(1);
-    const row = result.rows[0];
-
-    expect(row.card_id).toBe('protokoll-naplo');
-    expect(row.rating).toBe(3);
-    expect(row.state).toBe('LEARNING');
-    expect(parseFloat(row.stability)).toBeGreaterThan(0.0);
-    expect(parseFloat(row.difficulty)).toBeGreaterThan(0.0);
-    expect(row.learning_partner_id).toBeNull();
-  });
+  const reviewLogs = await getReviewLogsByCardId('protokoll-naplo');
+  expect(reviewLogs).toHaveLength(1);
+  expect(reviewLogs[0].cardId).toBe('protokoll-naplo');
+  expect(reviewLogs[0].rating).toBe(3);
+  expect(reviewLogs[0].state).toBe('LEARNING');
+  expect(reviewLogs[0].stability).toBeGreaterThan(0.0);
+  expect(reviewLogs[0].difficulty).toBeGreaterThan(0.0);
+  expect(reviewLogs[0].learningPartnerId).toBeNull();
 });
 
 test('grading with no next card shows empty state', async ({ page }) => {
@@ -1020,6 +1030,8 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
 
 test('most recently reviewed card moves to back of queue', async ({ page }) => {
   const now = new Date();
+  const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86400000);
   const yesterday = new Date(now.getTime() - 86400000);
 
   await createCard({
@@ -1032,7 +1044,11 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
       translation: { en: 'first', hu: 'első', ch: 'erschti' },
     },
     state: 'LEARNING',
-    due: yesterday,
+    due: threeDaysAgo,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: threeDaysAgo,
   });
 
   await createCard({
@@ -1045,7 +1061,11 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
       translation: { en: 'second', hu: 'második', ch: 'zwöiti' },
     },
     state: 'LEARNING',
-    due: yesterday,
+    due: twoDaysAgo,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: twoDaysAgo,
   });
 
   await createCard({
@@ -1059,6 +1079,10 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
     },
     state: 'LEARNING',
     due: yesterday,
+    stability: 0.4,
+    difficulty: 5.0,
+    learningSteps: 1,
+    lastReview: yesterday,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
@@ -1296,4 +1320,221 @@ test('grammar card grading functionality', async ({ page }) => {
   await page.getByRole('button', { name: 'Good' }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
+});
+
+test('Enter key reveals and unreveals card', async ({ page }) => {
+  await createCard({
+    cardId: 'keyboard-reveal-test',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 70,
+    data: {
+      word: 'Tastatur',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'keyboard', hu: 'billentyűzet', ch: 'Tastatur' },
+      examples: [
+        {
+          de: 'Ich benutze eine Tastatur.',
+          hu: 'Billentyűzetet használok.',
+          en: 'I use a keyboard.',
+          isSelected: true,
+        },
+      ],
+    },
+    state: 'LEARNING',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+
+  await page.keyboard.press('Enter');
+
+  await expect(flashcard.getByText('Tastatur', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+
+  await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('Green color key grades card as Good when revealed', async ({ page }) => {
+  await createCard({
+    cardId: 'green-key-test-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 71,
+    data: {
+      word: 'Fernbedienung',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'remote control', hu: 'távirányító', ch: 'Fernbediänig' },
+      examples: [
+        {
+          de: 'Wo ist die Fernbedienung?',
+          hu: 'Hol van a távirányító?',
+          en: 'Where is the remote control?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await createCard({
+    cardId: 'green-key-test-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 72,
+    data: {
+      word: 'Fernseher',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'television', hu: 'televízió', ch: 'Fernseh' },
+      examples: [
+        {
+          de: 'Der Fernseher ist an.',
+          hu: 'A televízió be van kapcsolva.',
+          en: 'The television is on.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'távirányító' })).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
+
+  await pressRemoteKey(page, 'Green');
+
+  await expect(flashcard.getByRole('heading', { name: 'televízió' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('all color keys map to correct grades', async ({ page }) => {
+  const now = new Date();
+  const twoDaysAgo = new Date(now.getTime() - 2 * 86400000);
+
+  const learningCardDefaults = {
+    state: 'LEARNING' as const,
+    stability: 0.4,
+    difficulty: 5.0,
+    lastReview: twoDaysAgo,
+    reps: 1,
+    learningSteps: 1,
+  };
+
+  await createCard({
+    cardId: 'color-keys-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 73,
+    data: {
+      word: 'rot',
+      type: 'ADJECTIVE',
+      translation: { en: 'red', hu: 'piros', ch: 'rot' },
+    },
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 4 * 3600000),
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 74,
+    data: {
+      word: 'gelb',
+      type: 'ADJECTIVE',
+      translation: { en: 'yellow', hu: 'sárga', ch: 'gäub' },
+    },
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 3 * 3600000),
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 75,
+    data: {
+      word: 'grün',
+      type: 'ADJECTIVE',
+      translation: { en: 'green', hu: 'zöld', ch: 'grüen' },
+    },
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 2 * 3600000),
+  });
+
+  await createCard({
+    cardId: 'color-keys-card-4',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 76,
+    data: {
+      word: 'blau',
+      type: 'ADJECTIVE',
+      translation: { en: 'blue', hu: 'kék', ch: 'blau' },
+    },
+    ...learningCardDefaults,
+    due: new Date(now.getTime() - 1 * 3600000),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const gradeButtons = page.getByRole('button', { name: 'Again' });
+
+  for (const key of ['Red', 'Yellow', 'Green', 'Blue']) {
+    await expect(flashcard.getByRole('heading')).toBeVisible();
+    await flashcard.click();
+    await expect(gradeButtons).toBeVisible();
+    await pressRemoteKey(page, key);
+  }
+
+  await expect(flashcard).toBeVisible();
+
+  const reviewLogs = await getReviewLogs();
+  const ratings = reviewLogs.map((log) => log.rating).sort();
+  expect(ratings).toEqual([1, 2, 3, 4]);
+});
+
+test('color keys do not grade when card is not revealed', async ({ page }) => {
+  await createCard({
+    cardId: 'no-grade-unrevealed',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 77,
+    data: {
+      word: 'Schutz',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'protection', hu: 'védelem', ch: 'Schutz' },
+      examples: [
+        {
+          de: 'Der Schutz ist wichtig.',
+          hu: 'A védelem fontos.',
+          en: 'Protection is important.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
+
+  await pressRemoteKey(page, 'Green');
+  await pressRemoteKey(page, 'Red');
+  await pressRemoteKey(page, 'Yellow');
+  await pressRemoteKey(page, 'Blue');
+
+  await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
 });

@@ -27,6 +27,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CardController {
 
+  private static final int MIN_FSRS_RATING = 1;
+  private static final int MAX_FSRS_RATING = 4;
+
   private final CardRepository cardRepository;
   private final SourceRepository sourceRepository;
   private final CardService cardService;
@@ -63,7 +66,7 @@ public class CardController {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    boolean isGrading = request.getState() != null && request.getReps() != null;
+    boolean isGrading = request.getRating() != null;
 
     if (request.getData() != null) existingCard.setData(request.getData());
     if (request.getReadiness() != null) existingCard.setReadiness(request.getReadiness());
@@ -81,23 +84,32 @@ public class CardController {
     cardRepository.save(existingCard);
 
     if (isGrading) {
+      if (request.getStability() == null || request.getDifficulty() == null
+          || request.getElapsedDays() == null || request.getScheduledDays() == null) {
+        throw new IllegalArgumentException(
+            "stability, difficulty, elapsedDays, and scheduledDays are required for grading");
+      }
+
+      if (request.getRating() < MIN_FSRS_RATING || request.getRating() > MAX_FSRS_RATING) {
+        throw new IllegalArgumentException(
+            String.format("rating must be between %d and %d", MIN_FSRS_RATING, MAX_FSRS_RATING));
+      }
+
       LearningPartner partner = null;
       if (request.getLearningPartnerId() != null) {
         partner = learningPartnerService.getLearningPartnerById(request.getLearningPartnerId());
       }
 
-      int rating = mapStateToRating(request.getState(), request.getReps());
-
-      ReviewLog reviewLog = ReviewLog.builder()
+      final ReviewLog reviewLog = ReviewLog.builder()
           .card(existingCard)
           .learningPartner(partner)
-          .rating(rating)
+          .rating(request.getRating())
           .state(request.getState())
           .due(request.getDue())
-          .stability(request.getStability() != null ? request.getStability().doubleValue() : 0.0)
-          .difficulty(request.getDifficulty() != null ? request.getDifficulty().doubleValue() : 0.0)
-          .elapsedDays(request.getElapsedDays() != null ? request.getElapsedDays().doubleValue() : 0.0)
-          .scheduledDays(request.getScheduledDays() != null ? request.getScheduledDays().doubleValue() : 0.0)
+          .stability(request.getStability().doubleValue())
+          .difficulty(request.getDifficulty().doubleValue())
+          .elapsedDays(request.getElapsedDays().doubleValue())
+          .scheduledDays(request.getScheduledDays().doubleValue())
           .learningSteps(request.getLearningSteps())
           .review(LocalDateTime.now())
           .build();
@@ -108,16 +120,6 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
     return ResponseEntity.ok(response);
-  }
-
-  private int mapStateToRating(String state, Integer reps) {
-    if ("NEW".equals(state) || "RELEARNING".equals(state)) {
-      return 1;
-    }
-    if (reps != null && reps == 1) {
-      return 3;
-    }
-    return 3;
   }
 
   @DeleteMapping("/card/{cardId}")
