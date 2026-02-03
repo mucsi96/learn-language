@@ -71,7 +71,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly isRevealed = signal(false);
   readonly sessionId = signal<string | null>(null);
-  private isGrading = false;
+  private readonly isGrading = signal(false);
   private lastPlayedTexts: string[] = [];
   private currentSourceId: string | null = null;
 
@@ -159,15 +159,15 @@ export class LearnCardComponent implements OnDestroy {
       return;
     }
 
-    if (this.isRevealed() && !this.isGrading) {
+    if (this.isRevealed() && !this.isGrading()) {
       const grade = LearnCardComponent.GRADE_BY_KEY[event.key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
       if (grade) {
         event.preventDefault();
-        this.isGrading = true;
+        this.isGrading.set(true);
         try {
           await this.gradingButtons()?.gradeCard(grade);
         } finally {
-          this.isGrading = false;
+          this.isGrading.set(false);
         }
       }
     }
