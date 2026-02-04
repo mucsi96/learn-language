@@ -29,6 +29,7 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
@@ -239,7 +240,7 @@ public class StudySessionService {
                     : getCurrentUserFirstName();
 
             return StudySessionCardResponse.builder()
-                    .card(sessionCard.getCard())
+                    .card(CardResponse.from(sessionCard.getCard()))
                     .learningPartnerId(sessionCard.getLearningPartner() != null
                             ? sessionCard.getLearningPartner().getId()
                             : null)

@@ -12,6 +12,7 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
@@ -84,11 +85,11 @@ public class CardController {
 
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<Card> getCard(@PathVariable String cardId) throws Exception {
-    Card card = cardRepository.findById(cardId)
+  public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
+    final Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    return ResponseEntity.ok(card);
+    return ResponseEntity.ok(CardResponse.from(card));
   }
 
   @PutMapping("/card/{cardId}")
@@ -169,22 +170,28 @@ public class CardController {
 
   @GetMapping("/cards/readiness/{readiness}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getCardsByReadiness(@PathVariable String readiness) {
-    List<Card> cards = cardService.getCardsByReadiness(readiness);
+  public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable String readiness) {
+    final List<CardResponse> cards = cardService.getCardsByReadiness(readiness).stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/cards/missing-audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getCardsMissingAudio() {
-    List<Card> cards = cardService.getCardsMissingAudio();
+  public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {
+    final List<CardResponse> cards = cardService.getCardsMissingAudio().stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/cards/sample")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getSampleCards() {
-    List<Card> cards = cardService.getRandomReadyCards(10);
+  public ResponseEntity<List<CardResponse>> getSampleCards() {
+    final List<CardResponse> cards = cardService.getRandomReadyCards(10).stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 
