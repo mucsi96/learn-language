@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.ChatModelSetting;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -61,6 +62,7 @@ public class ChatModelSettingService {
                 ));
     }
 
+    @Transactional
     public ChatModelSettingResponse updateSetting(ChatModelSettingRequest request) {
         final boolean newIsEnabled = Boolean.TRUE.equals(request.getIsEnabled());
         final boolean newIsPrimary = Boolean.TRUE.equals(request.getIsPrimary());
@@ -114,6 +116,7 @@ public class ChatModelSettingService {
         chatModelSettingRepository.clearPrimaryByOperationType(operationType);
     }
 
+    @Transactional
     public void enableAllModelsForOperation(OperationType operationType) {
         chatModelSettingRepository.enableByOperationType(operationType);
 
