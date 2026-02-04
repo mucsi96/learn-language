@@ -84,8 +84,9 @@ public class CardService {
         .toList();
   }
 
-  public List<Card> getRandomReadyCards(int limit) {
-    return cardRepository.findRandomCards(PageRequest.ofSize(limit));
+  public List<Card> getRecentlyReviewedCards(int limit) {
+    return cardRepository.findAll(
+        PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "lastReview"))).getContent();
   }
 
   public List<SourceCardCount> getCardCountsBySource() {

@@ -3,7 +3,6 @@ package io.github.mucsi96.learnlanguage.repository;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,9 +20,6 @@ public interface CardRepository
 
     @Modifying
     void deleteBySource(Source source);
-
-    @Query(value = "SELECT * FROM learn_language.cards ORDER BY random()", nativeQuery = true)
-    List<Card> findRandomCards(Pageable pageable);
 
     @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")
     List<Object[]> countCardsBySourceGroupBySource();
