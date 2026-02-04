@@ -12,6 +12,7 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,37 @@ public class CardController {
   private final CardService cardService;
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
+
+  @GetMapping("/source/{sourceId}/cards")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<CardTableResponse> getCards(
+      @PathVariable String sourceId,
+      @RequestParam(defaultValue = "0") int startRow,
+      @RequestParam(defaultValue = "100") int endRow,
+      @RequestParam(required = false) String sortField,
+      @RequestParam(required = false) String sortDirection,
+      @RequestParam(required = false) String readiness,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) Integer minReps,
+      @RequestParam(required = false) Integer maxReps,
+      @RequestParam(required = false) Integer lastReviewDaysAgo,
+      @RequestParam(required = false) Integer lastReviewRating) {
+
+    final CardTableResponse response = cardService.getCardTable(
+        sourceId, startRow, endRow, sortField, sortDirection,
+        readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PutMapping("/cards/mark-known")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
+    cardService.markCardsAsKnown(cardIds);
+
+    return ResponseEntity.ok(Map.of("detail",
+        String.format("%d card(s) marked as known", cardIds.size())));
+  }
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -33,6 +36,10 @@ import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
+
+import static io.github.mucsi96.learnlanguage.repository.specification.CardSpecifications.isDueForSource;
+import static io.github.mucsi96.learnlanguage.repository.specification.ReviewLogSpecifications.hasCardIdIn;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdBefore;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +67,7 @@ public class StudySessionService {
         final Source source = sourceRepository.findLockedById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
-        studySessionRepository.deleteByCreatedAtBefore(startOfDay);
+        studySessionRepository.delete(createdBefore(startOfDay));
 
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay);
@@ -70,7 +77,8 @@ public class StudySessionService {
                     .build();
         }
 
-        final List<Card> dueCards = cardRepository.findDueCardsBySourceId(sourceId);
+        final List<Card> dueCards = cardRepository.findAll(
+                isDueForSource(sourceId), PageRequest.of(0, SESSION_CARD_LIMIT, Sort.by("due"))).getContent();
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
 
         final String sessionId = UUID.randomUUID().toString();
@@ -119,7 +127,7 @@ public class StudySessionService {
         }
 
         List<String> cardIds = cards.stream().map(Card::getId).toList();
-        List<ReviewLog> latestReviews = reviewLogRepository.findLatestReviewsByCardIds(cardIds);
+        List<ReviewLog> latestReviews = findLatestReviewsByCardIds(cardIds);
 
         Map<String, ReviewLog> userReviews = latestReviews.stream()
                 .filter(r -> r.getLearningPartner() == null)
@@ -239,6 +247,22 @@ public class StudySessionService {
                     .studyMode(session.getStudyMode())
                     .build();
         });
+    }
+
+    private List<ReviewLog> findLatestReviewsByCardIds(List<String> cardIds) {
+        final List<ReviewLog> allReviews = reviewLogRepository.findAll(hasCardIdIn(cardIds));
+
+        return allReviews.stream()
+                .collect(Collectors.groupingBy(r -> new AbstractMap.SimpleEntry<>(
+                        r.getCard().getId(),
+                        Optional.ofNullable(r.getLearningPartner())
+                                .map(LearningPartner::getId)
+                                .orElse(0))))
+                .values().stream()
+                .map(group -> group.stream()
+                        .max(Comparator.comparing(ReviewLog::getReview))
+                        .orElseThrow())
+                .toList();
     }
 
     private String getCurrentUserFirstName() {

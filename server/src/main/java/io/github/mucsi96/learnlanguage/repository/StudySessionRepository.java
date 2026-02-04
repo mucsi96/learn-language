@@ -5,13 +5,14 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 
 @Repository
 public interface StudySessionRepository
-        extends JpaRepository<StudySession, String>, StudySessionRepositoryCustom {
+        extends JpaRepository<StudySession, String>, JpaSpecificationExecutor<StudySession> {
     Optional<StudySession> findBySource_IdAndCreatedAtGreaterThanEqual(String sourceId, LocalDateTime since);
 
     @EntityGraph(attributePaths = {"cards", "cards.card", "cards.learningPartner"})

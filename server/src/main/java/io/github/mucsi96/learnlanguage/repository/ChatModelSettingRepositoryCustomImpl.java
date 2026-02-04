@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.repository;
 
 import io.github.mucsi96.learnlanguage.entity.ChatModelSetting;
+import io.github.mucsi96.learnlanguage.entity.ChatModelSetting_;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -18,10 +19,10 @@ public class ChatModelSettingRepositoryCustomImpl implements ChatModelSettingRep
         final CriteriaUpdate<ChatModelSetting> update = cb.createCriteriaUpdate(ChatModelSetting.class);
         final Root<ChatModelSetting> root = update.from(ChatModelSetting.class);
 
-        update.set(root.<Boolean>get("isPrimary"), false);
+        update.set(root.get(ChatModelSetting_.isPrimary), false);
         update.where(
-                cb.equal(root.get("operationType"), operationType),
-                cb.isTrue(root.get("isPrimary")));
+                cb.equal(root.get(ChatModelSetting_.operationType), operationType),
+                cb.isTrue(root.get(ChatModelSetting_.isPrimary)));
 
         entityManager.createQuery(update).executeUpdate();
     }
@@ -32,8 +33,8 @@ public class ChatModelSettingRepositoryCustomImpl implements ChatModelSettingRep
         final CriteriaUpdate<ChatModelSetting> update = cb.createCriteriaUpdate(ChatModelSetting.class);
         final Root<ChatModelSetting> root = update.from(ChatModelSetting.class);
 
-        update.set(root.<Boolean>get("isEnabled"), true);
-        update.where(cb.equal(root.get("operationType"), operationType));
+        update.set(root.get(ChatModelSetting_.isEnabled), true);
+        update.where(cb.equal(root.get(ChatModelSetting_.operationType), operationType));
 
         entityManager.createQuery(update).executeUpdate();
     }
