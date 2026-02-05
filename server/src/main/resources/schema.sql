@@ -169,3 +169,7 @@ ALTER TABLE learn_language.study_session_cards ADD COLUMN IF NOT EXISTS version 
 
 CREATE INDEX IF NOT EXISTS cards_last_review_idx ON learn_language.cards (last_review);
 CREATE INDEX IF NOT EXISTS review_logs_card_review_idx ON learn_language.review_logs (card_id, review DESC);
+
+CREATE INDEX IF NOT EXISTS idx_cards_readiness_due ON learn_language.cards (readiness, due)
+    WHERE readiness = 'READY';
+CREATE INDEX IF NOT EXISTS idx_cards_source_readiness ON learn_language.cards (source_id, readiness);

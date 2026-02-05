@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -132,10 +133,10 @@ public class CardService {
 
     Specification<Card> spec = hasSourceId(sourceId);
 
-    if (readiness != null && !readiness.isEmpty()) {
+    if (StringUtils.hasText(readiness)) {
       spec = spec.and(hasReadiness(readiness));
     }
-    if (state != null && !state.isEmpty()) {
+    if (StringUtils.hasText(state)) {
       spec = spec.and(hasState(state));
     }
     if (minReps != null) {
@@ -155,7 +156,7 @@ public class CardService {
   }
 
   private Sort buildSort(String sortField, String sortDirection) {
-    if (sortField == null || sortField.isEmpty()) {
+    if (!StringUtils.hasText(sortField)) {
       return Sort.by(Sort.Direction.ASC, "due");
     }
 
