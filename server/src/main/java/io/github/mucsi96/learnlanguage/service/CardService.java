@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
-import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableRow;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
@@ -15,24 +14,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.github.mucsi96.learnlanguage.repository.specification.CardSpecifications.*;
-import static io.github.mucsi96.learnlanguage.repository.specification.ReviewLogSpecifications.hasCardIdIn;
 
 @Service
 @RequiredArgsConstructor
 public class CardService {
 
   public static record SourceCardCount(String sourceId, Integer count) {}
+
+  private record LatestReviewInfo(Integer rating, String learningPartnerName) {}
 
   private final CardRepository cardRepository;
   private final ReviewLogRepository reviewLogRepository;
@@ -110,7 +108,7 @@ public class CardService {
     final List<Card> cards = cardPage.getContent();
 
     final List<String> cardIds = cards.stream().map(Card::getId).toList();
-    final Map<String, ReviewLog> latestReviews = getLatestReviews(cardIds);
+    final Map<String, LatestReviewInfo> latestReviews = getLatestReviews(cardIds);
 
     final List<CardTableRow> rows = cards.stream()
         .map(card -> mapToRow(card, latestReviews))
@@ -122,7 +120,6 @@ public class CardService {
         .build();
   }
 
-  @Transactional
   public void markCardsAsKnown(List<String> cardIds) {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
   }
@@ -176,22 +173,23 @@ public class CardService {
     return Sort.by(direction, mappedField);
   }
 
-  private Map<String, ReviewLog> getLatestReviews(List<String> cardIds) {
+  private Map<String, LatestReviewInfo> getLatestReviews(List<String> cardIds) {
     if (cardIds.isEmpty()) {
       return Map.of();
     }
 
-    return reviewLogRepository.findAll(hasCardIdIn(cardIds)).stream()
+    return reviewLogRepository.findLatestReviewInfoByCardIds(cardIds).stream()
         .collect(Collectors.toMap(
-            r -> r.getCard().getId(),
-            Function.identity(),
-            (a, b) -> a.getReview().isAfter(b.getReview()) ? a : b));
+            row -> (String) row[0],
+            row -> new LatestReviewInfo(
+                ((Number) row[1]).intValue(),
+                (String) row[2])));
   }
 
-  private CardTableRow mapToRow(Card card, Map<String, ReviewLog> latestReviews) {
+  private CardTableRow mapToRow(Card card, Map<String, LatestReviewInfo> latestReviews) {
     final var strategy = cardTypeStrategyFactory.getStrategy(card);
     final String label = strategy.getPrimaryText(card.getData());
-    final ReviewLog review = latestReviews.get(card.getId());
+    final LatestReviewInfo review = latestReviews.get(card.getId());
     final Integer reviewDaysAgo = card.getLastReview() != null
         ? (int) ChronoUnit.DAYS.between(card.getLastReview().toLocalDate(), LocalDate.now())
         : null;
@@ -203,10 +201,8 @@ public class CardService {
         .state(card.getState())
         .reps(card.getReps())
         .lastReviewDaysAgo(reviewDaysAgo)
-        .lastReviewRating(review != null ? review.getRating() : null)
-        .lastReviewPerson(review != null && review.getLearningPartner() != null
-            ? review.getLearningPartner().getName()
-            : null)
+        .lastReviewRating(review != null ? review.rating() : null)
+        .lastReviewPerson(review != null ? review.learningPartnerName() : null)
         .sourcePageNumber(card.getSourcePageNumber())
         .build();
   }
