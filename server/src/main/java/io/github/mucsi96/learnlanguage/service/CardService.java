@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -119,6 +120,7 @@ public class CardService {
         .build();
   }
 
+  @Transactional
   public void markCardsAsKnown(List<String> cardIds) {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
   }

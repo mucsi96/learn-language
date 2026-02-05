@@ -7,7 +7,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,7 +15,6 @@ public class CardRepositoryCustomImpl implements CardRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    @Transactional
     public void updateReadinessByIds(List<String> ids, String readiness) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaUpdate<Card> update = cb.createCriteriaUpdate(Card.class);
