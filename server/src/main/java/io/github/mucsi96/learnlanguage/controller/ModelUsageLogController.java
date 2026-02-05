@@ -45,13 +45,12 @@ public class ModelUsageLogController {
                 repository.save(log);
 
                 if (log.getResponseContent() != null) {
-                    List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
-                    duplicates.stream()
+                    final List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
+                    final List<ModelUsageLog> updatedDuplicates = duplicates.stream()
                         .filter(duplicate -> !duplicate.getId().equals(id))
-                        .forEach(duplicate -> {
-                            duplicate.setRating(request.rating());
-                            repository.save(duplicate);
-                        });
+                        .peek(duplicate -> duplicate.setRating(request.rating()))
+                        .toList();
+                    repository.saveAll(updatedDuplicates);
                 }
 
                 return ResponseEntity.ok(ModelUsageLogResponse.from(log));

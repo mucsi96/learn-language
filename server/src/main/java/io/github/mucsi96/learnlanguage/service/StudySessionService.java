@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 
 import static io.github.mucsi96.learnlanguage.repository.specification.CardSpecifications.isDueForSource;
 import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdBefore;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdOnOrAfter;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.hasSourceId;
 
 @Service
 @RequiredArgsConstructor
@@ -178,7 +180,7 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findWithCardsBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
+        return studySessionRepository.findOneWithCards(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(this::findNextCard);
     }
 
