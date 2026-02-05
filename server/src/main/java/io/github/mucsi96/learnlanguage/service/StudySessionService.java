@@ -2,20 +2,17 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
-import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
@@ -39,9 +35,6 @@ import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
 import static io.github.mucsi96.learnlanguage.repository.specification.CardSpecifications.isDueForSource;
-import static io.github.mucsi96.learnlanguage.repository.specification.ReviewLogSpecifications.hasCardIdIn;
-import static io.github.mucsi96.learnlanguage.repository.specification.ReviewLogSpecifications.hasLearningPartnerId;
-import static io.github.mucsi96.learnlanguage.repository.specification.ReviewLogSpecifications.hasNoLearningPartner;
 import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdBefore;
 
 @Service
@@ -129,20 +122,26 @@ public class StudySessionService {
             return List.of();
         }
 
+        final double defaultComplexity = 4 * 30;
         final List<String> cardIds = cards.stream().map(Card::getId).toList();
-        final Map<String, ReviewLog> userReviews = findLatestReviewsByCardIds(cardIds, hasNoLearningPartner());
-        final Map<String, ReviewLog> partnerReviews = findLatestReviewsByCardIds(cardIds, hasLearningPartnerId(partner.getId()));
+        final Map<String, Double> userComplexities = toComplexityMap(
+            reviewLogRepository.findCardComplexitiesWithoutPartner(cardIds));
+        final Map<String, Double> partnerComplexities = toComplexityMap(
+            reviewLogRepository.findCardComplexitiesWithPartner(cardIds, partner.getId()));
 
         List<Card> mostComplexCards = cards.stream()
                 .sorted(Comparator.comparingDouble(
-                        (Card card) -> calculateMaxComplexity(card.getId(), userReviews, partnerReviews))
+                        (Card card) -> Math.max(
+                            userComplexities.getOrDefault(card.getId(), defaultComplexity),
+                            partnerComplexities.getOrDefault(card.getId(), defaultComplexity)))
                         .reversed())
                 .limit(SESSION_CARD_LIMIT)
                 .toList();
 
         List<Card> sortedByPreference = mostComplexCards.stream()
                 .sorted(Comparator.comparingDouble(
-                        (Card card) -> calculatePreference(card.getId(), userReviews, partnerReviews))
+                        (Card card) -> userComplexities.getOrDefault(card.getId(), defaultComplexity)
+                            - partnerComplexities.getOrDefault(card.getId(), defaultComplexity))
                         .reversed())
                 .toList();
 
@@ -170,28 +169,11 @@ public class StudySessionService {
                 .toList();
     }
 
-    double calculateMaxComplexity(String cardId, Map<String, ReviewLog> userReviews,
-            Map<String, ReviewLog> partnerReviews) {
-        return Math.max(
-                calculateComplexity(userReviews.get(cardId)),
-                calculateComplexity(partnerReviews.get(cardId)));
-    }
-
-    double calculatePreference(String cardId, Map<String, ReviewLog> userReviews,
-            Map<String, ReviewLog> partnerReviews) {
-        return calculateComplexity(userReviews.get(cardId))
-                - calculateComplexity(partnerReviews.get(cardId));
-    }
-
-    double calculateComplexity(ReviewLog review) {
-        if (review == null || review.getReview() == null) {
-            return 4 * 30;
-        }
-
-        double ratingFactor = 4.0 - review.getRating();
-        long daysSinceReview = ChronoUnit.DAYS.between(review.getReview(), LocalDateTime.now());
-
-        return ratingFactor * Math.max(daysSinceReview, 1);
+    private Map<String, Double> toComplexityMap(List<Object[]> rows) {
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).doubleValue()));
     }
 
     @Transactional
@@ -242,19 +224,6 @@ public class StudySessionService {
                     .studyMode(session.getStudyMode())
                     .build();
         });
-    }
-
-    private Map<String, ReviewLog> findLatestReviewsByCardIds(
-            List<String> cardIds,
-            Specification<ReviewLog> partnerSpec) {
-        final List<ReviewLog> reviews = reviewLogRepository.findAll(
-                hasCardIdIn(cardIds).and(partnerSpec));
-
-        return reviews.stream()
-                .collect(Collectors.toMap(
-                        r -> r.getCard().getId(),
-                        Function.identity(),
-                        (existing, replacement) -> existing));
     }
 
     private String getCurrentUserFirstName() {

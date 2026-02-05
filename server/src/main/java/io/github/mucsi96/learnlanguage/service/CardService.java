@@ -8,7 +8,6 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
-import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,7 +36,6 @@ public class CardService {
 
   private final CardRepository cardRepository;
   private final ReviewLogRepository reviewLogRepository;
-  private final SourceRepository sourceRepository;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
 
   public Optional<Card> getCardById(String id) {
@@ -57,25 +55,12 @@ public class CardService {
   }
 
   public List<SourceDueCardCountResponse> getDueCardCountsBySource() {
-    final List<String> sourceIds = sourceRepository.findAll().stream()
-        .map(source -> source.getId())
-        .toList();
-
-    return sourceIds.stream()
-        .flatMap(sourceId -> {
-          final List<Card> dueCards = cardRepository.findAll(
-              isDueForSource(sourceId),
-              PageRequest.of(0, 50)).getContent();
-
-          return dueCards.stream()
-              .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
-              .entrySet().stream()
-              .map(entry -> SourceDueCardCountResponse.builder()
-                  .sourceId(sourceId)
-                  .state(entry.getKey())
-                  .count(entry.getValue())
-                  .build());
-        })
+    return cardRepository.findTop50MostDueGroupedByStateAndSourceId().stream()
+        .map(row -> SourceDueCardCountResponse.builder()
+            .sourceId((String) row[0])
+            .state((String) row[1])
+            .count(((Number) row[2]).longValue())
+            .build())
         .toList();
   }
 
