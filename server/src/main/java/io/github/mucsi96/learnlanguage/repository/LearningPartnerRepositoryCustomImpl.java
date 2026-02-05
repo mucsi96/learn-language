@@ -7,12 +7,14 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class LearningPartnerRepositoryCustomImpl implements LearningPartnerRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
+    @Transactional
     public void deactivateAllExcept(Integer id) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaUpdate<LearningPartner> update = cb.createCriteriaUpdate(LearningPartner.class);

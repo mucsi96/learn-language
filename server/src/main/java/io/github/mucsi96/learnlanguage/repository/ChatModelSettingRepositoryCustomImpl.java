@@ -8,12 +8,14 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class ChatModelSettingRepositoryCustomImpl implements ChatModelSettingRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
+    @Transactional
     public void clearPrimaryByOperationType(OperationType operationType) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaUpdate<ChatModelSetting> update = cb.createCriteriaUpdate(ChatModelSetting.class);
@@ -28,6 +30,7 @@ public class ChatModelSettingRepositoryCustomImpl implements ChatModelSettingRep
     }
 
     @Override
+    @Transactional
     public void enableByOperationType(OperationType operationType) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaUpdate<ChatModelSetting> update = cb.createCriteriaUpdate(ChatModelSetting.class);

@@ -166,3 +166,6 @@ CREATE TABLE IF NOT EXISTS learn_language.study_session_cards (
 
 ALTER TABLE learn_language.study_session_cards DROP COLUMN IF EXISTS is_completed;
 ALTER TABLE learn_language.study_session_cards ADD COLUMN IF NOT EXISTS version integer DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS cards_last_review_idx ON learn_language.cards (last_review);
+CREATE INDEX IF NOT EXISTS review_logs_card_review_idx ON learn_language.review_logs (card_id, review DESC);
