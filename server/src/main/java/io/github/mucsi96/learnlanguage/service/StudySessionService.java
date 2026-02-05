@@ -60,7 +60,7 @@ public class StudySessionService {
 
     @Transactional
     public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
-        final Source source = sourceRepository.findLockedById(sourceId)
+        final Source source = sourceRepository.findByIdWithLock(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
         studySessionRepository.delete(createdBefore(startOfDay));
