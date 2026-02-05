@@ -43,7 +43,10 @@ test('displays cards in table', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const rows = await getGridData(page.getByRole('grid'));
+  const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /Hund/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /Katze/ })).toBeVisible();
+  const rows = await getGridData(grid);
   expect(rows).toEqual(
     expect.arrayContaining([
       expect.objectContaining({ Card: 'Hund', State: 'NEW', Reviews: '0' }),
@@ -73,6 +76,8 @@ test('filters cards by state', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /neu/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /alt/ })).toBeVisible();
   const before = await getGridData(grid);
   expect(before.map((r) => r.Card)).toEqual(expect.arrayContaining(['neu', 'alt']));
 
@@ -105,6 +110,8 @@ test('filters cards by readiness', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /bereit/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /bekannt/ })).toBeVisible();
   const before = await getGridData(grid);
   expect(before.map((r) => r.Card)).toEqual(
     expect.arrayContaining(['bereit', 'bekannt'])
@@ -130,7 +137,9 @@ test('marks selected cards as known', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const rows = await getGridData(page.getByRole('grid'));
+  const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /markieren/ })).toBeVisible();
+  const rows = await getGridData(grid);
   expect(rows[0]).toEqual(expect.objectContaining({ Card: 'markieren' }));
 
   const checkbox = page.getByRole('row', { name: /markieren/ }).getByRole('checkbox');
@@ -163,7 +172,9 @@ test('displays review information in table', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const rows = await getGridData(page.getByRole('grid'));
+  const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /lernen/ })).toBeVisible();
+  const rows = await getGridData(grid);
   expect(rows).toEqual([
     expect.objectContaining({
       Card: 'lernen',
@@ -188,7 +199,9 @@ test('navigates to card editing on row click', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const rows = await getGridData(page.getByRole('grid'));
+  const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /klicken/ })).toBeVisible();
+  const rows = await getGridData(grid);
   expect(rows[0]).toEqual(expect.objectContaining({ Card: 'klicken' }));
 
   await page.getByRole('row', { name: /klicken/ }).click();
@@ -232,6 +245,8 @@ test('filters cards by last review grade', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /einfach/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /schwer/ })).toBeVisible();
   const before = await getGridData(grid);
   expect(before.map((r) => r.Card)).toEqual(
     expect.arrayContaining(['einfach', 'schwer'])
@@ -270,6 +285,8 @@ test('filters cards by last review time', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
+  await expect(grid.getByRole('row', { name: /heute/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /gestern/ })).toBeVisible();
   const before = await getGridData(grid);
   expect(before.map((r) => r.Card)).toEqual(
     expect.arrayContaining(['heute', 'gestern'])
@@ -306,7 +323,8 @@ test('sorts cards by reviews count', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
-  await getGridData(grid);
+  await expect(grid.getByRole('row', { name: /wenig/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /viel/ })).toBeVisible();
 
   await page.getByRole('columnheader', { name: 'Reviews' }).click();
   await expect(async () => {
@@ -344,7 +362,8 @@ test('sorts cards by state', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
-  await getGridData(grid);
+  await expect(grid.getByRole('row', { name: /Anfang/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /Wiederholung/ })).toBeVisible();
 
   await page.getByRole('columnheader', { name: 'State' }).click();
   await expect(async () => {
@@ -385,7 +404,8 @@ test('sorts cards by last review', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
-  await getGridData(grid);
+  await expect(grid.getByRole('row', { name: /frisch/ })).toBeVisible();
+  await expect(grid.getByRole('row', { name: /vergessen/ })).toBeVisible();
 
   await page.getByRole('columnheader', { name: 'Last review' }).click();
   await expect(async () => {
