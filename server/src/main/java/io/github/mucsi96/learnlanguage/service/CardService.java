@@ -8,6 +8,7 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
+import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class CardService {
 
   private final CardRepository cardRepository;
   private final ReviewLogRepository reviewLogRepository;
+  private final SourceRepository sourceRepository;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
 
   public Optional<Card> getCardById(String id) {
@@ -55,21 +57,25 @@ public class CardService {
   }
 
   public List<SourceDueCardCountResponse> getDueCardCountsBySource() {
-    final List<Card> dueCards = cardRepository.findAll(isDue(), Sort.by("due"));
+    final List<String> sourceIds = sourceRepository.findAll().stream()
+        .map(source -> source.getId())
+        .toList();
 
-    return dueCards.stream()
-        .collect(Collectors.groupingBy(card -> card.getSource().getId()))
-        .entrySet().stream()
-        .flatMap(entry -> entry.getValue().stream().limit(50))
-        .collect(Collectors.groupingBy(
-            card -> Map.entry(card.getSource().getId(), card.getState()),
-            Collectors.counting()))
-        .entrySet().stream()
-        .map(entry -> SourceDueCardCountResponse.builder()
-            .sourceId(entry.getKey().getKey())
-            .state(entry.getKey().getValue())
-            .count(entry.getValue())
-            .build())
+    return sourceIds.stream()
+        .flatMap(sourceId -> {
+          final List<Card> dueCards = cardRepository.findAll(
+              isDueForSource(sourceId),
+              PageRequest.of(0, 50)).getContent();
+
+          return dueCards.stream()
+              .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
+              .entrySet().stream()
+              .map(entry -> SourceDueCardCountResponse.builder()
+                  .sourceId(sourceId)
+                  .state(entry.getKey())
+                  .count(entry.getValue())
+                  .build());
+        })
         .toList();
   }
 
