@@ -10,7 +10,6 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -54,7 +53,7 @@ public class CardSpecifications {
 
     public static Specification<Card> hasLastReviewAfter(int daysAgo) {
         return (root, query, cb) -> {
-            final LocalDateTime from = LocalDate.now().minusDays(daysAgo).atStartOfDay();
+            final LocalDateTime from = LocalDateTime.now().minusDays(daysAgo);
             return cb.greaterThanOrEqualTo(root.get(Card_.lastReview), from);
         };
     }
