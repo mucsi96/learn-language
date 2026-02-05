@@ -86,7 +86,7 @@ public class CardController {
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
-    final Card card = cardRepository.findById(cardId)
+    final Card card = cardRepository.findWithSourceById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     return ResponseEntity.ok(CardResponse.from(card));

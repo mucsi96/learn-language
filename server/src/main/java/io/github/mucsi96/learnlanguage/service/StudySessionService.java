@@ -180,7 +180,8 @@ public class StudySessionService {
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findOneWithCards(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+        return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+                .flatMap(session -> studySessionRepository.findByIdFetchCards(session.getId()))
                 .flatMap(this::findNextCard);
     }
 

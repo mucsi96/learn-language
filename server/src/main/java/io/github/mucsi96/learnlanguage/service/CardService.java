@@ -67,7 +67,7 @@ public class CardService {
   }
 
   public List<Card> getCardsMissingAudio() {
-    return cardRepository.findAll()
+    return cardRepository.findAllWithSource()
         .stream()
         .filter(card -> !card.isInReview())
         .filter(this::isMissingAudio)
@@ -75,8 +75,7 @@ public class CardService {
   }
 
   public List<Card> getRecentlyReviewedCards(int limit) {
-    return cardRepository.findAll(
-        PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "lastReview"))).getContent();
+    return cardRepository.findTopWithSourceOrderByLastReviewDesc(PageRequest.of(0, limit));
   }
 
   public List<SourceCardCount> getCardCountsBySource() {
