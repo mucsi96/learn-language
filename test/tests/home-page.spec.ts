@@ -58,6 +58,8 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
     { state: 'RELEARNING', count: 25, due_date: yesterday },
   ];
 
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
   await createCardsWithStates('goethe-a1', cardsToCreate);
 
   await page.goto('http://localhost:8180');
