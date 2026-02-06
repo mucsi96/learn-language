@@ -16,6 +16,7 @@ import {
   LogLevel,
   PublicClientApplication,
 } from '@azure/msal-browser';
+import { APP_INITIALIZER } from '@angular/core';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { EnvironmentConfig, ENVIRONMENT_CONFIG } from './environment/environment.config';
 
@@ -105,5 +106,11 @@ export function provideMsalConfig() {
     MsalService,
     MsalGuard,
     MsalBroadcastService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (msalService: MsalService) => () => msalService.instance.initialize(),
+      deps: [MsalService],
+      multi: true,
+    },
   ];
 }

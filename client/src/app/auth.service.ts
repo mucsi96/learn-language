@@ -16,13 +16,16 @@ import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 export class AuthService {
   private readonly config = inject(ENVIRONMENT_CONFIG);
   readonly mockAuth = this.config.mockAuth;
-  readonly isAuthenticated = signal(this.mockAuth);
   readonly msalService = !this.mockAuth
     ? inject(MsalService)
     : undefined;
   private readonly msalBroadcastService = !this.mockAuth
     ? inject(MsalBroadcastService)
     : undefined;
+  readonly isAuthenticated = signal(
+    this.mockAuth ||
+    (this.msalService?.instance.getAllAccounts().length ?? 0) > 0
+  );
 
   private readonly loginSuccess: Signal<EventMessage | undefined> = this.msalBroadcastService
     ? toSignal(
@@ -44,9 +47,9 @@ export class AuthService {
     effect(() => {
       const result = this.loginSuccess();
       if (result) {
-        console.log(result);
         const payload = result.payload as AuthenticationResult;
         this.msalService?.instance.setActiveAccount(payload.account);
+        this.isAuthenticated.set(true);
       }
     });
 
