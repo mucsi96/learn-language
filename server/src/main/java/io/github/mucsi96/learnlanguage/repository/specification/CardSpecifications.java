@@ -11,6 +11,7 @@ import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 public class CardSpecifications {
 
