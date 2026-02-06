@@ -1,6 +1,7 @@
 import { Injectable, inject, resource, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 
 export interface ModelUsageLog {
   id: number;
@@ -55,6 +56,7 @@ export interface DiffSummary {
 })
 export class ModelUsageLogsService {
   private readonly http = inject(HttpClient);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   readonly dateFilter = signal<string>(this.getTodayDateString());
   readonly modelTypeFilter = signal<ModelType | 'ALL'>('ALL');
@@ -196,9 +198,13 @@ export class ModelUsageLogsService {
 
   private findPrimaryLog(logs: ModelUsageLog[]): ModelUsageLog | null {
     if (logs.length <= 1) return logs[0] ?? null;
-    return logs.reduce((fastest, log) =>
-      log.processingTimeMs < fastest.processingTimeMs ? log : fastest
-    );
+    const operationType = logs[0].operationType;
+    const primaryModelName = this.environmentConfig.primaryModelByOperation[operationType];
+    if (primaryModelName) {
+      const primaryLog = logs.find(log => log.modelName === primaryModelName);
+      if (primaryLog) return primaryLog;
+    }
+    return logs[0];
   }
 
   computeDiff(primary: string, secondary: string): DiffLine[] {
