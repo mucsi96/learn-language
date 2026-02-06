@@ -19,7 +19,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AreaWordsService {
 
-  record AreaWords(List<WordResponse> wordList) {
+  record ExtractedWord(String word, List<String> forms, List<String> examples) {
+  }
+
+  record ExtractedWordList(List<ExtractedWord> wordList) {
   }
 
   private final ObjectMapper objectMapper;
@@ -57,17 +60,10 @@ public class AreaWordsService {
           .formatted(languageLevel.name());
     };
 
-    AreaWords example = new AreaWords(List.of(
-        WordResponse.builder()
-            .word("das Haus")
-            .forms(List.of("die Häuser"))
-            .examples(List.of("Das Haus ist groß."))
-            .build(),
-        WordResponse.builder()
-            .word("gehen")
-            .forms(List.of("gehst", "geht", "ist gegangen"))
-            .examples(List.of("Ich gehe jetzt.", "Er ist nach Hause gegangen."))
-            .build()));
+    ExtractedWordList example = new ExtractedWordList(List.of(
+        new ExtractedWord("das Haus", List.of("die Häuser"), List.of("Das Haus ist groß.")),
+        new ExtractedWord("gehen", List.of("gehst", "geht", "ist gegangen"),
+            List.of("Ich gehe jetzt.", "Er ist nach Hause gegangen."))));
 
     try {
       String exampleJson = objectMapper.writeValueAsString(example);
@@ -77,7 +73,8 @@ public class AreaWordsService {
     }
   }
 
-  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType, LanguageLevel languageLevel) {
+  public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType,
+      LanguageLevel languageLevel) {
     final var result = chatService.callWithLoggingAndMedia(
         model,
         OperationType.EXTRACTION,
@@ -89,8 +86,14 @@ public class AreaWordsService {
                 .data(imageData)
                 .mimeType(MimeTypeUtils.IMAGE_PNG)
                 .build()),
-        AreaWords.class);
+        ExtractedWordList.class);
 
-    return result.wordList;
+    return result.wordList.stream()
+        .map(extracted -> WordResponse.builder()
+            .word(extracted.word())
+            .forms(extracted.forms())
+            .examples(extracted.examples())
+            .build())
+        .toList();
   }
 }
