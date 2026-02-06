@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
+
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
@@ -16,15 +19,11 @@ import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.DateTimeException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class CardController {
     final CardTableResponse response = cardService.getCardTable(
         sourceId, startRow, endRow, sortField, sortDirection,
         readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating,
-        parseTimezone(timezone));
+        startOfDayUtc(parseTimezone(timezone)));
 
     return ResponseEntity.ok(response);
   }
@@ -224,14 +223,6 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Voice selected successfully");
     return ResponseEntity.ok(response);
-  }
-
-  private static ZoneId parseTimezone(String timezone) {
-    try {
-      return ZoneId.of(timezone);
-    } catch (DateTimeException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid timezone: " + timezone);
-    }
   }
 
   @PostMapping("/card/{cardId}/audio")
