@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -78,6 +80,26 @@ public class FileStorageService {
       Files.deleteIfExists(resolvedPath);
     } catch (IOException e) {
       throw new RuntimeException("Failed to delete file: " + filePath, e);
+    }
+  }
+
+  public List<String> listFiles(String directory) {
+    try {
+      final Path dirPath = resolveFilePath(directory);
+
+      if (!Files.exists(dirPath) || !Files.isDirectory(dirPath)) {
+        return List.of();
+      }
+
+      try (Stream<Path> stream = Files.walk(dirPath)) {
+        return stream
+            .filter(Files::isRegularFile)
+            .map(storagePath::relativize)
+            .map(Path::toString)
+            .toList();
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to list files in directory: " + directory, e);
     }
   }
 }
