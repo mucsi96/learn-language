@@ -10,7 +10,9 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 public class CardSpecifications {
@@ -51,9 +53,9 @@ public class CardSpecifications {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(Card_.reps), maxReps);
     }
 
-    public static Specification<Card> hasLastReviewAfter(int daysAgo) {
+    public static Specification<Card> hasLastReviewAfter(int daysAgo, ZoneId timezone) {
         return (root, query, cb) -> {
-            final LocalDateTime from = LocalDateTime.now().minusDays(daysAgo);
+            final LocalDateTime from = LocalDate.now(timezone).minusDays(daysAgo).atStartOfDay();
             return cb.greaterThanOrEqualTo(root.get(Card_.lastReview), from);
         };
     }

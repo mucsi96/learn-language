@@ -16,11 +16,15 @@ import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +46,7 @@ public class CardController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardTableResponse> getCards(
       @PathVariable String sourceId,
+      @RequestHeader(value = "X-Timezone", required = true) String timezone,
       @RequestParam(defaultValue = "0") int startRow,
       @RequestParam(defaultValue = "100") int endRow,
       @RequestParam(required = false) String sortField,
@@ -55,7 +60,8 @@ public class CardController {
 
     final CardTableResponse response = cardService.getCardTable(
         sourceId, startRow, endRow, sortField, sortDirection,
-        readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating);
+        readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating,
+        parseTimezone(timezone));
 
     return ResponseEntity.ok(response);
   }
@@ -218,6 +224,14 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Voice selected successfully");
     return ResponseEntity.ok(response);
+  }
+
+  private static ZoneId parseTimezone(String timezone) {
+    try {
+      return ZoneId.of(timezone);
+    } catch (DateTimeException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid timezone: " + timezone);
+    }
   }
 
   @PostMapping("/card/{cardId}/audio")

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -95,11 +96,12 @@ public class CardService {
       String sortField, String sortDirection,
       String readiness, String state,
       Integer minReps, Integer maxReps,
-      Integer lastReviewDaysAgo, Integer lastReviewRating) {
+      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      ZoneId timezone) {
 
     final Specification<Card> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating);
+        lastReviewDaysAgo, lastReviewRating, timezone);
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
@@ -129,7 +131,8 @@ public class CardService {
   private Specification<Card> buildCardTableSpec(
       String sourceId, String readiness, String state,
       Integer minReps, Integer maxReps,
-      Integer lastReviewDaysAgo, Integer lastReviewRating) {
+      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      ZoneId timezone) {
 
     Specification<Card> spec = hasSourceId(sourceId);
 
@@ -146,7 +149,7 @@ public class CardService {
       spec = spec.and(hasMaxReps(maxReps));
     }
     if (lastReviewDaysAgo != null) {
-      spec = spec.and(hasLastReviewAfter(lastReviewDaysAgo));
+      spec = spec.and(hasLastReviewAfter(lastReviewDaysAgo, timezone));
     }
     if (lastReviewRating != null) {
       spec = spec.and(hasLastReviewRating(lastReviewRating));
