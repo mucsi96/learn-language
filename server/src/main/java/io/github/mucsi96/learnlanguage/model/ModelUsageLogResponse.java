@@ -15,6 +15,7 @@ public class ModelUsageLogResponse {
     private String modelName;
     private ModelType modelType;
     private OperationType operationType;
+    private String operationId;
     private Long inputTokens;
     private Long outputTokens;
     private Long inputCharacters;
@@ -31,6 +32,7 @@ public class ModelUsageLogResponse {
                 .modelName(log.getModelName())
                 .modelType(log.getModelType())
                 .operationType(log.getOperationType())
+                .operationId(log.getOperationId())
                 .inputTokens(log.getInputTokens())
                 .outputTokens(log.getOutputTokens())
                 .inputCharacters(log.getInputCharacters())

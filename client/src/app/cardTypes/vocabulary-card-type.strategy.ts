@@ -55,13 +55,14 @@ export class VocabularyCardType implements CardTypeStrategy {
 
     const extractionResult = await this.multiModelService.callWithModel<WordList>(
       'extraction',
-      (model: string) =>
+      (model: string, headers?: Record<string, string>) =>
         fetchJson<WordList>(
           this.http,
           `/api/source/${sourceId}/extract/words`,
           {
             body: { regions, model },
             method: 'POST',
+            headers,
           }
         )
     );
@@ -70,12 +71,13 @@ export class VocabularyCardType implements CardTypeStrategy {
       extractionResult.response.words.map(async (word) => {
         const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
           'translation',
-          (model: string) => fetchJson<TranslationResponse>(
+          (model: string, headers?: Record<string, string>) => fetchJson<TranslationResponse>(
             this.http,
             `/api/translate/hu?model=${model}`,
             {
               body: word,
               method: 'POST',
+              headers,
             }
           )
         );
@@ -125,12 +127,13 @@ export class VocabularyCardType implements CardTypeStrategy {
       progressCallback(10, 'Detecting word type...');
       const wordTypeResult = await this.multiModelService.callWithModel<WordTypeResponse>(
         'classification',
-        (model: string) => fetchJson<WordTypeResponse>(
+        (model: string, headers?: Record<string, string>) => fetchJson<WordTypeResponse>(
           this.http,
           `/api/word-type?model=${model}`,
           {
             body: { word: word.word },
             method: 'POST',
+            headers,
           }
         )
       );
@@ -141,12 +144,13 @@ export class VocabularyCardType implements CardTypeStrategy {
         progressCallback(30, 'Detecting gender...');
         const genderResponse = await this.multiModelService.call<GenderResponse>(
           'classification',
-          (model: string) => fetchJson<GenderResponse>(
+          (model: string, headers?: Record<string, string>) => fetchJson<GenderResponse>(
             this.http,
             `/api/gender?model=${model}`,
             {
               body: { word: word.word },
               method: 'POST',
+              headers,
             }
           )
         );
@@ -158,12 +162,13 @@ export class VocabularyCardType implements CardTypeStrategy {
         languages.map(async (languageCode) => {
           const result = await this.multiModelService.callWithModel<TranslationResponse>(
             'translation',
-            (model: string) => fetchJson<TranslationResponse>(
+            (model: string, headers?: Record<string, string>) => fetchJson<TranslationResponse>(
               this.http,
               `/api/translate/${languageCode}?model=${model}`,
               {
                 body: word,
                 method: 'POST',
+                headers,
               }
             )
           );

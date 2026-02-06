@@ -46,6 +46,13 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="diff">
+      <th mat-header-cell *matHeaderCellDef>Diff</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="skeleton skeleton-text-small"></div>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="cost">
       <th mat-header-cell *matHeaderCellDef>Per $1</th>
       <td mat-cell *matCellDef="let log">
@@ -82,6 +89,7 @@
   @let modelTypes = availableModelTypes();
   @let operationTypes = availableOperationTypes();
   @let modelNames = availableModelNames();
+  @let rows = flatLogRows();
 
   <mat-tab-group>
     <mat-tab label="Usage Logs">
@@ -134,15 +142,24 @@
         <div class="summary-card">
           <span class="summary-label">Total Cost:</span>
           <span class="summary-value">${{ totalCost() | number: '1.4-4' }}</span>
+          @if (canDelete()) {
+          <button mat-icon-button
+                  class="clear-logs-button"
+                  (click)="clearLogs()"
+                  aria-label="Clear logs"
+                  matTooltip="Clear filtered logs">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+          }
         </div>
 
-        <table mat-table [dataSource]="logsList" multiTemplateDataRows class="usage-table">
+        <table mat-table [dataSource]="rows" multiTemplateDataRows class="usage-table">
           <ng-container matColumnDef="expand">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let log">
-              @if (hasContent(log)) {
-              <button mat-icon-button (click)="toggleExpand(log); $event.stopPropagation()" [aria-label]="isExpanded(log) ? 'Collapse' : 'Expand'">
-                <mat-icon>{{ isExpanded(log) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            <td mat-cell *matCellDef="let row">
+              @if (hasContent(row.log)) {
+              <button mat-icon-button (click)="toggleExpand(row.log); $event.stopPropagation()" [aria-label]="isExpanded(row.log) ? 'Collapse' : 'Expand'">
+                <mat-icon>{{ isExpanded(row.log) ? 'expand_less' : 'expand_more' }}</mat-icon>
               </button>
               }
             </td>
@@ -150,66 +167,89 @@
 
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Time</th>
-            <td mat-cell *matCellDef="let log">
-              {{ log.createdAt | date: 'short' }}
+            <td mat-cell *matCellDef="let row">
+              {{ row.log.createdAt | date: 'short' }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="modelType">
             <th mat-header-cell *matHeaderCellDef>Type</th>
-            <td mat-cell *matCellDef="let log">
-              <mat-icon class="type-icon">{{ getModelTypeIcon(log.modelType) }}</mat-icon>
-              <span class="type-label">{{ log.modelType }}</span>
+            <td mat-cell *matCellDef="let row">
+              <mat-icon class="type-icon">{{ getModelTypeIcon(row.log.modelType) }}</mat-icon>
+              <span class="type-label">{{ row.log.modelType }}</span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="modelName">
             <th mat-header-cell *matHeaderCellDef>Model</th>
-            <td mat-cell *matCellDef="let log">
-              <span class="model-name">{{ log.modelName }}</span>
+            <td mat-cell *matCellDef="let row">
+              <span class="model-name">{{ row.log.modelName }}</span>
+              @if (isPrimaryLog(row.log, row.group) && row.isGrouped) {
+                <span class="primary-badge">primary</span>
+              }
             </td>
           </ng-container>
 
           <ng-container matColumnDef="operationType">
             <th mat-header-cell *matHeaderCellDef>Operation</th>
-            <td mat-cell *matCellDef="let log">
-              {{ log.operationType }}
+            <td mat-cell *matCellDef="let row">
+              {{ row.log.operationType }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="usage">
             <th mat-header-cell *matHeaderCellDef>Usage</th>
-            <td mat-cell *matCellDef="let log">
-              {{ getUsageDisplay(log) }}
+            <td mat-cell *matCellDef="let row">
+              {{ getUsageDisplay(row.log) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="diff">
+            <th mat-header-cell *matHeaderCellDef>Diff</th>
+            <td mat-cell *matCellDef="let row">
+              @let diffSummary = getDiffSummaryForLog(row.log, row.group);
+              @if (diffSummary) {
+                <span class="diff-summary">
+                  @if (diffSummary.additions > 0) {
+                    <span class="diff-additions">+{{ diffSummary.additions }}</span>
+                  }
+                  @if (diffSummary.deletions > 0) {
+                    <span class="diff-deletions">-{{ diffSummary.deletions }}</span>
+                  }
+                  @if (diffSummary.additions === 0 && diffSummary.deletions === 0) {
+                    <span class="diff-identical">identical</span>
+                  }
+                </span>
+              }
             </td>
           </ng-container>
 
           <ng-container matColumnDef="cost">
             <th mat-header-cell *matHeaderCellDef>Per $1</th>
-            <td mat-cell *matCellDef="let log">
-              <span class="cost-value">{{ getPerDollarCount(log) }}</span>
+            <td mat-cell *matCellDef="let row">
+              <span class="cost-value">{{ getPerDollarCount(row.log) }}</span>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="time">
             <th mat-header-cell *matHeaderCellDef>Seconds</th>
-            <td mat-cell *matCellDef="let log">
-              {{ getDurationSeconds(log) }}
+            <td mat-cell *matCellDef="let row">
+              {{ getDurationSeconds(row.log) }}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="rating">
             <th mat-header-cell *matHeaderCellDef>Rating</th>
-            <td mat-cell *matCellDef="let log">
-              @if (isRatable(log)) {
+            <td mat-cell *matCellDef="let row">
+              @if (isRatable(row.log)) {
                 <div class="rating-stars">
                   @for (star of ratingStars; track star) {
                     <button mat-icon-button
                             class="star-button"
-                            (click)="setRating(log, star, $event)"
+                            (click)="setRating(row.log, star, $event)"
                             [attr.aria-label]="'Rate ' + star + ' stars'">
-                      <mat-icon [class]="getStarClass(log, star)">
-                        {{ log.rating && star <= log.rating ? 'star' : 'star_border' }}
+                      <mat-icon [class]="getStarClass(row.log, star)">
+                        {{ row.log.rating && star <= row.log.rating ? 'star' : 'star_border' }}
                       </mat-icon>
                     </button>
                   }
@@ -219,13 +259,35 @@
           </ng-container>
 
           <ng-container matColumnDef="expandedDetail">
-            <td mat-cell *matCellDef="let log" [attr.colspan]="displayedColumns.length">
-              @if (isExpanded(log)) {
+            <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+              @if (isExpanded(row.log)) {
               <div class="expanded-content">
-                @if (log.responseContent) {
+                @if (row.log.responseContent) {
+                @let diffLines = getDiffLines(row.log, row.group);
                 <div class="content-section">
-                  <h3>Response</h3>
-                  <pre class="content-pre">{{ log.responseContent }}</pre>
+                  <div class="content-header">
+                    @if (diffLines.length > 0) {
+                      <h3>Diff vs Primary</h3>
+                    } @else {
+                      <h3>Response</h3>
+                    }
+                    <button mat-icon-button
+                            class="copy-button"
+                            (click)="copyToClipboard(row.log.responseContent); $event.stopPropagation()"
+                            aria-label="Copy to clipboard"
+                            matTooltip="Copy to clipboard">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                  </div>
+                  @if (diffLines.length > 0) {
+                    <div class="content-pre diff-view">
+                      @for (line of diffLines; track $index) {
+                        <div [class]="'diff-line diff-' + line.type">{{ line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ' }} {{ line.content }}</div>
+                      }
+                    </div>
+                  } @else {
+                    <pre class="content-pre">{{ row.log.responseContent }}</pre>
+                  }
                 </div>
                 }
               </div>
@@ -235,8 +297,10 @@
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"
-              [class.expandable-row]="hasContent(row)"
-              (click)="toggleExpand(row)"></tr>
+              [class.expandable-row]="hasContent(row.log)"
+              [class.grouped-row]="row.isGrouped"
+              [class.group-first]="row.isFirst && row.isGrouped"
+              (click)="toggleExpand(row.log)"></tr>
           <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
         </table>
         } @else if (hasAnyLogs()) {

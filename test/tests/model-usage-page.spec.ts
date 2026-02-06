@@ -13,6 +13,7 @@ type UsageLogRow = {
   Type: string;
   Operation: string;
   Usage: string;
+  Diff: string;
   'Per $1': string;
   Seconds: string;
   Time: string;
@@ -95,7 +96,7 @@ test('displays chat model usage logs', async ({ page }) => {
     excludeRowSelector: '.detail-row',
   });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
+  expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
     {
       Model: 'gemini-3-pro-preview',
       Type: 'CHAT',
@@ -132,7 +133,7 @@ test('displays image model usage logs', async ({ page }) => {
     excludeRowSelector: '.detail-row',
   });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
+  expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
     {
       Model: 'gpt-image-1',
       Type: 'IMAGE',
@@ -161,7 +162,7 @@ test('displays audio model usage logs', async ({ page }) => {
     excludeRowSelector: '.detail-row',
   });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
+  expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
     {
       Model: 'eleven_v3',
       Type: 'AUDIO',
@@ -506,4 +507,182 @@ test('creates audio model usage logs when using bulk audio creation', async ({ p
   const audioLogs = tableData.filter((log) => log.Type === 'AUDIO');
   expect(audioLogs.length).toBeGreaterThan(0);
   expect(audioLogs[0].Usage).toMatch(/\d+ chars/);
+});
+
+test('groups logs with same operation id and shows diff summary', async ({ page }) => {
+  const operationId = 'test-op-123';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'line1\nline2\nline3',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'line1\nmodified\nline3',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const rows = table.locator('tr:not(.detail-row)').filter({ has: page.locator('td') });
+
+  await expect(rows).toHaveCount(2);
+
+  await expect(rows.nth(1).getByText('+1')).toBeVisible();
+  await expect(rows.nth(1).getByText('-1')).toBeVisible();
+});
+
+test('shows primary badge on fastest model in group', async ({ page }) => {
+  const operationId = 'test-op-primary';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'response a',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'response b',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByText('primary')).toBeVisible();
+});
+
+test('shows diff view in expanded state for non-primary logs', async ({ page }) => {
+  const operationId = 'test-op-diff';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'hello\nworld',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'hello\nearth',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Expand' }).nth(1).click();
+
+  await expect(page.getByText('Diff vs Primary')).toBeVisible();
+  await expect(page.getByText('- world')).toBeVisible();
+  await expect(page.getByText('+ earth')).toBeVisible();
+});
+
+test('shows copy to clipboard button in expanded state', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: '{"translation": "test"}',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Expand' }).click();
+
+  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
+});
+
+test('clears logs when clicking delete button', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  await expect(table).toBeVisible();
+
+  await page.getByRole('button', { name: 'Clear logs' }).click();
+
+  await expect(page.getByRole('heading', { name: 'No usage logs yet', exact: true })).toBeVisible();
+});
+
+test('shows identical label when grouped logs have same response', async ({ page }) => {
+  const operationId = 'test-op-identical';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'same content',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'same content',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByText('identical')).toBeVisible();
 });

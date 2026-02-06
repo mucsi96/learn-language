@@ -7,6 +7,7 @@ export interface ModelUsageLog {
   modelName: string;
   modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
   operationType: string;
+  operationId: string | null;
   inputTokens: number | null;
   outputTokens: number | null;
   inputCharacters: number | null;
@@ -31,6 +32,22 @@ export type ModelType = 'CHAT' | 'IMAGE' | 'AUDIO';
 export interface DateFilterOption {
   label: string;
   value: string;
+}
+
+export interface OperationGroup {
+  operationId: string | null;
+  logs: ModelUsageLog[];
+  primaryLog: ModelUsageLog | null;
+}
+
+export interface DiffLine {
+  type: 'same' | 'added' | 'removed';
+  content: string;
+}
+
+export interface DiffSummary {
+  additions: number;
+  deletions: number;
 }
 
 @Injectable({
@@ -67,20 +84,17 @@ export class ModelUsageLogsService {
     const today = this.getTodayDateString();
     const yesterday = this.getYesterdayDateString();
 
-    const options: DateFilterOption[] = [];
     const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
 
-    sortedDates.forEach(date => {
+    return sortedDates.map(date => {
       if (date === today) {
-        options.push({ label: 'Today', value: date });
+        return { label: 'Today', value: date };
       } else if (date === yesterday) {
-        options.push({ label: 'Yesterday', value: date });
+        return { label: 'Yesterday', value: date };
       } else {
-        options.push({ label: this.formatDateLabel(date), value: date });
+        return { label: this.formatDateLabel(date), value: date };
       }
     });
-
-    return options;
   });
 
   readonly availableModelTypes = computed<ModelType[]>(() => {
@@ -116,7 +130,7 @@ export class ModelUsageLogsService {
     const operationTypeFilter = this.operationTypeFilter();
     const modelNameFilter = this.modelNameFilter();
 
-    let filtered = logs.filter(log => {
+    const filtered = logs.filter(log => {
       const logDate = log.createdAt.split('T')[0];
       if (dateFilter !== 'ALL' && logDate !== dateFilter) return false;
       if (modelTypeFilter !== 'ALL' && log.modelType !== modelTypeFilter) return false;
@@ -126,11 +140,10 @@ export class ModelUsageLogsService {
     });
 
     return filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-
       const datePartA = a.createdAt.split('T')[0];
       const datePartB = b.createdAt.split('T')[0];
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
       const hourA = dateA.getHours();
       const hourB = dateB.getHours();
 
@@ -148,6 +161,114 @@ export class ModelUsageLogsService {
       return a.processingTimeMs - b.processingTimeMs;
     });
   });
+
+  readonly groupedLogs = computed<OperationGroup[]>(() => {
+    const logs = this.filteredAndSortedLogs();
+    const groupMap = new Map<string, ModelUsageLog[]>();
+    const orderedOperationIds: string[] = [];
+
+    logs.forEach(log => {
+      if (log.operationId) {
+        if (!groupMap.has(log.operationId)) {
+          groupMap.set(log.operationId, []);
+          orderedOperationIds.push(log.operationId);
+        }
+        groupMap.set(log.operationId, [...(groupMap.get(log.operationId) ?? []), log]);
+      }
+    });
+
+    const groups: OperationGroup[] = [];
+    const processedOperationIds = new Set<string>();
+
+    logs.forEach(log => {
+      if (log.operationId && !processedOperationIds.has(log.operationId)) {
+        processedOperationIds.add(log.operationId);
+        const groupLogs = groupMap.get(log.operationId) ?? [];
+        const primaryLog = this.findPrimaryLog(groupLogs);
+        groups.push({ operationId: log.operationId, logs: groupLogs, primaryLog });
+      } else if (!log.operationId) {
+        groups.push({ operationId: null, logs: [log], primaryLog: null });
+      }
+    });
+
+    return groups;
+  });
+
+  private findPrimaryLog(logs: ModelUsageLog[]): ModelUsageLog | null {
+    if (logs.length <= 1) return logs[0] ?? null;
+    return logs.reduce((fastest, log) =>
+      log.processingTimeMs < fastest.processingTimeMs ? log : fastest
+    );
+  }
+
+  computeDiff(primary: string, secondary: string): DiffLine[] {
+    const primaryLines = primary.split('\n');
+    const secondaryLines = secondary.split('\n');
+
+    const lcs = this.longestCommonSubsequence(primaryLines, secondaryLines);
+
+    const result: DiffLine[] = [];
+    let pi = 0;
+    let si = 0;
+    let li = 0;
+
+    while (pi < primaryLines.length || si < secondaryLines.length) {
+      if (li < lcs.length && pi < primaryLines.length && si < secondaryLines.length
+          && primaryLines[pi] === lcs[li] && secondaryLines[si] === lcs[li]) {
+        result.push({ type: 'same', content: lcs[li] });
+        pi++;
+        si++;
+        li++;
+      } else if (pi < primaryLines.length && (li >= lcs.length || primaryLines[pi] !== lcs[li])) {
+        result.push({ type: 'removed', content: primaryLines[pi] });
+        pi++;
+      } else if (si < secondaryLines.length && (li >= lcs.length || secondaryLines[si] !== lcs[li])) {
+        result.push({ type: 'added', content: secondaryLines[si] });
+        si++;
+      }
+    }
+
+    return result;
+  }
+
+  computeDiffSummary(primary: string, secondary: string): DiffSummary {
+    const diff = this.computeDiff(primary, secondary);
+    return {
+      additions: diff.filter(l => l.type === 'added').length,
+      deletions: diff.filter(l => l.type === 'removed').length,
+    };
+  }
+
+  private longestCommonSubsequence(a: string[], b: string[]): string[] {
+    const m = a.length;
+    const n = b.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1] + 1
+          : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+
+    const result: string[] = [];
+    let i = m;
+    let j = n;
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        result.unshift(a[i - 1]);
+        i--;
+        j--;
+      } else if (dp[i - 1][j] > dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+
+    return result;
+  }
 
   private getTodayDateString(): string {
     return new Date().toISOString().split('T')[0];
@@ -185,6 +306,35 @@ export class ModelUsageLogsService {
       body: { rating },
     });
 
+    this.summary.reload();
+  }
+
+  async deleteLogs(): Promise<void> {
+    const dateFilter = this.dateFilter();
+    if (dateFilter === 'ALL') return;
+
+    const params = new URLSearchParams({ date: dateFilter });
+
+    const modelTypeFilter = this.modelTypeFilter();
+    if (modelTypeFilter !== 'ALL') {
+      params.set('modelType', modelTypeFilter);
+    }
+
+    const operationTypeFilter = this.operationTypeFilter();
+    if (operationTypeFilter !== 'ALL') {
+      params.set('operationType', operationTypeFilter);
+    }
+
+    const modelNameFilter = this.modelNameFilter();
+    if (modelNameFilter !== 'ALL') {
+      params.set('modelName', modelNameFilter);
+    }
+
+    await fetchJson(this.http, `/api/model-usage-logs?${params.toString()}`, {
+      method: 'delete',
+    });
+
+    this.logs.reload();
     this.summary.reload();
   }
 

@@ -14,7 +14,7 @@ export class MultiModelService {
 
   async call<T>(
     operationType: string,
-    apiCall: (model: string) => Promise<T>
+    apiCall: (model: string, headers?: Record<string, string>) => Promise<T>
   ): Promise<T> {
     const result = await this.callWithModel(operationType, apiCall);
     return result.response;
@@ -22,7 +22,7 @@ export class MultiModelService {
 
   async callWithModel<T>(
     operationType: string,
-    apiCall: (model: string) => Promise<T>
+    apiCall: (model: string, headers?: Record<string, string>) => Promise<T>
   ): Promise<ModelResponse<T>> {
     const enabledModelNames = this.environmentConfig.enabledModelsByOperation[operationType] ?? [];
     const modelsToUse = this.environmentConfig.chatModels.filter(m =>
@@ -34,9 +34,12 @@ export class MultiModelService {
       throw new Error(`No primary model enabled for operation type: ${operationType}`);
     }
 
+    const operationId = crypto.randomUUID();
+    const operationHeaders = { 'X-Operation-ID': operationId };
+
     const modelResponses = await Promise.allSettled(
       modelsToUse.map(async (modelInfo) => {
-        const response = await apiCall(modelInfo.modelName);
+        const response = await apiCall(modelInfo.modelName, operationHeaders);
         return { model: modelInfo.modelName, response } as ModelResponse<T>;
       })
     );

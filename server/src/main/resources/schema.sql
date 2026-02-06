@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS learn_language.model_usage_logs (
     model_name character varying(255) NOT NULL,
     model_type character varying(50) NOT NULL,
     operation_type character varying(255) NOT NULL,
+    operation_id character varying(255),
     input_tokens bigint,
     output_tokens bigint,
     input_characters bigint,
