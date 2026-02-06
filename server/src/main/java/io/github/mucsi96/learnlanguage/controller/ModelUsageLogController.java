@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
+import io.github.mucsi96.learnlanguage.model.ModelUsageLogResponse;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -29,29 +30,30 @@ public class ModelUsageLogController {
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @GetMapping("/model-usage-logs")
-    public List<ModelUsageLog> getModelUsageLogs() {
-        return repository.findAllByOrderByCreatedAtDesc();
+    public List<ModelUsageLogResponse> getModelUsageLogs() {
+        return repository.findAllByOrderByCreatedAtDesc().stream()
+            .map(ModelUsageLogResponse::from)
+            .toList();
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PatchMapping("/model-usage-logs/{id}/rating")
-    public ResponseEntity<ModelUsageLog> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
+    public ResponseEntity<ModelUsageLogResponse> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
         return repository.findById(id)
             .map(log -> {
                 log.setRating(request.rating());
                 repository.save(log);
 
                 if (log.getResponseContent() != null) {
-                    List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
-                    for (ModelUsageLog duplicate : duplicates) {
-                        if (!duplicate.getId().equals(id)) {
-                            duplicate.setRating(request.rating());
-                            repository.save(duplicate);
-                        }
-                    }
+                    final List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
+                    final List<ModelUsageLog> updatedDuplicates = duplicates.stream()
+                        .filter(duplicate -> !duplicate.getId().equals(id))
+                        .peek(duplicate -> duplicate.setRating(request.rating()))
+                        .toList();
+                    repository.saveAll(updatedDuplicates);
                 }
 
-                return ResponseEntity.ok(log);
+                return ResponseEntity.ok(ModelUsageLogResponse.from(log));
             })
             .orElse(ResponseEntity.notFound().build());
     }

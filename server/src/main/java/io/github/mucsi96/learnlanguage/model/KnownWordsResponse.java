@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class KnownWordsResponse {
 
-    private List<KnownWordDTO> words;
+    private List<KnownWordResponse> words;
     private int count;
 }

@@ -2,17 +2,17 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,19 +21,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
-import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
-import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
+
+import static io.github.mucsi96.learnlanguage.repository.specification.CardSpecifications.isDueForSource;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdBefore;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.createdOnOrAfter;
+import static io.github.mucsi96.learnlanguage.repository.specification.StudySessionSpecifications.hasSourceId;
 
 @Service
 @RequiredArgsConstructor
@@ -45,13 +49,12 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
-    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedSince(sourceId, startOfDay)
+        return studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .map(session -> StudySessionResponse.builder()
                         .sessionId(session.getId())
                         .build());
@@ -62,17 +65,18 @@ public class StudySessionService {
         final Source source = sourceRepository.findByIdWithLock(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
-        studySessionRepository.deleteOlderThan(startOfDay);
+        studySessionRepository.delete(createdBefore(startOfDay));
 
         final Optional<StudySession> existingSession = studySessionRepository
-                .findBySourceIdAndCreatedSince(sourceId, startOfDay);
+                .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay);
         if (existingSession.isPresent()) {
             return StudySessionResponse.builder()
                     .sessionId(existingSession.get().getId())
                     .build();
         }
 
-        final List<Card> dueCards = cardRepository.findDueCardsBySourceId(sourceId);
+        final List<Card> dueCards = cardRepository.findAll(
+                isDueForSource(sourceId), PageRequest.of(0, SESSION_CARD_LIMIT, Sort.by("due"))).getContent();
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
 
         final String sessionId = UUID.randomUUID().toString();
@@ -120,28 +124,26 @@ public class StudySessionService {
             return List.of();
         }
 
-        List<String> cardIds = cards.stream().map(Card::getId).toList();
-        List<ReviewLog> latestReviews = reviewLogRepository.findLatestReviewsByCardIds(cardIds);
-
-        Map<String, ReviewLog> userReviews = latestReviews.stream()
-                .filter(r -> r.getLearningPartner() == null)
-                .collect(Collectors.toMap(r -> r.getCard().getId(), Function.identity()));
-
-        Map<String, ReviewLog> partnerReviews = latestReviews.stream()
-                .filter(r -> r.getLearningPartner() != null
-                        && r.getLearningPartner().getId().equals(partner.getId()))
-                .collect(Collectors.toMap(r -> r.getCard().getId(), Function.identity()));
+        final double defaultComplexity = 4 * 30;
+        final List<String> cardIds = cards.stream().map(Card::getId).toList();
+        final Map<String, Double> userComplexities = toComplexityMap(
+            reviewLogRepository.findCardComplexitiesWithoutPartner(cardIds));
+        final Map<String, Double> partnerComplexities = toComplexityMap(
+            reviewLogRepository.findCardComplexitiesWithPartner(cardIds, partner.getId()));
 
         List<Card> mostComplexCards = cards.stream()
                 .sorted(Comparator.comparingDouble(
-                        (Card card) -> calculateMaxComplexity(card.getId(), userReviews, partnerReviews))
+                        (Card card) -> Math.max(
+                            userComplexities.getOrDefault(card.getId(), defaultComplexity),
+                            partnerComplexities.getOrDefault(card.getId(), defaultComplexity)))
                         .reversed())
                 .limit(SESSION_CARD_LIMIT)
                 .toList();
 
         List<Card> sortedByPreference = mostComplexCards.stream()
                 .sorted(Comparator.comparingDouble(
-                        (Card card) -> calculatePreference(card.getId(), userReviews, partnerReviews))
+                        (Card card) -> userComplexities.getOrDefault(card.getId(), defaultComplexity)
+                            - partnerComplexities.getOrDefault(card.getId(), defaultComplexity))
                         .reversed())
                 .toList();
 
@@ -169,33 +171,17 @@ public class StudySessionService {
                 .toList();
     }
 
-    double calculateMaxComplexity(String cardId, Map<String, ReviewLog> userReviews,
-            Map<String, ReviewLog> partnerReviews) {
-        return Math.max(
-                calculateComplexity(userReviews.get(cardId)),
-                calculateComplexity(partnerReviews.get(cardId)));
-    }
-
-    double calculatePreference(String cardId, Map<String, ReviewLog> userReviews,
-            Map<String, ReviewLog> partnerReviews) {
-        return calculateComplexity(userReviews.get(cardId))
-                - calculateComplexity(partnerReviews.get(cardId));
-    }
-
-    double calculateComplexity(ReviewLog review) {
-        if (review == null || review.getReview() == null) {
-            return 4 * 30;
-        }
-
-        double ratingFactor = 4.0 - review.getRating();
-        long daysSinceReview = ChronoUnit.DAYS.between(review.getReview(), LocalDateTime.now());
-
-        return ratingFactor * Math.max(daysSinceReview, 1);
+    private Map<String, Double> toComplexityMap(List<Object[]> rows) {
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).doubleValue()));
     }
 
     @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findBySourceIdAndCreatedSinceWithCards(sourceId, startOfDay)
+        return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .flatMap(this::findNextCard);
     }
 
@@ -219,8 +205,7 @@ public class StudySessionService {
                 .filter(c -> c.getCard().getLastReview() != null)
                 .max(Comparator.comparing(c -> c.getCard().getLastReview()));
 
-        movedCard.ifPresent(mostRecent ->
-                studySessionCardRepository.updatePosition(mostRecent.getId(), newLastPosition));
+        movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
         final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
 
@@ -234,7 +219,7 @@ public class StudySessionService {
                     : getCurrentUserFirstName();
 
             return StudySessionCardResponse.builder()
-                    .card(sessionCard.getCard())
+                    .card(CardResponse.from(sessionCard.getCard()))
                     .learningPartnerId(sessionCard.getLearningPartner() != null
                             ? sessionCard.getLearningPartner().getId()
                             : null)

@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
+
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
@@ -12,6 +15,8 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardResponse;
+import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +41,39 @@ public class CardController {
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
 
+  @GetMapping("/source/{sourceId}/cards")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<CardTableResponse> getCards(
+      @PathVariable String sourceId,
+      @RequestHeader(value = "X-Timezone", required = true) String timezone,
+      @RequestParam(defaultValue = "0") int startRow,
+      @RequestParam(defaultValue = "100") int endRow,
+      @RequestParam(required = false) String sortField,
+      @RequestParam(required = false) String sortDirection,
+      @RequestParam(required = false) String readiness,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) Integer minReps,
+      @RequestParam(required = false) Integer maxReps,
+      @RequestParam(required = false) Integer lastReviewDaysAgo,
+      @RequestParam(required = false) Integer lastReviewRating) {
+
+    final CardTableResponse response = cardService.getCardTable(
+        sourceId, startRow, endRow, sortField, sortDirection,
+        readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating,
+        startOfDayUtc(parseTimezone(timezone)));
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PutMapping("/cards/mark-known")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
+    cardService.markCardsAsKnown(cardIds);
+
+    return ResponseEntity.ok(Map.of("detail",
+        String.format("%d card(s) marked as known", cardIds.size())));
+  }
+
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
@@ -52,11 +90,11 @@ public class CardController {
 
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<Card> getCard(@PathVariable String cardId) throws Exception {
-    Card card = cardRepository.findById(cardId)
+  public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
+    final Card card = cardRepository.findWithSourceById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    return ResponseEntity.ok(card);
+    return ResponseEntity.ok(CardResponse.from(card));
   }
 
   @PutMapping("/card/{cardId}")
@@ -137,22 +175,28 @@ public class CardController {
 
   @GetMapping("/cards/readiness/{readiness}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getCardsByReadiness(@PathVariable String readiness) {
-    List<Card> cards = cardService.getCardsByReadiness(readiness);
+  public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable String readiness) {
+    final List<CardResponse> cards = cardService.getCardsByReadiness(readiness).stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/cards/missing-audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getCardsMissingAudio() {
-    List<Card> cards = cardService.getCardsMissingAudio();
+  public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {
+    final List<CardResponse> cards = cardService.getCardsMissingAudio().stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/cards/sample")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<Card>> getSampleCards() {
-    List<Card> cards = cardService.getRandomReadyCards(10);
+  public ResponseEntity<List<CardResponse>> getSampleCards() {
+    final List<CardResponse> cards = cardService.getRecentlyReviewedCards(10).stream()
+        .map(CardResponse::from)
+        .toList();
     return ResponseEntity.ok(cards);
   }
 

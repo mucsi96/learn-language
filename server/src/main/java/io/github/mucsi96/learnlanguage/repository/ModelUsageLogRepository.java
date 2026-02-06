@@ -17,13 +17,10 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
     List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(OperationType operationType);
     List<ModelUsageLog> findByResponseContent(String responseContent);
 
-    @Query("""
-        SELECT m.modelName, COUNT(m), COUNT(m.rating),
-               COALESCE(AVG(CAST(m.rating AS double)), 0),
-               COALESCE(SUM(m.costUsd), 0)
-        FROM ModelUsageLog m
-        GROUP BY m.modelName
-        ORDER BY COALESCE(AVG(CAST(m.rating AS double)), 0) DESC
-        """)
+    @Query("SELECT m.modelName, COUNT(m), COUNT(m.rating), "
+            + "COALESCE(AVG(m.rating), 0.0), "
+            + "COALESCE(SUM(m.costUsd), 0) "
+            + "FROM ModelUsageLog m GROUP BY m.modelName "
+            + "ORDER BY COALESCE(AVG(m.rating), 0.0) DESC")
     List<Object[]> getModelSummary();
 }

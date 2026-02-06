@@ -3,27 +3,44 @@ package io.github.mucsi96.learnlanguage.repository;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface CardRepository extends JpaRepository<Card, String>, JpaSpecificationExecutor<Card> {
-  List<Card> findByIdIn(List<String> ids);
+public interface CardRepository
+        extends JpaRepository<Card, String>, JpaSpecificationExecutor<Card>, CardRepositoryCustom {
+    List<Card> findByIdIn(List<String> ids);
 
-  @Query(value = """
-      SELECT * FROM learn_language.cards
-      ORDER BY RANDOM()
-      LIMIT :limit
-      """, nativeQuery = true)
-  List<Card> findRandomReadyCards(int limit);
+    @EntityGraph(attributePaths = {"source"})
+    Optional<Card> findWithSourceById(String id);
 
-  // 1-hour lookahead window accounts for study session duration
-  @Query(value = """
+    @EntityGraph(attributePaths = {"source"})
+    List<Card> findByReadinessOrderByDueAsc(String readiness);
+
+    @EntityGraph(attributePaths = {"source"})
+    @Query("SELECT c FROM Card c")
+    List<Card> findAllWithSource();
+
+    @EntityGraph(attributePaths = {"source"})
+    @Query("SELECT c FROM Card c ORDER BY c.lastReview DESC")
+    List<Card> findTopWithSourceOrderByLastReviewDesc(Pageable pageable);
+
+    @Modifying
+    void deleteBySource(Source source);
+
+    @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")
+    List<Object[]> countCardsBySourceGroupBySource();
+
+    @Query(value = """
         SELECT source_id, state, COUNT(*) AS cardCount
         FROM (
             SELECT *,
@@ -34,25 +51,5 @@ public interface CardRepository extends JpaRepository<Card, String>, JpaSpecific
         WHERE row_num <= 50
         GROUP BY source_id, state
       """, nativeQuery = true)
-  List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
-
-  // 1-hour lookahead window accounts for study session duration
-  @Query(value = """
-      SELECT *
-      FROM learn_language.cards
-      WHERE source_id = :sourceId
-        AND readiness = 'READY'
-        AND due at time zone 'UTC' <= NOW() + INTERVAL '1 hour'
-      ORDER BY due ASC
-      LIMIT 50
-      """, nativeQuery = true)
-  List<Card> findDueCardsBySourceId(String sourceId);
-
-  List<Card> findByReadinessOrderByDueAsc(String readiness);
-
-  @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source")
-  List<Object[]> countBySourceGroupBySource();
-
-  @Modifying
-  void deleteBySource(Source source);
+    List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 }

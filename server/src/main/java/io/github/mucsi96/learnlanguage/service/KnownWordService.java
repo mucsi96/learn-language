@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.KnownWord;
-import io.github.mucsi96.learnlanguage.model.KnownWordDTO;
+import io.github.mucsi96.learnlanguage.model.KnownWordResponse;
 import io.github.mucsi96.learnlanguage.repository.KnownWordRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -20,10 +20,10 @@ public class KnownWordService {
 
     private final KnownWordRepository knownWordRepository;
 
-    public List<KnownWordDTO> getAllKnownWords() {
+    public List<KnownWordResponse> getAllKnownWords() {
         return knownWordRepository.findAll().stream()
                 .sorted(Comparator.comparing(KnownWord::getWord))
-                .map(kw -> KnownWordDTO.builder()
+                .map(kw -> KnownWordResponse.builder()
                         .word(kw.getWord())
                         .hungarianTranslation(kw.getHungarianTranslation())
                         .build())

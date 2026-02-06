@@ -74,7 +74,7 @@ public class SourceController {
 
       Integer pageCount = null;
       if (source.getSourceType() == SourceType.IMAGES) {
-        pageCount = documentRepository.findMaxPageNumberBySource(source).orElse(0);
+        pageCount = documentRepository.findFirstBySourceOrderByPageNumberDesc(source).map(Document::getPageNumber).orElse(0);
       }
 
       return SourceResponse.builder()
@@ -288,7 +288,7 @@ public class SourceController {
         return ResponseEntity.badRequest().body(errorResponse);
       }
 
-      Integer maxPageNumber = documentRepository.findMaxPageNumberBySource(source).orElse(0);
+      Integer maxPageNumber = documentRepository.findFirstBySourceOrderByPageNumberDesc(source).map(Document::getPageNumber).orElse(0);
       int newPageNumber = maxPageNumber + 1;
 
       BinaryData fileData = BinaryData.fromBytes(file.getBytes());

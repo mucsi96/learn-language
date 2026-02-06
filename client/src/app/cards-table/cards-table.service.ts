@@ -61,7 +61,10 @@ export class CardsTableService {
     return firstValueFrom(
       this.http.get<CardTableResponse>(
         `/api/source/${params.sourceId}/cards`,
-        { params: httpParams }
+        {
+          params: httpParams,
+          headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone },
+        }
       )
     );
   }

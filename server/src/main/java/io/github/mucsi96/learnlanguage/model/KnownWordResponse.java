@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KnownWordDTO {
+public class KnownWordResponse {
 
     private String word;
     private String hungarianTranslation;
