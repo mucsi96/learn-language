@@ -20,14 +20,14 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
     List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(OperationType operationType);
     @Modifying
     @Query("UPDATE ModelUsageLog m SET m.rating = :rating "
-            + "WHERE m.operationId = :operationId "
-            + "AND m.responseContent = :responseContent "
-            + "AND m.id <> :excludeId")
-    void updateRatingByOperationIdAndResponseContent(
-            @Param("rating") Integer rating,
-            @Param("operationId") String operationId,
-            @Param("responseContent") String responseContent,
-            @Param("excludeId") Long excludeId);
+            + "WHERE m.id = :id "
+            + "OR (m.operationId = (SELECT o.operationId FROM ModelUsageLog o WHERE o.id = :id) "
+            + "AND m.operationId IS NOT NULL "
+            + "AND m.responseContent = (SELECT o.responseContent FROM ModelUsageLog o WHERE o.id = :id) "
+            + "AND m.responseContent IS NOT NULL)")
+    void updateRatingById(
+            @Param("id") Long id,
+            @Param("rating") Integer rating);
 
     @Query("SELECT m.modelName, COUNT(m), COUNT(m.rating), "
             + "COALESCE(AVG(m.rating), 0.0), "

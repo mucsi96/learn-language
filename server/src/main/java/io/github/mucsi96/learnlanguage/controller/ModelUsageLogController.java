@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.model.ModelUsageLogResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -47,20 +46,13 @@ public class ModelUsageLogController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PatchMapping("/model-usage-logs/{id}/rating")
     @Transactional
-    public ResponseEntity<ModelUsageLogResponse> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
-        return repository.findById(id)
-            .map(log -> {
-                log.setRating(request.rating());
-                repository.save(log);
+    public ResponseEntity<Void> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
 
-                if (log.getOperationId() != null && log.getResponseContent() != null) {
-                    repository.updateRatingByOperationIdAndResponseContent(
-                        request.rating(), log.getOperationId(), log.getResponseContent(), id);
-                }
-
-                return ResponseEntity.ok(ModelUsageLogResponse.from(log));
-            })
-            .orElse(ResponseEntity.notFound().build());
+        repository.updateRatingById(id, request.rating());
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
