@@ -334,8 +334,21 @@ p {
 }
 
 /* Summary table */
+.operation-type-heading {
+  margin: 1.5rem 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--mat-sys-primary);
+}
+
+.operation-type-heading:first-child {
+  margin-top: 0;
+}
+
 .summary-table {
   width: 100%;
+  margin-bottom: 1rem;
 }
 
 .avg-rating {

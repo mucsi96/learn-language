@@ -26,11 +26,11 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
             @Param("id") Long id,
             @Param("rating") Integer rating);
 
-    @Query("SELECT m.modelName, COUNT(m), COUNT(m.rating), "
+    @Query("SELECT m.operationType, m.modelName, COUNT(m), COUNT(m.rating), "
             + "COALESCE(AVG(m.rating), 0.0), "
             + "COALESCE(SUM(m.costUsd), 0) "
-            + "FROM ModelUsageLog m GROUP BY m.modelName "
-            + "ORDER BY COALESCE(AVG(m.rating), 0.0) DESC")
+            + "FROM ModelUsageLog m GROUP BY m.operationType, m.modelName "
+            + "ORDER BY m.operationType, COALESCE(AVG(m.rating), 0.0) DESC")
     List<Object[]> getModelSummary();
 
     @Modifying
