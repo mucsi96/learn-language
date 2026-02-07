@@ -209,52 +209,84 @@ export class BulkCardCreationService {
 
     this.imageGenerationProgress.set({ total: tasks.length, completed: 0 });
 
-    const imageResults = await Promise.all(
-      tasks.map(async (task): Promise<ImageGenerationResult | null> => {
-        try {
-          const response = await fetchJson<ImageResponse>(
-            this.http,
-            `/api/image`,
-            {
-              body: {
-                input: task.englishTranslation,
-                model: task.model
-              } satisfies ImageSourceRequest,
-              method: 'POST',
-            }
-          );
+    const tasksByModel = tasks.reduce(
+      (acc, task) => acc.set(task.model, [...(acc.get(task.model) ?? []), task]),
+      new Map<string, ImageGenerationTask[]>()
+    );
 
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+    const rateLimitByModel = new Map(
+      imageModels.map(m => [m.id, m.imagesPerMinute])
+    );
 
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-          const total = tasksPerCard.get(task.cardId) || 1;
-          const progressIndex = cardIdToProgressIndex.get(task.cardId);
-          if (progressIndex !== undefined) {
-            const imageProgress = (completed / total) * 10;
-            this.updateProgress(
-              progressIndex,
-              'generating-images',
-              90 + imageProgress,
-              `Generating images (${completed}/${total})...`
-            );
+    const processTask = async (task: ImageGenerationTask): Promise<ImageGenerationResult | null> => {
+      try {
+        const response = await fetchJson<ImageResponse>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: task.englishTranslation,
+              model: task.model
+            } satisfies ImageSourceRequest,
+            method: 'POST',
           }
+        );
 
-          return {
-            cardId: task.cardId,
-            exampleIndex: task.exampleIndex,
-            image: response
-          };
-        } catch {
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+        this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
 
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-
-          return null;
+        const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+        completedPerCard.set(task.cardId, completed);
+        const total = tasksPerCard.get(task.cardId) || 1;
+        const progressIndex = cardIdToProgressIndex.get(task.cardId);
+        if (progressIndex !== undefined) {
+          const imageProgress = (completed / total) * 10;
+          this.updateProgress(
+            progressIndex,
+            'generating-images',
+            90 + imageProgress,
+            `Generating images (${completed}/${total})...`
+          );
         }
+
+        return {
+          cardId: task.cardId,
+          exampleIndex: task.exampleIndex,
+          image: response
+        };
+      } catch {
+        this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+
+        const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+        completedPerCard.set(task.cardId, completed);
+
+        return null;
+      }
+    };
+
+    const modelResults = await Promise.all(
+      Array.from(tasksByModel.entries()).map(async ([modelId, modelTasks]) => {
+        const minDelayMs = Math.ceil(60000 / (rateLimitByModel.get(modelId) ?? 7));
+        const results: (ImageGenerationResult | null)[] = [];
+
+        for (let i = 0; i < modelTasks.length; i++) {
+          const requestStart = Date.now();
+          const result = await processTask(modelTasks[i]);
+          results.push(result);
+
+          if (i < modelTasks.length - 1) {
+            const elapsed = Date.now() - requestStart;
+            const remainingDelay = minDelayMs - elapsed;
+            if (remainingDelay > 0) {
+              await new Promise(resolve => setTimeout(resolve, remainingDelay));
+            }
+          }
+        }
+
+        return results;
       })
     );
+
+    const imageResults = modelResults.flat();
 
     const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
 

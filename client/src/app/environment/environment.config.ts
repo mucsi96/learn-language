@@ -10,6 +10,7 @@ export interface ChatModelInfo {
 export interface ImageModel {
   id: string;
   displayName: string;
+  imagesPerMinute: number;
 }
 
 export interface AudioModel {

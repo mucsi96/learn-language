@@ -18,6 +18,7 @@ import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
+import io.github.mucsi96.learnlanguage.config.ModelPricingConfig;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
@@ -30,6 +31,7 @@ public class EnvironmentController {
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
+  private final ModelPricingConfig modelPricingConfig;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -76,7 +78,10 @@ public class EnvironmentController {
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
         Arrays.stream(ImageGenerationModel.values())
-            .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName()))
+            .map(model -> new ImageModelResponse(
+                model.getModelName(),
+                model.getDisplayName(),
+                modelPricingConfig.getImageRateLimit(model.getModelName())))
             .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),

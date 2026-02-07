@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class ModelPricingConfig {
 
     public record ChatModelPricing(BigDecimal inputPerMillion, BigDecimal outputPerMillion) {}
-    public record ImageModelPricing(BigDecimal perImage) {}
+    public record ImageModelPricing(BigDecimal perImage, int imagesPerMinute) {}
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
@@ -38,13 +38,16 @@ public class ModelPricingConfig {
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00")))
     );
 
+    // Rate limits (images per minute) are conservative Tier 1 values:
+    // OpenAI: https://platform.openai.com/docs/guides/rate-limits
+    // Google: https://ai.google.dev/gemini-api/docs/rate-limits
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.of(
         // OpenAI image models (1024x1024 high quality)
-        "gpt-image-1", new ImageModelPricing(new BigDecimal("0.25")),
-        "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.20")),
+        "gpt-image-1", new ImageModelPricing(new BigDecimal("0.25"), 7),
+        "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.20"), 7),
         // Google image models
-        "imagen-4.0-ultra-generate-001", new ImageModelPricing(new BigDecimal("0.06")),
-        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))
+        "imagen-4.0-ultra-generate-001", new ImageModelPricing(new BigDecimal("0.06"), 10),
+        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"), 10)
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
@@ -60,7 +63,7 @@ public class ModelPricingConfig {
 
     public ImageModelPricing getImageModelPricing(String modelName) {
         return IMAGE_MODEL_PRICING.getOrDefault(modelName,
-            new ImageModelPricing(BigDecimal.ZERO));
+            new ImageModelPricing(BigDecimal.ZERO, 7));
     }
 
     public AudioModelPricing getAudioModelPricing(String modelName) {
@@ -77,6 +80,10 @@ public class ModelPricingConfig {
             .multiply(BigDecimal.valueOf(outputTokens))
             .divide(BigDecimal.valueOf(1_000_000), 6, java.math.RoundingMode.HALF_UP);
         return inputCost.add(outputCost);
+    }
+
+    public int getImageRateLimit(String modelName) {
+        return getImageModelPricing(modelName).imagesPerMinute();
     }
 
     public BigDecimal calculateImageCost(String modelName, int imageCount) {
