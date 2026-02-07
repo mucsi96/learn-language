@@ -74,6 +74,15 @@ public class CardController {
         String.format("%d card(s) marked as known", cardIds.size())));
   }
 
+  @DeleteMapping("/cards")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> deleteCards(@RequestBody List<String> cardIds) {
+    cardService.deleteCardsByIds(cardIds);
+
+    return ResponseEntity.ok(Map.of("detail",
+        String.format("%d card(s) deleted", cardIds.size())));
+  }
+
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {

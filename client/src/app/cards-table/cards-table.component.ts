@@ -6,6 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   type ColDef,
@@ -99,6 +102,7 @@ export class CardsTableComponent {
   private readonly router = inject(Router);
   private readonly cardsTableService = inject(CardsTableService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private readonly routeSourceId = injectParams('sourceId');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
@@ -277,6 +281,28 @@ export class CardsTableComponent {
 
     await this.cardsTableService.markCardsAsKnown(ids);
     this.snackBar.open(`${ids.length} card(s) marked as known`, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+    this.refreshGrid();
+  }
+
+  async deleteSelected(): Promise<void> {
+    const ids = this.selectedIds();
+    if (ids.length === 0) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to delete ${ids.length} card(s)?`,
+      },
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) return;
+
+    await this.cardsTableService.deleteCards(ids);
+    this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
     });

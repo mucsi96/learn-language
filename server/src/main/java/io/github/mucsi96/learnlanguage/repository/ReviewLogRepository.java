@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.repository;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,9 @@ import java.util.List;
 public interface ReviewLogRepository
         extends JpaRepository<ReviewLog, Integer>, JpaSpecificationExecutor<ReviewLog> {
     List<ReviewLog> findByCardId(String cardId);
+
+    @Modifying
+    void deleteByCardIdIn(List<String> cardIds);
 
     @Query(value = """
         SELECT card_id,
