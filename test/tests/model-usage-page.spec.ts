@@ -28,6 +28,11 @@ type ModelSummaryRow = {
   'Total Cost': string;
 };
 
+type ModelSummaryGroup = {
+  operationType: string;
+  rows: ModelSummaryRow[];
+};
+
 async function setupVoiceConfigurations() {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
@@ -236,9 +241,11 @@ test('allows rating usage logs', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
+  const summaryPanel = page.getByRole('tabpanel', { name: 'Model Summary' });
+
   await expect(async () => {
     const summaryData = await getTableData<ModelSummaryRow>(
-      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+      summaryPanel.getByRole('table', { name: 'translation summary' })
     );
 
     expect(summaryData).toEqual([
@@ -298,9 +305,11 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
+  const summaryPanel = page.getByRole('tabpanel', { name: 'Model Summary' });
+
   await expect(async () => {
     const summaryData = await getTableData<ModelSummaryRow>(
-      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+      summaryPanel.getByRole('table', { name: 'translation summary' })
     );
 
     expect(summaryData).toEqual([
@@ -335,9 +344,11 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
+  const summaryPanel = page.getByRole('tabpanel', { name: 'Model Summary' });
+
   await expect(async () => {
     const summaryData = await getTableData<ModelSummaryRow>(
-      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+      summaryPanel.getByRole('table', { name: 'translation summary' })
     );
 
     expect(summaryData).toEqual([
@@ -430,10 +441,12 @@ test('displays model summary tab', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  const table = page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table');
+  const summaryPanel = page.getByRole('tabpanel', { name: 'Model Summary' });
 
   await expect(async () => {
-    const summaryData = await getTableData<ModelSummaryRow>(table);
+    const summaryData = await getTableData<ModelSummaryRow>(
+      summaryPanel.getByRole('table', { name: 'translation summary' })
+    );
 
     expect(summaryData).toEqual([
       {

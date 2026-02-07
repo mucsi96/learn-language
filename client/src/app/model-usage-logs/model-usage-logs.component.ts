@@ -9,7 +9,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ModelUsageLogsService, ModelUsageLog, ModelType, OperationGroup, DiffLine } from './model-usage-logs.service';
+import { ModelUsageLogsService, ModelUsageLog, ModelType, OperationGroup, DiffLine, OperationTypeSummaryGroup } from './model-usage-logs.service';
 
 @Component({
   selector: 'app-model-usage-logs',
@@ -37,6 +37,7 @@ export class ModelUsageLogsComponent {
   readonly logs = this.service.filteredAndSortedLogs;
   readonly groups = this.service.groupedLogs;
   readonly summary = this.service.summary.value;
+  readonly groupedSummary = this.service.groupedSummary;
   readonly loading = computed(() => this.service.logs.isLoading());
   readonly expandedLogId = signal<number | null>(null);
   readonly ratingStars = [1, 2, 3, 4, 5];

@@ -32,8 +32,8 @@ public class ModelUsageLogController {
 
     public record RatingRequest(Integer rating) {}
 
-    public record ModelSummary(String modelName, long totalCalls, long ratedCalls,
-            BigDecimal averageRating, BigDecimal totalCost) {}
+    public record ModelSummary(OperationType operationType, String modelName, long totalCalls,
+            long ratedCalls, BigDecimal averageRating, BigDecimal totalCost) {}
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @GetMapping("/model-usage-logs")
@@ -60,11 +60,12 @@ public class ModelUsageLogController {
     public List<ModelSummary> getModelSummary() {
         return repository.getModelSummary().stream()
             .map(row -> new ModelSummary(
-                (String) row[0],
-                (Long) row[1],
+                (OperationType) row[0],
+                (String) row[1],
                 (Long) row[2],
-                BigDecimal.valueOf((Double) row[3]).setScale(2, RoundingMode.HALF_UP),
-                (BigDecimal) row[4]
+                (Long) row[3],
+                BigDecimal.valueOf((Double) row[4]).setScale(2, RoundingMode.HALF_UP),
+                (BigDecimal) row[5]
             ))
             .toList();
     }
