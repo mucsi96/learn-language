@@ -46,19 +46,16 @@ public class ModelUsageLogController {
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PatchMapping("/model-usage-logs/{id}/rating")
+    @Transactional
     public ResponseEntity<ModelUsageLogResponse> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
         return repository.findById(id)
             .map(log -> {
                 log.setRating(request.rating());
                 repository.save(log);
 
-                if (log.getResponseContent() != null) {
-                    final List<ModelUsageLog> duplicates = repository.findByResponseContent(log.getResponseContent());
-                    final List<ModelUsageLog> updatedDuplicates = duplicates.stream()
-                        .filter(duplicate -> !duplicate.getId().equals(id))
-                        .peek(duplicate -> duplicate.setRating(request.rating()))
-                        .toList();
-                    repository.saveAll(updatedDuplicates);
+                if (log.getOperationId() != null && log.getResponseContent() != null) {
+                    repository.updateRatingByOperationIdAndResponseContent(
+                        request.rating(), log.getOperationId(), log.getResponseContent(), id);
                 }
 
                 return ResponseEntity.ok(ModelUsageLogResponse.from(log));
