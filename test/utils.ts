@@ -549,41 +549,44 @@ export async function createModelUsageLog(params: {
   modelName: string;
   modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
   operationType: string;
+  operationId: string;
   inputTokens?: number | null;
   outputTokens?: number | null;
   inputCharacters?: number | null;
   imageCount?: number | null;
   costUsd: number;
   processingTimeMs: number;
-  responseContent?: string | null;
+  responseContent: string;
   rating?: number | null;
 }): Promise<number> {
   const {
     modelName,
     modelType,
     operationType,
+    operationId,
     inputTokens = null,
     outputTokens = null,
     inputCharacters = null,
     imageCount = null,
     costUsd,
     processingTimeMs,
-    responseContent = null,
+    responseContent,
     rating = null,
   } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `INSERT INTO learn_language.model_usage_logs (
-        model_name, model_type, operation_type, input_tokens, output_tokens,
+        model_name, model_type, operation_type, operation_id, input_tokens, output_tokens,
         input_characters, image_count, cost_usd, processing_time_ms,
         response_content, rating, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
       RETURNING id`,
       [
         modelName,
         modelType,
         operationType,
+        operationId,
         inputTokens,
         outputTokens,
         inputCharacters,

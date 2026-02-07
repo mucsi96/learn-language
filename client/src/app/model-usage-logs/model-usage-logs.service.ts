@@ -1,12 +1,14 @@
 import { Injectable, inject, resource, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 
 export interface ModelUsageLog {
   id: number;
   modelName: string;
   modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
   operationType: string;
+  operationId: string | null;
   inputTokens: number | null;
   outputTokens: number | null;
   inputCharacters: number | null;
@@ -33,11 +35,28 @@ export interface DateFilterOption {
   value: string;
 }
 
+export interface OperationGroup {
+  operationId: string | null;
+  logs: ModelUsageLog[];
+  primaryLog: ModelUsageLog | null;
+}
+
+export interface DiffLine {
+  type: 'same' | 'added' | 'removed';
+  content: string;
+}
+
+export interface DiffSummary {
+  additions: number;
+  deletions: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ModelUsageLogsService {
   private readonly http = inject(HttpClient);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   readonly dateFilter = signal<string>(this.getTodayDateString());
   readonly modelTypeFilter = signal<ModelType | 'ALL'>('ALL');
@@ -67,20 +86,17 @@ export class ModelUsageLogsService {
     const today = this.getTodayDateString();
     const yesterday = this.getYesterdayDateString();
 
-    const options: DateFilterOption[] = [];
     const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
 
-    sortedDates.forEach(date => {
+    return sortedDates.map(date => {
       if (date === today) {
-        options.push({ label: 'Today', value: date });
+        return { label: 'Today', value: date };
       } else if (date === yesterday) {
-        options.push({ label: 'Yesterday', value: date });
+        return { label: 'Yesterday', value: date };
       } else {
-        options.push({ label: this.formatDateLabel(date), value: date });
+        return { label: this.formatDateLabel(date), value: date };
       }
     });
-
-    return options;
   });
 
   readonly availableModelTypes = computed<ModelType[]>(() => {
@@ -116,7 +132,7 @@ export class ModelUsageLogsService {
     const operationTypeFilter = this.operationTypeFilter();
     const modelNameFilter = this.modelNameFilter();
 
-    let filtered = logs.filter(log => {
+    const filtered = logs.filter(log => {
       const logDate = log.createdAt.split('T')[0];
       if (dateFilter !== 'ALL' && logDate !== dateFilter) return false;
       if (modelTypeFilter !== 'ALL' && log.modelType !== modelTypeFilter) return false;
@@ -126,11 +142,10 @@ export class ModelUsageLogsService {
     });
 
     return filtered.sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-
       const datePartA = a.createdAt.split('T')[0];
       const datePartB = b.createdAt.split('T')[0];
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
       const hourA = dateA.getHours();
       const hourB = dateB.getHours();
 
@@ -149,6 +164,110 @@ export class ModelUsageLogsService {
     });
   });
 
+  readonly groupedLogs = computed<OperationGroup[]>(() => {
+    const logs = this.filteredAndSortedLogs();
+
+    const groupMap = logs.reduce((acc, log) => {
+      if (!log.operationId) return acc;
+      const existing = acc.get(log.operationId) ?? [];
+      return new Map(acc).set(log.operationId, [...existing, log]);
+    }, new Map<string, ModelUsageLog[]>());
+
+    const processedOperationIds = new Set<string>();
+
+    return logs.reduce<OperationGroup[]>((groups, log) => {
+      if (log.operationId && !processedOperationIds.has(log.operationId)) {
+        processedOperationIds.add(log.operationId);
+        const groupLogs = groupMap.get(log.operationId) ?? [];
+        const primaryLog = this.findPrimaryLog(groupLogs);
+        return [...groups, { operationId: log.operationId, logs: groupLogs, primaryLog }];
+      } else if (!log.operationId) {
+        return [...groups, { operationId: null, logs: [log], primaryLog: null }];
+      }
+      return groups;
+    }, []);
+  });
+
+  private findPrimaryLog(logs: ModelUsageLog[]): ModelUsageLog | null {
+    if (logs.length <= 1) return logs[0] ?? null;
+    const operationType = logs[0].operationType;
+    const primaryModelName = this.environmentConfig.primaryModelByOperation[operationType];
+    if (primaryModelName) {
+      const primaryLog = logs.find(log => log.modelName === primaryModelName);
+      if (primaryLog) return primaryLog;
+    }
+    return logs[0];
+  }
+
+  computeDiff(primary: string, secondary: string): DiffLine[] {
+    const primaryLines = primary.split('\n');
+    const secondaryLines = secondary.split('\n');
+
+    const lcs = this.longestCommonSubsequence(primaryLines, secondaryLines);
+
+    const result: DiffLine[] = [];
+    let pi = 0;
+    let si = 0;
+    let li = 0;
+
+    while (pi < primaryLines.length || si < secondaryLines.length) {
+      if (li < lcs.length && pi < primaryLines.length && si < secondaryLines.length
+          && primaryLines[pi] === lcs[li] && secondaryLines[si] === lcs[li]) {
+        result.push({ type: 'same', content: lcs[li] });
+        pi++;
+        si++;
+        li++;
+      } else if (pi < primaryLines.length && (li >= lcs.length || primaryLines[pi] !== lcs[li])) {
+        result.push({ type: 'removed', content: primaryLines[pi] });
+        pi++;
+      } else if (si < secondaryLines.length && (li >= lcs.length || secondaryLines[si] !== lcs[li])) {
+        result.push({ type: 'added', content: secondaryLines[si] });
+        si++;
+      }
+    }
+
+    return result;
+  }
+
+  computeDiffSummary(primary: string, secondary: string): DiffSummary {
+    const diff = this.computeDiff(primary, secondary);
+    return {
+      additions: diff.filter(l => l.type === 'added').length,
+      deletions: diff.filter(l => l.type === 'removed').length,
+    };
+  }
+
+  private longestCommonSubsequence(a: string[], b: string[]): string[] {
+    const m = a.length;
+    const n = b.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1] + 1
+          : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+
+    const result: string[] = [];
+    let i = m;
+    let j = n;
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        result.unshift(a[i - 1]);
+        i--;
+        j--;
+      } else if (dp[i - 1][j] > dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+
+    return result;
+  }
+
   private getTodayDateString(): string {
     return new Date().toISOString().split('T')[0];
   }
@@ -165,26 +284,41 @@ export class ModelUsageLogsService {
   }
 
   async updateRating(id: number, rating: number | null): Promise<void> {
-    const currentLog = this.logs.value()?.find((log) => log.id === id);
-    const responseContent = currentLog?.responseContent;
-
-    this.logs.update((currentLogs) =>
-      currentLogs?.map((log) => {
-        if (log.id === id) {
-          return { ...log, rating };
-        }
-        if (responseContent && log.responseContent === responseContent) {
-          return { ...log, rating };
-        }
-        return log;
-      })
-    );
-
     await fetchJson(this.http, `/api/model-usage-logs/${id}/rating`, {
       method: 'patch',
       body: { rating },
     });
 
+    this.logs.reload();
+    this.summary.reload();
+  }
+
+  async deleteLogs(): Promise<void> {
+    const dateFilter = this.dateFilter();
+    if (dateFilter === 'ALL') return;
+
+    const params = new URLSearchParams({ date: dateFilter });
+
+    const modelTypeFilter = this.modelTypeFilter();
+    if (modelTypeFilter !== 'ALL') {
+      params.set('modelType', modelTypeFilter);
+    }
+
+    const operationTypeFilter = this.operationTypeFilter();
+    if (operationTypeFilter !== 'ALL') {
+      params.set('operationType', operationTypeFilter);
+    }
+
+    const modelNameFilter = this.modelNameFilter();
+    if (modelNameFilter !== 'ALL') {
+      params.set('modelName', modelNameFilter);
+    }
+
+    await fetchJson(this.http, `/api/model-usage-logs?${params.toString()}`, {
+      method: 'delete',
+    });
+
+    this.logs.reload();
     this.summary.reload();
   }
 

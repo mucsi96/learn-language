@@ -8,7 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ModelUsageLogsService, ModelUsageLog, ModelType } from './model-usage-logs.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ModelUsageLogsService, ModelUsageLog, ModelType, OperationGroup, DiffLine } from './model-usage-logs.service';
 
 @Component({
   selector: 'app-model-usage-logs',
@@ -23,6 +24,7 @@ import { ModelUsageLogsService, ModelUsageLog, ModelType } from './model-usage-l
     MatTabsModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatTooltipModule,
     DatePipe,
     DecimalPipe,
   ],
@@ -33,6 +35,7 @@ export class ModelUsageLogsComponent {
   private readonly service = inject(ModelUsageLogsService);
 
   readonly logs = this.service.filteredAndSortedLogs;
+  readonly groups = this.service.groupedLogs;
   readonly summary = this.service.summary.value;
   readonly loading = computed(() => this.service.logs.isLoading());
   readonly expandedLogId = signal<number | null>(null);
@@ -56,6 +59,7 @@ export class ModelUsageLogsComponent {
     'modelName',
     'operationType',
     'usage',
+    'diff',
     'cost',
     'time',
     'rating',
@@ -75,6 +79,20 @@ export class ModelUsageLogsComponent {
     const logsList = this.logs();
     if (!logsList) return 0;
     return logsList.reduce((sum, log) => sum + (log.costUsd || 0), 0);
+  });
+
+  readonly canDelete = computed(() => this.dateFilter() !== 'ALL');
+
+  readonly flatLogRows = computed<{ log: ModelUsageLog; group: OperationGroup; isFirst: boolean; isGrouped: boolean }[]>(() => {
+    const groupsList = this.groups();
+    return groupsList.flatMap(group =>
+      group.logs.map((log, idx) => ({
+        log,
+        group,
+        isFirst: idx === 0,
+        isGrouped: group.logs.length > 1,
+      }))
+    );
   });
 
   onDateFilterChange(value: string): void {
@@ -151,5 +169,30 @@ export class ModelUsageLogsComponent {
       return 'star-filled';
     }
     return 'star-empty';
+  }
+
+  getDiffSummaryForLog(log: ModelUsageLog, group: OperationGroup): { additions: number; deletions: number } | null {
+    if (!group.primaryLog || group.logs.length <= 1) return null;
+    if (log.id === group.primaryLog.id) return null;
+    if (!log.responseContent || !group.primaryLog.responseContent) return null;
+    return this.service.computeDiffSummary(group.primaryLog.responseContent, log.responseContent);
+  }
+
+  getDiffLines(log: ModelUsageLog, group: OperationGroup): DiffLine[] {
+    if (!group.primaryLog || log.id === group.primaryLog.id) return [];
+    if (!log.responseContent || !group.primaryLog.responseContent) return [];
+    return this.service.computeDiff(group.primaryLog.responseContent, log.responseContent);
+  }
+
+  isPrimaryLog(log: ModelUsageLog, group: OperationGroup): boolean {
+    return group.primaryLog?.id === log.id;
+  }
+
+  copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text);
+  }
+
+  async clearLogs(): Promise<void> {
+    await this.service.deleteLogs();
   }
 }

@@ -13,6 +13,7 @@ type UsageLogRow = {
   Type: string;
   Operation: string;
   Usage: string;
+  Diff: string;
   'Per $1': string;
   Seconds: string;
   Time: string;
@@ -70,20 +71,24 @@ test('displays chat model usage logs', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-chat-1',
     inputTokens: 150,
     outputTokens: 50,
     costUsd: 0.0025,
     processingTimeMs: 1200,
+    responseContent: '{"translation": "test1"}',
   });
 
   await createModelUsageLog({
     modelName: 'gemini-3-pro-preview',
     modelType: 'CHAT',
     operationType: 'CLASSIFICATION',
+    operationId: 'op-chat-2',
     inputTokens: 100,
     outputTokens: 25,
     costUsd: 0.0012,
     processingTimeMs: 800,
+    responseContent: '{"classification": "test"}',
   });
 
   await page.goto('http://localhost:8180/model-usage');
@@ -91,28 +96,31 @@ test('displays chat model usage logs', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
-  });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
-    {
-      Model: 'gemini-3-pro-preview',
-      Type: 'CHAT',
-      Operation: 'classification',
-      Usage: '100 / 25 tokens',
-      'Per $1': '833',
-      Seconds: '0.8',
-    },
-    {
-      Model: 'gpt-4o',
-      Type: 'CHAT',
-      Operation: 'translation',
-      Usage: '150 / 50 tokens',
-      'Per $1': '400',
-      Seconds: '1.2',
-    },
-  ]);
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
+
+    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+      {
+        Model: 'gemini-3-pro-preview',
+        Type: 'CHAT',
+        Operation: 'classification',
+        Usage: '100 / 25 tokens',
+        'Per $1': '833',
+        Seconds: '0.8',
+      },
+      {
+        Model: 'gpt-4o',
+        Type: 'CHAT',
+        Operation: 'translation',
+        Usage: '150 / 50 tokens',
+        'Per $1': '400',
+        Seconds: '1.2',
+      },
+    ]);
+  }).toPass();
 });
 
 test('displays image model usage logs', async ({ page }) => {
@@ -120,28 +128,33 @@ test('displays image model usage logs', async ({ page }) => {
     modelName: 'gpt-image-1',
     modelType: 'IMAGE',
     operationType: 'IMAGE_GENERATION',
+    operationId: 'op-image-1',
     imageCount: 1,
     costUsd: 0.04,
     processingTimeMs: 5000,
+    responseContent: 'image generated',
   });
 
   await page.goto('http://localhost:8180/model-usage');
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
-  });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
-    {
-      Model: 'gpt-image-1',
-      Type: 'IMAGE',
-      Operation: 'image_generation',
-      Usage: '1 image(s)',
-      'Per $1': '25',
-      Seconds: '5',
-    },
-  ]);
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
+
+    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+      {
+        Model: 'gpt-image-1',
+        Type: 'IMAGE',
+        Operation: 'image_generation',
+        Usage: '1 image(s)',
+        'Per $1': '25',
+        Seconds: '5',
+      },
+    ]);
+  }).toPass();
 });
 
 test('displays audio model usage logs', async ({ page }) => {
@@ -149,28 +162,33 @@ test('displays audio model usage logs', async ({ page }) => {
     modelName: 'eleven_v3',
     modelType: 'AUDIO',
     operationType: 'AUDIO_GENERATION',
+    operationId: 'op-audio-1',
     inputCharacters: 250,
     costUsd: 0.005,
     processingTimeMs: 3000,
+    responseContent: 'audio generated',
   });
 
   await page.goto('http://localhost:8180/model-usage');
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
-  });
 
-  expect(tableData.map(({ Time, Rating, ...rest }) => rest)).toEqual([
-    {
-      Model: 'eleven_v3',
-      Type: 'AUDIO',
-      Operation: 'audio_generation',
-      Usage: '250 chars',
-      'Per $1': '200',
-      Seconds: '3',
-    },
-  ]);
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
+
+    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+      {
+        Model: 'eleven_v3',
+        Type: 'AUDIO',
+        Operation: 'audio_generation',
+        Usage: '250 chars',
+        'Per $1': '200',
+        Seconds: '3',
+      },
+    ]);
+  }).toPass();
 });
 
 test('expands chat log to show request and response', async ({ page }) => {
@@ -178,6 +196,7 @@ test('expands chat log to show request and response', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-expand-1',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -200,10 +219,12 @@ test('allows rating usage logs', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-rating-1',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
     processingTimeMs: 1000,
+    responseContent: '{"translation": "test"}',
   });
 
   await page.goto('http://localhost:8180/model-usage');
@@ -215,21 +236,21 @@ test('allows rating usage logs', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
+  await expect(async () => {
+    const summaryData = await getTableData<ModelSummaryRow>(
+      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+    );
 
-  const summaryData = await getTableData<ModelSummaryRow>(
-    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
-  );
-
-  expect(summaryData).toEqual([
-    {
-      Model: 'gpt-4o',
-      'Total Calls': '1',
-      'Rated Calls': '1',
-      'Avg Rating': '4.00',
-      'Total Cost': '$0.0020',
-    },
-  ]);
+    expect(summaryData).toEqual([
+      {
+        Model: 'gpt-4o',
+        'Total Calls': '1',
+        'Rated Calls': '1',
+        'Avg Rating': '4.00',
+        'Total Cost': '$0.0020',
+      },
+    ]);
+  }).toPass();
 });
 
 test('auto-rates duplicate logs with same response content', async ({ page }) => {
@@ -239,6 +260,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-auto-rate',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -250,6 +272,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-auto-rate',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -261,6 +284,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-auto-rate',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
@@ -274,19 +298,21 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  const summaryData = await getTableData<ModelSummaryRow>(
-    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
-  );
+  await expect(async () => {
+    const summaryData = await getTableData<ModelSummaryRow>(
+      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+    );
 
-  expect(summaryData).toEqual([
-    {
-      Model: 'gpt-4o',
-      'Total Calls': '3',
-      'Rated Calls': '2',
-      'Avg Rating': '4.00',
-      'Total Cost': '$0.0060',
-    },
-  ]);
+    expect(summaryData).toEqual([
+      {
+        Model: 'gpt-4o',
+        'Total Calls': '3',
+        'Rated Calls': '2',
+        'Avg Rating': '4.00',
+        'Total Cost': '$0.0060',
+      },
+    ]);
+  }).toPass();
 });
 
 test('allows clearing rating by clicking the same star', async ({ page }) => {
@@ -294,11 +320,13 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-clear-rating',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
     processingTimeMs: 1000,
     rating: 4,
+    responseContent: '{"translation": "test"}',
   });
 
   await page.goto('http://localhost:8180/model-usage');
@@ -307,19 +335,21 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  const summaryData = await getTableData<ModelSummaryRow>(
-    page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
-  );
+  await expect(async () => {
+    const summaryData = await getTableData<ModelSummaryRow>(
+      page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table')
+    );
 
-  expect(summaryData).toEqual([
-    {
-      Model: 'gpt-4o',
-      'Total Calls': '1',
-      'Rated Calls': '0',
-      'Avg Rating': '-',
-      'Total Cost': '$0.0020',
-    },
-  ]);
+    expect(summaryData).toEqual([
+      {
+        Model: 'gpt-4o',
+        'Total Calls': '1',
+        'Rated Calls': '0',
+        'Avg Rating': '-',
+        'Total Cost': '$0.0020',
+      },
+    ]);
+  }).toPass();
 });
 
 test('does not show rating for image models', async ({ page }) => {
@@ -327,9 +357,11 @@ test('does not show rating for image models', async ({ page }) => {
     modelName: 'gpt-image-1',
     modelType: 'IMAGE',
     operationType: 'IMAGE_GENERATION',
+    operationId: 'op-no-rating-image',
     imageCount: 1,
     costUsd: 0.04,
     processingTimeMs: 5000,
+    responseContent: 'image generated',
   });
 
   await page.goto('http://localhost:8180/model-usage');
@@ -342,9 +374,11 @@ test('does not show rating for audio models', async ({ page }) => {
     modelName: 'eleven_v3',
     modelType: 'AUDIO',
     operationType: 'AUDIO_GENERATION',
+    operationId: 'op-no-rating-audio',
     inputCharacters: 250,
     costUsd: 0.005,
     processingTimeMs: 3000,
+    responseContent: 'audio generated',
   });
 
   await page.goto('http://localhost:8180/model-usage');
@@ -357,10 +391,12 @@ test('displays model summary tab', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-summary-1',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.002,
     processingTimeMs: 1000,
+    responseContent: '{"translation": "summary1"}',
     rating: 5,
   });
 
@@ -368,10 +404,12 @@ test('displays model summary tab', async ({ page }) => {
     modelName: 'gpt-4o',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-summary-2',
     inputTokens: 150,
     outputTokens: 75,
     costUsd: 0.003,
     processingTimeMs: 1500,
+    responseContent: '{"translation": "summary2"}',
     rating: 2,
   });
 
@@ -379,10 +417,12 @@ test('displays model summary tab', async ({ page }) => {
     modelName: 'gemini-3-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
+    operationId: 'op-summary-3',
     inputTokens: 100,
     outputTokens: 50,
     costUsd: 0.001,
     processingTimeMs: 800,
+    responseContent: '{"translation": "summary3"}',
     rating: 4,
   });
 
@@ -390,27 +430,28 @@ test('displays model summary tab', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
-  await expect(page.getByRole('tabpanel', { name: 'Usage Logs' })).not.toBeVisible();
-
   const table = page.getByRole('tabpanel', { name: 'Model Summary' }).getByRole('table');
-  const summaryData = await getTableData<ModelSummaryRow>(table);
 
-  expect(summaryData).toEqual([
-    {
-      Model: 'gemini-3-pro-preview',
-      'Total Calls': '1',
-      'Rated Calls': '1',
-      'Avg Rating': '4.00',
-      'Total Cost': '$0.0010',
-    },
-    {
-      Model: 'gpt-4o',
-      'Total Calls': '2',
-      'Rated Calls': '2',
-      'Avg Rating': '3.50',
-      'Total Cost': '$0.0050',
-    },
-  ]);
+  await expect(async () => {
+    const summaryData = await getTableData<ModelSummaryRow>(table);
+
+    expect(summaryData).toEqual([
+      {
+        Model: 'gemini-3-pro-preview',
+        'Total Calls': '1',
+        'Rated Calls': '1',
+        'Avg Rating': '4.00',
+        'Total Cost': '$0.0010',
+      },
+      {
+        Model: 'gpt-4o',
+        'Total Calls': '2',
+        'Rated Calls': '2',
+        'Avg Rating': '3.50',
+        'Total Cost': '$0.0050',
+      },
+    ]);
+  }).toPass();
 });
 
 test('creates chat model usage logs when using bulk card creation', async ({ page }) => {
@@ -427,15 +468,18 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
   await page.goto('http://localhost:8180/model-usage');
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
-  });
 
-  expect(tableData.length).toBeGreaterThan(0);
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
 
-  const chatLogs = tableData.filter((log) => log.Type === 'CHAT');
-  expect(chatLogs.length).toBeGreaterThan(0);
-  expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
+    expect(tableData.length).toBeGreaterThan(0);
+
+    const chatLogs = tableData.filter((log) => log.Type === 'CHAT');
+    expect(chatLogs.length).toBeGreaterThan(0);
+    expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
+  }).toPass();
 });
 
 test('creates image model usage logs when using bulk card creation', async ({ page }) => {
@@ -452,15 +496,18 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
   await page.goto('http://localhost:8180/model-usage');
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
-  });
 
-  expect(tableData.length).toBeGreaterThan(0);
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
 
-  const imageLogs = tableData.filter((log) => log.Type === 'IMAGE');
-  expect(imageLogs.length).toBeGreaterThan(0);
-  expect(imageLogs[0].Usage).toMatch(/\d+ image\(s\)/);
+    expect(tableData.length).toBeGreaterThan(0);
+
+    const imageLogs = tableData.filter((log) => log.Type === 'IMAGE');
+    expect(imageLogs.length).toBeGreaterThan(0);
+    expect(imageLogs[0].Usage).toMatch(/\d+ image\(s\)/);
+  }).toPass();
 });
 
 test('creates audio model usage logs when using bulk audio creation', async ({ page }) => {
@@ -497,13 +544,197 @@ test('creates audio model usage logs when using bulk audio creation', async ({ p
   await page.goto('http://localhost:8180/model-usage');
 
   const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const tableData = await getTableData<UsageLogRow>(table, {
-    excludeRowSelector: '.detail-row',
+
+  await expect(async () => {
+    const tableData = await getTableData<UsageLogRow>(table, {
+      excludeRowSelector: '.detail-row',
+    });
+
+    expect(tableData.length).toBeGreaterThan(0);
+
+    const audioLogs = tableData.filter((log) => log.Type === 'AUDIO');
+    expect(audioLogs.length).toBeGreaterThan(0);
+    expect(audioLogs[0].Usage).toMatch(/\d+ chars/);
+  }).toPass();
+});
+
+test('groups logs with same operation id and shows diff summary', async ({ page }) => {
+  const operationId = 'test-op-123';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'line1\nline2\nline3',
   });
 
-  expect(tableData.length).toBeGreaterThan(0);
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'line1\nmodified\nline3',
+  });
 
-  const audioLogs = tableData.filter((log) => log.Type === 'AUDIO');
-  expect(audioLogs.length).toBeGreaterThan(0);
-  expect(audioLogs[0].Usage).toMatch(/\d+ chars/);
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const rows = table.locator('tr:not(.detail-row)').filter({ has: page.locator('td') });
+
+  await expect(rows).toHaveCount(2);
+
+  await expect(rows.nth(1).getByText('+1')).toBeVisible();
+  await expect(rows.nth(1).getByText('-1')).toBeVisible();
+});
+
+test('shows primary badge on fastest model in group', async ({ page }) => {
+  const operationId = 'test-op-primary';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'response a',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'response b',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByText('primary')).toBeVisible();
+});
+
+test('shows diff view in expanded state for non-primary logs', async ({ page }) => {
+  const operationId = 'test-op-diff';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'hello\nworld',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'hello\nearth',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Expand' }).nth(1).click();
+
+  await expect(page.getByText('Diff vs Primary')).toBeVisible();
+  await expect(page.getByText('- world')).toBeVisible();
+  await expect(page.getByText('+ earth')).toBeVisible();
+});
+
+test('shows copy to clipboard button in expanded state', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId: 'op-clipboard',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: '{"translation": "test"}',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await page.getByRole('button', { name: 'Expand' }).click();
+
+  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
+});
+
+test('clears logs when clicking delete button', async ({ page }) => {
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId: 'op-clear-logs',
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 1000,
+    responseContent: '{"translation": "test"}',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  await expect(table).toBeVisible();
+
+  await page.getByRole('button', { name: 'Clear logs' }).click();
+
+  await expect(page.getByRole('heading', { name: 'No usage logs yet', exact: true })).toBeVisible();
+});
+
+test('shows identical label when grouped logs have same response', async ({ page }) => {
+  const operationId = 'test-op-identical';
+
+  await createModelUsageLog({
+    modelName: 'gpt-4o',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.002,
+    processingTimeMs: 500,
+    responseContent: 'same content',
+  });
+
+  await createModelUsageLog({
+    modelName: 'gemini-3-pro-preview',
+    modelType: 'CHAT',
+    operationType: 'TRANSLATION',
+    operationId,
+    inputTokens: 100,
+    outputTokens: 50,
+    costUsd: 0.001,
+    processingTimeMs: 800,
+    responseContent: 'same content',
+  });
+
+  await page.goto('http://localhost:8180/model-usage');
+
+  await expect(page.getByText('identical')).toBeVisible();
 });

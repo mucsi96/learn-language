@@ -41,6 +41,9 @@ public class ModelUsageLog {
     @Enumerated(EnumType.STRING)
     private OperationType operationType;
 
+    @Column(name = "operation_id")
+    private String operationId;
+
     @Column(name = "input_tokens")
     private Long inputTokens;
 

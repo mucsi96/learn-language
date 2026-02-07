@@ -43,13 +43,14 @@ export class SpeechCardType implements CardTypeStrategy {
 
     const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
       'extraction',
-      (model: string) =>
+      (model: string, headers?: Record<string, string>) =>
         fetchJson<SentenceList>(
           this.http,
           `/api/source/${sourceId}/extract/sentences`,
           {
             body: { regions, model },
             method: 'POST',
+            headers,
           }
         )
     );
@@ -100,13 +101,14 @@ export class SpeechCardType implements CardTypeStrategy {
       const hungarianResult =
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
-          (model: string) =>
+          (model: string, headers?: Record<string, string>) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,
               `/api/translate-sentence/hu?model=${model}`,
               {
                 body: { sentence: sentence.sentence },
                 method: 'POST',
+                headers,
               }
             )
         );
@@ -115,13 +117,14 @@ export class SpeechCardType implements CardTypeStrategy {
       const englishResult =
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
-          (model: string) =>
+          (model: string, headers?: Record<string, string>) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,
               `/api/translate-sentence/en?model=${model}`,
               {
                 body: { sentence: sentence.sentence },
                 method: 'POST',
+                headers,
               }
             )
         );

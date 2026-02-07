@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.config.ModelPricingConfig;
+import io.github.mucsi96.learnlanguage.config.OperationIdContext;
 import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -35,6 +36,7 @@ public class ModelUsageLoggingService {
                 .modelName(modelName)
                 .modelType(ModelType.CHAT)
                 .operationType(operationType)
+                .operationId(OperationIdContext.get())
                 .inputTokens(inputTokens)
                 .outputTokens(outputTokens)
                 .costUsd(cost)
@@ -45,8 +47,8 @@ public class ModelUsageLoggingService {
 
         repository.save(usageLog);
 
-        log.info("Chat usage: model={}, operation={}, inputTokens={}, outputTokens={}, cost=${}, time={}ms",
-                modelName, operationType, inputTokens, outputTokens, cost, processingTimeMs);
+        log.info("Chat usage: model={}, operation={}, operationId={}, inputTokens={}, outputTokens={}, cost=${}, time={}ms",
+                modelName, operationType, OperationIdContext.get(), inputTokens, outputTokens, cost, processingTimeMs);
     }
 
     public void logImageUsage(
@@ -61,6 +63,7 @@ public class ModelUsageLoggingService {
                 .modelName(modelName)
                 .modelType(ModelType.IMAGE)
                 .operationType(operationType)
+                .operationId(OperationIdContext.get())
                 .imageCount(imageCount)
                 .costUsd(cost)
                 .processingTimeMs(processingTimeMs)
@@ -69,8 +72,8 @@ public class ModelUsageLoggingService {
 
         repository.save(usageLog);
 
-        log.info("Image usage: model={}, operation={}, images={}, cost=${}, time={}ms",
-                modelName, operationType, imageCount, cost, processingTimeMs);
+        log.info("Image usage: model={}, operation={}, operationId={}, images={}, cost=${}, time={}ms",
+                modelName, operationType, OperationIdContext.get(), imageCount, cost, processingTimeMs);
     }
 
     public void logAudioUsage(
@@ -85,6 +88,7 @@ public class ModelUsageLoggingService {
                 .modelName(modelName)
                 .modelType(ModelType.AUDIO)
                 .operationType(operationType)
+                .operationId(OperationIdContext.get())
                 .inputCharacters(characterCount)
                 .costUsd(cost)
                 .processingTimeMs(processingTimeMs)
@@ -93,7 +97,7 @@ public class ModelUsageLoggingService {
 
         repository.save(usageLog);
 
-        log.info("Audio usage: model={}, operation={}, characters={}, cost=${}, time={}ms",
-                modelName, operationType, characterCount, cost, processingTimeMs);
+        log.info("Audio usage: model={}, operation={}, operationId={}, characters={}, cost=${}, time={}ms",
+                modelName, operationType, OperationIdContext.get(), characterCount, cost, processingTimeMs);
     }
 }
