@@ -549,28 +549,28 @@ export async function createModelUsageLog(params: {
   modelName: string;
   modelType: 'CHAT' | 'IMAGE' | 'AUDIO';
   operationType: string;
-  operationId?: string | null;
+  operationId: string;
   inputTokens?: number | null;
   outputTokens?: number | null;
   inputCharacters?: number | null;
   imageCount?: number | null;
   costUsd: number;
   processingTimeMs: number;
-  responseContent?: string | null;
+  responseContent: string;
   rating?: number | null;
 }): Promise<number> {
   const {
     modelName,
     modelType,
     operationType,
-    operationId = null,
+    operationId,
     inputTokens = null,
     outputTokens = null,
     inputCharacters = null,
     imageCount = null,
     costUsd,
     processingTimeMs,
-    responseContent = null,
+    responseContent,
     rating = null,
   } = params;
 

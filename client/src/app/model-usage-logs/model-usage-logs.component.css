@@ -297,13 +297,8 @@ p {
   color: var(--mat-sys-on-surface);
 }
 
-/* Grouped row styles */
-.grouped-row {
-  border-left: 3px solid var(--mat-sys-primary);
-}
-
-.group-first {
-  border-top: 2px solid var(--mat-sys-outline-variant);
+.group-first:not(:first-of-type) td {
+  border-top: 6px solid var(--mat-sys-surface-container);
 }
 
 /* Tab content */
