@@ -166,34 +166,26 @@ export class ModelUsageLogsService {
 
   readonly groupedLogs = computed<OperationGroup[]>(() => {
     const logs = this.filteredAndSortedLogs();
-    const groupMap = new Map<string, ModelUsageLog[]>();
-    const orderedOperationIds: string[] = [];
 
-    logs.forEach(log => {
-      if (log.operationId) {
-        if (!groupMap.has(log.operationId)) {
-          groupMap.set(log.operationId, []);
-          orderedOperationIds.push(log.operationId);
-        }
-        groupMap.set(log.operationId, [...(groupMap.get(log.operationId) ?? []), log]);
-      }
-    });
+    const groupMap = logs.reduce((acc, log) => {
+      if (!log.operationId) return acc;
+      const existing = acc.get(log.operationId) ?? [];
+      return new Map(acc).set(log.operationId, [...existing, log]);
+    }, new Map<string, ModelUsageLog[]>());
 
-    const groups: OperationGroup[] = [];
     const processedOperationIds = new Set<string>();
 
-    logs.forEach(log => {
+    return logs.reduce<OperationGroup[]>((groups, log) => {
       if (log.operationId && !processedOperationIds.has(log.operationId)) {
         processedOperationIds.add(log.operationId);
         const groupLogs = groupMap.get(log.operationId) ?? [];
         const primaryLog = this.findPrimaryLog(groupLogs);
-        groups.push({ operationId: log.operationId, logs: groupLogs, primaryLog });
+        return [...groups, { operationId: log.operationId, logs: groupLogs, primaryLog }];
       } else if (!log.operationId) {
-        groups.push({ operationId: null, logs: [log], primaryLog: null });
+        return [...groups, { operationId: null, logs: [log], primaryLog: null }];
       }
-    });
-
-    return groups;
+      return groups;
+    }, []);
   });
 
   private findPrimaryLog(logs: ModelUsageLog[]): ModelUsageLog | null {
