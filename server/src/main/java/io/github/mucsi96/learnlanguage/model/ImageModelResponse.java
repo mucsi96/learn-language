@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class ImageModelResponse {
     private String id;
     private String displayName;
-    private int imagesPerMinute;
+    private String provider;
 }

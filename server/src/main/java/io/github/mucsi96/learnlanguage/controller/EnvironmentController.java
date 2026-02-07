@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
@@ -49,6 +51,7 @@ public class EnvironmentController {
 
   @GetMapping("/environment")
   public ConfigResponse getConfig() {
+    final boolean isTestProfile = environment.matchesProfiles("test");
     Map<OperationType, List<String>> enabledModelsByOperation = chatModelSettingService.getEnabledModelsByOperation();
     Map<OperationType, String> primaryModelByOperation = chatModelSettingService.getPrimaryModelByOperation();
 
@@ -69,11 +72,17 @@ public class EnvironmentController {
         .map(type -> new SourceTypeInfo(type.getCode(), type.getDisplayName()))
         .toList();
 
+    Map<String, Integer> imageProviderRateLimits = Arrays.stream(ModelProvider.values())
+        .collect(Collectors.toMap(
+            ModelProvider::getCode,
+            provider -> isTestProfile ? 10000 : modelPricingConfig.getImageProviderRateLimit(provider)
+        ));
+
     return new ConfigResponse(
         tenantId,
         uiClientId,
         clientId,
-        environment.matchesProfiles("test"),
+        isTestProfile,
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -81,7 +90,7 @@ public class EnvironmentController {
             .map(model -> new ImageModelResponse(
                 model.getModelName(),
                 model.getDisplayName(),
-                modelPricingConfig.getImageRateLimit(model.getModelName())))
+                model.getProvider().getCode()))
             .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),
@@ -91,7 +100,8 @@ public class EnvironmentController {
         operationTypes,
         languageLevels,
         sourceFormatTypes,
-        sourceTypes);
+        sourceTypes,
+        imageProviderRateLimits);
   }
 
   public record ChatModelInfo(String modelName, String provider) {
@@ -127,6 +137,7 @@ public class EnvironmentController {
       List<OperationTypeInfo> operationTypes,
       List<LanguageLevelInfo> languageLevels,
       List<SourceFormatTypeInfo> sourceFormatTypes,
-      List<SourceTypeInfo> sourceTypes) {
+      List<SourceTypeInfo> sourceTypes,
+      Map<String, Integer> imageProviderRateLimits) {
   }
 }

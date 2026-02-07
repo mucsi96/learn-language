@@ -27,6 +27,7 @@ interface ImageGenerationTask {
   exampleIndex: number;
   englishTranslation: string;
   model: string;
+  provider: string;
 }
 
 interface ImageGenerationResult {
@@ -203,20 +204,19 @@ export class BulkCardCreationService {
         cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,
-        model: model.id
+        model: model.id,
+        provider: model.provider
       }))
     );
 
     this.imageGenerationProgress.set({ total: tasks.length, completed: 0 });
 
-    const tasksByModel = tasks.reduce(
-      (acc, task) => acc.set(task.model, [...(acc.get(task.model) ?? []), task]),
+    const tasksByProvider = tasks.reduce(
+      (acc, task) => acc.set(task.provider, [...(acc.get(task.provider) ?? []), task]),
       new Map<string, ImageGenerationTask[]>()
     );
 
-    const rateLimitByModel = new Map(
-      imageModels.map(m => [m.id, m.imagesPerMinute])
-    );
+    const providerRateLimits = this.environmentConfig.imageProviderRateLimits;
 
     const processTask = async (task: ImageGenerationTask): Promise<ImageGenerationResult | null> => {
       try {
@@ -263,17 +263,17 @@ export class BulkCardCreationService {
       }
     };
 
-    const modelResults = await Promise.all(
-      Array.from(tasksByModel.entries()).map(async ([modelId, modelTasks]) => {
-        const minDelayMs = Math.ceil(60000 / (rateLimitByModel.get(modelId) ?? 7));
+    const providerResults = await Promise.all(
+      Array.from(tasksByProvider.entries()).map(async ([provider, providerTasks]) => {
+        const minDelayMs = Math.ceil(60000 / (providerRateLimits[provider] ?? 7));
         const results: (ImageGenerationResult | null)[] = [];
 
-        for (let i = 0; i < modelTasks.length; i++) {
+        for (let i = 0; i < providerTasks.length; i++) {
           const requestStart = Date.now();
-          const result = await processTask(modelTasks[i]);
+          const result = await processTask(providerTasks[i]);
           results.push(result);
 
-          if (i < modelTasks.length - 1) {
+          if (i < providerTasks.length - 1) {
             const elapsed = Date.now() - requestStart;
             const remainingDelay = minDelayMs - elapsed;
             if (remainingDelay > 0) {
@@ -286,7 +286,7 @@ export class BulkCardCreationService {
       })
     );
 
-    const imageResults = modelResults.flat();
+    const imageResults = providerResults.flat();
 
     const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
 
