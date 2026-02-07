@@ -294,13 +294,14 @@ export class ModelUsageLogsService {
   async updateRating(id: number, rating: number | null): Promise<void> {
     const currentLog = this.logs.value()?.find((log) => log.id === id);
     const responseContent = currentLog?.responseContent;
+    const operationId = currentLog?.operationId;
 
     this.logs.update((currentLogs) =>
       currentLogs?.map((log) => {
         if (log.id === id) {
           return { ...log, rating };
         }
-        if (responseContent && log.responseContent === responseContent) {
+        if (operationId && responseContent && log.operationId === operationId && log.responseContent === responseContent) {
           return { ...log, rating };
         }
         return log;
