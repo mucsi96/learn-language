@@ -9,6 +9,7 @@ import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
   CardCreationRequest,
   CardType,
+  CardTypeStrategy,
   ImageGenerationInfo,
   ExtractedItem,
   ImagesByIndex,
@@ -20,17 +21,15 @@ import {
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
-const MAX_CONCURRENT_CARD_CREATIONS = 3;
+const RATE_LIMIT_DELAY_MS = 6000;
 
 interface ImageGenerationTask {
-  cardId: string;
   exampleIndex: number;
   englishTranslation: string;
   model: string;
 }
 
 interface ImageGenerationResult {
-  cardId: string;
   exampleIndex: number;
   image: ExampleImage;
 }
@@ -90,24 +89,31 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const allImageInfos: ImageGenerationInfo[] = [];
-    const cardIdToProgressIndex = new Map<string, number>();
+    const isRateLimited = !this.environmentConfig.mockAuth;
 
-    const results = await this.processWithLimitedConcurrency(
-      itemsToCreate,
-      async (item, index) => {
-        cardIdToProgressIndex.set(item.id, index);
-        const request: CardCreationRequest = {
-          item,
-          sourceId,
-          pageNumber,
-          cardType
-        };
-        const imageInfos = await this.createSingleCard(request, index);
-        allImageInfos.push(...imageInfos);
+    const results = await itemsToCreate.reduce<Promise<PromiseSettledResult<void>[]>>(
+      async (accPromise, item, index) => {
+        const acc = await accPromise;
+        if (isRateLimited && index > 0) {
+          await this.delay(RATE_LIMIT_DELAY_MS);
+        }
+        try {
+          const request: CardCreationRequest = {
+            item,
+            sourceId,
+            pageNumber,
+            cardType
+          };
+          await this.createSingleCardWithImages(request, index, strategy);
+          return [...acc, { status: 'fulfilled' as const, value: undefined }];
+        } catch (error) {
+          return [...acc, { status: 'rejected' as const, reason: error }];
+        }
       },
-      MAX_CONCURRENT_CARD_CREATIONS
+      Promise.resolve([])
     );
+
+    this.isCreating.set(false);
 
     const successfulCards = results.filter(result => result.status === 'fulfilled').length;
     const failedCards = results.filter(result => result.status === 'rejected').length;
@@ -115,25 +121,26 @@ export class BulkCardCreationService {
       .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
       .map(result => result.reason?.message || 'Unknown error');
 
-    if (allImageInfos.length > 0) {
-      await this.generateAllImagesInParallel(allImageInfos, cardIdToProgressIndex, cardType);
-    } else {
-      this.creationProgress.update(progressList =>
-        progressList.map(p => p.status === 'generating-images'
-          ? { ...p, status: 'completed' as const, progress: 100, currentStep: 'Completed' }
-          : p
-        )
-      );
-    }
-
-    this.isCreating.set(false);
-
     return {
       totalCards: itemsToCreate.length,
       successfulCards,
       failedCards,
       errors
     };
+  }
+
+  private async createSingleCardWithImages(
+    request: CardCreationRequest,
+    progressIndex: number,
+    strategy: CardTypeStrategy
+  ): Promise<void> {
+    const imageInfos = await this.createSingleCard(request, progressIndex);
+
+    if (imageInfos.length > 0) {
+      await this.generateImagesForCard(request.item.id, imageInfos, progressIndex, strategy);
+    } else {
+      this.updateProgress(progressIndex, 'completed', 100, 'Completed');
+    }
   }
 
   private async createSingleCard(
@@ -183,34 +190,28 @@ export class BulkCardCreationService {
     }
   }
 
-  private async generateAllImagesInParallel(
+  private async generateImagesForCard(
+    cardId: string,
     imageInfos: ImageGenerationInfo[],
-    cardIdToProgressIndex: Map<string, number>,
-    cardType: CardType
+    progressIndex: number,
+    strategy: CardTypeStrategy
   ): Promise<void> {
-    const strategy = this.strategyRegistry.getStrategy(cardType);
     const imageModels = this.environmentConfig.imageModels;
-    const tasksPerCard = new Map<string, number>();
-    const completedPerCard = new Map<string, number>();
-
-    for (const info of imageInfos) {
-      tasksPerCard.set(info.cardId, (tasksPerCard.get(info.cardId) || 0) + imageModels.length);
-      completedPerCard.set(info.cardId, 0);
-    }
 
     const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
       imageModels.map(model => ({
-        cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,
         model: model.id
       }))
     );
 
-    this.imageGenerationProgress.set({ total: tasks.length, completed: 0 });
+    const totalTasks = tasks.length;
+    this.imageGenerationProgress.set({ total: totalTasks, completed: 0 });
 
-    const imageResults = await Promise.all(
-      tasks.map(async (task): Promise<ImageGenerationResult | null> => {
+    const results = await tasks.reduce<Promise<ImageGenerationResult[]>>(
+      async (accPromise, task, index) => {
+        const acc = await accPromise;
         try {
           const response = await fetchJson<ImageResponse>(
             this.http,
@@ -226,74 +227,42 @@ export class BulkCardCreationService {
 
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
 
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-          const total = tasksPerCard.get(task.cardId) || 1;
-          const progressIndex = cardIdToProgressIndex.get(task.cardId);
-          if (progressIndex !== undefined) {
-            const imageProgress = (completed / total) * 10;
-            this.updateProgress(
-              progressIndex,
-              'generating-images',
-              90 + imageProgress,
-              `Generating images (${completed}/${total})...`
-            );
-          }
+          const imageProgress = ((index + 1) / totalTasks) * 10;
+          this.updateProgress(
+            progressIndex,
+            'generating-images',
+            90 + imageProgress,
+            `Generating images (${index + 1}/${totalTasks})...`
+          );
 
-          return {
-            cardId: task.cardId,
-            exampleIndex: task.exampleIndex,
-            image: response
-          };
+          return [...acc, { exampleIndex: task.exampleIndex, image: response }];
         } catch {
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
-
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-
-          return null;
+          return acc;
         }
-      })
-    );
-
-    const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
-
-    const imagesByCard = successfulResults.reduce(
-      (acc, result) => {
-        const cardImages = acc.get(result.cardId) ?? new Map<number, ExampleImage[]>();
-        const indexImages = cardImages.get(result.exampleIndex) ?? [];
-        cardImages.set(result.exampleIndex, [...indexImages, result.image]);
-        acc.set(result.cardId, cardImages);
-        return acc;
       },
-      new Map<string, ImagesByIndex>()
+      Promise.resolve([])
     );
 
-    await Promise.all(
-      Array.from(imagesByCard.entries()).map(async ([cardId, imagesMap]) => {
-        const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
-        const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
+    if (results.length > 0) {
+      const imagesMap = results.reduce<ImagesByIndex>(
+        (acc, result) => {
+          const existing = acc.get(result.exampleIndex) ?? [];
+          return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
+        },
+        new Map()
+      );
 
-        await fetchJson(this.http, `/api/card/${cardId}`, {
-          body: { data: updatedData },
-          method: 'PUT',
-        });
+      const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+      const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
 
-        const progressIndex = cardIdToProgressIndex.get(cardId);
-        if (progressIndex !== undefined) {
-          this.updateProgress(progressIndex, 'completed', 100, 'Completed');
-        }
-      })
-    );
-
-    for (const [cardId] of cardIdToProgressIndex) {
-      if (!imagesByCard.has(cardId)) {
-        const progressIndex = cardIdToProgressIndex.get(cardId);
-        if (progressIndex !== undefined) {
-          this.updateProgress(progressIndex, 'completed', 100, 'Completed (no images)');
-        }
-      }
+      await fetchJson(this.http, `/api/card/${cardId}`, {
+        body: { data: updatedData },
+        method: 'PUT',
+      });
     }
+
+    this.updateProgress(progressIndex, 'completed', 100, 'Completed');
   }
 
   private updateProgress(
@@ -302,18 +271,13 @@ export class BulkCardCreationService {
     progress: number,
     currentStep?: string
   ): void {
-    this.creationProgress.update(progressList => {
-      const newProgress = [...progressList];
-      if (newProgress[index]) {
-        newProgress[index] = {
-          ...newProgress[index],
-          status,
-          progress,
-          currentStep
-        };
-      }
-      return newProgress;
-    });
+    this.creationProgress.update(progressList =>
+      progressList.map((item, i) =>
+        i === index
+          ? { ...item, status, progress, currentStep }
+          : item
+      )
+    );
   }
 
   clearProgress(): void {
@@ -321,32 +285,7 @@ export class BulkCardCreationService {
     this.imageGenerationProgress.set({ total: 0, completed: 0 });
   }
 
-  private async processWithLimitedConcurrency<T>(
-    items: T[],
-    processor: (item: T, index: number) => Promise<void>,
-    maxConcurrent: number
-  ): Promise<PromiseSettledResult<void>[]> {
-    const results: PromiseSettledResult<void>[] = new Array(items.length);
-    let currentIndex = 0;
-
-    const processNext = async (): Promise<void> => {
-      while (currentIndex < items.length) {
-        const index = currentIndex++;
-        try {
-          await processor(items[index], index);
-          results[index] = { status: 'fulfilled', value: undefined };
-        } catch (error) {
-          results[index] = { status: 'rejected', reason: error };
-        }
-      }
-    };
-
-    const workers = Array.from(
-      { length: Math.min(maxConcurrent, items.length) },
-      () => processNext()
-    );
-
-    await Promise.all(workers);
-    return results;
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
