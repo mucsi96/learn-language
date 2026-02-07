@@ -60,6 +60,10 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
     --set persistentVolumeClaims[0].storageClassName="" \
     --set persistentVolumeClaims[0].storage=5Gi \
+    --set resources.requests.memory=1Gi \
+    --set resources.requests.cpu=1 \
+    --set resources.limits.memory=2Gi \
+    --set resources.limits.cpu=2 \
     --wait
 
 echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to $hostname using client-app chart $clientAppChartVersion"
