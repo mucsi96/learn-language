@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.springframework.context.annotation.Configuration;
 
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
+
 // Pricing sources:
 // OpenAI: https://platform.openai.com/docs/pricing
 // Google: https://ai.google.dev/gemini-api/docs/pricing
@@ -47,6 +49,14 @@ public class ModelPricingConfig {
         "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))
     );
 
+    // Rate limits (images per minute) are conservative Tier 1 values per provider:
+    // OpenAI: https://platform.openai.com/docs/guides/rate-limits
+    // Google: https://ai.google.dev/gemini-api/docs/rate-limits
+    private static final Map<ModelProvider, Integer> IMAGE_PROVIDER_RATE_LIMITS = Map.of(
+        ModelProvider.OPENAI, 7,
+        ModelProvider.GOOGLE, 10
+    );
+
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
         // ElevenLabs (approximately $0.20 per 1000 characters)
         "eleven_turbo_v2_5", new AudioModelPricing(new BigDecimal("0.20")),
@@ -66,6 +76,10 @@ public class ModelPricingConfig {
     public AudioModelPricing getAudioModelPricing(String modelName) {
         return AUDIO_MODEL_PRICING.getOrDefault(modelName,
             new AudioModelPricing(BigDecimal.ZERO));
+    }
+
+    public int getImageProviderRateLimit(ModelProvider provider) {
+        return IMAGE_PROVIDER_RATE_LIMITS.getOrDefault(provider, 7);
     }
 
     public BigDecimal calculateChatCost(String modelName, long inputTokens, long outputTokens) {

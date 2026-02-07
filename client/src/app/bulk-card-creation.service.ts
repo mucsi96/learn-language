@@ -27,6 +27,7 @@ interface ImageGenerationTask {
   exampleIndex: number;
   englishTranslation: string;
   model: string;
+  provider: string;
 }
 
 interface ImageGenerationResult {
@@ -203,58 +204,89 @@ export class BulkCardCreationService {
         cardId: info.cardId,
         exampleIndex: info.exampleIndex,
         englishTranslation: info.englishTranslation,
-        model: model.id
+        model: model.id,
+        provider: model.provider
       }))
     );
 
     this.imageGenerationProgress.set({ total: tasks.length, completed: 0 });
 
-    const imageResults = await Promise.all(
-      tasks.map(async (task): Promise<ImageGenerationResult | null> => {
-        try {
-          const response = await fetchJson<ImageResponse>(
-            this.http,
-            `/api/image`,
-            {
-              body: {
-                input: task.englishTranslation,
-                model: task.model
-              } satisfies ImageSourceRequest,
-              method: 'POST',
-            }
-          );
+    const tasksByProvider = tasks.reduce(
+      (acc, task) => acc.set(task.provider, [...(acc.get(task.provider) ?? []), task]),
+      new Map<string, ImageGenerationTask[]>()
+    );
 
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+    const providerRateLimits = this.environmentConfig.imageProviderRateLimits;
 
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-          const total = tasksPerCard.get(task.cardId) || 1;
-          const progressIndex = cardIdToProgressIndex.get(task.cardId);
-          if (progressIndex !== undefined) {
-            const imageProgress = (completed / total) * 10;
-            this.updateProgress(
-              progressIndex,
-              'generating-images',
-              90 + imageProgress,
-              `Generating images (${completed}/${total})...`
-            );
+    const processTask = async (task: ImageGenerationTask): Promise<ImageGenerationResult | null> => {
+      try {
+        const response = await fetchJson<ImageResponse>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: task.englishTranslation,
+              model: task.model
+            } satisfies ImageSourceRequest,
+            method: 'POST',
           }
+        );
 
-          return {
-            cardId: task.cardId,
-            exampleIndex: task.exampleIndex,
-            image: response
-          };
-        } catch {
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+        this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
 
-          const completed = (completedPerCard.get(task.cardId) || 0) + 1;
-          completedPerCard.set(task.cardId, completed);
-
-          return null;
+        const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+        completedPerCard.set(task.cardId, completed);
+        const total = tasksPerCard.get(task.cardId) || 1;
+        const progressIndex = cardIdToProgressIndex.get(task.cardId);
+        if (progressIndex !== undefined) {
+          const imageProgress = (completed / total) * 10;
+          this.updateProgress(
+            progressIndex,
+            'generating-images',
+            90 + imageProgress,
+            `Generating images (${completed}/${total})...`
+          );
         }
+
+        return {
+          cardId: task.cardId,
+          exampleIndex: task.exampleIndex,
+          image: response
+        };
+      } catch {
+        this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+
+        const completed = (completedPerCard.get(task.cardId) || 0) + 1;
+        completedPerCard.set(task.cardId, completed);
+
+        return null;
+      }
+    };
+
+    const providerResults = await Promise.all(
+      Array.from(tasksByProvider.entries()).map(async ([provider, providerTasks]) => {
+        const minDelayMs = Math.ceil(60000 / (providerRateLimits[provider] ?? 7));
+        const results: (ImageGenerationResult | null)[] = [];
+
+        for (let i = 0; i < providerTasks.length; i++) {
+          const requestStart = Date.now();
+          const result = await processTask(providerTasks[i]);
+          results.push(result);
+
+          if (i < providerTasks.length - 1) {
+            const elapsed = Date.now() - requestStart;
+            const remainingDelay = minDelayMs - elapsed;
+            if (remainingDelay > 0) {
+              await new Promise(resolve => setTimeout(resolve, remainingDelay));
+            }
+          }
+        }
+
+        return results;
       })
     );
+
+    const imageResults = providerResults.flat();
 
     const successfulResults = imageResults.filter((r): r is ImageGenerationResult => r !== null);
 

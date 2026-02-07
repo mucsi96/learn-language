@@ -10,6 +10,7 @@ export interface ChatModelInfo {
 export interface ImageModel {
   id: string;
   displayName: string;
+  provider: ModelProvider;
 }
 
 export interface AudioModel {
@@ -66,6 +67,7 @@ export interface EnvironmentConfig {
   languageLevels: LanguageLevelInfo[];
   sourceFormatTypes: SourceFormatTypeInfo[];
   sourceTypes: SourceTypeInfo[];
+  imageProviderRateLimits: Record<string, number>;
 }
 
 export const ENVIRONMENT_CONFIG = new InjectionToken<EnvironmentConfig>('ENVIRONMENT_CONFIG');
