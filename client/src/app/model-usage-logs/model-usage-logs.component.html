@@ -84,7 +84,6 @@
   <p>Track AI model usage and costs across chat, image, and audio services.</p>
 
   @let logsList = logs() || [];
-  @let summaryList = summary() || [];
   @let dateOptions = availableDates();
   @let modelTypes = availableModelTypes();
   @let operationTypes = availableOperationTypes();
@@ -325,49 +324,53 @@
 
     <mat-tab label="Model Summary">
       <div class="tab-content">
-        @if (summaryList.length > 0) {
-        <table mat-table [dataSource]="summaryList" class="summary-table">
-          <ng-container matColumnDef="modelName">
-            <th mat-header-cell *matHeaderCellDef>Model</th>
-            <td mat-cell *matCellDef="let row">
-              <span class="model-name">{{ row.modelName }}</span>
-            </td>
-          </ng-container>
+        @let groups = groupedSummary();
+        @if (groups.length > 0) {
+          @for (group of groups; track group.operationType) {
+            <h3 class="operation-type-heading">{{ group.operationType }}</h3>
+            <table mat-table [dataSource]="group.summaries" class="summary-table" [attr.aria-label]="group.operationType + ' summary'">
+              <ng-container matColumnDef="modelName">
+                <th mat-header-cell *matHeaderCellDef>Model</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="model-name">{{ row.modelName }}</span>
+                </td>
+              </ng-container>
 
-          <ng-container matColumnDef="totalCalls">
-            <th mat-header-cell *matHeaderCellDef>Total Calls</th>
-            <td mat-cell *matCellDef="let row">{{ row.totalCalls }}</td>
-          </ng-container>
+              <ng-container matColumnDef="totalCalls">
+                <th mat-header-cell *matHeaderCellDef>Total Calls</th>
+                <td mat-cell *matCellDef="let row">{{ row.totalCalls }}</td>
+              </ng-container>
 
-          <ng-container matColumnDef="ratedCalls">
-            <th mat-header-cell *matHeaderCellDef>Rated Calls</th>
-            <td mat-cell *matCellDef="let row">{{ row.ratedCalls }}</td>
-          </ng-container>
+              <ng-container matColumnDef="ratedCalls">
+                <th mat-header-cell *matHeaderCellDef>Rated Calls</th>
+                <td mat-cell *matCellDef="let row">{{ row.ratedCalls }}</td>
+              </ng-container>
 
-          <ng-container matColumnDef="averageRating">
-            <th mat-header-cell *matHeaderCellDef>Avg Rating</th>
-            <td mat-cell *matCellDef="let row">
-              @if (row.ratedCalls > 0) {
-                <div class="avg-rating">
-                  <mat-icon class="star-filled">star</mat-icon>
-                  <span>{{ row.averageRating | number: '1.2-2' }}</span>
-                </div>
-              } @else {
-                <span class="no-rating">-</span>
-              }
-            </td>
-          </ng-container>
+              <ng-container matColumnDef="averageRating">
+                <th mat-header-cell *matHeaderCellDef>Avg Rating</th>
+                <td mat-cell *matCellDef="let row">
+                  @if (row.ratedCalls > 0) {
+                    <div class="avg-rating">
+                      <mat-icon class="star-filled">star</mat-icon>
+                      <span>{{ row.averageRating | number: '1.2-2' }}</span>
+                    </div>
+                  } @else {
+                    <span class="no-rating">-</span>
+                  }
+                </td>
+              </ng-container>
 
-          <ng-container matColumnDef="totalCost">
-            <th mat-header-cell *matHeaderCellDef>Total Cost</th>
-            <td mat-cell *matCellDef="let row">
-              <span class="cost-value">${{ row.totalCost | number: '1.4-4' }}</span>
-            </td>
-          </ng-container>
+              <ng-container matColumnDef="totalCost">
+                <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="cost-value">${{ row.totalCost | number: '1.4-4' }}</span>
+                </td>
+              </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="summaryColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: summaryColumns"></tr>
-        </table>
+              <tr mat-header-row *matHeaderRowDef="summaryColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: summaryColumns"></tr>
+            </table>
+          }
         } @else {
         <mat-card class="empty-state">
           <mat-card-content>
