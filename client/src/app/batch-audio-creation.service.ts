@@ -109,7 +109,7 @@ export class BatchAudioCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const isRateLimited = !this.environmentConfig.mockAuth;
+    const isRateLimited = !this.environmentConfig.skipRateLimiting;
 
     const { results } = await cards.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
       async (accPromise, card, index) => {

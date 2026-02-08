@@ -89,7 +89,7 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const isRateLimited = !this.environmentConfig.mockAuth;
+    const isRateLimited = !this.environmentConfig.skipRateLimiting;
 
     const { results } = await itemsToCreate.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
       async (accPromise, item, index) => {
