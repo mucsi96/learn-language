@@ -91,12 +91,17 @@ export class BulkCardCreationService {
 
     const isRateLimited = !this.environmentConfig.mockAuth;
 
-    const results = await itemsToCreate.reduce<Promise<PromiseSettledResult<void>[]>>(
+    const { results } = await itemsToCreate.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
       async (accPromise, item, index) => {
         const acc = await accPromise;
         if (isRateLimited && index > 0) {
-          await this.delay(RATE_LIMIT_DELAY_MS);
+          const elapsed = Date.now() - acc.lastStartTime;
+          const remaining = RATE_LIMIT_DELAY_MS - elapsed;
+          if (remaining > 0) {
+            await this.delay(remaining);
+          }
         }
+        const startTime = Date.now();
         try {
           const request: CardCreationRequest = {
             item,
@@ -105,12 +110,12 @@ export class BulkCardCreationService {
             cardType
           };
           await this.createSingleCardWithImages(request, index, strategy);
-          return [...acc, { status: 'fulfilled' as const, value: undefined }];
+          return { results: [...acc.results, { status: 'fulfilled' as const, value: undefined }], lastStartTime: startTime };
         } catch (error) {
-          return [...acc, { status: 'rejected' as const, reason: error }];
+          return { results: [...acc.results, { status: 'rejected' as const, reason: error }], lastStartTime: startTime };
         }
       },
-      Promise.resolve([])
+      Promise.resolve({ results: [], lastStartTime: 0 })
     );
 
     this.isCreating.set(false);

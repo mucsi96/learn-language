@@ -111,20 +111,25 @@ export class BatchAudioCreationService {
 
     const isRateLimited = !this.environmentConfig.mockAuth;
 
-    const results = await cards.reduce<Promise<PromiseSettledResult<void>[]>>(
+    const { results } = await cards.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
       async (accPromise, card, index) => {
         const acc = await accPromise;
         if (isRateLimited && index > 0) {
-          await this.delay(RATE_LIMIT_DELAY_MS);
+          const elapsed = Date.now() - acc.lastStartTime;
+          const remaining = RATE_LIMIT_DELAY_MS - elapsed;
+          if (remaining > 0) {
+            await this.delay(remaining);
+          }
         }
+        const startTime = Date.now();
         try {
           await this.createAudioForSingleCard(card, index, strategy);
-          return [...acc, { status: 'fulfilled' as const, value: undefined }];
+          return { results: [...acc.results, { status: 'fulfilled' as const, value: undefined }], lastStartTime: startTime };
         } catch (error) {
-          return [...acc, { status: 'rejected' as const, reason: error }];
+          return { results: [...acc.results, { status: 'rejected' as const, reason: error }], lastStartTime: startTime };
         }
       },
-      Promise.resolve([])
+      Promise.resolve({ results: [], lastStartTime: 0 })
     );
 
     this.isCreating.set(false);
