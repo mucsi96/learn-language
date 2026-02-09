@@ -46,6 +46,14 @@
               0 10px 15px -5px rgba(0, 0, 0, 0.4);
 }
 
+.delete-fab {
+  background-color: red;
+}
+
+.delete-fab:hover {
+  background-color: darkred;
+}
+
 .cards-grid {
   width: 100%;
   height: 600px;
