@@ -9,6 +9,7 @@ import {
   AudioData,
   VoiceModelPair
 } from './shared/types/audio-generation.types';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 interface VoiceConfiguration {
   id: number;
@@ -40,12 +41,15 @@ export interface BatchAudioCreationResult {
   errors: string[];
 }
 
+const RATE_LIMIT_DELAY_MS = 6000;
+
 @Injectable({
   providedIn: 'root',
 })
 export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly creationProgress = signal<AudioCreationProgress[]>([]);
   readonly isCreating = signal(false);
   private voiceConfigs: VoiceConfiguration[] = [];
@@ -105,8 +109,27 @@ export class BatchAudioCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const results = await Promise.allSettled(
-      cards.map((card, index) => this.createAudioForSingleCard(card, index, strategy))
+    const isRateLimited = !this.environmentConfig.skipRateLimiting;
+
+    const { results } = await cards.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
+      async (accPromise, card, index) => {
+        const acc = await accPromise;
+        if (isRateLimited && index > 0) {
+          const elapsed = Date.now() - acc.lastStartTime;
+          const remaining = RATE_LIMIT_DELAY_MS - elapsed;
+          if (remaining > 0) {
+            await this.delay(remaining);
+          }
+        }
+        const startTime = Date.now();
+        try {
+          await this.createAudioForSingleCard(card, index, strategy);
+          return { results: [...acc.results, { status: 'fulfilled' as const, value: undefined }], lastStartTime: startTime };
+        } catch (error) {
+          return { results: [...acc.results, { status: 'rejected' as const, reason: error }], lastStartTime: startTime };
+        }
+      },
+      Promise.resolve({ results: [], lastStartTime: 0 })
     );
 
     this.isCreating.set(false);
@@ -321,5 +344,9 @@ export class BatchAudioCreationService {
 
   clearProgress(): void {
     this.creationProgress.set([]);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

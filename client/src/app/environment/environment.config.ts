@@ -55,6 +55,7 @@ export interface EnvironmentConfig {
   clientId: string;
   apiClientId: string;
   mockAuth: boolean;
+  skipRateLimiting: boolean;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];

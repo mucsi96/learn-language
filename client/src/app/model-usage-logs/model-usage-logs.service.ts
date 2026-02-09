@@ -21,11 +21,17 @@ export interface ModelUsageLog {
 }
 
 export interface ModelSummary {
+  operationType: string;
   modelName: string;
   totalCalls: number;
   ratedCalls: number;
   averageRating: number;
   totalCost: number;
+}
+
+export interface OperationTypeSummaryGroup {
+  operationType: string;
+  summaries: ModelSummary[];
 }
 
 export type ModelType = 'CHAT' | 'IMAGE' | 'AUDIO';
@@ -73,6 +79,21 @@ export class ModelUsageLogsService {
     loader: async () => {
       return await fetchJson<ModelSummary[]>(this.http, '/api/model-usage-logs/summary');
     },
+  });
+
+  readonly groupedSummary = computed<OperationTypeSummaryGroup[]>(() => {
+    const summaries = this.summary.value() ?? [];
+    const grouped = summaries.reduce(
+      (acc, s) => {
+        const existing = acc.get(s.operationType) ?? [];
+        return new Map(acc).set(s.operationType, [...existing, s]);
+      },
+      new Map<string, ModelSummary[]>()
+    );
+    return Array.from(grouped.entries()).map(([operationType, items]) => ({
+      operationType,
+      summaries: items,
+    }));
   });
 
   readonly availableDates = computed<DateFilterOption[]>(() => {

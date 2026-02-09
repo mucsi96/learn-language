@@ -72,6 +72,7 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         environment.matchesProfiles("test"),
+        environment.matchesProfiles("test"),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -112,6 +113,7 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       boolean mockAuth,
+      boolean skipRateLimiting,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,
