@@ -302,6 +302,9 @@ export class CardsTableComponent {
     if (!result) return;
 
     await this.cardsTableService.deleteCards(ids);
+    this.selectedCount.set(0);
+    this.selectedIds.set([]);
+    this.gridApi?.deselectAll();
     this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
