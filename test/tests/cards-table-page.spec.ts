@@ -476,10 +476,12 @@ test('deletes selected cards with confirmation', async ({ page }) => {
 
   await page.getByRole('button', { name: /Delete 2/ }).click();
 
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+
   await expect(
-    page.getByText('Are you sure you want to delete 2 card(s)?')
+    dialog.getByText('Are you sure you want to delete 2 card(s)?')
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Yes' }).click();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
 
   await expect(page.getByText('2 card(s) deleted')).toBeVisible();
 
@@ -514,10 +516,12 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
   await page.getByRole('row', { name: /abbrechen/ }).getByRole('checkbox').click();
   await page.getByRole('button', { name: /Delete 1/ }).click();
 
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+
   await expect(
-    page.getByText('Are you sure you want to delete 1 card(s)?')
+    dialog.getByText('Are you sure you want to delete 1 card(s)?')
   ).toBeVisible();
-  await page.getByRole('button', { name: 'No' }).click();
+  await dialog.getByRole('button', { name: 'No' }).click();
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
