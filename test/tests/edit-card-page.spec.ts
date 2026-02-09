@@ -509,17 +509,15 @@ test('card edits stored locally until save', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  // Navigate to card via in-review cards page
+  // Navigate to card via in-review cards page (inline editing)
   await page.goto('http://localhost:8180/in-review-cards');
-  const row = page.getByRole('row').filter({ hasText: 'lernen' });
-  await row.click();
 
-  // Make an edit to the card
+  // Make an edit to the card inline
   await page.getByLabel('Hungarian translation', { exact: true }).fill('megtanulni');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
-  await expect(page.getByText('Card marked as reviewed successfully')).toBeVisible();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
   // Verify both the edit and readiness were saved to database
   await withDbConnection(async (client) => {
@@ -682,9 +680,7 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Der Hund [läuft] schnell.' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Grammar' })).toBeVisible();
   await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
   await expect(page.locator('.sentence-preview')).toContainText('Der Hund _____ schnell.');
 });
@@ -710,7 +706,6 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Sie trinkt Kaffee.' }).click();
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
@@ -744,7 +739,6 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Wir [gehen] ins Kino.' }).click();
 
   await expect(page.locator('.sentence-preview')).toContainText('Wir _____ ins Kino.');
 
@@ -774,7 +768,6 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/in-review-cards');
-  await page.getByRole('row').filter({ hasText: 'Das Kind spielt im Garten.' }).click();
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
@@ -783,8 +776,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 
   await page.getByRole('button', { name: 'Add Gap from Selection' }).click();
-  await page.getByRole('button', { name: 'Update' }).click();
-  await expect(page.getByText('Card updated successfully')).toBeVisible();
+  await page.getByRole('button', { name: 'Save card' }).click();
 
   await withDbConnection(async (client) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'grammar-save-card'");

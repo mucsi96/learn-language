@@ -1,0 +1,71 @@
+<mat-card [class.reviewed]="isReviewed()" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>
+      <span class="card-label">{{ displayLabel() }}</span>
+      <span class="card-type">{{ typeLabel() }}</span>
+    </mat-card-title>
+    <div class="card-actions">
+      @if (isReviewed()) {
+        <mat-icon class="reviewed-icon" aria-label="Reviewed">check_circle</mat-icon>
+      } @else {
+        <button
+          mat-flat-button
+          (click)="markAsReviewed()"
+          [disabled]="!canMarkAsReviewed() || isSaving()"
+          aria-label="Mark as reviewed"
+        >
+          Mark as reviewed
+        </button>
+      }
+      <button
+        mat-icon-button
+        (click)="saveCard()"
+        [disabled]="!pendingCardEdits() || isSaving()"
+        aria-label="Save card"
+      >
+        <mat-icon>save</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="confirmDeleteCard()"
+        aria-label="Delete card"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    @switch (cardType()) {
+      @case ('vocabulary') {
+        <app-edit-vocabulary-card
+          [selectedCardId]="card().id"
+          [selectedSourceId]="card().source.id"
+          [selectedPageNumber]="card().sourcePageNumber"
+          [card]="card()"
+          (cardUpdate)="handleCardUpdate($event)"
+          (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+        />
+      }
+      @case ('speech') {
+        <app-edit-speech-card
+          [selectedCardId]="card().id"
+          [selectedSourceId]="card().source.id"
+          [selectedPageNumber]="card().sourcePageNumber"
+          [card]="card()"
+          (cardUpdate)="handleCardUpdate($event)"
+          (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+        />
+      }
+      @case ('grammar') {
+        <app-edit-grammar-card
+          [selectedCardId]="card().id"
+          [selectedSourceId]="card().source.id"
+          [selectedPageNumber]="card().sourcePageNumber"
+          [card]="card()"
+          (cardUpdate)="handleCardUpdate($event)"
+          (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+        />
+      }
+    }
+  </mat-card-content>
+</mat-card>
