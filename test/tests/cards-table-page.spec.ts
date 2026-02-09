@@ -4,6 +4,7 @@ import {
   createReviewLog,
   createLearningPartner,
   getGridData,
+  withDbConnection,
 } from '../utils';
 
 test('navigates to cards table from page view', async ({ page }) => {
@@ -436,4 +437,101 @@ test('delete image button shows as text button', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('link', { name: 'Goethe A1' }).click();
   await expect(page.getByRole('link', { name: 'View all cards' })).toBeVisible();
+});
+
+test('deletes selected cards with confirmation', async ({ page }) => {
+  await createCard({
+    cardId: 'delete-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'löschen', type: 'VERB', translation: { en: 'to delete' } },
+  });
+
+  await createCard({
+    cardId: 'delete-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'entfernen', type: 'VERB', translation: { en: 'to remove' } },
+  });
+
+  await createCard({
+    cardId: 'keep-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'behalten', type: 'VERB', translation: { en: 'to keep' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.Card)).toEqual(
+      expect.arrayContaining(['löschen', 'entfernen', 'behalten'])
+    );
+  }).toPass();
+
+  await page.getByRole('row', { name: /löschen/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /entfernen/ }).getByRole('checkbox').click();
+
+  await page.getByRole('button', { name: /Delete 2/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+
+  await expect(
+    dialog.getByText('Are you sure you want to delete 2 card(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('2 card(s) deleted')).toBeVisible();
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.Card)).toEqual(['behalten']);
+  }).toPass();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id IN ('delete-card-1', 'delete-card-2')"
+    );
+    expect(result.rows.length).toBe(0);
+  });
+});
+
+test('cancels card deletion on dialog dismissal', async ({ page }) => {
+  await createCard({
+    cardId: 'cancel-delete-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'abbrechen', type: 'VERB', translation: { en: 'to cancel' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'abbrechen' }));
+  }).toPass();
+
+  await page.getByRole('row', { name: /abbrechen/ }).getByRole('checkbox').click();
+  await page.getByRole('button', { name: /Delete 1/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+
+  await expect(
+    dialog.getByText('Are you sure you want to delete 1 card(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'No' }).click();
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'abbrechen' }));
+  }).toPass();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id = 'cancel-delete-card'"
+    );
+    expect(result.rows.length).toBe(1);
+  });
 });

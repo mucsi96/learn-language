@@ -74,4 +74,10 @@ export class CardsTableService {
       this.http.put('/api/cards/mark-known', cardIds)
     );
   }
+
+  async deleteCards(cardIds: readonly string[]): Promise<void> {
+    await firstValueFrom(
+      this.http.delete('/api/cards', { body: cardIds })
+    );
+  }
 }

@@ -128,6 +128,12 @@ public class CardService {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
   }
 
+  @Transactional
+  public void deleteCardsByIds(List<String> cardIds) {
+    reviewLogRepository.deleteByCardIdIn(cardIds);
+    cardRepository.deleteAllById(cardIds);
+  }
+
   private Specification<Card> buildCardTableSpec(
       String sourceId, String readiness, String state,
       Integer minReps, Integer maxReps,

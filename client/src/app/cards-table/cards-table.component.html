@@ -74,15 +74,26 @@
   />
 
   @if (selectedCount() > 0) {
-    <button
-      mat-fab
-      extended
-      color="primary"
-      class="mark-known-fab"
-      (click)="markSelectedAsKnown()"
-    >
-      <mat-icon>check_circle</mat-icon>
-      Mark {{ selectedCount() }} as known
-    </button>
+    <div class="selection-actions">
+      <button
+        mat-fab
+        extended
+        class="action-fab delete-fab"
+        (click)="deleteSelected()"
+      >
+        <mat-icon>delete</mat-icon>
+        Delete {{ selectedCount() }}
+      </button>
+      <button
+        mat-fab
+        extended
+        color="primary"
+        class="action-fab"
+        (click)="markSelectedAsKnown()"
+      >
+        <mat-icon>check_circle</mat-icon>
+        Mark {{ selectedCount() }} as known
+      </button>
+    </div>
   }
 </div>
