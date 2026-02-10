@@ -1,25 +1,19 @@
-import { Component, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, inject, computed, signal } from '@angular/core';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatCardModule } from '@angular/material/card';
-import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { InReviewCardsService } from '../in-review-cards.service';
 import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
-import { Card } from '../parser/types';
-import { CardTypeRegistry } from '../cardTypes/card-type.registry';
+import { ReviewCardItemComponent } from './review-card-item/review-card-item.component';
 
 @Component({
   selector: 'app-in-review-cards',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
+    ScrollingModule,
     MatCardModule,
-    RouterLink,
+    MatIconModule,
+    ReviewCardItemComponent,
     BatchAudioCreationFabComponent,
   ],
   templateUrl: './in-review-cards.component.html',
@@ -27,27 +21,23 @@ import { CardTypeRegistry } from '../cardTypes/card-type.registry';
 })
 export class InReviewCardsComponent {
   private readonly inReviewCardsService = inject(InReviewCardsService);
-  private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
   readonly cards = this.inReviewCardsService.cards.value;
   readonly loading = computed(() => this.inReviewCardsService.cards.isLoading());
 
-  readonly displayedColumns: string[] = ['word', 'type', 'source'];
+  readonly reviewedCardIds = signal<ReadonlyArray<string>>([]);
 
-  readonly skeletonData = Array(5).fill({});
+  readonly totalCount = computed(() => this.cards()?.length ?? 0);
 
-  getDisplayLabel(card: Card): string {
-    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
-    return strategy.getCardDisplayLabel(card);
+  readonly remainingCount = computed(
+    () => this.totalCount() - this.reviewedCardIds().length
+  );
+
+  onCardReviewed(cardId: string) {
+    this.reviewedCardIds.update((ids) => [...ids, cardId]);
   }
 
-  getTypeLabel(card: Card): string {
-    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
-    return strategy.getCardTypeLabel(card);
-  }
-
-  getAdditionalInfo(card: Card): string | undefined {
-    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
-    return strategy.getCardAdditionalInfo(card);
+  onCardDeleted(cardId: string) {
+    this.inReviewCardsService.refetchCards();
   }
 }

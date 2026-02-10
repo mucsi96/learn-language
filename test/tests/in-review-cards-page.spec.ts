@@ -1,10 +1,9 @@
 import { test, expect } from '../fixtures';
 import { createCard, uploadMockImage, yellowImage, redImage, withDbConnection } from '../utils';
 
-test('displays in review cards in table', async ({ page }) => {
+test('displays in review cards inline with edit forms', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
-  // Create cards with IN_REVIEW readiness
   await createCard({
     cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
@@ -43,7 +42,6 @@ test('displays in review cards in table', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  // Create a card that should not appear (READY readiness)
   await createCard({
     cardId: 'lernen-tanulni',
     sourceId: 'goethe-a2',
@@ -58,94 +56,15 @@ test('displays in review cards in table', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Check page title and description
   await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
-  await expect(page.getByText('These cards are currently being reviewed')).toBeVisible();
 
-  // Check table headers
-  await expect(page.getByRole('columnheader', { name: 'Word' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Type' })).toBeVisible();
-  await expect(page.getByRole('columnheader', { name: 'Source' })).toBeVisible();
+  await expect(page.getByLabel('German translation', { exact: true }).first()).toHaveValue('verstehen');
+  await expect(page.getByLabel('German translation', { exact: true }).nth(1)).toHaveValue('sprechen');
 
-  // Check that IN_REVIEW cards are displayed
-  await expect(page.getByText('verstehen', { exact: true })).toBeVisible();
-  await expect(page.getByText('sprechen', { exact: true })).toBeVisible();
-  await expect(page.getByText('Ige', { exact: true })).toHaveCount(2); // Hungarian for "verb"
-
-  // Check source information
-  await expect(page.getByText('Goethe A1')).toBeVisible();
-  await expect(page.getByText('Page 15')).toBeVisible();
-  await expect(page.getByText('Goethe B1')).toBeVisible();
-  await expect(page.getByText('Page 22')).toBeVisible();
-
-  // Check that READY card is not displayed
-  await expect(page.getByText('lernen', { exact: true })).not.toBeVisible();
-});
-
-test('navigation on row click', async ({ page }) => {
-  await createCard({
-    cardId: 'schreiben-irni',
-    sourceId: 'goethe-a2',
-    sourcePageNumber: 18,
-    data: {
-      word: 'schreiben',
-      type: 'VERB',
-      forms: ['schreibt', 'schrieb', 'geschrieben'],
-      translation: { en: 'to write', hu: 'írni', ch: 'schriibe' },
-      examples: [],
-    },
-    readiness: 'IN_REVIEW',
-  });
-
-  await page.goto('http://localhost:8180/in-review-cards');
-
-  // Wait for the table to load
-  await expect(page.getByText('schreiben', { exact: true })).toBeVisible();
-
-  // Click on the row containing 'schreiben'
-  const row = page.getByRole('row').filter({ hasText: 'schreiben' });
-  await row.click();
-
-  // Wait for card page to load and check content
-  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('schreiben');
-});
-
-test('navigation back after row click', async ({ page }) => {
-  await createCard({
-    cardId: 'lesen-olvasni',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 12,
-    data: {
-      word: 'lesen',
-      type: 'VERB',
-      forms: ['liest', 'las', 'gelesen'],
-      translation: { en: 'to read', hu: 'olvasni', ch: 'läse' },
-      examples: [],
-    },
-    readiness: 'IN_REVIEW',
-  });
-
-  await page.goto('http://localhost:8180/in-review-cards');
-
-  // Wait for the table to load and click on the row
-  await expect(page.getByText('lesen', { exact: true })).toBeVisible();
-  const row = page.getByRole('row').filter({ hasText: 'lesen' });
-  await row.click();
-
-  // Verify we're on the card page
-  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('lesen');
-
-  // Click the back button
-  await page.getByRole('link', { name: 'Back' }).click();
-
-  // Verify we're back on the in-review-cards page
-  await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
-  await expect(page.getByText('lesen', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('German translation', { exact: true })).toHaveCount(2);
 });
 
 test('displays empty state when no cards in review', async ({ page }) => {
-  // Create cards that are not IN_REVIEW
   await createCard({
     cardId: 'fertig-kesz',
     sourceId: 'goethe-a1',
@@ -160,53 +79,12 @@ test('displays empty state when no cards in review', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Check that empty state is displayed
   await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
-  // Check that table is not displayed
-  await expect(page.getByRole('table')).not.toBeVisible();
 });
 
 test('page title', async ({ page }) => {
   await page.goto('http://localhost:8180/in-review-cards');
   await expect(page).toHaveTitle('Cards In Review');
-});
-
-test('mark as reviewed button disabled when no example selected', async ({ page }) => {
-  const image1 = uploadMockImage(yellowImage);
-  const image2 = uploadMockImage(redImage);
-
-  await createCard({
-    cardId: 'testen-tesztelni',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: {
-      word: 'testen',
-      type: 'VERB',
-      forms: ['testet', 'testete', 'getestet'],
-      translation: { en: 'to test', hu: 'tesztelni', ch: 'teste' },
-      examples: [
-        {
-          de: 'Wir testen die Anwendung.',
-          hu: 'Teszteljük az alkalmazást.',
-          en: 'We test the application.',
-          ch: "Mir tested d'Aawändig.",
-          images: [{ id: image1 }, { id: image2 }],
-        },
-      ],
-    },
-    readiness: 'IN_REVIEW',
-  });
-
-  await page.goto('http://localhost:8180/in-review-cards');
-
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'testen' });
-  await row.click();
-
-  // Verify the button exists but is disabled
-  const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
-  await expect(markAsReviewedBtn).toBeVisible();
-  await expect(markAsReviewedBtn).toBeDisabled();
 });
 
 test('mark as reviewed button disabled when no favorite image', async ({ page }) => {
@@ -228,6 +106,7 @@ test('mark as reviewed button disabled when no favorite image', async ({ page })
           hu: 'Ellenőrzöm az eredményeket.',
           en: 'I check the results.',
           ch: "Ich prüef d'Resultat.",
+          isSelected: true,
           images: [{ id: image1 }, { id: image2 }],
         },
       ],
@@ -237,15 +116,8 @@ test('mark as reviewed button disabled when no favorite image', async ({ page })
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'prüfen' });
-  await row.click();
-
-  // Select the first example (radio button)
-  await page.getByRole('radio').click();
-
-  // Verify the button is still disabled because no image is marked as favorite
   const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
+  await expect(markAsReviewedBtn).toBeVisible();
   await expect(markAsReviewedBtn).toBeDisabled();
 });
 
@@ -267,6 +139,7 @@ test('mark as reviewed button enabled when conditions met', async ({ page }) => 
           hu: 'Mindent pontosan irányít.',
           en: 'She controls everything precisely.',
           ch: 'Sie kontrolliert alles gnau.',
+          isSelected: true,
           images: [{ id: image1 }],
         },
       ],
@@ -276,15 +149,8 @@ test('mark as reviewed button enabled when conditions met', async ({ page }) => 
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'kontrollieren' });
-  await row.click();
-
-  // Select the first example and mark image as favorite
-  await page.getByRole('radio').click();
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
 
-  // Verify the button is now enabled
   const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
   await expect(markAsReviewedBtn).toBeEnabled();
 });
@@ -307,6 +173,7 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
           hu: 'Ő kezeli a rendszert.',
           en: 'He manages the system.',
           ch: "Er verwaltet s'System.",
+          isSelected: true,
           images: [{ id: image1 }],
         },
       ],
@@ -316,21 +183,11 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'verwalten' });
-  await row.click();
-
-  // Select the first example and mark image as favorite
-  await page.getByRole('radio').click();
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
-
-  // Click Mark as reviewed button
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
 
-  // Verify success message
-  await expect(page.getByText('Card marked as reviewed successfully')).toBeVisible();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
-  // Verify readiness was updated in database
   await withDbConnection(async (client) => {
     const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'verwalten-kezelni'");
     expect(result.rows.length).toBe(1);
@@ -356,6 +213,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
           hu: 'Rendezvényt szervezünk.',
           en: 'We organize an event.',
           ch: 'Mir organisiere en Event.',
+          isSelected: true,
           images: [{ id: image1 }],
         },
       ],
@@ -365,24 +223,12 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'organisieren' });
-  await row.click();
-
-  // Modify the Hungarian translation
   await page.getByLabel('Hungarian translation', { exact: true }).fill('megszervezni');
-
-  // Select the first example and mark image as favorite
-  await page.getByRole('radio').click();
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
-
-  // Click Mark as reviewed button
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
 
-  // Verify success message
-  await expect(page.getByText('Card marked as reviewed successfully')).toBeVisible();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
-  // Verify both readiness and card data were updated in database
   await withDbConnection(async (client) => {
     const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'organisieren-szervezni'");
     expect(result.rows.length).toBe(1);
@@ -393,7 +239,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
   });
 });
 
-test('navigation back after mark as reviewed', async ({ page }) => {
+test('reviewed card is visually highlighted and stays on page', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
@@ -411,6 +257,7 @@ test('navigation back after mark as reviewed', async ({ page }) => {
           hu: 'Koordinálja a találkozókat.',
           en: 'She coordinates the appointments.',
           ch: "Sie koordiniert d'Termine.",
+          isSelected: true,
           images: [{ id: image1 }],
         },
       ],
@@ -420,28 +267,13 @@ test('navigation back after mark as reviewed', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'koordinieren' });
-  await row.click();
-
-  // Select the first example and mark image as favorite
-  await page.getByRole('radio').click();
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
-
-  // Click Mark as reviewed button
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
 
-  // Wait for success message to ensure action completed
-  await expect(page.getByText('Card marked as reviewed successfully')).toBeVisible();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
-  // Click the back button
-  await page.getByRole('link', { name: 'Back' }).click();
-
-  // Verify we're back on the in-review-cards page
-  await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
-  await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
-
-  await expect(page.getByRole('row').filter({ hasText: 'koordinieren' })).not.toBeVisible();
+  await expect(page.getByLabel('Reviewed')).toBeVisible();
+  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('koordinieren');
 });
 
 test('mark as reviewed button enabled after toggling favorite', async ({ page }) => {
@@ -472,28 +304,17 @@ test('mark as reviewed button enabled after toggling favorite', async ({ page })
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  // Navigate to card page
-  const row = page.getByRole('row').filter({ hasText: 'bewerten' });
-  await row.click();
-
-  // Verify the button is initially disabled (no favorite image)
   const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
   await expect(markAsReviewedBtn).toBeDisabled();
 
-  // Toggle the image to favorite
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
-
-  // Verify the button becomes enabled immediately after toggling favorite
   await expect(markAsReviewedBtn).toBeEnabled();
 
-  // Toggle back to unfavorite
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
-
-  // Verify the button becomes disabled again
   await expect(markAsReviewedBtn).toBeDisabled();
 });
 
-test('displays speech cards in review with correct type', async ({ page }) => {
+test('displays speech cards in review with inline form', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
@@ -516,25 +337,51 @@ test('displays speech cards in review with correct type', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  const row = page.getByRole('row').filter({ hasText: 'Guten Morgen, wie geht es Ihnen?' });
-  await expect(row.getByText('Sentence', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('German sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
+  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
 });
 
-test('speech card navigation from in-review page', async ({ page }) => {
+test('progress indicator shows remaining count', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
-    cardId: 'e5f6g7h8',
-    sourceId: 'speech-a1',
-    sourcePageNumber: 21,
+    cardId: 'card-one',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 1,
     data: {
+      word: 'eins',
+      type: 'NOUN',
+      gender: 'NEUTER',
+      translation: { en: 'one', hu: 'egy' },
       examples: [
         {
-          de: 'Ich fahre mit dem Bus.',
-          hu: 'Busszal megyek.',
-          en: 'I take the bus.',
+          de: 'Eins plus eins.',
+          hu: 'Egy meg egy.',
+          en: 'One plus one.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await createCard({
+    cardId: 'card-two',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 2,
+    data: {
+      word: 'zwei',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'two', hu: 'kettő' },
+      examples: [
+        {
+          de: 'Zwei Tage.',
+          hu: 'Két nap.',
+          en: 'Two days.',
+          isSelected: true,
+          images: [{ id: image1 }],
         },
       ],
     },
@@ -543,9 +390,81 @@ test('speech card navigation from in-review page', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  const row = page.getByRole('row').filter({ hasText: 'Ich fahre mit dem Bus.' });
-  await row.click();
+  const progressFab = page.locator('.progress-fab');
+  await expect(progressFab).toContainText('2');
 
-  await expect(page.getByLabel('German Sentence')).toHaveValue('Ich fahre mit dem Bus.');
-  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Busszal megyek.');
+  await page.getByRole('button', { name: 'Toggle favorite' }).first().click();
+  await page.getByRole('button', { name: 'Mark as reviewed' }).first().click();
+
+  await expect(progressFab).toContainText('1');
+});
+
+test('progress indicator shows green tick when all reviewed', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'single-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 1,
+    data: {
+      word: 'fertig',
+      type: 'ADJECTIVE',
+      translation: { en: 'done', hu: 'kész' },
+      examples: [
+        {
+          de: 'Ich bin fertig.',
+          hu: 'Kész vagyok.',
+          en: 'I am done.',
+          isSelected: true,
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await page.getByRole('button', { name: 'Toggle favorite' }).click();
+  await page.getByRole('button', { name: 'Mark as reviewed' }).click();
+
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
+
+  const progressDone = page.locator('.progress-done');
+  await expect(progressDone).toBeVisible();
+});
+
+test('delete card removes it from the page', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'to-delete',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 1,
+    data: {
+      word: 'löschen',
+      type: 'VERB',
+      translation: { en: 'to delete', hu: 'törölni' },
+      examples: [
+        {
+          de: 'Bitte löschen Sie die Datei.',
+          hu: 'Kérem törölje a fájlt.',
+          en: 'Please delete the file.',
+          isSelected: true,
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('löschen');
+
+  await page.getByRole('button', { name: 'Delete card' }).click();
+  await page.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('Card deleted')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
 });
