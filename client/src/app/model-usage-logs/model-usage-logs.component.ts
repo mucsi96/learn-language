@@ -290,7 +290,7 @@ export class ModelUsageLogsComponent {
     const group = this.findGroupForLog(log);
     if (!group || !group.primaryLog || log.id === group.primaryLog.id) return [];
     if (!log.responseContent || !group.primaryLog.responseContent) return [];
-    return this.service.computeDiff(group.primaryLog.responseContent, log.responseContent);
+    return this.service.computeDiff(log.responseContent, group.primaryLog.responseContent);
   }
 
   isPrimaryLog(log: ModelUsageLog): boolean {

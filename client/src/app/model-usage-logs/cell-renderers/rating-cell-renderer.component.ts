@@ -12,13 +12,12 @@ import type { ModelUsageLog } from '../model-usage-logs.service';
     @if (visible()) {
       <span class="rating-container">
         @for (star of stars; track star) {
-          <mat-icon
+          <button
             class="rating-star"
             [class.filled]="rating() !== null && star <= rating()!"
-            role="button"
-            [aria-label]="'Rate ' + star + ' stars'"
+            [attr.aria-label]="'Rate ' + star + ' stars'"
             (click)="onStarClick(star, $event)"
-          >{{ rating() !== null && star <= rating()! ? 'star' : 'star_border' }}</mat-icon>
+          ><mat-icon>{{ rating() !== null && star <= rating()! ? 'star' : 'star_border' }}</mat-icon></button>
         }
       </span>
     }
@@ -30,11 +29,19 @@ import type { ModelUsageLog } from '../model-usage-logs.service';
     }
 
     .rating-star {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.4);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .rating-star mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      cursor: pointer;
-      color: rgba(255, 255, 255, 0.4);
     }
 
     .rating-star.filled {
