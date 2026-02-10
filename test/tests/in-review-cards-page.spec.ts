@@ -399,7 +399,7 @@ test('progress indicator shows remaining count', async ({ page }) => {
   await expect(progressFab).toContainText('1');
 });
 
-test('progress indicator shows green tick when all reviewed', async ({ page }) => {
+test('progress indicator hidden when all reviewed', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
   await createCard({
@@ -430,8 +430,47 @@ test('progress indicator shows green tick when all reviewed', async ({ page }) =
 
   await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
-  const progressDone = page.locator('.progress-done');
-  await expect(progressDone).toBeVisible();
+  await expect(page.locator('.progress-fab')).not.toBeVisible();
+});
+
+test('audio fab appears after reviewing all cards', async ({ page }) => {
+  const image1 = uploadMockImage(yellowImage);
+
+  await createCard({
+    cardId: 'review-then-audio',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 1,
+    data: {
+      word: 'hören',
+      type: 'VERB',
+      translation: { en: 'to hear', hu: 'hallani' },
+      examples: [
+        {
+          de: 'Ich höre Musik.',
+          hu: 'Zenét hallgatok.',
+          en: 'I listen to music.',
+          isSelected: true,
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(
+    page.getByRole('button', { name: 'Generate audio for cards' })
+  ).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Toggle favorite' }).click();
+  await page.getByRole('button', { name: 'Mark as reviewed' }).click();
+
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
+
+  await expect(
+    page.getByRole('button', { name: 'Generate audio for cards' })
+  ).toBeVisible();
 });
 
 test('delete card removes it from the page', async ({ page }) => {

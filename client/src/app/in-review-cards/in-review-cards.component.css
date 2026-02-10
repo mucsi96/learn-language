@@ -108,13 +108,6 @@ h1 {
   font-weight: 600;
 }
 
-.progress-done {
-  color: #4caf50;
-  font-size: 2rem;
-  width: 2rem;
-  height: 2rem;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   :host {

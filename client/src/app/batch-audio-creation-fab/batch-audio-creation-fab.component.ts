@@ -1,4 +1,4 @@
-import { Component, inject, computed, resource } from '@angular/core';
+import { Component, inject, computed, resource, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -24,7 +24,9 @@ export class BatchAudioCreationFabComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
   private readonly http = inject(HttpClient);
+  readonly refreshTrigger = input(0);
   readonly cards = resource<Card[], unknown>({
+    params: () => this.refreshTrigger(),
     loader: async () => {
       const cards = await fetchJson<Card[]>(this.http, '/api/cards/missing-audio');
       return cards.map(card => mapCardDatesFromISOStrings(card));

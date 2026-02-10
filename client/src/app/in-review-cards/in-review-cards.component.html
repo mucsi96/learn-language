@@ -36,12 +36,10 @@
 </div>
 }
 
-<div class="progress-fab" [attr.aria-label]="'Remaining cards: ' + remainingCount()">
-  @if (remainingCount() <= 0 && totalCount() > 0) {
-    <mat-icon class="progress-done">check_circle</mat-icon>
-  } @else if (totalCount() > 0) {
+@if (remainingCount() > 0) {
+  <div class="progress-fab" [attr.aria-label]="'Remaining cards: ' + remainingCount()">
     <span class="progress-count">{{ remainingCount() }}</span>
-  }
-</div>
+  </div>
+}
 
-<app-batch-audio-creation-fab />
+<app-batch-audio-creation-fab [refreshTrigger]="reviewedCardIds().length" />
