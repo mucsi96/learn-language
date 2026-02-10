@@ -8,10 +8,3 @@ export type CardCreationProgress = {
   error?: string;
   currentStep?: string;
 }
-
-export interface BulkCardCreationResult {
-  totalCards: number;
-  successfulCards: number;
-  failedCards: number;
-  errors: string[];
-}

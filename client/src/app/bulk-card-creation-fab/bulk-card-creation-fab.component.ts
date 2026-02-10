@@ -50,7 +50,7 @@ export class BulkCardCreationFabComponent {
       cardType
     );
 
-    if (result.successfulCards > 0) {
+    if (result.succeeded > 0) {
       this.pageService.reload();
     }
   }
