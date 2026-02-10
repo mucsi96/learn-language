@@ -23,7 +23,9 @@ export class InReviewCardsComponent {
   private readonly inReviewCardsService = inject(InReviewCardsService);
 
   readonly cards = this.inReviewCardsService.cards.value;
-  readonly loading = computed(() => this.inReviewCardsService.cards.isLoading());
+  readonly loading = computed(
+    () => this.inReviewCardsService.cards.isLoading() && !this.cards()
+  );
 
   readonly reviewedCardIds = signal<ReadonlyArray<string>>([]);
 
@@ -32,6 +34,14 @@ export class InReviewCardsComponent {
   readonly remainingCount = computed(
     () => this.totalCount() - this.reviewedCardIds().length
   );
+
+  readonly allReviewed = computed(
+    () => (this.totalCount() > 0 && this.remainingCount() <= 0 ? 1 : 0)
+  );
+
+  constructor() {
+    this.inReviewCardsService.refetchCards();
+  }
 
   onCardReviewed(cardId: string) {
     this.reviewedCardIds.update((ids) => [...ids, cardId]);
