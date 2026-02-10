@@ -7,6 +7,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.entity.ModelUsageLog;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.model.ModelUsageLogResponse;
+import io.github.mucsi96.learnlanguage.model.ModelUsageLogTableResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +43,32 @@ public class ModelUsageLogController {
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @GetMapping("/model-usage-logs")
-    public List<ModelUsageLogResponse> getModelUsageLogs() {
-        return repository.findAllByOrderByCreatedAtDesc().stream()
+    public ModelUsageLogTableResponse getModelUsageLogs(
+            @RequestParam(defaultValue = "0") int startRow,
+            @RequestParam(defaultValue = "100") int endRow,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) ModelType modelType,
+            @RequestParam(required = false) OperationType operationType,
+            @RequestParam(required = false) String modelName,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false) String sortDirection) {
+
+        final int pageSize = Math.max(1, endRow - startRow);
+        final int page = startRow / pageSize;
+        final Sort sort = buildSort(sortField, sortDirection);
+        final PageRequest pageRequest = PageRequest.of(page, pageSize, sort);
+
+        final Specification<ModelUsageLog> spec = buildSpec(date, modelType, operationType, modelName);
+        final Page<ModelUsageLog> logPage = repository.findAll(spec, pageRequest);
+
+        final List<ModelUsageLogResponse> rows = logPage.getContent().stream()
             .map(ModelUsageLogResponse::from)
             .toList();
+
+        return ModelUsageLogTableResponse.builder()
+            .rows(rows)
+            .totalCount(logPage.getTotalElements())
+            .build();
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -86,5 +114,44 @@ public class ModelUsageLogController {
         repository.deleteByFilters(start, end, modelType, operationType, modelName);
 
         return ResponseEntity.noContent().build();
+    }
+
+    private Sort buildSort(String sortField, String sortDirection) {
+        if (sortField == null || sortField.isEmpty()) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+        final Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection)
+            ? Sort.Direction.ASC
+            : Sort.Direction.DESC;
+        return Sort.by(direction, sortField);
+    }
+
+    private Specification<ModelUsageLog> buildSpec(
+            String date, ModelType modelType, OperationType operationType, String modelName) {
+
+        Specification<ModelUsageLog> spec = Specification.where(null);
+
+        if (date != null && !date.isEmpty()) {
+            final LocalDate filterDate = LocalDate.parse(date);
+            final LocalDateTime start = filterDate.atStartOfDay();
+            final LocalDateTime end = filterDate.atTime(LocalTime.MAX);
+            spec = spec.and((root, query, cb) ->
+                cb.and(cb.greaterThanOrEqualTo(root.get("createdAt"), start),
+                       cb.lessThan(root.get("createdAt"), end)));
+        }
+
+        if (modelType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("modelType"), modelType));
+        }
+
+        if (operationType != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("operationType"), operationType));
+        }
+
+        if (modelName != null && !modelName.isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("modelName"), modelName));
+        }
+
+        return spec;
     }
 }
