@@ -84,11 +84,19 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-/* Floating progress indicator */
-.progress-fab {
+/* Floating action buttons container */
+.fabs-container {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  z-index: 100;
+}
+
+.progress-fab {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -100,19 +108,11 @@ h1 {
   box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2),
               0 6px 10px 0 rgba(0, 0, 0, 0.14),
               0 1px 18px 0 rgba(0, 0, 0, 0.12);
-  z-index: 100;
 }
 
 .progress-count {
   font-size: 1.25rem;
   font-weight: 600;
-}
-
-.progress-done {
-  color: #4caf50;
-  font-size: 2rem;
-  width: 2rem;
-  height: 2rem;
 }
 
 /* Responsive */
@@ -125,7 +125,7 @@ h1 {
     padding: 1rem 0;
   }
 
-  .progress-fab {
+  .fabs-container {
     bottom: 1rem;
     right: 1rem;
   }
