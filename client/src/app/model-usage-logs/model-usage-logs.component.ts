@@ -17,21 +17,21 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
-  type ICellRendererParams,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
   ValidationModule,
+  ColumnAutoSizeModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { ModelUsageLogsService, ModelUsageLog, ModelType, OperationGroup, DiffLine, OperationTypeSummaryGroup } from './model-usage-logs.service';
-
-const MODEL_TYPE_ICONS: Record<string, string> = {
-  CHAT: 'chat',
-  IMAGE: 'image',
-  AUDIO: 'volume_up',
-};
+import { ExpandCellRendererComponent } from './cell-renderers/expand-cell-renderer.component';
+import { ModelTypeCellRendererComponent } from './cell-renderers/model-type-cell-renderer.component';
+import { ModelNameCellRendererComponent } from './cell-renderers/model-name-cell-renderer.component';
+import { DiffCellRendererComponent } from './cell-renderers/diff-cell-renderer.component';
+import { PerDollarCellRendererComponent } from './cell-renderers/per-dollar-cell-renderer.component';
+import { RatingCellRendererComponent } from './cell-renderers/rating-cell-renderer.component';
 
 const getUsageDisplay = (log: ModelUsageLog): string => {
   if (log.modelType === 'CHAT') {
@@ -44,11 +44,6 @@ const getUsageDisplay = (log: ModelUsageLog): string => {
   return '-';
 };
 
-const getPerDollarCount = (log: ModelUsageLog): number => {
-  if (!log.costUsd || log.costUsd === 0) return 0;
-  return Math.floor(1 / log.costUsd);
-};
-
 const getDurationSeconds = (log: ModelUsageLog): number => {
   return log.processingTimeMs / 1000;
 };
@@ -57,6 +52,7 @@ ModuleRegistry.registerModules([
   InfiniteRowModelModule,
   ClientSideRowModelModule,
   ValidationModule,
+  ColumnAutoSizeModule,
 ]);
 
 @Component({
@@ -121,17 +117,19 @@ export class ModelUsageLogsComponent {
     fontFamily: 'system-ui',
   });
 
+  readonly gridContext = {
+    findGroupForLog: (log: ModelUsageLog) => this.findGroupForLog(log),
+    computeDiffSummary: (a: string, b: string) => this.service.computeDiffSummary(a, b),
+    handleRating: (log: ModelUsageLog, star: number) => this.handleRating(log, star),
+  };
+
   readonly columnDefs: ColDef[] = [
     {
       headerName: '',
       field: 'expand',
       width: 50,
       sortable: false,
-      cellRenderer: (params: ICellRendererParams) => {
-        const log = params.data as ModelUsageLog;
-        if (!log || log.modelType !== 'CHAT' || !log.responseContent) return '';
-        return '<span class="expand-icon" role="button" aria-label="Expand">▶</span>';
-      },
+      cellRenderer: ExpandCellRendererComponent,
     },
     {
       headerName: 'Time',
@@ -155,11 +153,7 @@ export class ModelUsageLogsComponent {
       field: 'modelType',
       width: 100,
       sortable: true,
-      cellRenderer: (params: ICellRendererParams) => {
-        if (!params.value) return '';
-        const icon = MODEL_TYPE_ICONS[params.value] ?? 'help';
-        return `<span style="display:inline-flex;align-items:center;gap:4px"><span class="material-icons" style="font-size:18px;color:var(--mat-sys-primary,#6c9eff)">${icon}</span><span style="font-size:0.75rem;text-transform:uppercase">${params.value}</span></span>`;
-      },
+      cellRenderer: ModelTypeCellRendererComponent,
     },
     {
       headerName: 'Model',
@@ -167,16 +161,7 @@ export class ModelUsageLogsComponent {
       flex: 1,
       minWidth: 140,
       sortable: true,
-      cellRenderer: (params: ICellRendererParams) => {
-        const log = params.data as ModelUsageLog;
-        if (!log) return '';
-        const group = this.findGroupForLog(log);
-        const isPrimary = group && group.primaryLog?.id === log.id && group.logs.length > 1;
-        const badge = isPrimary
-          ? ' <span style="padding:1px 4px;border-radius:4px;font-size:0.625rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--mat-sys-on-primary,#fff);background:var(--mat-sys-primary,#6c9eff);vertical-align:middle;margin-left:4px">primary</span>'
-          : '';
-        return `<span style="font-family:monospace;font-size:0.875rem">${log.modelName}</span>${badge}`;
-      },
+      cellRenderer: ModelNameCellRendererComponent,
     },
     {
       headerName: 'Operation',
@@ -199,31 +184,14 @@ export class ModelUsageLogsComponent {
       field: 'diff',
       width: 100,
       sortable: false,
-      cellRenderer: (params: ICellRendererParams) => {
-        const log = params.data as ModelUsageLog;
-        if (!log) return '';
-        const group = this.findGroupForLog(log);
-        if (!group || !group.primaryLog || group.logs.length <= 1 || log.id === group.primaryLog.id) return '';
-        if (!log.responseContent || !group.primaryLog.responseContent) return '';
-        const diff = this.service.computeDiffSummary(group.primaryLog.responseContent, log.responseContent);
-        if (diff.additions === 0 && diff.deletions === 0) {
-          return '<span style="color:var(--mat-sys-outline);font-style:italic;font-size:0.75rem">identical</span>';
-        }
-        const addPart = diff.additions > 0 ? `<span style="color:#4caf50;font-weight:600">+${diff.additions}</span>` : '';
-        const delPart = diff.deletions > 0 ? `<span style="color:#f44336;font-weight:600">-${diff.deletions}</span>` : '';
-        return `<span style="font-family:monospace;font-size:0.8125rem;display:inline-flex;gap:0.5rem">${addPart}${delPart}</span>`;
-      },
+      cellRenderer: DiffCellRendererComponent,
     },
     {
       headerName: 'Per $1',
       field: 'perDollar',
       width: 90,
       sortable: false,
-      cellRenderer: (params: ICellRendererParams) => {
-        const log = params.data as ModelUsageLog;
-        if (!log) return '';
-        return `<span style="font-family:monospace;color:var(--mat-sys-tertiary,#8bb)">${getPerDollarCount(log)}</span>`;
-      },
+      cellRenderer: PerDollarCellRendererComponent,
     },
     {
       headerName: 'Seconds',
@@ -241,17 +209,7 @@ export class ModelUsageLogsComponent {
       field: 'rating',
       width: 150,
       sortable: false,
-      cellRenderer: (params: ICellRendererParams) => {
-        const log = params.data as ModelUsageLog;
-        if (!log || log.modelType !== 'CHAT') return '';
-        const stars = [1, 2, 3, 4, 5].map(star => {
-          const filled = log.rating != null && star <= log.rating;
-          const icon = filled ? 'star' : 'star_border';
-          const color = filled ? '#ffc107' : 'rgba(255,255,255,0.4)';
-          return `<span class="material-icons rating-star" data-star="${star}" style="font-size:18px;cursor:pointer;color:${color}" role="button" aria-label="Rate ${star} stars">${icon}</span>`;
-        }).join('');
-        return `<span style="display:inline-flex;gap:0">${stars}</span>`;
-      },
+      cellRenderer: RatingCellRendererComponent,
     },
   ];
 
@@ -277,17 +235,7 @@ export class ModelUsageLogsComponent {
     const log = event.data as ModelUsageLog;
     if (!log) return;
 
-    const target = event.event?.target as HTMLElement;
-
-    if (target?.classList.contains('rating-star')) {
-      const star = Number(target.dataset['star']);
-      if (star >= 1 && star <= 5) {
-        this.handleRating(log, star);
-        return;
-      }
-    }
-
-    if (target?.classList.contains('expand-icon') || this.hasContent(log)) {
+    if (this.hasContent(log)) {
       this.toggleExpand(log);
     }
   }

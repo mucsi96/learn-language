@@ -96,7 +96,7 @@ test('displays chat model usage logs', async ({ page }) => {
     expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
         Model: 'gemini-3-pro-preview',
-        Type: 'CLASSIFICATION',
+        Type: 'CHAT',
         Operation: 'classification',
         Usage: '100 / 25 tokens',
         'Per $1': '833',
