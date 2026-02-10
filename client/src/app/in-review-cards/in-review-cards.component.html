@@ -36,10 +36,11 @@
 </div>
 }
 
-@if (remainingCount() > 0) {
-  <div class="progress-fab" [attr.aria-label]="'Remaining cards: ' + remainingCount()">
-    <span class="progress-count">{{ remainingCount() }}</span>
-  </div>
-}
-
-<app-batch-audio-creation-fab [refreshTrigger]="allReviewed()" />
+<div class="fabs-container">
+  @if (remainingCount() > 0) {
+    <div class="progress-fab" [attr.aria-label]="'Remaining cards: ' + remainingCount()">
+      <span class="progress-count">{{ remainingCount() }}</span>
+    </div>
+  }
+  <app-batch-audio-creation-fab [refreshTrigger]="allReviewed()" />
+</div>
