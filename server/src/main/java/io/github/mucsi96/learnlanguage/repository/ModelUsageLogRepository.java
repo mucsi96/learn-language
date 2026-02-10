@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,7 @@ import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 
 @Repository
-public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Long> {
+public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Long>, JpaSpecificationExecutor<ModelUsageLog> {
     List<ModelUsageLog> findAllByOrderByCreatedAtDesc();
     List<ModelUsageLog> findByModelTypeOrderByCreatedAtDesc(ModelType modelType);
     List<ModelUsageLog> findByOperationTypeOrderByCreatedAtDesc(OperationType operationType);

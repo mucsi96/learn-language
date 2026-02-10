@@ -1,5 +1,6 @@
 import { Injectable, inject, resource, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 
@@ -18,6 +19,11 @@ export interface ModelUsageLog {
   responseContent: string | null;
   rating: number | null;
   createdAt: string;
+}
+
+export interface ModelUsageLogTableResponse {
+  rows: ModelUsageLog[];
+  totalCount: number;
 }
 
 export interface ModelSummary {
@@ -57,6 +63,17 @@ export interface DiffSummary {
   deletions: number;
 }
 
+export interface ModelUsageLogFetchParams {
+  startRow: number;
+  endRow: number;
+  date?: string;
+  modelType?: string;
+  operationType?: string;
+  modelName?: string;
+  sortField?: string;
+  sortDirection?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,12 +85,6 @@ export class ModelUsageLogsService {
   readonly modelTypeFilter = signal<ModelType | 'ALL'>('ALL');
   readonly operationTypeFilter = signal<string>('ALL');
   readonly modelNameFilter = signal<string>('ALL');
-
-  readonly logs = resource<ModelUsageLog[], unknown>({
-    loader: async () => {
-      return await fetchJson<ModelUsageLog[]>(this.http, '/api/model-usage-logs');
-    },
-  });
 
   readonly summary = resource<ModelSummary[], unknown>({
     loader: async () => {
@@ -97,97 +108,49 @@ export class ModelUsageLogsService {
   });
 
   readonly availableDates = computed<DateFilterOption[]>(() => {
-    const logs = this.logs.value() ?? [];
-    const dateSet = new Set<string>();
-    logs.forEach(log => {
-      const date = log.createdAt.split('T')[0];
-      dateSet.add(date);
-    });
-
     const today = this.getTodayDateString();
     const yesterday = this.getYesterdayDateString();
 
-    const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
-
-    return sortedDates.map(date => {
-      if (date === today) {
-        return { label: 'Today', value: date };
-      } else if (date === yesterday) {
-        return { label: 'Yesterday', value: date };
-      } else {
-        return { label: this.formatDateLabel(date), value: date };
+    return Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      if (dateStr === today) {
+        return { label: 'Today', value: dateStr };
+      } else if (dateStr === yesterday) {
+        return { label: 'Yesterday', value: dateStr };
       }
+      return { label: this.formatDateLabel(dateStr), value: dateStr };
     });
   });
 
-  readonly availableModelTypes = computed<ModelType[]>(() => {
-    const logs = this.logs.value() ?? [];
-    const types = new Set<ModelType>();
-    logs.forEach(log => types.add(log.modelType));
-    return Array.from(types).sort();
-  });
+  readonly availableModelTypes: ModelType[] = ['CHAT', 'IMAGE', 'AUDIO'];
 
-  readonly availableOperationTypes = computed<string[]>(() => {
-    const logs = this.logs.value() ?? [];
-    const types = new Set<string>();
-    logs.forEach(log => types.add(log.operationType));
-    return Array.from(types).sort();
-  });
+  readonly availableOperationTypes: string[] = [
+    'translation', 'extraction', 'classification', 'image_generation', 'audio_generation',
+  ];
 
-  readonly availableModelNames = computed<string[]>(() => {
-    const logs = this.logs.value() ?? [];
-    const names = new Set<string>();
-    logs.forEach(log => names.add(log.modelName));
-    return Array.from(names).sort();
-  });
+  async fetchLogs(params: ModelUsageLogFetchParams): Promise<ModelUsageLogTableResponse> {
+    const httpParams = Object.entries({
+      startRow: params.startRow,
+      endRow: params.endRow,
+      ...(params.date ? { date: params.date } : {}),
+      ...(params.modelType ? { modelType: params.modelType } : {}),
+      ...(params.operationType ? { operationType: params.operationType } : {}),
+      ...(params.modelName ? { modelName: params.modelName } : {}),
+      ...(params.sortField ? { sortField: params.sortField } : {}),
+      ...(params.sortDirection ? { sortDirection: params.sortDirection } : {}),
+    }).reduce(
+      (acc, [key, value]) => acc.set(key, String(value)),
+      new HttpParams()
+    );
 
-  readonly hasAnyLogs = computed<boolean>(() => {
-    const logs = this.logs.value() ?? [];
-    return logs.length > 0;
-  });
+    return firstValueFrom(
+      this.http.get<ModelUsageLogTableResponse>('/api/model-usage-logs', { params: httpParams })
+    );
+  }
 
-  readonly filteredAndSortedLogs = computed<ModelUsageLog[]>(() => {
-    const logs = this.logs.value() ?? [];
-    const dateFilter = this.dateFilter();
-    const modelTypeFilter = this.modelTypeFilter();
-    const operationTypeFilter = this.operationTypeFilter();
-    const modelNameFilter = this.modelNameFilter();
-
-    const filtered = logs.filter(log => {
-      const logDate = log.createdAt.split('T')[0];
-      if (dateFilter !== 'ALL' && logDate !== dateFilter) return false;
-      if (modelTypeFilter !== 'ALL' && log.modelType !== modelTypeFilter) return false;
-      if (operationTypeFilter !== 'ALL' && log.operationType !== operationTypeFilter) return false;
-      if (modelNameFilter !== 'ALL' && log.modelName !== modelNameFilter) return false;
-      return true;
-    });
-
-    return filtered.sort((a, b) => {
-      const datePartA = a.createdAt.split('T')[0];
-      const datePartB = b.createdAt.split('T')[0];
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-      const hourA = dateA.getHours();
-      const hourB = dateB.getHours();
-
-      if (datePartA !== datePartB) {
-        return datePartB.localeCompare(datePartA);
-      }
-
-      if (hourA !== hourB) {
-        return hourB - hourA;
-      }
-
-      const opCompare = a.operationType.localeCompare(b.operationType);
-      if (opCompare !== 0) return opCompare;
-
-      return a.processingTimeMs - b.processingTimeMs;
-    });
-  });
-
-  readonly groupedLogs = computed<OperationGroup[]>(() => {
-    const logs = this.filteredAndSortedLogs();
-
+  groupLogs(logs: ModelUsageLog[]): OperationGroup[] {
     const groupMap = logs.reduce((acc, log) => {
       if (!log.operationId) return acc;
       const existing = acc.get(log.operationId) ?? [];
@@ -207,7 +170,7 @@ export class ModelUsageLogsService {
       }
       return groups;
     }, []);
-  });
+  }
 
   private findPrimaryLog(logs: ModelUsageLog[]): ModelUsageLog | null {
     if (logs.length <= 1) return logs[0] ?? null;
@@ -310,7 +273,6 @@ export class ModelUsageLogsService {
       body: { rating },
     });
 
-    this.logs.reload();
     this.summary.reload();
   }
 
@@ -339,12 +301,6 @@ export class ModelUsageLogsService {
       method: 'delete',
     });
 
-    this.logs.reload();
-    this.summary.reload();
-  }
-
-  refetch() {
-    this.logs.reload();
     this.summary.reload();
   }
 }

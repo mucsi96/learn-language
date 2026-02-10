@@ -3,6 +3,7 @@ import {
   createCard,
   createModelUsageLog,
   createVoiceConfiguration,
+  getGridData,
   getTableData,
   selectTextRange,
   setupDefaultChatModelSettings,
@@ -26,11 +27,6 @@ type ModelSummaryRow = {
   'Rated Calls': string;
   'Avg Rating': string;
   'Total Cost': string;
-};
-
-type ModelSummaryGroup = {
-  operationType: string;
-  rows: ModelSummaryRow[];
 };
 
 async function setupVoiceConfigurations() {
@@ -63,14 +59,6 @@ test('navigates to model usage from profile menu', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Model Usage Logs' })).toBeVisible();
 });
 
-test('displays empty state when no usage logs', async ({ page }) => {
-  await page.goto('http://localhost:8180/model-usage');
-
-  await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'No usage logs yet', exact: true })).toBeVisible();
-  await expect(page.getByRole('table')).not.toBeVisible();
-});
-
 test('displays chat model usage logs', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
@@ -100,14 +88,12 @@ test('displays chat model usage logs', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+    expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
         Model: 'gemini-3-pro-preview',
         Type: 'CHAT',
@@ -142,14 +128,12 @@ test('displays image model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+    expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
         Model: 'gpt-image-1',
         Type: 'IMAGE',
@@ -176,14 +160,12 @@ test('displays audio model usage logs', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
+    expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
         Model: 'eleven_v3',
         Type: 'AUDIO',
@@ -196,7 +178,7 @@ test('displays audio model usage logs', async ({ page }) => {
   }).toPass();
 });
 
-test('expands chat log to show request and response', async ({ page }) => {
+test('expands chat log to show response', async ({ page }) => {
   await createModelUsageLog({
     modelName: 'gpt-4o',
     modelType: 'CHAT',
@@ -211,10 +193,15 @@ test('expands chat log to show request and response', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await expect(page.getByText('Translate "Hund" to English')).not.toBeVisible();
   await expect(page.getByText('{"translation": "dog"}')).not.toBeVisible();
 
-  await page.getByRole('button', { name: 'Expand' }).click();
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBeGreaterThan(0);
+  }).toPass();
+
+  await grid.locator('[role="row"]').filter({ has: page.locator('[role="gridcell"]') }).first().click();
 
   await expect(page.getByText('{"translation": "dog"}')).toBeVisible();
 });
@@ -480,16 +467,14 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.length).toBeGreaterThan(0);
+    expect(gridData.length).toBeGreaterThan(0);
 
-    const chatLogs = tableData.filter((log) => log.Type === 'CHAT');
+    const chatLogs = gridData.filter((log) => log.Type === 'CHAT');
     expect(chatLogs.length).toBeGreaterThan(0);
     expect(chatLogs[0].Usage).toMatch(/\d+ \/ \d+ tokens/);
   }).toPass();
@@ -508,16 +493,14 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.length).toBeGreaterThan(0);
+    expect(gridData.length).toBeGreaterThan(0);
 
-    const imageLogs = tableData.filter((log) => log.Type === 'IMAGE');
+    const imageLogs = gridData.filter((log) => log.Type === 'IMAGE');
     expect(imageLogs.length).toBeGreaterThan(0);
     expect(imageLogs[0].Usage).toMatch(/\d+ image\(s\)/);
   }).toPass();
@@ -556,16 +539,14 @@ test('creates audio model usage logs when using bulk audio creation', async ({ p
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
+  const grid = page.getByRole('grid');
 
   await expect(async () => {
-    const tableData = await getTableData<UsageLogRow>(table, {
-      excludeRowSelector: '.detail-row',
-    });
+    const gridData = await getGridData<UsageLogRow>(grid);
 
-    expect(tableData.length).toBeGreaterThan(0);
+    expect(gridData.length).toBeGreaterThan(0);
 
-    const audioLogs = tableData.filter((log) => log.Type === 'AUDIO');
+    const audioLogs = gridData.filter((log) => log.Type === 'AUDIO');
     expect(audioLogs.length).toBeGreaterThan(0);
     expect(audioLogs[0].Usage).toMatch(/\d+ chars/);
   }).toPass();
@@ -600,13 +581,15 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  const rows = table.locator('tr:not(.detail-row)').filter({ has: page.locator('td') });
+  const grid = page.getByRole('grid');
 
-  await expect(rows).toHaveCount(2);
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
 
-  await expect(rows.nth(1).getByText('+1')).toBeVisible();
-  await expect(rows.nth(1).getByText('-1')).toBeVisible();
+  await expect(page.getByText('+1')).toBeVisible();
+  await expect(page.getByText('-1')).toBeVisible();
 });
 
 test('shows primary badge on fastest model in group', async ({ page }) => {
@@ -670,7 +653,14 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await page.getByRole('button', { name: 'Expand' }).nth(1).click();
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const bodyRows = grid.locator('[role="row"]').filter({ has: page.locator('[role="gridcell"]') });
+  await bodyRows.nth(1).click();
 
   await expect(page.getByText('Diff vs Primary')).toBeVisible();
   await expect(page.getByText('- world')).toBeVisible();
@@ -692,7 +682,13 @@ test('shows copy to clipboard button in expanded state', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  await page.getByRole('button', { name: 'Expand' }).click();
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBeGreaterThan(0);
+  }).toPass();
+
+  await grid.locator('[role="row"]').filter({ has: page.locator('[role="gridcell"]') }).first().click();
 
   await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
 });
@@ -712,12 +708,18 @@ test('clears logs when clicking delete button', async ({ page }) => {
 
   await page.goto('http://localhost:8180/model-usage');
 
-  const table = page.getByRole('tabpanel', { name: 'Usage Logs' }).getByRole('table');
-  await expect(table).toBeVisible();
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBeGreaterThan(0);
+  }).toPass();
 
   await page.getByRole('button', { name: 'Clear logs' }).click();
 
-  await expect(page.getByRole('heading', { name: 'No usage logs yet', exact: true })).toBeVisible();
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(0);
+  }).toPass();
 });
 
 test('shows identical label when grouped logs have same response', async ({ page }) => {
