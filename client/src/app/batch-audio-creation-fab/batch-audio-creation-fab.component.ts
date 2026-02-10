@@ -66,8 +66,8 @@ export class BatchAudioCreationFabComponent {
           if (typeCards.length === 0) return acc;
           const result = await this.batchAudioService.createAudioInBatch(typeCards, cardType);
           return {
-            successful: acc.successful + result.successfulCards,
-            failed: acc.failed + result.failedCards
+            successful: acc.successful + result.succeeded,
+            failed: acc.failed + result.failed
           };
         },
         Promise.resolve({ successful: 0, failed: 0 })

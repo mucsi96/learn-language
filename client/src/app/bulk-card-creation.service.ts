@@ -14,14 +14,16 @@ import {
   ExtractedItem,
   ImagesByIndex,
 } from './parser/types';
-import {
-  CardCreationProgress,
-  BulkCardCreationResult,
-} from './shared/types/card-creation.types';
+import { CardCreationProgress } from './shared/types/card-creation.types';
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import {
+  processTasksWithRateLimit,
+  summarizeResults,
+  BatchResult,
+} from './utils/task-processor';
 
-const RATE_LIMIT_DELAY_MS = 6000;
+const RATE_LIMIT_PER_MINUTE = 10;
 
 interface ImageGenerationTask {
   exampleIndex: number;
@@ -59,7 +61,7 @@ export class BulkCardCreationService {
     sourceId: string,
     pageNumber: number,
     cardType: CardType
-  ): Promise<BulkCardCreationResult> {
+  ): Promise<BatchResult> {
     if (this.isCreating()) {
       throw new Error('Bulk creation already in progress');
     }
@@ -67,12 +69,7 @@ export class BulkCardCreationService {
     const itemsToCreate = items.filter(item => !item.exists);
 
     if (itemsToCreate.length === 0) {
-      return {
-        totalCards: 0,
-        successfulCards: 0,
-        failedCards: 0,
-        errors: []
-      };
+      return { total: 0, succeeded: 0, failed: 0, errors: [] };
     }
 
     this.isCreating.set(true);
@@ -89,49 +86,26 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const isRateLimited = !this.environmentConfig.skipRateLimiting;
-
-    const { results } = await itemsToCreate.reduce<Promise<{ results: PromiseSettledResult<void>[]; lastStartTime: number }>>(
-      async (accPromise, item, index) => {
-        const acc = await accPromise;
-        if (isRateLimited && index > 0) {
-          const elapsed = Date.now() - acc.lastStartTime;
-          const remaining = RATE_LIMIT_DELAY_MS - elapsed;
-          if (remaining > 0) {
-            await this.delay(remaining);
-          }
-        }
-        const startTime = Date.now();
-        try {
-          const request: CardCreationRequest = {
-            item,
-            sourceId,
-            pageNumber,
-            cardType
-          };
-          await this.createSingleCardWithImages(request, index, strategy);
-          return { results: [...acc.results, { status: 'fulfilled' as const, value: undefined }], lastStartTime: startTime };
-        } catch (error) {
-          return { results: [...acc.results, { status: 'rejected' as const, reason: error }], lastStartTime: startTime };
-        }
-      },
-      Promise.resolve({ results: [], lastStartTime: 0 })
+    const tasks = itemsToCreate.map(
+      (item, index) => () => {
+        const request: CardCreationRequest = {
+          item,
+          sourceId,
+          pageNumber,
+          cardType
+        };
+        return this.createSingleCardWithImages(request, index, strategy);
+      }
     );
+
+    const results = await processTasksWithRateLimit(tasks, {
+      maxPerMinute: RATE_LIMIT_PER_MINUTE,
+      skipRateLimiting: this.environmentConfig.skipRateLimiting,
+    });
 
     this.isCreating.set(false);
 
-    const successfulCards = results.filter(result => result.status === 'fulfilled').length;
-    const failedCards = results.filter(result => result.status === 'rejected').length;
-    const errors = results
-      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-      .map(result => result.reason?.message || 'Unknown error');
-
-    return {
-      totalCards: itemsToCreate.length,
-      successfulCards,
-      failedCards,
-      errors
-    };
+    return summarizeResults(results);
   }
 
   private async createSingleCardWithImages(
@@ -288,9 +262,5 @@ export class BulkCardCreationService {
   clearProgress(): void {
     this.creationProgress.set([]);
     this.imageGenerationProgress.set({ total: 0, completed: 0 });
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
