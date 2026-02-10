@@ -39,8 +39,6 @@ export interface AudioCreationProgress {
   currentStep?: string;
 }
 
-const RATE_LIMIT_PER_MINUTE = 10;
-
 @Injectable({
   providedIn: 'root',
 })
@@ -106,10 +104,10 @@ export class BatchAudioCreationService {
       (card, index) => () => this.createAudioForSingleCard(card, index, strategy)
     );
 
-    const results = await processTasksWithRateLimit(tasks, {
-      maxPerMinute: RATE_LIMIT_PER_MINUTE,
-      skipRateLimiting: this.environmentConfig.skipRateLimiting,
-    });
+    const results = await processTasksWithRateLimit(
+      tasks,
+      this.environmentConfig.audioRateLimitPerMinute
+    );
 
     this.isCreating.set(false);
 

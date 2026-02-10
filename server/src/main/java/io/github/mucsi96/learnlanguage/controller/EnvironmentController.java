@@ -40,6 +40,12 @@ public class EnvironmentController {
   @Value("${spa-client-id:}")
   private String uiClientId;
 
+  @Value("${rate-limit.image-per-minute:#{null}}")
+  private Integer imageRateLimitPerMinute;
+
+  @Value("${rate-limit.audio-per-minute:#{null}}")
+  private Integer audioRateLimitPerMinute;
+
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
       new SupportedLanguage("de", "German"),
       new SupportedLanguage("hu", "Hungarian")
@@ -72,7 +78,8 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         environment.matchesProfiles("test"),
-        environment.matchesProfiles("test"),
+        imageRateLimitPerMinute,
+        audioRateLimitPerMinute,
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -113,7 +120,8 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       boolean mockAuth,
-      boolean skipRateLimiting,
+      Integer imageRateLimitPerMinute,
+      Integer audioRateLimitPerMinute,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,

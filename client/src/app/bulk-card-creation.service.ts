@@ -23,8 +23,6 @@ import {
   BatchResult,
 } from './utils/task-processor';
 
-const RATE_LIMIT_PER_MINUTE = 10;
-
 interface ImageGenerationTask {
   exampleIndex: number;
   englishTranslation: string;
@@ -98,10 +96,10 @@ export class BulkCardCreationService {
       }
     );
 
-    const results = await processTasksWithRateLimit(tasks, {
-      maxPerMinute: RATE_LIMIT_PER_MINUTE,
-      skipRateLimiting: this.environmentConfig.skipRateLimiting,
-    });
+    const results = await processTasksWithRateLimit(
+      tasks,
+      this.environmentConfig.imageRateLimitPerMinute
+    );
 
     this.isCreating.set(false);
 
