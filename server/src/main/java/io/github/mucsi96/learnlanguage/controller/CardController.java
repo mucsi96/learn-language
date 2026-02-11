@@ -65,6 +65,26 @@ public class CardController {
     return ResponseEntity.ok(response);
   }
 
+  @GetMapping("/source/{sourceId}/card-ids")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<List<String>> getFilteredCardIds(
+      @PathVariable String sourceId,
+      @RequestHeader(value = "X-Timezone", required = true) String timezone,
+      @RequestParam(required = false) String readiness,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) Integer minReps,
+      @RequestParam(required = false) Integer maxReps,
+      @RequestParam(required = false) Integer lastReviewDaysAgo,
+      @RequestParam(required = false) Integer lastReviewRating) {
+
+    final List<String> ids = cardService.getFilteredCardIds(
+        sourceId, readiness, state, minReps, maxReps,
+        lastReviewDaysAgo, lastReviewRating,
+        startOfDayUtc(parseTimezone(timezone)));
+
+    return ResponseEntity.ok(ids);
+  }
+
   @PutMapping("/cards/mark-known")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {

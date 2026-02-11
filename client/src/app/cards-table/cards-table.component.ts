@@ -18,6 +18,7 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
+  type SelectionColumnDef,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -31,6 +32,7 @@ import {
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
+import { SelectAllHeaderComponent } from './select-all-header.component';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -108,6 +110,7 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
 
   private gridApi: GridApi | null = null;
+  private syncingSelection = false;
 
   readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
     backgroundColor: 'hsl(215, 28%, 17%)',
@@ -126,8 +129,9 @@ export class CardsTableComponent {
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
 
-  readonly selectedCount = signal(0);
   readonly selectedIds = signal<readonly string[]>([]);
+  readonly selectedCount = computed(() => this.selectedIds().length);
+  readonly totalFilteredCount = signal(0);
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -212,7 +216,17 @@ export class CardsTableComponent {
 
   readonly rowSelection = {
     mode: 'multiRow' as const,
-    headerCheckbox: true,
+    headerCheckbox: false,
+  };
+
+  readonly selectionColumnDef: SelectionColumnDef = {
+    headerComponent: SelectAllHeaderComponent,
+    headerComponentParams: {
+      selectedIds: this.selectedIds,
+      totalFilteredCount: this.totalFilteredCount,
+      onSelectAll: () => this.selectAll(),
+      onDeselectAll: () => this.deselectAll(),
+    },
   };
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
@@ -232,10 +246,34 @@ export class CardsTableComponent {
   }
 
   onSelectionChanged(): void {
-    if (!this.gridApi) return;
-    const selected = this.gridApi.getSelectedRows() as CardTableRow[];
-    this.selectedCount.set(selected.length);
-    this.selectedIds.set(selected.map((r) => r.id));
+    if (this.syncingSelection || !this.gridApi) return;
+
+    const gridSelectedIds = new Set(
+      (this.gridApi.getSelectedRows() as CardTableRow[]).map((r) => r.id)
+    );
+
+    const prevSelectedSet = new Set(this.selectedIds());
+
+    const added: string[] = [];
+    const removed: string[] = [];
+
+    this.gridApi.forEachNode((node) => {
+      if (!node.data) return;
+      const id = (node.data as CardTableRow).id;
+      const wasSelected = prevSelectedSet.has(id);
+      const isNowSelected = gridSelectedIds.has(id);
+
+      if (!wasSelected && isNowSelected) added.push(id);
+      if (wasSelected && !isNowSelected) removed.push(id);
+    });
+
+    if (added.length === 0 && removed.length === 0) return;
+
+    const removedSet = new Set(removed);
+    this.selectedIds.set([
+      ...this.selectedIds().filter((id) => !removedSet.has(id)),
+      ...added,
+    ]);
   }
 
   onRowClicked(event: RowClickedEvent): void {
@@ -302,7 +340,6 @@ export class CardsTableComponent {
     if (!result) return;
 
     await this.cardsTableService.deleteCards(ids);
-    this.selectedCount.set(0);
     this.selectedIds.set([]);
     this.gridApi?.deselectAll();
     this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
@@ -312,10 +349,48 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  private async selectAll(): Promise<void> {
+    const ids = await this.cardsTableService.fetchFilteredCardIds({
+      sourceId: this.sourceId(),
+      readiness: this.readinessFilter() || undefined,
+      state: this.stateFilter() || undefined,
+      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+        ? Number(this.lastReviewDaysAgoFilter())
+        : undefined,
+      lastReviewRating: this.lastReviewRatingFilter()
+        ? Number(this.lastReviewRatingFilter())
+        : undefined,
+    });
+
+    this.selectedIds.set(ids);
+    this.syncGridSelection();
+  }
+
+  private deselectAll(): void {
+    this.selectedIds.set([]);
+    this.syncingSelection = true;
+    this.gridApi?.deselectAll();
+    this.syncingSelection = false;
+  }
+
   private refreshGrid(): void {
+    this.selectedIds.set([]);
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
+  }
+
+  private syncGridSelection(): void {
+    if (!this.gridApi) return;
+
+    const selectedSet = new Set(this.selectedIds());
+    this.syncingSelection = true;
+    this.gridApi.forEachNode((node) => {
+      if (node.data) {
+        node.setSelected(selectedSet.has((node.data as CardTableRow).id));
+      }
+    });
+    this.syncingSelection = false;
   }
 
   private async loadRows(params: IGetRowsParams): Promise<void> {
@@ -340,7 +415,9 @@ export class CardsTableComponent {
           : undefined,
       });
 
+      this.totalFilteredCount.set(response.totalCount);
       params.successCallback(response.rows, response.totalCount);
+      this.syncGridSelection();
     } catch {
       params.failCallback();
     }

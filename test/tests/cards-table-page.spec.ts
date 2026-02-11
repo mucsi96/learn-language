@@ -535,3 +535,154 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
     expect(result.rows.length).toBe(1);
   });
 });
+
+test('selects all filtered cards with header checkbox', async ({ page }) => {
+  await createCard({
+    cardId: 'select-all-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Apfel', type: 'NOUN', translation: { en: 'apple' } },
+  });
+
+  await createCard({
+    cardId: 'select-all-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Birne', type: 'NOUN', translation: { en: 'pear' } },
+  });
+
+  await createCard({
+    cardId: 'select-all-3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'Kirsche', type: 'NOUN', translation: { en: 'cherry' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(3);
+  }).toPass();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 3 as known/ })
+  ).toBeVisible();
+});
+
+test('deselects all cards with header checkbox', async ({ page }) => {
+  await createCard({
+    cardId: 'deselect-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Hund', type: 'NOUN', translation: { en: 'dog' } },
+  });
+
+  await createCard({
+    cardId: 'deselect-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Katze', type: 'NOUN', translation: { en: 'cat' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await expect(
+    page.getByRole('button', { name: /Mark 2 as known/ })
+  ).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await expect(
+    page.getByRole('button', { name: /Mark .* as known/ })
+  ).not.toBeVisible();
+});
+
+test('select all respects current filter', async ({ page }) => {
+  await createCard({
+    cardId: 'filter-select-new',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Tisch', type: 'NOUN', translation: { en: 'table' } },
+    state: 'NEW',
+  });
+
+  await createCard({
+    cardId: 'filter-select-review',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Stuhl', type: 'NOUN', translation: { en: 'chair' } },
+    state: 'REVIEW',
+    reps: 3,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  await page.getByLabel('Filter by state').click();
+  await page.getByRole('option', { name: 'NEW' }).click();
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(1);
+  }).toPass();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 1 as known/ })
+  ).toBeVisible();
+});
+
+test('changing filter resets selection', async ({ page }) => {
+  await createCard({
+    cardId: 'reset-select-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Buch', type: 'NOUN', translation: { en: 'book' } },
+    state: 'NEW',
+  });
+
+  await createCard({
+    cardId: 'reset-select-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Stift', type: 'NOUN', translation: { en: 'pen' } },
+    state: 'REVIEW',
+    reps: 2,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await expect(
+    page.getByRole('button', { name: /Mark 2 as known/ })
+  ).toBeVisible();
+
+  await page.getByLabel('Filter by state').click();
+  await page.getByRole('option', { name: 'NEW' }).click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark .* as known/ })
+  ).not.toBeVisible();
+});
