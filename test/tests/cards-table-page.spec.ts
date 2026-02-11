@@ -531,7 +531,7 @@ test('selects all cards via header checkbox and marks them as known', async ({ p
     expect(rows.length).toBe(3);
   }).toPass();
 
-  await grid.getByRole('columnheader').first().getByRole('checkbox').click();
+  await page.getByLabel('Select all cards').click();
 
   await expect(page.getByText('All 3 cards matching filters are selected')).toBeVisible();
 
@@ -583,7 +583,7 @@ test('selects all cards matching filter via header checkbox and marks them as kn
     expect(rows.length).toBe(1);
   }).toPass();
 
-  await grid.getByRole('columnheader').first().getByRole('checkbox').click();
+  await page.getByLabel('Select all cards').click();
 
   await page.getByRole('button', { name: /Mark 1 as known/ }).click();
 

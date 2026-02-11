@@ -72,10 +72,11 @@
     [cacheBlockSize]="100"
     [maxBlocksInCache]="10"
     [rowSelection]="rowSelection"
+    [selectionColumnDef]="selectionColumnDef"
     [getRowId]="getRowId"
     (gridReady)="onGridReady($event)"
     (sortChanged)="onSortChanged($event)"
-    (selectionChanged)="onSelectionChanged($event)"
+    (selectionChanged)="onSelectionChanged()"
     (rowClicked)="onRowClicked($event)"
   />
 

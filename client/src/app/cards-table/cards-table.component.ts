@@ -18,7 +18,6 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
-  type SelectionChangedEvent,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -32,6 +31,7 @@ import {
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
+import { SelectAllHeaderComponent } from './select-all-header.component';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -215,7 +215,16 @@ export class CardsTableComponent {
 
   readonly rowSelection = {
     mode: 'multiRow' as const,
-    headerCheckbox: true,
+    headerCheckbox: false,
+  };
+
+  readonly selectionColumnDef = {
+    headerComponent: SelectAllHeaderComponent,
+    headerComponentParams: {
+      onSelectAll: () => this.selectAll(),
+      onDeselectAll: () => this.deselectAll(),
+      isAllSelected: () => this.allFilteredSelected(),
+    },
   };
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
@@ -234,29 +243,8 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
-  onSelectionChanged(event: SelectionChangedEvent): void {
-    if (!this.gridApi) return;
-
-    const isSelectAll =
-      event.source === 'uiSelectAll' || event.source === 'keyboardSelectAll';
-
-    if (isSelectAll) {
-      const hasSelection = this.gridApi.getSelectedRows().length > 0;
-      if (hasSelection) {
-        this.allFilteredSelected.set(true);
-        this.selectedCount.set(this.totalCount());
-        this.fetchAndSetAllFilteredIds();
-      } else {
-        this.allFilteredSelected.set(false);
-        this.selectedCount.set(0);
-        this.selectedIds.set([]);
-      }
-      return;
-    }
-
-    if (event.source === 'apiSelectAll') return;
-
-    this.allFilteredSelected.set(false);
+  onSelectionChanged(): void {
+    if (!this.gridApi || this.allFilteredSelected()) return;
     const selected = this.gridApi.getSelectedRows() as CardTableRow[];
     this.selectedCount.set(selected.length);
     this.selectedIds.set(selected.map((r) => r.id));
@@ -297,6 +285,20 @@ export class CardsTableComponent {
   onLastReviewDaysAgoFilterChange(value: string): void {
     this.lastReviewDaysAgoFilter.set(value);
     this.refreshGrid();
+  }
+
+  async selectAll(): Promise<void> {
+    this.allFilteredSelected.set(true);
+    this.selectedCount.set(this.totalCount());
+    this.gridApi?.selectAll();
+    await this.fetchAndSetAllFilteredIds();
+  }
+
+  deselectAll(): void {
+    this.allFilteredSelected.set(false);
+    this.selectedCount.set(0);
+    this.selectedIds.set([]);
+    this.gridApi?.deselectAll();
   }
 
   async markSelectedAsKnown(): Promise<void> {
@@ -340,6 +342,7 @@ export class CardsTableComponent {
     this.allFilteredSelected.set(false);
     this.selectedCount.set(0);
     this.selectedIds.set([]);
+    this.gridApi?.refreshHeader();
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
