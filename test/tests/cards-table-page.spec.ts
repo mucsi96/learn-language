@@ -535,3 +535,261 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
     expect(result.rows.length).toBe(1);
   });
 });
+
+test('selects all rows via header checkbox', async ({ page }) => {
+  await createCard({
+    cardId: 'select-all-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Apfel', type: 'NOUN', translation: { en: 'apple' } },
+  });
+
+  await createCard({
+    cardId: 'select-all-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Birne', type: 'NOUN', translation: { en: 'pear' } },
+  });
+
+  await createCard({
+    cardId: 'select-all-3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'Kirsche', type: 'NOUN', translation: { en: 'cherry' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(3);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 3 as known/ })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /Delete 3/ })
+  ).toBeVisible();
+});
+
+test('deselects all rows via header checkbox', async ({ page }) => {
+  await createCard({
+    cardId: 'deselect-all-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Tisch', type: 'NOUN', translation: { en: 'table' } },
+  });
+
+  await createCard({
+    cardId: 'deselect-all-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Stuhl', type: 'NOUN', translation: { en: 'chair' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 2 as known/ })
+  ).toBeVisible();
+
+  await headerCheckbox.click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark.*as known/ })
+  ).not.toBeVisible();
+});
+
+test('unchecks header checkbox when individual row deselected', async ({
+  page,
+}) => {
+  await createCard({
+    cardId: 'partial-deselect-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Buch', type: 'NOUN', translation: { en: 'book' } },
+  });
+
+  await createCard({
+    cardId: 'partial-deselect-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Stift', type: 'NOUN', translation: { en: 'pen' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 2 as known/ })
+  ).toBeVisible();
+
+  await page
+    .getByRole('row', { name: /Buch/ })
+    .getByRole('checkbox')
+    .click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 1 as known/ })
+  ).toBeVisible();
+  await expect(headerCheckbox).not.toBeChecked();
+});
+
+test('resets selection when filter changes', async ({ page }) => {
+  await createCard({
+    cardId: 'filter-reset-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'schnell', type: 'ADJECTIVE', translation: { en: 'fast' } },
+    state: 'NEW',
+  });
+
+  await createCard({
+    cardId: 'filter-reset-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'langsam', type: 'ADJECTIVE', translation: { en: 'slow' } },
+    state: 'REVIEW',
+    reps: 3,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark 2 as known/ })
+  ).toBeVisible();
+
+  await page.getByLabel('Filter by state').click();
+  await page.getByRole('option', { name: 'NEW' }).click();
+
+  await expect(
+    page.getByRole('button', { name: /Mark.*as known/ })
+  ).not.toBeVisible();
+  await expect(headerCheckbox).not.toBeChecked();
+});
+
+test('marks all cards as known via select all', async ({ page }) => {
+  await createCard({
+    cardId: 'mark-all-known-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Haus', type: 'NOUN', translation: { en: 'house' } },
+    readiness: 'READY',
+  });
+
+  await createCard({
+    cardId: 'mark-all-known-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Garten', type: 'NOUN', translation: { en: 'garden' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await page.getByRole('button', { name: /Mark 2 as known/ }).click();
+
+  await expect(page.getByText('2 card(s) marked as known')).toBeVisible();
+});
+
+test('deletes all cards via select all', async ({ page }) => {
+  await createCard({
+    cardId: 'delete-all-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Fenster', type: 'NOUN', translation: { en: 'window' } },
+  });
+
+  await createCard({
+    cardId: 'delete-all-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Tür', type: 'NOUN', translation: { en: 'door' } },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  const headerCheckbox = grid
+    .locator('.ag-header-cell')
+    .first()
+    .getByRole('checkbox');
+  await headerCheckbox.click();
+
+  await page.getByRole('button', { name: /Delete 2/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+  await expect(
+    dialog.getByText('Are you sure you want to delete 2 card(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('2 card(s) deleted')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id IN ('delete-all-1', 'delete-all-2')"
+    );
+    expect(result.rows.length).toBe(0);
+  });
+});

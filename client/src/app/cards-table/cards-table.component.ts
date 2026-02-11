@@ -18,6 +18,7 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
+  type SelectionColumnDef,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -31,6 +32,10 @@ import {
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
+import {
+  SelectAllHeaderComponent,
+  type SelectAllContext,
+} from './select-all-header.component';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -108,6 +113,7 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
 
   private gridApi: GridApi | null = null;
+  private isAutoSelecting = false;
 
   readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
     backgroundColor: 'hsl(215, 28%, 17%)',
@@ -126,6 +132,8 @@ export class CardsTableComponent {
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
 
+  readonly selectAllActive = signal(false);
+  readonly totalFilteredCount = signal(0);
   readonly selectedCount = signal(0);
   readonly selectedIds = signal<readonly string[]>([]);
 
@@ -212,7 +220,16 @@ export class CardsTableComponent {
 
   readonly rowSelection = {
     mode: 'multiRow' as const,
-    headerCheckbox: true,
+    headerCheckbox: false,
+  };
+
+  readonly selectionColumnDef: SelectionColumnDef = {
+    headerComponent: SelectAllHeaderComponent,
+  };
+
+  readonly gridContext: SelectAllContext = {
+    selectAllActive: this.selectAllActive,
+    toggleSelectAll: (active: boolean) => this.toggleSelectAll(active),
   };
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
@@ -232,8 +249,26 @@ export class CardsTableComponent {
   }
 
   onSelectionChanged(): void {
-    if (!this.gridApi) return;
+    if (!this.gridApi || this.isAutoSelecting) return;
+
     const selected = this.gridApi.getSelectedRows() as CardTableRow[];
+
+    if (this.selectAllActive()) {
+      let allLoadedSelected = true;
+      this.gridApi.forEachNode((node) => {
+        if (node.data && !node.isSelected()) {
+          allLoadedSelected = false;
+        }
+      });
+
+      if (!allLoadedSelected) {
+        this.selectAllActive.set(false);
+        this.selectedCount.set(selected.length);
+        this.selectedIds.set(selected.map((r) => r.id));
+      }
+      return;
+    }
+
     this.selectedCount.set(selected.length);
     this.selectedIds.set(selected.map((r) => r.id));
   }
@@ -276,7 +311,9 @@ export class CardsTableComponent {
   }
 
   async markSelectedAsKnown(): Promise<void> {
-    const ids = this.selectedIds();
+    const ids = this.selectAllActive()
+      ? await this.fetchAllFilteredIds()
+      : [...this.selectedIds()];
     if (ids.length === 0) return;
 
     await this.cardsTableService.markCardsAsKnown(ids);
@@ -288,23 +325,25 @@ export class CardsTableComponent {
   }
 
   async deleteSelected(): Promise<void> {
-    const ids = this.selectedIds();
-    if (ids.length === 0) return;
+    const count = this.selectedCount();
+    if (count === 0) return;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '300px',
       data: {
-        message: `Are you sure you want to delete ${ids.length} card(s)?`,
+        message: `Are you sure you want to delete ${count} card(s)?`,
       },
     });
 
     const result = await firstValueFrom(dialogRef.afterClosed());
     if (!result) return;
 
+    const ids = this.selectAllActive()
+      ? await this.fetchAllFilteredIds()
+      : [...this.selectedIds()];
+
     await this.cardsTableService.deleteCards(ids);
-    this.selectedCount.set(0);
-    this.selectedIds.set([]);
-    this.gridApi?.deselectAll();
+    this.resetSelection();
     this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
@@ -312,7 +351,38 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  private toggleSelectAll(active: boolean): void {
+    this.selectAllActive.set(active);
+    this.isAutoSelecting = true;
+    if (active) {
+      this.gridApi?.forEachNode((node) => {
+        if (node.data && !node.isSelected()) {
+          node.setSelected(true);
+        }
+      });
+      this.selectedCount.set(this.totalFilteredCount());
+      const selected =
+        (this.gridApi?.getSelectedRows() as CardTableRow[] | undefined) ?? [];
+      this.selectedIds.set(selected.map((r) => r.id));
+    } else {
+      this.gridApi?.deselectAll();
+      this.selectedCount.set(0);
+      this.selectedIds.set([]);
+    }
+    this.isAutoSelecting = false;
+  }
+
+  private resetSelection(): void {
+    this.selectAllActive.set(false);
+    this.selectedCount.set(0);
+    this.selectedIds.set([]);
+    this.isAutoSelecting = true;
+    this.gridApi?.deselectAll();
+    this.isAutoSelecting = false;
+  }
+
   private refreshGrid(): void {
+    this.resetSelection();
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
@@ -341,8 +411,37 @@ export class CardsTableComponent {
       });
 
       params.successCallback(response.rows, response.totalCount);
+      this.totalFilteredCount.set(response.totalCount);
+
+      if (this.selectAllActive()) {
+        this.isAutoSelecting = true;
+        this.gridApi?.forEachNode((node) => {
+          if (node.data && !node.isSelected()) {
+            node.setSelected(true);
+          }
+        });
+        this.isAutoSelecting = false;
+        this.selectedCount.set(this.totalFilteredCount());
+      }
     } catch {
       params.failCallback();
     }
+  }
+
+  private async fetchAllFilteredIds(): Promise<string[]> {
+    const response = await this.cardsTableService.fetchCards({
+      sourceId: this.sourceId(),
+      startRow: 0,
+      endRow: this.totalFilteredCount(),
+      readiness: this.readinessFilter() || undefined,
+      state: this.stateFilter() || undefined,
+      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+        ? Number(this.lastReviewDaysAgoFilter())
+        : undefined,
+      lastReviewRating: this.lastReviewRatingFilter()
+        ? Number(this.lastReviewRatingFilter())
+        : undefined,
+    });
+    return response.rows.map((r) => r.id);
   }
 }
