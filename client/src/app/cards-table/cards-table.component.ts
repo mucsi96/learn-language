@@ -290,7 +290,7 @@ export class CardsTableComponent {
   async selectAll(): Promise<void> {
     this.allFilteredSelected.set(true);
     this.selectedCount.set(this.totalCount());
-    this.gridApi?.selectAll();
+    this.gridApi?.forEachNode((node) => node.setSelected(true));
     await this.fetchAndSetAllFilteredIds();
   }
 
@@ -298,7 +298,7 @@ export class CardsTableComponent {
     this.allFilteredSelected.set(false);
     this.selectedCount.set(0);
     this.selectedIds.set([]);
-    this.gridApi?.deselectAll();
+    this.gridApi?.forEachNode((node) => node.setSelected(false));
   }
 
   async markSelectedAsKnown(): Promise<void> {
