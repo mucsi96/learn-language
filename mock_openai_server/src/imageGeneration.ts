@@ -35,9 +35,9 @@ export class ImageGenerationHandler {
   }
 
   generateImage(request: ImageGenerationRequest): ImageGenerationResponse {
-    const { prompt, model } = request;
+    const { prompt, model, n = 1 } = request;
 
-    console.log('Received image generation request with prompt:', prompt);
+    console.log('Received image generation request with prompt:', prompt, 'n:', n);
 
     let b64_json = IMAGES.yellow;
 
@@ -53,13 +53,11 @@ export class ImageGenerationHandler {
 
     return {
       created: Date.now(),
-      data: [
-        {
-          b64_json,
-          revised_prompt: prompt,
-          url: null,
-        },
-      ],
+      data: Array.from({ length: n }, () => ({
+        b64_json,
+        revised_prompt: prompt,
+        url: null,
+      })),
     };
   }
 }

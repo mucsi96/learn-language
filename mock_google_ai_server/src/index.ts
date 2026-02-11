@@ -22,26 +22,6 @@ app.post('/reset', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
 });
 
-app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
-  try {
-    const prompt = req.body.instances[0].prompt;
-    console.log({ prompt });
-    const imageBytes = imageHandler.generateImage(prompt);
-    res.status(200).json({
-      predictions: [
-        {
-          mimeType: 'image/jpeg',
-          bytesBase64Encoded: imageBytes,
-        },
-      ],
-    });
-    console.log({ imageBytes });
-  } catch (error) {
-    console.error('Image generation error:', error);
-    res.status(500).json({ error: { message: 'Image generation failed' } });
-  }
-});
-
 app.post(
   '/v1beta/models/gemini-3-pro-image-preview:generateContent',
   (req, res) => {

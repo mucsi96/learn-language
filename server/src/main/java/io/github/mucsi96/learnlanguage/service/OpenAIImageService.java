@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.Base64;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -19,40 +20,39 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public byte[] generateImage(String prompt) {
-        return generateImageWithModel(prompt, "gpt-image-1");
-    }
-
-    public byte[] generateImageWithModel15(String prompt) {
-        return generateImageWithModel(prompt, "gpt-image-1.5");
-    }
-
-    private byte[] generateImageWithModel(String prompt, String modelName) {
+    public List<byte[]> generateImages(String prompt) {
         long startTime = System.currentTimeMillis();
         try {
+            final String modelName = "gpt-image-1.5";
+            final int imageCount = 4;
+
             ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
                 .model(modelName)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
-                .n(1)
+                .n(imageCount)
                 .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
                 .outputCompression(75)
                 .build();
 
-            var imageB64Json = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
+            List<byte[]> images = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
                 .flatMap(image -> image.b64Json().stream())
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
+                .map(b64Json -> Base64.getDecoder().decode(b64Json))
+                .toList();
+
+            if (images.isEmpty()) {
+                throw new RuntimeException("No image data returned from OpenAI API");
+            }
 
             long processingTime = System.currentTimeMillis() - startTime;
-            usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, 1, processingTime);
+            usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, images.size(), processingTime);
 
-            return Base64.getDecoder().decode(imageB64Json);
+            return images;
 
         } catch (Exception e) {
-            log.error("Failed to generate image with OpenAI", e);
-            throw new RuntimeException("Failed to generate image with OpenAI: " + e.getMessage(), e);
+            log.error("Failed to generate images with OpenAI", e);
+            throw new RuntimeException("Failed to generate images with OpenAI: " + e.getMessage(), e);
         }
     }
 }

@@ -365,11 +365,12 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(image1.equals(yellowImage)).toBeTruthy();
     expect(image2.equals(redImage)).toBeTruthy();
 
-    expect(cardData.examples[0].images[0].model).toBe('GPT Image 1');
+    expect(cardData.examples[0].images[0].model).toBe('GPT Image 1.5');
     expect(cardData.examples[0].images[1].model).toBe('GPT Image 1.5');
-    expect(cardData.examples[0].images[2].model).toBe('Imagen 4 Ultra');
-    expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[0].model).toBe('GPT Image 1');
+    expect(cardData.examples[0].images[2].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[0].images[3].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[0].images[4].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[1].images[0].model).toBe('GPT Image 1.5');
 
     expect(cardData.translationModel).toBe('gemini-3-pro-preview');
     expect(cardData.classificationModel).toBe('gemini-3-pro-preview');

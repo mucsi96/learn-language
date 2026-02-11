@@ -214,7 +214,7 @@ export class EditSpeechCardComponent {
           return;
         }
 
-        const response = await fetchJson<ExampleImage>(
+        const responses = await fetchJson<ExampleImage[]>(
           this.http,
           `/api/image`,
           {
@@ -226,9 +226,22 @@ export class EditSpeechCardComponent {
           }
         );
 
+        if (responses.length > 1) {
+          const additionalResources = responses.slice(1).map((img) =>
+            resource({
+              injector: this.injector,
+              loader: async () => ({
+                ...img,
+                url: await this.getExampleImageUrl(img.id),
+              }),
+            })
+          );
+          this.images.update((imgs) => [...imgs, ...additionalResources]);
+        }
+
         return {
-          ...response,
-          url: await this.getExampleImageUrl(response.id),
+          ...responses[0],
+          url: await this.getExampleImageUrl(responses[0].id),
         };
       },
     });

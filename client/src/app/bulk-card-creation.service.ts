@@ -190,7 +190,7 @@ export class BulkCardCreationService {
       async (accPromise, task, index) => {
         const acc = await accPromise;
         try {
-          const response = await fetchJson<ImageResponse>(
+          const responses = await fetchJson<ImageResponse[]>(
             this.http,
             `/api/image`,
             {
@@ -212,7 +212,7 @@ export class BulkCardCreationService {
             `Generating images (${index + 1}/${totalTasks})...`
           );
 
-          return [...acc, { exampleIndex: task.exampleIndex, image: response }];
+          return [...acc, ...responses.map(response => ({ exampleIndex: task.exampleIndex, image: response }))];
         } catch {
           this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
           return acc;
