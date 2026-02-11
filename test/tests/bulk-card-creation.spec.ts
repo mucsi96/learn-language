@@ -284,13 +284,10 @@ test('bulk card creation shows individual progress', async ({ page }) => {
   // Click the FAB
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  // Check that individual words are listed within the progress dialog
-  await expect(page.getByRole('dialog').getByText('aber')).toBeVisible();
-  await expect(page.getByRole('dialog').getByText('abfahren')).toBeVisible();
-  await expect(page.getByRole('dialog').getByText('die Abfahrt')).toBeVisible();
-
-  // Check that progress bars are present
-  await expect(page.getByRole('dialog').locator('mat-progress-bar')).toHaveCount(3);
+  // Check that individual words are represented as dots in the progress dialog
+  await expect(page.getByRole('dialog').getByRole('status', { name: 'aber' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('status', { name: 'abfahren' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('status', { name: 'die Abfahrt' })).toBeVisible();
 });
 
 test('bulk card creation creates cards in database', async ({ page }) => {

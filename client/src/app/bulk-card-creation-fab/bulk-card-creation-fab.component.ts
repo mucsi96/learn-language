@@ -37,7 +37,6 @@ export class BulkCardCreationFabComponent {
     this.bulkCreationService.clearProgress();
 
     this.dialog.open(BulkCreationProgressDialogComponent, {
-      data: { itemLabels: candidates.map((item) => this.candidatesService.getItemLabel(item)) },
       disableClose: true,
       maxWidth: '100vw',
       maxHeight: '100vh',

@@ -1,0 +1,47 @@
+.phase {
+  padding: 8px 0;
+}
+
+.phase-header {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.dots-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: default;
+  transition: background-color 0.3s ease;
+}
+
+.dot.pending {
+  background-color: #9e9e9e;
+}
+
+.dot.in-progress {
+  background-color: #ffc107;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.dot.completed {
+  background-color: #4caf50;
+}
+
+.dot.error {
+  background-color: #f44336;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

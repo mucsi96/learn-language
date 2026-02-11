@@ -51,7 +51,6 @@ export class BatchAudioCreationFabComponent {
     this.batchAudioService.clearProgress();
 
     this.dialog.open(BatchAudioCreationDialogComponent, {
-      data: { cards: cards.map(card => ({ id: card.id, data: card.data })) },
       disableClose: true,
       maxWidth: '100vw',
       maxHeight: '100vh',

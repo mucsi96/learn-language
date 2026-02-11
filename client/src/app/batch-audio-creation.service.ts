@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
 import { Card, CardType, CardTypeStrategy, AudioGenerationItem } from './parser/types';
@@ -9,6 +9,7 @@ import {
   AudioData,
   VoiceModelPair
 } from './shared/types/audio-generation.types';
+import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import {
   processTasksWithRateLimit,
@@ -25,20 +26,6 @@ interface VoiceConfiguration {
   isEnabled: boolean;
 }
 
-export interface AudioCreationProgress {
-  cardId: string;
-  cardWord: string;
-  status:
-    | 'pending'
-    | 'generating-audio'
-    | 'updating-card'
-    | 'completed'
-    | 'error';
-  progress: number;
-  error?: string;
-  currentStep?: string;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -46,20 +33,9 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  readonly creationProgress = signal<AudioCreationProgress[]>([]);
+  readonly progressDots = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
   private voiceConfigs: VoiceConfiguration[] = [];
-
-  readonly totalProgress = computed(() => {
-    const progress = this.creationProgress();
-    if (progress.length === 0) return 0;
-
-    const totalProgress = progress.reduce(
-      (sum, card) => sum + card.progress,
-      0
-    );
-    return totalProgress / progress.length;
-  });
 
   async createAudioInBatch(cards: Card[], cardType: CardType): Promise<BatchResult> {
     if (this.isCreating()) {
@@ -90,15 +66,11 @@ export class BatchAudioCreationService {
       throw new Error(`No enabled voice configurations for languages: ${missingLanguages.join(', ')}`);
     }
 
-    const initialProgress: AudioCreationProgress[] = cards.map((card) => ({
-      cardId: card.id,
-      cardWord: strategy.getCardDisplayLabel(card),
-      status: 'pending',
-      progress: 0,
-      currentStep: 'Queued for processing',
-    }));
-
-    this.creationProgress.set(initialProgress);
+    this.progressDots.set(cards.map(card => ({
+      label: strategy.getCardDisplayLabel(card),
+      status: 'pending' as const,
+      tooltip: `${strategy.getCardDisplayLabel(card)}: Queued`,
+    })));
 
     const tasks = cards.map(
       (card, index) => () => this.createAudioForSingleCard(card, index, strategy)
@@ -127,45 +99,28 @@ export class BatchAudioCreationService {
     strategy: CardTypeStrategy
   ): Promise<void> {
     const existingAudioList: AudioData[] = card.data.audio || [];
+    const label = this.progressDots()[progressIndex].label;
 
     try {
-      this.updateProgress(
-        progressIndex,
-        'updating-card',
-        10,
-        'Cleaning up unused audio...'
-      );
+      this.updateDot(progressIndex, 'in-progress', `${label}: Cleaning up unused audio...`);
       const cleanedAudioList = await this.cleanupUnusedAudio(card, existingAudioList, strategy);
 
-      this.updateProgress(
-        progressIndex,
-        'generating-audio',
-        20,
-        'Generating audio...'
-      );
+      this.updateDot(progressIndex, 'in-progress', `${label}: Generating audio...`);
 
       const audioItems = strategy.getAudioItems(card);
       const itemsNeedingAudio = audioItems.filter(
         (item) => !this.hasAudioForText(cleanedAudioList, item.text)
       );
 
-      const totalItems = itemsNeedingAudio.length;
-      const progressPerItem = totalItems > 0 ? 60 / totalItems : 0;
-
       const generatedAudio = await this.generateAudioForItems(
         itemsNeedingAudio,
         progressIndex,
-        progressPerItem
+        label
       );
 
       const finalAudioList = [...cleanedAudioList, ...generatedAudio];
 
-      this.updateProgress(
-        progressIndex,
-        'updating-card',
-        90,
-        'Updating card with audio data...'
-      );
+      this.updateDot(progressIndex, 'in-progress', `${label}: Updating card...`);
 
       const updatedCardData: Partial<Card> = {
         data: {
@@ -180,14 +135,10 @@ export class BatchAudioCreationService {
         method: 'PUT',
       });
 
-      this.updateProgress(progressIndex, 'completed', 100);
+      this.updateDot(progressIndex, 'completed', `${label}: Done`);
     } catch (error) {
-      this.updateProgress(
-        progressIndex,
-        'error',
-        0,
-        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.updateDot(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
       throw error;
     }
   }
@@ -195,9 +146,9 @@ export class BatchAudioCreationService {
   private async generateAudioForItems(
     items: AudioGenerationItem[],
     progressIndex: number,
-    progressPerItem: number
+    label: string
   ): Promise<AudioData[]> {
-    const generateSingleAudio = async (item: AudioGenerationItem, index: number): Promise<AudioData> => {
+    const generateSingleAudio = async (item: AudioGenerationItem): Promise<AudioData> => {
       const voice = this.getVoiceForLanguage(item.language);
       const audioData = await fetchJson<AudioData>(
         this.http,
@@ -213,38 +164,27 @@ export class BatchAudioCreationService {
           method: 'POST',
         }
       );
-      const progress = Math.min(20 + (index + 1) * progressPerItem, 80);
-      this.updateProgress(
+      this.updateDot(
         progressIndex,
-        'generating-audio',
-        progress,
-        `Generated audio for "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
+        'in-progress',
+        `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
       );
       return audioData;
     };
 
     return items.reduce<Promise<AudioData[]>>(
-      async (accPromise, item, index) => {
+      async (accPromise, item) => {
         const acc = await accPromise;
-        const audioData = await generateSingleAudio(item, index);
+        const audioData = await generateSingleAudio(item);
         return [...acc, audioData];
       },
       Promise.resolve([])
     );
   }
 
-  private updateProgress(
-    index: number,
-    status: AudioCreationProgress['status'],
-    progress: number,
-    currentStep?: string
-  ): void {
-    this.creationProgress.update((progressList) =>
-      progressList.map((item, i) =>
-        i === index
-          ? { ...item, status, progress, currentStep }
-          : item
-      )
+  private updateDot(index: number, status: DotStatus, tooltip: string): void {
+    this.progressDots.update(dots =>
+      dots.map((dot, i) => i === index ? { ...dot, status, tooltip } : dot)
     );
   }
 
@@ -302,6 +242,6 @@ export class BatchAudioCreationService {
   }
 
   clearProgress(): void {
-    this.creationProgress.set([]);
+    this.progressDots.set([]);
   }
 }
