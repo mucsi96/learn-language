@@ -15,7 +15,12 @@ import {
   ImagesByIndex,
 } from './parser/types';
 import { CardCreationProgress } from './shared/types/card-creation.types';
-import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
+import {
+  BatchImageRequest,
+  BatchImageJobResponse,
+  BatchImageStatusResponse,
+  BatchImageResultItem,
+} from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import {
   processTasksWithRateLimit,
@@ -24,15 +29,21 @@ import {
 } from './utils/task-processor';
 
 interface ImageGenerationTask {
+  customId: string;
+  cardId: string;
   exampleIndex: number;
   englishTranslation: string;
   model: string;
+  progressIndex: number;
 }
 
 interface ImageGenerationResult {
+  cardId: string;
   exampleIndex: number;
   image: ExampleImage;
 }
+
+const BATCH_POLL_INTERVAL_MS = 2000;
 
 @Injectable({
   providedIn: 'root',
@@ -84,7 +95,8 @@ export class BulkCardCreationService {
 
     this.creationProgress.set(initialProgress);
 
-    const tasks = itemsToCreate.map(
+    const allImageTasks: ImageGenerationTask[] = [];
+    const cardCreationTasks = itemsToCreate.map(
       (item, index) => () => {
         const request: CardCreationRequest = {
           item,
@@ -92,32 +104,91 @@ export class BulkCardCreationService {
           pageNumber,
           cardType
         };
-        return this.createSingleCardWithImages(request, index, strategy);
+        return this.createSingleCard(request, index).then(imageInfos => ({
+          cardId: item.id,
+          imageInfos,
+          progressIndex: index
+        }));
       }
     );
 
-    const results = await processTasksWithRateLimit(
-      tasks,
+    const cardResults = await processTasksWithRateLimit(
+      cardCreationTasks,
       this.environmentConfig.imageRateLimitPerMinute
     );
 
+    const imageModels = this.environmentConfig.imageModels;
+    let taskCounter = 0;
+
+    const successfulCards = cardResults
+      .filter((r): r is PromiseFulfilledResult<{ cardId: string; imageInfos: ImageGenerationInfo[]; progressIndex: number }> =>
+        r.status === 'fulfilled')
+      .map(r => r.value);
+
+    for (const { cardId, imageInfos, progressIndex } of successfulCards) {
+      for (const info of imageInfos) {
+        for (const model of imageModels) {
+          allImageTasks.push({
+            customId: `${cardId}-${info.exampleIndex}-${model.id}-${taskCounter++}`,
+            cardId,
+            exampleIndex: info.exampleIndex,
+            englishTranslation: info.englishTranslation,
+            model: model.id,
+            progressIndex,
+          });
+        }
+      }
+    }
+
+    if (allImageTasks.length > 0) {
+      const totalTasks = allImageTasks.length;
+      this.imageGenerationProgress.set({ total: totalTasks, completed: 0 });
+
+      for (const { progressIndex } of successfulCards) {
+        this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
+      }
+
+      const imageResults = await this.generateImagesBatch(allImageTasks);
+
+      const resultsByCard = imageResults.reduce<Map<string, ImageGenerationResult[]>>(
+        (acc, result) => {
+          const existing = acc.get(result.cardId) ?? [];
+          return new Map([...acc, [result.cardId, [...existing, result]]]);
+        },
+        new Map()
+      );
+
+      for (const { cardId, progressIndex } of successfulCards) {
+        const cardImageResults = resultsByCard.get(cardId) ?? [];
+        if (cardImageResults.length > 0) {
+          const imagesMap = cardImageResults.reduce<ImagesByIndex>(
+            (acc, result) => {
+              const existing = acc.get(result.exampleIndex) ?? [];
+              return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
+            },
+            new Map()
+          );
+
+          const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+          const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
+
+          await fetchJson(this.http, `/api/card/${cardId}`, {
+            body: { data: updatedData },
+            method: 'PUT',
+          });
+        }
+
+        this.updateProgress(progressIndex, 'completed', 100, 'Completed');
+      }
+    } else {
+      for (const { progressIndex } of successfulCards) {
+        this.updateProgress(progressIndex, 'completed', 100, 'Completed');
+      }
+    }
+
     this.isCreating.set(false);
 
-    return summarizeResults(results);
-  }
-
-  private async createSingleCardWithImages(
-    request: CardCreationRequest,
-    progressIndex: number,
-    strategy: CardTypeStrategy
-  ): Promise<void> {
-    const imageInfos = await this.createSingleCard(request, progressIndex);
-
-    if (imageInfos.length > 0) {
-      await this.generateImagesForCard(request.item.id, imageInfos, progressIndex, strategy);
-    } else {
-      this.updateProgress(progressIndex, 'completed', 100, 'Completed');
-    }
+    return summarizeResults(cardResults);
   }
 
   private async createSingleCard(
@@ -152,8 +223,6 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
-
       return imageGenerationInfos;
 
     } catch (error) {
@@ -167,79 +236,54 @@ export class BulkCardCreationService {
     }
   }
 
-  private async generateImagesForCard(
-    cardId: string,
-    imageInfos: ImageGenerationInfo[],
-    progressIndex: number,
-    strategy: CardTypeStrategy
-  ): Promise<void> {
-    const imageModels = this.environmentConfig.imageModels;
+  private async generateImagesBatch(
+    tasks: ImageGenerationTask[]
+  ): Promise<ImageGenerationResult[]> {
+    const batchRequest: BatchImageRequest = {
+      requests: tasks.map(task => ({
+        customId: task.customId,
+        input: task.englishTranslation,
+        model: task.model,
+      })),
+    };
 
-    const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
-      imageModels.map(model => ({
-        exampleIndex: info.exampleIndex,
-        englishTranslation: info.englishTranslation,
-        model: model.id
-      }))
+    const { batchId } = await fetchJson<BatchImageJobResponse>(
+      this.http,
+      `/api/batch-images`,
+      { body: batchRequest, method: 'POST' }
     );
 
-    const totalTasks = tasks.length;
-    this.imageGenerationProgress.set({ total: totalTasks, completed: 0 });
+    const statusResponse = await this.pollBatchCompletion(batchId);
 
-    const results = await tasks.reduce<Promise<ImageGenerationResult[]>>(
-      async (accPromise, task, index) => {
-        const acc = await accPromise;
-        try {
-          const response = await fetchJson<ImageResponse>(
-            this.http,
-            `/api/image`,
-            {
-              body: {
-                input: task.englishTranslation,
-                model: task.model
-              } satisfies ImageSourceRequest,
-              method: 'POST',
-            }
-          );
+    const taskMap = new Map(tasks.map(t => [t.customId, t]));
 
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+    return (statusResponse.results ?? [])
+      .filter((r): r is BatchImageResultItem & { image: NonNullable<BatchImageResultItem['image']> } =>
+        r.image != null)
+      .map(result => {
+        const task = taskMap.get(result.customId);
+        this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
+        return {
+          cardId: task?.cardId ?? '',
+          exampleIndex: task?.exampleIndex ?? 0,
+          image: result.image,
+        };
+      });
+  }
 
-          const imageProgress = ((index + 1) / totalTasks) * 10;
-          this.updateProgress(
-            progressIndex,
-            'generating-images',
-            90 + imageProgress,
-            `Generating images (${index + 1}/${totalTasks})...`
-          );
-
-          return [...acc, { exampleIndex: task.exampleIndex, image: response }];
-        } catch {
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
-          return acc;
-        }
-      },
-      Promise.resolve([])
-    );
-
-    if (results.length > 0) {
-      const imagesMap = results.reduce<ImagesByIndex>(
-        (acc, result) => {
-          const existing = acc.get(result.exampleIndex) ?? [];
-          return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
-        },
-        new Map()
+  private async pollBatchCompletion(batchId: string): Promise<BatchImageStatusResponse> {
+    while (true) {
+      const status = await fetchJson<BatchImageStatusResponse>(
+        this.http,
+        `/api/batch-images/${batchId}`
       );
 
-      const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
-      const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
+      if (status.status === 'completed' || status.status === 'failed') {
+        return status;
+      }
 
-      await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { data: updatedData },
-        method: 'PUT',
-      });
+      await new Promise(resolve => setTimeout(resolve, BATCH_POLL_INTERVAL_MS));
     }
-
-    this.updateProgress(progressIndex, 'completed', 100, 'Completed');
   }
 
   private updateProgress(

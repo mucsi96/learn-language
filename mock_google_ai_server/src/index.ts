@@ -1,12 +1,14 @@
 import express from 'express';
 import { ImageGenerationHandler } from './imageGeneration';
 import { ChatHandler } from './chatHandler';
+import { GoogleBatchHandler } from './batchHandler';
 
 const app = express();
 const imageHandler = new ImageGenerationHandler();
 const chatHandler = new ChatHandler();
+const batchHandler = new GoogleBatchHandler(imageHandler);
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Middleware to log access details
 app.use((req, res, next) => {
@@ -19,7 +21,8 @@ app.use((req, res, next) => {
 
 app.post('/reset', (req, res) => {
   imageHandler.reset();
-  res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
+  batchHandler.reset();
+  res.status(200).json({ status: 'ok', message: 'State reset' });
 });
 
 app.post('/v1beta/models/imagen-4.0-ultra-generate-001:predict', (req, res) => {
@@ -85,6 +88,52 @@ app.post(/\/v1beta\/models\/([^/]+):generateContent/, async (req, res) => {
   } catch (error: any) {
     console.error('Chat completion error:', error);
     res.status(400).json({ error: { message: error.message || 'Invalid request format' } });
+  }
+});
+
+// Batch API: Create batch job
+app.post('/v1beta/batches', (req, res) => {
+  try {
+    const { model, src } = req.body;
+    const inlinedRequests = src?.inlinedRequests ?? [];
+
+    console.log(`Batch create request: model=${model}, requests=${inlinedRequests.length}`);
+
+    const batch = batchHandler.createBatch(model, inlinedRequests);
+    console.log(`Batch created: ${batch.name}`);
+
+    res.status(200).json({
+      name: batch.name,
+      state: batch.state,
+      dest: {
+        inlinedResponses: batch.inlinedResponses,
+      },
+    });
+  } catch (error: any) {
+    console.error('Batch creation error:', error);
+    res.status(500).json({ error: { message: error.message || 'Batch creation failed' } });
+  }
+});
+
+// Batch API: Get batch job status
+app.get('/v1beta/batches/:batchName(*)', (req, res) => {
+  try {
+    const batchName = `batches/${req.params.batchName}`;
+    const batch = batchHandler.getBatch(batchName);
+    if (!batch) {
+      res.status(404).json({ error: { message: 'Batch not found' } });
+      return;
+    }
+    res.status(200).json({
+      name: batch.name,
+      state: batch.state,
+      dest: {
+        inlinedResponses: batch.inlinedResponses,
+      },
+    });
+  } catch (error: any) {
+    console.error('Batch retrieval error:', error);
+    res.status(500).json({ error: { message: error.message || 'Batch retrieval failed' } });
   }
 });
 
