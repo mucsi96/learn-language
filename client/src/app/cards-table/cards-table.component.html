@@ -57,12 +57,6 @@
     </mat-form-field>
   </div>
 
-  @if (allFilteredSelected()) {
-    <div class="select-all-bar">
-      All {{ selectedCount() }} cards matching filters are selected
-    </div>
-  }
-
   <ag-grid-angular
     class="cards-grid"
     [theme]="theme"

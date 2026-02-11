@@ -533,8 +533,6 @@ test('selects all cards via header checkbox and marks them as known', async ({ p
 
   await page.getByLabel('Select all cards').click();
 
-  await expect(page.getByText('All 3 cards matching filters are selected')).toBeVisible();
-
   await page.getByRole('button', { name: /Mark 3 as known/ }).click();
 
   await expect(page.getByText('3 card(s) marked as known')).toBeVisible();
