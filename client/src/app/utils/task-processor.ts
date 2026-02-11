@@ -1,8 +1,3 @@
-export interface TaskProcessorOptions {
-  maxPerMinute: number;
-  skipRateLimiting: boolean;
-}
-
 export interface BatchResult {
   total: number;
   succeeded: number;
@@ -12,17 +7,17 @@ export interface BatchResult {
 
 export const processTasksWithRateLimit = async <T>(
   tasks: ReadonlyArray<() => Promise<T>>,
-  options: TaskProcessorOptions
+  maxPerMinute: number | null
 ): Promise<PromiseSettledResult<T>[]> => {
   if (tasks.length === 0) {
     return [];
   }
 
-  if (options.skipRateLimiting) {
+  if (maxPerMinute === null) {
     return Promise.allSettled(tasks.map(task => task()));
   }
 
-  const intervalMs = 60_000 / options.maxPerMinute;
+  const intervalMs = 60_000 / maxPerMinute;
 
   const { inFlight } = await tasks.reduce<
     Promise<{

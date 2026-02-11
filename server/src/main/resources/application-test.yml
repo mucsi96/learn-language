@@ -1,3 +1,6 @@
+rate-limit:
+  image-per-minute:
+  audio-per-minute:
 spring:
   autoconfigure:
     exclude:
