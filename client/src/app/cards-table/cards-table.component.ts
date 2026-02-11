@@ -388,6 +388,12 @@ export class CardsTableComponent {
 
       this.totalCount.set(response.totalCount);
       params.successCallback(response.rows, response.totalCount);
+
+      if (this.allFilteredSelected()) {
+        response.rows.forEach((row) => {
+          this.gridApi?.getRowNode(row.id)?.setSelected(true);
+        });
+      }
     } catch {
       params.failCallback();
     }
