@@ -57,21 +57,8 @@
     </mat-form-field>
   </div>
 
-  @if (totalCount() > 0 && !allFilteredSelected()) {
-    <div class="select-all-bar">
-      <button
-        mat-button
-        (click)="selectAll()"
-        aria-label="Select all cards matching filters"
-      >
-        <mat-icon>select_all</mat-icon>
-        Select all {{ totalCount() }} cards
-      </button>
-    </div>
-  }
-
   @if (allFilteredSelected()) {
-    <div class="select-all-bar select-all-active">
+    <div class="select-all-bar">
       All {{ selectedCount() }} cards matching filters are selected
     </div>
   }
@@ -88,7 +75,7 @@
     [getRowId]="getRowId"
     (gridReady)="onGridReady($event)"
     (sortChanged)="onSortChanged($event)"
-    (selectionChanged)="onSelectionChanged()"
+    (selectionChanged)="onSelectionChanged($event)"
     (rowClicked)="onRowClicked($event)"
   />
 

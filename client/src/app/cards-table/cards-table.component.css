@@ -59,14 +59,9 @@
   align-items: center;
   padding: 0.5rem 1rem;
   margin-bottom: 0.5rem;
-  background: var(--mat-sys-surface-container);
+  background: hsl(220, 89%, 53%, 0.15);
   border-radius: 8px;
   font-size: 0.875rem;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.select-all-active {
-  background: hsl(220, 89%, 53%, 0.15);
   color: hsl(220, 89%, 75%);
 }
 

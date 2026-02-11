@@ -498,7 +498,7 @@ test('deletes selected cards with confirmation', async ({ page }) => {
   });
 });
 
-test('selects all cards and marks them as known', async ({ page }) => {
+test('selects all cards via header checkbox and marks them as known', async ({ page }) => {
   await createCard({
     cardId: 'select-all-1',
     sourceId: 'goethe-a1',
@@ -525,12 +525,13 @@ test('selects all cards and marks them as known', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
+  const grid = page.getByRole('grid');
   await expect(async () => {
-    const rows = await getGridData(page.getByRole('grid'));
+    const rows = await getGridData(grid);
     expect(rows.length).toBe(3);
   }).toPass();
 
-  await page.getByRole('button', { name: 'Select all 3 cards' }).click();
+  await grid.getByRole('columnheader').first().getByRole('checkbox').click();
 
   await expect(page.getByText('All 3 cards matching filters are selected')).toBeVisible();
 
@@ -546,7 +547,7 @@ test('selects all cards and marks them as known', async ({ page }) => {
   });
 });
 
-test('selects all cards matching filter and marks them as known', async ({ page }) => {
+test('selects all cards matching filter via header checkbox and marks them as known', async ({ page }) => {
   await createCard({
     cardId: 'filter-select-new',
     sourceId: 'goethe-a1',
@@ -568,8 +569,9 @@ test('selects all cards matching filter and marks them as known', async ({ page 
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
+  const grid = page.getByRole('grid');
   await expect(async () => {
-    const rows = await getGridData(page.getByRole('grid'));
+    const rows = await getGridData(grid);
     expect(rows.length).toBe(2);
   }).toPass();
 
@@ -577,11 +579,11 @@ test('selects all cards matching filter and marks them as known', async ({ page 
   await page.getByRole('option', { name: 'NEW' }).click();
 
   await expect(async () => {
-    const rows = await getGridData(page.getByRole('grid'));
+    const rows = await getGridData(grid);
     expect(rows.length).toBe(1);
   }).toPass();
 
-  await page.getByRole('button', { name: 'Select all 1 cards' }).click();
+  await grid.getByRole('columnheader').first().getByRole('checkbox').click();
 
   await page.getByRole('button', { name: /Mark 1 as known/ }).click();
 

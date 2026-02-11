@@ -18,6 +18,7 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
+  type SelectionChangedEvent,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -130,7 +131,6 @@ export class CardsTableComponent {
   readonly selectedIds = signal<readonly string[]>([]);
   readonly totalCount = signal(0);
   readonly allFilteredSelected = signal(false);
-  private isSettingSelection = false;
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -234,8 +234,28 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
-  onSelectionChanged(): void {
-    if (!this.gridApi || this.isSettingSelection) return;
+  onSelectionChanged(event: SelectionChangedEvent): void {
+    if (!this.gridApi) return;
+
+    const isSelectAll =
+      event.source === 'uiSelectAll' || event.source === 'keyboardSelectAll';
+
+    if (isSelectAll) {
+      const hasSelection = this.gridApi.getSelectedRows().length > 0;
+      if (hasSelection) {
+        this.allFilteredSelected.set(true);
+        this.selectedCount.set(this.totalCount());
+        this.fetchAndSetAllFilteredIds();
+      } else {
+        this.allFilteredSelected.set(false);
+        this.selectedCount.set(0);
+        this.selectedIds.set([]);
+      }
+      return;
+    }
+
+    if (event.source === 'apiSelectAll') return;
+
     this.allFilteredSelected.set(false);
     const selected = this.gridApi.getSelectedRows() as CardTableRow[];
     this.selectedCount.set(selected.length);
@@ -277,28 +297,6 @@ export class CardsTableComponent {
   onLastReviewDaysAgoFilterChange(value: string): void {
     this.lastReviewDaysAgoFilter.set(value);
     this.refreshGrid();
-  }
-
-  async selectAll(): Promise<void> {
-    const ids = await this.cardsTableService.fetchAllCardIds({
-      sourceId: this.sourceId(),
-      readiness: this.readinessFilter() || undefined,
-      state: this.stateFilter() || undefined,
-      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
-        ? Number(this.lastReviewDaysAgoFilter())
-        : undefined,
-      lastReviewRating: this.lastReviewRatingFilter()
-        ? Number(this.lastReviewRatingFilter())
-        : undefined,
-    });
-    this.isSettingSelection = true;
-    this.allFilteredSelected.set(true);
-    this.selectedIds.set(ids);
-    this.selectedCount.set(ids.length);
-    this.gridApi?.selectAll();
-    setTimeout(() => {
-      this.isSettingSelection = false;
-    });
   }
 
   async markSelectedAsKnown(): Promise<void> {
@@ -345,6 +343,22 @@ export class CardsTableComponent {
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
+  }
+
+  private async fetchAndSetAllFilteredIds(): Promise<void> {
+    const ids = await this.cardsTableService.fetchAllCardIds({
+      sourceId: this.sourceId(),
+      readiness: this.readinessFilter() || undefined,
+      state: this.stateFilter() || undefined,
+      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+        ? Number(this.lastReviewDaysAgoFilter())
+        : undefined,
+      lastReviewRating: this.lastReviewRatingFilter()
+        ? Number(this.lastReviewRatingFilter())
+        : undefined,
+    });
+    this.selectedIds.set(ids);
+    this.selectedCount.set(ids.length);
   }
 
   private async loadRows(params: IGetRowsParams): Promise<void> {
