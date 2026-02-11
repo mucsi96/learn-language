@@ -498,6 +498,108 @@ test('deletes selected cards with confirmation', async ({ page }) => {
   });
 });
 
+test('selects all cards and marks them as known', async ({ page }) => {
+  await createCard({
+    cardId: 'select-all-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Haus', type: 'NOUN', translation: { en: 'house' } },
+    readiness: 'READY',
+  });
+
+  await createCard({
+    cardId: 'select-all-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Baum', type: 'NOUN', translation: { en: 'tree' } },
+    readiness: 'READY',
+  });
+
+  await createCard({
+    cardId: 'select-all-3',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 11,
+    data: { word: 'Stuhl', type: 'NOUN', translation: { en: 'chair' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows.length).toBe(3);
+  }).toPass();
+
+  await page.getByRole('button', { name: 'Select all 3 cards' }).click();
+
+  await expect(page.getByText('All 3 cards matching filters are selected')).toBeVisible();
+
+  await page.getByRole('button', { name: /Mark 3 as known/ }).click();
+
+  await expect(page.getByText('3 card(s) marked as known')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT readiness FROM learn_language.cards WHERE id IN ('select-all-1', 'select-all-2', 'select-all-3')"
+    );
+    expect(result.rows.every((r: { readiness: string }) => r.readiness === 'KNOWN')).toBe(true);
+  });
+});
+
+test('selects all cards matching filter and marks them as known', async ({ page }) => {
+  await createCard({
+    cardId: 'filter-select-new',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Tisch', type: 'NOUN', translation: { en: 'table' } },
+    state: 'NEW',
+    readiness: 'READY',
+  });
+
+  await createCard({
+    cardId: 'filter-select-review',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'Lampe', type: 'NOUN', translation: { en: 'lamp' } },
+    state: 'REVIEW',
+    reps: 3,
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows.length).toBe(2);
+  }).toPass();
+
+  await page.getByLabel('Filter by state').click();
+  await page.getByRole('option', { name: 'NEW' }).click();
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows.length).toBe(1);
+  }).toPass();
+
+  await page.getByRole('button', { name: 'Select all 1 cards' }).click();
+
+  await page.getByRole('button', { name: /Mark 1 as known/ }).click();
+
+  await expect(page.getByText('1 card(s) marked as known')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const known = await client.query(
+      "SELECT readiness FROM learn_language.cards WHERE id = 'filter-select-new'"
+    );
+    expect(known.rows[0].readiness).toBe('KNOWN');
+
+    const unchanged = await client.query(
+      "SELECT readiness FROM learn_language.cards WHERE id = 'filter-select-review'"
+    );
+    expect(unchanged.rows[0].readiness).toBe('READY');
+  });
+});
+
 test('cancels card deletion on dialog dismissal', async ({ page }) => {
   await createCard({
     cardId: 'cancel-delete-card',

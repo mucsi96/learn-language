@@ -54,6 +54,22 @@
   background-color: darkred;
 }
 
+.select-all-bar {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.select-all-active {
+  background: hsl(220, 89%, 53%, 0.15);
+  color: hsl(220, 89%, 75%);
+}
+
 .cards-grid {
   width: 100%;
   height: 600px;

@@ -33,6 +33,16 @@ export type CardTableParams = {
   lastReviewRating?: number;
 };
 
+export type CardFilterParams = {
+  sourceId: string;
+  readiness?: string;
+  state?: string;
+  minReps?: number;
+  maxReps?: number;
+  lastReviewDaysAgo?: number;
+  lastReviewRating?: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class CardsTableService {
   private readonly http = inject(HttpClient);
@@ -61,6 +71,34 @@ export class CardsTableService {
     return firstValueFrom(
       this.http.get<CardTableResponse>(
         `/api/source/${params.sourceId}/cards`,
+        {
+          params: httpParams,
+          headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone },
+        }
+      )
+    );
+  }
+
+  async fetchAllCardIds(params: CardFilterParams): Promise<string[]> {
+    const httpParams = Object.entries({
+      ...(params.readiness ? { readiness: params.readiness } : {}),
+      ...(params.state ? { state: params.state } : {}),
+      ...(params.minReps !== undefined ? { minReps: params.minReps } : {}),
+      ...(params.maxReps !== undefined ? { maxReps: params.maxReps } : {}),
+      ...(params.lastReviewDaysAgo !== undefined
+        ? { lastReviewDaysAgo: params.lastReviewDaysAgo }
+        : {}),
+      ...(params.lastReviewRating !== undefined
+        ? { lastReviewRating: params.lastReviewRating }
+        : {}),
+    }).reduce(
+      (acc, [key, value]) => acc.set(key, String(value)),
+      new HttpParams()
+    );
+
+    return firstValueFrom(
+      this.http.get<string[]>(
+        `/api/source/${params.sourceId}/card-ids`,
         {
           params: httpParams,
           headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone },

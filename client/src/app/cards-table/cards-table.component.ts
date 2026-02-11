@@ -128,6 +128,9 @@ export class CardsTableComponent {
 
   readonly selectedCount = signal(0);
   readonly selectedIds = signal<readonly string[]>([]);
+  readonly totalCount = signal(0);
+  readonly allFilteredSelected = signal(false);
+  private isSettingSelection = false;
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -232,7 +235,8 @@ export class CardsTableComponent {
   }
 
   onSelectionChanged(): void {
-    if (!this.gridApi) return;
+    if (!this.gridApi || this.isSettingSelection) return;
+    this.allFilteredSelected.set(false);
     const selected = this.gridApi.getSelectedRows() as CardTableRow[];
     this.selectedCount.set(selected.length);
     this.selectedIds.set(selected.map((r) => r.id));
@@ -275,6 +279,28 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  async selectAll(): Promise<void> {
+    const ids = await this.cardsTableService.fetchAllCardIds({
+      sourceId: this.sourceId(),
+      readiness: this.readinessFilter() || undefined,
+      state: this.stateFilter() || undefined,
+      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+        ? Number(this.lastReviewDaysAgoFilter())
+        : undefined,
+      lastReviewRating: this.lastReviewRatingFilter()
+        ? Number(this.lastReviewRatingFilter())
+        : undefined,
+    });
+    this.isSettingSelection = true;
+    this.allFilteredSelected.set(true);
+    this.selectedIds.set(ids);
+    this.selectedCount.set(ids.length);
+    this.gridApi?.selectAll();
+    setTimeout(() => {
+      this.isSettingSelection = false;
+    });
+  }
+
   async markSelectedAsKnown(): Promise<void> {
     const ids = this.selectedIds();
     if (ids.length === 0) return;
@@ -313,6 +339,9 @@ export class CardsTableComponent {
   }
 
   private refreshGrid(): void {
+    this.allFilteredSelected.set(false);
+    this.selectedCount.set(0);
+    this.selectedIds.set([]);
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
@@ -340,6 +369,7 @@ export class CardsTableComponent {
           : undefined,
       });
 
+      this.totalCount.set(response.totalCount);
       params.successCallback(response.rows, response.totalCount);
     } catch {
       params.failCallback();

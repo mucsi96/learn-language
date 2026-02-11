@@ -123,6 +123,22 @@ public class CardService {
         .build();
   }
 
+  public List<String> getFilteredCardIds(
+      String sourceId,
+      String readiness, String state,
+      Integer minReps, Integer maxReps,
+      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      LocalDateTime startOfDayUtc) {
+
+    final Specification<Card> spec = buildCardTableSpec(
+        sourceId, readiness, state, minReps, maxReps,
+        lastReviewDaysAgo, lastReviewRating, startOfDayUtc);
+
+    return cardRepository.findAll(spec).stream()
+        .map(Card::getId)
+        .toList();
+  }
+
   @Transactional
   public void markCardsAsKnown(List<String> cardIds) {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
