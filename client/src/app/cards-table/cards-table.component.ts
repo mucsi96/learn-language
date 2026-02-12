@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -129,9 +129,35 @@ export class CardsTableComponent {
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
 
-  readonly selectedIds = signal<readonly string[]>([]);
+  readonly allFilteredIds = resource({
+    params: () => {
+      const sourceId = this.sourceId();
+      if (!sourceId) return undefined;
+      return {
+        sourceId,
+        readiness: this.readinessFilter() || undefined,
+        state: this.stateFilter() || undefined,
+        lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+          ? Number(this.lastReviewDaysAgoFilter())
+          : undefined,
+        lastReviewRating: this.lastReviewRatingFilter()
+          ? Number(this.lastReviewRatingFilter())
+          : undefined,
+      };
+    },
+    loader: ({ params }) =>
+      this.cardsTableService.fetchFilteredCardIds(params),
+  });
+
+  readonly selectedIds = linkedSignal<string[] | undefined, readonly string[]>({
+    source: this.allFilteredIds.value,
+    computation: () => [],
+  });
+
   readonly selectedCount = computed(() => this.selectedIds().length);
-  readonly totalFilteredCount = signal(0);
+  readonly totalFilteredCount = computed(
+    () => this.allFilteredIds.value()?.length ?? 0
+  );
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -252,27 +278,14 @@ export class CardsTableComponent {
       (this.gridApi.getSelectedRows() as CardTableRow[]).map((r) => r.id)
     );
 
-    const prevSelectedSet = new Set(this.selectedIds());
-
-    const added: string[] = [];
-    const removed: string[] = [];
-
+    const loadedIds = new Set<string>();
     this.gridApi.forEachNode((node) => {
-      if (!node.data) return;
-      const id = (node.data as CardTableRow).id;
-      const wasSelected = prevSelectedSet.has(id);
-      const isNowSelected = gridSelectedIds.has(id);
-
-      if (!wasSelected && isNowSelected) added.push(id);
-      if (wasSelected && !isNowSelected) removed.push(id);
+      if (node.data) loadedIds.add((node.data as CardTableRow).id);
     });
 
-    if (added.length === 0 && removed.length === 0) return;
-
-    const removedSet = new Set(removed);
     this.selectedIds.set([
-      ...this.selectedIds().filter((id) => !removedSet.has(id)),
-      ...added,
+      ...this.selectedIds().filter((id) => !loadedIds.has(id)),
+      ...gridSelectedIds,
     ]);
   }
 
@@ -349,19 +362,9 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
-  private async selectAll(): Promise<void> {
-    const ids = await this.cardsTableService.fetchFilteredCardIds({
-      sourceId: this.sourceId(),
-      readiness: this.readinessFilter() || undefined,
-      state: this.stateFilter() || undefined,
-      lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
-        ? Number(this.lastReviewDaysAgoFilter())
-        : undefined,
-      lastReviewRating: this.lastReviewRatingFilter()
-        ? Number(this.lastReviewRatingFilter())
-        : undefined,
-    });
-
+  private selectAll(): void {
+    const ids = this.allFilteredIds.value();
+    if (!ids) return;
     this.selectedIds.set(ids);
     this.syncGridSelection();
   }
@@ -374,7 +377,6 @@ export class CardsTableComponent {
   }
 
   private refreshGrid(): void {
-    this.selectedIds.set([]);
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
@@ -415,7 +417,6 @@ export class CardsTableComponent {
           : undefined,
       });
 
-      this.totalFilteredCount.set(response.totalCount);
       params.successCallback(response.rows, response.totalCount);
       this.syncGridSelection();
     } catch {
