@@ -19,4 +19,5 @@ public class AudioSourceRequest {
   private String model;
   private String language;
   private Boolean selected;
+  private String context;
 }

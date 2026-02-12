@@ -153,6 +153,7 @@ export type CardCreationResult = {
 export type AudioGenerationItem = {
   text: string;
   language: string;
+  context?: string;
 };
 
 export type ImagesByIndex = Map<number, ExampleImage[]>;
