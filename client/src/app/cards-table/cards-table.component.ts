@@ -18,8 +18,6 @@ import {
   type GetRowIdParams,
   type RowClickedEvent,
   type SortChangedEvent,
-  type SelectionColumnDef,
-  type IRowNode,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -27,13 +25,13 @@ import {
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
-  RowSelectionModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
+import { SelectionCheckboxComponent } from './selection-checkbox.component';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -84,7 +82,6 @@ ModuleRegistry.registerModules([
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
-  RowSelectionModule,
 ]);
 
 @Component({
@@ -111,7 +108,6 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
 
   private gridApi: GridApi | null = null;
-  private syncingSelection = false;
 
   readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
     backgroundColor: 'hsl(215, 28%, 17%)',
@@ -155,10 +151,20 @@ export class CardsTableComponent {
     computation: () => [],
   });
 
+  readonly selectedIdsSet = computed(() => new Set(this.selectedIds()));
   readonly selectedCount = computed(() => this.selectedIds().length);
   readonly totalFilteredCount = computed(
     () => this.allFilteredIds.value()?.length ?? 0
   );
+
+  readonly gridContext = {
+    selectedIdsSet: this.selectedIdsSet,
+    toggleSelection: (id: string) => this.toggleSelection(id),
+    selectedIds: this.selectedIds as { (): readonly string[] },
+    totalFilteredCount: this.totalFilteredCount,
+    selectAll: () => this.selectAll(),
+    deselectAll: () => this.deselectAll(),
+  };
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -177,6 +183,15 @@ export class CardsTableComponent {
   ];
 
   readonly columnDefs: ColDef[] = [
+    {
+      headerName: '',
+      field: 'id',
+      width: 56,
+      sortable: false,
+      resizable: false,
+      cellRenderer: SelectionCheckboxComponent,
+      headerComponent: SelectAllHeaderComponent,
+    },
     {
       headerName: 'Card',
       field: 'label',
@@ -241,21 +256,6 @@ export class CardsTableComponent {
     resizable: true,
   };
 
-  readonly rowSelection = {
-    mode: 'multiRow' as const,
-    headerCheckbox: false,
-  };
-
-  readonly selectionColumnDef: SelectionColumnDef = {
-    headerComponent: SelectAllHeaderComponent,
-    headerComponentParams: {
-      selectedIds: this.selectedIds,
-      totalFilteredCount: this.totalFilteredCount,
-      onSelectAll: () => this.selectAll(),
-      onDeselectAll: () => this.deselectAll(),
-    },
-  };
-
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
   onGridReady(event: GridReadyEvent): void {
@@ -272,27 +272,9 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
-  onSelectionChanged(): void {
-    if (this.syncingSelection || !this.gridApi) return;
-
-    const gridSelectedIds = new Set(
-      (this.gridApi.getSelectedRows() as CardTableRow[]).map((r) => r.id)
-    );
-
-    const loadedIds = new Set<string>();
-    this.gridApi.forEachNode((node) => {
-      if (node.data) loadedIds.add((node.data as CardTableRow).id);
-    });
-
-    this.selectedIds.set([
-      ...this.selectedIds().filter((id) => !loadedIds.has(id)),
-      ...gridSelectedIds,
-    ]);
-  }
-
   onRowClicked(event: RowClickedEvent): void {
     const column = event.api.getFocusedCell()?.column;
-    if (column?.getColDef().checkboxSelection) return;
+    if (column?.getColId() === 'id') return;
 
     const row = event.data as CardTableRow;
     if (!row) return;
@@ -355,7 +337,6 @@ export class CardsTableComponent {
 
     await this.cardsTableService.deleteCards(ids);
     this.selectedIds.set([]);
-    this.gridApi?.deselectAll();
     this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
@@ -363,44 +344,30 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  private toggleSelection(id: string): void {
+    const current = this.selectedIds();
+    const currentSet = this.selectedIdsSet();
+    this.selectedIds.set(
+      currentSet.has(id)
+        ? current.filter((cid) => cid !== id)
+        : [...current, id]
+    );
+  }
+
   private selectAll(): void {
     const ids = this.allFilteredIds.value();
     if (!ids) return;
     this.selectedIds.set(ids);
-    this.syncingSelection = true;
-    this.gridApi?.selectAll();
-    this.syncingSelection = false;
   }
 
   private deselectAll(): void {
     this.selectedIds.set([]);
-    this.syncingSelection = true;
-    this.gridApi?.deselectAll();
-    this.syncingSelection = false;
   }
 
   private refreshGrid(): void {
     this.gridApi?.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
     });
-  }
-
-  private syncGridSelection(): void {
-    if (!this.gridApi || this.selectedIds().length === 0) return;
-
-    const selectedSet = new Set(this.selectedIds());
-    const nodesToSelect: IRowNode[] = [];
-    this.gridApi.forEachNode((node) => {
-      if (node.data && selectedSet.has((node.data as CardTableRow).id) && !node.isSelected()) {
-        nodesToSelect.push(node);
-      }
-    });
-
-    if (nodesToSelect.length === 0) return;
-
-    this.syncingSelection = true;
-    this.gridApi.setNodesSelected({ nodes: nodesToSelect, newValue: true });
-    this.syncingSelection = false;
   }
 
   private async loadRows(params: IGetRowsParams): Promise<void> {
@@ -426,7 +393,6 @@ export class CardsTableComponent {
       });
 
       params.successCallback(response.rows, response.totalCount);
-      this.syncGridSelection();
     } catch {
       params.failCallback();
     }

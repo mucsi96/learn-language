@@ -11,11 +11,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { IHeaderAngularComp } from 'ag-grid-angular';
 import type { IHeaderParams } from 'ag-grid-community';
 
-export type SelectAllHeaderParams = {
+export type SelectAllContext = {
   selectedIds: Signal<readonly string[]>;
   totalFilteredCount: Signal<number>;
-  onSelectAll: () => void;
-  onDeselectAll: () => void;
+  selectAll: () => void;
+  deselectAll: () => void;
 };
 
 @Component({
@@ -40,17 +40,15 @@ export class SelectAllHeaderComponent implements IHeaderAngularComp {
   private readonly injector = inject(Injector);
   readonly checked = signal(false);
   readonly indeterminate = signal(false);
-  private onSelectAllFn = (): void => {};
-  private onDeselectAllFn = (): void => {};
+  private context!: SelectAllContext;
 
-  agInit(params: IHeaderParams & SelectAllHeaderParams): void {
-    this.onSelectAllFn = params.onSelectAll;
-    this.onDeselectAllFn = params.onDeselectAll;
+  agInit(params: IHeaderParams): void {
+    this.context = params.context as SelectAllContext;
 
     runInInjectionContext(this.injector, () => {
       effect(() => {
-        const selectedCount = params.selectedIds().length;
-        const total = params.totalFilteredCount();
+        const selectedCount = this.context.selectedIds().length;
+        const total = this.context.totalFilteredCount();
         this.checked.set(total > 0 && selectedCount === total);
         this.indeterminate.set(selectedCount > 0 && selectedCount < total);
       });
@@ -63,9 +61,9 @@ export class SelectAllHeaderComponent implements IHeaderAngularComp {
 
   onToggle(): void {
     if (this.checked() || this.indeterminate()) {
-      this.onDeselectAllFn();
+      this.context.deselectAll();
     } else {
-      this.onSelectAllFn();
+      this.context.selectAll();
     }
   }
 }
