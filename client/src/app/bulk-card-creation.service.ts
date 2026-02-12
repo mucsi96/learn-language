@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Card, ExampleImage } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
@@ -14,7 +14,7 @@ import {
   ExtractedItem,
   ImagesByIndex,
 } from './parser/types';
-import { CardCreationProgress } from './shared/types/card-creation.types';
+import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import {
@@ -42,17 +42,9 @@ export class BulkCardCreationService {
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  readonly creationProgress = signal<CardCreationProgress[]>([]);
+  readonly phase1Progress = signal<DotProgress[]>([]);
+  readonly phase2Progress = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
-  readonly imageGenerationProgress = signal<{ total: number; completed: number }>({ total: 0, completed: 0 });
-
-  readonly totalProgress = computed(() => {
-    const progress = this.creationProgress();
-    if (progress.length === 0) return 0;
-
-    const totalProgress = progress.reduce((sum, card) => sum + card.progress, 0);
-    return totalProgress / progress.length;
-  });
 
   async createCardsInBulk(
     items: ExtractedItem[],
@@ -74,68 +66,79 @@ export class BulkCardCreationService {
 
     const strategy = this.strategyRegistry.getStrategy(cardType);
 
-    const initialProgress: CardCreationProgress[] = itemsToCreate.map(item => ({
-      itemLabel: strategy.getItemLabel(item),
-      cardType: cardType,
-      status: 'pending',
-      progress: 0,
-      currentStep: 'Queued for processing'
-    }));
+    this.phase1Progress.set(itemsToCreate.map(item => ({
+      label: strategy.getItemLabel(item),
+      status: 'pending' as const,
+      tooltip: `${strategy.getItemLabel(item)}: Queued`,
+    })));
+    this.phase2Progress.set([]);
 
-    this.creationProgress.set(initialProgress);
-
-    const tasks = itemsToCreate.map(
+    const phase1Tasks = itemsToCreate.map(
       (item, index) => () => {
-        const request: CardCreationRequest = {
-          item,
-          sourceId,
-          pageNumber,
-          cardType
-        };
-        return this.createSingleCardWithImages(request, index, strategy);
+        const request: CardCreationRequest = { item, sourceId, pageNumber, cardType };
+        return this.createSingleCard(request, index, strategy);
       }
     );
 
-    const results = await processTasksWithRateLimit(
-      tasks,
-      this.environmentConfig.imageRateLimitPerMinute
+    const phase1Results = await processTasksWithRateLimit(phase1Tasks, null);
+
+    const imageItems = phase1Results.reduce<
+      Array<{ cardId: string; imageInfos: ImageGenerationInfo[]; label: string }>
+    >(
+      (acc, result, index) => {
+        if (result.status === 'fulfilled' && result.value.length > 0) {
+          return [...acc, {
+            cardId: itemsToCreate[index].id,
+            imageInfos: result.value,
+            label: strategy.getItemLabel(itemsToCreate[index]),
+          }];
+        }
+        return acc;
+      },
+      []
     );
+
+    if (imageItems.length > 0) {
+      this.phase2Progress.set(imageItems.map(item => ({
+        label: item.label,
+        status: 'pending' as const,
+        tooltip: `${item.label}: Queued`,
+      })));
+
+      const phase2Tasks = imageItems.map(
+        (item, phase2Index) => () =>
+          this.generateImagesForCard(item.cardId, item.imageInfos, phase2Index, strategy)
+      );
+
+      await processTasksWithRateLimit(
+        phase2Tasks,
+        this.environmentConfig.imageRateLimitPerMinute
+      );
+    }
 
     this.isCreating.set(false);
 
-    return summarizeResults(results);
-  }
-
-  private async createSingleCardWithImages(
-    request: CardCreationRequest,
-    progressIndex: number,
-    strategy: CardTypeStrategy
-  ): Promise<void> {
-    const imageInfos = await this.createSingleCard(request, progressIndex);
-
-    if (imageInfos.length > 0) {
-      await this.generateImagesForCard(request.item.id, imageInfos, progressIndex, strategy);
-    } else {
-      this.updateProgress(progressIndex, 'completed', 100, 'Completed');
-    }
+    return summarizeResults(phase1Results);
   }
 
   private async createSingleCard(
     request: CardCreationRequest,
-    progressIndex: number
+    progressIndex: number,
+    strategy: CardTypeStrategy
   ): Promise<ImageGenerationInfo[]> {
-    const { item, sourceId, pageNumber, cardType } = request;
+    const { item, sourceId, pageNumber } = request;
+    const label = strategy.getItemLabel(item);
 
     try {
-      const strategy = this.strategyRegistry.getStrategy(cardType);
+      this.updatePhase1(progressIndex, 'in-progress', `${label}: Translating...`);
 
-      const progressCallback = (progress: number, step: string) => {
-        this.updateProgress(progressIndex, 'translating', progress * 0.8, step);
+      const progressCallback = (_progress: number, step: string) => {
+        this.updatePhase1(progressIndex, 'in-progress', `${label}: ${step}`);
       };
 
       const { cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
 
-      this.updateProgress(progressIndex, 'creating-card', 85, 'Creating card...');
+      this.updatePhase1(progressIndex, 'in-progress', `${label}: Creating card...`);
 
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
@@ -152,17 +155,13 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      this.updateProgress(progressIndex, 'generating-images', 90, 'Generating images...');
+      this.updatePhase1(progressIndex, 'completed', `${label}: Done`);
 
       return imageGenerationInfos;
 
     } catch (error) {
-      this.updateProgress(
-        progressIndex,
-        'error',
-        0,
-        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.updatePhase1(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
       throw error;
     }
   }
@@ -173,92 +172,93 @@ export class BulkCardCreationService {
     progressIndex: number,
     strategy: CardTypeStrategy
   ): Promise<void> {
-    const imageModels = this.environmentConfig.imageModels;
+    const label = this.phase2Progress()[progressIndex].label;
 
-    const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
-      imageModels.map(model => ({
-        exampleIndex: info.exampleIndex,
-        englishTranslation: info.englishTranslation,
-        model: model.id
-      }))
-    );
+    try {
+      this.updatePhase2(progressIndex, 'in-progress', `${label}: Starting image generation...`);
 
-    const totalTasks = tasks.length;
-    this.imageGenerationProgress.set({ total: totalTasks, completed: 0 });
+      const imageModels = this.environmentConfig.imageModels;
 
-    const results = await tasks.reduce<Promise<ImageGenerationResult[]>>(
-      async (accPromise, task, index) => {
-        const acc = await accPromise;
-        try {
-          const response = await fetchJson<ImageResponse>(
-            this.http,
-            `/api/image`,
-            {
-              body: {
-                input: task.englishTranslation,
-                model: task.model
-              } satisfies ImageSourceRequest,
-              method: 'POST',
-            }
-          );
-
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
-
-          const imageProgress = ((index + 1) / totalTasks) * 10;
-          this.updateProgress(
-            progressIndex,
-            'generating-images',
-            90 + imageProgress,
-            `Generating images (${index + 1}/${totalTasks})...`
-          );
-
-          return [...acc, { exampleIndex: task.exampleIndex, image: response }];
-        } catch {
-          this.imageGenerationProgress.update(p => ({ ...p, completed: p.completed + 1 }));
-          return acc;
-        }
-      },
-      Promise.resolve([])
-    );
-
-    if (results.length > 0) {
-      const imagesMap = results.reduce<ImagesByIndex>(
-        (acc, result) => {
-          const existing = acc.get(result.exampleIndex) ?? [];
-          return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
-        },
-        new Map()
+      const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
+        imageModels.map(model => ({
+          exampleIndex: info.exampleIndex,
+          englishTranslation: info.englishTranslation,
+          model: model.id
+        }))
       );
 
-      const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
-      const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
+      const totalTasks = tasks.length;
 
-      await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { data: updatedData },
-        method: 'PUT',
-      });
+      const results = await tasks.reduce<Promise<ImageGenerationResult[]>>(
+        async (accPromise, task, index) => {
+          const acc = await accPromise;
+          try {
+            const response = await fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input: task.englishTranslation,
+                  model: task.model
+                } satisfies ImageSourceRequest,
+                method: 'POST',
+              }
+            );
+
+            this.updatePhase2(
+              progressIndex,
+              'in-progress',
+              `${label}: Generating images (${index + 1}/${totalTasks})...`
+            );
+
+            return [...acc, { exampleIndex: task.exampleIndex, image: response }];
+          } catch {
+            return acc;
+          }
+        },
+        Promise.resolve([])
+      );
+
+      if (results.length > 0) {
+        const imagesMap = results.reduce<ImagesByIndex>(
+          (acc, result) => {
+            const existing = acc.get(result.exampleIndex) ?? [];
+            return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
+          },
+          new Map()
+        );
+
+        const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+        const updatedData = strategy.updateCardDataWithImages(card.data, imagesMap);
+
+        await fetchJson(this.http, `/api/card/${cardId}`, {
+          body: { data: updatedData },
+          method: 'PUT',
+        });
+      }
+
+      this.updatePhase2(progressIndex, 'completed', `${label}: Done`);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.updatePhase2(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
+      throw error;
     }
-
-    this.updateProgress(progressIndex, 'completed', 100, 'Completed');
   }
 
-  private updateProgress(
-    index: number,
-    status: CardCreationProgress['status'],
-    progress: number,
-    currentStep?: string
-  ): void {
-    this.creationProgress.update(progressList =>
-      progressList.map((item, i) =>
-        i === index
-          ? { ...item, status, progress, currentStep }
-          : item
-      )
+  private updatePhase1(index: number, status: DotStatus, tooltip: string): void {
+    this.phase1Progress.update(dots =>
+      dots.map((dot, i) => i === index ? { ...dot, status, tooltip } : dot)
+    );
+  }
+
+  private updatePhase2(index: number, status: DotStatus, tooltip: string): void {
+    this.phase2Progress.update(dots =>
+      dots.map((dot, i) => i === index ? { ...dot, status, tooltip } : dot)
     );
   }
 
   clearProgress(): void {
-    this.creationProgress.set([]);
-    this.imageGenerationProgress.set({ total: 0, completed: 0 });
+    this.phase1Progress.set([]);
+    this.phase2Progress.set([]);
   }
 }

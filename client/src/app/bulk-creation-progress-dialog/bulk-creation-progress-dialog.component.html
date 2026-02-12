@@ -1,35 +1,11 @@
 <h2 mat-dialog-title>Creating Cards</h2>
 
 <mat-dialog-content class="dialog-content">
-  <mat-list class="progress-list">
-    @for (progress of bulkCardService.creationProgress(); track progress.itemLabel) {
-    <mat-list-item class="progress-item">
-      <div class="card-progress">
-        <div class="card-header">
-          <span class="item-label">{{ progress.itemLabel }}</span>
-          <mat-icon
-            [class]="getStatusIconClass(progress.status)"
-            [attr.aria-label]="progress.status"
-          >
-            {{ getStatusIcon(progress.status) }}
-          </mat-icon>
-        </div>
+  <app-dot-reporter name="Collecting data" [dots]="bulkCardService.phase1Progress()" />
 
-        @if(progress.status !== 'completed') {
-        <mat-progress-bar
-          mode="determinate"
-          [value]="progress.progress"
-          [class]="getProgressBarClass(progress.status)"
-        >
-        </mat-progress-bar>
-        <p class="step-text">{{ progress.currentStep }}</p>
-        } @if (progress.error) {
-        <p class="error-text">{{ progress.error }}</p>
-        }
-      </div>
-    </mat-list-item>
-    }
-  </mat-list>
+  @if (bulkCardService.phase2Progress().length > 0) {
+    <app-dot-reporter name="Generating images" [dots]="bulkCardService.phase2Progress()" />
+  }
 </mat-dialog-content>
 
 @if (!bulkCardService.isCreating()) {

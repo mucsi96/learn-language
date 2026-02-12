@@ -347,9 +347,9 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
   // Click the FAB
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
-  // Check that individual cards are listed within the progress dialog
-  await expect(page.getByRole('dialog').getByText('verstehen', { exact: true })).toBeVisible();
-  await expect(page.getByRole('dialog').getByText('sprechen', { exact: true })).toBeVisible();
+  // Check that individual cards are represented as dots in the progress dialog
+  await expect(page.getByRole('dialog').getByRole('status', { name: 'verstehen' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('status', { name: 'sprechen' })).toBeVisible();
 });
 
 test('bulk audio creation creates audio in database', async ({ page }) => {
