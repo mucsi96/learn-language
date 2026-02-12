@@ -19,6 +19,7 @@ import {
   type RowClickedEvent,
   type SortChangedEvent,
   type SelectionColumnDef,
+  type IRowNode,
   ModuleRegistry,
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -366,7 +367,9 @@ export class CardsTableComponent {
     const ids = this.allFilteredIds.value();
     if (!ids) return;
     this.selectedIds.set(ids);
-    this.syncGridSelection();
+    this.syncingSelection = true;
+    this.gridApi?.selectAll();
+    this.syncingSelection = false;
   }
 
   private deselectAll(): void {
@@ -383,15 +386,20 @@ export class CardsTableComponent {
   }
 
   private syncGridSelection(): void {
-    if (!this.gridApi) return;
+    if (!this.gridApi || this.selectedIds().length === 0) return;
 
     const selectedSet = new Set(this.selectedIds());
-    this.syncingSelection = true;
+    const nodesToSelect: IRowNode[] = [];
     this.gridApi.forEachNode((node) => {
-      if (node.data) {
-        node.setSelected(selectedSet.has((node.data as CardTableRow).id));
+      if (node.data && selectedSet.has((node.data as CardTableRow).id) && !node.isSelected()) {
+        nodesToSelect.push(node);
       }
     });
+
+    if (nodesToSelect.length === 0) return;
+
+    this.syncingSelection = true;
+    this.gridApi.setNodesSelected({ nodes: nodesToSelect, newValue: true });
     this.syncingSelection = false;
   }
 
