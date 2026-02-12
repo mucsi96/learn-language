@@ -69,6 +69,40 @@ export class CardsTableService {
     );
   }
 
+  async fetchFilteredCardIds(params: {
+    sourceId: string;
+    readiness?: string;
+    state?: string;
+    lastReviewDaysAgo?: number;
+    lastReviewRating?: number;
+  }): Promise<string[]> {
+    const httpParams = Object.entries({
+      ...(params.readiness ? { readiness: params.readiness } : {}),
+      ...(params.state ? { state: params.state } : {}),
+      ...(params.lastReviewDaysAgo !== undefined
+        ? { lastReviewDaysAgo: params.lastReviewDaysAgo }
+        : {}),
+      ...(params.lastReviewRating !== undefined
+        ? { lastReviewRating: params.lastReviewRating }
+        : {}),
+    }).reduce(
+      (acc, [key, value]) => acc.set(key, String(value)),
+      new HttpParams()
+    );
+
+    return firstValueFrom(
+      this.http.get<string[]>(
+        `/api/source/${params.sourceId}/card-ids`,
+        {
+          params: httpParams,
+          headers: {
+            'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+        }
+      )
+    );
+  }
+
   async markCardsAsKnown(cardIds: readonly string[]): Promise<void> {
     await firstValueFrom(
       this.http.put('/api/cards/mark-known', cardIds)

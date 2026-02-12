@@ -65,11 +65,10 @@
     [rowModelType]="'infinite'"
     [cacheBlockSize]="100"
     [maxBlocksInCache]="10"
-    [rowSelection]="rowSelection"
+    [context]="gridContext"
     [getRowId]="getRowId"
     (gridReady)="onGridReady($event)"
     (sortChanged)="onSortChanged($event)"
-    (selectionChanged)="onSelectionChanged()"
     (rowClicked)="onRowClicked($event)"
   />
 

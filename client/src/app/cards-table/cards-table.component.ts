@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,12 +25,14 @@ import {
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
-  RowSelectionModule,
+  ColumnAutoSizeModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardsTableService, CardTableRow } from './cards-table.service';
+import { SelectAllHeaderComponent } from './select-all-header.component';
+import { SelectionCheckboxComponent } from './selection-checkbox.component';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -81,7 +83,7 @@ ModuleRegistry.registerModules([
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
-  RowSelectionModule,
+  ColumnAutoSizeModule,
 ]);
 
 @Component({
@@ -126,8 +128,45 @@ export class CardsTableComponent {
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
 
-  readonly selectedCount = signal(0);
-  readonly selectedIds = signal<readonly string[]>([]);
+  readonly allFilteredIds = resource({
+    params: () => {
+      const sourceId = this.sourceId();
+      if (!sourceId) return undefined;
+      return {
+        sourceId,
+        readiness: this.readinessFilter() || undefined,
+        state: this.stateFilter() || undefined,
+        lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
+          ? Number(this.lastReviewDaysAgoFilter())
+          : undefined,
+        lastReviewRating: this.lastReviewRatingFilter()
+          ? Number(this.lastReviewRatingFilter())
+          : undefined,
+      };
+    },
+    loader: ({ params }) =>
+      this.cardsTableService.fetchFilteredCardIds(params),
+  });
+
+  readonly selectedIds = linkedSignal<string[] | undefined, readonly string[]>({
+    source: this.allFilteredIds.value,
+    computation: () => [],
+  });
+
+  readonly selectedIdsSet = computed(() => new Set(this.selectedIds()));
+  readonly selectedCount = computed(() => this.selectedIds().length);
+  readonly totalFilteredCount = computed(
+    () => this.allFilteredIds.value()?.length ?? 0
+  );
+
+  readonly gridContext = {
+    selectedIdsSet: this.selectedIdsSet,
+    toggleSelection: (id: string) => this.toggleSelection(id),
+    selectedIds: this.selectedIds as { (): readonly string[] },
+    totalFilteredCount: this.totalFilteredCount,
+    selectAll: () => this.selectAll(),
+    deselectAll: () => this.deselectAll(),
+  };
 
   readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
@@ -146,6 +185,15 @@ export class CardsTableComponent {
   ];
 
   readonly columnDefs: ColDef[] = [
+    {
+      headerName: '',
+      field: 'id',
+      width: 56,
+      sortable: false,
+      resizable: false,
+      cellRenderer: SelectionCheckboxComponent,
+      headerComponent: SelectAllHeaderComponent,
+    },
     {
       headerName: 'Card',
       field: 'label',
@@ -210,11 +258,6 @@ export class CardsTableComponent {
     resizable: true,
   };
 
-  readonly rowSelection = {
-    mode: 'multiRow' as const,
-    headerCheckbox: true,
-  };
-
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
   onGridReady(event: GridReadyEvent): void {
@@ -231,16 +274,9 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
-  onSelectionChanged(): void {
-    if (!this.gridApi) return;
-    const selected = this.gridApi.getSelectedRows() as CardTableRow[];
-    this.selectedCount.set(selected.length);
-    this.selectedIds.set(selected.map((r) => r.id));
-  }
-
   onRowClicked(event: RowClickedEvent): void {
     const column = event.api.getFocusedCell()?.column;
-    if (column?.getColDef().checkboxSelection) return;
+    if (column?.getColId() === 'id') return;
 
     const row = event.data as CardTableRow;
     if (!row) return;
@@ -302,14 +338,32 @@ export class CardsTableComponent {
     if (!result) return;
 
     await this.cardsTableService.deleteCards(ids);
-    this.selectedCount.set(0);
     this.selectedIds.set([]);
-    this.gridApi?.deselectAll();
     this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
     });
     this.refreshGrid();
+  }
+
+  private toggleSelection(id: string): void {
+    const current = this.selectedIds();
+    const currentSet = this.selectedIdsSet();
+    this.selectedIds.set(
+      currentSet.has(id)
+        ? current.filter((cid) => cid !== id)
+        : [...current, id]
+    );
+  }
+
+  private selectAll(): void {
+    const ids = this.allFilteredIds.value();
+    if (!ids) return;
+    this.selectedIds.set(ids);
+  }
+
+  private deselectAll(): void {
+    this.selectedIds.set([]);
   }
 
   private refreshGrid(): void {
