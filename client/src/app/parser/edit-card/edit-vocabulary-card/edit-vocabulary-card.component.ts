@@ -28,7 +28,6 @@ import { Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { languages } from '../../../shared/constants/languages';
-import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
 import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
@@ -59,7 +58,6 @@ export class EditVocabularyCardComponent {
 
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   private readonly imageCarousels = viewChildren(ImageCarouselComponent);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
@@ -159,16 +157,26 @@ export class EditVocabularyCardComponent {
     });
   }
 
-  addImage(exampleIdx: number) {
-    const imageModels = this.environmentConfig.imageModels;
+  async addImage(exampleIdx: number) {
+    const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
+    if (!englishTranslation) return;
+
+    const responses = await fetchJson<ExampleImage[]>(
+      this.http,
+      `/api/image`,
+      {
+        body: { input: englishTranslation } satisfies ImageSourceRequest,
+        method: 'POST',
+      }
+    );
+
     this.exampleImages.update((images) => {
-      images[exampleIdx] = [
-        ...images[exampleIdx],
-        ...imageModels.map((model) =>
-          this.createExampleImageResource(exampleIdx, model.id)
-        ),
+      const updated = [...images];
+      updated[exampleIdx] = [
+        ...updated[exampleIdx],
+        ...responses.map((response) => this.getExampleImageResource(response)),
       ];
-      return images;
+      return updated;
     });
     afterNextRender(() => this.imageCarousels()[exampleIdx]?.goToLast(), {
       injector: this.injector,
@@ -265,37 +273,6 @@ export class EditVocabularyCardComponent {
       injector: this.injector,
       loader: async () => {
         return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private createExampleImageResource(index: number, model: string) {
-    return resource({
-      injector: this.injector,
-      params: () => ({
-        englishTranslation: this.examplesTranslations()?.['en'][index](),
-      }),
-      loader: async ({ params: { englishTranslation } }) => {
-        if (!englishTranslation) {
-          return;
-        }
-
-        const response = await fetchJson<ExampleImage>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-              model,
-            } satisfies ImageSourceRequest,
-            method: 'POST',
-          }
-        );
-
-        return {
-          ...response,
-          url: await this.getExampleImageUrl(response.id),
-        };
       },
     });
   }

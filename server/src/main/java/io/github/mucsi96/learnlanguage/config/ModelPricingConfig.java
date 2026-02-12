@@ -40,10 +40,7 @@ public class ModelPricingConfig {
 
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.of(
         // OpenAI image models (1024x1024 high quality)
-        "gpt-image-1", new ImageModelPricing(new BigDecimal("0.167")),
         "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.133")),
-        // Google image models
-        "imagen-4.0-ultra-generate-001", new ImageModelPricing(new BigDecimal("0.06")),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
         "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.039"))
     );

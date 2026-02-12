@@ -13,7 +13,4 @@ import lombok.NoArgsConstructor;
 public class ImageSourceRequest {
   @NotNull
   private String input;
-
-  @NotNull
-  private ImageGenerationModel model;
 }

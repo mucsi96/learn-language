@@ -26,7 +26,6 @@ import {
 interface ImageGenerationTask {
   exampleIndex: number;
   englishTranslation: string;
-  model: string;
 }
 
 interface ImageGenerationResult {
@@ -177,15 +176,10 @@ export class BulkCardCreationService {
     try {
       this.updatePhase2(progressIndex, 'in-progress', `${label}: Starting image generation...`);
 
-      const imageModels = this.environmentConfig.imageModels;
-
-      const tasks: ImageGenerationTask[] = imageInfos.flatMap(info =>
-        imageModels.map(model => ({
-          exampleIndex: info.exampleIndex,
-          englishTranslation: info.englishTranslation,
-          model: model.id
-        }))
-      );
+      const tasks: ImageGenerationTask[] = imageInfos.map(info => ({
+        exampleIndex: info.exampleIndex,
+        englishTranslation: info.englishTranslation,
+      }));
 
       const totalTasks = tasks.length;
 
@@ -193,13 +187,12 @@ export class BulkCardCreationService {
         async (accPromise, task, index) => {
           const acc = await accPromise;
           try {
-            const response = await fetchJson<ImageResponse>(
+            const responses = await fetchJson<ImageResponse[]>(
               this.http,
               `/api/image`,
               {
                 body: {
                   input: task.englishTranslation,
-                  model: task.model
                 } satisfies ImageSourceRequest,
                 method: 'POST',
               }
@@ -211,7 +204,7 @@ export class BulkCardCreationService {
               `${label}: Generating images (${index + 1}/${totalTasks})...`
             );
 
-            return [...acc, { exampleIndex: task.exampleIndex, image: response }];
+            return [...acc, ...responses.map(response => ({ exampleIndex: task.exampleIndex, image: response }))];
           } catch {
             return acc;
           }

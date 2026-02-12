@@ -1,15 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
-import com.google.genai.types.GenerateImagesConfig;
-import com.google.genai.types.GenerateImagesResponse;
-import com.google.genai.types.Image;
 import com.google.genai.types.ImageConfig;
-import com.google.genai.types.Part;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
@@ -20,76 +18,49 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleImageService {
 
-  private static final String IMAGEN_MODEL = "imagen-4.0-ultra-generate-001";
-  private static final String GEMINI_3_PRO_IMAGE_PREVIEW_MODEL = "gemini-3-pro-image-preview";
+  private static final String MODEL_NAME = "gemini-3-pro-image-preview";
 
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateImageWithImagen(String prompt) {
-    long startTime = System.currentTimeMillis();
+  public List<byte[]> generateImages(String prompt) {
+    final long startTime = System.currentTimeMillis();
     try {
-      GenerateImagesConfig generateImagesConfig = GenerateImagesConfig.builder()
-          .numberOfImages(1)
-          .outputMimeType("image/jpeg")
-          .build();
-
-      GenerateImagesResponse generatedImagesResponse = googleAiClient.models.generateImages(
-          IMAGEN_MODEL,
-          prompt + ". Avoid using text.",
-          generateImagesConfig);
-
-      if (generatedImagesResponse.images().isEmpty()) {
-        throw new RuntimeException("No image generated from Google Imagen API");
-      }
-
-      Image generatedImage = generatedImagesResponse.images().get(0);
-
-      long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logImageUsage(IMAGEN_MODEL, OperationType.IMAGE_GENERATION, 1, processingTime);
-
-      return generatedImage.imageBytes().orElseThrow(
-          () -> new RuntimeException("No image bytes in generated image"));
-
-    } catch (Exception e) {
-      log.error("Failed to generate image with Google Imagen", e);
-      throw new RuntimeException("Failed to generate image with Google Imagen: " + e.getMessage(), e);
-    }
-  }
-
-  public byte[] generateImageWithNanoBananaPro(String prompt) {
-    long startTime = System.currentTimeMillis();
-    try {
-      GenerateContentConfig config = GenerateContentConfig.builder()
+      final GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
               .aspectRatio("1:1")
               .imageSize("1K")
+              .numberOfImages(2)
               .build())
           .build();
 
-      GenerateContentResponse response = googleAiClient.models.generateContent(
-          GEMINI_3_PRO_IMAGE_PREVIEW_MODEL,
+      final GenerateContentResponse response = googleAiClient.models.generateContent(
+          MODEL_NAME,
           prompt + ". Avoid using text.",
           config);
 
       if (response.candidates().isEmpty() || response.candidates().get().isEmpty()) {
-        throw new RuntimeException("No response from Nano Banana Pro API");
+        throw new RuntimeException("No response from Gemini image generation API");
       }
 
-      for (Part part : response.candidates().get().get(0).content().get().parts().get()) {
-        if (part.inlineData().isPresent()) {
-          long processingTime = System.currentTimeMillis() - startTime;
-          usageLoggingService.logImageUsage(GEMINI_3_PRO_IMAGE_PREVIEW_MODEL, OperationType.IMAGE_GENERATION, 1, processingTime);
-          return part.inlineData().get().data().get();
-        }
+      final List<byte[]> images = response.candidates().get().get(0).content().get().parts().get().stream()
+          .filter(part -> part.inlineData().isPresent())
+          .map(part -> part.inlineData().get().data().get())
+          .toList();
+
+      if (images.isEmpty()) {
+        throw new RuntimeException("No images found in Gemini response");
       }
 
-      throw new RuntimeException("No image found in Nano Banana Pro response");
+      final long processingTime = System.currentTimeMillis() - startTime;
+      usageLoggingService.logImageUsage(MODEL_NAME, OperationType.IMAGE_GENERATION, images.size(), processingTime);
+
+      return images;
 
     } catch (Exception e) {
-      log.error("Failed to generate image with Nano Banana Pro", e);
-      throw new RuntimeException("Failed to generate image with Nano Banana Pro: " + e.getMessage(), e);
+      log.error("Failed to generate images with Gemini", e);
+      throw new RuntimeException("Failed to generate images with Gemini: " + e.getMessage(), e);
     }
   }
 }

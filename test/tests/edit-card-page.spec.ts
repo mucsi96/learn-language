@@ -8,6 +8,7 @@ import {
   yellowImage,
   redImage,
   blueImage,
+  greenImage,
   navigateToCardEditing,
   uploadMockImage,
   setupDefaultChatModelSettings,
@@ -243,13 +244,13 @@ test('card editing in db', async ({ page }) => {
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
     expect(img2.equals(redImage)).toBeTruthy();
-    expect(img3.equals(redImage)).toBeTruthy();
+    expect(img3.equals(greenImage)).toBeTruthy();
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
-    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1');
+    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1.5');
     expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
-    expect(cardData.examples[1].images[3].model).toBe('Imagen 4 Ultra');
+    expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
   });
 });
@@ -554,8 +555,8 @@ test('image model name displayed below image', async ({ page }) => {
           en: "We leave at twelve o'clock.",
           ch: 'Mir fahred am zwöufi ab.',
           images: [
-            { id: image1, model: 'GPT Image 1' },
-            { id: image2, model: 'Imagen 4 Ultra' },
+            { id: image1, model: 'GPT Image 1.5' },
+            { id: image2, model: 'Gemini 3 Pro' },
           ],
         },
       ],
@@ -564,10 +565,10 @@ test('image model name displayed below image', async ({ page }) => {
 
   await navigateToCardEditing(page);
 
-  await expect(page.getByText('GPT Image 1')).toBeVisible();
+  await expect(page.getByText('GPT Image 1.5')).toBeVisible();
 
   await page.getByRole('button', { name: 'Next image' }).first().click();
-  await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 });
 
 test('speech card editing page displays sentence and translations', async ({ page }) => {

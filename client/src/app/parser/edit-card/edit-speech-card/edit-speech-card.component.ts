@@ -22,7 +22,6 @@ import { resource } from '@angular/core';
 import { Card, CardData, ExampleImage } from '../../types';
 import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
 import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
@@ -51,7 +50,6 @@ export class EditSpeechCardComponent {
 
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   private readonly imageCarousel = viewChild(ImageCarouselComponent);
 
   readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
@@ -105,11 +103,22 @@ export class EditSpeechCardComponent {
     });
   }
 
-  addImage() {
-    const imageModels = this.environmentConfig.imageModels;
+  async addImage() {
+    const englishTranslation = this.englishTranslation();
+    if (!englishTranslation) return;
+
+    const responses = await fetchJson<ExampleImage[]>(
+      this.http,
+      `/api/image`,
+      {
+        body: { input: englishTranslation } satisfies ImageSourceRequest,
+        method: 'POST',
+      }
+    );
+
     this.images.update((imgs) => [
       ...imgs,
-      ...imageModels.map((model) => this.createExampleImageResource(model.id)),
+      ...responses.map((response) => this.getExampleImageResource(response)),
     ]);
     afterNextRender(() => this.imageCarousel()?.goToLast(), {
       injector: this.injector,
@@ -199,37 +208,6 @@ export class EditSpeechCardComponent {
       injector: this.injector,
       loader: async () => {
         return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private createExampleImageResource(model: string) {
-    return resource({
-      injector: this.injector,
-      params: () => ({
-        englishTranslation: this.englishTranslation(),
-      }),
-      loader: async ({ params: { englishTranslation } }) => {
-        if (!englishTranslation) {
-          return;
-        }
-
-        const response = await fetchJson<ExampleImage>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-              model,
-            } satisfies ImageSourceRequest,
-            method: 'POST',
-          }
-        );
-
-        return {
-          ...response,
-          url: await this.getExampleImageUrl(response.id),
-        };
       },
     });
   }
