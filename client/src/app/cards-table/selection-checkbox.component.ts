@@ -44,6 +44,7 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
 
   agInit(params: ICellRendererParams): void {
     this.context = params.context as SelectionContext;
+    if (!params.data) return;
     this.rowId.set(params.data.id);
 
     runInInjectionContext(this.injector, () => {
@@ -54,6 +55,7 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
   }
 
   refresh(params: ICellRendererParams): boolean {
+    if (!params.data) return true;
     this.rowId.set(params.data.id);
     return true;
   }

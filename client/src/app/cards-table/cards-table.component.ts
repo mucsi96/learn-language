@@ -25,6 +25,7 @@ import {
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
+  ColumnAutoSizeModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
@@ -82,6 +83,7 @@ ModuleRegistry.registerModules([
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
+  ColumnAutoSizeModule,
 ]);
 
 @Component({
