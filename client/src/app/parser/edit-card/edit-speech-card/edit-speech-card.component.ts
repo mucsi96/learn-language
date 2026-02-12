@@ -8,8 +8,6 @@ import {
   untracked,
   effect,
   Injector,
-  viewChild,
-  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -24,7 +22,7 @@ import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
+import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -36,7 +34,7 @@ import { ImageCarouselComponent } from '../../../shared/image-carousel/image-car
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
-    ImageCarouselComponent,
+    ImageGridComponent,
   ],
   templateUrl: './edit-speech-card.component.html',
   styleUrl: './edit-speech-card.component.css',
@@ -52,8 +50,6 @@ export class EditSpeechCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  private readonly imageCarousel = viewChild(ImageCarouselComponent);
-
   readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
   readonly hungarianTranslation = linkedSignal(
     () => this.card()?.data.examples?.[0]?.hu
@@ -111,9 +107,6 @@ export class EditSpeechCardComponent {
       ...imgs,
       ...imageModels.map((model) => this.createExampleImageResource(model.id)),
     ]);
-    afterNextRender(() => this.imageCarousel()?.goToLast(), {
-      injector: this.injector,
-    });
   }
 
   areImagesLoading() {

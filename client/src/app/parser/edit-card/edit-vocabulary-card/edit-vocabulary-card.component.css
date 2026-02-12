@@ -26,26 +26,24 @@
 
 .example {
   display: grid;
-  grid-template-columns: auto 300px 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.example-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.example-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   column-gap: 1rem;
-  margin-bottom: 10px;
 }
 
 .page-loading {
   margin: 150px auto;
-}
-
-.actions {
-  grid-row: 1 / span 3;
-  grid-column: 1;
-  display: grid;
-  grid-template-rows: min-content min-content;
-  gap: 16px;
-}
-
-app-image-carousel {
-  grid-row: 1 / span 3;
-  grid-column: 2;
 }
 
 .delete-button {
