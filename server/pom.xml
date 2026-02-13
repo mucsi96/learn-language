@@ -198,8 +198,6 @@
             <configuration>
               <compilerId>eclipse</compilerId>
               <compilerArgs>
-                <arg>-d</arg>
-                <arg>none</arg>
                 <arg>-warn:+all</arg>
               </compilerArgs>
               <failOnWarning>true</failOnWarning>
