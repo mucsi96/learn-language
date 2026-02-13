@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -32,17 +33,19 @@ public class ImageController {
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
-    String uuid = UUID.randomUUID().toString();
-    String filePath = "images/%s.jpg".formatted(uuid);
+  public List<ExampleImageData> createImages(@Valid @RequestBody ImageSourceRequest imageSource) {
+    final String displayName = imageSource.getModel().getDisplayName();
 
-    byte[] data = imageService.generateImage(imageSource.getInput(), imageSource.getModel());
-    fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
-
-    return ExampleImageData.builder()
-        .id(uuid)
-        .model(imageSource.getModel().getDisplayName())
-        .build();
+    return imageService.generateImages(imageSource.getInput(), imageSource.getModel()).stream()
+        .map(data -> {
+          final String uuid = UUID.randomUUID().toString();
+          fileStorageService.saveFile(BinaryData.fromBytes(data), "images/%s.jpg".formatted(uuid));
+          return ExampleImageData.builder()
+              .id(uuid)
+              .model(displayName)
+              .build();
+        })
+        .toList();
   }
 
   @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)

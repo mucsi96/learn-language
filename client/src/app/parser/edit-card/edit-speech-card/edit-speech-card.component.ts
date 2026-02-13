@@ -101,12 +101,29 @@ export class EditSpeechCardComponent {
     });
   }
 
-  addImage() {
+  async addImage() {
     const imageModels = this.environmentConfig.imageModels;
-    this.images.update((imgs) => [
-      ...imgs,
-      ...imageModels.map((model) => this.createExampleImageResource(model.id)),
-    ]);
+    const englishTranslation = this.englishTranslation();
+    if (!englishTranslation) return;
+
+    for (const model of imageModels) {
+      const responses = await fetchJson<ExampleImage[]>(
+        this.http,
+        `/api/image`,
+        {
+          body: {
+            input: englishTranslation,
+            model: model.id,
+          } satisfies ImageSourceRequest,
+          method: 'POST',
+        }
+      );
+
+      this.images.update((imgs) => [
+        ...imgs,
+        ...responses.map(response => this.getExampleImageResource(response)),
+      ]);
+    }
   }
 
   areImagesLoading() {
@@ -192,37 +209,6 @@ export class EditSpeechCardComponent {
       injector: this.injector,
       loader: async () => {
         return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private createExampleImageResource(model: string) {
-    return resource({
-      injector: this.injector,
-      params: () => ({
-        englishTranslation: this.englishTranslation(),
-      }),
-      loader: async ({ params: { englishTranslation } }) => {
-        if (!englishTranslation) {
-          return;
-        }
-
-        const response = await fetchJson<ExampleImage>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-              model,
-            } satisfies ImageSourceRequest,
-            method: 'POST',
-          }
-        );
-
-        return {
-          ...response,
-          url: await this.getExampleImageUrl(response.id),
-        };
       },
     });
   }

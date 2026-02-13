@@ -30,6 +30,7 @@ export interface ChatMessage {
 export interface ImageGenerationRequest {
   prompt: string;
   model: string;
+  n?: number;
 }
 
 export interface ImageGenerationResponse {

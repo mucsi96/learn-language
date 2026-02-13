@@ -7,6 +7,7 @@ import {
   withDbConnection,
   yellowImage,
   redImage,
+  greenImage,
   blueImage,
   navigateToCardEditing,
   uploadMockImage,
@@ -194,13 +195,13 @@ test('card editing in db', async ({ page }) => {
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
     expect(img2.equals(redImage)).toBeTruthy();
-    expect(img3.equals(redImage)).toBeTruthy();
+    expect(img3.equals(greenImage)).toBeTruthy();
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
-    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1');
+    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1.5');
     expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
-    expect(cardData.examples[1].images[3].model).toBe('Imagen 4 Ultra');
+    expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
   });
 });
