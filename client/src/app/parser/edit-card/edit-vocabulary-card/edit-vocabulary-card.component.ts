@@ -9,8 +9,6 @@ import {
   untracked,
   effect,
   Injector,
-  viewChildren,
-  afterNextRender,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -30,7 +28,7 @@ import { fetchJson } from '../../../utils/fetchJson';
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
+import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -44,7 +42,7 @@ import { ImageCarouselComponent } from '../../../shared/image-carousel/image-car
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
-    ImageCarouselComponent,
+    ImageGridComponent,
   ],
   templateUrl: './edit-vocabulary-card.component.html',
   styleUrl: './edit-vocabulary-card.component.css',
@@ -60,7 +58,6 @@ export class EditVocabularyCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  private readonly imageCarousels = viewChildren(ImageCarouselComponent);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
@@ -169,9 +166,6 @@ export class EditVocabularyCardComponent {
         ),
       ];
       return images;
-    });
-    afterNextRender(() => this.imageCarousels()[exampleIdx]?.goToLast(), {
-      injector: this.injector,
     });
   }
 

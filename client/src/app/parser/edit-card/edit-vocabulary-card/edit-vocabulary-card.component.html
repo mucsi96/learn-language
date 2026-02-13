@@ -68,7 +68,7 @@
   @for (example of examples(); track $index) { @let images =
   exampleImages()[$index];
   <div class="example">
-    <div class="actions">
+    <div class="example-actions">
       <mat-radio-button [value]="$index"></mat-radio-button>
       <button
         mat-icon-button
@@ -79,41 +79,43 @@
         <mat-icon>add_photo_alternate</mat-icon>
       </button>
     </div>
-    <mat-form-field class="field">
-      <mat-label>German</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="example"
-        aria-label="Example in German"
-      />
-    </mat-form-field>
-    @if(examplesTranslations(); as examplesTranslations) {
-    <mat-form-field class="field">
-      <mat-label>Hungarian</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="examplesTranslations['hu'][$index]"
-        aria-label="Example in Hungarian"
-      />
-    </mat-form-field>
-    <mat-form-field class="field">
-      <mat-label>Swiss German</mat-label>
-      <input
-        matInput
-        type="text"
-        [(ngModel)]="examplesTranslations['ch'][$index]"
-        aria-label="Example in Swiss German"
-      />
-    </mat-form-field>
+    <div class="example-fields">
+      <mat-form-field class="field">
+        <mat-label>German</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="example"
+          aria-label="Example in German"
+        />
+      </mat-form-field>
+      @if(examplesTranslations(); as examplesTranslations) {
+      <mat-form-field class="field">
+        <mat-label>Hungarian</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['hu'][$index]"
+          aria-label="Example in Hungarian"
+        />
+      </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>Swiss German</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['ch'][$index]"
+          aria-label="Example in Swiss German"
+        />
+      </mat-form-field>
+      }
+    </div>
     @if (images && images.length) {
-      <app-image-carousel
+      <app-image-grid
         [images]="images"
         [altText]="example() ?? ''"
         (favoriteToggled)="onFavoriteToggled($index, $event)"
       />
-    }
     }
   </div>
   }

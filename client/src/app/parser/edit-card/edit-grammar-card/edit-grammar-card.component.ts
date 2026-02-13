@@ -9,7 +9,6 @@ import {
   effect,
   Injector,
   viewChild,
-  afterNextRender,
   ElementRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -26,7 +25,7 @@ import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
+import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
 import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
@@ -40,7 +39,7 @@ import { createGrammarGapRegex } from '../../../shared/constants/grammar.constan
     MatIcon,
     MatProgressSpinnerModule,
     MatChipsModule,
-    ImageCarouselComponent,
+    ImageGridComponent,
   ],
   templateUrl: './edit-grammar-card.component.html',
   styleUrl: './edit-grammar-card.component.css',
@@ -56,7 +55,6 @@ export class EditGrammarCardComponent {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  private readonly imageCarousel = viewChild(ImageCarouselComponent);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
   readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
@@ -167,9 +165,6 @@ export class EditGrammarCardComponent {
       ...imgs,
       ...imageModels.map((model) => this.createExampleImageResource(model.id)),
     ]);
-    afterNextRender(() => this.imageCarousel()?.goToLast(), {
-      injector: this.injector,
-    });
   }
 
   areImagesLoading() {

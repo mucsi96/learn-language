@@ -44,24 +44,22 @@
   <p class="sentence-preview">{{ sentenceWithGaps() }}</p>
 </div>
 
-<h2>Images</h2>
 <div class="images-section">
-  <div class="actions">
-    <button
-      mat-icon-button
-      (click)="addImage()"
-      aria-label="Add image"
-      [disabled]="areImagesLoading()"
-    >
-      <mat-icon>add_photo_alternate</mat-icon>
-    </button>
-  </div>
-  @let imgs = images();
-  @if (imgs && imgs.length) {
-    <app-image-carousel
-      [images]="imgs"
-      [altText]="sentence() ?? ''"
-      (favoriteToggled)="onFavoriteToggled($event)"
-    />
-  }
+  <h2>Images</h2>
+  <button
+    mat-icon-button
+    (click)="addImage()"
+    aria-label="Add image"
+    [disabled]="areImagesLoading()"
+  >
+    <mat-icon>add_photo_alternate</mat-icon>
+  </button>
 </div>
+@let imgs = images();
+@if (imgs && imgs.length) {
+  <app-image-grid
+    [images]="imgs"
+    [altText]="sentence() ?? ''"
+    (favoriteToggled)="onFavoriteToggled($event)"
+  />
+}

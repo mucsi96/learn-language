@@ -1,0 +1,31 @@
+@for (imageResource of images(); track $index) {
+  @let url = imageResource.value()?.url;
+  <div class="image">
+    @if (imageResource.isLoading()) {
+      <div class="skeleton"></div>
+    } @else if (url) {
+      <img [src]="url" [alt]="altText()" />
+      <div
+        class="image-overlay"
+        [class.image-overlay-favorite]="imageResource.value()?.isFavorite"
+      >
+        <button
+          mat-icon-button
+          (click)="toggleFavorite($index)"
+          aria-label="Toggle favorite"
+          [color]="imageResource.value()?.isFavorite ? 'warn' : ''"
+          [attr.aria-pressed]="imageResource.value()?.isFavorite"
+        >
+          <mat-icon>{{
+            imageResource.value()?.isFavorite ? "favorite" : "favorite_border"
+          }}</mat-icon>
+        </button>
+      </div>
+    } @else {
+      <mat-icon class="no-image-icon">image_not_supported</mat-icon>
+    }
+    @if (imageResource.value()?.model) {
+      <span class="model-name">{{ imageResource.value()?.model }}</span>
+    }
+  </div>
+}

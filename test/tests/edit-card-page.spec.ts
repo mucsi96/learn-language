@@ -45,56 +45,6 @@ async function prepareCard(page: Page) {
   return await navigateToCardEditing(page);
 }
 
-test('carousel indicator initial', async ({ page }) => {
-  await prepareCard(page);
-  await expect(page.getByText('1 / 2')).toBeVisible();
-});
-
-test('prev button disabled on first image', async ({ page }) => {
-  await prepareCard(page);
-  const prevButton = page.getByRole('button', { name: 'Previous image' }).first();
-  await expect(prevButton).toBeDisabled();
-});
-
-test('next button enabled on first image', async ({ page }) => {
-  await prepareCard(page);
-  const nextButton = page.getByRole('button', { name: 'Next image' }).first();
-  await expect(nextButton).toBeEnabled();
-});
-
-test('next click updates indicator and disables next', async ({ page }) => {
-  await prepareCard(page);
-  const nextButton = page.getByRole('button', { name: 'Next image' }).first();
-  await nextButton.click();
-  await expect(page.getByText('2 / 2')).toBeVisible();
-  await expect(nextButton).toBeDisabled();
-});
-
-test('prev click from last image', async ({ page }) => {
-  await prepareCard(page);
-  const nextButton = page.getByRole('button', { name: 'Next image' }).first();
-  const prevButton = page.getByRole('button', { name: 'Previous image' }).first();
-  await nextButton.click();
-  await prevButton.click();
-  await expect(page.getByText('1 / 2')).toBeVisible();
-  await expect(prevButton).toBeDisabled();
-  await expect(nextButton).toBeEnabled();
-});
-
-test('image on first page', async ({ page }) => {
-  await prepareCard(page);
-  const imageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
-  expect(imageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
-});
-
-test('image content changes on navigation', async ({ page }) => {
-  await prepareCard(page);
-  const nextButton = page.getByRole('button', { name: 'Next image' }).first();
-  await nextButton.click();
-  const image2 = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
-  expect(image2.equals(getColorImageBytes('red'))).toBeTruthy();
-});
-
 test('back button navigates to source page', async ({ page }) => {
   await prepareCard(page);
   await page.getByRole('link', { name: 'Back' }).click();
@@ -213,11 +163,12 @@ test('card editing in db', async ({ page }) => {
 
   const imageLocator = page.getByRole('img', {
     name: 'Wann fährt der Zug ab?',
-  });
+  })
+  ;
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
   await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 
-  const imageContent2 = await getImageContent(imageLocator);
+  const imageContent2 = await getImageContent(imageLocator.last());
 
   expect(imageContent2.equals(getColorImageBytes('green'))).toBeTruthy();
 
@@ -430,7 +381,7 @@ test('example image addition', async ({ page }) => {
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 
-  const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
+  const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }).last());
   expect(regeneratedImageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
 
 });
@@ -565,8 +516,6 @@ test('image model name displayed below image', async ({ page }) => {
   await navigateToCardEditing(page);
 
   await expect(page.getByText('GPT Image 1')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Next image' }).first().click();
   await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
 });
 
