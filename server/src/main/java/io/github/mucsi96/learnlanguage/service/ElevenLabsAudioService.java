@@ -33,7 +33,7 @@ public class ElevenLabsAudioService {
   private final ElevenLabsVoicesApi voicesApi;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateAudio(String input, String voiceId, String model, String language) {
+  public byte[] generateAudio(String input, String voiceId, String model, String language, String context) {
     long startTime = System.currentTimeMillis();
     try {
       String processedInput = input;
@@ -47,11 +47,16 @@ public class ElevenLabsAudioService {
         }
       }
 
-      var speechOptions = ElevenLabsTextToSpeechOptions.builder()
+      var optionsBuilder = ElevenLabsTextToSpeechOptions.builder()
           .voiceId(voiceId)
           .model(model)
-          .languageCode(languageCode)
-          .build();
+          .languageCode(languageCode);
+
+      if (context != null && !context.isEmpty()) {
+        optionsBuilder.previousText(context);
+      }
+
+      var speechOptions = optionsBuilder.build();
 
       var speechPrompt = new TextToSpeechPrompt(processedInput, speechOptions);
 

@@ -4,6 +4,7 @@ export interface AudioSourceRequest {
   model?: string;
   language?: string;
   selected?: boolean;
+  context?: string;
 }
 
 export interface AudioResponse {
