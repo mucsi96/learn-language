@@ -20,16 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 public class GoogleImageService {
 
   private static final String MODEL_NAME = "gemini-3-pro-image-preview";
-  private static final int IMAGE_COUNT = 2;
-
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public List<byte[]> generateImages(String prompt) {
+  public List<byte[]> generateImages(String prompt, int imageCount) {
     final long startTime = System.currentTimeMillis();
     try {
       final GenerateContentConfig config = GenerateContentConfig.builder()
-          .candidateCount(IMAGE_COUNT)
+          .candidateCount(imageCount)
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
               .aspectRatio("1:1")

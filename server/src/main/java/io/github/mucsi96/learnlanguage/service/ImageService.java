@@ -17,8 +17,8 @@ public class ImageService {
 
   public List<byte[]> generateImages(String input, ImageGenerationModel model) {
     return switch (model) {
-      case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input);
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input);
+      case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, model.getImageCount());
+      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, model.getImageCount());
     };
   }
 }

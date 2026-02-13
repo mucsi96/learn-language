@@ -18,12 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 public class OpenAIImageService {
 
     private static final String MODEL_NAME = "gpt-image-1.5";
-    private static final int IMAGE_COUNT = 2;
-
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public List<byte[]> generateImages(String prompt) {
+    public List<byte[]> generateImages(String prompt, int imageCount) {
         final long startTime = System.currentTimeMillis();
         try {
             final ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
@@ -31,7 +29,7 @@ public class OpenAIImageService {
                 .model(MODEL_NAME)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
-                .n(IMAGE_COUNT)
+                .n(imageCount)
                 .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
                 .outputCompression(75)
                 .build();
