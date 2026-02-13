@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Service;
 
@@ -8,7 +9,6 @@ import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.ImageConfig;
-import com.google.genai.types.Part;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,6 @@ public class GoogleImageService {
     final long startTime = System.currentTimeMillis();
     try {
       final GenerateContentConfig config = GenerateContentConfig.builder()
-          .candidateCount(imageCount)
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
               .aspectRatio("1:1")
@@ -35,19 +34,15 @@ public class GoogleImageService {
               .build())
           .build();
 
-      final GenerateContentResponse response = googleAiClient.models.generateContent(
-          MODEL_NAME,
-          "Create a photorealistic image for the following context: " + prompt + ". Avoid using text.",
-          config);
+      final String fullPrompt = "Create a photorealistic image for the following context: " + prompt
+          + ". Avoid using text.";
 
-      if (response.candidates().isEmpty() || response.candidates().get().isEmpty()) {
-        throw new RuntimeException("No response from Gemini 3 Pro Image API");
-      }
-
-      final List<byte[]> images = response.candidates().get().stream()
-          .flatMap(candidate -> candidate.content().get().parts().get().stream())
+      final List<byte[]> images = IntStream.range(0, imageCount)
+          .mapToObj(i -> googleAiClient.models.generateContent(MODEL_NAME, fullPrompt, config))
+          .flatMap(response -> response.candidates().orElseThrow().stream())
+          .flatMap(candidate -> candidate.content().orElseThrow().parts().orElseThrow().stream())
           .filter(part -> part.inlineData().isPresent())
-          .map(part -> part.inlineData().get().data().get())
+          .map(part -> part.inlineData().get().data().orElseThrow())
           .toList();
 
       if (images.isEmpty()) {
