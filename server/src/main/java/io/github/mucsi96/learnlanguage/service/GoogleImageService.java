@@ -29,6 +29,7 @@ public class GoogleImageService {
     final long startTime = System.currentTimeMillis();
     try {
       final GenerateContentConfig config = GenerateContentConfig.builder()
+          .candidateCount(IMAGE_COUNT)
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
               .aspectRatio("1:1")
@@ -38,14 +39,15 @@ public class GoogleImageService {
 
       final GenerateContentResponse response = googleAiClient.models.generateContent(
           MODEL_NAME,
-          "Generate " + IMAGE_COUNT + " images for the following context: " + prompt + ". Avoid using text.",
+          "Create a photorealistic image for the following context: " + prompt + ". Avoid using text.",
           config);
 
       if (response.candidates().isEmpty() || response.candidates().get().isEmpty()) {
         throw new RuntimeException("No response from Gemini 3 Pro Image API");
       }
 
-      final List<byte[]> images = response.candidates().get().get(0).content().get().parts().get().stream()
+      final List<byte[]> images = response.candidates().get().stream()
+          .flatMap(candidate -> candidate.content().get().parts().get().stream())
           .filter(part -> part.inlineData().isPresent())
           .map(part -> part.inlineData().get().data().get())
           .toList();

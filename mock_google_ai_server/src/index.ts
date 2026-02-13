@@ -30,18 +30,18 @@ app.post(
       console.log({ prompt });
       const images = imageHandler.generateImages(prompt);
       res.status(200).json({
-        candidates: [
-          {
-            content: {
-              parts: images.map(imageBytes => ({
+        candidates: images.map(imageBytes => ({
+          content: {
+            parts: [
+              {
                 inlineData: {
                   mimeType: 'image/png',
                   data: imageBytes,
                 },
-              })),
-            },
+              },
+            ],
           },
-        ],
+        })),
       });
       console.log({ imageCount: images.length });
     } catch (error) {
