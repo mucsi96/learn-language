@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
@@ -13,12 +15,10 @@ public class ImageService {
   private final OpenAIImageService openAIImageService;
   private final GoogleImageService googleImageService;
 
-  public byte[] generateImage(String input, ImageGenerationModel model) {
+  public List<byte[]> generateImages(String input, ImageGenerationModel model) {
     return switch (model) {
-      case GPT_IMAGE_1 -> openAIImageService.generateImage(input);
-      case GPT_IMAGE_1_5 -> openAIImageService.generateImageWithModel15(input);
-      case IMAGEN_4_ULTRA -> googleImageService.generateImageWithImagen(input);
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImageWithNanoBananaPro(input);
+      case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, model.getImageCount());
+      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, model.getImageCount());
     };
   }
 }

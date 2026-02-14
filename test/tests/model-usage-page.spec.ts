@@ -116,7 +116,7 @@ test('displays chat model usage logs', async ({ page }) => {
 
 test('displays image model usage logs', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-image-1',
+    modelName: 'gpt-image-1.5',
     modelType: 'IMAGE',
     operationType: 'IMAGE_GENERATION',
     operationId: 'op-image-1',
@@ -135,7 +135,7 @@ test('displays image model usage logs', async ({ page }) => {
 
     expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
-        Model: 'gpt-image-1',
+        Model: 'gpt-image-1.5',
         Type: 'IMAGE',
         Operation: 'image_generation',
         Usage: '1 image(s)',
@@ -352,7 +352,7 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
 
 test('does not show rating for image models', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-image-1',
+    modelName: 'gpt-image-1.5',
     modelType: 'IMAGE',
     operationType: 'IMAGE_GENERATION',
     operationId: 'op-no-rating-image',

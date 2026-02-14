@@ -28,38 +28,25 @@ const PROMPT_CONFIGS: PromptConfig[] = [
 ];
 
 export class ImageGenerationHandler {
-  private counters = new Map<string, number>();
+  reset(): void {}
 
-  reset(): void {
-    this.counters.clear();
-  }
+  generateImages(request: ImageGenerationRequest): ImageGenerationResponse {
+    const { prompt, model, n = 2 } = request;
 
-  generateImage(request: ImageGenerationRequest): ImageGenerationResponse {
-    const { prompt, model } = request;
+    console.log('Received image generation request with prompt:', prompt, 'n:', n);
 
-    console.log('Received image generation request with prompt:', prompt);
-
-    let b64_json = IMAGES.yellow;
-
-    for (const promptConfig of PROMPT_CONFIGS) {
-      if (prompt.includes(promptConfig.pattern)) {
-        const counterKey = `${model}:${promptConfig.pattern}`;
-        const count = (this.counters.get(counterKey) ?? 0) + 1;
-        this.counters.set(counterKey, count);
-        b64_json = count > 1 ? promptConfig.secondImage : promptConfig.firstImage;
-        break;
-      }
-    }
+    const matchedConfig = PROMPT_CONFIGS.find(config => prompt.includes(config.pattern));
+    const images = matchedConfig
+      ? [matchedConfig.firstImage, matchedConfig.secondImage]
+      : [IMAGES.yellow, IMAGES.blue];
 
     return {
       created: Date.now(),
-      data: [
-        {
-          b64_json,
-          revised_prompt: prompt,
-          url: null,
-        },
-      ],
+      data: images.slice(0, n).map(b64_json => ({
+        b64_json,
+        revised_prompt: prompt,
+        url: null,
+      })),
     };
   }
 }

@@ -26,20 +26,12 @@ const IMAGE_MODELS: ImageModelConfig[] = [
 ];
 
 export class ImageGenerationHandler {
-  private counters = new Map<string, number>();
+  reset(): void {}
 
-  reset(): void {
-    this.counters.clear();
-  }
-
-  generateImage(prompt: string) {
-    for (const model of IMAGE_MODELS) {
-      if (prompt.includes(model.pattern)) {
-        const count = (this.counters.get(model.pattern) ?? 0) + 1;
-        this.counters.set(model.pattern, count);
-        return count > 1 ? model.secondImage : model.firstImage;
-      }
-    }
-    return IMAGES.yellow;
+  generateImages(prompt: string): string[] {
+    const matchedConfig = IMAGE_MODELS.find(model => prompt.includes(model.pattern));
+    return matchedConfig
+      ? [matchedConfig.firstImage, matchedConfig.secondImage]
+      : [IMAGES.yellow, IMAGES.blue];
   }
 }
