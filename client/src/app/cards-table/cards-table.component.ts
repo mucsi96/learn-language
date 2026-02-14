@@ -346,6 +346,28 @@ export class CardsTableComponent {
     this.refreshGrid();
   }
 
+  async deleteSelectedAudio(): Promise<void> {
+    const ids = this.selectedIds();
+    if (ids.length === 0) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to delete audio for ${ids.length} card(s)?`,
+      },
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) return;
+
+    await this.cardsTableService.deleteCardsAudio(ids);
+    this.snackBar.open(`Audio deleted for ${ids.length} card(s)`, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+    this.refreshGrid();
+  }
+
   private toggleSelection(id: string): void {
     const current = this.selectedIds();
     const currentSet = this.selectedIdsSet();

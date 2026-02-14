@@ -54,6 +54,14 @@
   background-color: darkred;
 }
 
+.delete-audio-fab {
+  background-color: #ff6d00;
+}
+
+.delete-audio-fab:hover {
+  background-color: #e65100;
+}
+
 .cards-grid {
   width: 100%;
   height: 600px;

@@ -103,6 +103,15 @@ public class CardController {
         String.format("%d card(s) deleted", cardIds.size())));
   }
 
+  @DeleteMapping("/cards/audio")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> deleteCardsAudio(@RequestBody List<String> cardIds) {
+    cardService.deleteAudioForCards(cardIds);
+
+    return ResponseEntity.ok(Map.of("detail",
+        String.format("Audio deleted for %d card(s)", cardIds.size())));
+  }
+
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {

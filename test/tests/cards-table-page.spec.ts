@@ -1,10 +1,14 @@
 import { test, expect } from '../fixtures';
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   createCard,
   createReviewLog,
   createLearningPartner,
   getGridData,
   withDbConnection,
+  STORAGE_DIR,
+  germanAudioSample,
 } from '../utils';
 
 test('navigates to cards table from page view', async ({ page }) => {
@@ -685,4 +689,81 @@ test('changing filter resets selection', async ({ page }) => {
   await expect(
     page.getByRole('button', { name: /Mark .* as known/ })
   ).not.toBeVisible();
+});
+
+test('deletes audio for selected cards with confirmation', async ({ page }) => {
+  const audioId1 = 'del-audio-1';
+  const audioId2 = 'del-audio-2';
+  const audioId3 = 'del-audio-3';
+
+  await createCard({
+    cardId: 'audio-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Musik',
+      type: 'NOUN',
+      translation: { en: 'music' },
+      audio: [
+        { id: audioId1, text: 'Musik', language: 'de', voice: 'v1', model: 'eleven_v3' },
+      ],
+    },
+  });
+
+  await createCard({
+    cardId: 'audio-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Klang',
+      type: 'NOUN',
+      translation: { en: 'sound' },
+      audio: [
+        { id: audioId2, text: 'Klang', language: 'de', voice: 'v1', model: 'eleven_v3' },
+        { id: audioId3, text: 'Klang', language: 'hu', voice: 'v2', model: 'eleven_v3' },
+      ],
+    },
+  });
+
+  const audioDir = path.join(STORAGE_DIR, 'audio');
+  fs.mkdirSync(audioDir, { recursive: true });
+  fs.writeFileSync(path.join(audioDir, `${audioId1}.mp3`), germanAudioSample);
+  fs.writeFileSync(path.join(audioDir, `${audioId2}.mp3`), germanAudioSample);
+  fs.writeFileSync(path.join(audioDir, `${audioId3}.mp3`), germanAudioSample);
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.Card)).toEqual(
+      expect.arrayContaining(['Musik', 'Klang'])
+    );
+  }).toPass();
+
+  await page.getByRole('row', { name: /Musik/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /Klang/ }).getByRole('checkbox').click();
+
+  await page.getByRole('button', { name: /Delete audio 2/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+  await expect(
+    dialog.getByText('Are you sure you want to delete audio for 2 card(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('Audio deleted for 2 card(s)')).toBeVisible();
+
+  expect(fs.existsSync(path.join(audioDir, `${audioId1}.mp3`))).toBe(false);
+  expect(fs.existsSync(path.join(audioDir, `${audioId2}.mp3`))).toBe(false);
+  expect(fs.existsSync(path.join(audioDir, `${audioId3}.mp3`))).toBe(false);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id IN ('audio-card-1', 'audio-card-2')"
+    );
+    result.rows.forEach((row: { data: { audio?: unknown[] } }) => {
+      expect(row.data.audio).toBeUndefined();
+    });
+  });
 });

@@ -114,4 +114,10 @@ export class CardsTableService {
       this.http.delete('/api/cards', { body: cardIds })
     );
   }
+
+  async deleteCardsAudio(cardIds: readonly string[]): Promise<void> {
+    await firstValueFrom(
+      this.http.delete('/api/cards/audio', { body: cardIds })
+    );
+  }
 }

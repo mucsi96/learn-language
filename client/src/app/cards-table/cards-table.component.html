@@ -86,6 +86,15 @@
       <button
         mat-fab
         extended
+        class="action-fab delete-audio-fab"
+        (click)="deleteSelectedAudio()"
+      >
+        <mat-icon>volume_off</mat-icon>
+        Delete audio {{ selectedCount() }}
+      </button>
+      <button
+        mat-fab
+        extended
         color="primary"
         class="action-fab"
         (click)="markSelectedAsKnown()"
