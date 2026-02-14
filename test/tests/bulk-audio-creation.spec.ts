@@ -774,3 +774,154 @@ test('bulk audio creation for speech cards', async ({ page }) => {
     expect(downloadAudio(hungarianTranslationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
   });
 });
+
+test('bulk audio creation assigns same voice per language within a card', async ({ page }) => {
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-de',
+    model: 'eleven_v3',
+    language: 'de',
+    displayName: 'German Voice A',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-multilang',
+    model: 'eleven_v3',
+    language: 'de',
+    displayName: 'German Voice B',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-hu',
+    model: 'eleven_v3',
+    language: 'hu',
+    displayName: 'Hungarian Voice',
+    isEnabled: true,
+  });
+
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni' },
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          isSelected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
+    const cardData = result.rows[0].data;
+    const audioList = cardData.audio;
+
+    const germanAudios = audioList.filter((a: any) => a.language === 'de');
+    expect(germanAudios.length).toBe(2);
+    const germanVoice = germanAudios[0].voice;
+    germanAudios.forEach((audio: any) => {
+      expect(audio.voice).toBe(germanVoice);
+    });
+  });
+});
+
+test('bulk audio creation assigns voices in round-robin per card', async ({ page }) => {
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-de',
+    model: 'eleven_v3',
+    language: 'de',
+    displayName: 'German Voice A',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-multilang',
+    model: 'eleven_v3',
+    language: 'de',
+    displayName: 'German Voice B',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-hu',
+    model: 'eleven_v3',
+    language: 'hu',
+    displayName: 'Hungarian Voice',
+    isEnabled: true,
+  });
+
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni' },
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          isSelected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await createCard({
+    cardId: 'sprechen-beszelni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'sprechen',
+      type: 'VERB',
+      translation: { en: 'to speak', hu: 'beszélni' },
+      examples: [
+        {
+          de: 'Ich spreche Deutsch.',
+          hu: 'Németül beszélek.',
+          isSelected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+  await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result1 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
+    const result2 = await client.query("SELECT data FROM learn_language.cards WHERE id = 'sprechen-beszelni'");
+
+    const card1Audios = result1.rows[0].data.audio;
+    const card2Audios = result2.rows[0].data.audio;
+
+    const card1GermanVoice = card1Audios.find((a: any) => a.language === 'de').voice;
+    const card2GermanVoice = card2Audios.find((a: any) => a.language === 'de').voice;
+
+    expect(card1GermanVoice).not.toBe(card2GermanVoice);
+
+    card1Audios
+      .filter((a: any) => a.language === 'de')
+      .forEach((audio: any) => {
+        expect(audio.voice).toBe(card1GermanVoice);
+      });
+
+    card2Audios
+      .filter((a: any) => a.language === 'de')
+      .forEach((audio: any) => {
+        expect(audio.voice).toBe(card2GermanVoice);
+      });
+  });
+});
