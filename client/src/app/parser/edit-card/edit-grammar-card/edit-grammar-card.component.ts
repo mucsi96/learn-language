@@ -5,10 +5,8 @@ import {
   computed,
   inject,
   linkedSignal,
-  signal,
   untracked,
   effect,
-  Injector,
   viewChild,
   ElementRef,
 } from '@angular/core';
@@ -19,18 +17,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
-import { HttpClient } from '@angular/common/http';
-import { resource } from '@angular/core';
-import { Card, CardData, ExampleImage } from '../../types';
-import { fetchAsset } from '../../../utils/fetchAsset';
-import { fetchJson } from '../../../utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
-import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
+import { Card, CardData } from '../../types';
 import {
   ImageGridComponent,
   GridImageResource,
-  GridImageValue,
 } from '../../../shared/image-grid/image-grid.component';
+import { ImageResourceService } from '../../../shared/image-resource.service';
 import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
@@ -58,9 +50,7 @@ export class EditGrammarCardComponent {
   saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
-  private readonly injector = inject(Injector);
-  private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageResourceService = inject(ImageResourceService);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
   readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
@@ -89,8 +79,9 @@ export class EditGrammarCardComponent {
 
       const example = this.card()?.data.examples?.[0];
       return (
-        example?.images?.map((image) => this.getExampleImageResource(image)) ??
-        []
+        example?.images?.map((image) =>
+          this.imageResourceService.createResource(image)
+        ) ?? []
       );
     });
   });
@@ -166,46 +157,15 @@ export class EditGrammarCardComponent {
   }
 
   async addImage() {
-    const imageModels = this.environmentConfig.imageModels;
     const englishTranslation = this.englishTranslation();
     if (!englishTranslation) return;
 
-    const allPlaceholders = imageModels.flatMap((model) =>
-      Array.from({ length: model.imageCount }, () =>
-        this.createPendingImageResource(model.displayName)
-      )
-    );
+    const { placeholders, done } =
+      this.imageResourceService.generateImages(englishTranslation);
 
-    this.images.update((imgs) => [
-      ...imgs,
-      ...allPlaceholders.map((p) => p.gridResource),
-    ]);
+    this.images.update((imgs) => [...imgs, ...placeholders]);
 
-    let placeholderOffset = 0;
-    await Promise.all(
-      imageModels.map(async (model) => {
-        const startIdx = placeholderOffset;
-        placeholderOffset += model.imageCount;
-
-        const responses = await fetchJson<ExampleImage[]>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-              model: model.id,
-            } satisfies ImageSourceRequest,
-            method: 'POST',
-          }
-        );
-
-        await Promise.all(
-          responses.map((response, i) =>
-            allPlaceholders[startIdx + i].resolve(response)
-          )
-        );
-      })
-    );
+    await done;
 
     const cardData = this.getCardData();
     if (cardData) {
@@ -226,14 +186,7 @@ export class EditGrammarCardComponent {
     const image = imgs[imageIdx];
     if (!image || image.isLoading()) return;
 
-    const imageValue = image.value();
-    if (!imageValue) return;
-
-    (image as any).set({
-      ...imageValue,
-      isFavorite: !imageValue.isFavorite,
-    });
-
+    this.imageResourceService.toggleFavorite(image);
     this.images.update((currentImages) => [...currentImages]);
   }
 
@@ -267,20 +220,7 @@ export class EditGrammarCardComponent {
           de: sentenceText,
           en: this.englishTranslation(),
           isSelected: true,
-          images: this.images()
-            ?.map((image) => image.value())
-            .filter(
-              (image): image is GridImageValue & { id: string } =>
-                image != null && !!image.id
-            )
-            .map(
-              (image) =>
-                ({
-                  id: image.id,
-                  model: image.model,
-                  isFavorite: image.isFavorite,
-                }) satisfies ExampleImage
-            ),
+          images: this.imageResourceService.toExampleImages(this.images()),
         },
       ],
       audio: this.card()?.data.audio || [],
@@ -292,39 +232,5 @@ export class EditGrammarCardComponent {
       sourcePageNumber: pageNumber,
       data,
     };
-  }
-
-  private createPendingImageResource(modelDisplayName: string) {
-    const isLoading = signal(true);
-    const value = signal<GridImageValue | undefined>({ model: modelDisplayName });
-
-    const gridResource: GridImageResource = {
-      isLoading: isLoading.asReadonly(),
-      value: value.asReadonly(),
-    };
-
-    const resolve = async (image: ExampleImage) => {
-      const url = await this.getExampleImageUrl(image.id);
-      value.set({ ...image, url });
-      isLoading.set(false);
-    };
-
-    return { gridResource, resolve };
-  }
-
-  private getExampleImageResource(image: ExampleImage): GridImageResource {
-    return resource({
-      injector: this.injector,
-      loader: async () => {
-        return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private async getExampleImageUrl(imageId: string) {
-    return await fetchAsset(
-      this.http,
-      `/api/image/${imageId}?width=600&height=600`
-    );
   }
 }
