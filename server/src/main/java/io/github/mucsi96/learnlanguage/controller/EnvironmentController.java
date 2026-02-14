@@ -84,7 +84,7 @@ public class EnvironmentController {
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
         Arrays.stream(ImageGenerationModel.values())
-            .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName()))
+            .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName(), model.getImageCount()))
             .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),

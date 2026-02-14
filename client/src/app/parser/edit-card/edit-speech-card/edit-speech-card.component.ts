@@ -7,7 +7,6 @@ import {
   linkedSignal,
   untracked,
   effect,
-  Injector,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -15,14 +14,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { HttpClient } from '@angular/common/http';
-import { resource } from '@angular/core';
-import { Card, CardData, ExampleImage } from '../../types';
-import { fetchAsset } from '../../../utils/fetchAsset';
-import { fetchJson } from '../../../utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
-import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
+import { Card, CardData } from '../../types';
+import {
+  ImageGridComponent,
+  GridImageResource,
+} from '../../../shared/image-grid/image-grid.component';
+import { ImageResourceService } from '../../../shared/image-resource.service';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -45,11 +42,10 @@ export class EditSpeechCardComponent {
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
   cardUpdate = output<Partial<Card>>();
+  saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
-  private readonly injector = inject(Injector);
-  private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageResourceService = inject(ImageResourceService);
   readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
   readonly hungarianTranslation = linkedSignal(
     () => this.card()?.data.examples?.[0]?.hu
@@ -58,7 +54,7 @@ export class EditSpeechCardComponent {
     () => this.card()?.data.examples?.[0]?.en
   );
 
-  readonly images = linkedSignal(() => {
+  readonly images = linkedSignal<GridImageResource[]>(() => {
     return untracked(() => {
       if (!this.selectedCardId()) {
         return [];
@@ -66,8 +62,9 @@ export class EditSpeechCardComponent {
 
       const example = this.card()?.data.examples?.[0];
       return (
-        example?.images?.map((image) => this.getExampleImageResource(image)) ??
-        []
+        example?.images?.map((image) =>
+          this.imageResourceService.createResource(image)
+        ) ?? []
       );
     });
   });
@@ -102,28 +99,21 @@ export class EditSpeechCardComponent {
   }
 
   async addImage() {
-    const imageModels = this.environmentConfig.imageModels;
     const englishTranslation = this.englishTranslation();
     if (!englishTranslation) return;
 
-    for (const model of imageModels) {
-      const responses = await fetchJson<ExampleImage[]>(
-        this.http,
-        `/api/image`,
-        {
-          body: {
-            input: englishTranslation,
-            model: model.id,
-          } satisfies ImageSourceRequest,
-          method: 'POST',
-        }
-      );
+    const { placeholders, done } =
+      this.imageResourceService.generateImages(englishTranslation);
 
-      this.images.update((imgs) => [
-        ...imgs,
-        ...responses.map(response => this.getExampleImageResource(response)),
-      ]);
+    this.images.update((imgs) => [...imgs, ...placeholders]);
+
+    await done;
+
+    const cardData = this.getCardData();
+    if (cardData) {
+      this.cardUpdate.emit(cardData);
     }
+    this.saveRequested.emit();
   }
 
   areImagesLoading() {
@@ -138,14 +128,7 @@ export class EditSpeechCardComponent {
     const image = imgs[imageIdx];
     if (!image || image.isLoading()) return;
 
-    const imageValue = image.value();
-    if (!imageValue) return;
-
-    image.set({
-      ...imageValue,
-      isFavorite: !imageValue.isFavorite,
-    });
-
+    this.imageResourceService.toggleFavorite(image);
     this.images.update((currentImages) => [...currentImages]);
   }
 
@@ -180,17 +163,7 @@ export class EditSpeechCardComponent {
           hu: this.hungarianTranslation(),
           en: this.englishTranslation(),
           isSelected: true,
-          images: this.images()
-            ?.map((image) => image.value())
-            .filter((image) => image != null)
-            .map(
-              (image) =>
-                ({
-                  id: image.id,
-                  model: image.model,
-                  isFavorite: image.isFavorite,
-                }) satisfies ExampleImage
-            ),
+          images: this.imageResourceService.toExampleImages(this.images()),
         },
       ],
       audio: this.card()?.data.audio || [],
@@ -202,21 +175,5 @@ export class EditSpeechCardComponent {
       sourcePageNumber: pageNumber,
       data,
     };
-  }
-
-  private getExampleImageResource(image: ExampleImage) {
-    return resource({
-      injector: this.injector,
-      loader: async () => {
-        return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private async getExampleImageUrl(imageId: string) {
-    return await fetchAsset(
-      this.http,
-      `/api/image/${imageId}?width=600&height=600`
-    );
   }
 }

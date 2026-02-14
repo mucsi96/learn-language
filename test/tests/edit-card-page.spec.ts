@@ -167,7 +167,8 @@ test('card editing in db', async ({ page }) => {
   })
   ;
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
-  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(4);
+  await expect(page.getByText('GPT Image 1.5')).toHaveCount(2);
+  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(2);
 
   const imageContent2 = await getImageContent(imageLocator.last());
 
@@ -198,7 +199,7 @@ test('card editing in db', async ({ page }) => {
     expect(img3.equals(greenImage)).toBeTruthy();
 
     expect(cardData.examples[0].images).toHaveLength(1);
-    expect(cardData.examples[1].images).toHaveLength(7);
+    expect(cardData.examples[1].images).toHaveLength(5);
     expect(cardData.examples[1].images[1].model).toBe('GPT Image 1.5');
     expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
     expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
@@ -380,11 +381,12 @@ test('example image addition', async ({ page }) => {
   });
   await imageLocator.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
   await page.getByRole('button', { name: 'Add example image' }).first().click();
-  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(4);
+  await expect(page.getByText('GPT Image 1.5')).toHaveCount(2);
+  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(2);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
-  const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }).nth(5));
+  const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }).nth(3));
   expect(regeneratedImageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
 
 });

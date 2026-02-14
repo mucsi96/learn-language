@@ -8,7 +8,6 @@ import {
   signal,
   untracked,
   effect,
-  Injector,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
@@ -18,17 +17,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { HttpClient } from '@angular/common/http';
-import { resource } from '@angular/core';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
-import { Card, CardData, ExampleImage } from '../../types';
-import { fetchAsset } from '../../../utils/fetchAsset';
-import { fetchJson } from '../../../utils/fetchJson';
+import { Card, CardData } from '../../types';
 import { languages } from '../../../shared/constants/languages';
-import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
-import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
+import {
+  ImageGridComponent,
+  GridImageResource,
+} from '../../../shared/image-grid/image-grid.component';
+import { ImageResourceService } from '../../../shared/image-resource.service';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -53,11 +50,10 @@ export class EditVocabularyCardComponent {
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
   cardUpdate = output<any>();
+  saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
-  private readonly injector = inject(Injector);
-  private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageResourceService = inject(ImageResourceService);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 
@@ -92,7 +88,7 @@ export class EditVocabularyCardComponent {
       ])
     );
   });
-  readonly exampleImages = linkedSignal(() => {
+  readonly exampleImages = linkedSignal<GridImageResource[][]>(() => {
     return untracked(() => {
       if (!this.selectedCardId()) {
         return [];
@@ -102,7 +98,7 @@ export class EditVocabularyCardComponent {
         this.card()?.data.examples?.map(
           (example) =>
             example.images?.map((image) =>
-              this.getExampleImageResource(image)
+              this.imageResourceService.createResource(image)
             ) ?? []
         ) ?? []
       );
@@ -157,31 +153,24 @@ export class EditVocabularyCardComponent {
   }
 
   async addImage(exampleIdx: number) {
-    const imageModels = this.environmentConfig.imageModels;
     const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
     if (!englishTranslation) return;
 
-    for (const model of imageModels) {
-      const responses = await fetchJson<ExampleImage[]>(
-        this.http,
-        `/api/image`,
-        {
-          body: {
-            input: englishTranslation,
-            model: model.id,
-          } satisfies ImageSourceRequest,
-          method: 'POST',
-        }
-      );
+    const { placeholders, done } =
+      this.imageResourceService.generateImages(englishTranslation);
 
-      this.exampleImages.update((images) => {
-        images[exampleIdx] = [
-          ...images[exampleIdx],
-          ...responses.map(response => this.getExampleImageResource(response)),
-        ];
-        return [...images];
-      });
+    this.exampleImages.update((images) => {
+      images[exampleIdx] = [...images[exampleIdx], ...placeholders];
+      return [...images];
+    });
+
+    await done;
+
+    const cardData = this.getCardData();
+    if (cardData) {
+      this.cardUpdate.emit(cardData);
     }
+    this.saveRequested.emit();
   }
 
   areImagesLoading(exampleIdx: number) {
@@ -196,14 +185,7 @@ export class EditVocabularyCardComponent {
     const image = images[imageIdx];
     if (!image || image.isLoading()) return;
 
-    const imageValue = image.value();
-    if (!imageValue) return;
-
-    image.set({
-      ...imageValue,
-      isFavorite: !imageValue.isFavorite,
-    });
-
+    this.imageResourceService.toggleFavorite(image);
     this.exampleImages.update((currentImages) => [...currentImages]);
   }
 
@@ -253,10 +235,9 @@ export class EditVocabularyCardComponent {
         ...(this.selectedExampleIndex() === index && {
           isSelected: true,
         }),
-        images: this.exampleImages()
-          [index]?.map((image) => image.value())
-          .filter((image) => image != null)
-          .map((image) => ({ id: image.id, model: image.model, isFavorite: image.isFavorite } satisfies ExampleImage))
+        images: this.imageResourceService.toExampleImages(
+          this.exampleImages()[index] ?? []
+        ),
       })),
       audio: this.card()?.data.audio || [],
     };
@@ -267,21 +248,5 @@ export class EditVocabularyCardComponent {
       sourcePageNumber: pageNumber,
       data,
     };
-  }
-
-  private getExampleImageResource(image: ExampleImage) {
-    return resource({
-      injector: this.injector,
-      loader: async () => {
-        return { ...image, url: await this.getExampleImageUrl(image.id) };
-      },
-    });
-  }
-
-  private async getExampleImageUrl(imageId: string) {
-    return await fetchAsset(
-      this.http,
-      `/api/image/${imageId}?width=600&height=600`
-    );
   }
 }
