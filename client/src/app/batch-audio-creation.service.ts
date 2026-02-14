@@ -112,8 +112,15 @@ export class BatchAudioCreationService {
         (item) => !this.hasAudioForText(cleanedAudioList, item.text)
       );
 
+      const voicesByLanguage = new Map(
+        [...new Set(itemsNeedingAudio.map(item => item.language))].map(
+          language => [language, this.getVoiceForLanguage(language, progressIndex)]
+        )
+      );
+
       const generatedAudio = await this.generateAudioForItems(
         itemsNeedingAudio,
+        voicesByLanguage,
         progressIndex,
         label
       );
@@ -145,11 +152,12 @@ export class BatchAudioCreationService {
 
   private async generateAudioForItems(
     items: AudioGenerationItem[],
+    voicesByLanguage: Map<string, VoiceModelPair>,
     progressIndex: number,
     label: string
   ): Promise<AudioData[]> {
     const generateSingleAudio = async (item: AudioGenerationItem): Promise<AudioData> => {
-      const voice = this.getVoiceForLanguage(item.language);
+      const voice = voicesByLanguage.get(item.language)!;
       const audioData = await fetchJson<AudioData>(
         this.http,
         `/api/audio`,
@@ -228,14 +236,13 @@ export class BatchAudioCreationService {
     return audioList.some(audio => audio.text === text);
   }
 
-  private getVoiceForLanguage(language: string): VoiceModelPair {
+  private getVoiceForLanguage(language: string, cardIndex: number): VoiceModelPair {
     const languageVoices = this.voiceConfigs.filter(
       (config) => config.language === language && config.isEnabled
     );
 
     if (languageVoices.length > 0) {
-      const randomIndex = Math.floor(Math.random() * languageVoices.length);
-      const config = languageVoices[randomIndex];
+      const config = languageVoices[cardIndex % languageVoices.length];
       return { voice: config.voiceId, model: config.model };
     }
 

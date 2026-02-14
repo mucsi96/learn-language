@@ -157,40 +157,25 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     );
   }
 
-  // Select a voice (no deselection allowed)
   async selectVoice(voiceCard: VoiceCardData) {
-    // If already selected, do nothing
     if (this.isSelected(voiceCard)) {
       return;
     }
 
-    // Ensure audio exists before selecting
     if (!voiceCard.audioData) {
       await this.generateAudio(voiceCard);
     }
 
-    // Update selection state
-    this.localAudioData.update((audioList) => {
-      // Deselect all voices for this language
-      audioList.forEach((audio) => {
-        if (audio.language === voiceCard.config.language) {
-          audio.selected = false;
-        }
-      });
-
-      // Select ALL audio entries for this voice/model/language combination
-      audioList.forEach((audio) => {
-        if (
-          audio.voice === voiceCard.config.voiceId &&
-          audio.model === voiceCard.config.model &&
+    this.localAudioData.update((audioList) =>
+      audioList.map((audio) => ({
+        ...audio,
+        selected:
           audio.language === voiceCard.config.language
-        ) {
-          audio.selected = true;
-        }
-      });
-
-      return [...audioList];
-    });
+            ? audio.voice === voiceCard.config.voiceId &&
+              audio.model === voiceCard.config.model
+            : audio.selected,
+      }))
+    );
   }
 
   // Generate audio for a voice configuration
@@ -334,9 +319,17 @@ export class VoiceSelectionDialogComponent implements OnDestroy {
     return languageData?.texts || [];
   }
 
-  // Save and close dialog
   save() {
-    this.dialogRef.close(this.localAudioData());
+    const audioData = this.localAudioData();
+    const languages = [...new Set(audioData.map((a) => a.language).filter(Boolean))];
+
+    const filteredAudio = languages.flatMap((language) => {
+      const languageAudios = audioData.filter((a) => a.language === language);
+      const selectedAudios = languageAudios.filter((a) => a.selected);
+      return selectedAudios.length > 0 ? selectedAudios : languageAudios;
+    });
+
+    this.dialogRef.close(filteredAudio);
   }
 
   // Close without saving
