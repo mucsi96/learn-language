@@ -41,6 +41,7 @@
         [selectedPageNumber]="selectedPageNumber()"
         [card]="card.value()"
         (cardUpdate)="handleCardUpdate($event)"
+        (saveRequested)="saveCard()"
         (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
       />
     }
@@ -51,6 +52,7 @@
         [selectedPageNumber]="selectedPageNumber()"
         [card]="card.value()"
         (cardUpdate)="handleCardUpdate($event)"
+        (saveRequested)="saveCard()"
         (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
       />
     }
@@ -61,6 +63,7 @@
         [selectedPageNumber]="selectedPageNumber()"
         [card]="card.value()"
         (cardUpdate)="handleCardUpdate($event)"
+        (saveRequested)="saveCard()"
         (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
       />
     }

@@ -28,7 +28,11 @@ import { fetchJson } from '../../../utils/fetchJson';
 import { languages } from '../../../shared/constants/languages';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
+import {
+  ImageGridComponent,
+  GridImageResource,
+  GridImageValue,
+} from '../../../shared/image-grid/image-grid.component';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -53,6 +57,7 @@ export class EditVocabularyCardComponent {
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
   cardUpdate = output<any>();
+  saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
   private readonly injector = inject(Injector);
@@ -92,7 +97,7 @@ export class EditVocabularyCardComponent {
       ])
     );
   });
-  readonly exampleImages = linkedSignal(() => {
+  readonly exampleImages = linkedSignal<GridImageResource[][]>(() => {
     return untracked(() => {
       if (!this.selectedCardId()) {
         return [];
@@ -161,27 +166,51 @@ export class EditVocabularyCardComponent {
     const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
     if (!englishTranslation) return;
 
-    for (const model of imageModels) {
-      const responses = await fetchJson<ExampleImage[]>(
-        this.http,
-        `/api/image`,
-        {
-          body: {
-            input: englishTranslation,
-            model: model.id,
-          } satisfies ImageSourceRequest,
-          method: 'POST',
-        }
-      );
+    const allPlaceholders = imageModels.flatMap((model) =>
+      Array.from({ length: model.imageCount }, () =>
+        this.createPendingImageResource(model.displayName)
+      )
+    );
 
-      this.exampleImages.update((images) => {
-        images[exampleIdx] = [
-          ...images[exampleIdx],
-          ...responses.map(response => this.getExampleImageResource(response)),
-        ];
-        return [...images];
-      });
+    this.exampleImages.update((images) => {
+      images[exampleIdx] = [
+        ...images[exampleIdx],
+        ...allPlaceholders.map((p) => p.gridResource),
+      ];
+      return [...images];
+    });
+
+    let placeholderOffset = 0;
+    await Promise.all(
+      imageModels.map(async (model) => {
+        const startIdx = placeholderOffset;
+        placeholderOffset += model.imageCount;
+
+        const responses = await fetchJson<ExampleImage[]>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: englishTranslation,
+              model: model.id,
+            } satisfies ImageSourceRequest,
+            method: 'POST',
+          }
+        );
+
+        await Promise.all(
+          responses.map((response, i) =>
+            allPlaceholders[startIdx + i].resolve(response)
+          )
+        );
+      })
+    );
+
+    const cardData = this.getCardData();
+    if (cardData) {
+      this.cardUpdate.emit(cardData);
     }
+    this.saveRequested.emit();
   }
 
   areImagesLoading(exampleIdx: number) {
@@ -199,7 +228,7 @@ export class EditVocabularyCardComponent {
     const imageValue = image.value();
     if (!imageValue) return;
 
-    image.set({
+    (image as any).set({
       ...imageValue,
       isFavorite: !imageValue.isFavorite,
     });
@@ -255,7 +284,7 @@ export class EditVocabularyCardComponent {
         }),
         images: this.exampleImages()
           [index]?.map((image) => image.value())
-          .filter((image) => image != null)
+          .filter((image): image is GridImageValue & { id: string } => image != null && !!image.id)
           .map((image) => ({ id: image.id, model: image.model, isFavorite: image.isFavorite } satisfies ExampleImage))
       })),
       audio: this.card()?.data.audio || [],
@@ -269,7 +298,25 @@ export class EditVocabularyCardComponent {
     };
   }
 
-  private getExampleImageResource(image: ExampleImage) {
+  private createPendingImageResource(modelDisplayName: string) {
+    const isLoading = signal(true);
+    const value = signal<GridImageValue | undefined>({ model: modelDisplayName });
+
+    const gridResource: GridImageResource = {
+      isLoading: isLoading.asReadonly(),
+      value: value.asReadonly(),
+    };
+
+    const resolve = async (image: ExampleImage) => {
+      const url = await this.getExampleImageUrl(image.id);
+      value.set({ ...image, url });
+      isLoading.set(false);
+    };
+
+    return { gridResource, resolve };
+  }
+
+  private getExampleImageResource(image: ExampleImage): GridImageResource {
     return resource({
       injector: this.injector,
       loader: async () => {

@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   linkedSignal,
+  signal,
   untracked,
   effect,
   Injector,
@@ -25,7 +26,11 @@ import { fetchAsset } from '../../../utils/fetchAsset';
 import { fetchJson } from '../../../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../../../environment/environment.config';
 import { ImageSourceRequest } from '../../../shared/types/image-generation.types';
-import { ImageGridComponent } from '../../../shared/image-grid/image-grid.component';
+import {
+  ImageGridComponent,
+  GridImageResource,
+  GridImageValue,
+} from '../../../shared/image-grid/image-grid.component';
 import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
@@ -50,6 +55,7 @@ export class EditGrammarCardComponent {
   selectedPageNumber = input<number | undefined>();
   card = input<Card | undefined>();
   cardUpdate = output<Partial<Card>>();
+  saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
   private readonly injector = inject(Injector);
@@ -75,7 +81,7 @@ export class EditGrammarCardComponent {
     return sentence.replace(createGrammarGapRegex(), (_match, content) => '_'.repeat(content.length));
   });
 
-  readonly images = linkedSignal(() => {
+  readonly images = linkedSignal<GridImageResource[]>(() => {
     return untracked(() => {
       if (!this.selectedCardId()) {
         return [];
@@ -164,24 +170,48 @@ export class EditGrammarCardComponent {
     const englishTranslation = this.englishTranslation();
     if (!englishTranslation) return;
 
-    for (const model of imageModels) {
-      const responses = await fetchJson<ExampleImage[]>(
-        this.http,
-        `/api/image`,
-        {
-          body: {
-            input: englishTranslation,
-            model: model.id,
-          } satisfies ImageSourceRequest,
-          method: 'POST',
-        }
-      );
+    const allPlaceholders = imageModels.flatMap((model) =>
+      Array.from({ length: model.imageCount }, () =>
+        this.createPendingImageResource(model.displayName)
+      )
+    );
 
-      this.images.update((imgs) => [
-        ...imgs,
-        ...responses.map(response => this.getExampleImageResource(response)),
-      ]);
+    this.images.update((imgs) => [
+      ...imgs,
+      ...allPlaceholders.map((p) => p.gridResource),
+    ]);
+
+    let placeholderOffset = 0;
+    await Promise.all(
+      imageModels.map(async (model) => {
+        const startIdx = placeholderOffset;
+        placeholderOffset += model.imageCount;
+
+        const responses = await fetchJson<ExampleImage[]>(
+          this.http,
+          `/api/image`,
+          {
+            body: {
+              input: englishTranslation,
+              model: model.id,
+            } satisfies ImageSourceRequest,
+            method: 'POST',
+          }
+        );
+
+        await Promise.all(
+          responses.map((response, i) =>
+            allPlaceholders[startIdx + i].resolve(response)
+          )
+        );
+      })
+    );
+
+    const cardData = this.getCardData();
+    if (cardData) {
+      this.cardUpdate.emit(cardData);
     }
+    this.saveRequested.emit();
   }
 
   areImagesLoading() {
@@ -199,7 +229,7 @@ export class EditGrammarCardComponent {
     const imageValue = image.value();
     if (!imageValue) return;
 
-    image.set({
+    (image as any).set({
       ...imageValue,
       isFavorite: !imageValue.isFavorite,
     });
@@ -239,7 +269,10 @@ export class EditGrammarCardComponent {
           isSelected: true,
           images: this.images()
             ?.map((image) => image.value())
-            .filter((image) => image != null)
+            .filter(
+              (image): image is GridImageValue & { id: string } =>
+                image != null && !!image.id
+            )
             .map(
               (image) =>
                 ({
@@ -261,7 +294,25 @@ export class EditGrammarCardComponent {
     };
   }
 
-  private getExampleImageResource(image: ExampleImage) {
+  private createPendingImageResource(modelDisplayName: string) {
+    const isLoading = signal(true);
+    const value = signal<GridImageValue | undefined>({ model: modelDisplayName });
+
+    const gridResource: GridImageResource = {
+      isLoading: isLoading.asReadonly(),
+      value: value.asReadonly(),
+    };
+
+    const resolve = async (image: ExampleImage) => {
+      const url = await this.getExampleImageUrl(image.id);
+      value.set({ ...image, url });
+      isLoading.set(false);
+    };
+
+    return { gridResource, resolve };
+  }
+
+  private getExampleImageResource(image: ExampleImage): GridImageResource {
     return resource({
       injector: this.injector,
       loader: async () => {
