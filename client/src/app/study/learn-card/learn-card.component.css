@@ -29,6 +29,13 @@
   font-weight: 500;
 }
 
+.session-stats {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
 .learn-card {
   position: relative;
   width: 100%;

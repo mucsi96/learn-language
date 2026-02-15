@@ -227,4 +227,5 @@ export type StudySessionCard = {
   learningPartnerId: number | null;
   turnName: string;
   studyMode: 'SOLO' | 'WITH_PARTNER';
+  stateCounts: Record<string, number>;
 };
