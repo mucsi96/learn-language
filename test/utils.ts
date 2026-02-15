@@ -1009,6 +1009,28 @@ export async function createReviewLog(params: {
   });
 }
 
+export async function getStudySessionCardsBySourceId(sourceId: string): Promise<
+  Array<{
+    cardId: string;
+    position: number;
+    learningPartnerId: number | null;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT c.id as "cardId", ssc.position, ssc.learning_partner_id as "learningPartnerId"
+       FROM learn_language.study_session_cards ssc
+       JOIN learn_language.cards c ON ssc.card_id = c.id
+       JOIN learn_language.study_sessions ss ON ssc.session_id = ss.id
+       WHERE ss.source_id = $1
+         AND ss.created_at >= CURRENT_DATE
+       ORDER BY ssc.position`,
+      [sourceId]
+    );
+    return result.rows;
+  });
+}
+
 export async function getStudySessionCards(page: Page): Promise<
   Array<{
     cardId: string;

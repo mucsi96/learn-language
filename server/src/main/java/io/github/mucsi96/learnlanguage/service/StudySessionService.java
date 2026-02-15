@@ -179,6 +179,28 @@ public class StudySessionService {
     }
 
     @Transactional
+    public void addCardToActiveSession(String cardId, String sourceId, LocalDateTime startOfDay) {
+        studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .filter(session -> session.getCards().size() < SESSION_CARD_LIMIT)
+                .filter(session -> session.getCards().stream()
+                        .noneMatch(sc -> sc.getCard().getId().equals(cardId)))
+                .ifPresent(session -> cardRepository.findById(cardId).ifPresent(card -> {
+                    final int maxPosition = session.getCards().stream()
+                            .mapToInt(StudySessionCard::getPosition)
+                            .max()
+                            .orElse(-1);
+
+                    session.getCards().add(StudySessionCard.builder()
+                            .session(session)
+                            .card(card)
+                            .position(maxPosition + 1)
+                            .learningPartner(null)
+                            .build());
+                }));
+    }
+
+    @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))

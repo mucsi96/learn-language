@@ -10,6 +10,7 @@ import {
   getReviewLogsByCardId,
   getCardFromDb,
   getReviewLogs,
+  getStudySessionCardsBySourceId,
   setupDefaultChatModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -1532,4 +1533,115 @@ test('color keys do not grade when card is not revealed', async ({ page }) => {
 
   await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('cards becoming ready are auto-added to active study session', async ({ page }) => {
+  await createCard({
+    cardId: 'existing-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 5,
+    data: {
+      word: 'bleiben',
+      type: 'VERB',
+      translation: { en: 'to stay', hu: 'maradni', ch: 'bliibe' },
+    },
+  });
+
+  await createCard({
+    cardId: 'existing-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 5,
+    data: {
+      word: 'gehen',
+      type: 'VERB',
+      translation: { en: 'to go', hu: 'menni', ch: 'gah' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard).toBeVisible();
+
+  const sessionCardsBefore = await getStudySessionCardsBySourceId('goethe-a1');
+  expect(sessionCardsBefore).toHaveLength(2);
+
+  await createCard({
+    cardId: 'new-reviewed-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: {
+      word: 'kommen',
+      type: 'VERB',
+      translation: { en: 'to come', hu: 'jönni', ch: 'cho' },
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await fetch('http://localhost:8180/api/card/new-reviewed-card', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Timezone': 'Europe/Zurich',
+    },
+    body: JSON.stringify({ readiness: 'READY' }),
+  });
+
+  const sessionCardsAfter = await getStudySessionCardsBySourceId('goethe-a1');
+  expect(sessionCardsAfter).toHaveLength(3);
+  expect(sessionCardsAfter[2].cardId).toBe('new-reviewed-card');
+  expect(sessionCardsAfter[2].position).toBeGreaterThan(sessionCardsAfter[1].position);
+});
+
+test('cards becoming ready are not added when session is at card limit', async ({ page }) => {
+  const yesterday = new Date(Date.now() - 86400000);
+
+  for (let i = 0; i < 50; i++) {
+    await createCard({
+      cardId: `limit-card-${i}`,
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 5,
+      data: {
+        word: `Wort${i}`,
+        type: 'NOUN',
+        translation: { en: `word${i}`, hu: `szo${i}`, ch: `wort${i}` },
+      },
+      due: yesterday,
+    });
+  }
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard).toBeVisible();
+
+  const sessionCardsBefore = await getStudySessionCardsBySourceId('goethe-a1');
+  expect(sessionCardsBefore).toHaveLength(50);
+
+  await createCard({
+    cardId: 'over-limit-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: {
+      word: 'Extra',
+      type: 'NOUN',
+      translation: { en: 'extra', hu: 'extra', ch: 'extra' },
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await fetch('http://localhost:8180/api/card/over-limit-card', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Timezone': 'Europe/Zurich',
+    },
+    body: JSON.stringify({ readiness: 'READY' }),
+  });
+
+  const sessionCardsAfter = await getStudySessionCardsBySourceId('goethe-a1');
+  expect(sessionCardsAfter).toHaveLength(50);
+  expect(sessionCardsAfter.every(c => c.cardId !== 'over-limit-card')).toBe(true);
 });

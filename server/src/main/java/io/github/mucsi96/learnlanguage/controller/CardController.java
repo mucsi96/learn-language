@@ -13,6 +13,7 @@ import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
+import io.github.mucsi96.learnlanguage.service.StudySessionService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
@@ -40,6 +41,7 @@ public class CardController {
   private final CardService cardService;
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
+  private final StudySessionService studySessionService;
 
   @GetMapping("/source/{sourceId}/cards")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
@@ -150,10 +152,12 @@ public class CardController {
   @PutMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
-      @RequestBody CardUpdateRequest request) throws Exception {
+      @RequestBody CardUpdateRequest request,
+      @RequestHeader(value = "X-Timezone", required = false) String timezone) throws Exception {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
+    final String oldReadiness = existingCard.getReadiness();
     boolean isGrading = request.getRating() != null;
 
     if (request.getData() != null) existingCard.setData(request.getData());
@@ -170,6 +174,15 @@ public class CardController {
     if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
 
     cardRepository.save(existingCard);
+
+    if (timezone != null
+        && CardReadiness.READY.equals(existingCard.getReadiness())
+        && !CardReadiness.READY.equals(oldReadiness)) {
+      studySessionService.addCardToActiveSession(
+          existingCard.getId(),
+          existingCard.getSource().getId(),
+          startOfDayUtc(parseTimezone(timezone)));
+    }
 
     if (isGrading) {
       if (request.getStability() == null || request.getDifficulty() == null
