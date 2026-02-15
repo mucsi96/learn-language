@@ -20,4 +20,5 @@ public class AudioSourceRequest {
   private String language;
   private Boolean selected;
   private String context;
+  private Boolean singleWord;
 }

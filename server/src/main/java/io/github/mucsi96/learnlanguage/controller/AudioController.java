@@ -36,7 +36,7 @@ public class AudioController {
     String uuid = UUID.randomUUID().toString();
     String filePath = "audio/%s.mp3".formatted(uuid);
 
-    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext());
+    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
     fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
 
     return AudioData.builder()

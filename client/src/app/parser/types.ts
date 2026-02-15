@@ -154,6 +154,7 @@ export type AudioGenerationItem = {
   text: string;
   language: string;
   context?: string;
+  singleWord?: boolean;
 };
 
 export type ImagesByIndex = Map<number, ExampleImage[]>;

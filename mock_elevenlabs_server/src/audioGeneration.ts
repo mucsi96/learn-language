@@ -44,7 +44,7 @@ export class AudioGenerationHandler {
     let audioBase64 = '';
     let detectedLanguage = languageCode;
 
-    const audioTagMatch = text.match(/^\[speaking (German|Hungarian)\]/i);
+    const audioTagMatch = text.match(/\[speaking (German|Hungarian)\]/i);
     if (audioTagMatch) {
       const tagLanguage = audioTagMatch[1].toLowerCase();
       detectedLanguage = tagLanguage === 'german' ? 'de' : tagLanguage === 'hungarian' ? 'hu' : undefined;

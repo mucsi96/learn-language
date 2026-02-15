@@ -168,7 +168,8 @@ export class BatchAudioCreationService {
             model: voice.model,
             language: item.language,
             selected: true,
-            context: item.context
+            context: item.context,
+            singleWord: item.singleWord
           } satisfies AudioSourceRequest,
           method: 'POST',
         }
