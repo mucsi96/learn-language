@@ -55,6 +55,20 @@
         }
       </mat-select>
     </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Review score</mat-label>
+      <mat-select
+        [value]="reviewScoreFilter()"
+        (selectionChange)="onReviewScoreFilterChange($event.value)"
+        aria-label="Filter by review score"
+      >
+        <mat-option value="">All</mat-option>
+        @for (option of reviewScoreOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   </div>
 
   <ag-grid-angular

@@ -127,11 +127,20 @@ export class CardsTableComponent {
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
+  readonly reviewScoreFilter = signal<string>('');
+
+  private readonly reviewScoreRange = computed(() => {
+    const value = this.reviewScoreFilter();
+    if (!value) return { min: undefined, max: undefined };
+    const [min, max] = value.split('-').map(Number);
+    return { min, max };
+  });
 
   readonly allFilteredIds = resource({
     params: () => {
       const sourceId = this.sourceId();
       if (!sourceId) return undefined;
+      const { min: minReviewScore, max: maxReviewScore } = this.reviewScoreRange();
       return {
         sourceId,
         readiness: this.readinessFilter() || undefined,
@@ -142,6 +151,8 @@ export class CardsTableComponent {
         lastReviewRating: this.lastReviewRatingFilter()
           ? Number(this.lastReviewRatingFilter())
           : undefined,
+        minReviewScore,
+        maxReviewScore,
       };
     },
     loader: ({ params }) =>
@@ -182,6 +193,12 @@ export class CardsTableComponent {
     { value: '7', label: 'Last 7 days' },
     { value: '30', label: 'Last 30 days' },
     { value: '90', label: 'Last 90 days' },
+  ];
+  readonly reviewScoreOptions = [
+    { value: '0-25', label: '0-25%' },
+    { value: '25-50', label: '25-50%' },
+    { value: '50-75', label: '50-75%' },
+    { value: '75-100', label: '75-100%' },
   ];
 
   readonly columnDefs: ColDef[] = [
@@ -246,6 +263,14 @@ export class CardsTableComponent {
       },
     },
     {
+      headerName: 'Score',
+      field: 'reviewScore',
+      width: 100,
+      sortable: true,
+      valueFormatter: (params) =>
+        params.value != null ? `${Math.round(params.value)}%` : '',
+    },
+    {
       headerName: 'Person',
       field: 'lastReviewPerson',
       width: 120,
@@ -308,6 +333,11 @@ export class CardsTableComponent {
 
   onLastReviewDaysAgoFilterChange(value: string): void {
     this.lastReviewDaysAgoFilter.set(value);
+    this.refreshGrid();
+  }
+
+  onReviewScoreFilterChange(value: string): void {
+    this.reviewScoreFilter.set(value);
     this.refreshGrid();
   }
 
@@ -378,6 +408,7 @@ export class CardsTableComponent {
     const sortDirection = sortModel.length > 0 ? sortModel[0].sort : undefined;
 
     try {
+      const { min: minReviewScore, max: maxReviewScore } = this.reviewScoreRange();
       const response = await this.cardsTableService.fetchCards({
         sourceId: this.sourceId(),
         startRow: params.startRow,
@@ -392,6 +423,8 @@ export class CardsTableComponent {
         lastReviewRating: this.lastReviewRatingFilter()
           ? Number(this.lastReviewRatingFilter())
           : undefined,
+        minReviewScore,
+        maxReviewScore,
       });
 
       params.successCallback(response.rows, response.totalCount);

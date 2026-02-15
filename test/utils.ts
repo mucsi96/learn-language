@@ -277,6 +277,7 @@ export async function createCard(params: {
   reps?: number;
   lapses?: number;
   readiness?: string;
+  reviewScore?: number | null;
 }): Promise<void> {
   const {
     cardId,
@@ -294,6 +295,7 @@ export async function createCard(params: {
     reps = 0,
     lapses = 0,
     readiness = 'READY',
+    reviewScore = null,
   } = params;
 
   await withDbConnection(async (client) => {
@@ -301,9 +303,9 @@ export async function createCard(params: {
       `INSERT INTO learn_language.cards (
         id, source_id, source_page_number, data, state, learning_steps,
         stability, difficulty, due, last_review, elapsed_days, scheduled_days,
-        reps, lapses, readiness
+        reps, lapses, readiness, review_score
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       )`,
       [
         cardId,
@@ -321,6 +323,7 @@ export async function createCard(params: {
         reps,
         lapses,
         readiness,
+        reviewScore,
       ]
     );
   });

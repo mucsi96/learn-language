@@ -73,6 +73,9 @@ public class Card {
     @Column(name = "last_review")
     private LocalDateTime lastReview;
 
+    @Column(name = "review_score")
+    private Float reviewScore;
+
     public boolean hasReadiness(String readiness) {
         if (readiness == null) {
             return false;

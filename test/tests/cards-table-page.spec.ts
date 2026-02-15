@@ -686,3 +686,113 @@ test('changing filter resets selection', async ({ page }) => {
     page.getByRole('button', { name: /Mark .* as known/ })
   ).not.toBeVisible();
 });
+
+test('displays review score in table', async ({ page }) => {
+  await createCard({
+    cardId: 'score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Erfolg', type: 'NOUN', translation: { en: 'success' } },
+    state: 'REVIEW',
+    reps: 4,
+    lastReview: new Date(),
+    reviewScore: 75,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({ Card: 'Erfolg', Score: '75%' }),
+    ]);
+  }).toPass();
+});
+
+test('filters cards by review score range', async ({ page }) => {
+  await createCard({
+    cardId: 'high-score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'gut', type: 'ADJECTIVE', translation: { en: 'good' } },
+    state: 'REVIEW',
+    reps: 5,
+    lastReview: new Date(),
+    reviewScore: 80,
+  });
+
+  await createCard({
+    cardId: 'low-score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'schlecht', type: 'ADJECTIVE', translation: { en: 'bad' } },
+    state: 'REVIEW',
+    reps: 3,
+    lastReview: new Date(),
+    reviewScore: 20,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const before = await getGridData(grid);
+    expect(before.map((r) => r.Card)).toEqual(
+      expect.arrayContaining(['gut', 'schlecht'])
+    );
+  }).toPass();
+
+  await page.getByLabel('Filter by review score').click();
+  await page.getByRole('option', { name: '75-100%' }).click();
+
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['gut']);
+  }).toPass();
+});
+
+test('sorts cards by review score', async ({ page }) => {
+  await createCard({
+    cardId: 'low-score-sort',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'niedrig', type: 'ADJECTIVE', translation: { en: 'low' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+    reviewScore: 25,
+  });
+
+  await createCard({
+    cardId: 'high-score-sort',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'hoch', type: 'ADJECTIVE', translation: { en: 'high' } },
+    state: 'REVIEW',
+    reps: 8,
+    lastReview: new Date(),
+    reviewScore: 90,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['niedrig', 'hoch']));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Score' }).click();
+  await expect(async () => {
+    const asc = await getGridData(grid);
+    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'niedrig' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'hoch' }));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Score' }).click();
+  await expect(async () => {
+    const desc = await getGridData(grid);
+    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'hoch' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'niedrig' }));
+  }).toPass();
+});
