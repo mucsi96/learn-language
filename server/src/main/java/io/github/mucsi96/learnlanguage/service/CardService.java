@@ -54,7 +54,7 @@ public class CardService {
   }
 
   public List<SourceDueCardCountResponse> getDueCardCountsBySource() {
-    return cardViewRepository.findTop50MostDueGroupedByStateAndSourceId().stream()
+    return cardRepository.findTop50MostDueGroupedByStateAndSourceId().stream()
         .map(row -> SourceDueCardCountResponse.builder()
             .sourceId((String) row[0])
             .state((String) row[1])
@@ -81,7 +81,7 @@ public class CardService {
   }
 
   public List<SourceCardCount> getCardCountsBySource() {
-    return cardViewRepository.countCardsBySourceGroupBySource()
+    return cardRepository.countCardsBySourceGroupBySource()
         .stream()
         .map(record -> new SourceCardCount(
             (String) record[0],

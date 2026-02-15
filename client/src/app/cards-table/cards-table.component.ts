@@ -322,6 +322,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -345,6 +346,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -368,6 +370,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
