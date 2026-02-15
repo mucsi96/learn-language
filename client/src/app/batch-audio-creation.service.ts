@@ -140,9 +140,6 @@ export class BatchAudioCreationService {
       await fetchJson(this.http, `/api/card/${card.id}`, {
         body: mapCardDatesToISOStrings(updatedCardData),
         method: 'PUT',
-        headers: {
-          'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
       });
 
       this.updateDot(progressIndex, 'completed', `${label}: Done`);

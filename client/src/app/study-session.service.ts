@@ -18,10 +18,6 @@ export class StudySessionService {
   readonly hasExistingSession = signal(false);
   private sessionVersion = signal(0);
 
-  private readonly timezoneHeaders = {
-    'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
-
   readonly currentCard = resource({
     params: () => ({
       sourceId: this.sourceId(),
@@ -34,8 +30,7 @@ export class StudySessionService {
       }
       const result = await fetchJson<StudySessionCard>(
         this.http,
-        `/api/source/${sourceId}/study-session/current-card`,
-        { headers: this.timezoneHeaders }
+        `/api/source/${sourceId}/study-session/current-card`
       );
       if (result && result.card) {
         result.card = mapCardDatesFromISOStrings(result.card);
@@ -60,8 +55,7 @@ export class StudySessionService {
     try {
       const session = await fetchJson<StudySession>(
         this.http,
-        `/api/source/${sourceId}/study-session`,
-        { headers: this.timezoneHeaders }
+        `/api/source/${sourceId}/study-session`
       );
       const exists = session !== null;
       this.sourceId.set(sourceId);
@@ -78,7 +72,7 @@ export class StudySessionService {
     const session = await fetchJson<StudySession>(
       this.http,
       `/api/source/${sourceId}/study-session`,
-      { method: 'POST', headers: this.timezoneHeaders }
+      { method: 'POST' }
     );
     if (session) {
       this.sourceId.set(sourceId);
