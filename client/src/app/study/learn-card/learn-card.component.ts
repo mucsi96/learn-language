@@ -21,6 +21,7 @@ import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-voc
 import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
 import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
+import { ConfettiComponent } from '../confetti/confetti.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
 import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
@@ -40,6 +41,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     LearnSpeechCardComponent,
     LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
+    ConfettiComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
