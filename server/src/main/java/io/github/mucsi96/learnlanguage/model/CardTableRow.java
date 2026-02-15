@@ -18,5 +18,6 @@ public class CardTableRow {
     private Integer lastReviewDaysAgo;
     private Integer lastReviewRating;
     private String lastReviewPerson;
+    private Integer reviewScore;
     private Integer sourcePageNumber;
 }

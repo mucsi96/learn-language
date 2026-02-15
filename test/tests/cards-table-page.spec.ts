@@ -767,3 +767,219 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
     });
   });
 });
+
+test('displays review score in table', async ({ page }) => {
+  await createCard({
+    cardId: 'score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Punkt', type: 'NOUN', translation: { en: 'score' } },
+    state: 'REVIEW',
+    reps: 3,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'score-card',
+    rating: 3,
+    review: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'score-card',
+    rating: 4,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'score-card',
+    rating: 3,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        Card: 'Punkt',
+        Score: '100%',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('displays review score for mixed reviews', async ({ page }) => {
+  await createCard({
+    cardId: 'mixed-score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'gemischt', type: 'ADJECTIVE', translation: { en: 'mixed' } },
+    state: 'REVIEW',
+    reps: 3,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'mixed-score-card',
+    rating: 1,
+    review: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'mixed-score-card',
+    rating: 3,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'mixed-score-card',
+    rating: 1,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        Card: 'gemischt',
+        Score: '25%',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('filters cards by review score', async ({ page }) => {
+  await createCard({
+    cardId: 'high-score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'gut', type: 'ADJECTIVE', translation: { en: 'good' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'high-score-card',
+    rating: 3,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'high-score-card',
+    rating: 4,
+    review: new Date(),
+  });
+
+  await createCard({
+    cardId: 'low-score-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'schlecht', type: 'ADJECTIVE', translation: { en: 'bad' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'low-score-card',
+    rating: 1,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'low-score-card',
+    rating: 1,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const before = await getGridData(grid);
+    expect(before.map((r) => r.Card)).toEqual(
+      expect.arrayContaining(['gut', 'schlecht'])
+    );
+  }).toPass();
+
+  await page.getByLabel('Filter by review score').click();
+  await page.getByRole('option', { name: '76% - 100%' }).click();
+
+  await expect(async () => {
+    const after = await getGridData(grid);
+    expect(after.map((r) => r.Card)).toEqual(['gut']);
+  }).toPass();
+});
+
+test('sorts cards by review score', async ({ page }) => {
+  await createCard({
+    cardId: 'sort-high-score',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'stark', type: 'ADJECTIVE', translation: { en: 'strong' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'sort-high-score',
+    rating: 4,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'sort-high-score',
+    rating: 4,
+    review: new Date(),
+  });
+
+  await createCard({
+    cardId: 'sort-low-score',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: { word: 'schwach', type: 'ADJECTIVE', translation: { en: 'weak' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'sort-low-score',
+    rating: 1,
+    review: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+  });
+
+  await createReviewLog({
+    cardId: 'sort-low-score',
+    rating: 1,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['stark', 'schwach']));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Score' }).click();
+  await expect(async () => {
+    const asc = await getGridData(grid);
+    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'schwach' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'stark' }));
+  }).toPass();
+
+  await page.getByRole('columnheader', { name: 'Score' }).click();
+  await expect(async () => {
+    const desc = await getGridData(grid);
+    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'stark' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'schwach' }));
+  }).toPass();
+});

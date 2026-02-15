@@ -160,7 +160,8 @@ SELECT
     c.last_review,
     s.card_type,
     lr.rating AS last_review_rating,
-    lp.name AS last_review_learning_partner_name
+    lp.name AS last_review_learning_partner_name,
+    rs.review_score
 FROM learn_language.cards c
 JOIN learn_language.sources s ON c.source_id = s.id
 LEFT JOIN LATERAL (
@@ -170,6 +171,30 @@ LEFT JOIN LATERAL (
     ORDER BY review DESC
     LIMIT 1
 ) lr ON true
-LEFT JOIN learn_language.learning_partners lp ON lr.learning_partner_id = lp.id;
+LEFT JOIN learn_language.learning_partners lp ON lr.learning_partner_id = lp.id
+LEFT JOIN LATERAL (
+    SELECT
+        CASE
+            WHEN stats.total_count = 0 THEN NULL
+            WHEN stats.total_count = 1 THEN (stats.last_review_success * 100)::integer
+            ELSE ROUND(
+                (0.5 * stats.last_review_success + 0.5 * stats.prev_success_rate) * 100
+            )::integer
+        END AS review_score
+    FROM (
+        SELECT
+            COUNT(*) AS total_count,
+            CASE WHEN (SELECT rating FROM learn_language.review_logs WHERE card_id = c.id ORDER BY review DESC LIMIT 1) >= 3
+                THEN 1.0 ELSE 0.0
+            END AS last_review_success,
+            COALESCE(
+                (SELECT AVG(CASE WHEN rating >= 3 THEN 1.0 ELSE 0.0 END)
+                 FROM (SELECT rating FROM learn_language.review_logs WHERE card_id = c.id ORDER BY review DESC OFFSET 1) prev),
+                0.0
+            ) AS prev_success_rate
+        FROM learn_language.review_logs
+        WHERE card_id = c.id
+    ) stats
+) rs ON true;
 
 CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON learn_language.card_view (id);

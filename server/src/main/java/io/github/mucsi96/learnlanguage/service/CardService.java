@@ -95,11 +95,13 @@ public class CardService {
       String readiness, String state,
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer minReviewScore, Integer maxReviewScore,
       LocalDateTime startOfDayUtc) {
 
     final Specification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating, startOfDayUtc);
+        lastReviewDaysAgo, lastReviewRating,
+        minReviewScore, maxReviewScore, startOfDayUtc);
 
     return cardViewRepository.findAll(spec).stream()
         .map(CardView::getId)
@@ -112,11 +114,13 @@ public class CardService {
       String readiness, String state,
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer minReviewScore, Integer maxReviewScore,
       LocalDateTime startOfDayUtc) {
 
     final Specification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating, startOfDayUtc);
+        lastReviewDaysAgo, lastReviewRating,
+        minReviewScore, maxReviewScore, startOfDayUtc);
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
@@ -169,6 +173,7 @@ public class CardService {
       String sourceId, String readiness, String state,
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer minReviewScore, Integer maxReviewScore,
       LocalDateTime startOfDayUtc) {
 
     Specification<CardView> spec = hasSourceId(sourceId);
@@ -191,6 +196,12 @@ public class CardService {
     if (lastReviewRating != null) {
       spec = spec.and(hasLastReviewRating(lastReviewRating));
     }
+    if (minReviewScore != null) {
+      spec = spec.and(hasMinReviewScore(minReviewScore));
+    }
+    if (maxReviewScore != null) {
+      spec = spec.and(hasMaxReviewScore(maxReviewScore));
+    }
 
     return spec;
   }
@@ -209,6 +220,7 @@ public class CardService {
       case "lastReviewDaysAgo" -> "lastReview";
       case "state" -> "state";
       case "readiness" -> "readiness";
+      case "reviewScore" -> "reviewScore";
       default -> "due";
     };
 
@@ -231,6 +243,7 @@ public class CardService {
         .lastReviewDaysAgo(reviewDaysAgo)
         .lastReviewRating(view.getLastReviewRating())
         .lastReviewPerson(view.getLastReviewLearningPartnerName())
+        .reviewScore(view.getReviewScore())
         .sourcePageNumber(view.getSourcePageNumber())
         .build();
   }
