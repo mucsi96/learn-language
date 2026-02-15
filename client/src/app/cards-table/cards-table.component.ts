@@ -361,6 +361,7 @@ export class CardsTableComponent {
     if (!result) return;
 
     await this.cardsTableService.deleteCardsAudio(ids);
+    this.selectedIds.set([]);
     this.snackBar.open(`Audio deleted for ${ids.length} card(s)`, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
