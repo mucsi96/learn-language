@@ -60,7 +60,7 @@ export class ImageResourceService {
         );
 
         await Promise.all(
-          responses.map((response, i) =>
+          responses.slice(0, model.imageCount).map((response, i) =>
             allPending[startIdx + i].resolve(response)
           )
         );
