@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableRow;
+import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
@@ -38,6 +39,7 @@ public class CardService {
   private final CardRepository cardRepository;
   private final ReviewLogRepository reviewLogRepository;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
+  private final FileStorageService fileStorageService;
 
   public Optional<Card> getCardById(String id) {
     return cardRepository.findById(id);
@@ -148,6 +150,22 @@ public class CardService {
   public void deleteCardsByIds(List<String> cardIds) {
     reviewLogRepository.deleteByCardIdIn(cardIds);
     cardRepository.deleteAllById(cardIds);
+  }
+
+  @Transactional
+  public void deleteAudioForCards(List<String> cardIds) {
+    final List<Card> cards = cardRepository.findByIdIn(cardIds);
+
+    cards.stream()
+        .filter(card -> card.getData() != null && card.getData().getAudio() != null)
+        .forEach(card -> {
+          card.getData().getAudio().stream()
+              .map(AudioData::getId)
+              .forEach(audioId -> fileStorageService.deleteFile("audio/%s.mp3".formatted(audioId)));
+          card.getData().setAudio(null);
+        });
+
+    cardRepository.saveAll(cards);
   }
 
   private Specification<Card> buildCardTableSpec(
