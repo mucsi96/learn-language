@@ -189,29 +189,28 @@ public class StudySessionService {
         final LocalDateTime now = LocalDateTime.now();
         final LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
 
-        final List<StudySessionCard> eligibleCards = session.getCards().stream()
-                .filter(c -> c.getCard().isReady())
-                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
-                .toList();
+        final List<StudySessionCard> allCards = session.getCards();
 
-        final int maxPosition = eligibleCards.stream()
+        final int maxPosition = allCards.stream()
                 .mapToInt(StudySessionCard::getPosition)
                 .max()
                 .orElse(0);
 
         final int newLastPosition = maxPosition + 1;
 
-        final Optional<StudySessionCard> movedCard = eligibleCards.stream()
+        final Optional<StudySessionCard> movedCard = allCards.stream()
                 .filter(c -> c.getCard().getLastReview() != null)
                 .max(Comparator.comparing(c -> c.getCard().getLastReview()));
 
         movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
-        final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
+        final List<StudySessionCard> eligibleCards = allCards.stream()
+                .filter(c -> c.getCard().isReady())
+                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
+                .toList();
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                .min(Comparator.comparingInt(c ->
-                        c.getId().equals(movedCardId) ? newLastPosition : c.getPosition()));
+                .min(Comparator.comparingInt(StudySessionCard::getPosition));
 
         return nextCard.map(sessionCard -> {
             final String turnName = sessionCard.getLearningPartner() != null
