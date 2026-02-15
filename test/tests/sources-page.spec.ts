@@ -1,43 +1,43 @@
 import { test, expect } from '../fixtures';
 import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
 
-test('displays current page', async ({ page }) => {
+async function navigateToSource(page, sourceName: string) {
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: sourceName }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
+}
+
+test('displays current page', async ({ page }) => {
+  await navigateToSource(page, 'Goethe A1');
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('9');
 });
 
 test('displays page content', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
   await expect(page.getByText('die Abfahrt')).toBeVisible();
   await expect(page.getByText('Vor der Abfahrt rufe ich an.')).toBeVisible();
   await expect(page.getByText('Seite 9')).toBeVisible();
 });
 
 test('previous page', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
   await page.getByRole('link', { name: 'Previous page' }).click();
   await expect(page.getByText('Seite 8')).toBeVisible();
 });
 
 test('next page', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByText('Seite 10')).toBeVisible();
 });
 
 test('bookmarks last visited page', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByText('Seite 10')).toBeVisible();
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByText('Seite 11')).toBeVisible();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
   await expect(page.getByText('Seite 11')).toBeVisible();
 });
 
@@ -55,8 +55,7 @@ test('drag to select words highlights existing cards', async ({ page }) => {
       examples: [],
     },
   });
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
   await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
@@ -64,8 +63,7 @@ test('drag to select words highlights existing cards', async ({ page }) => {
 
 test('drag to select words highlights matching words', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -88,8 +86,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
       examples: [],
     },
   });
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await navigateToSource(page, 'Goethe A1');
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -151,8 +148,7 @@ test('source selector dropdown content', async ({ page }) => {
 
 test('speech source page sentence extraction', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Speech A1' }).click();
+  await navigateToSource(page, 'Speech A1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-speech-image.png',
@@ -177,8 +173,7 @@ test('speech source page sentence extraction', async ({ page }) => {
 
 test('speech source selector routing works', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Speech A1' }).click();
+  await navigateToSource(page, 'Speech A1');
 
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',

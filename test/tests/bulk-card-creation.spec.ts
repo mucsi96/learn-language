@@ -30,7 +30,8 @@ test('bulk create fab appears when words without cards selected', async ({ page 
     },
   });
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Initially no FAB should be visible
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
@@ -61,7 +62,8 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
     },
   });
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -96,7 +98,8 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
 test('selections persist across page navigation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -185,7 +188,8 @@ test('regions from different pages are combined into single extraction', async (
 test('cancel selection clears all selections', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -247,7 +251,8 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
   });
 
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select region with words that now have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -261,7 +266,8 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
 test('bulk card creation opens progress dialog', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -276,7 +282,8 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
 test('bulk card creation shows individual progress', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -293,7 +300,8 @@ test('bulk card creation shows individual progress', async ({ page }) => {
 test('bulk card creation creates cards in database', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -322,7 +330,8 @@ test('bulk card creation creates cards in database', async ({ page }) => {
 test('bulk card creation includes word data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -390,7 +399,8 @@ test('bulk card creation includes word data', async ({ page }) => {
 test('bulk card creation updates ui after completion', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -420,7 +430,8 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
 test('bulk card creation fsrs attributes', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -456,7 +467,8 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
 test('bulk card creation source metadata', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -488,7 +500,8 @@ test('bulk card creation source metadata', async ({ page }) => {
 test('bulk card creation learning parameters and review state', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -534,7 +547,8 @@ test('bulk card creation learning parameters and review state', async ({ page })
 test('bulk card creation dialog review link', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -552,7 +566,8 @@ test('bulk card creation dialog review link', async ({ page }) => {
 test('bulk speech card creation includes sentence data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Speech A1' }).click();
+  await page.getByRole('article', { name: 'Speech A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
@@ -612,7 +627,8 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Grammar A1' }).click();
+  await page.getByRole('article', { name: 'Grammar A1' }).click();
+  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
 
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-grammar-image.png',
