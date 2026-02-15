@@ -44,6 +44,14 @@ public class CardViewSpecifications {
         return (root, query, cb) -> cb.equal(root.get(CardView_.lastReviewRating), rating);
     }
 
+    public static Specification<CardView> hasMinReviewScore(int minScore) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get(CardView_.reviewScore), minScore);
+    }
+
+    public static Specification<CardView> hasMaxReviewScore(int maxScore) {
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.reviewScore), maxScore);
+    }
+
     public static Specification<CardView> isDueBefore(LocalDateTime cutoff) {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.due), cutoff);
     }

@@ -64,4 +64,7 @@ public class CardView {
 
     @Column(name = "last_review_learning_partner_name")
     private String lastReviewLearningPartnerName;
+
+    @Column(name = "review_score")
+    private Integer reviewScore;
 }

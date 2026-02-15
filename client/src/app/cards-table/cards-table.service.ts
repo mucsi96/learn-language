@@ -11,6 +11,7 @@ export type CardTableRow = {
   lastReviewDaysAgo: number | null;
   lastReviewRating: number | null;
   lastReviewPerson: string | null;
+  reviewScore: number | null;
   sourcePageNumber: number;
 };
 
@@ -31,6 +32,8 @@ export type CardTableParams = {
   maxReps?: number;
   lastReviewDaysAgo?: number;
   lastReviewRating?: number;
+  minReviewScore?: number;
+  maxReviewScore?: number;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +55,12 @@ export class CardsTableService {
         : {}),
       ...(params.lastReviewRating !== undefined
         ? { lastReviewRating: params.lastReviewRating }
+        : {}),
+      ...(params.minReviewScore !== undefined
+        ? { minReviewScore: params.minReviewScore }
+        : {}),
+      ...(params.maxReviewScore !== undefined
+        ? { maxReviewScore: params.maxReviewScore }
         : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
@@ -75,6 +84,8 @@ export class CardsTableService {
     state?: string;
     lastReviewDaysAgo?: number;
     lastReviewRating?: number;
+    minReviewScore?: number;
+    maxReviewScore?: number;
   }): Promise<string[]> {
     const httpParams = Object.entries({
       ...(params.readiness ? { readiness: params.readiness } : {}),
@@ -84,6 +95,12 @@ export class CardsTableService {
         : {}),
       ...(params.lastReviewRating !== undefined
         ? { lastReviewRating: params.lastReviewRating }
+        : {}),
+      ...(params.minReviewScore !== undefined
+        ? { minReviewScore: params.minReviewScore }
+        : {}),
+      ...(params.maxReviewScore !== undefined
+        ? { maxReviewScore: params.maxReviewScore }
         : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
