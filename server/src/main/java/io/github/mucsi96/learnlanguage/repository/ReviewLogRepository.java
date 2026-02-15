@@ -43,16 +43,4 @@ public interface ReviewLogRepository
     List<Object[]> findCardComplexitiesWithPartner(
         @Param("cardIds") List<String> cardIds,
         @Param("learningPartnerId") Integer learningPartnerId);
-
-    @Query(value = """
-        SELECT r.card_id, r.rating, lp.name as learning_partner_name
-        FROM (
-            SELECT DISTINCT ON (card_id) card_id, rating, learning_partner_id
-            FROM learn_language.review_logs
-            WHERE card_id IN :cardIds
-            ORDER BY card_id, review DESC
-        ) r
-        LEFT JOIN learn_language.learning_partners lp ON r.learning_partner_id = lp.id
-        """, nativeQuery = true)
-    List<Object[]> findLatestReviewInfoByCardIds(@Param("cardIds") List<String> cardIds);
 }

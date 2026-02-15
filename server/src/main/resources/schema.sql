@@ -146,3 +146,42 @@ CREATE INDEX IF NOT EXISTS review_logs_card_review_idx ON learn_language.review_
 CREATE INDEX IF NOT EXISTS idx_cards_readiness_due ON learn_language.cards (readiness, due)
     WHERE readiness = 'READY';
 CREATE INDEX IF NOT EXISTS idx_cards_source_readiness ON learn_language.cards (source_id, readiness);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS learn_language.card_view AS
+SELECT
+    c.id,
+    c.source_id,
+    c.source_page_number,
+    c.data,
+    c.readiness,
+    c.due,
+    c.stability,
+    c.difficulty,
+    c.elapsed_days,
+    c.scheduled_days,
+    c.learning_steps,
+    c.reps,
+    c.lapses,
+    c.state,
+    c.last_review,
+    s.name AS source_name,
+    s.source_type,
+    s.language_level,
+    s.card_type,
+    s.format_type,
+    s.start_page AS source_start_page,
+    s.bookmarked_page AS source_bookmarked_page,
+    lr.rating AS last_review_rating,
+    lp.name AS last_review_learning_partner_name
+FROM learn_language.cards c
+JOIN learn_language.sources s ON c.source_id = s.id
+LEFT JOIN LATERAL (
+    SELECT rating, learning_partner_id
+    FROM learn_language.review_logs
+    WHERE card_id = c.id
+    ORDER BY review DESC
+    LIMIT 1
+) lr ON true
+LEFT JOIN learn_language.learning_partners lp ON lr.learning_partner_id = lp.id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON learn_language.card_view (id);

@@ -4,6 +4,7 @@ import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
+import io.github.mucsi96.learnlanguage.entity.CardView;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -115,13 +116,12 @@ public class CardController {
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
-    // Get the source
     Source source = sourceRepository.findById(request.getSource().getId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSource().getId()));
 
     request.setSource(source);
 
-    cardRepository.save(request);
+    cardService.saveCard(request);
 
     return ResponseEntity.ok(new HashMap<>());
   }
@@ -129,10 +129,10 @@ public class CardController {
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
-    final Card card = cardRepository.findWithSourceById(cardId)
+    final CardView cardView = cardService.getCardViewById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    return ResponseEntity.ok(CardResponse.from(card));
+    return ResponseEntity.ok(CardResponse.from(cardView));
   }
 
   @PutMapping("/card/{cardId}")
@@ -193,6 +193,8 @@ public class CardController {
       reviewLogRepository.save(reviewLog);
     }
 
+    cardService.refreshCardView();
+
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
     return ResponseEntity.ok(response);
@@ -201,10 +203,7 @@ public class CardController {
   @DeleteMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
-    Card card = cardRepository.findById(cardId)
-        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
-
-    cardRepository.delete(card);
+    cardService.deleteCardById(cardId);
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
@@ -246,16 +245,15 @@ public class CardController {
 
     CardData cardData = card.getData();
     if (cardData != null && cardData.getAudio() != null) {
-      // Set all audio as not selected first
       cardData.getAudio().forEach(audio -> audio.setSelected(false));
 
-      // Find and select the specified audio
       cardData.getAudio().stream()
           .filter(audio -> audioId.equals(audio.getId()))
           .findFirst()
           .ifPresent(audio -> audio.setSelected(true));
 
       cardRepository.save(card);
+      cardService.refreshCardView();
     }
 
     Map<String, String> response = new HashMap<>();
@@ -281,6 +279,7 @@ public class CardController {
 
     cardData.getAudio().add(audioData);
     cardRepository.save(card);
+    cardService.refreshCardView();
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Audio added successfully");
