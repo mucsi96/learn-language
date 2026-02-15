@@ -41,42 +41,47 @@
   </article>
   }
 </section>
+@if (selectedSource()) {
 <nav class="source-actions" aria-label="Source actions">
   <button
-    mat-flat-button
-    [disabled]="!selectedSource()"
-    (click)="navigateToPages()"
+    mat-fab
+    extended
+    class="action-fab delete-fab"
+    (click)="openDeleteConfirmDialog()"
   >
-    <mat-icon>menu_book</mat-icon>
-    Pages
+    <mat-icon>delete</mat-icon>
+    Delete
   </button>
   <button
-    mat-flat-button
-    [disabled]="!selectedSource()"
-    (click)="navigateToCards()"
-  >
-    <mat-icon>style</mat-icon>
-    Cards
-  </button>
-  <button
-    mat-flat-button
-    class="edit-button"
-    [disabled]="!selectedSource()"
+    mat-fab
+    extended
+    class="action-fab edit-fab"
     (click)="openEditSourceDialog()"
   >
     <mat-icon>edit</mat-icon>
     Edit
   </button>
   <button
-    mat-flat-button
-    class="delete-button"
-    [disabled]="!selectedSource()"
-    (click)="openDeleteConfirmDialog()"
+    mat-fab
+    extended
+    class="action-fab cards-fab"
+    (click)="navigateToCards()"
   >
-    <mat-icon>delete</mat-icon>
-    Delete
+    <mat-icon>style</mat-icon>
+    Cards
+  </button>
+  <button
+    mat-fab
+    extended
+    color="primary"
+    class="action-fab"
+    (click)="navigateToPages()"
+  >
+    <mat-icon>menu_book</mat-icon>
+    Pages
   </button>
 </nav>
+}
 } @else {
 <div class="empty-state">
   <mat-icon class="empty-icon">library_books</mat-icon>

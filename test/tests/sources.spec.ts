@@ -25,23 +25,19 @@ test('can deselect a source by clicking again', async ({ page }) => {
   await expect(source).toHaveAttribute('aria-selected', 'false');
 });
 
-test('action buttons are disabled when no source is selected', async ({ page }) => {
+test('action buttons are hidden when no source is selected', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  const actions = page.getByRole('navigation', { name: 'Source actions' });
-  await expect(actions.getByRole('button', { name: 'Pages' })).toBeDisabled();
-  await expect(actions.getByRole('button', { name: 'Cards' })).toBeDisabled();
-  await expect(actions.getByRole('button', { name: 'Edit' })).toBeDisabled();
-  await expect(actions.getByRole('button', { name: 'Delete' })).toBeDisabled();
+  await expect(page.getByRole('navigation', { name: 'Source actions' })).not.toBeVisible();
 });
 
-test('action buttons are enabled when a source is selected', async ({ page }) => {
+test('action buttons appear when a source is selected', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   const actions = page.getByRole('navigation', { name: 'Source actions' });
-  await expect(actions.getByRole('button', { name: 'Pages' })).toBeEnabled();
-  await expect(actions.getByRole('button', { name: 'Cards' })).toBeEnabled();
-  await expect(actions.getByRole('button', { name: 'Edit' })).toBeEnabled();
-  await expect(actions.getByRole('button', { name: 'Delete' })).toBeEnabled();
+  await expect(actions.getByRole('button', { name: 'Pages' })).toBeVisible();
+  await expect(actions.getByRole('button', { name: 'Cards' })).toBeVisible();
+  await expect(actions.getByRole('button', { name: 'Edit' })).toBeVisible();
+  await expect(actions.getByRole('button', { name: 'Delete' })).toBeVisible();
 });
 
 test('pages button navigates to page viewer', async ({ page }) => {
