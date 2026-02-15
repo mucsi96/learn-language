@@ -491,7 +491,7 @@ export async function navigateToCardEditing(
   wordName: string = 'abfahren'
 ): Promise<void> {
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('heading', { name: sourceName }).click();
+  await page.getByRole('article', { name: sourceName }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
   await selectTextRange(page, startText, endText);
   await page.getByRole('link', { name: wordName }).click();

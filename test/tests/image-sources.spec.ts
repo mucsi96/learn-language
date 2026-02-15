@@ -134,9 +134,8 @@ test('image source shows source type in create dialog is disabled during edit', 
 
   await page.goto('http://localhost:8180/sources');
 
-  const sourceCard = page.getByRole('article', { name: 'Edit Image Source' });
-  await sourceCard.hover();
-  await sourceCard.getByRole('button', { name: 'Edit source' }).click();
+  await page.getByRole('article', { name: 'Edit Image Source' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
