@@ -43,31 +43,37 @@
 </section>
 <nav class="source-actions" aria-label="Source actions">
   <button
-    mat-button
+    mat-flat-button
     [disabled]="!selectedSource()"
     (click)="navigateToPages()"
   >
+    <mat-icon>menu_book</mat-icon>
     Pages
   </button>
   <button
-    mat-button
+    mat-flat-button
     [disabled]="!selectedSource()"
     (click)="navigateToCards()"
   >
+    <mat-icon>style</mat-icon>
     Cards
   </button>
   <button
-    mat-button
+    mat-flat-button
+    class="edit-button"
     [disabled]="!selectedSource()"
     (click)="openEditSourceDialog()"
   >
+    <mat-icon>edit</mat-icon>
     Edit
   </button>
   <button
-    mat-button
+    mat-flat-button
+    class="delete-button"
     [disabled]="!selectedSource()"
     (click)="openDeleteConfirmDialog()"
   >
+    <mat-icon>delete</mat-icon>
     Delete
   </button>
 </nav>
