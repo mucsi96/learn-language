@@ -4,7 +4,6 @@ import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
-import io.github.mucsi96.learnlanguage.entity.CardView;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -136,10 +135,10 @@ public class CardController {
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
-    final CardView cardView = cardService.getCardViewById(cardId)
+    final Card card = cardService.getCardById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
-    return ResponseEntity.ok(CardResponse.from(cardView));
+    return ResponseEntity.ok(CardResponse.from(card));
   }
 
   @PutMapping("/card/{cardId}")

@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.repository;
 
 import io.github.mucsi96.learnlanguage.entity.CardView;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,11 +13,6 @@ import java.util.List;
 @Repository
 public interface CardViewRepository
         extends JpaRepository<CardView, String>, JpaSpecificationExecutor<CardView> {
-
-    List<CardView> findByReadinessOrderByDueAsc(String readiness);
-
-    @Query("SELECT c FROM CardView c ORDER BY c.lastReview DESC")
-    List<CardView> findTopByOrderByLastReviewDesc(Pageable pageable);
 
     @Query("SELECT c.sourceId, COUNT(c) FROM CardView c GROUP BY c.sourceId")
     List<Object[]> countCardsBySourceGroupBySource();

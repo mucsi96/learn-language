@@ -8,9 +8,6 @@ import org.hibernate.annotations.Type;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardType;
-import io.github.mucsi96.learnlanguage.model.LanguageLevel;
-import io.github.mucsi96.learnlanguage.model.SourceFormatType;
-import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,25 +47,7 @@ public class CardView {
     private LocalDateTime due;
 
     @Column(nullable = false)
-    private Float stability;
-
-    @Column(nullable = false)
-    private Float difficulty;
-
-    @Column(name = "elapsed_days", nullable = false)
-    private Float elapsedDays;
-
-    @Column(name = "scheduled_days", nullable = false)
-    private Float scheduledDays;
-
-    @Column(name = "learning_steps", nullable = false)
-    private Integer learningSteps;
-
-    @Column(nullable = false)
     private Integer reps;
-
-    @Column(nullable = false)
-    private Integer lapses;
 
     @Column(nullable = false)
     private String state;
@@ -76,45 +55,13 @@ public class CardView {
     @Column(name = "last_review")
     private LocalDateTime lastReview;
 
-    @Column(name = "source_name")
-    private String sourceName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source_type")
-    private SourceType sourceType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "language_level")
-    private LanguageLevel languageLevel;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "card_type")
     private CardType cardType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "format_type")
-    private SourceFormatType formatType;
-
-    @Column(name = "source_start_page")
-    private Integer sourceStartPage;
-
-    @Column(name = "source_bookmarked_page")
-    private Integer sourceBookmarkedPage;
 
     @Column(name = "last_review_rating")
     private Integer lastReviewRating;
 
     @Column(name = "last_review_learning_partner_name")
     private String lastReviewLearningPartnerName;
-
-    public boolean hasReadiness(String readiness) {
-        if (readiness == null) {
-            return false;
-        }
-        return readiness.equals(this.readiness);
-    }
-
-    public boolean isInReview() {
-        return hasReadiness(CardReadiness.IN_REVIEW);
-    }
 }

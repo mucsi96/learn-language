@@ -3,7 +3,6 @@ package io.github.mucsi96.learnlanguage.model;
 import java.time.LocalDateTime;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
-import io.github.mucsi96.learnlanguage.entity.CardView;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import lombok.Builder;
 import lombok.Data;
@@ -55,35 +54,6 @@ public class CardResponse {
                 .lapses(card.getLapses())
                 .state(card.getState())
                 .lastReview(card.getLastReview())
-                .build();
-    }
-
-    public static CardResponse from(CardView view) {
-        return CardResponse.builder()
-                .id(view.getId())
-                .source(CardSourceResponse.builder()
-                        .id(view.getSourceId())
-                        .name(view.getSourceName())
-                        .sourceType(view.getSourceType())
-                        .startPage(view.getSourceStartPage())
-                        .bookmarkedPage(view.getSourceBookmarkedPage())
-                        .languageLevel(view.getLanguageLevel())
-                        .cardType(view.getCardType())
-                        .formatType(view.getFormatType())
-                        .build())
-                .sourcePageNumber(view.getSourcePageNumber())
-                .data(view.getData())
-                .readiness(view.getReadiness())
-                .due(view.getDue())
-                .stability(view.getStability())
-                .difficulty(view.getDifficulty())
-                .elapsedDays(view.getElapsedDays())
-                .scheduledDays(view.getScheduledDays())
-                .learningSteps(view.getLearningSteps())
-                .reps(view.getReps())
-                .lapses(view.getLapses())
-                .state(view.getState())
-                .lastReview(view.getLastReview())
                 .build();
     }
 

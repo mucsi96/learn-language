@@ -40,8 +40,8 @@ public class CardService {
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
   private final FileStorageService fileStorageService;
 
-  public Optional<CardView> getCardViewById(String id) {
-    return cardViewRepository.findById(id);
+  public Optional<Card> getCardById(String id) {
+    return cardRepository.findById(id);
   }
 
   public Card saveCard(Card card) {
@@ -63,21 +63,21 @@ public class CardService {
         .toList();
   }
 
-  public List<CardView> getCardsByReadiness(String readiness) {
-    return cardViewRepository.findByReadinessOrderByDueAsc(readiness);
+  public List<Card> getCardsByReadiness(String readiness) {
+    return cardRepository.findByReadinessOrderByDueAsc(readiness);
   }
 
-  public List<CardView> getCardsMissingAudio() {
-    return cardViewRepository.findAll()
+  public List<Card> getCardsMissingAudio() {
+    return cardRepository.findAll()
         .stream()
-        .filter(view -> !view.isInReview())
-        .filter(view -> cardTypeStrategyFactory.getStrategy(view.getCardType())
-            .isMissingAudio(view.getData()))
+        .filter(card -> !card.isInReview())
+        .filter(card -> cardTypeStrategyFactory.getStrategy(card.getSource().getCardType())
+            .isMissingAudio(card.getData()))
         .toList();
   }
 
-  public List<CardView> getRecentlyReviewedCards(int limit) {
-    return cardViewRepository.findTopByOrderByLastReviewDesc(PageRequest.of(0, limit));
+  public List<Card> getRecentlyReviewedCards(int limit) {
+    return cardRepository.findTopByOrderByLastReviewDesc(PageRequest.of(0, limit));
   }
 
   public List<SourceCardCount> getCardCountsBySource() {
