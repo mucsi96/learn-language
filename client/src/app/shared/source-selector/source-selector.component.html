@@ -12,23 +12,18 @@
     {{ selectedSourceName() }}
   </button>
   <mat-menu #menu="matMenu">
-    @for (source of sources(); track source.id) { @if(mode() === 'study') {
-    <a mat-menu-item [routerLink]="['/sources', source.id, 'study']">
+    @for (source of sources(); track source.id) {
+    <a mat-menu-item [routerLink]="getSourceLink(source)">
       <span class="source-link">
         {{ source.name }}
-        @for (dueCount of getDueCounts(source.id); track dueCount.state) {
-        <app-state [state]="dueCount.state" [count]="dueCount.count" />
+        @if (mode() === 'study') {
+          @for (dueCount of getDueCounts(source.id); track dueCount.state) {
+          <app-state [state]="dueCount.state" [count]="dueCount.count" />
+          }
         }
       </span>
     </a>
-    } @else {
-    <a
-      mat-menu-item
-      [routerLink]="['/sources', source.id, 'page', source.startPage]"
-    >
-      {{ source.name }}
-    </a>
-    } }
+    }
   </mat-menu>
   }
 </div>

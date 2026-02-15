@@ -130,10 +130,26 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/cards',
-    loadComponent: () =>
-      import('./cards-table/cards-table.component').then((m) => m.CardsTableComponent),
     canActivate: [conditionalAuthGuard],
     title: 'Cards',
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: { mode: 'cards' },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./cards-table/cards-table.component').then(
+            (m) => m.CardsTableComponent
+          ),
+      },
+    ],
   },
   {
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',

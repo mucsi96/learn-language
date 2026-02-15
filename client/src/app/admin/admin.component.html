@@ -38,6 +38,15 @@
       </mat-card>
     </a>
     <div class="card-actions">
+      <a
+        mat-icon-button
+        [routerLink]="['/sources', source.id, 'cards']"
+        (click)="$event.stopPropagation()"
+        aria-label="View cards"
+        class="action-button"
+      >
+        <mat-icon>table_chart</mat-icon>
+      </a>
       <button
         mat-icon-button
         (click)="openEditSourceDialog(source, $event)"
