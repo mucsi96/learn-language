@@ -125,16 +125,23 @@ public class CardService {
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
-    final PageRequest pageRequest = PageRequest.of(page, pageSize, buildSort(sortField, sortDirection));
 
-    final Page<Card> cardPage = cardRepository.findAll(spec, pageRequest);
+    final Page<Card> cardPage;
+    if ("reviewScore".equals(sortField)) {
+      final Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+      cardPage = cardRepository.findAllSortedByReviewScore(spec, page, pageSize, direction);
+    } else {
+      final PageRequest pageRequest = PageRequest.of(page, pageSize, buildSort(sortField, sortDirection));
+      cardPage = cardRepository.findAll(spec, pageRequest);
+    }
     final List<Card> cards = cardPage.getContent();
 
     final List<String> cardIds = cards.stream().map(Card::getId).toList();
     final Map<String, LatestReviewInfo> latestReviews = getLatestReviews(cardIds);
+    final Map<String, Float> reviewScores = getReviewScores(cardIds);
 
     final List<CardTableRow> rows = cards.stream()
-        .map(card -> mapToRow(card, latestReviews))
+        .map(card -> mapToRow(card, latestReviews, reviewScores))
         .toList();
 
     return CardTableResponse.builder()
@@ -205,7 +212,6 @@ public class CardService {
       case "lastReviewDaysAgo" -> "lastReview";
       case "state" -> "state";
       case "readiness" -> "readiness";
-      case "reviewScore" -> "reviewScore";
       default -> "due";
     };
 
@@ -225,7 +231,18 @@ public class CardService {
                 (String) row[2])));
   }
 
-  private CardTableRow mapToRow(Card card, Map<String, LatestReviewInfo> latestReviews) {
+  private Map<String, Float> getReviewScores(List<String> cardIds) {
+    if (cardIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return reviewLogRepository.findReviewScoresByCardIds(cardIds).stream()
+        .collect(Collectors.toMap(
+            row -> (String) row[0],
+            row -> ((Number) row[1]).floatValue()));
+  }
+
+  private CardTableRow mapToRow(Card card, Map<String, LatestReviewInfo> latestReviews, Map<String, Float> reviewScores) {
     final var strategy = cardTypeStrategyFactory.getStrategy(card);
     final String label = strategy.getPrimaryText(card.getData());
     final LatestReviewInfo review = latestReviews.get(card.getId());
@@ -242,7 +259,7 @@ public class CardService {
         .lastReviewDaysAgo(reviewDaysAgo)
         .lastReviewRating(review != null ? review.rating() : null)
         .lastReviewPerson(review != null ? review.learningPartnerName() : null)
-        .reviewScore(card.getReviewScore())
+        .reviewScore(reviewScores.get(card.getId()))
         .sourcePageNumber(card.getSourcePageNumber())
         .build();
   }

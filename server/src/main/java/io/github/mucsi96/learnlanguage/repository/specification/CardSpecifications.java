@@ -6,12 +6,16 @@ import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog_;
 import io.github.mucsi96.learnlanguage.entity.Source_;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+
+import static io.github.mucsi96.learnlanguage.repository.specification.ReviewScoreSql.REVIEW_SCORE_EXPRESSION;
 
 public class CardSpecifications {
 
@@ -59,11 +63,19 @@ public class CardSpecifications {
     }
 
     public static Specification<Card> hasMinReviewScore(int minScore) {
-        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.<Float>get("reviewScore"), (float) minScore);
+        return (root, query, cb) -> {
+            final HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
+            final Expression<Float> scoreExpr = hcb.sql(Float.class, REVIEW_SCORE_EXPRESSION, root.get(Card_.id));
+            return hcb.greaterThanOrEqualTo(scoreExpr, (float) minScore);
+        };
     }
 
     public static Specification<Card> hasMaxReviewScore(int maxScore) {
-        return (root, query, cb) -> cb.lessThanOrEqualTo(root.<Float>get("reviewScore"), (float) maxScore);
+        return (root, query, cb) -> {
+            final HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
+            final Expression<Float> scoreExpr = hcb.sql(Float.class, REVIEW_SCORE_EXPRESSION, root.get(Card_.id));
+            return hcb.lessThanOrEqualTo(scoreExpr, (float) maxScore);
+        };
     }
 
     public static Specification<Card> hasLastReviewRating(int rating) {

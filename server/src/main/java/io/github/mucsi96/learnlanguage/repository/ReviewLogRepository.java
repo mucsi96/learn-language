@@ -55,4 +55,27 @@ public interface ReviewLogRepository
         LEFT JOIN learn_language.learning_partners lp ON r.learning_partner_id = lp.id
         """, nativeQuery = true)
     List<Object[]> findLatestReviewInfoByCardIds(@Param("cardIds") List<String> cardIds);
+
+    @Query(value = """
+        SELECT
+          card_id,
+          CASE
+            WHEN stats.cnt = 0 THEN NULL
+            WHEN stats.cnt = 1 THEN CASE WHEN stats.last_rating >= 3 THEN 100.0 ELSE 0.0 END
+            ELSE (CASE WHEN stats.last_rating >= 3 THEN 50.0 ELSE 0.0 END +
+                  50.0 * (stats.success_count - CASE WHEN stats.last_rating >= 3 THEN 1 ELSE 0 END) / (stats.cnt - 1))
+          END as review_score
+        FROM (
+          SELECT
+            r.card_id,
+            COUNT(*) as cnt,
+            COUNT(*) FILTER (WHERE r.rating >= 3) as success_count,
+            (SELECT r2.rating FROM learn_language.review_logs r2
+             WHERE r2.card_id = r.card_id ORDER BY r2.review DESC LIMIT 1) as last_rating
+          FROM learn_language.review_logs r
+          WHERE r.card_id IN :cardIds
+          GROUP BY r.card_id
+        ) stats
+        """, nativeQuery = true)
+    List<Object[]> findReviewScoresByCardIds(@Param("cardIds") List<String> cardIds);
 }
