@@ -116,6 +116,8 @@ export class BulkCardCreationService {
       );
     }
 
+    await fetchJson(this.http, `/api/cards/refresh-view`, { method: 'POST' });
+
     this.isCreating.set(false);
 
     return summarizeResults(phase1Results);

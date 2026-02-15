@@ -86,6 +86,13 @@ public class CardController {
     return ResponseEntity.ok(ids);
   }
 
+  @PostMapping("/cards/refresh-view")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> refreshCardView() {
+    cardService.refreshCardView();
+    return ResponseEntity.ok(Map.of("detail", "Card view refreshed"));
+  }
+
   @PutMapping("/cards/mark-known")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
@@ -193,8 +200,6 @@ public class CardController {
       reviewLogRepository.save(reviewLog);
     }
 
-    cardService.refreshCardView();
-
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
     return ResponseEntity.ok(response);
@@ -253,7 +258,6 @@ public class CardController {
           .ifPresent(audio -> audio.setSelected(true));
 
       cardRepository.save(card);
-      cardService.refreshCardView();
     }
 
     Map<String, String> response = new HashMap<>();
@@ -279,7 +283,6 @@ public class CardController {
 
     cardData.getAudio().add(audioData);
     cardRepository.save(card);
-    cardService.refreshCardView();
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Audio added successfully");

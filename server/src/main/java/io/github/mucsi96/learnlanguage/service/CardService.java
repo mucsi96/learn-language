@@ -45,9 +45,7 @@ public class CardService {
   }
 
   public Card saveCard(Card card) {
-    final Card saved = cardRepository.save(card);
-    cardViewRepository.refresh();
-    return saved;
+    return cardRepository.save(card);
   }
 
   @Transactional
@@ -164,7 +162,6 @@ public class CardService {
         });
 
     cardRepository.saveAll(cards);
-    cardViewRepository.refresh();
   }
 
   public void refreshCardView() {
