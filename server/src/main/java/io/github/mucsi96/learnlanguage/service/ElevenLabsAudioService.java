@@ -42,7 +42,8 @@ public class ElevenLabsAudioService {
       if (ELEVEN_V3_MODEL.equals(model) && language != null) {
         String languageName = LANGUAGE_NAMES.get(language);
         if (languageName != null) {
-          processedInput = "[speaking " + languageName + "] " + input;
+          String sayTag = input.contains(" ") ? "[say single sentence]" : "[say single word]";
+          processedInput = sayTag + "[speaking " + languageName + "] " + input;
           languageCode = null;
         }
       }
@@ -52,7 +53,7 @@ public class ElevenLabsAudioService {
           .model(model)
           .languageCode(languageCode);
 
-      if (context != null && !context.isEmpty()) {
+      if (!ELEVEN_V3_MODEL.equals(model) && context != null && !context.isEmpty()) {
         optionsBuilder.previousText(context);
       }
 
