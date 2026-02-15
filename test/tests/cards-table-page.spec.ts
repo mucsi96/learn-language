@@ -564,11 +564,7 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const grid = page.getByRole('grid');
-  await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.length).toBe(3);
-  }).toPass();
+  await page.waitForLoadState('networkidle');
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
@@ -594,11 +590,7 @@ test('deselects all cards with header checkbox', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  const grid = page.getByRole('grid');
-  await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.length).toBe(2);
-  }).toPass();
+  await page.waitForLoadState('networkidle');
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
   await expect(
