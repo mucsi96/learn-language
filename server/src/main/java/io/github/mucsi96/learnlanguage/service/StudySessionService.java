@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -186,16 +187,30 @@ public class StudySessionService {
                 .filter(session -> session.getCards().stream()
                         .noneMatch(sc -> sc.getCard().getId().equals(cardId)))
                 .ifPresent(session -> cardRepository.findById(cardId).ifPresent(card -> {
-                    final int maxPosition = session.getCards().stream()
-                            .mapToInt(StudySessionCard::getPosition)
-                            .max()
-                            .orElse(-1);
+                    final Optional<StudySessionCard> lastCard = session.getCards().stream()
+                            .max(Comparator.comparingInt(StudySessionCard::getPosition));
+
+                    final int newPosition = lastCard
+                            .map(c -> c.getPosition() + 1)
+                            .orElse(0);
+
+                    final LearningPartner partner = "WITH_PARTNER".equals(session.getStudyMode())
+                            ? lastCard
+                                    .map(c -> c.getLearningPartner() != null
+                                            ? null
+                                            : session.getCards().stream()
+                                                    .map(StudySessionCard::getLearningPartner)
+                                                    .filter(Objects::nonNull)
+                                                    .findFirst()
+                                                    .orElse(null))
+                                    .orElse(null)
+                            : null;
 
                     session.getCards().add(StudySessionCard.builder()
                             .session(session)
                             .card(card)
-                            .position(maxPosition + 1)
-                            .learningPartner(null)
+                            .position(newPosition)
+                            .learningPartner(partner)
                             .build());
                 }));
     }
