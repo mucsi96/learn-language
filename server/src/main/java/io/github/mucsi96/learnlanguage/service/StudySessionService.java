@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -196,13 +195,8 @@ public class StudySessionService {
 
                     final LearningPartner partner = "WITH_PARTNER".equals(session.getStudyMode())
                             ? lastCard
-                                    .map(c -> c.getLearningPartner() != null
-                                            ? null
-                                            : session.getCards().stream()
-                                                    .map(StudySessionCard::getLearningPartner)
-                                                    .filter(Objects::nonNull)
-                                                    .findFirst()
-                                                    .orElse(null))
+                                    .filter(c -> c.getLearningPartner() == null)
+                                    .flatMap(c -> learningPartnerService.getActivePartner())
                                     .orElse(null)
                             : null;
 
