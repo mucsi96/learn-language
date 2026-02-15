@@ -4,7 +4,7 @@ import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelS
 async function navigateToSource(page, sourceName: string) {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: sourceName }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
 }
 
 test('displays current page', async ({ page }) => {

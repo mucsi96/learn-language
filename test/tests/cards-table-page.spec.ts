@@ -14,7 +14,7 @@ import {
 test('navigates to cards table from page view', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
   await page.getByRole('link', { name: 'View all cards' }).click();
   await expect(page).toHaveTitle('Cards');
 });
@@ -441,7 +441,7 @@ test('page title shows Cards', async ({ page }) => {
 test('delete image button shows as text button', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
   await expect(page.getByRole('link', { name: 'View all cards' })).toBeVisible();
 });
 

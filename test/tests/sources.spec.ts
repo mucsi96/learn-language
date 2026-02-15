@@ -27,30 +27,29 @@ test('can deselect a source by clicking again', async ({ page }) => {
 
 test('action buttons are hidden when no source is selected', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByRole('navigation', { name: 'Source actions' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pages' })).toBeHidden();
 });
 
 test('action buttons appear when a source is selected', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  const actions = page.getByRole('navigation', { name: 'Source actions' });
-  await expect(actions.getByRole('button', { name: 'Pages' })).toBeVisible();
-  await expect(actions.getByRole('button', { name: 'Cards' })).toBeVisible();
-  await expect(actions.getByRole('button', { name: 'Edit' })).toBeVisible();
-  await expect(actions.getByRole('button', { name: 'Delete' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pages' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cards' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
 });
 
 test('pages button navigates to page viewer', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/page\/9/);
 });
 
 test('cards button navigates to cards table', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Cards' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/cards/);
 });
 
@@ -171,7 +170,7 @@ test('can edit an existing source', async ({ page }) => {
   expect(initialSource?.name).toBe('Goethe A1');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
   await expect(page.getByLabel('Source ID')).toBeDisabled();
@@ -221,7 +220,7 @@ test('can delete a source and its cards', async ({ page }) => {
   await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')).toBeVisible();
 
   await page.getByRole('article', { name: 'Goethe B1' }).click();
-  await page.getByRole('navigation', { name: 'Source actions' }).getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Delete' }).click();
 
   await expect(page.getByRole('heading', { name: 'Confirmation' })).toBeVisible();
   await expect(page.getByText(/All associated cards will also be deleted/)).toBeVisible();
