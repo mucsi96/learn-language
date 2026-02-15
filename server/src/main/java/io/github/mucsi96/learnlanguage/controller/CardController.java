@@ -85,6 +85,13 @@ public class CardController {
     return ResponseEntity.ok(ids);
   }
 
+  @PostMapping("/cards/refresh-view")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> refreshCardView() {
+    cardService.refreshCardView();
+    return ResponseEntity.ok(Map.of("detail", "Card view refreshed"));
+  }
+
   @PutMapping("/cards/mark-known")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
@@ -115,13 +122,12 @@ public class CardController {
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
-    // Get the source
     Source source = sourceRepository.findById(request.getSource().getId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSource().getId()));
 
     request.setSource(source);
 
-    cardRepository.save(request);
+    cardService.saveCard(request);
 
     return ResponseEntity.ok(new HashMap<>());
   }
@@ -129,7 +135,7 @@ public class CardController {
   @GetMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
-    final Card card = cardRepository.findWithSourceById(cardId)
+    final Card card = cardService.getCardById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     return ResponseEntity.ok(CardResponse.from(card));
@@ -201,10 +207,7 @@ public class CardController {
   @DeleteMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
-    Card card = cardRepository.findById(cardId)
-        .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
-
-    cardRepository.delete(card);
+    cardService.deleteCardById(cardId);
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
@@ -246,10 +249,8 @@ public class CardController {
 
     CardData cardData = card.getData();
     if (cardData != null && cardData.getAudio() != null) {
-      // Set all audio as not selected first
       cardData.getAudio().forEach(audio -> audio.setSelected(false));
 
-      // Find and select the specified audio
       cardData.getAudio().stream()
           .filter(audio -> audioId.equals(audio.getId()))
           .findFirst()

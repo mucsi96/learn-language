@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service.cardtype;
 
-import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
 
@@ -10,18 +9,17 @@ public interface CardTypeStrategy {
 
     String getPrimaryText(CardData cardData);
 
-    List<AudioTextItem> getRequiredAudioTexts(Card card);
+    List<AudioTextItem> getRequiredAudioTexts(CardData cardData);
 
     record AudioTextItem(String text, String language) {}
 
-    default boolean isMissingAudio(Card card) {
-        if (card == null || card.getData() == null) {
+    default boolean isMissingAudio(CardData cardData) {
+        if (cardData == null) {
             return false;
         }
 
-        final CardData cardData = card.getData();
         final List<AudioData> audioList = cardData.getAudio() != null ? cardData.getAudio() : List.of();
-        final List<AudioTextItem> requiredTexts = getRequiredAudioTexts(card);
+        final List<AudioTextItem> requiredTexts = getRequiredAudioTexts(cardData);
 
         return requiredTexts.stream()
                 .filter(item -> hasText(item.text()))

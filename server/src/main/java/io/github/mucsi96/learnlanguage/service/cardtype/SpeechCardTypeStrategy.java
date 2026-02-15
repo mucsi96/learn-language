@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service.cardtype;
 
-import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.ExampleData;
 import org.springframework.stereotype.Component;
@@ -18,12 +17,12 @@ public class SpeechCardTypeStrategy implements CardTypeStrategy {
     }
 
     @Override
-    public List<AudioTextItem> getRequiredAudioTexts(Card card) {
-        if (card == null || card.getData() == null) {
+    public List<AudioTextItem> getRequiredAudioTexts(CardData cardData) {
+        if (cardData == null) {
             return List.of();
         }
 
-        final Optional<ExampleData> example = getFirstExample(card.getData());
+        final Optional<ExampleData> example = getFirstExample(cardData);
 
         return Stream.of(
                 example.map(ExampleData::getDe)

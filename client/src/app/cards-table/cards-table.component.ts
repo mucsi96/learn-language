@@ -260,8 +260,10 @@ export class CardsTableComponent {
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
-  onGridReady(event: GridReadyEvent): void {
+  async onGridReady(event: GridReadyEvent): Promise<void> {
     this.gridApi = event.api;
+
+    await this.cardsTableService.refreshCardView();
 
     event.api.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
@@ -320,6 +322,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -343,6 +346,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -366,6 +370,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
