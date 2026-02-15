@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -43,7 +42,6 @@ import static io.github.mucsi96.learnlanguage.repository.specification.StudySess
 @RequiredArgsConstructor
 public class StudySessionService {
 
-    private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
     private static final int SESSION_CARD_LIMIT = 50;
 
     private final CardRepository cardRepository;
@@ -186,9 +184,6 @@ public class StudySessionService {
     }
 
     private Optional<StudySessionCardResponse> findNextCard(StudySession session) {
-        final LocalDateTime now = LocalDateTime.now();
-        final LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
-
         final List<StudySessionCard> allCards = session.getCards();
 
         final int maxPosition = allCards.stream()
@@ -204,12 +199,8 @@ public class StudySessionService {
 
         movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
-        final List<StudySessionCard> eligibleCards = allCards.stream()
+        final Optional<StudySessionCard> nextCard = allCards.stream()
                 .filter(c -> c.getCard().isReady())
-                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
-                .toList();
-
-        final Optional<StudySessionCard> nextCard = eligibleCards.stream()
                 .min(Comparator.comparingInt(StudySessionCard::getPosition));
 
         return nextCard.map(sessionCard -> {
