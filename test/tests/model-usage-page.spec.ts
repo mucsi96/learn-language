@@ -457,7 +457,8 @@ test('displays model summary tab', async ({ page }) => {
 test('creates chat model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -483,7 +484,8 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
 test('creates image model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
-  await page.getByRole('link', { name: 'Goethe A1' }).click();
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 

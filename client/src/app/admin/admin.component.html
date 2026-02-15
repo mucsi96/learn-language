@@ -4,7 +4,7 @@
 <div class="header">
   <div>
     <h1>Sources</h1>
-    <p>Select a source to edit or create a new one:</p>
+    <p>Select a source to manage:</p>
   </div>
   <button
     mat-flat-button
@@ -18,55 +18,70 @@
 @if (sources()?.length) {
 <section class="sources" aria-label="Sources list">
   @for (source of sources(); track source.id) {
-  <article class="card-wrapper" [attr.aria-label]="source.name">
-    <a
-      [routerLink]="['/sources', source.id, 'page', source.startPage]"
-      class="card-link"
-    >
-      <mat-card>
-        <mat-card-content>
-          <h2 class="source-title">
-            {{ source.name }}
-          </h2>
-          @if (source.languageLevel) {
-          <p class="language-level">{{ source.languageLevel }}</p>
-          }
-          <p class="card-count">
-            {{ source.cardCount || 0 }} cards
-          </p>
-        </mat-card-content>
-      </mat-card>
-    </a>
-    <div class="card-actions">
-      <a
-        mat-icon-button
-        [routerLink]="['/sources', source.id, 'cards']"
-        (click)="$event.stopPropagation()"
-        aria-label="View cards"
-        class="action-button"
-      >
-        <mat-icon>table_chart</mat-icon>
-      </a>
-      <button
-        mat-icon-button
-        (click)="openEditSourceDialog(source, $event)"
-        aria-label="Edit source"
-        class="action-button"
-      >
-        <mat-icon>edit</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        (click)="openDeleteConfirmDialog(source, $event)"
-        aria-label="Delete source"
-        class="action-button delete-button"
-      >
-        <mat-icon>delete</mat-icon>
-      </button>
-    </div>
+  <article
+    class="card-wrapper"
+    [class.selected]="selectedSourceId() === source.id"
+    [attr.aria-label]="source.name"
+    [attr.aria-selected]="selectedSourceId() === source.id"
+    (click)="selectSource(source)"
+  >
+    <mat-card>
+      <mat-card-content>
+        <h2 class="source-title">
+          {{ source.name }}
+        </h2>
+        @if (source.languageLevel) {
+        <p class="language-level">{{ source.languageLevel }}</p>
+        }
+        <p class="card-count">
+          {{ source.cardCount || 0 }} cards
+        </p>
+      </mat-card-content>
+    </mat-card>
   </article>
   }
 </section>
+@if (selectedSource()) {
+<nav class="source-actions" aria-label="Source actions">
+  <button
+    mat-fab
+    extended
+    class="action-fab delete-fab"
+    (click)="openDeleteConfirmDialog()"
+  >
+    <mat-icon>delete</mat-icon>
+    Delete
+  </button>
+  <button
+    mat-fab
+    extended
+    class="action-fab edit-fab"
+    (click)="openEditSourceDialog()"
+  >
+    <mat-icon>edit</mat-icon>
+    Edit
+  </button>
+  <button
+    mat-fab
+    extended
+    class="action-fab cards-fab"
+    (click)="navigateToCards()"
+  >
+    <mat-icon>style</mat-icon>
+    Cards
+  </button>
+  <button
+    mat-fab
+    extended
+    color="primary"
+    class="action-fab"
+    (click)="navigateToPages()"
+  >
+    <mat-icon>menu_book</mat-icon>
+    Pages
+  </button>
+</nav>
+}
 } @else {
 <div class="empty-state">
   <mat-icon class="empty-icon">library_books</mat-icon>
