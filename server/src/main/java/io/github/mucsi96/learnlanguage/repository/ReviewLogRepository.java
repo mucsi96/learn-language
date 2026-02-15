@@ -15,13 +15,6 @@ public interface ReviewLogRepository
         extends JpaRepository<ReviewLog, Integer>, JpaSpecificationExecutor<ReviewLog> {
     List<ReviewLog> findByCardId(String cardId);
 
-    @Query(value = """
-        SELECT rating FROM learn_language.review_logs
-        WHERE card_id = :cardId
-        ORDER BY review ASC
-        """, nativeQuery = true)
-    List<Integer> findRatingsByCardIdOrderByReviewAsc(@Param("cardId") String cardId);
-
     @Modifying
     void deleteByCardIdIn(List<String> cardIds);
 

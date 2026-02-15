@@ -59,11 +59,11 @@ public class CardSpecifications {
     }
 
     public static Specification<Card> hasMinReviewScore(int minScore) {
-        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get(Card_.reviewScore), (float) minScore);
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.<Float>get("reviewScore"), (float) minScore);
     }
 
     public static Specification<Card> hasMaxReviewScore(int maxScore) {
-        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(Card_.reviewScore), (float) maxScore);
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.<Float>get("reviewScore"), (float) maxScore);
     }
 
     public static Specification<Card> hasLastReviewRating(int rating) {

@@ -37,7 +37,6 @@ CREATE TABLE IF NOT EXISTS learn_language.cards (
     lapses integer NOT NULL,
     state character varying(255) NOT NULL,
     last_review timestamp(6),
-    review_score real,
     CONSTRAINT cards_pkey PRIMARY KEY (id),
     CONSTRAINT card_source_id_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id)
 );

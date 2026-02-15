@@ -694,10 +694,13 @@ test('displays review score in table', async ({ page }) => {
     sourcePageNumber: 9,
     data: { word: 'Erfolg', type: 'NOUN', translation: { en: 'success' } },
     state: 'REVIEW',
-    reps: 4,
+    reps: 3,
     lastReview: new Date(),
-    reviewScore: 75,
   });
+
+  await createReviewLog({ cardId: 'score-card', rating: 3, review: new Date(Date.now() - 3000) });
+  await createReviewLog({ cardId: 'score-card', rating: 1, review: new Date(Date.now() - 2000) });
+  await createReviewLog({ cardId: 'score-card', rating: 3, review: new Date(Date.now() - 1000) });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
@@ -716,10 +719,11 @@ test('filters cards by review score range', async ({ page }) => {
     sourcePageNumber: 9,
     data: { word: 'gut', type: 'ADJECTIVE', translation: { en: 'good' } },
     state: 'REVIEW',
-    reps: 5,
+    reps: 1,
     lastReview: new Date(),
-    reviewScore: 80,
   });
+
+  await createReviewLog({ cardId: 'high-score-card', rating: 3, review: new Date() });
 
   await createCard({
     cardId: 'low-score-card',
@@ -727,10 +731,11 @@ test('filters cards by review score range', async ({ page }) => {
     sourcePageNumber: 10,
     data: { word: 'schlecht', type: 'ADJECTIVE', translation: { en: 'bad' } },
     state: 'REVIEW',
-    reps: 3,
+    reps: 1,
     lastReview: new Date(),
-    reviewScore: 20,
   });
+
+  await createReviewLog({ cardId: 'low-score-card', rating: 1, review: new Date() });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
@@ -758,10 +763,11 @@ test('sorts cards by review score', async ({ page }) => {
     sourcePageNumber: 9,
     data: { word: 'niedrig', type: 'ADJECTIVE', translation: { en: 'low' } },
     state: 'REVIEW',
-    reps: 2,
+    reps: 1,
     lastReview: new Date(),
-    reviewScore: 25,
   });
+
+  await createReviewLog({ cardId: 'low-score-sort', rating: 1, review: new Date() });
 
   await createCard({
     cardId: 'high-score-sort',
@@ -769,10 +775,11 @@ test('sorts cards by review score', async ({ page }) => {
     sourcePageNumber: 10,
     data: { word: 'hoch', type: 'ADJECTIVE', translation: { en: 'high' } },
     state: 'REVIEW',
-    reps: 8,
+    reps: 1,
     lastReview: new Date(),
-    reviewScore: 90,
   });
+
+  await createReviewLog({ cardId: 'high-score-sort', rating: 3, review: new Date() });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 

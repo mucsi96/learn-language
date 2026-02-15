@@ -188,38 +188,11 @@ public class CardController {
           .build();
 
       reviewLogRepository.save(reviewLog);
-
-      existingCard.setReviewScore(computeReviewScore(cardId));
-      cardRepository.save(existingCard);
     }
 
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card updated successfully");
     return ResponseEntity.ok(response);
-  }
-
-  private Float computeReviewScore(String cardId) {
-    final List<Integer> ratings = reviewLogRepository.findRatingsByCardIdOrderByReviewAsc(cardId);
-
-    if (ratings.isEmpty()) {
-      return null;
-    }
-
-    final int successThreshold = 3;
-
-    if (ratings.size() == 1) {
-      return ratings.getFirst() >= successThreshold ? 100.0f : 0.0f;
-    }
-
-    final int lastRating = ratings.getLast();
-    final float lastSuccess = lastRating >= successThreshold ? 1.0f : 0.0f;
-
-    final long otherSuccessCount = ratings.subList(0, ratings.size() - 1).stream()
-        .filter(r -> r >= successThreshold)
-        .count();
-    final float otherSuccessRatio = (float) otherSuccessCount / (ratings.size() - 1);
-
-    return (lastSuccess * 0.5f + otherSuccessRatio * 0.5f) * 100.0f;
   }
 
   @DeleteMapping("/card/{cardId}")
