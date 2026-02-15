@@ -51,7 +51,6 @@ public class CardService {
   @Transactional
   public void deleteCardById(String id) {
     cardRepository.deleteById(id);
-    cardViewRepository.refresh();
   }
 
   public List<SourceDueCardCountResponse> getDueCardCountsBySource() {
@@ -138,14 +137,12 @@ public class CardService {
   @Transactional
   public void markCardsAsKnown(List<String> cardIds) {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.KNOWN);
-    cardViewRepository.refresh();
   }
 
   @Transactional
   public void deleteCardsByIds(List<String> cardIds) {
     reviewLogRepository.deleteByCardIdIn(cardIds);
     cardRepository.deleteAllById(cardIds);
-    cardViewRepository.refresh();
   }
 
   @Transactional

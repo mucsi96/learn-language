@@ -260,8 +260,10 @@ export class CardsTableComponent {
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
-  onGridReady(event: GridReadyEvent): void {
+  async onGridReady(event: GridReadyEvent): Promise<void> {
     this.gridApi = event.api;
+
+    await this.cardsTableService.refreshCardView();
 
     event.api.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
