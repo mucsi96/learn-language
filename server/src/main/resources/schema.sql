@@ -147,8 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_cards_readiness_due ON learn_language.cards (read
     WHERE readiness = 'READY';
 CREATE INDEX IF NOT EXISTS idx_cards_source_readiness ON learn_language.cards (source_id, readiness);
 
-DROP MATERIALIZED VIEW IF EXISTS learn_language.card_view;
-CREATE MATERIALIZED VIEW learn_language.card_view AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS learn_language.card_view AS
 SELECT
     c.id,
     c.source_id,

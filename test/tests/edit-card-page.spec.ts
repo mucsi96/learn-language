@@ -168,7 +168,7 @@ test('card editing in db', async ({ page }) => {
   ;
   await page.getByRole('button', { name: 'Add example image' }).nth(1).click();
 
-  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('img')).toHaveCount(6);
 
   await expect(page.getByText('GPT Image 1.5')).toHaveCount(2);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(2);
@@ -384,6 +384,9 @@ test('example image addition', async ({ page }) => {
   });
   await imageLocator.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
   await page.getByRole('button', { name: 'Add example image' }).first().click();
+
+  await expect(page.getByRole('img')).toHaveCount(5);
+
   await expect(page.getByText('GPT Image 1.5')).toHaveCount(2);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(2);
 

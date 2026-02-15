@@ -54,7 +54,7 @@ p {
 
 .card-actions {
   position: absolute;
-  top: 8px;
+  bottom: 11px;
   right: 8px;
   display: flex;
   gap: 4px;

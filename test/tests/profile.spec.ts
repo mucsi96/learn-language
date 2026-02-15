@@ -20,7 +20,7 @@ test('shows user name in popup', async ({ page }) => {
 test('navigates to sources from popup', async ({ page }) => {
   await page.goto('http://localhost:8180');
   await page.getByRole('button', { name: 'TU' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Create cards' })).toHaveAttribute('href', '/sources');
-  await page.getByRole('menuitem', { name: 'Create cards' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Sources' })).toHaveAttribute('href', '/sources');
+  await page.getByRole('menuitem', { name: 'Sources' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
 });

@@ -1,4 +1,4 @@
-import { Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
+import { Component, computed, effect, inject, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -108,6 +108,15 @@ export class CardsTableComponent {
   private readonly routeSourceId = injectParams('sourceId');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
+
+  constructor() {
+    effect(() => {
+      this.sourceId();
+      if (this.gridApi) {
+        this.cardsTableService.refreshCardView().then(() => this.refreshGrid());
+      }
+    });
+  }
 
   private gridApi: GridApi | null = null;
 
