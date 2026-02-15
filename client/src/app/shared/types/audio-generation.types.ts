@@ -5,6 +5,7 @@ export interface AudioSourceRequest {
   language?: string;
   selected?: boolean;
   context?: string;
+  singleWord?: boolean;
 }
 
 export interface AudioResponse {

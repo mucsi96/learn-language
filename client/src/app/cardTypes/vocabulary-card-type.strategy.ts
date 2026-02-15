@@ -258,8 +258,8 @@ export class VocabularyCardType implements CardTypeStrategy {
     const selectedExample = card.data.examples?.find(example => example.isSelected);
 
     return [
-      card.data.word ? { text: card.data.word, language: LANGUAGE_CODES.GERMAN, context: selectedExample?.['de'] } : null,
-      card.data.translation?.['hu'] ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN, context: selectedExample?.['hu'] } : null,
+      card.data.word ? { text: card.data.word, language: LANGUAGE_CODES.GERMAN, context: selectedExample?.['de'], singleWord: true } : null,
+      card.data.translation?.['hu'] ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN, context: selectedExample?.['hu'], singleWord: true } : null,
       selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN } : null,
       selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN } : null,
     ].filter(nonNullable);

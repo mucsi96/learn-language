@@ -33,7 +33,7 @@ public class ElevenLabsAudioService {
   private final ElevenLabsVoicesApi voicesApi;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateAudio(String input, String voiceId, String model, String language, String context) {
+  public byte[] generateAudio(String input, String voiceId, String model, String language, String context, boolean singleWord) {
     long startTime = System.currentTimeMillis();
     try {
       String processedInput = input;
@@ -42,7 +42,7 @@ public class ElevenLabsAudioService {
       if (ELEVEN_V3_MODEL.equals(model) && language != null) {
         String languageName = LANGUAGE_NAMES.get(language);
         if (languageName != null) {
-          String sayTag = input.contains(" ") ? "[say single sentence]" : "[say single word]";
+          String sayTag = singleWord ? "[say single word]" : "[say single sentence]";
           processedInput = sayTag + "[speaking " + languageName + "] " + input;
           languageCode = null;
         }

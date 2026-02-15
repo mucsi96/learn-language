@@ -29,9 +29,9 @@ public class AudioService {
 
   private final ElevenLabsAudioService elevenLabsAudioService;
 
-  public byte[] generateAudio(String input, String voiceName, String model, String language, String context) throws IOException {
+  public byte[] generateAudio(String input, String voiceName, String model, String language, String context, boolean singleWord) throws IOException {
     if ("eleven_turbo_v2_5".equals(model) || "eleven_v3".equals(model)) {
-      return elevenLabsAudioService.generateAudio(input, voiceName, model, language, context);
+      return elevenLabsAudioService.generateAudio(input, voiceName, model, language, context, singleWord);
     } else {
       throw new IllegalArgumentException("Unsupported audio model: " + model);
     }
