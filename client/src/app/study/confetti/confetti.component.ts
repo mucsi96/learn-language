@@ -25,7 +25,7 @@ const COLORS = [
 
 const PARTICLE_COUNT = 150;
 const GRAVITY = 0.12;
-const FADE_RATE = 0.003;
+const FADE_RATE = 0.001;
 const INITIAL_VELOCITY_X = 8;
 const INITIAL_VELOCITY_Y_MIN = -14;
 const INITIAL_VELOCITY_Y_MAX = -4;
@@ -39,7 +39,7 @@ function createParticle(canvasWidth: number): Particle {
     rotation: Math.random() * 360,
     rotationSpeed: (Math.random() - 0.5) * 10,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    size: Math.random() * 8 + 4,
+    size: Math.random() * 24 + 12,
     opacity: 1,
   };
 }
