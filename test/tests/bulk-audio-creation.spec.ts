@@ -1021,6 +1021,10 @@ test('bulk audio creation respects session card limit', async ({ page }) => {
         translation: { en: `word${i}`, hu: `szo${i}` },
         forms: [],
         examples: [],
+        audio: [
+          { id: `audio-de-${i}`, text: `wort${i}`, voice: 'v', model: 'm', language: 'de', selected: true },
+          { id: `audio-hu-${i}`, text: `szo${i}`, voice: 'v', model: 'm', language: 'hu', selected: true },
+        ],
       },
       readiness: 'READY',
     });
