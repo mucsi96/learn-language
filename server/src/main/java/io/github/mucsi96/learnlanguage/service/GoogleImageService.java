@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.ImageConfig;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -39,10 +38,11 @@ public class GoogleImageService {
 
       final List<byte[]> images = IntStream.range(0, imageCount)
           .mapToObj(i -> googleAiClient.models.generateContent(MODEL_NAME, fullPrompt, config))
-          .flatMap(response -> response.candidates().orElseThrow().stream())
-          .flatMap(candidate -> candidate.content().orElseThrow().parts().orElseThrow().stream())
-          .filter(part -> part.inlineData().isPresent())
-          .map(part -> part.inlineData().get().data().orElseThrow())
+          .flatMap(response -> response.candidates().stream().flatMap(List::stream))
+          .flatMap(candidate -> candidate.content().stream()
+              .flatMap(content -> content.parts().stream().flatMap(List::stream)))
+          .flatMap(part -> part.inlineData().stream())
+          .flatMap(inlineData -> inlineData.data().stream())
           .toList();
 
       if (images.isEmpty()) {
