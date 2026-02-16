@@ -75,6 +75,16 @@ export class BatchAudioCreationFabComponent {
       );
 
       if (results.successful > 0) {
+        const cardIds = cards.map(c => c.id);
+        try {
+          await fetchJson(this.http, '/api/study-sessions/add-cards', {
+            method: 'POST',
+            body: { cardIds },
+          });
+        } catch {
+          // Session addition is best-effort
+        }
+
         this.cards.reload();
         this.snackBar.open(
           `Audio generated successfully for ${results.successful} card${results.successful === 1 ? '' : 's'}!`,
