@@ -4,7 +4,6 @@ import { fetchJson } from './utils/fetchJson';
 import { StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 import { DueCardsService } from './due-cards.service';
-import { CardState } from './shared/state/card-state';
 
 @Injectable({
   providedIn: 'root',
@@ -44,15 +43,6 @@ export class StudySessionService {
       return result;
     },
     injector: this.injector,
-  });
-
-  readonly stateCounts = computed<{ state: CardState; count: number }[]>(() => {
-    const cardData = this.currentCard.value();
-    if (!cardData?.stateCounts) return [];
-    return Object.entries(cardData.stateCounts).map(([state, count]) => ({
-      state: state as CardState,
-      count,
-    }));
   });
 
   readonly currentTurn = computed<{ name: string; partnerId: number | null }>(() => {

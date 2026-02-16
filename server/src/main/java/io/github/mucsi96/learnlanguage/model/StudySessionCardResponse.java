@@ -1,7 +1,5 @@
 package io.github.mucsi96.learnlanguage.model;
 
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +14,4 @@ public class StudySessionCardResponse {
     private Integer learningPartnerId;
     private String turnName;
     private String studyMode;
-    private Map<String, Long> stateCounts;
 }

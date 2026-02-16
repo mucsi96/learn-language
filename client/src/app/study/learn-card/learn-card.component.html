@@ -38,11 +38,6 @@
 </div>
 } @else {
 <div class="learn-card-container">
-  <div class="session-stats" role="status" aria-label="Session card counts">
-    @for (stateCount of stateCounts(); track stateCount.state) {
-      <app-state [state]="stateCount.state" [count]="stateCount.count" />
-    }
-  </div>
   <div
     class="learn-card"
     [class.revealed]="isRevealed()"

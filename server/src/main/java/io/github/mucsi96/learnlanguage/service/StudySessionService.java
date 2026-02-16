@@ -185,16 +185,10 @@ public class StudySessionService {
                 .flatMap(this::findNextCard);
     }
 
-    private List<StudySessionCard> getEligibleCards(List<StudySessionCard> allCards) {
-        final LocalDateTime lookaheadCutoff = LocalDateTime.now().plus(DUE_CARD_LOOKAHEAD);
-
-        return allCards.stream()
-                .filter(c -> c.getCard().isReady())
-                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
-                .toList();
-    }
-
     private Optional<StudySessionCardResponse> findNextCard(StudySession session) {
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
+
         final List<StudySessionCard> allCards = session.getCards();
 
         final int maxPosition = allCards.stream()
@@ -210,10 +204,10 @@ public class StudySessionService {
 
         movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
 
-        final List<StudySessionCard> eligibleCards = getEligibleCards(allCards);
-
-        final Map<String, Long> stateCounts = eligibleCards.stream()
-                .collect(Collectors.groupingBy(c -> c.getCard().getState(), Collectors.counting()));
+        final List<StudySessionCard> eligibleCards = allCards.stream()
+                .filter(c -> c.getCard().isReady())
+                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
+                .toList();
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
                 .min(Comparator.comparingInt(StudySessionCard::getPosition));
@@ -230,7 +224,6 @@ public class StudySessionService {
                             : null)
                     .turnName(turnName)
                     .studyMode(session.getStudyMode())
-                    .stateCounts(stateCounts)
                     .build();
         });
     }

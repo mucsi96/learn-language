@@ -25,7 +25,6 @@ import { AudioPlaybackService } from '../../shared/services/audio-playback.servi
 import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
-import { StateComponent } from '../../shared/state/state.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -41,7 +40,6 @@ import { StateComponent } from '../../shared/state/state.component';
     LearnSpeechCardComponent,
     LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
-    StateComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -83,8 +81,6 @@ export class LearnCardComponent implements OnDestroy {
     const strategy = this.cardTypeRegistry.getStrategy(cardType);
     return strategy.getLanguageTexts(card);
   });
-
-  readonly stateCounts = this.studySessionService.stateCounts;
 
   readonly isStudyingWithPartner = computed(() => {
     const cardData = this.currentCardData.value();
