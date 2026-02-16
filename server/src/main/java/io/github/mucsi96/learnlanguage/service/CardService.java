@@ -181,7 +181,7 @@ public class CardService {
 
   @Transactional
   public void deleteAudioForCards(List<String> cardIds) {
-    final List<Card> cards = cardRepository.findByIdIn(cardIds);
+    final List<Card> cards = cardRepository.findByIdInOrderByIdAsc(cardIds);
 
     cards.stream()
         .filter(card -> card.getData() != null && card.getData().getAudio() != null)
