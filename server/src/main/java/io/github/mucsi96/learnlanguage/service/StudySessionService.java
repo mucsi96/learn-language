@@ -179,9 +179,8 @@ public class StudySessionService {
     }
 
     @Transactional
-    public void moveCardToBack(String cardId, String sourceId) {
-        studySessionRepository
-                .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, LocalDateTime.now().minusDays(2))
+    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay) {
+        studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> session.getCards().stream()
                         .filter(sc -> sc.getCard().getId().equals(cardId))

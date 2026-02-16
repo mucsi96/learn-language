@@ -155,7 +155,8 @@ public class CardController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @Transactional
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
-      @RequestBody CardUpdateRequest request) throws Exception {
+      @RequestBody CardUpdateRequest request,
+      @RequestHeader(value = "X-Timezone", required = false) String timezone) throws Exception {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
@@ -208,7 +209,10 @@ public class CardController {
           .build();
 
       reviewLogRepository.save(reviewLog);
-      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId());
+      if (timezone != null) {
+        studySessionService.moveCardToBack(cardId, existingCard.getSource().getId(),
+            startOfDayUtc(parseTimezone(timezone)));
+      }
     }
 
     Map<String, String> response = new HashMap<>();
