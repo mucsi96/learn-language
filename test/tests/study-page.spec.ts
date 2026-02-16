@@ -975,6 +975,33 @@ test('grading with no next card shows empty state', async ({ page }) => {
   await expect(page.getByText('Great job keeping up with your studies! 🎉')).toBeVisible();
 });
 
+test('confetti celebration appears when all cards are caught up', async ({ page }) => {
+  await createCard({
+    cardId: 'confetti-test-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 51,
+    data: {
+      word: 'feiern',
+      type: 'VERB',
+      translation: { en: 'to celebrate', hu: 'ünnepelni', ch: 'fiire' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await flashcard.getByRole('heading', { name: 'ünnepelni' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await flashcard.getByRole('heading', { name: 'ünnepelni' }).click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+  await expect(page.locator('app-confetti canvas')).toBeVisible();
+});
+
 test('cards due more than 1 hour from now are removed from session', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
