@@ -13,6 +13,7 @@ import {
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { routes } from './app.routes';
 import { errorInterceptor } from './utils/error.interceptor';
+import { timezoneInterceptor } from './utils/timezone.interceptor';
 import { provideMsalConfig } from './msal.config';
 import {
   EnvironmentConfig,
@@ -30,7 +31,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
       provideRouter(routes),
       provideHttpClient(
         withInterceptorsFromDi(),
-        withInterceptors([errorInterceptor])
+        withInterceptors([timezoneInterceptor, errorInterceptor])
       ),
       { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
       provideAnimationsAsync(),
