@@ -184,7 +184,7 @@ public class StudySessionService {
 
     @Transactional
     public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay) {
-        studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+        studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> session.getCards().stream()
                         .filter(sc -> sc.getCard().getId().equals(cardId))
