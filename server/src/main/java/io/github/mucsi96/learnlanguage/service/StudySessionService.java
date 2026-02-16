@@ -183,8 +183,24 @@ public class StudySessionService {
     }
 
     @Transactional
+    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay) {
+        studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .ifPresent(session -> session.getCards().stream()
+                        .filter(sc -> sc.getCard().getId().equals(cardId))
+                        .findFirst()
+                        .ifPresent(sessionCard -> {
+                            final int maxPosition = session.getCards().stream()
+                                    .mapToInt(StudySessionCard::getPosition)
+                                    .max()
+                                    .orElse(0);
+                            sessionCard.setPosition(maxPosition + 1);
+                        }));
+    }
+
+    @Transactional
     public void addCardsToSessions(List<String> cardIds, LocalDateTime startOfDay) {
-        final List<Card> cards = cardRepository.findByIdIn(cardIds).stream()
+        final List<Card> cards = cardRepository.findByIdInOrderByIdAsc(cardIds).stream()
                 .filter(Card::isReady)
                 .toList();
 
@@ -248,24 +264,8 @@ public class StudySessionService {
                 .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
                 .toList();
 
-        final int maxPosition = eligibleCards.stream()
-                .mapToInt(StudySessionCard::getPosition)
-                .max()
-                .orElse(0);
-
-        final int newLastPosition = maxPosition + 1;
-
-        final Optional<StudySessionCard> movedCard = eligibleCards.stream()
-                .filter(c -> c.getCard().getLastReview() != null)
-                .max(Comparator.comparing(c -> c.getCard().getLastReview()));
-
-        movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
-
-        final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
-
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                .min(Comparator.comparingInt(c ->
-                        c.getId().equals(movedCardId) ? newLastPosition : c.getPosition()));
+                .min(Comparator.comparingInt(StudySessionCard::getPosition));
 
         return nextCard.map(sessionCard -> {
             final String turnName = sessionCard.getLearningPartner() != null

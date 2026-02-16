@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public interface CardRepository
         extends JpaRepository<Card, String>, JpaSpecificationExecutor<Card>, CardRepositoryCustom {
-    List<Card> findByIdIn(List<String> ids);
+    List<Card> findByIdInOrderByIdAsc(List<String> ids);
 
     List<Card> findByReadinessOrderByDueAsc(String readiness);
 
