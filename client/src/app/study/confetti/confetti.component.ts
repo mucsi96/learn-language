@@ -23,7 +23,9 @@ const COLORS = [
   '#FF6EC7', '#845EC2', '#FFC75F', '#00C9A7',
 ];
 
-const PARTICLE_COUNT = 150;
+const PARTICLES_PER_BURST = 150;
+const BURST_COUNT = 3;
+const BURST_INTERVAL_MS = 800;
 const GRAVITY = 0.12;
 const FADE_RATE = 0.001;
 const INITIAL_VELOCITY_X = 8;
@@ -75,15 +77,15 @@ export class ConfettiComponent implements OnInit, OnDestroy {
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private animationFrameId = 0;
   private particles: readonly Particle[] = [];
+  private burstTimeouts: readonly ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
     const canvas = this.canvasRef().nativeElement;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    this.particles = Array.from(
-      { length: PARTICLE_COUNT },
-      () => createParticle(canvas.width)
+    this.burstTimeouts = Array.from({ length: BURST_COUNT }, (_, i) =>
+      setTimeout(() => this.spawnBurst(canvas.width), i * BURST_INTERVAL_MS)
     );
 
     this.animate();
@@ -91,6 +93,15 @@ export class ConfettiComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     cancelAnimationFrame(this.animationFrameId);
+    this.burstTimeouts.forEach(clearTimeout);
+  }
+
+  private spawnBurst(canvasWidth: number): void {
+    const newParticles = Array.from(
+      { length: PARTICLES_PER_BURST },
+      () => createParticle(canvasWidth)
+    );
+    this.particles = [...this.particles, ...newParticles];
   }
 
   private animate(): void {
