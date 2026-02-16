@@ -2,6 +2,8 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createVoiceConfiguration,
+  createStudySession,
+  getStudySessionCardsBySource,
   withDbConnection,
   germanAudioSample,
   hungarianAudioSample,
@@ -924,4 +926,205 @@ test('bulk audio creation assigns voices in round-robin per card', async ({ page
         expect(audio.voice).toBe(card2GermanVoice);
       });
   });
+});
+
+test('bulk audio creation adds cards to existing study session', async ({ page }) => {
+  await setupVoiceConfigurations();
+
+  // Create a READY card that's already in a session
+  await createCard({
+    cardId: 'existing-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'lesen',
+      type: 'VERB',
+      translation: { en: 'to read', hu: 'olvasni', ch: 'lese' },
+      forms: ['liest', 'las', 'gelesen'],
+      examples: [
+        {
+          de: 'Ich lese ein Buch.',
+          hu: 'Olvasok egy könyvet.',
+          en: 'I read a book.',
+          ch: 'Ich les es Buech.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+      audio: [
+        { id: 'a1', text: 'lesen', voice: 'v', model: 'm', language: 'de', selected: true },
+        { id: 'a2', text: 'olvasni', voice: 'v', model: 'm', language: 'hu', selected: true },
+        { id: 'a3', text: 'Ich lese ein Buch.', voice: 'v', model: 'm', language: 'de', selected: true },
+        { id: 'a4', text: 'Olvasok egy könyvet.', voice: 'v', model: 'm', language: 'hu', selected: true },
+      ],
+    },
+    readiness: 'READY',
+  });
+
+  await createStudySession({
+    sourceId: 'goethe-a1',
+    cardIds: ['existing-card'],
+  });
+
+  // Create a REVIEWED card that needs audio
+  await createCard({
+    cardId: 'new-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id-2' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  const sessionCards = await getStudySessionCardsBySource('goethe-a1');
+  expect(sessionCards.length).toBe(2);
+  expect(sessionCards[0].cardId).toBe('existing-card');
+  expect(sessionCards[0].position).toBe(0);
+  expect(sessionCards[1].cardId).toBe('new-card');
+  expect(sessionCards[1].position).toBe(1);
+});
+
+test('bulk audio creation respects session card limit', async ({ page }) => {
+  await setupVoiceConfigurations();
+
+  // Create 49 READY cards and add them to a session
+  const existingCardIds: string[] = [];
+  for (let i = 0; i < 49; i++) {
+    const cardId = `existing-card-${i}`;
+    existingCardIds.push(cardId);
+    await createCard({
+      cardId,
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 15,
+      data: {
+        word: `wort${i}`,
+        type: 'NOUN',
+        translation: { en: `word${i}`, hu: `szo${i}` },
+        forms: [],
+        examples: [],
+        audio: [
+          { id: `audio-de-${i}`, text: `wort${i}`, voice: 'v', model: 'm', language: 'de', selected: true },
+          { id: `audio-hu-${i}`, text: `szo${i}`, voice: 'v', model: 'm', language: 'hu', selected: true },
+        ],
+      },
+      readiness: 'READY',
+    });
+  }
+
+  await createStudySession({
+    sourceId: 'goethe-a1',
+    cardIds: existingCardIds,
+  });
+
+  // Create 2 REVIEWED cards that need audio
+  await createCard({
+    cardId: 'new-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await createCard({
+    cardId: 'new-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'sprechen',
+      type: 'VERB',
+      translation: { en: 'to speak', hu: 'beszélni', ch: 'rede' },
+      forms: ['spricht', 'sprach', 'gesprochen'],
+      examples: [
+        {
+          de: 'Ich spreche Deutsch.',
+          hu: 'Németül beszélek.',
+          en: 'I speak German.',
+          ch: 'Ich red Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id-2' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
+
+  const sessionCards = await getStudySessionCardsBySource('goethe-a1');
+  // 49 existing + 1 new (limit is 50, only 1 slot remaining)
+  expect(sessionCards.length).toBe(50);
+  expect(sessionCards[49].cardId).toBe('new-card-1');
+  expect(sessionCards[49].position).toBe(49);
+});
+
+test('bulk audio creation does not fail when no session exists', async ({ page }) => {
+  await setupVoiceConfigurations();
+
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  const sessionCards = await getStudySessionCardsBySource('goethe-a1');
+  expect(sessionCards.length).toBe(0);
 });

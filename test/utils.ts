@@ -1033,3 +1033,52 @@ export async function getStudySessionCards(page: Page): Promise<
     return result.rows;
   });
 }
+
+export async function createStudySession(params: {
+  sourceId: string;
+  cardIds: string[];
+  studyMode?: string;
+}): Promise<string> {
+  const { sourceId, cardIds, studyMode = 'SOLO' } = params;
+  const sessionId = uuidv4();
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.study_sessions (id, source_id, created_at, study_mode)
+       VALUES ($1, $2, NOW(), $3)`,
+      [sessionId, sourceId, studyMode]
+    );
+
+    for (let i = 0; i < cardIds.length; i++) {
+      await client.query(
+        `INSERT INTO learn_language.study_session_cards (session_id, card_id, position, version)
+         VALUES ($1, $2, $3, 0)`,
+        [sessionId, cardIds[i], i]
+      );
+    }
+  });
+
+  return sessionId;
+}
+
+export async function getStudySessionCardsBySource(sourceId: string): Promise<
+  Array<{
+    cardId: string;
+    position: number;
+    learningPartnerId: number | null;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT c.id as "cardId", ssc.position, ssc.learning_partner_id as "learningPartnerId"
+       FROM learn_language.study_session_cards ssc
+       JOIN learn_language.cards c ON ssc.card_id = c.id
+       JOIN learn_language.study_sessions ss ON ssc.session_id = ss.id
+       WHERE ss.source_id = $1
+         AND ss.created_at >= CURRENT_DATE
+       ORDER BY ssc.position`,
+      [sourceId]
+    );
+    return result.rows;
+  });
+}

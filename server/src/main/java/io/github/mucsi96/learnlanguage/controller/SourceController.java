@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -172,8 +176,9 @@ public class SourceController {
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources/due-cards-count")
-  public List<SourceDueCardCountResponse> getDueCardsCountBySource() {
-    return cardService.getDueCardCountsBySource();
+  public List<SourceDueCardCountResponse> getDueCardsCountBySource(
+      @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+    return cardService.getDueCardCountsBySource(startOfDayUtc(parseTimezone(timezone)));
   }
 
   @PostMapping("/source")

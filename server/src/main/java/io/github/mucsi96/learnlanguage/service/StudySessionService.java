@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,6 +32,7 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +51,7 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
+    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
@@ -90,8 +93,8 @@ public class StudySessionService {
                 .build();
 
         final List<StudySessionCard> sessionCards = activePartner
-                .map(partner -> assignCardsSmartly(dueCards, session, partner))
-                .orElseGet(() -> assignCardsSolo(dueCards, session));
+                .map(partner -> assignCardsSmartly(dueCards, session, partner, SESSION_CARD_LIMIT, 0))
+                .orElseGet(() -> assignCardsSolo(dueCards, session, SESSION_CARD_LIMIT, 0));
 
         final StudySession sessionWithCards = session.toBuilder()
                 .cards(new ArrayList<>(sessionCards))
@@ -104,22 +107,23 @@ public class StudySessionService {
                 .build();
     }
 
-    List<StudySessionCard> assignCardsSolo(List<Card> cards, StudySession session) {
-        List<Card> limitedCards = cards.stream()
-                .limit(SESSION_CARD_LIMIT)
+    List<StudySessionCard> assignCardsSolo(List<Card> cards, StudySession session, int limit, int positionOffset) {
+        final List<Card> limitedCards = cards.stream()
+                .limit(limit)
                 .toList();
 
         return IntStream.range(0, limitedCards.size())
                 .mapToObj(i -> StudySessionCard.builder()
                         .session(session)
                         .card(limitedCards.get(i))
-                        .position(i)
+                        .position(positionOffset + i)
                         .learningPartner(null)
                         .build())
                 .toList();
     }
 
-    List<StudySessionCard> assignCardsSmartly(List<Card> cards, StudySession session, LearningPartner partner) {
+    List<StudySessionCard> assignCardsSmartly(List<Card> cards, StudySession session, LearningPartner partner, int limit,
+            int positionOffset) {
         if (cards.isEmpty()) {
             return List.of();
         }
@@ -127,37 +131,37 @@ public class StudySessionService {
         final double defaultComplexity = 4 * 30;
         final List<String> cardIds = cards.stream().map(Card::getId).toList();
         final Map<String, Double> userComplexities = toComplexityMap(
-            reviewLogRepository.findCardComplexitiesWithoutPartner(cardIds));
+                reviewLogRepository.findCardComplexitiesWithoutPartner(cardIds));
         final Map<String, Double> partnerComplexities = toComplexityMap(
-            reviewLogRepository.findCardComplexitiesWithPartner(cardIds, partner.getId()));
+                reviewLogRepository.findCardComplexitiesWithPartner(cardIds, partner.getId()));
 
-        List<Card> mostComplexCards = cards.stream()
+        final List<Card> mostComplexCards = cards.stream()
                 .sorted(Comparator.comparingDouble(
                         (Card card) -> Math.max(
-                            userComplexities.getOrDefault(card.getId(), defaultComplexity),
-                            partnerComplexities.getOrDefault(card.getId(), defaultComplexity)))
+                                userComplexities.getOrDefault(card.getId(), defaultComplexity),
+                                partnerComplexities.getOrDefault(card.getId(), defaultComplexity)))
                         .reversed())
-                .limit(SESSION_CARD_LIMIT)
+                .limit(limit)
                 .toList();
 
-        List<Card> sortedByPreference = mostComplexCards.stream()
+        final List<Card> sortedByPreference = mostComplexCards.stream()
                 .sorted(Comparator.comparingDouble(
                         (Card card) -> userComplexities.getOrDefault(card.getId(), defaultComplexity)
-                            - partnerComplexities.getOrDefault(card.getId(), defaultComplexity))
+                                - partnerComplexities.getOrDefault(card.getId(), defaultComplexity))
                         .reversed())
                 .toList();
 
-        int userSlots = (sortedByPreference.size() + 1) / 2;
+        final int userSlots = (sortedByPreference.size() + 1) / 2;
 
-        List<Card> userCards = sortedByPreference.stream()
+        final List<Card> userCards = sortedByPreference.stream()
                 .limit(userSlots)
                 .toList();
 
-        List<Card> partnerCards = sortedByPreference.stream()
+        final List<Card> partnerCards = sortedByPreference.stream()
                 .skip(userSlots)
                 .toList();
 
-        List<Card> partnerCardsReversed = IntStream.range(0, partnerCards.size())
+        final List<Card> partnerCardsReversed = IntStream.range(0, partnerCards.size())
                 .mapToObj(i -> partnerCards.get(partnerCards.size() - 1 - i))
                 .toList();
 
@@ -165,7 +169,7 @@ public class StudySessionService {
                 .mapToObj(i -> StudySessionCard.builder()
                         .session(session)
                         .card(i % 2 == 0 ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2))
-                        .position(i)
+                        .position(positionOffset + i)
                         .learningPartner(i % 2 == 0 ? null : partner)
                         .build())
                 .toList();
@@ -192,6 +196,56 @@ public class StudySessionService {
                                     .orElse(0);
                             sessionCard.setPosition(maxPosition + 1);
                         }));
+    }
+
+    @Transactional
+    public void addCardsToSessions(List<String> cardIds, LocalDateTime startOfDay) {
+        final List<Card> cards = cardRepository.findByIdIn(cardIds).stream()
+                .filter(Card::isReady)
+                .toList();
+
+        cards.stream()
+                .collect(Collectors.groupingBy(c -> c.getSource().getId()))
+                .forEach((sourceId, sourceCards) -> addCardsToSourceSession(sourceCards, sourceId, startOfDay));
+    }
+
+    private void addCardsToSourceSession(List<Card> cards, String sourceId, LocalDateTime startOfDay) {
+        studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .ifPresent(session -> {
+                    final Set<String> existingCardIds = session.getCards().stream()
+                            .map(sc -> sc.getCard().getId())
+                            .collect(Collectors.toSet());
+
+                    final List<Card> newCards = cards.stream()
+                            .filter(c -> !existingCardIds.contains(c.getId()))
+                            .toList();
+
+                    if (newCards.isEmpty()) {
+                        return;
+                    }
+
+                    final int remainingSlots = SESSION_CARD_LIMIT - session.getCards().size();
+                    if (remainingSlots <= 0) {
+                        return;
+                    }
+
+                    final int positionOffset = session.getCards().stream()
+                            .mapToInt(StudySessionCard::getPosition)
+                            .max()
+                            .orElse(-1) + 1;
+
+                    final Optional<LearningPartner> activePartner = "WITH_PARTNER".equals(session.getStudyMode())
+                            ? learningPartnerService.getActivePartner()
+                            : Optional.empty();
+
+                    final List<StudySessionCard> newSessionCards = activePartner
+                            .map(partner -> assignCardsSmartly(newCards, session, partner, remainingSlots,
+                                    positionOffset))
+                            .orElseGet(() -> assignCardsSolo(newCards, session, remainingSlots, positionOffset));
+
+                    studySessionCardRepository.saveAll(newSessionCards);
+                });
     }
 
     @Transactional
