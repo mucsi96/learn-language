@@ -3,6 +3,8 @@ package io.github.mucsi96.learnlanguage.controller;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
@@ -151,6 +153,7 @@ public class CardController {
 
   @PutMapping("/card/{cardId}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @Transactional
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
       @RequestBody CardUpdateRequest request) throws Exception {
     Card existingCard = cardRepository.findById(cardId)
