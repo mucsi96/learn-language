@@ -208,7 +208,7 @@ public class CardController {
           .build();
 
       reviewLogRepository.save(reviewLog);
-      studySessionService.moveCardToBack(cardId);
+      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId());
     }
 
     Map<String, String> response = new HashMap<>();

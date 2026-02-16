@@ -31,7 +31,6 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
-import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -50,7 +49,6 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
-    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
@@ -181,14 +179,20 @@ public class StudySessionService {
     }
 
     @Transactional
-    public void moveCardToBack(String cardId) {
-        studySessionCardRepository.findFirstByCard_Id(cardId).ifPresent(sessionCard -> {
-            final int maxPosition = studySessionCardRepository
-                    .findMaxPositionBySessionId(sessionCard.getSession().getId())
-                    .orElse(0);
-            sessionCard.setPosition(maxPosition + 1);
-            studySessionCardRepository.save(sessionCard);
-        });
+    public void moveCardToBack(String cardId, String sourceId) {
+        studySessionRepository
+                .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, LocalDateTime.now().minusDays(2))
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .ifPresent(session -> session.getCards().stream()
+                        .filter(sc -> sc.getCard().getId().equals(cardId))
+                        .findFirst()
+                        .ifPresent(sessionCard -> {
+                            final int maxPosition = session.getCards().stream()
+                                    .mapToInt(StudySessionCard::getPosition)
+                                    .max()
+                                    .orElse(0);
+                            sessionCard.setPosition(maxPosition + 1);
+                        }));
     }
 
     @Transactional
