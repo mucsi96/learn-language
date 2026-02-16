@@ -70,10 +70,7 @@ export class CardsTableService {
     return firstValueFrom(
       this.http.get<CardTableResponse>(
         `/api/source/${params.sourceId}/cards`,
-        {
-          params: httpParams,
-          headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone },
-        }
+        { params: httpParams }
       )
     );
   }
@@ -110,12 +107,7 @@ export class CardsTableService {
     return firstValueFrom(
       this.http.get<string[]>(
         `/api/source/${params.sourceId}/card-ids`,
-        {
-          params: httpParams,
-          headers: {
-            'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        }
+        { params: httpParams }
       )
     );
   }
