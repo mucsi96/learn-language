@@ -624,6 +624,56 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
   });
 });
 
+test('hungarian translation failure shows error on word spans', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+
+  await fetch('http://localhost:3001/configure', {
+    method: 'POST',
+    body: JSON.stringify({ failHungarianTranslation: true }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByRole('status', { name: 'aber' })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'aber' })).toHaveAccessibleDescription('Hungarian translation failed');
+  await expect(page.getByRole('status', { name: 'abfahren' })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'abfahren' })).toHaveAccessibleDescription('Hungarian translation failed');
+  await expect(page.getByRole('status', { name: 'die Abfahrt' })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'die Abfahrt' })).toHaveAccessibleDescription('Hungarian translation failed');
+
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
+});
+
+test('hungarian translation failure does not create cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+
+  await fetch('http://localhost:3001/configure', {
+    method: 'POST',
+    body: JSON.stringify({ failHungarianTranslation: true }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByRole('status', { name: 'aber' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE source_id = 'goethe-a1'"
+    );
+    expect(result.rows.length).toBe(0);
+  });
+});
+
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');

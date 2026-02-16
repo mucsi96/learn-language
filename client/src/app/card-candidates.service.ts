@@ -38,6 +38,7 @@ export class CardCandidatesService {
     const ignored = this.ignoredIds();
     return this.allExtractedItems()
       .filter(item => !item.exists)
+      .filter(item => !item.error)
       .filter(item => !ignored.has(item.id));
   });
 
