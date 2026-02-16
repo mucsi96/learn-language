@@ -31,6 +31,7 @@ import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
+import io.github.mucsi96.learnlanguage.repository.StudySessionCardRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +50,7 @@ public class StudySessionService {
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
+    private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
     private final LearningPartnerService learningPartnerService;
 
@@ -179,6 +181,17 @@ public class StudySessionService {
     }
 
     @Transactional
+    public void moveCardToBack(String cardId) {
+        studySessionCardRepository.findFirstByCard_Id(cardId).ifPresent(sessionCard -> {
+            final int maxPosition = studySessionCardRepository
+                    .findMaxPositionBySessionId(sessionCard.getSession().getId())
+                    .orElse(0);
+            sessionCard.setPosition(maxPosition + 1);
+            studySessionCardRepository.save(sessionCard);
+        });
+    }
+
+    @Transactional
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
@@ -194,24 +207,8 @@ public class StudySessionService {
                 .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
                 .toList();
 
-        final int maxPosition = eligibleCards.stream()
-                .mapToInt(StudySessionCard::getPosition)
-                .max()
-                .orElse(0);
-
-        final int newLastPosition = maxPosition + 1;
-
-        final Optional<StudySessionCard> movedCard = eligibleCards.stream()
-                .filter(c -> c.getCard().getLastReview() != null)
-                .max(Comparator.comparing(c -> c.getCard().getLastReview()));
-
-        movedCard.ifPresent(mostRecent -> mostRecent.setPosition(newLastPosition));
-
-        final Integer movedCardId = movedCard.map(StudySessionCard::getId).orElse(null);
-
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                .min(Comparator.comparingInt(c ->
-                        c.getId().equals(movedCardId) ? newLastPosition : c.getPosition()));
+                .min(Comparator.comparingInt(StudySessionCard::getPosition));
 
         return nextCard.map(sessionCard -> {
             final String turnName = sessionCard.getLearningPartner() != null
