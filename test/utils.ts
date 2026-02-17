@@ -135,6 +135,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.model_usage_logs');
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
+    await client.query('DELETE FROM learn_language.image_model_settings');
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
     await client.query('DELETE FROM learn_language.documents');
@@ -724,6 +725,58 @@ export async function getChatModelSettings(): Promise<
       `SELECT id, model_name as "modelName", operation_type as "operationType",
               is_enabled as "isEnabled", is_primary as "isPrimary"
        FROM learn_language.chat_model_settings
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function createImageModelSetting(params: {
+  modelName: string;
+  imageCount: number;
+}): Promise<number> {
+  const { modelName, imageCount } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.image_model_settings (model_name, image_count)
+       VALUES ($1, $2)
+       ON CONFLICT (model_name) DO UPDATE SET image_count = $2
+       RETURNING id`,
+      [modelName, imageCount]
+    );
+    return result.rows[0].id;
+  });
+}
+
+const DEFAULT_IMAGE_MODEL_SETTINGS = [
+  { modelName: 'gpt-image-1.5', imageCount: 1 },
+  { modelName: 'gemini-3-pro-image-preview', imageCount: 3 },
+];
+
+export async function setupDefaultImageModelSettings(): Promise<void> {
+  for (const setting of DEFAULT_IMAGE_MODEL_SETTINGS) {
+    await createImageModelSetting(setting);
+  }
+}
+
+export async function clearImageModelSettings(): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query('DELETE FROM learn_language.image_model_settings');
+  });
+}
+
+export async function getImageModelSettings(): Promise<
+  Array<{
+    id: number;
+    modelName: string;
+    imageCount: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, model_name as "modelName", image_count as "imageCount"
+       FROM learn_language.image_model_settings
        ORDER BY id`
     );
     return result.rows;

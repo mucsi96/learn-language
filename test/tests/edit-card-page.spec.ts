@@ -12,11 +12,13 @@ import {
   navigateToCardEditing,
   uploadMockImage,
   setupDefaultChatModelSettings,
+  setupDefaultImageModelSettings,
 } from '../utils';
 import { Page } from '@playwright/test';
 
 async function prepareCard(page: Page) {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(yellowImage);
   const image2 = uploadMockImage(redImage);
   await createCard({
@@ -123,6 +125,7 @@ test('card editing page', async ({ page }) => {
 
 test('card editing in db', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(blueImage);
   const image2 = uploadMockImage(yellowImage);
   await createCard({
@@ -299,6 +302,7 @@ test('favorite image in db', async ({ page }) => {
 
 test('favorite toggle on newly generated image', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren-elindulni',
@@ -411,6 +415,7 @@ test('word type editing', async ({ page }) => {
 
 test('example image addition', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren-elindulni',

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, menschenA1Image } from '../utils';
+import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image } from '../utils';
 
 async function navigateToSource(page, sourceName: string) {
   await page.goto('http://localhost:8180/sources');
@@ -43,6 +43,7 @@ test('bookmarks last visited page', async ({ page }) => {
 
 test('drag to select words highlights existing cards', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createCard({
     cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
@@ -63,6 +64,7 @@ test('drag to select words highlights existing cards', async ({ page }) => {
 
 test('drag to select words highlights matching words', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await navigateToSource(page, 'Goethe A1');
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -74,6 +76,7 @@ test('drag to select words highlights matching words', async ({ page }) => {
 
 test('drag to select multiple regions highlights matching words', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createCard({
     cardId: 'abfahren-elindulni',
     sourceId: 'goethe-a1',
@@ -115,6 +118,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
 
 test('drag to select words highlights possible duplicates with warning', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createCard({
     cardId: 'abfahren-tavozni',
     sourceId: 'goethe-a1',
@@ -169,6 +173,7 @@ test('source selector dropdown content', async ({ page }) => {
 
 test('speech source page sentence extraction', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await navigateToSource(page, 'Speech A1');
 
   await page.getByLabel('Upload image file').setInputFiles({
@@ -194,6 +199,7 @@ test('speech source page sentence extraction', async ({ page }) => {
 
 test('speech source selector routing works', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await navigateToSource(page, 'Speech A1');
 
   await page.getByLabel('Upload image').setInputFiles({

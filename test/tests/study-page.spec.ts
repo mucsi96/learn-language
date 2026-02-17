@@ -11,6 +11,7 @@ import {
   getCardFromDb,
   getReviewLogs,
   setupDefaultChatModelSettings,
+  setupDefaultImageModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '@playwright/test';
@@ -1278,6 +1279,7 @@ test('speech card grading functionality', async ({ page }) => {
 
 test('grammar card study shows sentence with gaps on front, full sentence on reveal', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-test-card',
@@ -1311,6 +1313,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
 
 test('grammar card grading functionality', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(greenImage);
   await createCard({
     cardId: 'grammar-grade-card',

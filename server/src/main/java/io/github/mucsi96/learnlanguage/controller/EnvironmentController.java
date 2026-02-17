@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
-import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
@@ -21,6 +20,7 @@ import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
+import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,6 +30,7 @@ public class EnvironmentController {
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
+  private final ImageModelSettingService imageModelSettingService;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -83,9 +84,7 @@ public class EnvironmentController {
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
-        Arrays.stream(ImageGenerationModel.values())
-            .map(model -> new ImageModelResponse(model.getModelName(), model.getDisplayName(), model.getImageCount()))
-            .toList(),
+        imageModelSettingService.getImageModelsWithSettings(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),
         SUPPORTED_LANGUAGES,

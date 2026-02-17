@@ -62,6 +62,12 @@ export const routes: Routes = [
         title: 'Data Model Settings',
       },
       {
+        path: 'image-models',
+        loadComponent: () =>
+          import('./image-model-settings/image-model-settings.component').then((m) => m.ImageModelSettingsComponent),
+        title: 'Image Model Settings',
+      },
+      {
         path: 'known-words',
         loadComponent: () =>
           import('./known-words/known-words.component').then((m) => m.KnownWordsComponent),
