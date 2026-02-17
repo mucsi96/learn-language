@@ -31,7 +31,7 @@ export class ImageGenerationHandler {
   reset(): void {}
 
   generateImages(request: ImageGenerationRequest): ImageGenerationResponse {
-    const { prompt, model, n = 2 } = request;
+    const { prompt, model, n = 1 } = request;
 
     console.log('Received image generation request with prompt:', prompt, 'n:', n);
 
