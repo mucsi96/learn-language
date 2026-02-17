@@ -1,7 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { computed, inject, Injectable, Injector, signal } from '@angular/core';
+import { resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
-import { ENVIRONMENT_CONFIG, ImageModel } from '../environment/environment.config';
+import { ImageModel } from '../environment/environment.config';
 
 export interface ImageModelSettingRequest {
   modelName: string;
@@ -13,30 +14,28 @@ export interface ImageModelSettingRequest {
 })
 export class ImageModelSettingsService {
   private readonly http = inject(HttpClient);
-  private readonly config = inject(ENVIRONMENT_CONFIG);
+  private readonly injector = inject(Injector);
 
-  private readonly _imageModels = signal<ImageModel[]>(this.config.imageModels);
+  private readonly _refreshTrigger = signal(0);
 
-  readonly imageModels = this._imageModels.asReadonly();
+  private readonly _imageModelsResource = resource({
+    injector: this.injector,
+    request: () => this._refreshTrigger(),
+    loader: async () =>
+      fetchJson<ImageModel[]>(this.http, '/api/image-model-settings'),
+  });
+
+  readonly imageModels = computed(() => this._imageModelsResource.value() ?? []);
 
   async updateImageCount(modelId: string, imageCount: number): Promise<void> {
-    const previousModels = this._imageModels();
+    await fetchJson<ImageModel>(this.http, '/api/image-model-settings', {
+      method: 'PUT',
+      body: {
+        modelName: modelId,
+        imageCount,
+      } satisfies ImageModelSettingRequest,
+    });
 
-    this._imageModels.update((models) =>
-      models.map((m) => (m.id === modelId ? { ...m, imageCount } : m))
-    );
-
-    try {
-      await fetchJson<ImageModel>(this.http, '/api/image-model-settings', {
-        method: 'PUT',
-        body: {
-          modelName: modelId,
-          imageCount,
-        } satisfies ImageModelSettingRequest,
-      });
-    } catch (error) {
-      this._imageModels.set(previousModels);
-      throw error;
-    }
+    this._refreshTrigger.update((v) => v + 1);
   }
 }

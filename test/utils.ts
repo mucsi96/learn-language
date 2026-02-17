@@ -755,9 +755,7 @@ const DEFAULT_IMAGE_MODEL_SETTINGS = [
 ];
 
 export async function setupDefaultImageModelSettings(): Promise<void> {
-  for (const setting of DEFAULT_IMAGE_MODEL_SETTINGS) {
-    await createImageModelSetting(setting);
-  }
+  await Promise.all(DEFAULT_IMAGE_MODEL_SETTINGS.map(createImageModelSetting));
 }
 
 export async function clearImageModelSettings(): Promise<void> {
