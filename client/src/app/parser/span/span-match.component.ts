@@ -15,12 +15,17 @@ export class SpanMatchComponent {
   readonly exists = input.required<boolean>();
   readonly label = input.required<string>();
   readonly inline = input(false);
+  readonly error = input<string>();
   readonly left = input<string>();
   readonly top = input<string>();
   readonly width = input<string>();
   readonly height = input<string>();
 
   get ariaDescription() {
+    const errorValue = this.error();
+    if (errorValue) {
+      return errorValue;
+    }
     return this.exists() ? 'Card exists' : 'Card does not exist';
   }
 }
