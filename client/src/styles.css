@@ -76,7 +76,7 @@ body {
   border-radius: 0.5rem !important;
 }
 
-mat-form-field:not(.mat-mdc-form-field-type-mat-select) .mdc-text-field--focused {
+mat-form-field:not(.mat-mdc-form-field-type-mat-select):not(.mat-form-field-appearance-outline) .mdc-text-field--focused {
   border: 1px solid hsl(218, 93%, 61%);
   box-shadow: hsl(218, 93%, 61%) 0 0 0 1px;
 }

@@ -126,12 +126,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
+      String cardFilter,
       LocalDateTime startOfDayUtc) {
 
     final Specification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
-        minReviewScore, maxReviewScore, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
 
     return cardViewRepository.findAll(spec).stream()
         .map(CardView::getId)
@@ -145,12 +146,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
+      String cardFilter,
       LocalDateTime startOfDayUtc) {
 
     final Specification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
-        minReviewScore, maxReviewScore, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
@@ -204,6 +206,7 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
+      String cardFilter,
       LocalDateTime startOfDayUtc) {
 
     Specification<CardView> spec = hasSourceId(sourceId);
@@ -232,6 +235,9 @@ public class CardService {
     if (maxReviewScore != null) {
       spec = spec.and(hasMaxReviewScore(maxReviewScore));
     }
+    if (StringUtils.hasText(cardFilter)) {
+      spec = spec.and(hasCardFilter(cardFilter));
+    }
 
     return spec;
   }
@@ -258,15 +264,12 @@ public class CardService {
   }
 
   private CardTableRow mapToRow(CardView view) {
-    final var strategy = cardTypeStrategyFactory.getStrategy(view.getCardType());
-    final String label = strategy.getPrimaryText(view.getData());
     final Integer reviewDaysAgo = view.getLastReview() != null
         ? (int) ChronoUnit.DAYS.between(view.getLastReview().toLocalDate(), LocalDate.now())
         : null;
 
     return CardTableRow.builder()
         .id(view.getId())
-        .label(label)
         .readiness(view.getReadiness())
         .state(view.getState())
         .reps(view.getReps())

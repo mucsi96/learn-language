@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CardTableRow {
     private String id;
-    private String label;
     private String readiness;
     private String state;
     private Integer reps;

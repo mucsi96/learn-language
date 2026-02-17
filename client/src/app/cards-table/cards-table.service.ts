@@ -4,7 +4,6 @@ import { firstValueFrom } from 'rxjs';
 
 export type CardTableRow = {
   id: string;
-  label: string;
   readiness: string;
   state: string;
   reps: number;
@@ -34,6 +33,7 @@ export type CardTableParams = {
   lastReviewRating?: number;
   minReviewScore?: number;
   maxReviewScore?: number;
+  cardFilter?: string;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +62,7 @@ export class CardsTableService {
       ...(params.maxReviewScore !== undefined
         ? { maxReviewScore: params.maxReviewScore }
         : {}),
+      ...(params.cardFilter ? { cardFilter: params.cardFilter } : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
       new HttpParams()
@@ -83,6 +84,7 @@ export class CardsTableService {
     lastReviewRating?: number;
     minReviewScore?: number;
     maxReviewScore?: number;
+    cardFilter?: string;
   }): Promise<string[]> {
     const httpParams = Object.entries({
       ...(params.readiness ? { readiness: params.readiness } : {}),
@@ -99,6 +101,7 @@ export class CardsTableService {
       ...(params.maxReviewScore !== undefined
         ? { maxReviewScore: params.maxReviewScore }
         : {}),
+      ...(params.cardFilter ? { cardFilter: params.cardFilter } : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
       new HttpParams()
