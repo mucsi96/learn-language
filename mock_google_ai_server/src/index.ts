@@ -19,7 +19,16 @@ app.use((req, res, next) => {
 
 app.post('/reset', (req, res) => {
   imageHandler.reset();
+  chatHandler.reset();
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
+});
+
+app.post('/configure', (req, res) => {
+  const { failHungarianTranslation } = req.body;
+  if (failHungarianTranslation !== undefined) {
+    chatHandler.setFailHungarianTranslation(failHungarianTranslation);
+  }
+  res.status(200).json({ status: 'ok' });
 });
 
 app.post(

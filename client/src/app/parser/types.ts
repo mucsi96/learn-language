@@ -100,6 +100,7 @@ export type ExtractedItem = {
   id: string;
   exists: boolean;
   extractionModel?: string;
+  error?: string;
 };
 
 export type Sentence = ExtractedItem & {

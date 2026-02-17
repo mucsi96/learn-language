@@ -624,6 +624,31 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
   });
 });
 
+test('hungarian translation failure shows error on word spans', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+
+  await fetch('http://localhost:3001/configure', {
+    method: 'POST',
+    body: JSON.stringify({ failHungarianTranslation: true }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByRole('status').filter({ hasText: 'aber' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'aber' })).toHaveAccessibleDescription('Hungarian translation failed');
+  await expect(page.getByRole('status').filter({ hasText: 'abfahren' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'abfahren' })).toHaveAccessibleDescription('Hungarian translation failed');
+  await expect(page.getByRole('status').filter({ hasText: 'die Abfahrt' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'die Abfahrt' })).toHaveAccessibleDescription('Hungarian translation failed');
+
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
+});
+
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await page.goto('http://localhost:8180/sources');
