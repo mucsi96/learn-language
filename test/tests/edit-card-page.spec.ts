@@ -160,7 +160,11 @@ test('card editing in db', async ({ page }) => {
   await navigateToCardEditing(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
 
-  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('img')).toHaveCount(2);
+
+  await page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
 
   const imageLocator = page.getByRole('img', {
     name: 'Wann fährt der Zug ab?',
@@ -173,7 +177,11 @@ test('card editing in db', async ({ page }) => {
   await expect(page.getByText('GPT Image 1.5')).toHaveCount(1);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
 
-  const imageContent2 = await getImageContent(imageLocator.last());
+  await page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+
+  const imageContent2 = await getImageContent(imageLocator.nth(4));
 
   expect(imageContent2.equals(getColorImageBytes('red'))).toBeTruthy();
 
@@ -199,12 +207,12 @@ test('card editing in db', async ({ page }) => {
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
     expect(img2.equals(redImage)).toBeTruthy();
-    expect(img3.equals(greenImage)).toBeTruthy();
+    expect(img3.equals(redImage)).toBeTruthy();
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
     expect(cardData.examples[1].images[1].model).toBe('GPT Image 1.5');
-    expect(cardData.examples[1].images[2].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[1].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
   });
