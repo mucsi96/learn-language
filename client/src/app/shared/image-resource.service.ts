@@ -20,19 +20,13 @@ export class ImageResourceService {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   createResource(image: ExampleImage): GridImageResource {
-    const res = resource({
+    return resource({
       injector: this.injector,
       loader: async () => {
         const url = await this.fetchImageUrl(image.id);
         return { ...image, url };
       },
     });
-
-    return {
-      value: () => res.value(),
-      isLoading: () => res.isLoading(),
-      set: (v: GridImageValue) => res.set(v),
-    };
   }
 
   generateImages(englishTranslation: string): {
