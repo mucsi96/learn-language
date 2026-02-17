@@ -31,7 +31,7 @@ public class ImageModelSettingService {
                 .map(model -> ImageModelResponse.builder()
                         .id(model.getModelName())
                         .displayName(model.getDisplayName())
-                        .imageCount(overrides.getOrDefault(model.getModelName(), model.getImageCount()))
+                        .imageCount(overrides.getOrDefault(model.getModelName(), 0))
                         .build())
                 .toList();
     }
@@ -39,7 +39,7 @@ public class ImageModelSettingService {
     public int getImageCount(ImageGenerationModel model) {
         return imageModelSettingRepository.findByModelName(model.getModelName())
                 .map(ImageModelSetting::getImageCount)
-                .orElse(model.getImageCount());
+                .orElse(0);
     }
 
     @Transactional
