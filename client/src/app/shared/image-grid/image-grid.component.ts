@@ -3,8 +3,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 export type GridImageValue = {
-  id?: string;
-  url?: string;
+  id: string;
+  url: string;
   model?: string;
   isFavorite?: boolean;
 };
@@ -12,6 +12,7 @@ export type GridImageValue = {
 export type GridImageResource = {
   value: () => GridImageValue | undefined;
   isLoading: () => boolean;
+  set: (value: GridImageValue) => void;
 };
 
 @Component({

@@ -93,7 +93,7 @@ export class ImageResourceService {
     const imageValue = image.value();
     if (!imageValue) return;
 
-    (image as any).set({
+    image.set({
       ...imageValue,
       isFavorite: !imageValue.isFavorite,
     });
@@ -102,12 +102,15 @@ export class ImageResourceService {
   private createPendingResource(modelDisplayName: string): PendingImageResource {
     const isLoading = signal(true);
     const value = signal<GridImageValue | undefined>({
+      id: '',
+      url: '',
       model: modelDisplayName,
     });
 
     const gridResource: GridImageResource = {
       isLoading: isLoading.asReadonly(),
       value: value.asReadonly(),
+      set: (v: GridImageValue) => value.set(v),
     };
 
     const resolve = async (image: ExampleImage) => {
