@@ -978,40 +978,7 @@ test('sorts cards by review score', async ({ page }) => {
   }).toPass();
 });
 
-test('filters cards by card text input', async ({ page }) => {
-  await createCard({
-    cardId: 'filter-text-hund',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: { word: 'Hund', type: 'NOUN', translation: { en: 'dog' } },
-    state: 'NEW',
-  });
-
-  await createCard({
-    cardId: 'filter-text-katze',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 10,
-    data: { word: 'Katze', type: 'NOUN', translation: { en: 'cat' } },
-    state: 'NEW',
-  });
-
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
-
-  const grid = page.getByRole('grid');
-  await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.length).toBe(2);
-  }).toPass();
-
-  await page.getByLabel('Filter by card').fill('Hund');
-
-  await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(['filter-text-hund Hund']);
-  }).toPass();
-});
-
-test('filters cards by card id', async ({ page }) => {
+test('filters cards by ID', async ({ page }) => {
   await createCard({
     cardId: 'abc-card',
     sourceId: 'goethe-a1',
@@ -1036,7 +1003,7 @@ test('filters cards by card id', async ({ page }) => {
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await page.getByLabel('Filter by card').fill('xyz');
+  await page.getByLabel('Filter by ID').fill('xyz');
 
   await expect(async () => {
     const rows = await getGridData(grid);

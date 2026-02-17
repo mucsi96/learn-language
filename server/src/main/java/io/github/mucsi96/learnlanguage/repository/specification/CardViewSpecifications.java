@@ -55,9 +55,7 @@ public class CardViewSpecifications {
     public static Specification<CardView> hasCardFilter(String search) {
         return (root, query, cb) -> {
             final String pattern = "%" + search.toLowerCase() + "%";
-            return cb.or(
-                cb.like(cb.lower(root.get("id")), pattern),
-            );
+            return cb.like(cb.lower(root.get("id")), pattern);
         };
     }
 
