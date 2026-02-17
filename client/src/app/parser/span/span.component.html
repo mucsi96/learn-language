@@ -16,6 +16,7 @@
   [pageNumber]="pageNumber()"
   [cardId]="matches[0].id"
   [exists]="matches[0].exists"
+  [warning]="matches[0].warning ?? false"
   [error]="matches[0].error"
   [label]="text() ?? ''"
   [left]="left"
@@ -43,6 +44,7 @@
     [pageNumber]="pageNumber()"
     [cardId]="match.id"
     [exists]="match.exists"
+    [warning]="match.warning ?? false"
     [error]="match.error"
     [label]="getItemLabel(match)"
 

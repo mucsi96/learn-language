@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class WordIdResponse {
     private String id;
     private boolean exists;
+    private boolean warning;
 }

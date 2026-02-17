@@ -38,6 +38,8 @@ public interface CardRepository
         """, nativeQuery = true)
     List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 
+    boolean existsByIdStartingWithAndIdNot(String prefix, String id);
+
     @Modifying
     void deleteBySource(Source source);
 }
