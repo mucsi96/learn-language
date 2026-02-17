@@ -26,7 +26,8 @@
 }
 
 .id-filter-field {
-  max-width: 300px;
+  flex-basis: 100%;
+  max-width: unset;
 }
 
 .selection-actions {
