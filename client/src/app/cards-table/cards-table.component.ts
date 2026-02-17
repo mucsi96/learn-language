@@ -219,15 +219,13 @@ export class CardsTableComponent {
       headerComponent: SelectAllHeaderComponent,
     },
     {
-      headerName: 'Card',
-      field: 'label',
+      headerName: 'ID',
+      field: 'id',
       flex: 2,
-      sortable: false,
+      sortable: true,
       cellRenderer: (params: { data: CardTableRow | undefined }) => {
         if (!params.data) return '';
-        const id = `<span style="color:hsl(220,13%,60%);font-size:0.75rem">${params.data.id}</span>`;
-        const label = params.data.label ?? '';
-        return `${id} ${label}`;
+        return `<span style="color:hsl(220,13%,60%);font-size:0.75rem">${params.data.id}</span>`;
       },
     },
     {

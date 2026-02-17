@@ -161,10 +161,6 @@ SELECT
     c.state,
     c.last_review,
     s.card_type,
-    CASE
-        WHEN s.card_type IS NULL OR s.card_type = 'VOCABULARY' THEN c.data->>'word'
-        ELSE c.data->'examples'->0->>'de'
-    END AS label,
     lr.rating AS last_review_rating,
     lp.name AS last_review_learning_partner_name,
     rs.review_score

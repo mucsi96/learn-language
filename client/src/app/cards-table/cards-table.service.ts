@@ -4,7 +4,6 @@ import { firstValueFrom } from 'rxjs';
 
 export type CardTableRow = {
   id: string;
-  label: string;
   readiness: string;
   state: string;
   reps: number;

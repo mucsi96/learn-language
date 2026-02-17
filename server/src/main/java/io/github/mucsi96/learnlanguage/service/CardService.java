@@ -270,7 +270,6 @@ public class CardService {
 
     return CardTableRow.builder()
         .id(view.getId())
-        .label(view.getLabel())
         .readiness(view.getReadiness())
         .state(view.getState())
         .reps(view.getReps())

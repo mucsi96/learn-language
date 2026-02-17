@@ -57,7 +57,6 @@ public class CardViewSpecifications {
             final String pattern = "%" + search.toLowerCase() + "%";
             return cb.or(
                 cb.like(cb.lower(root.get("id")), pattern),
-                cb.like(cb.lower(root.get("label")), pattern)
             );
         };
     }
