@@ -219,7 +219,7 @@ export class CardsTableComponent {
       headerComponent: SelectAllHeaderComponent,
     },
     {
-      headerName: 'Id',
+      headerName: 'ID',
       field: 'id',
       flex: 2,
       sortable: true,

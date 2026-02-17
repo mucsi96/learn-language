@@ -978,7 +978,7 @@ test('sorts cards by review score', async ({ page }) => {
   }).toPass();
 });
 
-test('filters cards by Id', async ({ page }) => {
+test('filters cards by ID', async ({ page }) => {
   await createCard({
     cardId: 'abc-card',
     sourceId: 'goethe-a1',
@@ -1003,7 +1003,7 @@ test('filters cards by Id', async ({ page }) => {
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await page.getByLabel('Filter by id').fill('xyz');
+  await page.getByLabel('Filter by ID').fill('xyz');
 
   await expect(async () => {
     const rows = await getGridData(grid);
