@@ -108,6 +108,8 @@ export class ImageResourceService {
   private createPendingResource(modelDisplayName: string): PendingImageResource {
     const isLoading = signal(true);
     const value = signal<GridImageValue | undefined>({
+      id: '',
+      url: '',
       model: modelDisplayName,
     });
 
