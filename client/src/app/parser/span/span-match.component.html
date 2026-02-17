@@ -1,5 +1,18 @@
 @if (inline()) {
-  @if (exists()) {
+  @if (error()) {
+  <div
+    class="word error"
+    role="status"
+    exclude-selection
+    [style.left]="left()"
+    [style.top]="top()"
+    [style.width]="width()"
+    [style.height]="height()"
+    [ariaDescription]="ariaDescription"
+  >
+    {{ label() }}
+  </div>
+  } @else if (exists()) {
   <a
     class="word"
     mat-flat-button

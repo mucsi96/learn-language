@@ -101,6 +101,7 @@ export type ExtractedItem = {
   exists: boolean;
   warning?: boolean;
   extractionModel?: string;
+  error?: string;
 };
 
 export type Sentence = ExtractedItem & {

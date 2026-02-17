@@ -70,38 +70,48 @@ export class VocabularyCardType implements CardTypeStrategy {
 
     const wordsWithIds = await Promise.all(
       extractionResult.response.words.map(async (word) => {
-        const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
-          'translation',
-          (model: string, headers?: Record<string, string>) => fetchJson<TranslationResponse>(
+        try {
+          const hungarianTranslation = await this.multiModelService.call<TranslationResponse>(
+            'translation',
+            (model: string, headers?: Record<string, string>) => fetchJson<TranslationResponse>(
+              this.http,
+              `/api/translate/hu?model=${model}`,
+              {
+                body: word,
+                method: 'POST',
+                headers,
+              }
+            )
+          );
+
+          const wordIdResponse = await fetchJson<WordIdResponse>(
             this.http,
-            `/api/translate/hu?model=${model}`,
+            '/api/word-id',
             {
-              body: word,
+              body: {
+                germanWord: word.word,
+                hungarianTranslation: hungarianTranslation.translation
+              },
               method: 'POST',
-              headers,
             }
-          )
-        );
+          );
 
-        const wordIdResponse = await fetchJson<WordIdResponse>(
-          this.http,
-          '/api/word-id',
-          {
-            body: {
-              germanWord: word.word,
-              hungarianTranslation: hungarianTranslation.translation
-            },
-            method: 'POST',
-          }
-        );
-
-        return {
-          ...word,
-          id: wordIdResponse.id,
-          exists: wordIdResponse.exists,
-          warning: wordIdResponse.warning,
-          extractionModel: extractionResult.model,
-        };
+          return {
+            ...word,
+            id: wordIdResponse.id,
+            exists: wordIdResponse.exists,
+            warning: wordIdResponse.warning,
+            extractionModel: extractionResult.model,
+          };
+        } catch {
+          return {
+            ...word,
+            id: `error-${word.word}`,
+            exists: false,
+            extractionModel: extractionResult.model,
+            error: 'Hungarian translation failed',
+          };
+        }
       })
     );
 

@@ -22,6 +22,16 @@ const getTextContent = (request: GeminiRequest): string => {
 };
 
 export class ChatHandler {
+  private failHungarianTranslation = false;
+
+  setFailHungarianTranslation(fail: boolean): void {
+    this.failHungarianTranslation = fail;
+  }
+
+  reset(): void {
+    this.failHungarianTranslation = false;
+  }
+
   async handleWordListExtraction(request: GeminiRequest): Promise<any | null> {
     if (
       await imageRequestMatch(
@@ -97,6 +107,10 @@ export class ChatHandler {
 
     if (!targetLanguage) {
       return null;
+    }
+
+    if (targetLanguage === 'hungarian' && this.failHungarianTranslation) {
+      throw new Error('Hungarian translation service unavailable');
     }
 
     for (const word of Object.keys(TRANSLATIONS[targetLanguage])) {
