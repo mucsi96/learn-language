@@ -53,8 +53,8 @@ test('displays cards in table', async ({ page }) => {
     const rows = await getGridData(page.getByRole('grid'));
     expect(rows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ Card: 'test-card-1 Hund', State: 'NEW', Reviews: '0' }),
-        expect.objectContaining({ Card: 'test-card-2 Katze', State: 'REVIEW', Reviews: '5' }),
+        expect.objectContaining({ ID: 'test-card-1', State: 'NEW', Reviews: '0' }),
+        expect.objectContaining({ ID: 'test-card-2', State: 'REVIEW', Reviews: '5' }),
       ])
     );
   }).toPass();
@@ -83,7 +83,7 @@ test('filters cards by state', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.Card)).toEqual(expect.arrayContaining(['new-card neu', 'review-card alt']));
+    expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['new-card', 'review-card']));
   }).toPass();
 
   await page.getByLabel('Filter by state').click();
@@ -91,7 +91,7 @@ test('filters cards by state', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.Card)).toEqual(['new-card neu']);
+    expect(after.map((r) => r.ID)).toEqual(['new-card']);
   }).toPass();
 });
 
@@ -117,8 +117,8 @@ test('filters cards by readiness', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['ready-card bereit', 'known-card bekannt'])
+    expect(before.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['ready-card', 'known-card'])
     );
   }).toPass();
 
@@ -127,7 +127,7 @@ test('filters cards by readiness', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.Card)).toEqual(['known-card bekannt']);
+    expect(after.map((r) => r.ID)).toEqual(['known-card']);
   }).toPass();
 });
 
@@ -144,10 +144,10 @@ test('marks selected cards as known', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
-    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'mark-known-card markieren' }));
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'mark-known-card' }));
   }).toPass();
 
-  const checkbox = page.getByRole('row', { name: /markieren/ }).getByRole('checkbox');
+  const checkbox = page.getByRole('row', { name: /mark-known-card/ }).getByRole('checkbox');
   await checkbox.click();
 
   await page.getByRole('button', { name: /Mark 1 as known/ }).click();
@@ -181,7 +181,7 @@ test('displays review information in table', async ({ page }) => {
     const rows = await getGridData(page.getByRole('grid'));
     expect(rows).toEqual([
       expect.objectContaining({
-        Card: 'reviewed-card lernen',
+        ID: 'reviewed-card',
         Reviews: '3',
         Grade: '3 - Good',
         Person: 'Anna',
@@ -206,10 +206,10 @@ test('navigates to card editing on row click', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
-    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'click-card klicken' }));
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'click-card' }));
   }).toPass();
 
-  await page.getByRole('row', { name: /klicken/ }).click();
+  await page.getByRole('row', { name: /click-card/ }).click();
 
   await expect(page).toHaveTitle('Edit Card');
 });
@@ -252,8 +252,8 @@ test('filters cards by last review grade', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['easy-card einfach', 'hard-card schwer'])
+    expect(before.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['easy-card', 'hard-card'])
     );
   }).toPass();
 
@@ -262,7 +262,7 @@ test('filters cards by last review grade', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.Card)).toEqual(['easy-card einfach']);
+    expect(after.map((r) => r.ID)).toEqual(['easy-card']);
   }).toPass();
 });
 
@@ -292,8 +292,8 @@ test('filters cards by last review time', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['recent-card heute', 'old-card gestern'])
+    expect(before.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['recent-card', 'old-card'])
     );
   }).toPass();
 
@@ -302,7 +302,7 @@ test('filters cards by last review time', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.Card)).toEqual(['recent-card heute']);
+    expect(after.map((r) => r.ID)).toEqual(['recent-card']);
   }).toPass();
 });
 
@@ -330,21 +330,21 @@ test('sorts cards by reviews count', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['few-reviews wenig', 'many-reviews viel']));
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['few-reviews', 'many-reviews']));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Reviews' }).click();
   await expect(async () => {
     const asc = await getGridData(grid);
-    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'few-reviews wenig' }));
-    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'many-reviews viel' }));
+    expect(asc[0]).toEqual(expect.objectContaining({ ID: 'few-reviews' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ ID: 'many-reviews' }));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Reviews' }).click();
   await expect(async () => {
     const desc = await getGridData(grid);
-    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'many-reviews viel' }));
-    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'few-reviews wenig' }));
+    expect(desc[0]).toEqual(expect.objectContaining({ ID: 'many-reviews' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ ID: 'few-reviews' }));
   }).toPass();
 });
 
@@ -371,21 +371,21 @@ test('sorts cards by state', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['new-state-card Anfang', 'review-state-card Wiederholung']));
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['new-state-card', 'review-state-card']));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'State' }).click();
   await expect(async () => {
     const asc = await getGridData(grid);
-    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'new-state-card Anfang' }));
-    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'review-state-card Wiederholung' }));
+    expect(asc[0]).toEqual(expect.objectContaining({ ID: 'new-state-card' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ ID: 'review-state-card' }));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'State' }).click();
   await expect(async () => {
     const desc = await getGridData(grid);
-    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'review-state-card Wiederholung' }));
-    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'new-state-card Anfang' }));
+    expect(desc[0]).toEqual(expect.objectContaining({ ID: 'review-state-card' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ ID: 'new-state-card' }));
   }).toPass();
 });
 
@@ -415,21 +415,21 @@ test('sorts cards by last review', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['reviewed-recently frisch', 'reviewed-long-ago vergessen']));
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['reviewed-recently', 'reviewed-long-ago']));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Last review' }).click();
   await expect(async () => {
     const asc = await getGridData(grid);
-    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'reviewed-long-ago vergessen' }));
-    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'reviewed-recently frisch' }));
+    expect(asc[0]).toEqual(expect.objectContaining({ ID: 'reviewed-long-ago' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ ID: 'reviewed-recently' }));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Last review' }).click();
   await expect(async () => {
     const desc = await getGridData(grid);
-    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'reviewed-recently frisch' }));
-    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'reviewed-long-ago vergessen' }));
+    expect(desc[0]).toEqual(expect.objectContaining({ ID: 'reviewed-recently' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ ID: 'reviewed-long-ago' }));
   }).toPass();
 });
 
@@ -472,13 +472,13 @@ test('deletes selected cards with confirmation', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['delete-card-1 löschen', 'delete-card-2 entfernen', 'keep-card behalten'])
+    expect(rows.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['delete-card-1', 'delete-card-2', 'keep-card'])
     );
   }).toPass();
 
-  await page.getByRole('row', { name: /löschen/ }).getByRole('checkbox').click();
-  await page.getByRole('row', { name: /entfernen/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /delete-card-1/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /delete-card-2/ }).getByRole('checkbox').click();
 
   await page.getByRole('button', { name: /Delete 2/ }).click();
 
@@ -493,7 +493,7 @@ test('deletes selected cards with confirmation', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(['keep-card behalten']);
+    expect(rows.map((r) => r.ID)).toEqual(['keep-card']);
   }).toPass();
 
   await withDbConnection(async (client) => {
@@ -516,10 +516,10 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
-    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'cancel-delete-card abbrechen' }));
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'cancel-delete-card' }));
   }).toPass();
 
-  await page.getByRole('row', { name: /abbrechen/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /cancel-delete-card/ }).getByRole('checkbox').click();
   await page.getByRole('button', { name: /Delete 1/ }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Confirmation' });
@@ -531,7 +531,7 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
-    expect(rows[0]).toEqual(expect.objectContaining({ Card: 'cancel-delete-card abbrechen' }));
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'cancel-delete-card' }));
   }).toPass();
 
   await withDbConnection(async (client) => {
@@ -566,7 +566,13 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await page.waitForLoadState('networkidle');
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['select-all-1', 'select-all-2', 'select-all-3'])
+    );
+  }).toPass();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
@@ -592,7 +598,13 @@ test('deselects all cards with header checkbox', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
-  await page.waitForLoadState('networkidle');
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['deselect-1', 'deselect-2'])
+    );
+  }).toPass();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
   await expect(
@@ -730,13 +742,13 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['audio-card-1 Musik', 'audio-card-2 Klang'])
+    expect(rows.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['audio-card-1', 'audio-card-2'])
     );
   }).toPass();
 
-  await page.getByRole('row', { name: /Musik/ }).getByRole('checkbox').click();
-  await page.getByRole('row', { name: /Klang/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /audio-card-1/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /audio-card-2/ }).getByRole('checkbox').click();
 
   await page.getByRole('button', { name: /Delete audio 2/ }).click();
 
@@ -797,7 +809,7 @@ test('displays review score in table', async ({ page }) => {
     const rows = await getGridData(page.getByRole('grid'));
     expect(rows).toEqual([
       expect.objectContaining({
-        Card: 'score-card Punkt',
+        ID: 'score-card',
         Score: '100%',
       }),
     ]);
@@ -839,7 +851,7 @@ test('displays review score for mixed reviews', async ({ page }) => {
     const rows = await getGridData(page.getByRole('grid'));
     expect(rows).toEqual([
       expect.objectContaining({
-        Card: 'mixed-score-card gemischt',
+        ID: 'mixed-score-card',
         Score: '25%',
       }),
     ]);
@@ -896,8 +908,8 @@ test('filters cards by review score', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.Card)).toEqual(
-      expect.arrayContaining(['high-score-card gut', 'low-score-card schlecht'])
+    expect(before.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['high-score-card', 'low-score-card'])
     );
   }).toPass();
 
@@ -906,7 +918,7 @@ test('filters cards by review score', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.Card)).toEqual(['high-score-card gut']);
+    expect(after.map((r) => r.ID)).toEqual(['high-score-card']);
   }).toPass();
 });
 
@@ -960,21 +972,21 @@ test('sorts cards by review score', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(expect.arrayContaining(['sort-high-score stark', 'sort-low-score schwach']));
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['sort-high-score', 'sort-low-score']));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Score' }).click();
   await expect(async () => {
     const asc = await getGridData(grid);
-    expect(asc[0]).toEqual(expect.objectContaining({ Card: 'sort-low-score schwach' }));
-    expect(asc[1]).toEqual(expect.objectContaining({ Card: 'sort-high-score stark' }));
+    expect(asc[0]).toEqual(expect.objectContaining({ ID: 'sort-low-score' }));
+    expect(asc[1]).toEqual(expect.objectContaining({ ID: 'sort-high-score' }));
   }).toPass();
 
   await page.getByRole('columnheader', { name: 'Score' }).click();
   await expect(async () => {
     const desc = await getGridData(grid);
-    expect(desc[0]).toEqual(expect.objectContaining({ Card: 'sort-high-score stark' }));
-    expect(desc[1]).toEqual(expect.objectContaining({ Card: 'sort-low-score schwach' }));
+    expect(desc[0]).toEqual(expect.objectContaining({ ID: 'sort-high-score' }));
+    expect(desc[1]).toEqual(expect.objectContaining({ ID: 'sort-low-score' }));
   }).toPass();
 });
 
@@ -1007,6 +1019,6 @@ test('filters cards by ID', async ({ page }) => {
 
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.Card)).toEqual(['xyz-card Stuhl']);
+    expect(rows.map((r) => r.ID)).toEqual(['xyz-card']);
   }).toPass();
 });
