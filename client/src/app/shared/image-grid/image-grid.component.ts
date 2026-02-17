@@ -12,6 +12,7 @@ export type GridImageValue = {
 export type GridImageResource = {
   value: () => GridImageValue | undefined;
   isLoading: () => boolean;
+  set: (value: GridImageValue) => void;
 };
 
 @Component({

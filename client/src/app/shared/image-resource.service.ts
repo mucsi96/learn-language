@@ -20,13 +20,19 @@ export class ImageResourceService {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   createResource(image: ExampleImage): GridImageResource {
-    return resource({
+    const res = resource({
       injector: this.injector,
       loader: async () => {
         const url = await this.fetchImageUrl(image.id);
-        return { ...image, url };
+        return { ...image, url } as GridImageValue;
       },
     });
+
+    return {
+      value: res.value.bind(res),
+      isLoading: res.isLoading.bind(res),
+      set: (v: GridImageValue) => res.set(v),
+    };
   }
 
   generateImages(englishTranslation: string): {
@@ -93,7 +99,7 @@ export class ImageResourceService {
     const imageValue = image.value();
     if (!imageValue) return;
 
-    (image as any).set({
+    image.set({
       ...imageValue,
       isFavorite: !imageValue.isFavorite,
     });
@@ -108,6 +114,7 @@ export class ImageResourceService {
     const gridResource: GridImageResource = {
       isLoading: isLoading.asReadonly(),
       value: value.asReadonly(),
+      set: (v: GridImageValue) => value.set(v),
     };
 
     const resolve = async (image: ExampleImage) => {
