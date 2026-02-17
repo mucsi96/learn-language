@@ -16,9 +16,13 @@ public class WordIdService {
     private static final Pattern HUNGARIAN_ARTICLE_PATTERN = Pattern.compile("^(a|az|egy)\\s+", Pattern.CASE_INSENSITIVE);
 
     public String generateWordId(String germanWord, String hungarianWord) {
-        String normalizedGerman = normalizeWord(stripGermanArticle(germanWord));
-        String normalizedHungarian = normalizeWord(stripHungarianArticle(hungarianWord));
+        final String normalizedGerman = normalizeGermanWord(germanWord);
+        final String normalizedHungarian = normalizeWord(stripHungarianArticle(hungarianWord));
         return normalizedGerman + "-" + normalizedHungarian;
+    }
+
+    public String normalizeGermanWord(String germanWord) {
+        return normalizeWord(stripGermanArticle(germanWord));
     }
 
     private String stripGermanArticle(String word) {

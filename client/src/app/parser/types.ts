@@ -99,6 +99,7 @@ export type CardType = 'vocabulary' | 'speech' | 'grammar';
 export type ExtractedItem = {
   id: string;
   exists: boolean;
+  warning?: boolean;
   extractionModel?: string;
 };
 

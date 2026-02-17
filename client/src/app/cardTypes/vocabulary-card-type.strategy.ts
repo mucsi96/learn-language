@@ -39,6 +39,7 @@ interface TranslationResponse {
 interface WordIdResponse {
   id: string;
   exists: boolean;
+  warning: boolean;
 }
 
 @Injectable({
@@ -98,6 +99,7 @@ export class VocabularyCardType implements CardTypeStrategy {
           ...word,
           id: wordIdResponse.id,
           exists: wordIdResponse.exists,
+          warning: wordIdResponse.warning,
           extractionModel: extractionResult.model,
         };
       })

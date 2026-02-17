@@ -19,12 +19,15 @@ public class WordIdController {
     @PostMapping("/word-id")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<WordIdResponse> generateWordId(@RequestBody WordIdRequest request) {
-        String id = wordIdService.generateWordId(request.getGermanWord(), request.getHungarianTranslation());
-        boolean exists = cardRepository.existsById(id);
+        final String id = wordIdService.generateWordId(request.getGermanWord(), request.getHungarianTranslation());
+        final boolean exists = cardRepository.existsById(id);
+        final String germanPrefix = wordIdService.normalizeGermanWord(request.getGermanWord()) + "-";
+        final boolean warning = !exists && cardRepository.existsByIdStartingWithAndIdNot(germanPrefix, id);
 
-        WordIdResponse response = WordIdResponse.builder()
+        final WordIdResponse response = WordIdResponse.builder()
                 .id(id)
                 .exists(exists)
+                .warning(warning)
                 .build();
 
         return ResponseEntity.ok(response);

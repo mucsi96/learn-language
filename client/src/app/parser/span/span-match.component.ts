@@ -14,6 +14,7 @@ export class SpanMatchComponent {
   readonly cardId = input.required<string>();
   readonly exists = input.required<boolean>();
   readonly label = input.required<string>();
+  readonly warning = input(false);
   readonly inline = input(false);
   readonly left = input<string>();
   readonly top = input<string>();
@@ -21,6 +22,9 @@ export class SpanMatchComponent {
   readonly height = input<string>();
 
   get ariaDescription() {
-    return this.exists() ? 'Card exists' : 'Card does not exist';
+    if (this.exists()) {
+      return 'Card exists';
+    }
+    return this.warning() ? 'Possible duplicate' : 'Card does not exist';
   }
 }

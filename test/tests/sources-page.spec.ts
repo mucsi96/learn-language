@@ -113,6 +113,27 @@ test('drag to select multiple regions highlights matching words', async ({ page 
   await expect(page.getByText('die Adresse').first()).toHaveAccessibleDescription('Card does not exist');
 });
 
+test('drag to select words highlights possible duplicates with warning', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'abfahren-tavozni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'távozni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Possible duplicate');
+});
+
 test('source selector routing works', async ({ page }) => {
   // Navigate to first source page
   await page.goto('http://localhost:8180/sources/goethe-a1/page/9');

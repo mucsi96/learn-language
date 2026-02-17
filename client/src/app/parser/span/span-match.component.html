@@ -15,6 +15,7 @@
   } @else {
   <div
     class="word"
+    [class.warning]="warning()"
     exclude-selection
     [style.left]="left()"
     [style.top]="top()"
@@ -35,7 +36,7 @@
     {{ label() }}
   </a>
   } @else {
-  <div mat-menu-item [ariaDescription]="ariaDescription">
+  <div mat-menu-item [ariaDescription]="ariaDescription" [class.warning]="warning()">
     {{ label() }}
   </div>
   }
