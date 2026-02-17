@@ -24,13 +24,13 @@ export class ImageResourceService {
       injector: this.injector,
       loader: async () => {
         const url = await this.fetchImageUrl(image.id);
-        return { ...image, url } as GridImageValue;
+        return { ...image, url };
       },
     });
 
     return {
-      value: res.value.bind(res),
-      isLoading: res.isLoading.bind(res),
+      value: () => res.value(),
+      isLoading: () => res.isLoading(),
       set: (v: GridImageValue) => res.set(v),
     };
   }
