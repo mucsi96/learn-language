@@ -1,5 +1,15 @@
 <div class="container">
 <div class="filters-section" role="region" aria-label="Card filters">
+    <mat-form-field appearance="outline" class="filter-field card-filter-field">
+      <mat-label>Card</mat-label>
+      <input
+        matInput
+        [value]="cardFilter()"
+        (input)="onCardFilterChange($any($event.target).value)"
+        aria-label="Filter by card"
+      />
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Readiness</mat-label>
       <mat-select

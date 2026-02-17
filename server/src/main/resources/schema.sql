@@ -147,7 +147,9 @@ CREATE INDEX IF NOT EXISTS idx_cards_readiness_due ON learn_language.cards (read
     WHERE readiness = 'READY';
 CREATE INDEX IF NOT EXISTS idx_cards_source_readiness ON learn_language.cards (source_id, readiness);
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS learn_language.card_view AS
+DROP MATERIALIZED VIEW IF EXISTS learn_language.card_view;
+
+CREATE MATERIALIZED VIEW learn_language.card_view AS
 SELECT
     c.id,
     c.source_id,
@@ -159,6 +161,10 @@ SELECT
     c.state,
     c.last_review,
     s.card_type,
+    CASE
+        WHEN s.card_type IS NULL OR s.card_type = 'VOCABULARY' THEN c.data->>'word'
+        ELSE c.data->'examples'->0->>'de'
+    END AS label,
     lr.rating AS last_review_rating,
     lp.name AS last_review_learning_partner_name,
     rs.review_score
@@ -197,4 +203,4 @@ LEFT JOIN LATERAL (
     ) stats
 ) rs ON true;
 
-CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON learn_language.card_view (id);
+CREATE UNIQUE INDEX card_view_id_idx ON learn_language.card_view (id);

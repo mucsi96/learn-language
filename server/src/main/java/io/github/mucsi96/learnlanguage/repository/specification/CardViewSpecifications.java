@@ -52,6 +52,16 @@ public class CardViewSpecifications {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.reviewScore), maxScore);
     }
 
+    public static Specification<CardView> hasCardFilter(String search) {
+        return (root, query, cb) -> {
+            final String pattern = "%" + search.toLowerCase() + "%";
+            return cb.or(
+                cb.like(cb.lower(root.get("id")), pattern),
+                cb.like(cb.lower(root.get("label")), pattern)
+            );
+        };
+    }
+
     public static Specification<CardView> isDueBefore(LocalDateTime cutoff) {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.due), cutoff);
     }

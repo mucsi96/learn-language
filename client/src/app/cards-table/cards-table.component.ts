@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
@@ -95,6 +96,7 @@ ModuleRegistry.registerModules([
     MatIconModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatInputModule,
     AgGridAngular,
   ],
   templateUrl: './cards-table.component.html',
@@ -119,6 +121,7 @@ export class CardsTableComponent {
   }
 
   private gridApi: GridApi | null = null;
+  private cardFilterTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
     backgroundColor: 'hsl(215, 28%, 17%)',
@@ -132,6 +135,7 @@ export class CardsTableComponent {
     fontFamily: 'system-ui',
   });
 
+  readonly cardFilter = signal<string>('');
   readonly readinessFilter = signal<string>('');
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
@@ -155,6 +159,7 @@ export class CardsTableComponent {
           : undefined,
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,
+        cardFilter: this.cardFilter() || undefined,
       };
     },
     loader: ({ params }) =>
@@ -218,6 +223,12 @@ export class CardsTableComponent {
       field: 'label',
       flex: 2,
       sortable: false,
+      cellRenderer: (params: { data: CardTableRow | undefined }) => {
+        if (!params.data) return '';
+        const id = `<span style="color:hsl(220,13%,60%);font-size:0.75rem">${params.data.id}</span>`;
+        const label = params.data.label ?? '';
+        return `${id} ${label}`;
+      },
     },
     {
       headerName: 'Readiness',
@@ -318,6 +329,16 @@ export class CardsTableComponent {
       'cards',
       row.id,
     ]);
+  }
+
+  onCardFilterChange(value: string): void {
+    if (this.cardFilterTimeout) {
+      clearTimeout(this.cardFilterTimeout);
+    }
+    this.cardFilterTimeout = setTimeout(() => {
+      this.cardFilter.set(value);
+      this.refreshGrid();
+    }, 300);
   }
 
   onReadinessFilterChange(value: string): void {
@@ -461,6 +482,7 @@ export class CardsTableComponent {
           : undefined,
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,
+        cardFilter: this.cardFilter() || undefined,
       });
 
       params.successCallback(response.rows, response.totalCount);

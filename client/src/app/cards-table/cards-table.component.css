@@ -25,6 +25,10 @@
   max-width: 200px;
 }
 
+.card-filter-field {
+  max-width: 300px;
+}
+
 .selection-actions {
   position: fixed;
   bottom: 24px;

@@ -59,6 +59,9 @@ public class CardView {
     @Column(name = "card_type")
     private CardType cardType;
 
+    @Column
+    private String label;
+
     @Column(name = "last_review_rating")
     private Integer lastReviewRating;
 
