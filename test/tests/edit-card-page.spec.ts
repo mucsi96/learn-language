@@ -289,6 +289,57 @@ test('favorite image in db', async ({ page }) => {
   });
 });
 
+test('favorite toggle on newly generated image', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  await page.getByRole('button', { name: 'Add example image' }).first().click();
+  await expect(page.getByRole('img')).toHaveCount(5);
+
+  const favoriteButtons = page.getByRole('button', { name: 'Toggle favorite' });
+
+  await favoriteButtons.nth(1).click();
+  await expect(favoriteButtons.nth(1)).toHaveAttribute('aria-pressed', 'true');
+  await expect(favoriteButtons.nth(0)).not.toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.examples[0].images[0].isFavorite).toBeUndefined();
+    expect(cardData.examples[0].images[1].isFavorite).toBe(true);
+  });
+});
+
 test('word type editing', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
