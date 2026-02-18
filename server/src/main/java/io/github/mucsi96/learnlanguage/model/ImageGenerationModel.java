@@ -9,13 +9,11 @@ import lombok.RequiredArgsConstructor;
 //          https://ai.google.dev/gemini-api/docs/pricing
 @RequiredArgsConstructor
 public enum ImageGenerationModel {
-    GPT_IMAGE_1_5("gpt-image-1.5", "GPT Image 1.5", 1),
-    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "Gemini 3 Pro", 3);
+    GPT_IMAGE_1_5("gpt-image-1.5", "GPT Image 1.5"),
+    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "Gemini 3 Pro");
 
     private final String modelName;
     private final String displayName;
-    @lombok.Getter
-    private final int imageCount;
 
     @JsonValue
     public String getModelName() {

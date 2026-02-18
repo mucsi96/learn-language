@@ -6,6 +6,7 @@ import {
   menschenA1Image,
   getKnownWords,
   setupDefaultChatModelSettings,
+  setupDefaultImageModelSettings,
 } from '../utils';
 
 test('can create an image source', async ({ page }) => {
@@ -145,6 +146,7 @@ test('image source shows source type in create dialog is disabled during edit', 
 
 test('Extracted items appear as chips for flowing text format after selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createSource({
     id: 'chips-image-source',
     name: 'Chips Image Source',
@@ -187,6 +189,7 @@ test('Extracted items appear as chips for flowing text format after selection', 
 
 test('can add word to known words from chip context menu', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createSource({
     id: 'known-words-source',
     name: 'Known Words Source',
@@ -239,6 +242,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
 
 test('can ignore word once from chip context menu', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   await createSource({
     id: 'ignore-word-source',
     name: 'Ignore Word Source',

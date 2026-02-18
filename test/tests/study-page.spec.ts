@@ -11,6 +11,7 @@ import {
   getCardFromDb,
   getReviewLogs,
   setupDefaultChatModelSettings,
+  setupDefaultImageModelSettings,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '@playwright/test';
@@ -883,14 +884,13 @@ test('grading card updates database', async ({ page }) => {
   // Click Good button
   await page.getByRole('button', { name: 'Good' }).click();
 
-  // Wait a moment for the database update
-  await page.waitForTimeout(500);
-
-  const card = await getCardFromDb('datenbank-adatbazis');
-  expect(card.state).toBe('LEARNING');
-  expect(card.reps).toBe(1);
-  expect(card.stability).toBeGreaterThan(0.0);
-  expect(card.difficulty).toBeGreaterThan(0.0);
+  await expect(async () => {
+    const card = await getCardFromDb('datenbank-adatbazis');
+    expect(card.state).toBe('LEARNING');
+    expect(card.reps).toBe(1);
+    expect(card.stability).toBeGreaterThan(0.0);
+    expect(card.difficulty).toBeGreaterThan(0.0);
+  }).toPass();
 });
 
 test('grading card creates review log', async ({ page }) => {
@@ -923,16 +923,16 @@ test('grading card creates review log', async ({ page }) => {
   await flashcard.getByRole('heading', { name: 'napló' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
 
-  await page.waitForTimeout(500);
-
-  const reviewLogs = await getReviewLogsByCardId('protokoll-naplo');
-  expect(reviewLogs).toHaveLength(1);
-  expect(reviewLogs[0].cardId).toBe('protokoll-naplo');
-  expect(reviewLogs[0].rating).toBe(3);
-  expect(reviewLogs[0].state).toBe('LEARNING');
-  expect(reviewLogs[0].stability).toBeGreaterThan(0.0);
-  expect(reviewLogs[0].difficulty).toBeGreaterThan(0.0);
-  expect(reviewLogs[0].learningPartnerId).toBeNull();
+  await expect(async () => {
+    const reviewLogs = await getReviewLogsByCardId('protokoll-naplo');
+    expect(reviewLogs).toHaveLength(1);
+    expect(reviewLogs[0].cardId).toBe('protokoll-naplo');
+    expect(reviewLogs[0].rating).toBe(3);
+    expect(reviewLogs[0].state).toBe('LEARNING');
+    expect(reviewLogs[0].stability).toBeGreaterThan(0.0);
+    expect(reviewLogs[0].difficulty).toBeGreaterThan(0.0);
+    expect(reviewLogs[0].learningPartnerId).toBeNull();
+  }).toPass();
 });
 
 test('grading with no next card shows empty state', async ({ page }) => {
@@ -1278,6 +1278,7 @@ test('speech card grading functionality', async ({ page }) => {
 
 test('grammar card study shows sentence with gaps on front, full sentence on reveal', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-test-card',
@@ -1311,6 +1312,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
 
 test('grammar card grading functionality', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(greenImage);
   await createCard({
     cardId: 'grammar-grade-card',

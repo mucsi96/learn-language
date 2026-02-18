@@ -1,0 +1,64 @@
+.image-model-settings-container {
+  max-width: 100%;
+}
+
+mat-card {
+  height: fit-content;
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}
+
+.models-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.models-table th,
+.models-table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.models-table th {
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.model-name-cell {
+  font-weight: 500;
+}
+
+.count-header {
+  width: 150px;
+}
+
+.count-cell {
+  width: 150px;
+}
+
+.count-field {
+  width: 80px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+tbody tr:hover {
+  background: var(--mat-sys-surface-container-low);
+}

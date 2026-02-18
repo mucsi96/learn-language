@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { clearChatModelSettings, createChatModelSetting, getModelUsageLogs, selectTextRange } from '../utils';
+import { clearChatModelSettings, createChatModelSetting, getModelUsageLogs, selectTextRange, setupDefaultImageModelSettings } from '../utils';
 
 async function setupChatModelsForAllOperations(config: {
   EXTRACTION?: string[];
@@ -26,6 +26,7 @@ async function setupChatModelsForAllOperations(config: {
 }
 
 test('word extraction only uses enabled models for extraction operation', async ({ page }) => {
+  await setupDefaultImageModelSettings();
   await setupChatModelsForAllOperations({
     EXTRACTION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
@@ -51,6 +52,7 @@ test('word extraction only uses enabled models for extraction operation', async 
 });
 
 test('bulk card creation only uses enabled models for classification operation', async ({ page }) => {
+  await setupDefaultImageModelSettings();
   await setupChatModelsForAllOperations({
     CLASSIFICATION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
@@ -78,6 +80,7 @@ test('bulk card creation only uses enabled models for classification operation',
 });
 
 test('bulk card creation only uses enabled models for translation operations', async ({ page }) => {
+  await setupDefaultImageModelSettings();
   await setupChatModelsForAllOperations({
     TRANSLATION: ['gpt-4o', 'gemini-3-pro-preview'],
   });
@@ -105,6 +108,7 @@ test('bulk card creation only uses enabled models for translation operations', a
 });
 
 test('different operation types can have different enabled models', async ({ page }) => {
+  await setupDefaultImageModelSettings();
   await setupChatModelsForAllOperations({
     CLASSIFICATION: ['gpt-4o', 'gemini-3-pro-preview'],
     TRANSLATION: ['gemini-3-pro-preview'],

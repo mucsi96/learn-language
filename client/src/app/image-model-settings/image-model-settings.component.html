@@ -1,0 +1,44 @@
+<div class="image-model-settings-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title><h2>Image Models</h2></mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (imageModels().length === 0) {
+        <div class="empty-state">
+          <p>No image models available</p>
+        </div>
+      } @else {
+        <div class="models-list">
+          <table class="models-table" aria-label="Image model settings">
+            <thead>
+              <tr>
+                <th class="model-header">Model</th>
+                <th class="count-header">Images per card</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (model of imageModels(); track model.id) {
+                <tr>
+                  <td class="model-name-cell">{{ model.displayName }}</td>
+                  <td class="count-cell">
+                    <mat-form-field class="count-field">
+                      <input
+                        matInput
+                        type="number"
+                        [value]="model.imageCount"
+                        (change)="onImageCountChange(model.id, $event)"
+                        min="0"
+                        [attr.aria-label]="'Image count for ' + model.displayName"
+                      />
+                    </mat-form-field>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

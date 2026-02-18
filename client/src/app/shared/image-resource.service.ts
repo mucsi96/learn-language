@@ -4,9 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { ExampleImage } from '../parser/types';
 import { fetchAsset } from '../utils/fetchAsset';
 import { fetchJson } from '../utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { ImageSourceRequest } from './types/image-generation.types';
 import { GridImageResource, GridImageValue } from './image-grid/image-grid.component';
+import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 
 type PendingImageResource = {
   gridResource: GridImageResource;
@@ -17,7 +17,7 @@ type PendingImageResource = {
 export class ImageResourceService {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageModelSettingsService = inject(ImageModelSettingsService);
 
   createResource(image: ExampleImage): GridImageResource {
     return resource({
@@ -33,7 +33,9 @@ export class ImageResourceService {
     placeholders: GridImageResource[];
     done: Promise<void>;
   } {
-    const imageModels = this.environmentConfig.imageModels;
+    const imageModels = this.imageModelSettingsService.imageModels().filter(
+      (m) => m.imageCount > 0
+    );
 
     const allPending = imageModels.flatMap((model) =>
       Array.from({ length: model.imageCount }, () =>

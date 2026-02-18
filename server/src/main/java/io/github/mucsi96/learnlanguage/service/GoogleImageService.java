@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.ImageConfig;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
