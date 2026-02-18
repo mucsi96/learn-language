@@ -28,7 +28,7 @@ public class FileStorageCleanupService {
   private final CardRepository cardRepository;
   private final DocumentRepository documentRepository;
 
-  private static final Set<String> REVIEWED_STATES = Set.of("REVIEW", "RELEARNING");
+  private static final Set<String> REVIEWED_READINESS = Set.of("REVIEWED", "READY", "KNOWN");
 
   @EventListener(ApplicationReadyEvent.class)
   public void cleanupUnreferencedFiles() {
@@ -46,7 +46,7 @@ public class FileStorageCleanupService {
     final var cards = cardRepository.findAll();
 
     final var cardsToUpdate = cards.stream()
-        .filter(card -> REVIEWED_STATES.contains(card.getState()))
+        .filter(card -> REVIEWED_READINESS.contains(card.getReadiness()))
         .filter(card -> Optional.ofNullable(card.getData().getExamples())
             .map(examples -> examples.stream()
                 .anyMatch(example -> Optional.ofNullable(example.getImages())
