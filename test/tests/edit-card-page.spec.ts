@@ -278,10 +278,10 @@ test('favorite image in db', async ({ page }) => {
     'true'
   );
 
-  await page.waitForTimeout(100);
-
-  await page.getByRole('button', { name: 'Update' }).click();
-  await expect(page.getByText('Card updated successfully')).toBeVisible();
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText('Card updated successfully')).toBeVisible();
+  }).toPass();
 
   // Verify database state
   await withDbConnection(async (client) => {

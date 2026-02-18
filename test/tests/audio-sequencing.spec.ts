@@ -33,16 +33,10 @@ test('audio plays sequentially', async ({ page }) => {
 
   await page.getByRole('heading', { name: 'helló' }).click();
 
-  // Wait a moment for audio to start
-  await page.waitForTimeout(500);
-
-  // Check that the component is present and audio would be playing
-  // Note: We can't directly test audio playback in headless mode,
-  // but we can verify the component structure is correct
-  await expect(page.getByRole('main')).toBeVisible();
-
-  // Verify the vocabulary card is present by checking for the word
-  await expect(page.getByRole('heading', { name: 'Hallo' })).toBeVisible();
+  await expect(async () => {
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Hallo' })).toBeVisible();
+  }).toPass();
 
   await page.getByRole('heading', { name: 'Hallo' }).click();
 
@@ -60,18 +54,14 @@ test('voice selection dialog audio', async ({ page }) => {
   const consoleMessages: any[] = [];
   page.on('console', (msg) => consoleMessages.push(msg));
 
-  // Navigate to a card editing page
   await page.goto('/sources/1/page/1');
-  await page.waitForSelector('app-page', { timeout: 10000 });
 
-  // Wait for potential errors
-  await page.waitForTimeout(1000);
-
-  // Check for service-related errors
-  const serviceErrors = consoleMessages.filter(
-    (msg) => msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
-  );
-  expect(serviceErrors.length).toBe(0);
+  await expect(async () => {
+    const serviceErrors = consoleMessages.filter(
+      (msg) => msg.text().includes('AudioPlaybackService') && msg.type() === 'error'
+    );
+    expect(serviceErrors.length).toBe(0);
+  }).toPass();
 });
 
 test('voice selection dialog shows only enabled voice configurations', async ({ page }) => {

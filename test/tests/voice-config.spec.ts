@@ -76,10 +76,10 @@ test('can toggle voice configuration enabled state', async ({ page }) => {
 
   await page.getByRole('switch', { name: 'Disable voice' }).click();
 
-  await page.waitForTimeout(2000);
-
-  const configs = await getVoiceConfigurations();
-  expect(configs[0].isEnabled).toBe(false);
+  await expect(async () => {
+    const configs = await getVoiceConfigurations();
+    expect(configs[0].isEnabled).toBe(false);
+  }).toPass();
 });
 
 test('can delete a voice configuration', async ({ page }) => {

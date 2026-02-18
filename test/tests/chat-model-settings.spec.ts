@@ -46,19 +46,20 @@ test('can set primary model for operation type', async ({ page }) => {
   await expect(geminiPrimaryRadio).toBeChecked();
 
   await gptPrimaryRadio.click();
-  await page.waitForTimeout(500);
 
   await expect(gptPrimaryRadio).toBeChecked();
   await expect(geminiPrimaryRadio).not.toBeChecked();
 
-  const settings = await getChatModelSettings();
-  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'TRANSLATION');
-  const geminiSetting = settings.find(
-    (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'TRANSLATION'
-  );
+  await expect(async () => {
+    const settings = await getChatModelSettings();
+    const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'TRANSLATION');
+    const geminiSetting = settings.find(
+      (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'TRANSLATION'
+    );
 
-  expect(gptSetting?.isPrimary).toBe(true);
-  expect(geminiSetting?.isPrimary).toBe(false);
+    expect(gptSetting?.isPrimary).toBe(true);
+    expect(geminiSetting?.isPrimary).toBe(false);
+  }).toPass();
 });
 
 test('primary radio is disabled when model is not enabled', async ({ page }) => {
@@ -97,15 +98,16 @@ test('can toggle model setting', async ({ page }) => {
   const isCheckedBefore = await toggleInGptRow.isChecked();
 
   await toggleInGptRow.click();
-  await page.waitForTimeout(500);
 
   const isCheckedAfter = await toggleInGptRow.isChecked();
   expect(isCheckedAfter).toBe(!isCheckedBefore);
 
-  const settings = await getChatModelSettings();
-  const gptSetting = settings.find((s) => s.modelName === 'gpt-4o');
-  expect(gptSetting).toBeDefined();
-  expect(gptSetting!.isEnabled).toBe(!isCheckedBefore);
+  await expect(async () => {
+    const settings = await getChatModelSettings();
+    const gptSetting = settings.find((s) => s.modelName === 'gpt-4o');
+    expect(gptSetting).toBeDefined();
+    expect(gptSetting!.isEnabled).toBe(!isCheckedBefore);
+  }).toPass();
 });
 
 test('displays existing enabled settings from database', async ({ page }) => {
@@ -140,13 +142,14 @@ test('can enable all models for an operation type', async ({ page }) => {
   await expect(enableAllButton).toBeVisible();
 
   await enableAllButton.click();
-  await page.waitForTimeout(500);
 
-  const settings = await getChatModelSettings();
-  const translationSettings = settings.filter((s) => s.operationType === 'TRANSLATION');
+  await expect(async () => {
+    const settings = await getChatModelSettings();
+    const translationSettings = settings.filter((s) => s.operationType === 'TRANSLATION');
 
-  expect(translationSettings.length).toBeGreaterThan(0);
-  expect(translationSettings.every((s) => s.isEnabled)).toBe(true);
+    expect(translationSettings.length).toBeGreaterThan(0);
+    expect(translationSettings.every((s) => s.isEnabled)).toBe(true);
+  }).toPass();
 });
 
 test('toggle performs optimistic update', async ({ page }) => {

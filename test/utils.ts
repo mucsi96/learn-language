@@ -469,7 +469,6 @@ export async function selectRegion(page: Page, startText: string, endText: strin
   await page.mouse.down();
   await page.mouse.move(endBox.x + endBox.width + 5, endBox.y + endBox.height + 5);
   await page.mouse.up();
-  await page.waitForTimeout(500);
 }
 
 export async function selectTextRange(page: Page, startText: string, endText: string): Promise<void> {

@@ -42,12 +42,13 @@ test('can update image count for a model', async ({ page }) => {
   const gptInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 1.5' });
   await gptInput.fill('4');
   await gptInput.dispatchEvent('change');
-  await page.waitForTimeout(500);
 
-  const settings = await getImageModelSettings();
-  const gptSetting = settings.find((s) => s.modelName === 'gpt-image-1.5');
-  expect(gptSetting).toBeDefined();
-  expect(gptSetting!.imageCount).toBe(4);
+  await expect(async () => {
+    const settings = await getImageModelSettings();
+    const gptSetting = settings.find((s) => s.modelName === 'gpt-image-1.5');
+    expect(gptSetting).toBeDefined();
+    expect(gptSetting!.imageCount).toBe(4);
+  }).toPass();
 });
 
 test('settings page shows image models link in navigation', async ({ page }) => {
