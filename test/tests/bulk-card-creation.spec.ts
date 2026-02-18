@@ -7,7 +7,7 @@ import {
   scrollElementToTop,
   withDbConnection,
   downloadImage,
-  isJpeg,
+  getImageColor,
   menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
@@ -367,8 +367,8 @@ test('bulk card creation includes word data', async ({ page }) => {
 
     const image1 = downloadImage(cardData.examples[0].images[0].id);
     const image2 = downloadImage(cardData.examples[1].images[0].id);
-    expect(isJpeg(image1)).toBeTruthy();
-    expect(isJpeg(image2)).toBeTruthy();
+    expect(await getImageColor(page, image1)).toBe('yellow');
+    expect(await getImageColor(page, image2)).toBe('red');
 
     expect(cardData.examples[0].images[0].model).toBe('GPT Image 1.5');
     expect(cardData.examples[0].images[1].model).toBe('Gemini 3 Pro');

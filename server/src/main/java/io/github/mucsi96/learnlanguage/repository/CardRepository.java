@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -40,6 +41,45 @@ public interface CardRepository
 
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     void deleteBySource(Source source);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = """
+        UPDATE learn_language.cards
+        SET data = jsonb_set(
+          data,
+          '{examples}',
+          (
+            SELECT COALESCE(jsonb_agg(
+              CASE
+                WHEN elem->'images' IS NOT NULL THEN
+                  jsonb_set(
+                    elem,
+                    '{images}',
+                    COALESCE(
+                      (SELECT jsonb_agg(img)
+                        FROM jsonb_array_elements(elem->'images') AS img
+                        WHERE img->>'isFavorite' = 'true'),
+                      '[]'::jsonb
+                    )
+                  )
+                ELSE elem
+              END
+              ORDER BY idx
+            ), '[]'::jsonb)
+            FROM jsonb_array_elements(data->'examples') WITH ORDINALITY AS arr(elem, idx)
+          )
+        )
+        WHERE readiness IN ('REVIEWED', 'READY', 'KNOWN')
+          AND data->'examples' IS NOT NULL
+          AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(data->'examples') AS ex,
+                 LATERAL jsonb_array_elements(COALESCE(ex->'images', '[]'::jsonb)) AS img
+            WHERE img->>'isFavorite' IS DISTINCT FROM 'true'
+          )
+        """, nativeQuery = true)
+    int stripNonFavoriteImagesFromReviewedCards();
 }

@@ -507,8 +507,41 @@ export function downloadImage(id: string): Buffer {
   return fs.readFileSync(imagePath);
 }
 
-export function isJpeg(data: Buffer): boolean {
-  return data.length > 2 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
+export async function getImageColor(page: Page, data: Buffer): Promise<string> {
+  const base64 = data.toString('base64');
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+
+  const [r, g, b] = await page.evaluate(
+    async ({ base64, mimeType }) => {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = `data:${mimeType};base64,${base64}`;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+
+      const pixel = ctx.getImageData(
+        Math.floor(img.width / 2),
+        Math.floor(img.height / 2),
+        1,
+        1
+      ).data;
+      return [pixel[0], pixel[1], pixel[2]];
+    },
+    { base64, mimeType }
+  );
+
+  if (r > 200 && g > 200 && b < 100) return 'yellow';
+  if (r > 200 && g < 100) return 'red';
+  if (g > 100 && r < 100 && b < 100) return 'green';
+  if (b > 100 && r < 100 && g < 100) return 'blue';
+  throw new Error(`Unknown color: rgb(${r}, ${g}, ${b})`);
 }
 
 export function downloadAudio(id: string): Buffer {

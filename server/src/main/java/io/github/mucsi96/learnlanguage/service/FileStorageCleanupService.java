@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.AudioData;
-import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
@@ -28,11 +27,9 @@ public class FileStorageCleanupService {
   private final CardRepository cardRepository;
   private final DocumentRepository documentRepository;
 
-  private static final Set<String> REVIEWED_READINESS = Set.of("REVIEWED", "READY", "KNOWN");
-
   @EventListener(ApplicationReadyEvent.class)
   public void cleanupUnreferencedFiles() {
-    final var strippedCards = stripNonFavoriteImagesFromReviewedCards();
+    final var strippedCards = cardRepository.stripNonFavoriteImagesFromReviewedCards();
     final var deletedAudioFiles = cleanupAudioFiles();
     final var deletedImageFiles = cleanupImageFiles();
     final var deletedSourceFiles = cleanupSourceDocuments();
@@ -40,46 +37,6 @@ public class FileStorageCleanupService {
     log.info(
         "File storage cleanup completed. Stripped non-favorite images from {} cards. Deleted {} audio files, {} image files, {} source documents",
         strippedCards, deletedAudioFiles.size(), deletedImageFiles.size(), deletedSourceFiles.size());
-  }
-
-  private long stripNonFavoriteImagesFromReviewedCards() {
-    final var cards = cardRepository.findAll();
-
-    final var cardsToUpdate = cards.stream()
-        .filter(card -> REVIEWED_READINESS.contains(card.getReadiness()))
-        .filter(card -> Optional.ofNullable(card.getData().getExamples())
-            .map(examples -> examples.stream()
-                .anyMatch(example -> Optional.ofNullable(example.getImages())
-                    .map(images -> images.stream()
-                        .anyMatch(img -> !Boolean.TRUE.equals(img.getIsFavorite())))
-                    .orElse(false)))
-            .orElse(false))
-        .toList();
-
-    cardsToUpdate.forEach(card -> {
-      final var updatedExamples = card.getData().getExamples().stream()
-          .map(example -> {
-            final var filteredImages = Optional.ofNullable(example.getImages())
-                .map(images -> images.stream()
-                    .filter(img -> Boolean.TRUE.equals(img.getIsFavorite()))
-                    .toList())
-                .orElse(null);
-            return ExampleData.builder()
-                .de(example.getDe())
-                .en(example.getEn())
-                .hu(example.getHu())
-                .ch(example.getCh())
-                .isSelected(example.getIsSelected())
-                .images(filteredImages)
-                .build();
-          })
-          .toList();
-      card.getData().setExamples(updatedExamples);
-      log.info("Stripping non-favorite images from reviewed card: {}", card.getData().getWord());
-    });
-
-    cardRepository.saveAll(cardsToUpdate);
-    return cardsToUpdate.size();
   }
 
   private List<String> cleanupAudioFiles() {

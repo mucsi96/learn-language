@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   downloadImage,
-  isJpeg,
+  getImageColor,
   getColorImageBytes,
   getImageContent,
   withDbConnection,
@@ -184,7 +184,7 @@ test('card editing in db', async ({ page }) => {
 
   const imageContent2 = await getImageContent(imageLocator.nth(4));
 
-  expect(isJpeg(imageContent2)).toBeTruthy();
+  expect(await getImageColor(page, imageContent2)).toBe('red');
 
   await page.getByRole('radio').nth(1).click();
   await page.getByRole('button', { name: 'Update' }).click();
@@ -207,8 +207,8 @@ test('card editing in db', async ({ page }) => {
     const img2 = downloadImage(cardData.examples[1].images[1].id);
     const img3 = downloadImage(cardData.examples[1].images[2].id);
     expect(img1.equals(yellowImage)).toBeTruthy();
-    expect(isJpeg(img2)).toBeTruthy();
-    expect(isJpeg(img3)).toBeTruthy();
+    expect(await getImageColor(page, img2)).toBe('red');
+    expect(await getImageColor(page, img3)).toBe('red');
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
@@ -453,7 +453,7 @@ test('example image addition', async ({ page }) => {
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
   const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }).nth(3));
-  expect(isJpeg(regeneratedImageContent)).toBeTruthy();
+  expect(await getImageColor(page, regeneratedImageContent)).toBe('blue');
 
 });
 
