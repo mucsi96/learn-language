@@ -19,6 +19,8 @@ public interface CardRepository
 
     List<Card> findByReadinessOrderByDueAsc(String readiness);
 
+    List<Card> findByReadinessIn(List<String> readinessList);
+
     @Query("SELECT c FROM Card c ORDER BY c.lastReview DESC")
     List<Card> findTopByOrderByLastReviewDesc(Pageable pageable);
 

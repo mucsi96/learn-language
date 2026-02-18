@@ -31,6 +31,8 @@ public class ImageController {
   private final ImageService imageService;
   private final ImageResizeService imageResizeService;
 
+  private static final int MAX_IMAGE_DIMENSION = 1200;
+
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public List<ExampleImageData> createImages(@Valid @RequestBody ImageSourceRequest imageSource) {
@@ -39,7 +41,14 @@ public class ImageController {
     return imageService.generateImages(imageSource.getInput(), imageSource.getModel()).stream()
         .map(data -> {
           final String uuid = UUID.randomUUID().toString();
-          fileStorageService.saveFile(BinaryData.fromBytes(data), "images/%s.jpg".formatted(uuid));
+          final String filePath = "images/%s.jpg".formatted(uuid);
+          try {
+            final byte[] compressed = imageResizeService.resizeImage(
+                data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
+            fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
+          } catch (Exception e) {
+            throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
+          }
           return ExampleImageData.builder()
               .id(uuid)
               .model(displayName)

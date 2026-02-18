@@ -6,6 +6,7 @@
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "anweber.vscode-httpyac",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-playwright.playwright"
     ]
 }

@@ -507,6 +507,85 @@ export function downloadImage(id: string): Buffer {
   return fs.readFileSync(imagePath);
 }
 
+export async function getImageColor(page: Page, data: Buffer): Promise<string> {
+  const base64 = data.toString('base64');
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+
+  const [r, g, b] = await page.evaluate(
+    async ({ base64, mimeType }) => {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = `data:${mimeType};base64,${base64}`;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+
+      const pixel = ctx.getImageData(
+        Math.floor(img.width / 2),
+        Math.floor(img.height / 2),
+        1,
+        1
+      ).data;
+      return [pixel[0], pixel[1], pixel[2]];
+    },
+    { base64, mimeType }
+  );
+
+  if (r > 200 && g > 200 && b < 100) return 'yellow';
+  if (r > 200 && g < 100) return 'red';
+  if (g > 100 && r < 100 && b < 100) return 'green';
+  if (b > 100 && r < 100 && g < 100) return 'blue';
+  throw new Error(`Unknown color: rgb(${r}, ${g}, ${b})`);
+}
+
+export async function createColorJpeg(
+  page: Page,
+  color: string,
+  width: number,
+  height: number
+): Promise<Buffer> {
+  const base64 = await page.evaluate(
+    ({ color, width, height }) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, width, height);
+      return canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+    },
+    { color, width, height }
+  );
+  return Buffer.from(base64, 'base64');
+}
+
+export async function getImageDimensions(
+  page: Page,
+  data: Buffer
+): Promise<{ width: number; height: number }> {
+  const base64 = data.toString('base64');
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+
+  return page.evaluate(
+    async ({ base64, mimeType }) => {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = `data:${mimeType};base64,${base64}`;
+      });
+      return { width: img.width, height: img.height };
+    },
+    { base64, mimeType }
+  );
+}
+
 export function downloadAudio(id: string): Buffer {
   const audioPath = path.join(STORAGE_DIR, 'audio', `${id}.mp3`);
 
