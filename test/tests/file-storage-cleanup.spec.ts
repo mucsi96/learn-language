@@ -5,7 +5,9 @@ import {
   STORAGE_DIR,
   createCard,
   yellowImage,
+  redImage,
   germanAudioSample,
+  withDbConnection,
 } from '../utils';
 
 function writeStorageFile(relativePath: string, data: Buffer): void {
@@ -105,4 +107,96 @@ test('deletes unreferenced source documents on cleanup', async ({ page }) => {
   expect(storageFileExists('sources/Goethe-Zertifikat_A2_Wortliste.pdf')).toBe(true);
   expect(storageFileExists('sources/Goethe-Zertifikat_B1_Wortliste.pdf')).toBe(true);
   expect(storageFileExists('sources/orphan-document.pdf')).toBe(false);
+});
+
+test('strips non-favorite images from reviewed cards and deletes their files', async ({ page }) => {
+  const favoriteImageId = 'fav-image-1';
+  const nonFavoriteImageId = 'non-fav-image-1';
+
+  await createCard({
+    cardId: 'reviewed-card-with-images',
+    sourceId: 'goethe-a1',
+    readiness: 'REVIEWED',
+    data: {
+      word: 'Schule',
+      type: 'NOUN',
+      translation: { en: 'school', hu: 'iskola' },
+      forms: [],
+      examples: [
+        {
+          de: 'Die Schule ist groß.',
+          en: 'The school is big.',
+          hu: 'Az iskola nagy.',
+          isSelected: true,
+          images: [
+            { id: favoriteImageId, isFavorite: true },
+            { id: nonFavoriteImageId },
+          ],
+        },
+      ],
+    },
+  });
+
+  writeStorageFile(`images/${favoriteImageId}.jpg`, yellowImage);
+  writeStorageFile(`images/${nonFavoriteImageId}.jpg`, redImage);
+
+  await triggerCleanup();
+
+  expect(storageFileExists(`images/${favoriteImageId}.jpg`)).toBe(true);
+  expect(storageFileExists(`images/${nonFavoriteImageId}.jpg`)).toBe(false);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'reviewed-card-with-images'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images).toHaveLength(1);
+    expect(cardData.examples[0].images[0].id).toBe(favoriteImageId);
+    expect(cardData.examples[0].images[0].isFavorite).toBe(true);
+  });
+});
+
+test('preserves non-favorite images on in-review cards', async ({ page }) => {
+  const favoriteImageId = 'fav-image-2';
+  const nonFavoriteImageId = 'non-fav-image-2';
+
+  await createCard({
+    cardId: 'in-review-card-with-images',
+    sourceId: 'goethe-a1',
+    readiness: 'IN_REVIEW',
+    data: {
+      word: 'Buch',
+      type: 'NOUN',
+      translation: { en: 'book', hu: 'könyv' },
+      forms: [],
+      examples: [
+        {
+          de: 'Das Buch ist interessant.',
+          en: 'The book is interesting.',
+          hu: 'A könyv érdekes.',
+          isSelected: true,
+          images: [
+            { id: favoriteImageId, isFavorite: true },
+            { id: nonFavoriteImageId },
+          ],
+        },
+      ],
+    },
+  });
+
+  writeStorageFile(`images/${favoriteImageId}.jpg`, yellowImage);
+  writeStorageFile(`images/${nonFavoriteImageId}.jpg`, redImage);
+
+  await triggerCleanup();
+
+  expect(storageFileExists(`images/${favoriteImageId}.jpg`)).toBe(true);
+  expect(storageFileExists(`images/${nonFavoriteImageId}.jpg`)).toBe(true);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'in-review-card-with-images'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images).toHaveLength(2);
+  });
 });

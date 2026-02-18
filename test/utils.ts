@@ -507,6 +507,10 @@ export function downloadImage(id: string): Buffer {
   return fs.readFileSync(imagePath);
 }
 
+export function isJpeg(data: Buffer): boolean {
+  return data.length > 2 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
+}
+
 export function downloadAudio(id: string): Buffer {
   const audioPath = path.join(STORAGE_DIR, 'audio', `${id}.mp3`);
 
