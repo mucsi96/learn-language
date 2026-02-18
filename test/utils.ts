@@ -544,6 +544,48 @@ export async function getImageColor(page: Page, data: Buffer): Promise<string> {
   throw new Error(`Unknown color: rgb(${r}, ${g}, ${b})`);
 }
 
+export async function createColorJpeg(
+  page: Page,
+  color: string,
+  width: number,
+  height: number
+): Promise<Buffer> {
+  const base64 = await page.evaluate(
+    ({ color, width, height }) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, width, height);
+      return canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+    },
+    { color, width, height }
+  );
+  return Buffer.from(base64, 'base64');
+}
+
+export async function getImageDimensions(
+  page: Page,
+  data: Buffer
+): Promise<{ width: number; height: number }> {
+  const base64 = data.toString('base64');
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+
+  return page.evaluate(
+    async ({ base64, mimeType }) => {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = `data:${mimeType};base64,${base64}`;
+      });
+      return { width: img.width, height: img.height };
+    },
+    { base64, mimeType }
+  );
+}
+
 export function downloadAudio(id: string): Buffer {
   const audioPath = path.join(STORAGE_DIR, 'audio', `${id}.mp3`);
 
