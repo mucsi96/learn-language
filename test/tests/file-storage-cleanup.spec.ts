@@ -87,7 +87,7 @@ test('deletes unreferenced image files on cleanup', async ({ page }) => {
           en: 'The tree is big.',
           hu: 'A fa nagy.',
           isSelected: true,
-          images: [{ id: referencedImageId }],
+          images: [{ id: referencedImageId, isFavorite: true }],
         },
       ],
     },
