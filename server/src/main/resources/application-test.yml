@@ -4,8 +4,8 @@ rate-limit:
 spring:
   autoconfigure:
     exclude:
-      - "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
-      - "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+      - "org.springframework.boot.security.actuate.autoconfigure.servlet.ManagementWebSecurityAutoConfiguration"
+      - "org.springframework.boot.security.autoconfigure.servlet.SecurityAutoConfiguration"
   cloud:
     azure:
       keyvault:

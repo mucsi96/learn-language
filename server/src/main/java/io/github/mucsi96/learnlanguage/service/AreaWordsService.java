@@ -6,7 +6,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
@@ -25,7 +25,7 @@ public class AreaWordsService {
   record ExtractedWordList(List<ExtractedWord> wordList) {
   }
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper jsonMapper;
   private final ChatService chatService;
 
   private String buildSystemPrompt(SourceFormatType formatType, LanguageLevel languageLevel) {
@@ -64,12 +64,8 @@ public class AreaWordsService {
         new ExtractedWord("gehen", List.of("gehst", "geht", "ist gegangen"),
             List.of("Ich gehe jetzt.", "Er ist nach Hause gegangen."))));
 
-    try {
-      String exampleJson = objectMapper.writeValueAsString(example);
-      return basePrompt + formsPrompt + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to serialize example to JSON", e);
-    }
+    final String exampleJson = jsonMapper.writeValueAsString(example);
+    return basePrompt + formsPrompt + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
   }
 
   public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType,

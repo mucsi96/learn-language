@@ -6,8 +6,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
@@ -21,7 +20,7 @@ public class AreaSentenceService {
   record AreaSentences(List<String> sentences) {
   }
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper jsonMapper;
   private final ChatService chatService;
 
   private String buildSystemPrompt(LanguageLevel languageLevel) {
@@ -46,12 +45,8 @@ public class AreaSentenceService {
         "Ich fahre jeden Tag mit dem Bus zur Arbeit.",
         "Das Wetter ist heute sehr schön."));
 
-    try {
-      final String exampleJson = objectMapper.writeValueAsString(example);
-      return basePrompt + "\nExample of the expected JSON response:\n" + exampleJson;
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to serialize example to JSON", e);
-    }
+    final String exampleJson = jsonMapper.writeValueAsString(example);
+    return basePrompt + "\nExample of the expected JSON response:\n" + exampleJson;
   }
 
   public List<String> getAreaSentences(byte[] imageData, ChatModel model, LanguageLevel languageLevel) {

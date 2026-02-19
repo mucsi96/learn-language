@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -38,7 +38,7 @@ public class TranslationService {
           Pay attention to proper Hungarian grammar and word forms.
           """);
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper jsonMapper;
   private final ChatService chatService;
 
   public TranslationResponse translate(WordResponse word, String languageCode, ChatModel model) {
@@ -47,12 +47,7 @@ public class TranslationService {
         .word(word.getWord())
         .build();
 
-    String translationRequestJson;
-    try {
-      translationRequestJson = objectMapper.writeValueAsString(translationRequest);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to serialize TranslationRequest to JSON", e);
-    }
+    final String translationRequestJson = jsonMapper.writeValueAsString(translationRequest);
 
     String systemPrompt = LANGUAGE_SPECIFIC_PROMPTS.getOrDefault(languageCode, LANGUAGE_SPECIFIC_PROMPTS.get(ENGLISH));
 
