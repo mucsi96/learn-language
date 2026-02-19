@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -29,7 +29,7 @@ interface DialogData {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    FormField,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -44,11 +44,14 @@ export class AddVoiceDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AddVoiceDialogComponent>);
   private readonly data = inject<DialogData>(MAT_DIALOG_DATA);
 
-  readonly selectedVoice = signal<Voice | null>(null);
-  readonly selectedLanguage = signal<string>('');
-  readonly selectedModel = signal<string>(this.getDefaultModelId());
-  readonly displayName = signal<string>('');
-  readonly isEnabled = signal<boolean>(true);
+  readonly formModel = signal({
+    voice: null as Voice | null,
+    language: '',
+    model: this.getDefaultModelId(),
+    displayName: '',
+    isEnabled: true,
+  });
+  readonly voiceForm = form(this.formModel);
 
   readonly models = this.data.audioModels;
 
@@ -60,7 +63,7 @@ export class AddVoiceDialogComponent {
   readonly filteredVoices = computed(() => this.data.availableVoices);
 
   readonly availableLanguages = computed(() => {
-    const voice = this.selectedVoice();
+    const voice = this.formModel().voice;
     if (!voice) return [];
 
     return voice.languages.map((lang) => lang.name);
@@ -68,15 +71,18 @@ export class AddVoiceDialogComponent {
 
   readonly isValid = computed(
     () =>
-      this.selectedVoice() !== null &&
-      this.selectedLanguage() !== '' &&
-      this.selectedModel() !== ''
+      this.formModel().voice !== null &&
+      this.formModel().language !== '' &&
+      this.formModel().model !== ''
   );
 
   onVoiceChange(): void {
     const langs = this.availableLanguages();
-    this.selectedLanguage.set(langs.length === 1 ? langs[0] : '');
-    this.displayName.set(this.selectedVoice()?.displayName ?? '');
+    this.formModel.update((m) => ({
+      ...m,
+      language: langs.length === 1 ? langs[0] : '',
+      displayName: m.voice?.displayName ?? '',
+    }));
   }
 
   getLanguageLabel(code: string): string {
@@ -91,12 +97,13 @@ export class AddVoiceDialogComponent {
   save(): void {
     if (!this.isValid()) return;
 
+    const data = this.formModel();
     const request: VoiceConfigurationRequest = {
-      voiceId: this.selectedVoice()!.id,
-      language: this.selectedLanguage(),
-      model: this.selectedModel(),
-      displayName: this.displayName() || undefined,
-      isEnabled: this.isEnabled(),
+      voiceId: data.voice!.id,
+      language: data.language,
+      model: data.model,
+      displayName: data.displayName || undefined,
+      isEnabled: data.isEnabled,
     };
 
     this.dialogRef.close(request);

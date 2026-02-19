@@ -11,7 +11,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { VoiceConfigService, VoiceConfiguration } from './voice-config.service';
@@ -38,7 +37,6 @@ import { AudioData, AudioResponse } from '../shared/types/audio-generation.types
     MatChipsModule,
     MatTooltipModule,
     MatDialogModule,
-    FormsModule,
     CardPreviewComponent,
   ],
   templateUrl: './voice-config.component.html',

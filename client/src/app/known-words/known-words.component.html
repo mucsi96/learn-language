@@ -13,8 +13,7 @@
           <mat-label>Words to import (CSV)</mat-label>
           <textarea
             matInput
-            [ngModel]="importText()"
-            (ngModelChange)="importText.set($event)"
+            [formField]="importForm.importText"
             rows="8"
             placeholder="Haus, ház&#10;Baum, fa&#10;Wasser, víz"
             aria-label="Words to import"
@@ -24,7 +23,7 @@
           <button
             mat-flat-button
             (click)="importWords()"
-            [disabled]="!importText().trim() || isImporting()"
+            [disabled]="!formModel().importText.trim() || isImporting()"
             aria-label="Import words"
           >
             @if (isImporting()) {

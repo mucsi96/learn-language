@@ -4,8 +4,8 @@
   <mat-form-field appearance="outline">
     <mat-label>Voice</mat-label>
     <mat-select
-      [value]="selectedVoice()"
-      (selectionChange)="selectedVoice.set($event.value); onVoiceChange()"
+      [formField]="voiceForm.voice"
+      (selectionChange)="onVoiceChange()"
     >
       @for (voice of filteredVoices(); track voice.id) {
         <mat-option [value]="voice">
@@ -24,12 +24,11 @@
     </mat-select>
   </mat-form-field>
 
-  @if (selectedVoice()) {
+  @if (formModel().voice) {
     <mat-form-field appearance="outline">
       <mat-label>Language</mat-label>
       <mat-select
-        [value]="selectedLanguage()"
-        (selectionChange)="selectedLanguage.set($event.value)"
+        [formField]="voiceForm.language"
       >
         @for (lang of availableLanguages(); track lang) {
           <mat-option [value]="lang">
@@ -42,8 +41,7 @@
     <mat-form-field appearance="outline">
       <mat-label>Model</mat-label>
       <mat-select
-        [value]="selectedModel()"
-        (selectionChange)="selectedModel.set($event.value)"
+        [formField]="voiceForm.model"
       >
         @for (model of models; track model.id) {
           <mat-option [value]="model.id">
@@ -60,14 +58,12 @@
       <mat-label>Display Name (optional)</mat-label>
       <input
         matInput
-        [value]="displayName()"
-        (input)="displayName.set($any($event.target).value)"
+        [formField]="voiceForm.displayName"
       />
     </mat-form-field>
 
     <mat-slide-toggle
-      [checked]="isEnabled()"
-      (change)="isEnabled.set($event.checked)"
+      [formField]="voiceForm.isEnabled"
     >
       Enabled
     </mat-slide-toggle>

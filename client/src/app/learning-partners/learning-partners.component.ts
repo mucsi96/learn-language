@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,7 +22,7 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    FormField,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -41,7 +41,8 @@ export class LearningPartnersComponent {
   private readonly dialog = inject(MatDialog);
 
   readonly partners = this.service.partners;
-  readonly newPartnerName = signal('');
+  readonly formModel = signal({ name: '' });
+  readonly partnerForm = form(this.formModel);
   readonly isAdding = signal(false);
 
   readonly partnersList = computed(() => this.partners.value() ?? []);
@@ -49,13 +50,13 @@ export class LearningPartnersComponent {
   readonly skeletonRows = [{}, {}, {}];
 
   async addPartner(): Promise<void> {
-    const name = this.newPartnerName().trim();
+    const name = this.formModel().name.trim();
     if (!name) return;
 
     this.isAdding.set(true);
     try {
       await this.service.createPartner({ name });
-      this.newPartnerName.set('');
+      this.formModel.set({ name: '' });
     } finally {
       this.isAdding.set(false);
     }
