@@ -29,14 +29,14 @@ export function MSALInstanceFactory(config: EnvironmentConfig): IPublicClientApp
     auth: {
       clientId: config.clientId,
       authority: `https://login.microsoftonline.com/${config.tenantId}`,
-      redirectUri: '/auth',
+      redirectUri: '/',
       postLogoutRedirectUri: '/',
     },
     cache: {
       cacheLocation: BrowserCacheLocation.SessionStorage,
     },
     system: {
-      allowPlatformBroker: false, // Disables WAM Broker
+      allowPlatformBroker: false,
       loggerOptions: {
         loggerCallback,
         logLevel: LogLevel.Info,
@@ -62,7 +62,7 @@ export function MSALInterceptorConfigFactory(config: EnvironmentConfig): MsalInt
   );
 
   return {
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     protectedResourceMap,
   };
 }
@@ -74,7 +74,7 @@ export function MSALGuardConfigFactory(config: EnvironmentConfig): MsalGuardConf
   ];
 
   return {
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     authRequest: {
       scopes: ['user.read', ...apiScopes],
     },
