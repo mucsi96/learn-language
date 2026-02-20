@@ -3,7 +3,7 @@
     <mat-label>German Sentence</mat-label>
     <textarea
       matInput
-      [(ngModel)]="sentence"
+      [formField]="speechForm.sentence"
       aria-label="German sentence"
       rows="3"
     ></textarea>
@@ -12,7 +12,7 @@
     <mat-label>Hungarian Translation</mat-label>
     <textarea
       matInput
-      [(ngModel)]="hungarianTranslation"
+      [formField]="speechForm.hungarianTranslation"
       aria-label="Hungarian translation"
       rows="3"
     ></textarea>
@@ -34,7 +34,7 @@
 @if (imgs && imgs.length) {
   <app-image-grid
     [images]="imgs"
-    [altText]="sentence() ?? ''"
+    [altText]="formModel().sentence"
     (favoriteToggled)="onFavoriteToggled($event)"
   />
 }

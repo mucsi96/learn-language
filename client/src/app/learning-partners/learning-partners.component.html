@@ -17,8 +17,7 @@
             <mat-label>Partner name</mat-label>
             <input
               matInput
-              [ngModel]="newPartnerName()"
-              (ngModelChange)="newPartnerName.set($event)"
+              [formField]="partnerForm.name"
               placeholder="Enter partner name"
               aria-label="Partner name"
               (keydown.enter)="addPartner()"
@@ -27,7 +26,7 @@
           <button
             mat-flat-button
             (click)="addPartner()"
-            [disabled]="!newPartnerName().trim() || isAdding()"
+            [disabled]="!formModel().name.trim() || isAdding()"
             aria-label="Add partner"
           >
             @if (isAdding()) {

@@ -4,7 +4,7 @@
     <textarea
       #sentenceInput
       matInput
-      [(ngModel)]="sentence"
+      [formField]="grammarForm.sentence"
       aria-label="German sentence"
       rows="3"
     ></textarea>
@@ -59,7 +59,7 @@
 @if (imgs && imgs.length) {
   <app-image-grid
     [images]="imgs"
-    [altText]="sentence() ?? ''"
+    [altText]="formModel().sentence"
     (favoriteToggled)="onFavoriteToggled($event)"
   />
 }

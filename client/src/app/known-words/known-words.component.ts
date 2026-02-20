@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +18,7 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    FormField,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -36,7 +36,8 @@ export class KnownWordsComponent {
   private readonly dialog = inject(MatDialog);
 
   readonly knownWords = this.service.knownWords;
-  readonly importText = signal('');
+  readonly formModel = signal({ importText: '' });
+  readonly importForm = form(this.formModel);
   readonly isImporting = signal(false);
   readonly lastImportCount = signal<number | null>(null);
 
@@ -47,7 +48,7 @@ export class KnownWordsComponent {
   readonly skeletonRows = Array(10).fill({});
 
   async importWords(): Promise<void> {
-    const text = this.importText();
+    const text = this.formModel().importText;
     if (!text.trim()) return;
 
     this.isImporting.set(true);
@@ -56,7 +57,7 @@ export class KnownWordsComponent {
     try {
       const result = await this.service.importWords(text);
       this.lastImportCount.set(result.importedCount);
-      this.importText.set('');
+      this.formModel.set({ importText: '' });
     } finally {
       this.isImporting.set(false);
     }

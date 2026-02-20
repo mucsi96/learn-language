@@ -5,25 +5,19 @@
       <mat-label>Source ID</mat-label>
       <input
         matInput
-        [(ngModel)]="formData.id"
-        name="id"
-        [disabled]="data.mode === 'edit'"
-        required
+        [formField]="sourceForm.id"
       />
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Name</mat-label>
-      <input matInput [(ngModel)]="formData.name" name="name" required />
+      <input matInput [formField]="sourceForm.name" />
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Card Type</mat-label>
       <mat-select
-        [(ngModel)]="formData.cardType"
-        name="cardType"
-        [disabled]="data.mode === 'edit'"
-        required
+        [formField]="sourceForm.cardType"
       >
         @for (cardType of cardTypes; track cardType.code) {
         <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
@@ -34,9 +28,7 @@
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Language Level</mat-label>
       <mat-select
-        [(ngModel)]="formData.languageLevel"
-        name="languageLevel"
-        required
+        [formField]="sourceForm.languageLevel"
       >
         @for (level of languageLevels; track level.code) {
         <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
@@ -47,10 +39,7 @@
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Source Type</mat-label>
       <mat-select
-        [(ngModel)]="formData.sourceType"
-        name="sourceType"
-        [disabled]="data.mode === 'edit'"
-        required
+        [formField]="sourceForm.sourceType"
       >
         @for (sourceType of sourceTypes; track sourceType.code) {
         <mat-option [value]="sourceType.code">{{ sourceType.displayName }}</mat-option>
@@ -58,13 +47,11 @@
       </mat-select>
     </mat-form-field>
 
-    @if (formData.cardType !== 'speech' && formData.cardType !== 'grammar') {
+    @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar') {
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Format Type</mat-label>
       <mat-select
-        [(ngModel)]="formData.formatType"
-        name="formatType"
-        required
+        [formField]="sourceForm.formatType"
       >
         @for (formatType of formatTypes; track formatType.code) {
         <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
@@ -73,7 +60,7 @@
     </mat-form-field>
     }
 
-    @if (formData.sourceType === 'pdf') {
+    @if (formModel().sourceType === 'pdf') {
     <div
       class="dropzone"
       [class.dragging]="isDragging()"
@@ -130,16 +117,13 @@
     <p class="hint-text">Images will be added from the page view after creating the source.</p>
     }
 
-    @if (formData.sourceType === 'pdf') {
+    @if (formModel().sourceType === 'pdf') {
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Start Page</mat-label>
       <input
         matInput
         type="number"
-        [(ngModel)]="formData.startPage"
-        name="startPage"
-        min="1"
-        required
+        [formField]="sourceForm.startPage"
       />
     </mat-form-field>
     }

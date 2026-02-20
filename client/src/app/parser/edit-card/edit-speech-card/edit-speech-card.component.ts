@@ -8,7 +8,7 @@ import {
   untracked,
   effect,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +24,7 @@ import { ImageResourceService } from '../../../shared/image-resource.service';
 @Component({
   selector: 'app-edit-speech-card',
   imports: [
-    FormsModule,
+    FormField,
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
@@ -46,13 +46,13 @@ export class EditSpeechCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
-  readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
-  readonly hungarianTranslation = linkedSignal(
-    () => this.card()?.data.examples?.[0]?.hu
-  );
-  readonly englishTranslation = linkedSignal(
-    () => this.card()?.data.examples?.[0]?.en
-  );
+
+  readonly formModel = linkedSignal(() => ({
+    sentence: this.card()?.data.examples?.[0]?.de ?? '',
+    hungarianTranslation: this.card()?.data.examples?.[0]?.hu ?? '',
+    englishTranslation: this.card()?.data.examples?.[0]?.en ?? '',
+  }));
+  readonly speechForm = form(this.formModel);
 
   readonly images = linkedSignal<GridImageResource[]>(() => {
     return untracked(() => {
@@ -99,7 +99,7 @@ export class EditSpeechCardComponent {
   }
 
   async addImage() {
-    const englishTranslation = this.englishTranslation();
+    const englishTranslation = this.formModel().englishTranslation;
     if (!englishTranslation) return;
 
     const { placeholders, done } =
@@ -150,18 +150,18 @@ export class EditSpeechCardComponent {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const cardId = this.selectedCardId();
-    const sentenceText = this.sentence();
+    const { sentence, hungarianTranslation, englishTranslation } = this.formModel();
 
-    if (!cardId || !sentenceText || !sourceId || !pageNumber) {
+    if (!cardId || !sentence || !sourceId || !pageNumber) {
       return;
     }
 
     const data: CardData = {
       examples: [
         {
-          de: sentenceText,
-          hu: this.hungarianTranslation(),
-          en: this.englishTranslation(),
+          de: sentence,
+          hu: hungarianTranslation,
+          en: englishTranslation,
           isSelected: true,
           images: this.imageResourceService.toExampleImages(this.images()),
         },

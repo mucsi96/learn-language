@@ -10,7 +10,7 @@ import {
   viewChild,
   ElementRef,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,7 +28,7 @@ import { createGrammarGapRegex } from '../../../shared/constants/grammar.constan
 @Component({
   selector: 'app-edit-grammar-card',
   imports: [
-    FormsModule,
+    FormField,
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
@@ -53,13 +53,14 @@ export class EditGrammarCardComponent {
   private readonly imageResourceService = inject(ImageResourceService);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
-  readonly sentence = linkedSignal(() => this.card()?.data.examples?.[0]?.de);
-  readonly englishTranslation = linkedSignal(
-    () => this.card()?.data.examples?.[0]?.en
-  );
+  readonly formModel = linkedSignal(() => ({
+    sentence: this.card()?.data.examples?.[0]?.de ?? '',
+    englishTranslation: this.card()?.data.examples?.[0]?.en ?? '',
+  }));
+  readonly grammarForm = form(this.formModel);
 
   readonly gapsDisplay = computed(() => {
-    const sentence = this.sentence() ?? '';
+    const sentence = this.formModel().sentence;
     const matches = [...sentence.matchAll(createGrammarGapRegex())];
     return matches.map((match) => ({
       text: match[1],
@@ -67,7 +68,7 @@ export class EditGrammarCardComponent {
   });
 
   readonly sentenceWithGaps = computed(() => {
-    const sentence = this.sentence() ?? '';
+    const sentence = this.formModel().sentence;
     return sentence.replace(createGrammarGapRegex(), (_match, content) => '_'.repeat(content.length));
   });
 
@@ -124,7 +125,7 @@ export class EditGrammarCardComponent {
 
     if (start === end) return;
 
-    const currentSentence = this.sentence() ?? '';
+    const currentSentence = this.formModel().sentence;
     const selectedText = currentSentence.slice(start, end);
 
     if (selectedText.includes('[') || selectedText.includes(']')) return;
@@ -135,14 +136,14 @@ export class EditGrammarCardComponent {
       '[' + selectedText + ']' +
       currentSentence.slice(end);
 
-    this.sentence.set(newSentence);
+    this.formModel.update((m) => ({ ...m, sentence: newSentence }));
   }
 
   removeGap(indexToRemove: number) {
     const gaps = this.gapsDisplay();
     if (indexToRemove < 0 || indexToRemove >= gaps.length) return;
 
-    const currentSentence = this.sentence() ?? '';
+    const currentSentence = this.formModel().sentence;
     const matches = [...currentSentence.matchAll(createGrammarGapRegex())];
 
     const newSentence = matches.reduceRight(
@@ -153,11 +154,11 @@ export class EditGrammarCardComponent {
       currentSentence
     );
 
-    this.sentence.set(newSentence);
+    this.formModel.update((m) => ({ ...m, sentence: newSentence }));
   }
 
   async addImage() {
-    const englishTranslation = this.englishTranslation();
+    const englishTranslation = this.formModel().englishTranslation;
     if (!englishTranslation) return;
 
     const { placeholders, done } =
@@ -208,17 +209,17 @@ export class EditGrammarCardComponent {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const cardId = this.selectedCardId();
-    const sentenceText = this.sentence();
+    const { sentence, englishTranslation } = this.formModel();
 
-    if (!cardId || !sentenceText || !sourceId || !pageNumber) {
+    if (!cardId || !sentence || !sourceId || !pageNumber) {
       return;
     }
 
     const data: CardData = {
       examples: [
         {
-          de: sentenceText,
-          en: this.englishTranslation(),
+          de: sentence,
+          en: englishTranslation,
           isSelected: true,
           images: this.imageResourceService.toExampleImages(this.images()),
         },

@@ -1,5 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import { form, FormField, disabled, required, min, validate, requiredError } from '@angular/forms/signals';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import {
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Source } from '../../parser/types';
+import { Source, SourceFormatType, SourceType, CardType, LanguageLevel } from '../../parser/types';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
@@ -25,7 +25,7 @@ import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
   imports: [
     CommonModule,
     MatDialogModule,
-    FormsModule,
+    FormField,
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
@@ -51,21 +51,55 @@ export class SourceDialogComponent {
     { code: 'grammar', displayName: 'Grammar' },
   ];
 
-  formData: Partial<Source> & { fileName?: string } = {
+  readonly formModel = signal<{
+    id: string;
+    name: string;
+    sourceType: SourceType | '';
+    fileName: string;
+    startPage: number;
+    languageLevel: LanguageLevel | '';
+    cardType: CardType | '';
+    formatType: SourceFormatType | '';
+  }>({
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
-    sourceType: this.data.source?.sourceType,
+    sourceType: this.data.source?.sourceType ?? '',
     fileName: '',
     startPage: this.data.source?.startPage || 1,
-    languageLevel: this.data.source?.languageLevel,
-    cardType: this.data.source?.cardType,
-    formatType: this.data.source?.formatType,
-  };
+    languageLevel: this.data.source?.languageLevel ?? '',
+    cardType: this.data.source?.cardType ?? '',
+    formatType: this.data.source?.formatType ?? '',
+  });
+  readonly sourceForm = form(this.formModel, (path) => {
+    required(path.id);
+    required(path.name);
+    required(path.cardType);
+    required(path.languageLevel);
+    required(path.sourceType);
+    min(path.startPage, 1);
+    validate(path.formatType, (ctx) => {
+      const ct = ctx.valueOf(path.cardType);
+      if (ct !== 'speech' && ct !== 'grammar' && !ctx.value()) {
+        return requiredError();
+      }
+      return undefined;
+    });
+    disabled(path.id, () => this.data.mode === 'edit');
+    disabled(path.cardType, () => this.data.mode === 'edit');
+    disabled(path.sourceType, () => this.data.mode === 'edit');
+  });
 
   uploadedFile = signal<File | null>(null);
   uploading = signal<boolean>(false);
   uploadError = signal<string | null>(null);
   isDragging = signal<boolean>(false);
+
+  readonly isValid = computed(() =>
+    this.sourceForm().valid() &&
+    (this.formModel().sourceType === 'images' ||
+      this.data.mode === 'edit' ||
+      this.hasFile())
+  );
 
   onCancelClick(): void {
     this.dialogRef.close();
@@ -79,43 +113,21 @@ export class SourceDialogComponent {
           return;
         }
       }
-      if (this.formData.cardType === 'speech' || this.formData.cardType === 'grammar') {
-        this.formData.formatType = 'flowingText';
-      }
-      this.dialogRef.close(this.formData);
+      const result = this.formModel();
+      const formData: Partial<Source> & { fileName?: string } = {
+        id: result.id,
+        name: result.name,
+        sourceType: result.sourceType || undefined,
+        fileName: result.fileName,
+        startPage: result.startPage,
+        languageLevel: result.languageLevel || undefined,
+        cardType: result.cardType || undefined,
+        formatType: result.cardType === 'speech' || result.cardType === 'grammar'
+          ? 'flowingText'
+          : result.formatType || undefined,
+      };
+      this.dialogRef.close(formData);
     }
-  }
-
-  isValid(): boolean {
-    const hasBaseFields = !!(
-      this.formData.id &&
-      this.formData.name &&
-      this.formData.cardType &&
-      this.formData.sourceType &&
-      this.formData.languageLevel
-    );
-
-    if (!hasBaseFields) {
-      return false;
-    }
-
-    if (this.formData.cardType !== 'speech' && this.formData.cardType !== 'grammar' && !this.formData.formatType) {
-      return false;
-    }
-
-    if (this.formData.sourceType === 'images') {
-      return true;
-    }
-
-    if (!this.formData.startPage || this.formData.startPage <= 0) {
-      return false;
-    }
-
-    if (this.data.mode === 'edit') {
-      return true;
-    }
-
-    return this.hasFile();
   }
 
   onDragOver(event: DragEvent): void {
@@ -155,22 +167,22 @@ export class SourceDialogComponent {
     }
 
     this.uploadedFile.set(file);
-    this.formData.fileName = file.name;
+    this.formModel.update((m) => ({ ...m, fileName: file.name }));
     this.uploadError.set(null);
   }
 
   removeFile(): void {
     this.uploadedFile.set(null);
-    this.formData.fileName = '';
+    this.formModel.update((m) => ({ ...m, fileName: '' }));
     this.uploadError.set(null);
   }
 
   hasFile(): boolean {
-    return !!this.uploadedFile() || !!this.formData.fileName;
+    return !!this.uploadedFile() || !!this.formModel().fileName;
   }
 
   getFileName(): string {
-    return this.uploadedFile()?.name || this.formData.fileName || '';
+    return this.uploadedFile()?.name || this.formModel().fileName || '';
   }
 
   async uploadFile(): Promise<void> {
@@ -187,7 +199,7 @@ export class SourceDialogComponent {
         file
       );
 
-      this.formData.fileName = result.fileName;
+      this.formModel.update((m) => ({ ...m, fileName: result.fileName }));
     } catch (error) {
       this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
       throw error;
