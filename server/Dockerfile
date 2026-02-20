@@ -21,7 +21,7 @@ VOLUME /tmp
 ARG DEPENDENCY=/workspace/target/dependency
 ARG SPRING_PROFILES_ACTIVE=prod
 
-RUN apk add curl
+RUN apk add curl gcompat libstdc++
 
 # Copy application layers
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib

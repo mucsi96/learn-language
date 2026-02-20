@@ -119,6 +119,11 @@
       <version>0.4.21</version>
     </dependency>
     <dependency>
+      <groupId>org.sejda.imageio</groupId>
+      <artifactId>webp-imageio</artifactId>
+      <version>0.2.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-model-openai-sdk</artifactId>
     </dependency>

@@ -32,6 +32,7 @@ public class ImageController {
   private final ImageResizeService imageResizeService;
 
   private static final int MAX_IMAGE_DIMENSION = 1200;
+  private static final MediaType IMAGE_WEBP = new MediaType("image", "webp");
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -41,7 +42,7 @@ public class ImageController {
     return imageService.generateImages(imageSource.getInput(), imageSource.getModel()).stream()
         .map(data -> {
           final String uuid = UUID.randomUUID().toString();
-          final String filePath = "images/%s.jpg".formatted(uuid);
+          final String filePath = "images/%s.webp".formatted(uuid);
           try {
             final byte[] compressed = imageResizeService.resizeImage(
                 data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
@@ -57,17 +58,17 @@ public class ImageController {
         .toList();
   }
 
-  @GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+  @GetMapping(value = "/image/{id}", produces = "image/webp")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<byte[]> getCachedResizedImage(
       @PathVariable String id,
       @RequestParam int width,
       @RequestParam int height) throws Exception {
-    String filePath = "images/%s.jpg".formatted(id);
-    byte[] original = fileStorageService.fetchFile(filePath).toBytes();
-    byte[] resized = imageResizeService.resizeImage(original, width, height, filePath);
+    final String filePath = "images/%s.webp".formatted(id);
+    final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
+    final byte[] resized = imageResizeService.resizeImage(original, width, height, filePath);
     return ResponseEntity.ok()
-        .contentType(MediaType.IMAGE_JPEG)
+        .contentType(IMAGE_WEBP)
         .header("Cache-Control", "public, max-age=31536000, immutable")
         .body(resized);
   }

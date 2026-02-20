@@ -498,10 +498,10 @@ export async function navigateToCardEditing(
 }
 
 export function downloadImage(id: string): Buffer {
-  const imagePath = path.join(STORAGE_DIR, 'images', `${id}.jpg`);
+  const imagePath = path.join(STORAGE_DIR, 'images', `${id}.webp`);
 
   if (!fs.existsSync(imagePath)) {
-    throw new Error(`Image ${id}.jpg does not exist in storage.`);
+    throw new Error(`Image ${id}.webp does not exist in storage.`);
   }
 
   return fs.readFileSync(imagePath);
@@ -509,7 +509,7 @@ export function downloadImage(id: string): Buffer {
 
 export async function getImageColor(page: Page, data: Buffer): Promise<string> {
   const base64 = data.toString('base64');
-  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : data[0] === 0x52 ? 'image/webp' : 'image/png';
 
   const [r, g, b] = await page.evaluate(
     async ({ base64, mimeType }) => {
@@ -570,7 +570,7 @@ export async function getImageDimensions(
   data: Buffer
 ): Promise<{ width: number; height: number }> {
   const base64 = data.toString('base64');
-  const mimeType = data[0] === 0xff ? 'image/jpeg' : 'image/png';
+  const mimeType = data[0] === 0xff ? 'image/jpeg' : data[0] === 0x52 ? 'image/webp' : 'image/png';
 
   return page.evaluate(
     async ({ base64, mimeType }) => {
@@ -601,7 +601,7 @@ export function uploadMockImage(imageData: Buffer): string {
   fs.mkdirSync(imagesDir, { recursive: true });
 
   const uuidStr = uuidv4();
-  const imagePath = path.join(imagesDir, `${uuidStr}.jpg`);
+  const imagePath = path.join(imagesDir, `${uuidStr}.webp`);
 
   fs.writeFileSync(imagePath, imageData);
 

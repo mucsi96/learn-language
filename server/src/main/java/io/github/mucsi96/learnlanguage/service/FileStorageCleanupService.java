@@ -40,6 +40,7 @@ public class FileStorageCleanupService {
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
   public void cleanupUnreferencedFiles() {
+    migrateJpgToWebp();
     stripNonFavoriteImagesFromReviewedCards();
     cleanupAudioFiles();
     cleanupImageFiles();
@@ -104,7 +105,7 @@ public class FileStorageCleanupService {
             .map(List::stream)
             .orElse(Stream.empty()))
         .map(ExampleImageData::getId)
-        .map(id -> "images/%s.jpg".formatted(id))
+        .map(id -> "images/%s.webp".formatted(id))
         .collect(Collectors.toSet());
 
     allFiles.stream()
@@ -160,5 +161,31 @@ public class FileStorageCleanupService {
     }
 
     log.info("Resized {} oversized images", resizedCount);
+  }
+
+  private void migrateJpgToWebp() {
+    final var imageFiles = fileStorageService.listFiles("images");
+    var migratedCount = 0;
+
+    for (final var filePath : imageFiles) {
+      if (!filePath.endsWith(".jpg")) {
+        continue;
+      }
+
+      try {
+        final var data = fileStorageService.fetchFile(filePath).toBytes();
+        final var webpData = imageResizeService.resizeImage(
+            data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
+        final var webpPath = filePath.replace(".jpg", ".webp");
+        fileStorageService.saveFile(BinaryData.fromBytes(webpData), webpPath);
+        fileStorageService.deleteFile(filePath);
+        log.info("Migrated image to WebP: {} -> {}", filePath, webpPath);
+        migratedCount++;
+      } catch (Exception e) {
+        log.warn("Failed to migrate image to WebP: {}", filePath, e);
+      }
+    }
+
+    log.info("Migrated {} images from JPG to WebP", migratedCount);
   }
 }
