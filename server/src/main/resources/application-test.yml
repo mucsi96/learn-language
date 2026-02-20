@@ -2,10 +2,6 @@ rate-limit:
   image-per-minute:
   audio-per-minute:
 spring:
-  autoconfigure:
-    exclude:
-      - "org.springframework.boot.security.actuate.autoconfigure.servlet.ManagementWebSecurityAutoConfiguration"
-      - "org.springframework.boot.security.autoconfigure.servlet.SecurityAutoConfiguration"
   cloud:
     azure:
       keyvault:
