@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { form, FormField, disabled } from '@angular/forms/signals';
+import { form, FormField, disabled, required, min, validate, requiredError } from '@angular/forms/signals';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -71,6 +71,19 @@ export class SourceDialogComponent {
     formatType: this.data.source?.formatType ?? '',
   });
   readonly sourceForm = form(this.formModel, (path) => {
+    required(path.id);
+    required(path.name);
+    required(path.cardType);
+    required(path.languageLevel);
+    required(path.sourceType);
+    min(path.startPage, 1);
+    validate(path.formatType, (ctx) => {
+      const ct = ctx.valueOf(path.cardType);
+      if (ct !== 'speech' && ct !== 'grammar' && !ctx.value()) {
+        return requiredError();
+      }
+      return undefined;
+    });
     disabled(path.id, () => this.data.mode === 'edit');
     disabled(path.cardType, () => this.data.mode === 'edit');
     disabled(path.sourceType, () => this.data.mode === 'edit');
@@ -81,38 +94,12 @@ export class SourceDialogComponent {
   uploadError = signal<string | null>(null);
   isDragging = signal<boolean>(false);
 
-  readonly isValid = computed(() => {
-    const data = this.formModel();
-    const hasBaseFields = !!(
-      data.id &&
-      data.name &&
-      data.cardType &&
-      data.sourceType &&
-      data.languageLevel
-    );
-
-    if (!hasBaseFields) {
-      return false;
-    }
-
-    if (data.cardType !== 'speech' && data.cardType !== 'grammar' && !data.formatType) {
-      return false;
-    }
-
-    if (data.sourceType === 'images') {
-      return true;
-    }
-
-    if (!data.startPage || data.startPage <= 0) {
-      return false;
-    }
-
-    if (this.data.mode === 'edit') {
-      return true;
-    }
-
-    return this.hasFile();
-  });
+  readonly isValid = computed(() =>
+    this.sourceForm().valid() &&
+    (this.formModel().sourceType === 'images' ||
+      this.data.mode === 'edit' ||
+      this.hasFile())
+  );
 
   onCancelClick(): void {
     this.dialogRef.close();
