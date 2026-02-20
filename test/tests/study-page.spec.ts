@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import {
-  getColorImageBytes,
+  getImageColor,
   getImageContent,
   yellowImage,
   greenImage,
@@ -115,7 +115,7 @@ test('study page initial state', async ({ page }) => {
   await expect(flashcard.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' })).not.toBeVisible();
   await expect(flashcard.getByRole('img', { name: 'Mikor indul a vonat?' })).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Mikor indul a vonat?' }));
-  expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
+  expect(await getImageColor(page, imageContent)).toBe('green');
 });
 
 test('study page revealed state', async ({ page }) => {
@@ -173,7 +173,7 @@ test('study page revealed state', async ({ page }) => {
   await expect(flashcard.getByText('Mikor indul a vonat?')).not.toBeVisible();
 
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
-  expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
+  expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Hard' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
@@ -1203,7 +1203,7 @@ test('speech card study page initial state shows Hungarian translation', async (
   await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?')).not.toBeVisible();
   await expect(flashcard.getByLabel('State: New')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Jó reggelt, hogy van?' }));
-  expect(imageContent.equals(getColorImageBytes('yellow', 1200))).toBeTruthy();
+  expect(await getImageColor(page, imageContent)).toBe('yellow');
 });
 
 test('speech card study page revealed state shows German sentence', async ({ page }) => {
@@ -1236,7 +1236,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
   await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
-  expect(imageContent.equals(getColorImageBytes('green', 1200))).toBeTruthy();
+  expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Again' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).toBeVisible();
 });
