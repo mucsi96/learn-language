@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -129,7 +129,7 @@ public class CardService {
       String cardFilter,
       LocalDateTime startOfDayUtc) {
 
-    final Specification<CardView> spec = buildCardTableSpec(
+    final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
         minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
@@ -149,7 +149,7 @@ public class CardService {
       String cardFilter,
       LocalDateTime startOfDayUtc) {
 
-    final Specification<CardView> spec = buildCardTableSpec(
+    final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
         minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
@@ -201,7 +201,7 @@ public class CardService {
     cardViewRepository.refresh();
   }
 
-  private Specification<CardView> buildCardTableSpec(
+  private PredicateSpecification<CardView> buildCardTableSpec(
       String sourceId, String readiness, String state,
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
@@ -209,7 +209,7 @@ public class CardService {
       String cardFilter,
       LocalDateTime startOfDayUtc) {
 
-    Specification<CardView> spec = hasSourceId(sourceId);
+    PredicateSpecification<CardView> spec = hasSourceId(sourceId);
 
     if (StringUtils.hasText(readiness)) {
       spec = spec.and(hasReadiness(readiness));
