@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { form, FormField, required, disabled, min } from '@angular/forms/signals';
+import { form, FormField, disabled } from '@angular/forms/signals';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -71,15 +71,9 @@ export class SourceDialogComponent {
     formatType: this.data.source?.formatType ?? '',
   });
   readonly sourceForm = form(this.formModel, (path) => {
-    required(path.id);
-    required(path.name);
-    required(path.cardType);
-    required(path.languageLevel);
-    required(path.sourceType);
     disabled(path.id, () => this.data.mode === 'edit');
     disabled(path.cardType, () => this.data.mode === 'edit');
     disabled(path.sourceType, () => this.data.mode === 'edit');
-    min(path.startPage, 1);
   });
 
   uploadedFile = signal<File | null>(null);
