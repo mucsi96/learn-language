@@ -93,13 +93,13 @@ test('deletes unreferenced image files on cleanup', async ({ page }) => {
     },
   });
 
-  writeStorageFile(`images/${referencedImageId}.jpg`, yellowImage);
-  writeStorageFile(`images/${orphanImageId}.jpg`, yellowImage);
+  writeStorageFile(`images/${referencedImageId}.webp`, yellowImage);
+  writeStorageFile(`images/${orphanImageId}.webp`, yellowImage);
 
   await triggerCleanup();
 
-  expect(storageFileExists(`images/${referencedImageId}.jpg`)).toBe(true);
-  expect(storageFileExists(`images/${orphanImageId}.jpg`)).toBe(false);
+  expect(storageFileExists(`images/${referencedImageId}.webp`)).toBe(true);
+  expect(storageFileExists(`images/${orphanImageId}.webp`)).toBe(false);
 });
 
 test('deletes unreferenced source documents on cleanup', async ({ page }) => {
@@ -141,13 +141,13 @@ test('strips non-favorite images from reviewed cards and deletes their files', a
     },
   });
 
-  writeStorageFile(`images/${favoriteImageId}.jpg`, yellowImage);
-  writeStorageFile(`images/${nonFavoriteImageId}.jpg`, redImage);
+  writeStorageFile(`images/${favoriteImageId}.webp`, yellowImage);
+  writeStorageFile(`images/${nonFavoriteImageId}.webp`, redImage);
 
   await triggerCleanup();
 
-  expect(storageFileExists(`images/${favoriteImageId}.jpg`)).toBe(true);
-  expect(storageFileExists(`images/${nonFavoriteImageId}.jpg`)).toBe(false);
+  expect(storageFileExists(`images/${favoriteImageId}.webp`)).toBe(true);
+  expect(storageFileExists(`images/${nonFavoriteImageId}.webp`)).toBe(false);
 
   await withDbConnection(async (client) => {
     const result = await client.query(
@@ -188,10 +188,10 @@ test('resizes oversized images on cleanup', async ({ page }) => {
   });
 
   const oversizedImage = await createColorJpeg(page, 'yellow', 2000, 1500);
-  writeStorageFile(`images/${oversizedImageId}.jpg`, oversizedImage);
-  writeStorageFile(`images/${normalImageId}.jpg`, yellowImage);
+  writeStorageFile(`images/${oversizedImageId}.webp`, oversizedImage);
+  writeStorageFile(`images/${normalImageId}.webp`, yellowImage);
 
-  const beforeSize = fs.statSync(path.join(STORAGE_DIR, `images/${oversizedImageId}.jpg`)).size;
+  const beforeSize = fs.statSync(path.join(STORAGE_DIR, `images/${oversizedImageId}.webp`)).size;
 
   await triggerCleanup();
 
@@ -234,13 +234,13 @@ test('preserves non-favorite images on in-review cards', async ({ page }) => {
     },
   });
 
-  writeStorageFile(`images/${favoriteImageId}.jpg`, yellowImage);
-  writeStorageFile(`images/${nonFavoriteImageId}.jpg`, redImage);
+  writeStorageFile(`images/${favoriteImageId}.webp`, yellowImage);
+  writeStorageFile(`images/${nonFavoriteImageId}.webp`, redImage);
 
   await triggerCleanup();
 
-  expect(storageFileExists(`images/${favoriteImageId}.jpg`)).toBe(true);
-  expect(storageFileExists(`images/${nonFavoriteImageId}.jpg`)).toBe(true);
+  expect(storageFileExists(`images/${favoriteImageId}.webp`)).toBe(true);
+  expect(storageFileExists(`images/${nonFavoriteImageId}.webp`)).toBe(true);
 
   await withDbConnection(async (client) => {
     const result = await client.query(

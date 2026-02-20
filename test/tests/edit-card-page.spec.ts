@@ -3,7 +3,6 @@ import {
   createCard,
   downloadImage,
   getImageColor,
-  getColorImageBytes,
   getImageContent,
   withDbConnection,
   yellowImage,
@@ -120,8 +119,8 @@ test('card editing page', async ({ page }) => {
   // Images
   const imageContent1 = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }));
   const imageContent2 = await getImageContent(page.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
-  expect(imageContent1.equals(getColorImageBytes('yellow'))).toBeTruthy();
-  expect(imageContent2.equals(getColorImageBytes('red'))).toBeTruthy();
+  expect(await getImageColor(page, imageContent1)).toBe('yellow');
+  expect(await getImageColor(page, imageContent2)).toBe('red');
 });
 
 test('card editing in db', async ({ page }) => {
@@ -620,7 +619,7 @@ test('speech card editing page displays sentence and translations', async ({ pag
   await expect(page.getByLabel('German Sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
   const imageContent = await getImageContent(page.getByRole('img', { name: 'Guten Morgen, wie geht es Ihnen?' }));
-  expect(imageContent.equals(getColorImageBytes('yellow'))).toBeTruthy();
+  expect(await getImageColor(page, imageContent)).toBe('yellow');
 });
 
 test('speech card editing updates sentence in database', async ({ page }) => {
