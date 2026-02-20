@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -158,7 +159,7 @@ public class CardService {
     final int page = startRow / pageSize;
     final PageRequest pageRequest = PageRequest.of(page, pageSize, buildSort(sortField, sortDirection));
 
-    final Page<CardView> cardPage = cardViewRepository.findAll(spec, pageRequest);
+    final Page<CardView> cardPage = cardViewRepository.findAll(Specification.where(spec), pageRequest);
 
     final List<CardTableRow> rows = cardPage.getContent().stream()
         .map(this::mapToRow)

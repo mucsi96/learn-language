@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,7 @@ public class ModelUsageLogController {
         final PageRequest pageRequest = PageRequest.of(page, pageSize, sort);
 
         final PredicateSpecification<ModelUsageLog> spec = buildSpec(date, modelType, operationType, modelName);
-        final Page<ModelUsageLog> logPage = repository.findAll(spec, pageRequest);
+        final Page<ModelUsageLog> logPage = repository.findAll(Specification.where(spec), pageRequest);
 
         final List<ModelUsageLogResponse> rows = logPage.getContent().stream()
             .map(ModelUsageLogResponse::from)
