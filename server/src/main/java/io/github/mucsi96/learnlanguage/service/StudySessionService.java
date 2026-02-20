@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -79,7 +80,7 @@ public class StudySessionService {
         }
 
         final List<Card> dueCards = cardRepository.findAll(
-                isDueForSource(sourceId), PageRequest.of(0, SESSION_CARD_LIMIT, Sort.by("due"))).getContent();
+                Specification.where(isDueForSource(sourceId)), PageRequest.of(0, SESSION_CARD_LIMIT, Sort.by("due"))).getContent();
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
 
         final String sessionId = UUID.randomUUID().toString();

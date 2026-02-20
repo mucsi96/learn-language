@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Card, ExampleImage } from './parser/types';
+import { Card, ExampleImage, CardCreatePayload } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { createEmptyCard } from 'ts-fsrs';
 import { FsrsGradingService } from './fsrs-grading.service';
@@ -143,12 +143,12 @@ export class BulkCardCreationService {
       const emptyCard = createEmptyCard();
       const cardWithFSRS = {
         id: item.id,
-        source: { id: sourceId },
+        sourceId,
         sourcePageNumber: pageNumber,
         data: cardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
         readiness: 'IN_REVIEW'
-      } satisfies Card;
+      } satisfies CardCreatePayload;
 
       await fetchJson(this.http, `/api/card`, {
         body: mapCardDatesToISOStrings(cardWithFSRS),

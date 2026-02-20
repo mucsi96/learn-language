@@ -18,6 +18,7 @@ import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.service.StudySessionService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
@@ -133,13 +134,29 @@ public class CardController {
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<Map<String, String>> createCard(@RequestBody Card request) throws Exception {
-    Source source = sourceRepository.findById(request.getSource().getId())
-        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSource().getId()));
+  public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
+    final Source source = sourceRepository.findById(request.getSourceId())
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
 
-    request.setSource(source);
+    final Card card = Card.builder()
+        .id(request.getId())
+        .source(source)
+        .sourcePageNumber(request.getSourcePageNumber())
+        .data(request.getData())
+        .readiness(request.getReadiness())
+        .due(request.getDue())
+        .stability(request.getStability())
+        .difficulty(request.getDifficulty())
+        .elapsedDays(request.getElapsedDays())
+        .scheduledDays(request.getScheduledDays())
+        .learningSteps(request.getLearningSteps())
+        .reps(request.getReps())
+        .lapses(request.getLapses())
+        .state(request.getState())
+        .lastReview(request.getLastReview())
+        .build();
 
-    cardService.saveCard(request);
+    cardService.saveCard(card);
 
     return ResponseEntity.ok(new HashMap<>());
   }

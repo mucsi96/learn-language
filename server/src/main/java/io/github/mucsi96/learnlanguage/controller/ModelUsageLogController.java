@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,8 +59,8 @@ public class ModelUsageLogController {
         final Sort sort = buildSort(sortField, sortDirection);
         final PageRequest pageRequest = PageRequest.of(page, pageSize, sort);
 
-        final Specification<ModelUsageLog> spec = buildSpec(date, modelType, operationType, modelName);
-        final Page<ModelUsageLog> logPage = repository.findAll(spec, pageRequest);
+        final PredicateSpecification<ModelUsageLog> spec = buildSpec(date, modelType, operationType, modelName);
+        final Page<ModelUsageLog> logPage = repository.findAll(Specification.where(spec), pageRequest);
 
         final List<ModelUsageLogResponse> rows = logPage.getContent().stream()
             .map(ModelUsageLogResponse::from)
@@ -126,30 +127,30 @@ public class ModelUsageLogController {
         return Sort.by(direction, sortField);
     }
 
-    private Specification<ModelUsageLog> buildSpec(
+    private PredicateSpecification<ModelUsageLog> buildSpec(
             String date, ModelType modelType, OperationType operationType, String modelName) {
 
-        Specification<ModelUsageLog> spec = Specification.where(null);
+        PredicateSpecification<ModelUsageLog> spec = PredicateSpecification.unrestricted();
 
         if (date != null && !date.isEmpty()) {
             final LocalDate filterDate = LocalDate.parse(date);
             final LocalDateTime start = filterDate.atStartOfDay();
             final LocalDateTime end = filterDate.atTime(LocalTime.MAX);
-            spec = spec.and((root, query, cb) ->
+            spec = spec.and((root, cb) ->
                 cb.and(cb.greaterThanOrEqualTo(root.get("createdAt"), start),
                        cb.lessThan(root.get("createdAt"), end)));
         }
 
         if (modelType != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("modelType"), modelType));
+            spec = spec.and((root, cb) -> cb.equal(root.get("modelType"), modelType));
         }
 
         if (operationType != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("operationType"), operationType));
+            spec = spec.and((root, cb) -> cb.equal(root.get("operationType"), operationType));
         }
 
         if (modelName != null && !modelName.isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("modelName"), modelName));
+            spec = spec.and((root, cb) -> cb.equal(root.get("modelName"), modelName));
         }
 
         return spec;

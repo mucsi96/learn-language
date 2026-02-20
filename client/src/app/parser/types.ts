@@ -80,6 +80,24 @@ export type Card = {
   lastReview?: Date;
 };
 
+export type CardCreatePayload = {
+  id: string;
+  sourceId: string;
+  sourcePageNumber: number;
+  data: CardData;
+  readiness: string;
+  due: Date;
+  stability: number;
+  difficulty: number;
+  elapsedDays: number;
+  scheduledDays: number;
+  learningSteps: number;
+  reps: number;
+  lapses: number;
+  state: CardState;
+  lastReview?: Date;
+};
+
 export type Page = {
   number: number;
   spans: Span[];

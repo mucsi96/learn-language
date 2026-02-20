@@ -12,8 +12,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.azure.core.util.BinaryData;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -29,7 +28,7 @@ public class ChatService {
 
     private final ChatClientService chatClientService;
     private final ModelUsageLoggingService usageLoggingService;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     private final FileStorageService fileStorageService;
     private final Environment environment;
 
@@ -114,11 +113,7 @@ public class ChatService {
 
         var entity = chatResponse.getEntity();
 
-        try {
-          logUsage(model, operationType, chatResponse.getResponse(), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
-        } catch (JsonProcessingException e) {
-          e.printStackTrace();
-        }
+        logUsage(model, operationType, chatResponse.getResponse(), jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
         return entity;
     }
