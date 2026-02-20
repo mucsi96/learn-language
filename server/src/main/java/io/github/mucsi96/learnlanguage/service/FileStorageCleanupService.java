@@ -176,7 +176,7 @@ public class FileStorageCleanupService {
         final var data = fileStorageService.fetchFile(filePath).toBytes();
         final var webpData = imageResizeService.resizeImage(
             data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
-        final var webpPath = filePath.replace(".jpg", ".webp");
+        final var webpPath = filePath.replaceAll("\\.jpg$", ".webp");
         fileStorageService.saveFile(BinaryData.fromBytes(webpData), webpPath);
         fileStorageService.deleteFile(filePath);
         log.info("Migrated image to WebP: {} -> {}", filePath, webpPath);

@@ -32,7 +32,8 @@ public class ImageController {
   private final ImageResizeService imageResizeService;
 
   private static final int MAX_IMAGE_DIMENSION = 1200;
-  private static final MediaType IMAGE_WEBP = new MediaType("image", "webp");
+  private static final String IMAGE_WEBP_VALUE = "image/webp";
+  private static final MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -58,7 +59,7 @@ public class ImageController {
         .toList();
   }
 
-  @GetMapping(value = "/image/{id}", produces = "image/webp")
+  @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<byte[]> getCachedResizedImage(
       @PathVariable String id,
