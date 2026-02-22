@@ -132,8 +132,7 @@ local function formatResult(result)
     return PTF_HEADER .. table.concat(lines, "\n")
 end
 
-local function getContextAroundSelection(document, selection, window)
-    window = window or 10
+local function getSentenceAroundSelection(document, selection)
     local Screen = Device.screen
     local page_text = nil
 
@@ -155,28 +154,14 @@ local function getContextAroundSelection(document, selection, window)
     end
 
     local safe = selection:gsub("([%%%^%$%(%)%[%]%.%*%+%-%?])", "%%%1")
-    local s_pos, e_pos = page_text:find(safe)
+    local s_pos = page_text:find(safe)
     if not s_pos then return selection end
 
-    local before_text = page_text:sub(1, s_pos - 1)
-    local after_text = page_text:sub(e_pos + 1)
+    local sentence_start = (page_text:sub(1, s_pos - 1):match(".*[%.%!%?]()") or 1)
+    local sentence_end = page_text:find("[%.%!%?]", s_pos)
+    sentence_end = sentence_end or #page_text
 
-    local before_tokens = {}
-    for tok in before_text:gmatch("%S+") do
-        before_tokens[#before_tokens + 1] = tok
-    end
-    local start = math.max(1, #before_tokens - window + 1)
-    local before = table.concat(before_tokens, " ", start, #before_tokens)
-
-    local after_tokens, count = {}, 0
-    for tok in after_text:gmatch("%S+") do
-        after_tokens[#after_tokens + 1] = tok
-        count = count + 1
-        if count >= window then break end
-    end
-    local after = table.concat(after_tokens, " ")
-
-    return before .. " " .. selection .. " " .. after
+    return page_text:sub(sentence_start, sentence_end):match("^%s*(.-)%s*$")
 end
 
 function AIDictionary:init()
@@ -233,8 +218,8 @@ function AIDictionary:lookup(highlightedText)
         author = table.concat(author, ", ")
     end
 
-    local sentence = getContextAroundSelection(
-        self.ui.document, highlightedText, 10
+    local sentence = getSentenceAroundSelection(
+        self.ui.document, highlightedText
     )
 
     local viewer = TextViewer:new {
