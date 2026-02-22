@@ -220,6 +220,38 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
+interface DictionaryEntry {
+  translatedWord: string;
+  definition: string;
+  example: string;
+  synonyms: string[];
+  etymology: string;
+  paraphrase: string;
+}
+
+export const DICTIONARY_TRANSLATIONS: Record<string, Record<string, DictionaryEntry>> = {
+  english: {
+    abfahren: {
+      translatedWord: 'to depart',
+      definition: 'To leave a place, especially at the start of a journey.',
+      example: 'The train departs from platform 3.',
+      synonyms: ['to leave', 'to set off', 'to head out'],
+      etymology: 'From Middle High German "abevarn", composed of "ab" (off, away) and "fahren" (to travel).',
+      paraphrase: 'We are leaving at twelve o\'clock.',
+    },
+  },
+  hungarian: {
+    abfahren: {
+      translatedWord: 'elindulni',
+      definition: 'Egy helyről való távozás, különösen utazás kezdetén.',
+      example: 'A vonat a 3-as vágányról indul.',
+      synonyms: ['elutazni', 'útnak indulni', 'elmenni'],
+      etymology: 'A középfelnémet "abevarn" szóból, az "ab" (el, le) és "fahren" (utazni) összetételéből.',
+      paraphrase: 'Tizenkét órakor indulunk.',
+    },
+  },
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',

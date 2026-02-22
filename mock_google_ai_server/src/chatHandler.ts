@@ -7,6 +7,7 @@ import {
   SENTENCE_LISTS,
   SENTENCE_TRANSLATIONS,
   GRAMMAR_SENTENCE_LISTS,
+  DICTIONARY_TRANSLATIONS,
 } from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
 import { imageRequestMatch } from './ocr';
@@ -186,6 +187,35 @@ export class ChatHandler {
     return null;
   }
 
+  handleDictionaryTranslation(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent.includes('expert German-to-') || !systemContent.includes('dictionary and translation engine')) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (systemContent.includes('German-to-English')) {
+      targetLanguage = 'english';
+    } else if (systemContent.includes('German-to-Hungarian')) {
+      targetLanguage = 'hungarian';
+    }
+
+    if (!targetLanguage) {
+      return null;
+    }
+
+    const translations = DICTIONARY_TRANSLATIONS[targetLanguage];
+    for (const word of Object.keys(translations)) {
+      if (userContent.includes(word)) {
+        return createGeminiResponse(translations[word]);
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
     const userContent = getTextContent(request);
@@ -239,6 +269,9 @@ export class ChatHandler {
 
     const grammarExtractionResponse = await this.handleGrammarExtraction(request);
     if (grammarExtractionResponse) return grammarExtractionResponse;
+
+    const dictionaryTranslationResponse = this.handleDictionaryTranslation(request);
+    if (dictionaryTranslationResponse) return dictionaryTranslationResponse;
 
     const sentenceTranslationResponse = this.handleSentenceTranslation(request);
     if (sentenceTranslationResponse) return sentenceTranslationResponse;
