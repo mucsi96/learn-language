@@ -30,40 +30,6 @@ mat-card-header {
   flex: 1;
 }
 
-.new-token-banner {
-  background: var(--mat-sys-surface-container);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.new-token-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.new-token-value {
-  background: var(--mat-sys-surface);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  overflow-x: auto;
-}
-
-.new-token-value code {
-  font-size: 13px;
-  word-break: break-all;
-}
-
-.new-token-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .tokens-list {
   max-height: 400px;
   overflow-y: auto;

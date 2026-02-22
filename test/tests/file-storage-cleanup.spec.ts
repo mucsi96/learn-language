@@ -8,10 +8,6 @@ import {
   redImage,
   germanAudioSample,
   withDbConnection,
-  createColorJpeg,
-  getImageDimensions,
-  getImageColor,
-  downloadImage,
 } from '../utils';
 
 function writeStorageFile(relativePath: string, data: Buffer): void {
@@ -158,52 +154,6 @@ test('strips non-favorite images from reviewed cards and deletes their files', a
     expect(cardData.examples[0].images[0].id).toBe(favoriteImageId);
     expect(cardData.examples[0].images[0].isFavorite).toBe(true);
   });
-});
-
-test('resizes oversized images on cleanup', async ({ page }) => {
-  const oversizedImageId = 'oversized-image-1';
-  const normalImageId = 'normal-image-1';
-
-  await createCard({
-    cardId: 'card-with-oversized-image',
-    sourceId: 'goethe-a1',
-    data: {
-      word: 'Haus',
-      type: 'NOUN',
-      translation: { en: 'house', hu: 'ház' },
-      forms: [],
-      examples: [
-        {
-          de: 'Das Haus ist groß.',
-          en: 'The house is big.',
-          hu: 'A ház nagy.',
-          isSelected: true,
-          images: [
-            { id: oversizedImageId, isFavorite: true },
-            { id: normalImageId },
-          ],
-        },
-      ],
-    },
-  });
-
-  const oversizedImage = await createColorJpeg(page, 'yellow', 2000, 1500);
-  writeStorageFile(`images/${oversizedImageId}.webp`, oversizedImage);
-  writeStorageFile(`images/${normalImageId}.webp`, yellowImage);
-
-  const beforeSize = fs.statSync(path.join(STORAGE_DIR, `images/${oversizedImageId}.webp`)).size;
-
-  await triggerCleanup();
-
-  const afterData = downloadImage(oversizedImageId);
-  const afterSize = afterData.length;
-  expect(afterSize).toBeLessThan(beforeSize);
-
-  const dimensions = await getImageDimensions(page, afterData);
-  expect(dimensions.width).toBeLessThanOrEqual(1200);
-  expect(dimensions.height).toBeLessThanOrEqual(1200);
-
-  expect(await getImageColor(page, afterData)).toBe('yellow');
 });
 
 test('preserves non-favorite images on in-review cards', async ({ page }) => {

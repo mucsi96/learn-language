@@ -1,4 +1,5 @@
 import { type Page } from '@playwright/test';
+import * as fs from 'fs';
 import { test, expect } from '../fixtures';
 import { setupDefaultChatModelSettings } from '../utils';
 
@@ -7,12 +8,14 @@ const API_URL = 'http://localhost:8180/api/dictionary';
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.goto('http://localhost:8180/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
+
+  const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
 
-  const alert = page.getByRole('alert', { name: 'New token' });
-  await expect(alert).toBeVisible();
-  const token = await alert.locator('code').textContent();
-  return token!;
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('ai-dictionary.token');
+  const filePath = await download.path();
+  return fs.readFileSync(filePath!, 'utf-8');
 }
 
 test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
