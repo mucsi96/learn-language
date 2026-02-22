@@ -110,20 +110,22 @@ local function formatResult(result)
 
     if result.translation then
         for lang, text in pairs(result.translation) do
-            lines[#lines + 1] = bold("Translation (" .. lang .. "): ") .. text
+            if type(text) == "string" then
+                lines[#lines + 1] = bold("Translation (" .. lang .. "): ") .. text
+            end
         end
     end
 
     if result.examples and #result.examples > 0 then
         local ex = result.examples[1]
-        if ex.de then
+        if type(ex.de) == "string" then
             lines[#lines + 1] = ""
             lines[#lines + 1] = bold("Example (de): ") .. ex.de
         end
-        if ex.en then
+        if type(ex.en) == "string" then
             lines[#lines + 1] = bold("Example (en): ") .. ex.en
         end
-        if ex.hu then
+        if type(ex.hu) == "string" then
             lines[#lines + 1] = bold("Example (hu): ") .. ex.hu
         end
     end
