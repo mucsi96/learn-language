@@ -38,37 +38,6 @@
           </button>
         </div>
 
-        @if (newToken()) {
-        <div class="new-token-banner" role="alert" aria-label="New token">
-          <div class="new-token-header">
-            <mat-icon>info</mat-icon>
-            <span
-              >Copy this token now. It will not be shown again.</span
-            >
-          </div>
-          <div class="new-token-value">
-            <code>{{ newToken() }}</code>
-          </div>
-          <div class="new-token-actions">
-            <button
-              mat-flat-button
-              (click)="copyToken()"
-              aria-label="Copy token"
-            >
-              <mat-icon>content_copy</mat-icon>
-              Copy
-            </button>
-            <button
-              mat-button
-              (click)="dismissToken()"
-              aria-label="Dismiss token"
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-        }
-
         @if (tokens.isLoading()) {
         <mat-list class="tokens-list">
           @for (row of skeletonRows; track $index) {

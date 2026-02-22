@@ -1,20 +1,15 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
-
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.azure.core.util.BinaryData;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.AudioData;
@@ -30,22 +25,18 @@ import lombok.extern.slf4j.Slf4j;
 public class FileStorageCleanupService {
 
   private static final List<String> REVIEWED_READINESS = List.of("REVIEWED", "READY", "KNOWN");
-  private static final int MAX_IMAGE_DIMENSION = 1200;
 
   private final FileStorageService fileStorageService;
   private final CardRepository cardRepository;
   private final DocumentRepository documentRepository;
-  private final ImageResizeService imageResizeService;
 
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
   public void cleanupUnreferencedFiles() {
-    migrateJpgToWebp();
     stripNonFavoriteImagesFromReviewedCards();
     cleanupAudioFiles();
     cleanupImageFiles();
     cleanupSourceDocuments();
-    resizeOversizedImages();
   }
 
   private void stripNonFavoriteImagesFromReviewedCards() {
@@ -132,60 +123,5 @@ public class FileStorageCleanupService {
           log.info("Deleting unreferenced source document: {}", file);
           fileStorageService.deleteFile(file);
         });
-  }
-
-  private void resizeOversizedImages() {
-    final var imageFiles = fileStorageService.listFiles("images");
-    var resizedCount = 0;
-
-    for (final var filePath : imageFiles) {
-      try {
-        final var data = fileStorageService.fetchFile(filePath).toBytes();
-        final var image = ImageIO.read(new ByteArrayInputStream(data));
-
-        if (image == null) {
-          continue;
-        }
-
-        if (image.getWidth() > MAX_IMAGE_DIMENSION || image.getHeight() > MAX_IMAGE_DIMENSION) {
-          final var resized = imageResizeService.resizeImage(
-              data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
-          fileStorageService.saveFile(BinaryData.fromBytes(resized), filePath);
-          log.info("Resized oversized image: {} ({}x{} -> max {})",
-              filePath, image.getWidth(), image.getHeight(), MAX_IMAGE_DIMENSION);
-          resizedCount++;
-        }
-      } catch (Exception e) {
-        log.warn("Failed to check/resize image: {}", filePath, e);
-      }
-    }
-
-    log.info("Resized {} oversized images", resizedCount);
-  }
-
-  private void migrateJpgToWebp() {
-    final var imageFiles = fileStorageService.listFiles("images");
-    var migratedCount = 0;
-
-    for (final var filePath : imageFiles) {
-      if (!filePath.endsWith(".jpg")) {
-        continue;
-      }
-
-      try {
-        final var data = fileStorageService.fetchFile(filePath).toBytes();
-        final var webpData = imageResizeService.resizeImage(
-            data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
-        final var webpPath = filePath.replaceAll("\\.jpg$", ".webp");
-        fileStorageService.saveFile(BinaryData.fromBytes(webpData), webpPath);
-        fileStorageService.deleteFile(filePath);
-        log.info("Migrated image to WebP: {} -> {}", filePath, webpPath);
-        migratedCount++;
-      } catch (Exception e) {
-        log.warn("Failed to migrate image to WebP: {}", filePath, e);
-      }
-    }
-
-    log.info("Migrated {} images from JPG to WebP", migratedCount);
   }
 }

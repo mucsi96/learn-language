@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { ApiTokensService, ApiToken } from './api-tokens.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
@@ -28,7 +27,6 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
     MatListModule,
     MatTooltipModule,
     MatDialogModule,
-    MatSnackBarModule,
   ],
   templateUrl: './api-tokens.component.html',
   styleUrl: './api-tokens.component.css',
@@ -36,13 +34,11 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
 export class ApiTokensComponent {
   private readonly service = inject(ApiTokensService);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
 
   readonly tokens = this.service.tokens;
   readonly formModel = signal({ name: '' });
   readonly tokenForm = form(this.formModel);
   readonly isCreating = signal(false);
-  readonly newToken = signal<string | null>(null);
 
   readonly tokensList = computed(() => this.tokens.value() ?? []);
 
@@ -55,23 +51,21 @@ export class ApiTokensComponent {
     this.isCreating.set(true);
     try {
       const result = await this.service.createToken(name);
-      this.newToken.set(result.token);
+      this.downloadTokenFile(name, result.token);
       this.formModel.set({ name: '' });
     } finally {
       this.isCreating.set(false);
     }
   }
 
-  async copyToken(): Promise<void> {
-    const token = this.newToken();
-    if (!token) return;
-
-    await navigator.clipboard.writeText(token);
-    this.snackBar.open('Token copied to clipboard', '', { duration: 2000 });
-  }
-
-  dismissToken(): void {
-    this.newToken.set(null);
+  private downloadTokenFile(name: string, token: string): void {
+    const blob = new Blob([token], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${name}.token`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   async deleteToken(token: ApiToken): Promise<void> {
