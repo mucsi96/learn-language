@@ -37,9 +37,15 @@ KOReader plugin that looks up highlighted German words using the learn-language 
 
 4. Restart KOReader.
 
+5. Disable KOReader's built-in dictionary popup on single-word selection — otherwise the default dictionary opens before you can reach the plugin buttons. To do that:
+   - Tap the top of the screen to open the top menu
+   - Go to **Settings** (gear icon)
+   - Select **Long-press on text**
+   - Disable **Dictionary on single word selection**
+
 ## Usage
 
 1. Open a German book in KOReader
 2. Long-press a word or select a phrase to bring up the highlight dialog
-3. Tap **AI Dictionary**
+3. Tap **AI Dictionary**, **AI Explain**, or **English Explain**
 4. The plugin sends the highlighted word with surrounding context to the server and displays the result
