@@ -73,8 +73,9 @@ local function loadConfig()
     local tokenPath = dir .. "ai-dictionary.token"
     local token = readFile(tokenPath)
     if token then
-        config.token = token:gsub("%s+", "")
-        log("token loaded, length =", #config.token)
+        local cleaned = token:gsub("\xEF\xBB\xBF", ""):gsub("[^%w%.%-_/+=]", "")
+        config.token = cleaned
+        log("token loaded, length =", #cleaned, "raw length =", #token)
     else
         log("WARN token file not found at", tokenPath)
     end
