@@ -13,7 +13,7 @@ async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.getByRole('button', { name: 'Generate token' }).click();
 
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe('learn-language.token');
+  expect(download.suggestedFilename()).toBe('ai-dictionary.token');
   const filePath = await download.path();
   return fs.readFileSync(filePath!, 'utf-8');
 }

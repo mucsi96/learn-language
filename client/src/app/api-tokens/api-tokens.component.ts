@@ -63,7 +63,7 @@ export class ApiTokensComponent {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'learn-language.token';
+    anchor.download = 'ai-dictionary.token';
     anchor.click();
     URL.revokeObjectURL(url);
   }
