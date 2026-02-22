@@ -4,7 +4,7 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
-local _ = require("gettext")
+
 local https = require("ssl.https")
 local ltn12 = require("ltn12")
 local json = require("json")
@@ -172,7 +172,7 @@ function AIDictionary:init()
     self.configErr = configErr
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
         return {
-            text = _("AI Dictionary"),
+            text = "AI Dictionary",
             enabled = true,
             callback = function()
                 local selected_text = tostring(this.selected_text.text)
@@ -187,28 +187,28 @@ function AIDictionary:lookup(highlightedText)
     local config = self.config
     if not config then
         UIManager:show(InfoMessage:new {
-            text = _(self.configErr),
+            text = self.configErr,
         })
         return
     end
 
     if not config.serverUrl then
         UIManager:show(InfoMessage:new {
-            text = _("serverUrl is missing in ai-dictionary.json."),
+            text = "serverUrl is missing in ai-dictionary.json.",
         })
         return
     end
 
     if not config.token then
         UIManager:show(InfoMessage:new {
-            text = _("Token not found.\nPlace ai-dictionary.token next to the plugin."),
+            text = "Token not found.\nPlace ai-dictionary.token next to the plugin.",
         })
         return
     end
 
     if not NetworkMgr:isOnline() then
         UIManager:show(InfoMessage:new {
-            text = _("No internet connection."),
+            text = "No internet connection.",
         })
         return
     end
@@ -226,7 +226,7 @@ function AIDictionary:lookup(highlightedText)
 
     local viewer = TextViewer:new {
         title = "AI Dictionary",
-        text = _("Looking up..."),
+        text = "Looking up...",
     }
 
     UIManager:show(viewer)
@@ -247,7 +247,7 @@ function AIDictionary:lookup(highlightedText)
 
         if err then
             UIManager:show(InfoMessage:new {
-                text = _("Lookup failed: ") .. err,
+                text = "Lookup failed: " .. err,
             })
             return
         end
