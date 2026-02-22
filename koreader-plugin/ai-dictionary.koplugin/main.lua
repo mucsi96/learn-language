@@ -46,12 +46,12 @@ local function loadConfig()
     local configPath = dir .. "ai-dictionary.json"
     local configContent = readFile(configPath)
     if not configContent then
-        return nil
+        return nil, "Config not found.\nPlace ai-dictionary.json next to the plugin."
     end
 
     local ok, config = pcall(json.decode, configContent)
     if not ok then
-        return nil
+        return nil, "Invalid JSON in ai-dictionary.json:\n" .. tostring(config)
     end
 
     local tokenPath = dir .. "ai-dictionary.token"
@@ -61,7 +61,7 @@ local function loadConfig()
         config.token = cleaned
     end
 
-    return config
+    return config, nil
 end
 
 local function queryDictionary(serverUrl, token, requestBody)
@@ -83,11 +83,17 @@ local function queryDictionary(serverUrl, token, requestBody)
 
     local raw = table.concat(responseBody)
 
-    if tostring(code) ~= "200" then
-        return nil, "HTTP " .. tostring(code) .. ": " .. raw
+    if code ~= 200 then
+        local reason = code and ("HTTP " .. code .. ": " .. raw) or "Connection failed"
+        return nil, reason
     end
 
-    return json.decode(raw), nil
+    local ok, parsed = pcall(json.decode, raw)
+    if not ok then
+        return nil, "Invalid JSON response"
+    end
+
+    return parsed, nil
 end
 
 local function formatResult(result)
@@ -166,7 +172,9 @@ function AIDictionary:init()
     if not self.ui.highlight then
         return
     end
-    self.config = loadConfig()
+    local config, configErr = loadConfig()
+    self.config = config
+    self.configErr = configErr
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
         return {
             text = _("AI Dictionary"),
@@ -184,7 +192,7 @@ function AIDictionary:lookup(highlightedText)
     local config = self.config
     if not config then
         UIManager:show(InfoMessage:new {
-            text = _("Config not found.\nPlace ai-dictionary.json next to the plugin."),
+            text = _(self.configErr),
         })
         return
     end

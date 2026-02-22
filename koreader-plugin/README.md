@@ -47,5 +47,5 @@ KOReader plugin that looks up highlighted German words using the learn-language 
 
 1. Open a German book in KOReader
 2. Long-press a word or select a phrase to bring up the highlight dialog
-3. Tap **AI Dictionary**, **AI Explain**, or **English Explain**
+3. Tap **AI Dictionary**
 4. The plugin sends the highlighted word with surrounding context to the server and displays the result
