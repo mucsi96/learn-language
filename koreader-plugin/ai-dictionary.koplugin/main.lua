@@ -190,19 +190,24 @@ end
 
 function AIDictionary:init()
     logger.dbg("AIDictionary: init")
+    if not self.ui.highlight then
+        logger.dbg("AIDictionary: no highlight module, skipping")
+        return
+    end
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
         return {
             text = _("AI Dictionary"),
             enabled = true,
             callback = function()
-                self:lookup(this)
+                local selected_text = tostring(this.selected_text.text)
                 this:onClose()
+                self:lookup(selected_text)
             end,
         }
     end)
 end
 
-function AIDictionary:lookup(highlight)
+function AIDictionary:lookup(highlightedText)
     local config = loadConfig()
     if not config then
         UIManager:show(InfoMessage:new {
@@ -232,7 +237,6 @@ function AIDictionary:lookup(highlight)
         return
     end
 
-    local highlightedText = tostring(highlight.selected_text.text)
     logger.dbg("AIDictionary: looking up", highlightedText)
 
     local props = self.ui.document:getProps()
