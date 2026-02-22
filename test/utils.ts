@@ -138,6 +138,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.image_model_settings');
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
+    await client.query('DELETE FROM learn_language.api_tokens');
     await client.query('DELETE FROM learn_language.documents');
     await client.query('DELETE FROM learn_language.sources');
   });
@@ -1211,3 +1212,4 @@ export async function getStudySessionCardsBySource(sourceId: string): Promise<
     return result.rows;
   });
 }
+

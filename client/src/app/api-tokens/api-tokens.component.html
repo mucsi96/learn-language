@@ -1,0 +1,113 @@
+<div class="api-tokens-container">
+  <div class="tokens-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>API Tokens</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="section-description">
+          Generate API tokens for external devices like e-book readers to access
+          the dictionary translation endpoint.
+        </p>
+
+        <div class="add-token-form">
+          <mat-form-field appearance="outline" class="token-name-field">
+            <mat-label>Token name</mat-label>
+            <input
+              matInput
+              [formField]="tokenForm.name"
+              placeholder="e.g. Kindle, Tolino"
+              aria-label="Token name"
+              (keydown.enter)="createToken()"
+            />
+          </mat-form-field>
+          <button
+            mat-flat-button
+            (click)="createToken()"
+            [disabled]="!formModel().name.trim() || isCreating()"
+            aria-label="Generate token"
+          >
+            @if (isCreating()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>vpn_key</mat-icon>
+            }
+            Generate
+          </button>
+        </div>
+
+        @if (newToken()) {
+        <div class="new-token-banner" role="alert" aria-label="New token">
+          <div class="new-token-header">
+            <mat-icon>info</mat-icon>
+            <span
+              >Copy this token now. It will not be shown again.</span
+            >
+          </div>
+          <div class="new-token-value">
+            <code>{{ newToken() }}</code>
+          </div>
+          <div class="new-token-actions">
+            <button
+              mat-flat-button
+              (click)="copyToken()"
+              aria-label="Copy token"
+            >
+              <mat-icon>content_copy</mat-icon>
+              Copy
+            </button>
+            <button
+              mat-button
+              (click)="dismissToken()"
+              aria-label="Dismiss token"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+        }
+
+        @if (tokens.isLoading()) {
+        <mat-list class="tokens-list">
+          @for (row of skeletonRows; track $index) {
+          <mat-list-item>
+            <div class="skeleton skeleton-token"></div>
+          </mat-list-item>
+          }
+        </mat-list>
+        } @else if (tokensList().length === 0) {
+        <div class="empty-state">
+          <mat-icon>vpn_key</mat-icon>
+          <p>No API tokens yet</p>
+          <p class="empty-state-hint">
+            Generate a token to use with your e-book reader
+          </p>
+        </div>
+        } @else {
+        <mat-list class="tokens-list" role="list" aria-label="API tokens">
+          @for (token of tokensList(); track token.id) {
+          <mat-list-item role="listitem">
+            <span matListItemTitle>{{ token.name }}</span>
+            <span matListItemLine class="token-date">{{
+              token.createdAt | date: 'medium'
+            }}</span>
+            <div matListItemMeta class="token-actions">
+              <button
+                mat-icon-button
+                (click)="deleteToken(token)"
+                matTooltip="Delete token"
+                [attr.aria-label]="'Delete ' + token.name"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+          }
+        </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
