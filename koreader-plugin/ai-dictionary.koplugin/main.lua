@@ -34,22 +34,28 @@ local function getPluginDir()
     return info.source:match("@?(.*/)") or "."
 end
 
-local function readTokenFile()
-    local path = getPluginDir() .. "ai-dictionary.token"
+local function readFile(path)
     local file = io.open(path, "r")
     if not file then return nil end
-    local token = file:read("*a")
+    local content = file:read("*a")
     file:close()
-    return token and token:match("^%s*(.-)%s*$")
+    return content and content:match("^%s*(.-)%s*$")
 end
 
-local function readServerUrl()
-    local path = getPluginDir() .. "ai-dictionary.url"
-    local file = io.open(path, "r")
-    if not file then return nil end
-    local url = file:read("*a")
-    file:close()
-    return url and url:match("^%s*(.-)%s*$")
+local function loadConfig()
+    local dir = getPluginDir()
+    local configContent = readFile(dir .. "ai-dictionary.json")
+    if not configContent then return nil end
+
+    local ok, config = pcall(json.decode, configContent)
+    if not ok then return nil end
+
+    local token = readFile(dir .. "ai-dictionary.token")
+    if token then
+        config.token = token
+    end
+
+    return config
 end
 
 local function queryDictionary(serverUrl, token, requestBody)
@@ -171,35 +177,31 @@ function AIDictionary:init()
             text = _("AI Dictionary"),
             enabled = Device:hasClipboard(),
             callback = function()
-                self:lookup(_reader_highlight_instance, "en")
-            end,
-        }
-    end)
-
-    self.ui.highlight:addToHighlightDialog("ai_dictionary_lookup_hu", function(_reader_highlight_instance)
-        return {
-            text = _("AI Dictionary (HU)"),
-            enabled = Device:hasClipboard(),
-            callback = function()
-                self:lookup(_reader_highlight_instance, "hu")
+                self:lookup(_reader_highlight_instance)
             end,
         }
     end)
 end
 
-function AIDictionary:lookup(_reader_highlight_instance, targetLanguage)
-    local token = readTokenFile()
-    if not token then
+function AIDictionary:lookup(_reader_highlight_instance)
+    local config = loadConfig()
+    if not config then
         UIManager:show(InfoMessage:new {
-            text = _("Token file not found.\nPlace ai-dictionary.token next to the plugin."),
+            text = _("Config not found.\nPlace ai-dictionary.json next to the plugin."),
         })
         return
     end
 
-    local serverUrl = readServerUrl()
-    if not serverUrl then
+    if not config.serverUrl then
         UIManager:show(InfoMessage:new {
-            text = _("Server URL file not found.\nPlace ai-dictionary.url next to the plugin."),
+            text = _("serverUrl is missing in ai-dictionary.json."),
+        })
+        return
+    end
+
+    if not config.token then
+        UIManager:show(InfoMessage:new {
+            text = _("Token not found.\nPlace ai-dictionary.token next to the plugin."),
         })
         return
     end
@@ -236,8 +238,11 @@ function AIDictionary:lookup(_reader_highlight_instance, targetLanguage)
     self.ui.highlight:onClose()
     UIManager:show(viewer)
 
+    local targetLanguage = config.targetLanguage or "en"
+    local serverUrl = config.serverUrl
+
     UIManager:scheduleIn(0.01, function()
-        local result, err = queryDictionary(serverUrl, token, {
+        local result, err = queryDictionary(serverUrl, config.token, {
             bookTitle = title,
             author = author,
             targetLanguage = targetLanguage,
