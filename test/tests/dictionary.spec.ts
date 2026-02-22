@@ -1,11 +1,23 @@
+import { type Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
-import { createApiToken, setupDefaultChatModelSettings } from '../utils';
+import { setupDefaultChatModelSettings } from '../utils';
 
 const API_URL = 'http://localhost:8180/api/dictionary';
 
+async function createTokenViaUI(page: Page, name: string): Promise<string> {
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByLabel('Token name').fill(name);
+  await page.getByRole('button', { name: 'Generate token' }).click();
+
+  const alert = page.getByRole('alert', { name: 'New token' });
+  await expect(alert).toBeVisible();
+  const token = await alert.locator('code').textContent();
+  return token!;
+}
+
 test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const token = await createApiToken({ name: 'Test Token' });
+  const token = await createTokenViaUI(page, 'Test Token');
 
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -36,7 +48,7 @@ test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
 
 test('dictionary endpoint translates a word to English', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const token = await createApiToken({ name: 'Test Token' });
+  const token = await createTokenViaUI(page, 'Test Token');
 
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -110,7 +122,7 @@ test('dictionary endpoint response matches vocabulary card data structure', asyn
   page,
 }) => {
   await setupDefaultChatModelSettings();
-  const token = await createApiToken({ name: 'Structure Test Token' });
+  const token = await createTokenViaUI(page, 'Structure Test Token');
 
   const response = await fetch(API_URL, {
     method: 'POST',
