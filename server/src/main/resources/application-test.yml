@@ -1,3 +1,4 @@
+dictionary-api-token: test-token
 rate-limit:
   image-per-minute:
   audio-per-minute:
