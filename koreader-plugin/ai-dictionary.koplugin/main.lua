@@ -34,17 +34,6 @@ local function getPluginDir()
     return info.source:match("@?(.*/)") or "."
 end
 
-local function log(...)
-    local file = io.open(getPluginDir() .. "ai-dictionary.log", "a")
-    if not file then return end
-    local parts = {}
-    for i = 1, select("#", ...) do
-        parts[#parts + 1] = tostring(select(i, ...))
-    end
-    file:write(os.date("%Y-%m-%d %H:%M:%S") .. "  " .. table.concat(parts, " ") .. "\n")
-    file:close()
-end
-
 local function readFile(path)
     local file = io.open(path, "r")
     if not file then return nil end
@@ -55,18 +44,15 @@ end
 
 local function loadConfig()
     local dir = getPluginDir()
-    log("plugin dir =", dir)
 
     local configPath = dir .. "ai-dictionary.json"
     local configContent = readFile(configPath)
     if not configContent then
-        log("WARN config not found at", configPath)
         return nil
     end
 
     local ok, config = pcall(json.decode, configContent)
     if not ok then
-        log("WARN failed to parse config:", config)
         return nil
     end
 
@@ -75,18 +61,13 @@ local function loadConfig()
     if token then
         local cleaned = token:gsub("\xEF\xBB\xBF", ""):gsub("%s+", "")
         config.token = cleaned
-        log("token loaded, length =", #cleaned, "raw length =", #token)
-    else
-        log("WARN token file not found at", tokenPath)
     end
 
-    log("config loaded, serverUrl =", config.serverUrl)
     return config
 end
 
 local function queryDictionary(serverUrl, token, requestBody)
     local requestJson = json.encode(requestBody)
-    log("POST", serverUrl .. "/dictionary")
 
     local responseBody = {}
 
@@ -105,11 +86,9 @@ local function queryDictionary(serverUrl, token, requestBody)
     local raw = table.concat(responseBody)
 
     if tostring(code) ~= "200" then
-        log("WARN request failed, code =", code, "body =", raw)
         return nil, "HTTP " .. tostring(code) .. ": " .. raw
     end
 
-    log("lookup succeeded")
     return json.decode(raw), nil
 end
 
@@ -201,9 +180,7 @@ local function getContextAroundSelection(document, selection, window)
 end
 
 function AIDictionary:init()
-    log("init")
     if not self.ui.highlight then
-        log("no highlight module, skipping")
         return
     end
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
@@ -248,8 +225,6 @@ function AIDictionary:lookup(highlightedText)
         })
         return
     end
-
-    log("looking up", highlightedText)
 
     local props = self.ui.document:getProps()
     local title = props.title or ""
