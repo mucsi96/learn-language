@@ -1,9 +1,10 @@
 local Device = require("device")
-local InputContainer = require("ui/widget/container/inputcontainer")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
+local logger = require("logger")
 local _ = require("gettext")
 
 local https = require("ssl.https")
@@ -20,7 +21,7 @@ local PTF_HEADER = "\u{FFF1}"
 local PTF_BOLD_START = "\u{FFF2}"
 local PTF_BOLD_END = "\u{FFF3}"
 
-local AIDictionary = InputContainer:new {
+local AIDictionary = WidgetContainer:extend {
     name = "ai-dictionary",
     is_doc_only = true,
 }
@@ -44,22 +45,36 @@ end
 
 local function loadConfig()
     local dir = getPluginDir()
-    local configContent = readFile(dir .. "ai-dictionary.json")
-    if not configContent then return nil end
+    logger.dbg("AIDictionary: plugin dir =", dir)
 
-    local ok, config = pcall(json.decode, configContent)
-    if not ok then return nil end
-
-    local token = readFile(dir .. "ai-dictionary.token")
-    if token then
-        config.token = token
+    local configPath = dir .. "ai-dictionary.json"
+    local configContent = readFile(configPath)
+    if not configContent then
+        logger.warn("AIDictionary: config not found at", configPath)
+        return nil
     end
 
+    local ok, config = pcall(json.decode, configContent)
+    if not ok then
+        logger.warn("AIDictionary: failed to parse config:", config)
+        return nil
+    end
+
+    local tokenPath = dir .. "ai-dictionary.token"
+    local token = readFile(tokenPath)
+    if token then
+        config.token = token
+    else
+        logger.warn("AIDictionary: token file not found at", tokenPath)
+    end
+
+    logger.dbg("AIDictionary: config loaded, serverUrl =", config.serverUrl)
     return config
 end
 
 local function queryDictionary(serverUrl, token, requestBody)
     local requestJson = json.encode(requestBody)
+    logger.dbg("AIDictionary: POST", serverUrl .. "/dictionary")
 
     local responseBody = {}
 
@@ -78,9 +93,11 @@ local function queryDictionary(serverUrl, token, requestBody)
     local raw = table.concat(responseBody)
 
     if tostring(code) ~= "200" then
+        logger.warn("AIDictionary: request failed, code =", code, "body =", raw)
         return nil, "HTTP " .. tostring(code) .. ": " .. raw
     end
 
+    logger.dbg("AIDictionary: lookup succeeded")
     return json.decode(raw), nil
 end
 
@@ -172,18 +189,20 @@ local function getContextAroundSelection(document, selection, window)
 end
 
 function AIDictionary:init()
-    self.ui.highlight:addToHighlightDialog("ai_dictionary_lookup", function(_reader_highlight_instance)
+    logger.dbg("AIDictionary: init")
+    self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
         return {
             text = _("AI Dictionary"),
-            enabled = Device:hasClipboard(),
+            enabled = true,
             callback = function()
-                self:lookup(_reader_highlight_instance)
+                self:lookup(this)
+                this:onClose()
             end,
         }
     end)
 end
 
-function AIDictionary:lookup(_reader_highlight_instance)
+function AIDictionary:lookup(highlight)
     local config = loadConfig()
     if not config then
         UIManager:show(InfoMessage:new {
@@ -213,9 +232,8 @@ function AIDictionary:lookup(_reader_highlight_instance)
         return
     end
 
-    local highlightedText = tostring(
-        _reader_highlight_instance.selected_text.text
-    )
+    local highlightedText = tostring(highlight.selected_text.text)
+    logger.dbg("AIDictionary: looking up", highlightedText)
 
     local props = self.ui.document:getProps()
     local title = props.title or ""
@@ -231,11 +249,8 @@ function AIDictionary:lookup(_reader_highlight_instance)
     local viewer = TextViewer:new {
         title = "AI Dictionary",
         text = _("Looking up..."),
-        width = nil,
-        height = nil,
     }
 
-    self.ui.highlight:onClose()
     UIManager:show(viewer)
 
     local targetLanguage = config.targetLanguage or "en"
@@ -262,8 +277,6 @@ function AIDictionary:lookup(_reader_highlight_instance)
         UIManager:show(TextViewer:new {
             title = "AI Dictionary",
             text = formatResult(result),
-            width = nil,
-            height = nil,
         })
     end)
 end
