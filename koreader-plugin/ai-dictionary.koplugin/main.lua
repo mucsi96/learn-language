@@ -5,14 +5,9 @@ local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
 local _ = require("gettext")
-
 local https = require("ssl.https")
 local ltn12 = require("ltn12")
 local json = require("json")
-
-local REQUEST_TIMEOUT_SECONDS = 30
-
-https.TIMEOUT = REQUEST_TIMEOUT_SECONDS
 
 local PTF_HEADER = "\u{FFF1}"
 local PTF_BOLD_START = "\u{FFF2}"
