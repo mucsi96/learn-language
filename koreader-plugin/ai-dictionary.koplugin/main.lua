@@ -7,14 +7,12 @@ local TextViewer = require("ui/widget/textviewer")
 local _ = require("gettext")
 
 local https = require("ssl.https")
-local http = require("socket.http")
 local ltn12 = require("ltn12")
 local json = require("json")
 
 local REQUEST_TIMEOUT_SECONDS = 30
 
 https.TIMEOUT = REQUEST_TIMEOUT_SECONDS
-http.TIMEOUT = REQUEST_TIMEOUT_SECONDS
 
 local PTF_HEADER = "\u{FFF1}"
 local PTF_BOLD_START = "\u{FFF2}"
@@ -72,7 +70,7 @@ local function queryDictionary(serverUrl, token, requestBody)
     local responseBody = {}
 
     local _, code = https.request {
-        url = serverUrl .. "/dictionary",
+        url = serverUrl .. "/api/dictionary",
         method = "POST",
         headers = {
             ["Content-Type"] = "application/json",
@@ -129,7 +127,7 @@ local function formatResult(result)
         end
     end
 
-    return PTF_HEADER .. table.concat(lines, "\n")
+    return table.concat(lines, "\n")
 end
 
 local function getSentenceAroundSelection(document, selection)
@@ -168,6 +166,7 @@ function AIDictionary:init()
     if not self.ui.highlight then
         return
     end
+    self.config = loadConfig()
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
         return {
             text = _("AI Dictionary"),
@@ -182,7 +181,7 @@ function AIDictionary:init()
 end
 
 function AIDictionary:lookup(highlightedText)
-    local config = loadConfig()
+    local config = self.config
     if not config then
         UIManager:show(InfoMessage:new {
             text = _("Config not found.\nPlace ai-dictionary.json next to the plugin."),
