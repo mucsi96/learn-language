@@ -54,7 +54,7 @@ public class DictionaryTranslationService {
         return """
                 You are an expert German-to-%1$s dictionary and translation engine.
                 You receive a German word highlighted within a sentence from a book.
-                Use the book context (title, author) and the surrounding sentence to disambiguate meaning.
+                Use the book context (title, author, chapter) and the surrounding sentence to disambiguate meaning.
 
                 Provide a dictionary entry as a JSON object with these fields, all written in %1$s:
                 - "translatedWord": the best %1$s translation of the highlighted German word in this context
@@ -71,6 +71,7 @@ public class DictionaryTranslationService {
         final var messageData = Map.of(
                 "bookTitle", request.getBookTitle(),
                 "author", request.getAuthor(),
+                "chapter", request.getChapter(),
                 "sentence", request.getSentence(),
                 "highlightedWord", request.getHighlightedWord());
 

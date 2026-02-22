@@ -21,6 +21,10 @@ public class DictionaryTranslationRequest {
     private String author;
 
     @NotBlank
+    @Size(max = 200)
+    private String chapter;
+
+    @NotBlank
     @Size(max = 10)
     private String targetLanguage;
 
