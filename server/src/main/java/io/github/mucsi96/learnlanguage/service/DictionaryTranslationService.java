@@ -21,14 +21,24 @@ public class DictionaryTranslationService {
 
     private final JsonMapper jsonMapper;
     private final ChatService chatService;
+    private final ChatModelSettingService chatModelSettingService;
 
-    public DictionaryTranslationResponse translate(DictionaryTranslationRequest request, ChatModel model) {
+    public DictionaryTranslationResponse translate(DictionaryTranslationRequest request) {
         final String targetLanguageName = TARGET_LANGUAGE_NAMES.get(request.getTargetLanguage());
         if (targetLanguageName == null) {
             throw new IllegalArgumentException(
                     "Unsupported target language: " + request.getTargetLanguage());
         }
 
+        final String primaryModelName = chatModelSettingService
+                .getPrimaryModelByOperation()
+                .get(OperationType.TRANSLATION);
+
+        if (primaryModelName == null) {
+            throw new IllegalStateException("No primary model configured for translation");
+        }
+
+        final ChatModel model = ChatModel.fromString(primaryModelName);
         final String systemPrompt = buildSystemPrompt(targetLanguageName);
         final String userMessage = buildUserMessage(request);
 
