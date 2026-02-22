@@ -52,29 +52,19 @@ public class DictionaryTranslationService {
 
     private String buildSystemPrompt(String targetLanguageName) {
         return """
-                You are an expert German-to-%s dictionary and translation engine.
+                You are an expert German-to-%1$s dictionary and translation engine.
                 You receive a German word highlighted within a sentence from a book.
                 Use the book context (title, author) and the surrounding sentence to disambiguate meaning.
 
-                Provide a comprehensive dictionary entry as a JSON object with these fields:
-                - "translatedWord": the best %s translation of the highlighted German word in this context
-                - "translatedSentence": the full sentence translated to %s
-                - "wordType": grammatical category (noun, verb, adjective, adverb, preposition, conjunction, pronoun, article, particle, interjection)
-                - "gender": grammatical gender if noun (masculine, feminine, neuter), null otherwise
-                - "plural": plural form of the German word if noun, null otherwise
-                - "ipaTranscription": IPA pronunciation of the German word
-                - "meanings": array of distinct %s meanings/definitions of the German word (not just this context, but all common meanings)
-                - "synonyms": array of %s synonyms for the translated word
-                - "antonyms": array of %s antonyms for the translated word (empty array if none apply)
-                - "usageExamples": array of objects with "german" and "translated" fields, each showing a common usage of the German word with its %s translation (2-3 examples different from the input sentence)
-                - "collocations": array of common German phrases or word combinations using this word, translated to %s in parentheses
-                - "register": the register/style level (formal, informal, colloquial, literary, technical, standard)
-                - "languageLevel": CEFR level (A1, A2, B1, B2, C1, C2)
+                Provide a dictionary entry as a JSON object with these fields, all written in %1$s:
+                - "translatedWord": the best %1$s translation of the highlighted German word in this context
+                - "definition": a clear, concise dictionary-style definition of the word in %1$s
+                - "example": a natural %1$s example sentence using the translated word
+                - "synonyms": array of %1$s synonyms for the translated word
+                - "etymology": the etymological origin of the German word, explained in %1$s
+                - "paraphrase": the full input sentence rephrased in simple %1$s, conveying the same meaning
                 """
-                .formatted(
-                        targetLanguageName, targetLanguageName, targetLanguageName,
-                        targetLanguageName, targetLanguageName, targetLanguageName,
-                        targetLanguageName, targetLanguageName);
+                .formatted(targetLanguageName);
     }
 
     private String buildUserMessage(DictionaryTranslationRequest request) {

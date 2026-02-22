@@ -13,25 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DictionaryTranslationResponse {
     private String translatedWord;
-    private String translatedSentence;
-    private String wordType;
-    private String gender;
-    private String plural;
-    private String ipaTranscription;
-    private List<String> meanings;
+    private String definition;
+    private String example;
     private List<String> synonyms;
-    private List<String> antonyms;
-    private List<UsageExample> usageExamples;
-    private List<String> collocations;
-    private String register;
-    private String languageLevel;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UsageExample {
-        private String german;
-        private String translated;
-    }
+    private String etymology;
+    private String paraphrase;
 }
