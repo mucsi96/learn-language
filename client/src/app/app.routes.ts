@@ -79,6 +79,12 @@ export const routes: Routes = [
           import('./learning-partners/learning-partners.component').then((m) => m.LearningPartnersComponent),
         title: 'Learning Partners',
       },
+      {
+        path: 'api-tokens',
+        loadComponent: () =>
+          import('./api-tokens/api-tokens.component').then((m) => m.ApiTokensComponent),
+        title: 'API Tokens',
+      },
     ],
   },
   {

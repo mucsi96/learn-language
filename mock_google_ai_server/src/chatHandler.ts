@@ -7,6 +7,7 @@ import {
   SENTENCE_LISTS,
   SENTENCE_TRANSLATIONS,
   GRAMMAR_SENTENCE_LISTS,
+  DICTIONARY_LOOKUPS,
 } from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
 import { imageRequestMatch } from './ocr';
@@ -186,6 +187,45 @@ export class ChatHandler {
     return null;
   }
 
+  handleDictionaryLookup(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent.includes('dictionary lookup')) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (systemContent.includes('Hungarian')) {
+      targetLanguage = 'hu';
+    } else if (systemContent.includes('English')) {
+      targetLanguage = 'en';
+    }
+
+    if (!targetLanguage || !DICTIONARY_LOOKUPS[targetLanguage]) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(userContent);
+      const highlightedWord = parsed.highlightedWord;
+
+      if (highlightedWord && DICTIONARY_LOOKUPS[targetLanguage][highlightedWord]) {
+        return createGeminiResponse(DICTIONARY_LOOKUPS[targetLanguage][highlightedWord]);
+      }
+    } catch {
+      // Not valid JSON, try matching by word in content
+      const lookups = DICTIONARY_LOOKUPS[targetLanguage];
+      for (const word of Object.keys(lookups)) {
+        if (userContent.includes(word)) {
+          return createGeminiResponse(lookups[word]);
+        }
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
     const userContent = getTextContent(request);
@@ -221,6 +261,9 @@ export class ChatHandler {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
     }
+
+    const dictionaryResponse = this.handleDictionaryLookup(request);
+    if (dictionaryResponse) return dictionaryResponse;
 
     const wordListResponse = await this.handleWordListExtraction(request);
     if (wordListResponse) return wordListResponse;

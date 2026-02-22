@@ -138,6 +138,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.image_model_settings');
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
+    await client.query('DELETE FROM learn_language.api_tokens');
     await client.query('DELETE FROM learn_language.documents');
     await client.query('DELETE FROM learn_language.sources');
   });
@@ -1207,6 +1208,39 @@ export async function getStudySessionCardsBySource(sourceId: string): Promise<
          AND ss.created_at >= CURRENT_DATE
        ORDER BY ssc.position`,
       [sourceId]
+    );
+    return result.rows;
+  });
+}
+
+export async function createApiToken(params: { name: string }): Promise<string> {
+  const { name } = params;
+  const crypto = await import('crypto');
+  const token = crypto.randomBytes(48).toString('base64url');
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.api_tokens (name, token, created_at)
+       VALUES ($1, $2, NOW())`,
+      [name, token]
+    );
+  });
+
+  return token;
+}
+
+export async function getApiTokens(): Promise<
+  Array<{
+    id: number;
+    name: string;
+    token: string;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, name, token
+       FROM learn_language.api_tokens
+       ORDER BY id`
     );
     return result.rows;
   });

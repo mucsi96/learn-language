@@ -220,6 +220,39 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
+export const DICTIONARY_LOOKUPS: Record<string, Record<string, {
+  word: string;
+  type: string;
+  gender: string | null;
+  forms: string[];
+  translation: string;
+  exampleDe: string;
+  exampleTranslation: string;
+}>> = {
+  hu: {
+    fahren: {
+      word: 'abfahren',
+      type: 'VERB',
+      gender: null,
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+      translation: 'elindulni, elhagyni',
+      exampleDe: 'Wir fahren um zwölf Uhr ab.',
+      exampleTranslation: 'Tizenkét órakor indulunk.',
+    },
+  },
+  en: {
+    fahren: {
+      word: 'abfahren',
+      type: 'VERB',
+      gender: null,
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+      translation: 'to depart, to leave',
+      exampleDe: 'Wir fahren um zwölf Uhr ab.',
+      exampleTranslation: "We are departing at twelve o'clock.",
+    },
+  },
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',

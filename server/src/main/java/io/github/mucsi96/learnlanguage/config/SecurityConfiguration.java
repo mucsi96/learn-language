@@ -22,9 +22,12 @@ public class SecurityConfiguration {
         http.with(AadResourceServerHttpSecurityConfigurer.aadResourceServer(),
                 Customizer.withDefaults());
 
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/dictionary"));
+
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/environment").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/dictionary").permitAll()
                 .anyRequest().authenticated());
 
         return http.build();
