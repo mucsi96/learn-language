@@ -4,7 +4,6 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
-local logger = require("logger")
 local _ = require("gettext")
 
 local https = require("ssl.https")
@@ -35,6 +34,17 @@ local function getPluginDir()
     return info.source:match("@?(.*/)") or "."
 end
 
+local function log(...)
+    local file = io.open(getPluginDir() .. "ai-dictionary.log", "a")
+    if not file then return end
+    local parts = {}
+    for i = 1, select("#", ...) do
+        parts[#parts + 1] = tostring(select(i, ...))
+    end
+    file:write(os.date("%Y-%m-%d %H:%M:%S") .. "  " .. table.concat(parts, " ") .. "\n")
+    file:close()
+end
+
 local function readFile(path)
     local file = io.open(path, "r")
     if not file then return nil end
@@ -45,18 +55,18 @@ end
 
 local function loadConfig()
     local dir = getPluginDir()
-    logger.dbg("AIDictionary: plugin dir =", dir)
+    log("plugin dir =", dir)
 
     local configPath = dir .. "ai-dictionary.json"
     local configContent = readFile(configPath)
     if not configContent then
-        logger.warn("AIDictionary: config not found at", configPath)
+        log("WARN config not found at", configPath)
         return nil
     end
 
     local ok, config = pcall(json.decode, configContent)
     if not ok then
-        logger.warn("AIDictionary: failed to parse config:", config)
+        log("WARN failed to parse config:", config)
         return nil
     end
 
@@ -65,16 +75,16 @@ local function loadConfig()
     if token then
         config.token = token
     else
-        logger.warn("AIDictionary: token file not found at", tokenPath)
+        log("WARN token file not found at", tokenPath)
     end
 
-    logger.dbg("AIDictionary: config loaded, serverUrl =", config.serverUrl)
+    log("config loaded, serverUrl =", config.serverUrl)
     return config
 end
 
 local function queryDictionary(serverUrl, token, requestBody)
     local requestJson = json.encode(requestBody)
-    logger.dbg("AIDictionary: POST", serverUrl .. "/dictionary")
+    log("POST", serverUrl .. "/dictionary")
 
     local responseBody = {}
 
@@ -93,11 +103,11 @@ local function queryDictionary(serverUrl, token, requestBody)
     local raw = table.concat(responseBody)
 
     if tostring(code) ~= "200" then
-        logger.warn("AIDictionary: request failed, code =", code, "body =", raw)
+        log("WARN request failed, code =", code, "body =", raw)
         return nil, "HTTP " .. tostring(code) .. ": " .. raw
     end
 
-    logger.dbg("AIDictionary: lookup succeeded")
+    log("lookup succeeded")
     return json.decode(raw), nil
 end
 
@@ -189,9 +199,9 @@ local function getContextAroundSelection(document, selection, window)
 end
 
 function AIDictionary:init()
-    logger.dbg("AIDictionary: init")
+    log("init")
     if not self.ui.highlight then
-        logger.dbg("AIDictionary: no highlight module, skipping")
+        log("no highlight module, skipping")
         return
     end
     self.ui.highlight:addToHighlightDialog("13_ai_dictionary", function(this)
@@ -237,7 +247,7 @@ function AIDictionary:lookup(highlightedText)
         return
     end
 
-    logger.dbg("AIDictionary: looking up", highlightedText)
+    log("looking up", highlightedText)
 
     local props = self.ui.document:getProps()
     local title = props.title or ""
