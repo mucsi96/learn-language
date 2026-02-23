@@ -5,6 +5,11 @@ import { setupDefaultChatModelSettings } from '../utils';
 
 const API_URL = 'http://localhost:8180/api/dictionary';
 
+const PTF_BOLD_START = '\uFFF2';
+const PTF_BOLD_END = '\uFFF3';
+
+const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
+
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.goto('http://localhost:8180/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
@@ -18,11 +23,11 @@ async function createTokenViaUI(page: Page, name: string): Promise<string> {
   return fs.readFileSync(filePath!, 'utf-8');
 }
 
-test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  const token = await createTokenViaUI(page, 'Test Token');
-
-  const response = await fetch(API_URL, {
+async function lookupWord(
+  token: string,
+  targetLanguage: string
+): Promise<Response> {
+  return await fetch(API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -31,53 +36,55 @@ test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
     body: JSON.stringify({
       bookTitle: 'Goethe A1',
       author: 'Goethe Institut',
-      targetLanguage: 'hu',
+      targetLanguage,
       sentence: 'Wir fahren um zwölf Uhr ab.',
       highlightedWord: 'fahren',
     }),
   });
+}
+
+test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Test Token');
+
+  const response = await lookupWord(token, 'hu');
 
   expect(response.status).toBe(200);
-  const data = await response.json();
-
-  expect(data.word).toBe('abfahren');
-  expect(data.type).toBe('VERB');
-  expect(data.translation.hu).toBe('elindulni, elhagyni');
-  expect(data.forms).toEqual(['fährt ab', 'fuhr ab', 'ist abgefahren']);
-  expect(data.examples).toHaveLength(1);
-  expect(data.examples[0].de).toBe('Wir fahren um zwölf Uhr ab.');
-  expect(data.examples[0].hu).toBe('Tizenkét órakor indulunk.');
+  expect(response.headers.get('content-type')).toContain('text/plain');
+  const text = await response.text();
+  expect(text).toContain(bold('VERB'));
+  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
+  expect(text).toContain(
+    bold('Translation (hu): ') + 'elindulni, elhagyni'
+  );
+  expect(text).toContain(
+    bold('Example (de): ') + 'Wir fahren um zwölf Uhr ab.'
+  );
+  expect(text).toContain(
+    bold('Example (hu): ') + 'Tizenkét órakor indulunk.'
+  );
 });
 
 test('dictionary endpoint translates a word to English', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const token = await createTokenViaUI(page, 'Test Token');
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      bookTitle: 'Goethe A1',
-      author: 'Goethe Institut',
-      targetLanguage: 'en',
-      sentence: 'Wir fahren um zwölf Uhr ab.',
-      highlightedWord: 'fahren',
-    }),
-  });
+  const response = await lookupWord(token, 'en');
 
   expect(response.status).toBe(200);
-  const data = await response.json();
-
-  expect(data.word).toBe('abfahren');
-  expect(data.type).toBe('VERB');
-  expect(data.translation.en).toBe('to depart, to leave');
-  expect(data.forms).toEqual(['fährt ab', 'fuhr ab', 'ist abgefahren']);
-  expect(data.examples).toHaveLength(1);
-  expect(data.examples[0].de).toBe('Wir fahren um zwölf Uhr ab.');
-  expect(data.examples[0].en).toBe("We are departing at twelve o'clock.");
+  expect(response.headers.get('content-type')).toContain('text/plain');
+  const text = await response.text();
+  expect(text).toContain(bold('VERB'));
+  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
+  expect(text).toContain(
+    bold('Translation (en): ') + 'to depart, to leave'
+  );
+  expect(text).toContain(
+    bold('Example (de): ') + 'Wir fahren um zwölf Uhr ab.'
+  );
+  expect(text).toContain(
+    bold('Example (en): ') + "We are departing at twelve o'clock."
+  );
 });
 
 test('dictionary endpoint returns 401 without authorization header', async ({
@@ -121,38 +128,22 @@ test('dictionary endpoint returns 401 with invalid token', async ({
   expect(response.status).toBe(401);
 });
 
-test('dictionary endpoint response matches vocabulary card data structure', async ({
+test('dictionary endpoint returns 401 after token is deleted', async ({
   page,
 }) => {
   await setupDefaultChatModelSettings();
-  const token = await createTokenViaUI(page, 'Structure Test Token');
+  const token = await createTokenViaUI(page, 'Token To Delete');
 
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      bookTitle: 'Goethe A1',
-      author: 'Goethe Institut',
-      targetLanguage: 'hu',
-      sentence: 'Wir fahren um zwölf Uhr ab.',
-      highlightedWord: 'fahren',
-    }),
-  });
-
+  const response = await lookupWord(token, 'hu');
   expect(response.status).toBe(200);
-  const data = await response.json();
 
-  expect(data).toHaveProperty('word');
-  expect(data).toHaveProperty('type');
-  expect(data).toHaveProperty('translation');
-  expect(data).toHaveProperty('forms');
-  expect(data).toHaveProperty('examples');
-  expect(typeof data.word).toBe('string');
-  expect(typeof data.type).toBe('string');
-  expect(typeof data.translation).toBe('object');
-  expect(Array.isArray(data.forms)).toBe(true);
-  expect(Array.isArray(data.examples)).toBe(true);
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByRole('button', { name: 'Delete Token To Delete' }).click();
+  await page.getByRole('button', { name: 'Yes' }).click();
+  await expect(
+    page.getByRole('list', { name: 'API tokens' })
+  ).not.toBeVisible();
+
+  const responseAfterDelete = await lookupWord(token, 'hu');
+  expect(responseAfterDelete.status).toBe(401);
 });

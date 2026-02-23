@@ -1,7 +1,9 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,11 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import tools.jackson.databind.json.JsonMapper;
 
-import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.DictionaryRequest;
 import io.github.mucsi96.learnlanguage.model.DictionaryResult;
-import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 
@@ -25,11 +25,15 @@ public class DictionaryService {
             "en", "English",
             "hu", "Hungarian");
 
+    private static final String PTF_HEADER = "\uFFF1";
+    private static final String PTF_BOLD_START = "\uFFF2";
+    private static final String PTF_BOLD_END = "\uFFF3";
+
     private final JsonMapper jsonMapper;
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
 
-    public CardData lookup(DictionaryRequest request) {
+    public String lookup(DictionaryRequest request) {
         final String targetLanguage = request.getTargetLanguage();
         final String languageName = LANGUAGE_NAMES.get(targetLanguage);
 
@@ -58,7 +62,7 @@ public class DictionaryService {
                 userMessage,
                 DictionaryResult.class);
 
-        return toCardData(result, targetLanguage);
+        return formatForDisplay(result, targetLanguage);
     }
 
     private ChatModel resolveModel() {
@@ -111,22 +115,37 @@ public class DictionaryService {
                 .formatted(languageName, languageName);
     }
 
-    private CardData toCardData(DictionaryResult result, String targetLanguage) {
-        final ExampleData.ExampleDataBuilder exampleBuilder = ExampleData.builder()
-                .de(result.getExampleDe());
+    private static String bold(String text) {
+        return PTF_BOLD_START + text + PTF_BOLD_END;
+    }
 
-        switch (targetLanguage) {
-            case "en" -> exampleBuilder.en(result.getExampleTranslation());
-            case "hu" -> exampleBuilder.hu(result.getExampleTranslation());
-        }
+    private static String formatForDisplay(DictionaryResult result, String targetLanguage) {
+        final String word = result.getWord() != null ? result.getWord() : "";
+        final String typeStr = result.getType() != null ? "  " + bold(result.getType()) : "";
+        final String genderStr = result.getGender() != null ? " (" + result.getGender() + ")" : "";
+        final String headerLine = PTF_HEADER + bold(word + typeStr + genderStr);
 
-        return CardData.builder()
-                .word(result.getWord())
-                .type(result.getType())
-                .gender(result.getGender())
-                .translation(Map.of(targetLanguage, result.getTranslation()))
-                .forms(result.getForms())
-                .examples(List.of(exampleBuilder.build()))
-                .build();
+        final Stream<String> formsLine = result.getForms() != null && !result.getForms().isEmpty()
+                ? Stream.of(bold("Forms: ") + String.join(", ", result.getForms()))
+                : Stream.empty();
+
+        final Stream<String> translationLine = result.getTranslation() != null
+                ? Stream.of(bold("Translation (" + targetLanguage + "): ") + result.getTranslation())
+                : Stream.empty();
+
+        final Stream<String> exampleLines = Stream.of(
+                result.getExampleDe() != null
+                        ? Stream.of("", bold("Example (de): ") + result.getExampleDe())
+                        : Stream.<String>empty(),
+                result.getExampleTranslation() != null
+                        ? Stream.of(bold("Example (" + targetLanguage + "): ") + result.getExampleTranslation())
+                        : Stream.<String>empty())
+                .flatMap(Function.identity());
+
+        return Stream.of(
+                Stream.of(headerLine),
+                formsLine,
+                translationLine,
+                exampleLines).flatMap(Function.identity()).collect(Collectors.joining("\n"));
     }
 }

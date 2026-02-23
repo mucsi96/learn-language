@@ -9,18 +9,10 @@ local https = require("ssl.https")
 local ltn12 = require("ltn12")
 local json = require("json")
 
-local PTF_HEADER = "\u{FFF1}"
-local PTF_BOLD_START = "\u{FFF2}"
-local PTF_BOLD_END = "\u{FFF3}"
-
 local AIDictionary = WidgetContainer:extend {
     name = "ai-dictionary",
     is_doc_only = true,
 }
-
-local function bold(s)
-    return PTF_BOLD_START .. s .. PTF_BOLD_END
-end
 
 local function getPluginDir()
     local info = debug.getinfo(1, "S")
@@ -83,54 +75,7 @@ local function queryDictionary(serverUrl, token, requestBody)
         return nil, reason
     end
 
-    local ok, parsed = pcall(json.decode, raw)
-    if not ok then
-        return nil, "Invalid JSON response"
-    end
-
-    return parsed, nil
-end
-
-local function formatResult(result)
-    local lines = {}
-
-    local header = result.word or ""
-    if result.type then
-        header = header .. "  " .. bold(result.type)
-    end
-    if result.gender then
-        header = header .. " (" .. result.gender .. ")"
-    end
-
-    lines[#lines + 1] = PTF_HEADER .. bold(header)
-
-    if result.forms and #result.forms > 0 then
-        lines[#lines + 1] = bold("Forms: ") .. table.concat(result.forms, ", ")
-    end
-
-    if result.translation then
-        for lang, text in pairs(result.translation) do
-            if type(text) == "string" then
-                lines[#lines + 1] = bold("Translation (" .. lang .. "): ") .. text
-            end
-        end
-    end
-
-    if result.examples and #result.examples > 0 then
-        local ex = result.examples[1]
-        if type(ex.de) == "string" then
-            lines[#lines + 1] = ""
-            lines[#lines + 1] = bold("Example (de): ") .. ex.de
-        end
-        if type(ex.en) == "string" then
-            lines[#lines + 1] = bold("Example (en): ") .. ex.en
-        end
-        if type(ex.hu) == "string" then
-            lines[#lines + 1] = bold("Example (hu): ") .. ex.hu
-        end
-    end
-
-    return table.concat(lines, "\n")
+    return raw, nil
 end
 
 local function getSentenceAroundSelection(document, selection)
@@ -256,7 +201,7 @@ function AIDictionary:lookup(highlightedText)
 
         UIManager:show(TextViewer:new {
             title = "AI Dictionary",
-            text = formatResult(result),
+            text = result,
         })
     end)
 end
