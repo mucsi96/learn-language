@@ -25,7 +25,6 @@ import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.HighlightResponse;
-import io.github.mucsi96.learnlanguage.repository.HighlightRepository;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
@@ -42,6 +41,7 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
+import io.github.mucsi96.learnlanguage.service.HighlightService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
@@ -64,7 +64,7 @@ public class SourceController {
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
-  private final HighlightRepository highlightRepository;
+  private final HighlightService highlightService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -104,14 +104,7 @@ public class SourceController {
     final var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-    return highlightRepository.findBySourceOrderByCreatedAtDesc(source).stream()
-        .map(h -> HighlightResponse.builder()
-            .id(h.getId())
-            .highlightedWord(h.getHighlightedWord())
-            .sentence(h.getSentence())
-            .createdAt(h.getCreatedAt())
-            .build())
-        .toList();
+    return highlightService.getHighlightsBySource(source);
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

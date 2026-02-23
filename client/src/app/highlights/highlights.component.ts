@@ -74,8 +74,8 @@ export class HighlightsComponent {
   constructor() {
     effect(() => {
       const sourceId = this.routeSourceId();
-      if (sourceId) {
-        this.highlightsService.setSourceId(String(sourceId));
+      if (typeof sourceId === 'string') {
+        this.highlightsService.setSourceId(sourceId);
       }
     });
   }
@@ -85,15 +85,11 @@ export class HighlightsComponent {
   }
 
   toggleSelection(highlight: Highlight) {
-    this.selectedIds.update(ids => {
-      const next = new Set(ids);
-      if (next.has(highlight.id)) {
-        next.delete(highlight.id);
-      } else {
-        next.add(highlight.id);
-      }
-      return next;
-    });
+    this.selectedIds.update(ids =>
+      ids.has(highlight.id)
+        ? new Set([...ids].filter(id => id !== highlight.id))
+        : new Set([...ids, highlight.id])
+    );
   }
 
   toggleAll() {
@@ -110,7 +106,7 @@ export class HighlightsComponent {
   async startBulkCreation(): Promise<void> {
     const highlights = this.highlights();
     const sourceId = this.routeSourceId();
-    if (!highlights || !sourceId) return;
+    if (!highlights || typeof sourceId !== 'string') return;
 
     const selectedHighlights = highlights.filter(h => this.selectedIds().has(h.id));
     if (selectedHighlights.length === 0) return;
@@ -136,7 +132,7 @@ export class HighlightsComponent {
 
     const result = await this.bulkCreationService.createCardsInBulk(
       items,
-      String(sourceId),
+      sourceId,
       1,
       'vocabulary'
     );
@@ -148,72 +144,82 @@ export class HighlightsComponent {
   }
 
   private async resolveHighlightsToItems(highlights: Highlight[]): Promise<ExtractedItem[]> {
-    const results = await Promise.all(
-      highlights.map(async (highlight): Promise<Word | null> => {
-        try {
-          const normalizeResponse = await this.multiModelService.call<NormalizeWordResponse>(
-            'classification',
-            (model: string, headers?: Record<string, string>) =>
-              fetchJson<NormalizeWordResponse>(
-                this.http,
-                `/api/normalize-word?model=${model}`,
-                {
-                  body: {
-                    word: highlight.highlightedWord,
-                    sentence: highlight.sentence,
-                  },
-                  method: 'POST',
-                  headers,
-                }
-              )
-          );
+    const results = await Promise.allSettled(
+      highlights.map(async (highlight): Promise<Word> => {
+        const normalizeResponse = await this.multiModelService.call<NormalizeWordResponse>(
+          'classification',
+          (model: string, headers?: Record<string, string>) =>
+            fetchJson<NormalizeWordResponse>(
+              this.http,
+              `/api/normalize-word?model=${model}`,
+              {
+                body: {
+                  word: highlight.highlightedWord,
+                  sentence: highlight.sentence,
+                },
+                method: 'POST',
+                headers,
+              }
+            )
+        );
 
-          const normalizedWord = normalizeResponse.normalizedWord;
+        const normalizedWord = normalizeResponse.normalizedWord;
 
-          const translationResponse = await this.multiModelService.call<TranslationResponse>(
-            'translation',
-            (model: string, headers?: Record<string, string>) =>
-              fetchJson<TranslationResponse>(
-                this.http,
-                `/api/translate/hu?model=${model}`,
-                {
-                  body: {
-                    word: normalizedWord,
-                    forms: normalizeResponse.forms,
-                    examples: [highlight.sentence],
-                  },
-                  method: 'POST',
-                  headers,
-                }
-              )
-          );
+        const translationResponse = await this.multiModelService.call<TranslationResponse>(
+          'translation',
+          (model: string, headers?: Record<string, string>) =>
+            fetchJson<TranslationResponse>(
+              this.http,
+              `/api/translate/hu?model=${model}`,
+              {
+                body: {
+                  word: normalizedWord,
+                  forms: normalizeResponse.forms,
+                  examples: [highlight.sentence],
+                },
+                method: 'POST',
+                headers,
+              }
+            )
+        );
 
-          const wordIdResponse = await fetchJson<WordIdResponse>(
-            this.http,
-            '/api/word-id',
-            {
-              body: {
-                germanWord: normalizedWord,
-                hungarianTranslation: translationResponse.translation,
-              },
-              method: 'POST',
-            }
-          );
+        const wordIdResponse = await fetchJson<WordIdResponse>(
+          this.http,
+          '/api/word-id',
+          {
+            body: {
+              germanWord: normalizedWord,
+              hungarianTranslation: translationResponse.translation,
+            },
+            method: 'POST',
+          }
+        );
 
-          return {
-            id: wordIdResponse.id,
-            exists: wordIdResponse.exists,
-            warning: wordIdResponse.warning,
-            word: normalizedWord,
-            forms: normalizeResponse.forms,
-            examples: [highlight.sentence],
-          };
-        } catch {
-          return null;
-        }
+        return {
+          id: wordIdResponse.id,
+          exists: wordIdResponse.exists,
+          warning: wordIdResponse.warning,
+          word: normalizedWord,
+          forms: normalizeResponse.forms,
+          examples: [highlight.sentence],
+        };
       })
     );
 
-    return results.filter((item): item is Word => item !== null);
+    const failed = results.filter(
+      (r): r is PromiseRejectedResult => r.status === 'rejected'
+    );
+
+    if (failed.length > 0) {
+      this.snackBar.open(
+        `Failed to resolve ${failed.length} highlight(s)`,
+        'OK',
+        { duration: 5000 }
+      );
+    }
+
+    return results
+      .filter((r): r is PromiseFulfilledResult<Word> => r.status === 'fulfilled')
+      .map(r => r.value);
   }
 }

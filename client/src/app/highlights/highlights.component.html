@@ -1,5 +1,22 @@
 @if (loading()) {
-<mat-spinner class="page-loading" />
+<div class="header">
+  <a
+    mat-icon-button
+    [routerLink]="['/sources']"
+    aria-label="Back to sources"
+  >
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <h1>Highlights</h1>
+</div>
+<div class="skeleton-list">
+  @for (item of [1, 2, 3, 4, 5]; track item) {
+    <div class="skeleton-item">
+      <div class="skeleton skeleton-word"></div>
+      <div class="skeleton skeleton-sentence"></div>
+    </div>
+  }
+</div>
 } @else {
 <div class="header">
   <a
@@ -39,19 +56,21 @@
   }
 </div>
 
-<mat-selection-list role="list" aria-label="Highlights list">
+<mat-list role="list" aria-label="Highlights list">
   @for (highlight of highlights(); track highlight.id) {
-  <mat-list-option
-    role="listitem"
-    [selected]="isSelected(highlight)"
-    (click)="toggleSelection(highlight)"
-    [attr.aria-label]="highlight.highlightedWord"
-  >
+  <mat-list-item role="listitem" (click)="toggleSelection(highlight)">
+    <mat-checkbox
+      matListItemMeta
+      [checked]="isSelected(highlight)"
+      (click)="$event.stopPropagation()"
+      (change)="toggleSelection(highlight)"
+      [attr.aria-label]="'Select ' + highlight.highlightedWord"
+    ></mat-checkbox>
     <span matListItemTitle>{{ highlight.highlightedWord }}</span>
     <span matListItemLine>{{ highlight.sentence }}</span>
-  </mat-list-option>
+  </mat-list-item>
   }
-</mat-selection-list>
+</mat-list>
 } @else {
 <div class="empty-state">
   <mat-icon class="empty-icon">highlight</mat-icon>
