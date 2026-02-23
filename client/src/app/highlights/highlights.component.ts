@@ -16,6 +16,11 @@ import { Highlight, ExtractedItem, Word } from '../parser/types';
 import { injectParams } from '../utils/inject-params';
 import { fetchJson } from '../utils/fetchJson';
 
+interface NormalizeWordResponse {
+  normalizedWord: string;
+  forms: string[];
+}
+
 interface WordIdResponse {
   id: string;
   exists: boolean;
@@ -146,6 +151,25 @@ export class HighlightsComponent {
     const results = await Promise.all(
       highlights.map(async (highlight): Promise<Word | null> => {
         try {
+          const normalizeResponse = await this.multiModelService.call<NormalizeWordResponse>(
+            'classification',
+            (model: string, headers?: Record<string, string>) =>
+              fetchJson<NormalizeWordResponse>(
+                this.http,
+                `/api/normalize-word?model=${model}`,
+                {
+                  body: {
+                    word: highlight.highlightedWord,
+                    sentence: highlight.sentence,
+                  },
+                  method: 'POST',
+                  headers,
+                }
+              )
+          );
+
+          const normalizedWord = normalizeResponse.normalizedWord;
+
           const translationResponse = await this.multiModelService.call<TranslationResponse>(
             'translation',
             (model: string, headers?: Record<string, string>) =>
@@ -154,8 +178,8 @@ export class HighlightsComponent {
                 `/api/translate/hu?model=${model}`,
                 {
                   body: {
-                    word: highlight.highlightedWord,
-                    forms: [],
+                    word: normalizedWord,
+                    forms: normalizeResponse.forms,
                     examples: [highlight.sentence],
                   },
                   method: 'POST',
@@ -169,7 +193,7 @@ export class HighlightsComponent {
             '/api/word-id',
             {
               body: {
-                germanWord: highlight.highlightedWord,
+                germanWord: normalizedWord,
                 hungarianTranslation: translationResponse.translation,
               },
               method: 'POST',
@@ -180,8 +204,8 @@ export class HighlightsComponent {
             id: wordIdResponse.id,
             exists: wordIdResponse.exists,
             warning: wordIdResponse.warning,
-            word: highlight.highlightedWord,
-            forms: [],
+            word: normalizedWord,
+            forms: normalizeResponse.forms,
             examples: [highlight.sentence],
           };
         } catch {

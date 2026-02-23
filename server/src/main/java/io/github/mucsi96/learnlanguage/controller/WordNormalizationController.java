@@ -1,0 +1,33 @@
+package io.github.mucsi96.learnlanguage.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.NormalizeWordRequest;
+import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
+import io.github.mucsi96.learnlanguage.service.WordNormalizationService;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequiredArgsConstructor
+public class WordNormalizationController {
+
+    private final WordNormalizationService wordNormalizationService;
+
+    @PostMapping("/normalize-word")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public ResponseEntity<NormalizeWordResponse> normalizeWord(
+            @RequestBody NormalizeWordRequest request,
+            @RequestParam ChatModel model) {
+        final NormalizeWordResponse response = wordNormalizationService.normalize(
+                request.getWord(),
+                request.getSentence(),
+                model);
+        return ResponseEntity.ok(response);
+    }
+}
