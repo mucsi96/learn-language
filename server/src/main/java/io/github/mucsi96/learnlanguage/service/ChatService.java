@@ -107,13 +107,21 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
-        var chatResponse = callResponse.responseEntity(responseType);
+        final T entity;
+        final ChatResponse response;
+
+        if (responseType == String.class) {
+            response = callResponse.chatResponse();
+            entity = responseType.cast(response.getResult().getOutput().getText());
+        } else {
+            var chatResponse = callResponse.responseEntity(responseType);
+            response = chatResponse.getResponse();
+            entity = chatResponse.getEntity();
+        }
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        var entity = chatResponse.getEntity();
-
-        logUsage(model, operationType, chatResponse.getResponse(), jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
+        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
         return entity;
     }
