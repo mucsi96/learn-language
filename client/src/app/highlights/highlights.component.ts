@@ -1,13 +1,22 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AgGridAngular } from 'ag-grid-angular';
+import {
+  type ColDef,
+  type GridReadyEvent,
+  type GridApi,
+  type GetRowIdParams,
+  ModuleRegistry,
+  ClientSideRowModelModule,
+  ValidationModule,
+  ColumnAutoSizeModule,
+  themeMaterial,
+  colorSchemeDarkBlue,
+} from 'ag-grid-community';
 import { HighlightsService } from '../highlights.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
@@ -15,6 +24,8 @@ import { MultiModelService } from '../multi-model.service';
 import { Highlight, ExtractedItem, Word } from '../parser/types';
 import { injectParams } from '../utils/inject-params';
 import { fetchJson } from '../utils/fetchJson';
+import { SelectAllHeaderComponent } from '../cards-table/select-all-header.component';
+import { SelectionCheckboxComponent } from '../cards-table/selection-checkbox.component';
 
 interface NormalizeWordResponse {
   normalizedWord: string;
@@ -32,15 +43,18 @@ interface TranslationResponse {
   examples: string[];
 }
 
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule,
+  ValidationModule,
+  ColumnAutoSizeModule,
+]);
+
 @Component({
   selector: 'app-highlights',
   imports: [
-    RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule,
-    MatListModule,
-    MatProgressSpinnerModule,
+    AgGridAngular,
   ],
   templateUrl: './highlights.component.html',
   styleUrl: './highlights.component.css',
@@ -54,22 +68,76 @@ export class HighlightsComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly routeSourceId = injectParams('sourceId');
 
+  private gridApi: GridApi | null = null;
+
   readonly highlights = this.highlightsService.highlights.value;
   readonly loading = this.highlightsService.highlights.isLoading;
-  readonly selectedIds = signal<Set<number>>(new Set());
   readonly resolving = signal(false);
   readonly isCreating = this.bulkCreationService.isCreating;
 
-  readonly selectedCount = computed(() => this.selectedIds().size);
-  readonly allSelected = computed(() => {
-    const highlights = this.highlights();
-    return highlights !== undefined && highlights.length > 0 && this.selectedIds().size === highlights.length;
+  readonly allHighlightIds = computed(() =>
+    (this.highlights() ?? []).map(h => String(h.id))
+  );
+
+  readonly selectedIds = linkedSignal<Highlight[] | undefined, readonly string[]>({
+    source: this.highlights,
+    computation: () => [],
   });
-  readonly someSelected = computed(() => {
-    const count = this.selectedIds().size;
-    const highlights = this.highlights();
-    return count > 0 && highlights !== undefined && count < highlights.length;
+
+  readonly selectedIdsSet = computed(() => new Set(this.selectedIds()));
+  readonly selectedCount = computed(() => this.selectedIds().length);
+  readonly totalFilteredCount = computed(() => this.allHighlightIds().length);
+
+  readonly gridContext = {
+    selectedIdsSet: this.selectedIdsSet,
+    toggleSelection: (id: string) => this.toggleSelection(id),
+    selectedIds: this.selectedIds as { (): readonly string[] },
+    totalFilteredCount: this.totalFilteredCount,
+    selectAll: () => this.selectAll(),
+    deselectAll: () => this.deselectAll(),
+  };
+
+  readonly theme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
+    backgroundColor: 'hsl(215, 28%, 17%)',
+    foregroundColor: 'hsl(220, 13%, 91%)',
+    headerBackgroundColor: 'hsl(217, 19%, 27%)',
+    headerTextColor: 'hsl(220, 13%, 91%)',
+    headerFontWeight: 500,
+    rowHoverColor: 'hsl(217, 19%, 22%)',
+    accentColor: 'hsl(220, 89%, 53%)',
+    selectedRowBackgroundColor: 'hsl(220, 89%, 53%, 0.15)',
+    fontFamily: 'system-ui',
   });
+
+  readonly columnDefs: ColDef[] = [
+    {
+      headerName: '',
+      field: 'id',
+      width: 56,
+      sortable: false,
+      resizable: false,
+      cellRenderer: SelectionCheckboxComponent,
+      headerComponent: SelectAllHeaderComponent,
+    },
+    {
+      headerName: 'Word',
+      field: 'highlightedWord',
+      flex: 1,
+      sortable: true,
+    },
+    {
+      headerName: 'Sentence',
+      field: 'sentence',
+      flex: 3,
+      sortable: true,
+    },
+  ];
+
+  readonly defaultColDef: ColDef = {
+    resizable: true,
+  };
+
+  readonly getRowId = (params: GetRowIdParams) => String(params.data.id);
 
   constructor() {
     effect(() => {
@@ -78,29 +146,23 @@ export class HighlightsComponent {
         this.highlightsService.setSourceId(sourceId);
       }
     });
+
+    effect(() => {
+      const highlights = this.highlights();
+      if (highlights && this.gridApi) {
+        this.gridApi.setGridOption('rowData', highlights);
+        this.gridApi.sizeColumnsToFit();
+      }
+    });
   }
 
-  isSelected(highlight: Highlight): boolean {
-    return this.selectedIds().has(highlight.id);
-  }
-
-  toggleSelection(highlight: Highlight) {
-    this.selectedIds.update(ids =>
-      ids.has(highlight.id)
-        ? new Set([...ids].filter(id => id !== highlight.id))
-        : new Set([...ids, highlight.id])
-    );
-  }
-
-  toggleAll() {
+  onGridReady(event: GridReadyEvent): void {
+    this.gridApi = event.api;
     const highlights = this.highlights();
-    if (!highlights) return;
-
-    if (this.allSelected()) {
-      this.selectedIds.set(new Set());
-    } else {
-      this.selectedIds.set(new Set(highlights.map(h => h.id)));
+    if (highlights) {
+      event.api.setGridOption('rowData', highlights);
     }
+    event.api.sizeColumnsToFit();
   }
 
   async startBulkCreation(): Promise<void> {
@@ -108,7 +170,8 @@ export class HighlightsComponent {
     const sourceId = this.routeSourceId();
     if (!highlights || typeof sourceId !== 'string') return;
 
-    const selectedHighlights = highlights.filter(h => this.selectedIds().has(h.id));
+    const selectedSet = this.selectedIdsSet();
+    const selectedHighlights = highlights.filter(h => selectedSet.has(String(h.id)));
     if (selectedHighlights.length === 0) return;
 
     this.resolving.set(true);
@@ -138,9 +201,27 @@ export class HighlightsComponent {
     );
 
     if (result.succeeded > 0) {
-      this.selectedIds.set(new Set());
+      this.selectedIds.set([]);
       this.highlightsService.reload();
     }
+  }
+
+  private toggleSelection(id: string): void {
+    const current = this.selectedIds();
+    const currentSet = this.selectedIdsSet();
+    this.selectedIds.set(
+      currentSet.has(id)
+        ? current.filter(cid => cid !== id)
+        : [...current, id]
+    );
+  }
+
+  private selectAll(): void {
+    this.selectedIds.set(this.allHighlightIds());
+  }
+
+  private deselectAll(): void {
+    this.selectedIds.set([]);
   }
 
   private async resolveHighlightsToItems(highlights: Highlight[]): Promise<ExtractedItem[]> {

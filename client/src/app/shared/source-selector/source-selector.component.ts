@@ -81,6 +81,7 @@ export class SourceSelectorComponent {
     switch (this.mode()) {
       case 'study': return ['/sources', source.id, 'study'];
       case 'cards': return ['/sources', source.id, 'cards'];
+      case 'highlights': return ['/sources', source.id, 'highlights'];
       default: return ['/sources', source.id, 'page', String(source.startPage)];
     }
   }
