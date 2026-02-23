@@ -123,6 +123,7 @@ function AIDictionary:init()
             enabled = true,
             callback = function()
                 local selected_text = tostring(this.selected_text.text)
+                this:saveHighlight()
                 this:onClose()
                 self:lookup(selected_text)
             end,
