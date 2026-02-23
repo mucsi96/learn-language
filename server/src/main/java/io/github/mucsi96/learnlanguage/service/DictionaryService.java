@@ -47,11 +47,20 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        return chatService.callForTextWithLogging(
+        final String rawResponse = chatService.callForTextWithLogging(
                 model,
                 OperationType.TRANSLATION,
                 systemPrompt,
                 userMessage);
+
+        return replacePlaceholdersWithUnicode(rawResponse);
+    }
+
+    private String replacePlaceholdersWithUnicode(String text) {
+        return text
+                .replace("<<H>>", "\uFFF1")
+                .replace("<<B>>", "\uFFF2")
+                .replace("<</B>>", "\uFFF3");
     }
 
     private ChatModel resolveModel() {
@@ -91,35 +100,35 @@ public class DictionaryService {
 
                 Use the book title and author as context for appropriate register and style.
 
-                You must format the output as plain text using these special Unicode markers:
-                - \\uFFF1 = header line marker (place at the very start of the first line)
-                - \\uFFF2 = bold start
-                - \\uFFF3 = bold end
+                You must format the output as plain text using these special markers:
+                - <<H>> = header line marker (place at the very start of the first line)
+                - <<B>> = bold start
+                - <</B>> = bold end
 
                 Return exactly this format (each item on its own line, no blank lines except before the example block):
 
                 For verbs:
-                \\uFFF1\\uFFF2WORD  \\uFFF2WORD_TYPE\\uFFF3\\uFFF3
-                \\uFFF2Forms: \\uFFF3form1, form2, form3
-                \\uFFF2Translation (%2$s): \\uFFF3translation
+                <<H>><<B>>WORD  <<B>>WORD_TYPE<</B>><</B>>
+                <<B>>Forms: <</B>>form1, form2, form3
+                <<B>>Translation (%2$s): <</B>>translation
 
-                \\uFFF2Example (de): \\uFFF3German example sentence
-                \\uFFF2Example (%2$s): \\uFFF3Translated example sentence
+                <<B>>Example (de): <</B>>German example sentence
+                <<B>>Example (%2$s): <</B>>Translated example sentence
 
                 For nouns:
-                \\uFFF1\\uFFF2WORD  \\uFFF2NOUN\\uFFF3 (GENDER)\\uFFF3
-                \\uFFF2Forms: \\uFFF3plural form
-                \\uFFF2Translation (%2$s): \\uFFF3translation
+                <<H>><<B>>WORD  <<B>>NOUN<</B>> (GENDER)<</B>>
+                <<B>>Forms: <</B>>plural form
+                <<B>>Translation (%2$s): <</B>>translation
 
-                \\uFFF2Example (de): \\uFFF3German example sentence
-                \\uFFF2Example (%2$s): \\uFFF3Translated example sentence
+                <<B>>Example (de): <</B>>German example sentence
+                <<B>>Example (%2$s): <</B>>Translated example sentence
 
                 For other word types (no forms line):
-                \\uFFF1\\uFFF2WORD  \\uFFF2WORD_TYPE\\uFFF3\\uFFF3
-                \\uFFF2Translation (%2$s): \\uFFF3translation
+                <<H>><<B>>WORD  <<B>>WORD_TYPE<</B>><</B>>
+                <<B>>Translation (%2$s): <</B>>translation
 
-                \\uFFF2Example (de): \\uFFF3German example sentence
-                \\uFFF2Example (%2$s): \\uFFF3Translated example sentence
+                <<B>>Example (de): <</B>>German example sentence
+                <<B>>Example (%2$s): <</B>>Translated example sentence
 
                 Do not include any other text, explanation, or markdown. Only the formatted output.
                 """

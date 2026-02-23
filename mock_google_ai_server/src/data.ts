@@ -223,22 +223,22 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
 export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
   hu: {
     fahren: [
-      '\uFFF1\uFFF2abfahren  \uFFF2VERB\uFFF3\uFFF3',
-      '\uFFF2Forms: \uFFF3fährt ab, fuhr ab, ist abgefahren',
-      '\uFFF2Translation (hu): \uFFF3elindulni, elhagyni',
+      '<<H>><<B>>abfahren  <<B>>VERB<</B>><</B>>',
+      '<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren',
+      '<<B>>Translation (hu): <</B>>elindulni, elhagyni',
       '',
-      '\uFFF2Example (de): \uFFF3Wir fahren ab.',
-      '\uFFF2Example (hu): \uFFF3Elindulunk.',
+      '<<B>>Example (de): <</B>>Wir fahren ab.',
+      '<<B>>Example (hu): <</B>>Elindulunk.',
     ].join('\n'),
   },
   en: {
     fahren: [
-      '\uFFF1\uFFF2abfahren  \uFFF2VERB\uFFF3\uFFF3',
-      '\uFFF2Forms: \uFFF3fährt ab, fuhr ab, ist abgefahren',
-      '\uFFF2Translation (en): \uFFF3to depart, to leave',
+      '<<H>><<B>>abfahren  <<B>>VERB<</B>><</B>>',
+      '<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren',
+      '<<B>>Translation (en): <</B>>to depart, to leave',
       '',
-      '\uFFF2Example (de): \uFFF3Wir fahren ab.',
-      '\uFFF2Example (en): \uFFF3We depart.',
+      '<<B>>Example (de): <</B>>Wir fahren ab.',
+      '<<B>>Example (en): <</B>>We depart.',
     ].join('\n'),
   },
 };
