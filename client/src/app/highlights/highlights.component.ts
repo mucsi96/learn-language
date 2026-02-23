@@ -112,7 +112,8 @@ export class HighlightsComponent {
 
     this.resolving.set(true);
 
-    const items = await this.resolveHighlightsToItems(selectedHighlights);
+    const resolvedItems = await this.resolveHighlightsToItems(selectedHighlights);
+    const items = resolvedItems.filter(item => !item.exists);
 
     this.resolving.set(false);
 

@@ -10,7 +10,7 @@ export class HighlightsService {
   private readonly http = inject(HttpClient);
   private readonly sourceId = signal<string | undefined>(undefined);
 
-  readonly highlights = resource<Highlight[], unknown>({
+  readonly highlights = resource<Highlight[], { sourceId: string | undefined }>({
     params: () => ({ sourceId: this.sourceId() }),
     loader: async ({ params: { sourceId } }) => {
       if (!sourceId) {
