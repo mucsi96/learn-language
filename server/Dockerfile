@@ -14,7 +14,7 @@ RUN mvn package -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 # Stage 2: Runtime image
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 VOLUME /tmp
 
