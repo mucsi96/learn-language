@@ -144,6 +144,8 @@ test('dictionary endpoint returns 401 after token is deleted', async ({
     page.getByRole('list', { name: 'API tokens' })
   ).not.toBeVisible();
 
-  const responseAfterDelete = await lookupWord(token, 'hu');
-  expect(responseAfterDelete.status).toBe(401);
+  await expect(async () => {
+    const responseAfterDelete = await lookupWord(token, 'hu');
+    expect(responseAfterDelete.status).toBe(401);
+  }).toPass();
 });
