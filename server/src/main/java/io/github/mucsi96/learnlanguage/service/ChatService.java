@@ -47,6 +47,7 @@ public class ChatService {
                 responseType);
     }
 
+
     public <T> T callWithLoggingAndMedia(
             ChatModel model,
             OperationType operationType,
@@ -90,6 +91,32 @@ public class ChatService {
         fileStorageService.saveFile(BinaryData.fromBytes(imageData), fileName);
     }
 
+    public String callForTextWithLogging(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            String userMessage) {
+
+        long startTime = System.currentTimeMillis();
+
+        ChatClient chatClient = chatClientService.getChatClient(model);
+
+        ChatClient.CallResponseSpec callResponse = chatClient
+                .prompt()
+                .system(systemPrompt)
+                .user(u -> u.text(userMessage))
+                .call();
+
+        final ChatResponse response = callResponse.chatResponse();
+        final String text = response.getResult().getOutput().getText();
+
+        long processingTime = System.currentTimeMillis() - startTime;
+
+        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+
+        return text;
+    }
+
     private <T> T callWithLoggingInternal(
             ChatModel model,
             OperationType operationType,
@@ -107,17 +134,9 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
-        final T entity;
-        final ChatResponse response;
-
-        if (responseType == String.class) {
-            response = callResponse.chatResponse();
-            entity = responseType.cast(response.getResult().getOutput().getText());
-        } else {
-            var chatResponse = callResponse.responseEntity(responseType);
-            response = chatResponse.getResponse();
-            entity = chatResponse.getEntity();
-        }
+        var chatResponse = callResponse.responseEntity(responseType);
+        final ChatResponse response = chatResponse.getResponse();
+        final T entity = chatResponse.getEntity();
 
         long processingTime = System.currentTimeMillis() - startTime;
 

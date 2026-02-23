@@ -47,12 +47,11 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        return chatService.callWithLogging(
+        return chatService.callForTextWithLogging(
                 model,
                 OperationType.TRANSLATION,
                 systemPrompt,
-                userMessage,
-                String.class);
+                userMessage);
     }
 
     private ChatModel resolveModel() {
