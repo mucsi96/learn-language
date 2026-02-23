@@ -47,6 +47,7 @@ public class ChatService {
                 responseType);
     }
 
+
     public <T> T callWithLoggingAndMedia(
             ChatModel model,
             OperationType operationType,
@@ -90,6 +91,32 @@ public class ChatService {
         fileStorageService.saveFile(BinaryData.fromBytes(imageData), fileName);
     }
 
+    public String callForTextWithLogging(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            String userMessage) {
+
+        long startTime = System.currentTimeMillis();
+
+        ChatClient chatClient = chatClientService.getChatClient(model);
+
+        ChatClient.CallResponseSpec callResponse = chatClient
+                .prompt()
+                .system(systemPrompt)
+                .user(u -> u.text(userMessage))
+                .call();
+
+        final ChatResponse response = callResponse.chatResponse();
+        final String text = response.getResult().getOutput().getText();
+
+        long processingTime = System.currentTimeMillis() - startTime;
+
+        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+
+        return text;
+    }
+
     private <T> T callWithLoggingInternal(
             ChatModel model,
             OperationType operationType,
@@ -108,12 +135,12 @@ public class ChatService {
                 .call();
 
         var chatResponse = callResponse.responseEntity(responseType);
+        final ChatResponse response = chatResponse.getResponse();
+        final T entity = chatResponse.getEntity();
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        var entity = chatResponse.getEntity();
-
-        logUsage(model, operationType, chatResponse.getResponse(), jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
+        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
         return entity;
     }

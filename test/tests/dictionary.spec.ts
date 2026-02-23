@@ -58,10 +58,10 @@ test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
     bold('Translation (hu): ') + 'elindulni, elhagyni'
   );
   expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren um zwölf Uhr ab.'
+    bold('Example (de): ') + 'Wir fahren ab.'
   );
   expect(text).toContain(
-    bold('Example (hu): ') + 'Tizenkét órakor indulunk.'
+    bold('Example (hu): ') + 'Elindulunk.'
   );
 });
 
@@ -80,10 +80,10 @@ test('dictionary endpoint translates a word to English', async ({ page }) => {
     bold('Translation (en): ') + 'to depart, to leave'
   );
   expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren um zwölf Uhr ab.'
+    bold('Example (de): ') + 'Wir fahren ab.'
   );
   expect(text).toContain(
-    bold('Example (en): ') + "We are departing at twelve o'clock."
+    bold('Example (en): ') + 'We depart.'
   );
 });
 

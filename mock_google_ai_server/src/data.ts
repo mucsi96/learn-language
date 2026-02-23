@@ -220,36 +220,26 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
-export const DICTIONARY_LOOKUPS: Record<string, Record<string, {
-  word: string;
-  type: string;
-  gender: string | null;
-  forms: string[];
-  translation: string;
-  exampleDe: string;
-  exampleTranslation: string;
-}>> = {
+export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
   hu: {
-    fahren: {
-      word: 'abfahren',
-      type: 'VERB',
-      gender: null,
-      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
-      translation: 'elindulni, elhagyni',
-      exampleDe: 'Wir fahren um zwölf Uhr ab.',
-      exampleTranslation: 'Tizenkét órakor indulunk.',
-    },
+    fahren: [
+      '\uFFF1\uFFF2abfahren  \uFFF2VERB\uFFF3\uFFF3',
+      '\uFFF2Forms: \uFFF3fährt ab, fuhr ab, ist abgefahren',
+      '\uFFF2Translation (hu): \uFFF3elindulni, elhagyni',
+      '',
+      '\uFFF2Example (de): \uFFF3Wir fahren ab.',
+      '\uFFF2Example (hu): \uFFF3Elindulunk.',
+    ].join('\n'),
   },
   en: {
-    fahren: {
-      word: 'abfahren',
-      type: 'VERB',
-      gender: null,
-      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
-      translation: 'to depart, to leave',
-      exampleDe: 'Wir fahren um zwölf Uhr ab.',
-      exampleTranslation: "We are departing at twelve o'clock.",
-    },
+    fahren: [
+      '\uFFF1\uFFF2abfahren  \uFFF2VERB\uFFF3\uFFF3',
+      '\uFFF2Forms: \uFFF3fährt ab, fuhr ab, ist abgefahren',
+      '\uFFF2Translation (en): \uFFF3to depart, to leave',
+      '',
+      '\uFFF2Example (de): \uFFF3Wir fahren ab.',
+      '\uFFF2Example (en): \uFFF3We depart.',
+    ].join('\n'),
   },
 };
 
