@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.HighlightResponse;
+import io.github.mucsi96.learnlanguage.repository.HighlightRepository;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
@@ -62,6 +64,7 @@ public class SourceController {
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
+  private final HighlightRepository highlightRepository;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -93,6 +96,22 @@ public class SourceController {
           .formatType(source.getFormatType())
           .build();
     }).collect(Collectors.toList());
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @GetMapping("/source/{sourceId}/highlights")
+  public List<HighlightResponse> getHighlights(@PathVariable String sourceId) {
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    return highlightRepository.findBySourceOrderByCreatedAtDesc(source).stream()
+        .map(h -> HighlightResponse.builder()
+            .id(h.getId())
+            .highlightedWord(h.getHighlightedWord())
+            .sentence(h.getSentence())
+            .createdAt(h.getCreatedAt())
+            .build())
+        .toList();
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

@@ -164,6 +164,28 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'sources/:sourceId/highlights',
+    canActivate: [conditionalAuthGuard],
+    title: 'Highlights',
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./highlights/highlights.component').then(
+            (m) => m.HighlightsComponent
+          ),
+      },
+    ],
+  },
+  {
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),

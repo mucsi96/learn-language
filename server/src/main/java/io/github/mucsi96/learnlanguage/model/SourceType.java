@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum SourceType {
     PDF("pdf", "PDF Document"),
-    IMAGES("images", "Image Collection");
+    IMAGES("images", "Image Collection"),
+    EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary");
 
     private final String code;
     private final String displayName;

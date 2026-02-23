@@ -77,8 +77,13 @@
     class="action-fab"
     (click)="navigateToPages()"
   >
+    @if (isEbookDictionary()) {
+    <mat-icon>highlight</mat-icon>
+    Highlights
+    } @else {
     <mat-icon>menu_book</mat-icon>
     Pages
+    }
   </button>
 </nav>
 }

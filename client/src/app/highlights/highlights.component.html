@@ -1,0 +1,62 @@
+@if (loading()) {
+<mat-spinner class="page-loading" />
+} @else {
+<div class="header">
+  <a
+    mat-icon-button
+    [routerLink]="['/sources']"
+    aria-label="Back to sources"
+  >
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <h1>Highlights</h1>
+</div>
+
+@if (highlights()?.length) {
+<div class="actions-bar">
+  <mat-checkbox
+    [checked]="allSelected()"
+    [indeterminate]="someSelected()"
+    (change)="toggleAll()"
+    aria-label="Select all highlights"
+  >
+    Select all
+  </mat-checkbox>
+  @if (selectedCount() > 0) {
+  <button
+    mat-flat-button
+    (click)="startBulkCreation()"
+    [disabled]="isCreating() || resolving()"
+    aria-label="Create cards from selected highlights"
+  >
+    @if (resolving()) {
+    <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+    <mat-icon>add_circle</mat-icon>
+    }
+    Create {{ selectedCount() }} Cards
+  </button>
+  }
+</div>
+
+<mat-selection-list role="list" aria-label="Highlights list">
+  @for (highlight of highlights(); track highlight.id) {
+  <mat-list-option
+    role="listitem"
+    [selected]="isSelected(highlight)"
+    (click)="toggleSelection(highlight)"
+    [attr.aria-label]="highlight.highlightedWord"
+  >
+    <span matListItemTitle>{{ highlight.highlightedWord }}</span>
+    <span matListItemLine>{{ highlight.sentence }}</span>
+  </mat-list-option>
+  }
+</mat-selection-list>
+} @else {
+<div class="empty-state">
+  <mat-icon class="empty-icon">highlight</mat-icon>
+  <h2>No highlights yet</h2>
+  <p>Highlights from your ebook reader will appear here.</p>
+</div>
+}
+}
