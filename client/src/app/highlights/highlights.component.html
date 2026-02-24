@@ -1,81 +1,26 @@
-@if (loading()) {
-<div class="header">
-  <a
-    mat-icon-button
-    [routerLink]="['/sources']"
-    aria-label="Back to sources"
-  >
-    <mat-icon>arrow_back</mat-icon>
-  </a>
-  <h1>Highlights</h1>
-</div>
-<div class="skeleton-list">
-  @for (item of [1, 2, 3, 4, 5]; track item) {
-    <div class="skeleton-item">
-      <div class="skeleton skeleton-word"></div>
-      <div class="skeleton skeleton-sentence"></div>
-    </div>
-  }
-</div>
-} @else {
-<div class="header">
-  <a
-    mat-icon-button
-    [routerLink]="['/sources']"
-    aria-label="Back to sources"
-  >
-    <mat-icon>arrow_back</mat-icon>
-  </a>
-  <h1>Highlights</h1>
-</div>
+<div class="container">
+  <ag-grid-angular
+    class="highlights-grid"
+    [theme]="theme"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [context]="gridContext"
+    [getRowId]="getRowId"
+    (gridReady)="onGridReady($event)"
+  />
 
-@if (highlights()?.length) {
-<div class="actions-bar">
-  <mat-checkbox
-    [checked]="allSelected()"
-    [indeterminate]="someSelected()"
-    (change)="toggleAll()"
-    aria-label="Select all highlights"
-  >
-    Select all
-  </mat-checkbox>
-  @if (selectedCount() > 0) {
-  <button
-    mat-flat-button
-    (click)="startBulkCreation()"
-    [disabled]="isCreating() || resolving()"
-    aria-label="Create cards from selected highlights"
-  >
-    @if (resolving()) {
-    <mat-spinner diameter="20"></mat-spinner>
-    } @else {
-    <mat-icon>add_circle</mat-icon>
-    }
-    Create {{ selectedCount() }} Cards
-  </button>
+  @if (selectedCount() > 0 && !isCreating()) {
+    <button
+      mat-fab
+      extended
+      color="primary"
+      class="create-fab"
+      (click)="startBulkCreation()"
+      [disabled]="isCreating() || resolving()"
+      aria-label="Create cards from selected highlights"
+    >
+      <mat-icon>add_circle</mat-icon>
+      Create {{ selectedCount() }} Cards
+    </button>
   }
 </div>
-
-<mat-list role="list" aria-label="Highlights list">
-  @for (highlight of highlights(); track highlight.id) {
-  <mat-list-item role="listitem" (click)="toggleSelection(highlight)">
-    <mat-checkbox
-      matListItemMeta
-      [checked]="isSelected(highlight)"
-      (click)="$event.stopPropagation()"
-      (change)="toggleSelection(highlight)"
-      [attr.aria-label]="'Select ' + highlight.highlightedWord"
-    ></mat-checkbox>
-    <span matListItemTitle>{{ highlight.highlightedWord }}</span>
-    <span matListItemLine>{{ highlight.sentence }}</span>
-  </mat-list-item>
-  }
-</mat-list>
-} @else {
-<div class="empty-state">
-  <mat-icon class="empty-icon">highlight</mat-icon>
-  <h2>No highlights yet</h2>
-  <p>Highlights from your ebook reader will appear here.</p>
-</div>
-}
-}

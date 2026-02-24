@@ -5,6 +5,7 @@ import {
   createSource,
   createHighlight,
   getHighlights,
+  getGridData,
   getSource,
   setupDefaultChatModelSettings,
 } from '../utils';
@@ -154,10 +155,16 @@ test('highlights page shows highlights for ebook dictionary source', async ({
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
-  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
-  await expect(page.getByText('Wir fahren um zwölf Uhr ab.', { exact: true })).toBeVisible();
-  await expect(page.getByText('Haus', { exact: true })).toBeVisible();
-  await expect(page.getByText('Das Haus ist groß.', { exact: true })).toBeVisible();
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData<{ Word: string; Sentence: string }>(grid);
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ Word: 'fahren', Sentence: 'Wir fahren um zwölf Uhr ab.' }),
+        expect.objectContaining({ Word: 'Haus', Sentence: 'Das Haus ist groß.' }),
+      ])
+    );
+  }).toPass();
 });
 
 test('admin page shows Highlights button for ebook dictionary source', async ({
@@ -225,16 +232,18 @@ test('highlights page select all checkbox selects all highlights', async ({
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
   await expect(page.getByText('fahren')).toBeVisible();
 
-  await page.getByLabel('Select all highlights').click();
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
   await expect(
     page.getByRole('button', { name: 'Create 2 Cards' })
   ).toBeVisible();
 });
 
-test('highlights page shows empty state when no highlights', async ({
+test('highlights page shows empty grid when no highlights', async ({
   page,
 }) => {
   await createSource({
@@ -249,5 +258,41 @@ test('highlights page shows empty state when no highlights', async ({
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
-  await expect(page.getByText('No highlights yet')).toBeVisible();
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(0);
+  }).toPass();
+});
+
+test('highlights page source selector navigates to other source highlights', async ({
+  page,
+}) => {
+  await createSource({
+    id: 'test-ebook-1',
+    name: 'First Ebook',
+    startPage: 1,
+    languageLevel: 'B1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'EBOOK_DICTIONARY',
+  });
+  await createSource({
+    id: 'test-ebook-2',
+    name: 'Second Ebook',
+    startPage: 1,
+    languageLevel: 'B1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'EBOOK_DICTIONARY',
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook-1/highlights');
+
+  await expect(page.getByRole('button', { name: 'First Ebook' })).toBeVisible();
+  await page.getByRole('button', { name: 'First Ebook' }).click();
+  await page.getByRole('menuitem', { name: 'Second Ebook' }).click();
+
+  await expect(page).toHaveURL(/\/sources\/test-ebook-2\/highlights/);
 });
