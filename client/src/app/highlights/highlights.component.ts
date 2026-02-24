@@ -17,6 +17,7 @@ import {
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
+import { firstValueFrom } from 'rxjs';
 import { HighlightsService } from '../highlights.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
@@ -83,8 +84,18 @@ export class HighlightsComponent {
   readonly resolving = signal(false);
   readonly isCreating = this.bulkCreationService.isCreating;
 
+  readonly disabledIdsSet = computed(() =>
+    new Set(
+      (this.highlights() ?? [])
+        .filter(h => h.cardExists)
+        .map(h => String(h.id))
+    )
+  );
+
   readonly allHighlightIds = computed(() =>
-    (this.highlights() ?? []).map(h => String(h.id))
+    (this.highlights() ?? [])
+      .filter(h => !h.cardExists)
+      .map(h => String(h.id))
   );
 
   readonly selectedIds = linkedSignal<Highlight[] | undefined, readonly string[]>({
@@ -98,6 +109,7 @@ export class HighlightsComponent {
 
   readonly gridContext = {
     selectedIdsSet: this.selectedIdsSet,
+    disabledIdsSet: this.disabledIdsSet,
     toggleSelection: (id: string) => this.toggleSelection(id),
     selectedIds: this.selectedIds as { (): readonly string[] },
     totalFilteredCount: this.totalFilteredCount,
@@ -235,10 +247,25 @@ export class HighlightsComponent {
     if (result.succeeded > 0) {
       this.selectedIds.set([]);
       this.highlightsService.reload();
+      this.suggestCleanup(sourceId);
+    }
+  }
+
+  private async suggestCleanup(sourceId: string): Promise<void> {
+    const snackBarRef = this.snackBar.open(
+      'Clean up highlights that already have cards?',
+      'Clean up',
+      { duration: 10000 }
+    );
+    const dismissal = await firstValueFrom(snackBarRef.afterDismissed());
+    if (dismissal.dismissedByAction) {
+      const { deleted } = await this.highlightsService.cleanupWithCards(sourceId);
+      this.snackBar.open(`Removed ${deleted} highlight(s)`, 'OK', { duration: 3000 });
     }
   }
 
   private toggleSelection(id: string): void {
+    if (this.disabledIdsSet().has(id)) return;
     const current = this.selectedIds();
     const currentSet = this.selectedIdsSet();
     this.selectedIds.set(

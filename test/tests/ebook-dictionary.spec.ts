@@ -379,3 +379,119 @@ test('highlights grid shows dash for Card ID when no candidate card ID', async (
     ]);
   }).toPass();
 });
+
+test('highlight with existing card has disabled checkbox', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  const fahrenRow = grid.getByRole('row').filter({ hasText: 'Wir fahren um zwölf Uhr ab.' });
+  const hausRow = grid.getByRole('row').filter({ hasText: 'Das Haus ist groß.' });
+
+  await expect(fahrenRow.getByRole('checkbox')).toBeDisabled();
+  await expect(hausRow.getByRole('checkbox')).toBeEnabled();
+});
+
+test('select all skips highlights with existing cards', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await expect(
+    page.getByRole('button').filter({ hasText: 'Create 1 Cards' })
+  ).toBeVisible();
+});
+
+test('cleanup endpoint deletes highlights with existing cards', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(2);
+  }).toPass();
+
+  const response = await fetch(
+    'http://localhost:8180/api/source/test-ebook/highlights/with-cards',
+    { method: 'DELETE' }
+  );
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.deleted).toBe(1);
+
+  const remainingHighlights = await getHighlights('test-ebook');
+  expect(remainingHighlights).toHaveLength(1);
+  expect(remainingHighlights[0].highlightedWord).toBe('Haus');
+});

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Highlight;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -57,6 +58,30 @@ public class HighlightService {
                         .createdAt(h.getCreatedAt())
                         .build())
                 .toList();
+    }
+
+    @Transactional
+    public int deleteHighlightsWithCards(Source source) {
+        final List<Highlight> highlights = highlightRepository.findBySourceOrderByCreatedAtDesc(source);
+
+        final Set<String> candidateCardIds = highlights.stream()
+                .map(Highlight::getCandidateCardId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        if (candidateCardIds.isEmpty()) {
+            return 0;
+        }
+
+        final Set<String> existingCardIds = cardRepository.findAllById(candidateCardIds).stream()
+                .map(card -> card.getId())
+                .collect(Collectors.toSet());
+
+        if (existingCardIds.isEmpty()) {
+            return 0;
+        }
+
+        return highlightRepository.deleteBySourceAndCandidateCardIdIn(source, existingCardIds);
     }
 
     public void persistHighlight(Source source, String highlightedWord, String sentence) {
