@@ -139,6 +139,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
     await client.query('DELETE FROM learn_language.api_tokens');
+    await client.query('DELETE FROM learn_language.highlights');
     await client.query('DELETE FROM learn_language.documents');
     await client.query('DELETE FROM learn_language.sources');
   });
@@ -1189,6 +1190,43 @@ export async function createStudySession(params: {
   });
 
   return sessionId;
+}
+
+export async function createHighlight(params: {
+  sourceId: string;
+  highlightedWord: string;
+  sentence: string;
+}): Promise<number> {
+  const { sourceId, highlightedWord, sentence } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.highlights (source_id, highlighted_word, sentence, created_at)
+       VALUES ($1, $2, $3, NOW())
+       RETURNING id`,
+      [sourceId, highlightedWord, sentence]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getHighlights(sourceId: string): Promise<
+  Array<{
+    id: number;
+    highlightedWord: string;
+    sentence: string;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, highlighted_word as "highlightedWord", sentence
+       FROM learn_language.highlights
+       WHERE source_id = $1
+       ORDER BY created_at DESC`,
+      [sourceId]
+    );
+    return result.rows;
+  });
 }
 
 export async function getStudySessionCardsBySource(sourceId: string): Promise<

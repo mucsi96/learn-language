@@ -99,6 +99,7 @@ export const routes: Routes = [
           import('./shared/source-selector/source-selector.component').then(
             (m) => m.SourceSelectorComponent
           ),
+          data: { mode: 'study' },
       },
       {
         path: '',
@@ -132,6 +133,7 @@ export const routes: Routes = [
           import('./shared/source-selector/source-selector.component').then(
             (m) => m.SourceSelectorComponent
           ),
+        data: { mode: 'admin' },
       },
       {
         path: '',
@@ -159,6 +161,29 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./cards-table/cards-table.component').then(
             (m) => m.CardsTableComponent
+          ),
+      },
+    ],
+  },
+  {
+    path: 'sources/:sourceId/highlights',
+    canActivate: [conditionalAuthGuard],
+    title: 'Highlights',
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: { mode: 'admin' },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./highlights/highlights.component').then(
+            (m) => m.HighlightsComponent
           ),
       },
     ],

@@ -1,12 +1,10 @@
 import {
   Component,
-  computed,
   inject,
   Injector,
   effect,
   runInInjectionContext,
   signal,
-  type WritableSignal,
   type Signal,
 } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -45,7 +43,7 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
   agInit(params: ICellRendererParams): void {
     this.context = params.context as SelectionContext;
     if (!params.data) return;
-    this.rowId.set(params.data.id);
+    this.rowId.set(String(params.data.id));
 
     runInInjectionContext(this.injector, () => {
       effect(() => {
@@ -56,11 +54,11 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
 
   refresh(params: ICellRendererParams): boolean {
     if (!params.data) return true;
-    this.rowId.set(params.data.id);
+    this.rowId.set(String(params.data.id));
     return true;
   }
 
-  toggle(event: { checked: boolean }): void {
+  toggle(_event: { checked: boolean }): void {
     this.context.toggleSelection(this.rowId());
   }
 }

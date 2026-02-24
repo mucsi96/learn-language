@@ -41,9 +41,17 @@ export class AdminComponent {
     );
   }
 
+  readonly isEbookDictionary = computed(() =>
+    this.selectedSource()?.sourceType === 'ebookDictionary'
+  );
+
   navigateToPages(): void {
     const source = this.selectedSource();
-    if (source) {
+    if (!source) return;
+
+    if (source.sourceType === 'ebookDictionary') {
+      this.router.navigate(['/sources', source.id, 'highlights']);
+    } else {
       this.router.navigate(['/sources', source.id, 'page', source.startPage]);
     }
   }

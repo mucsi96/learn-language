@@ -1,0 +1,26 @@
+<div class="container">
+  <ag-grid-angular
+    class="highlights-grid"
+    [theme]="theme"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [context]="gridContext"
+    [getRowId]="getRowId"
+    (gridReady)="onGridReady($event)"
+  />
+
+  @if (selectedCount() > 0 && !isCreating()) {
+    <button
+      mat-fab
+      extended
+      color="primary"
+      class="create-fab"
+      (click)="startBulkCreation()"
+      [disabled]="isCreating() || resolving()"
+      aria-label="Create cards from selected highlights"
+    >
+      <mat-icon>add_circle</mat-icon>
+      Create {{ selectedCount() }} Cards
+    </button>
+  }
+</div>

@@ -209,7 +209,7 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
-export type SourceType = 'pdf' | 'images';
+export type SourceType = 'pdf' | 'images' | 'ebookDictionary';
 
 export type Source = {
   id: string;
@@ -236,6 +236,13 @@ export type ImageSource = {
   id: string;
   input: string;
   index: number;
+};
+
+export type Highlight = {
+  id: number;
+  highlightedWord: string;
+  sentence: string;
+  createdAt: string;
 };
 
 export type StudySession = {
