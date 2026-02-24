@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.io.IOException;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,9 +14,11 @@ import io.github.mucsi96.learnlanguage.service.ApiTokenService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class DictionaryController {
 
     private final ApiTokenService apiTokenService;
@@ -28,7 +32,21 @@ public class DictionaryController {
         dictionaryService.persistHighlightIfPresent(request);
 
         final SseEmitter emitter = new SseEmitter(120_000L);
-        dictionaryService.streamLookup(request, emitter);
+
+        dictionaryService.streamLookup(request).subscribe(
+                chunk -> {
+                    try {
+                        emitter.send(SseEmitter.event().data(chunk));
+                    } catch (IOException e) {
+                        emitter.completeWithError(e);
+                    }
+                },
+                error -> {
+                    log.error("Streaming error: {}", error.getMessage());
+                    emitter.completeWithError(error);
+                },
+                emitter::complete);
+
         return emitter;
     }
 }

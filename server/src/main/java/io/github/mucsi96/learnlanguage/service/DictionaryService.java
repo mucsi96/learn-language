@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 
@@ -8,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -50,7 +48,7 @@ public class DictionaryService {
         highlightService.persistHighlight(source, request.getHighlightedWord(), request.getSentence());
     }
 
-    public void streamLookup(DictionaryRequest request, SseEmitter emitter) {
+    public Flux<String> streamLookup(DictionaryRequest request) {
         final String targetLanguage = request.getTargetLanguage();
         final String languageName = LANGUAGE_NAMES.get(targetLanguage);
 
@@ -71,22 +69,8 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        final Flux<String> contentStream = chatService.streamForText(model, systemPrompt, userMessage);
-
-        contentStream.subscribe(
-                chunk -> {
-                    try {
-                        final String processed = replacePlaceholdersWithUnicode(chunk);
-                        emitter.send(SseEmitter.event().data(processed));
-                    } catch (IOException e) {
-                        emitter.completeWithError(e);
-                    }
-                },
-                error -> {
-                    log.error("Streaming error: {}", error.getMessage());
-                    emitter.completeWithError(error);
-                },
-                emitter::complete);
+        return chatService.streamForText(model, systemPrompt, userMessage)
+                .map(this::replacePlaceholdersWithUnicode);
     }
 
     private String replacePlaceholdersWithUnicode(String text) {
