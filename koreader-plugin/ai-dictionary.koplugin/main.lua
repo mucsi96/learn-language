@@ -59,7 +59,7 @@ local function parseSseResponse(raw)
             table.insert(parts, data)
         end
     end
-    return table.concat(parts)
+    return table.concat(parts, "\n")
 end
 
 local function queryDictionary(serverUrl, token, requestBody)

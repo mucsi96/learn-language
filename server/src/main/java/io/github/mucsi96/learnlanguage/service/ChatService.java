@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -120,17 +121,36 @@ public class ChatService {
 
     public Flux<String> streamForText(
             ChatModel model,
+            OperationType operationType,
             String systemPrompt,
             String userMessage) {
 
+        final long startTime = System.currentTimeMillis();
         final ChatClient chatClient = chatClientService.getChatClient(model);
+        final StringBuilder contentBuffer = new StringBuilder();
+        final AtomicReference<ChatResponse> lastResponse = new AtomicReference<>();
 
         return chatClient
                 .prompt()
                 .system(systemPrompt)
                 .user(u -> u.text(userMessage))
                 .stream()
-                .content();
+                .chatResponse()
+                .doOnNext(lastResponse::set)
+                .mapNotNull(response -> response.getResult() != null
+                        && response.getResult().getOutput() != null
+                                ? response.getResult().getOutput().getText()
+                                : null)
+                .doOnNext(contentBuffer::append)
+                .doOnError(error -> log.error("Stream error for model {} operation {}: {}",
+                        model.getModelName(), operationType.getCode(), error.getMessage()))
+                .doFinally(signal -> {
+                    final long processingTime = System.currentTimeMillis() - startTime;
+                    final ChatResponse response = lastResponse.get();
+                    if (response != null) {
+                        logUsage(model, operationType, response, contentBuffer.toString(), processingTime);
+                    }
+                });
     }
 
     private <T> T callWithLoggingInternal(

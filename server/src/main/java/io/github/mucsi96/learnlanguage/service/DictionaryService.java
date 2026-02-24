@@ -69,7 +69,7 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        return chatService.streamForText(model, systemPrompt, userMessage)
+        return chatService.streamForText(model, OperationType.TRANSLATION, systemPrompt, userMessage)
                 .map(this::replacePlaceholdersWithUnicode);
     }
 

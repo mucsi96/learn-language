@@ -10,6 +10,9 @@ const PTF_BOLD_END = '\uFFF3';
 
 const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
 
+// Reassembles an SSE stream into a single string: data lines within
+// each event are joined with \n (per SSE spec), events are concatenated
+// without separator because the AI response is a continuous text stream.
 async function readSseStream(response: Response): Promise<string> {
   const raw = await response.text();
   const events = raw.split('\n\n').filter((e) => e.trim());
