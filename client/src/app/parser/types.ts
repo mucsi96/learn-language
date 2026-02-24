@@ -240,6 +240,8 @@ export type ImageSource = {
 
 export type Highlight = {
   id: number;
+  candidateCardId: string | null;
+  cardExists: boolean;
   highlightedWord: string;
   sentence: string;
   createdAt: string;

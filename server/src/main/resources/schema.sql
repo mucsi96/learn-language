@@ -137,11 +137,14 @@ CREATE TABLE IF NOT EXISTS learn_language.highlights (
     source_id character varying(255) NOT NULL,
     highlighted_word character varying(255) NOT NULL,
     sentence text NOT NULL,
+    candidate_card_id character varying(255),
     created_at timestamp(6) NOT NULL,
     CONSTRAINT highlights_pkey PRIMARY KEY (id),
     CONSTRAINT highlight_source_id_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id) ON DELETE CASCADE,
     CONSTRAINT highlights_unique UNIQUE (source_id, highlighted_word, sentence)
 );
+
+ALTER TABLE learn_language.highlights ADD COLUMN IF NOT EXISTS candidate_card_id character varying(255);
 
 CREATE TABLE IF NOT EXISTS learn_language.study_sessions (
     id character varying(255) NOT NULL,
