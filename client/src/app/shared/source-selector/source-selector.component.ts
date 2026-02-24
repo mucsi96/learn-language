@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { injectParams } from '../../utils/inject-params';
+import { RouterLink } from '@angular/router';
+import { injectParams, injectRouteData } from '../../utils/inject-params';
 import { SourcesService } from '../../sources.service';
 import { DueCardsService } from '../../due-cards.service';
 import { CardState } from '../state/card-state';
@@ -21,11 +21,10 @@ import { Source } from '../../parser/types';
 export class SourceSelectorComponent {
   private readonly routeSourceId = injectParams('sourceId');
   private readonly routePageNumber = injectParams('pageNumber');
-  private readonly routeMode = inject(ActivatedRoute).snapshot.data['mode'] as string | undefined;
+  public readonly mode = injectRouteData('mode');
 
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
-  readonly mode = computed(() => this.routeMode ? this.routeMode : undefined);
 
   constructor() {
     effect(() => {
