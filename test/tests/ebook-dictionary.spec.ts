@@ -2,13 +2,12 @@ import * as fs from 'fs';
 import { type Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import {
-  createSource,
-  createHighlight,
   createCard,
   getHighlights,
   getGridData,
   getSource,
   setupDefaultChatModelSettings,
+  withDbConnection,
 } from '../utils';
 
 const API_URL = 'http://localhost:8180/api/dictionary';
@@ -134,25 +133,11 @@ test('dictionary lookup does not duplicate source', async ({ page }) => {
 test('highlights page shows highlights for ebook dictionary source', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'fahren',
-    sentence: 'Wir fahren um zwölf Uhr ab.',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'Haus',
-    sentence: 'Das Haus ist groß.',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
@@ -171,15 +156,10 @@ test('highlights page shows highlights for ebook dictionary source', async ({
 test('admin page shows Highlights button for ebook dictionary source', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'test', 'This is a test.');
 
   await page.goto('http://localhost:8180/sources');
 
@@ -190,15 +170,10 @@ test('admin page shows Highlights button for ebook dictionary source', async ({
 test('admin page navigates to highlights page for ebook dictionary source', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'test', 'This is a test.');
 
   await page.goto('http://localhost:8180/sources');
 
@@ -211,25 +186,11 @@ test('admin page navigates to highlights page for ebook dictionary source', asyn
 test('highlights page select all checkbox selects all highlights', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'fahren',
-    sentence: 'Wir fahren um zwölf Uhr ab.',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'Haus',
-    sentence: 'Das Haus ist groß.',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
@@ -247,14 +208,18 @@ test('highlights page select all checkbox selects all highlights', async ({
 test('highlights page shows empty grid when no highlights', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'test', 'This is a test.');
+
+  const source = await getSource('test-ebook');
+  expect(source).not.toBeNull();
+
+  await withDbConnection(async (client) => {
+    await client.query('DELETE FROM learn_language.highlights WHERE source_id = $1', [
+      'test-ebook',
+    ]);
   });
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
@@ -270,32 +235,19 @@ test('highlights page shows empty grid when no highlights', async ({
 test('highlights page source selector navigates to other source highlights', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook-1',
-    name: 'First Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
-  await createSource({
-    id: 'test-ebook-2',
-    name: 'Second Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
 
-  await page.goto('http://localhost:8180/sources/test-ebook-1/highlights');
+  await lookupWord(token, 'First Ebook', 'test', 'This is a test.');
+  await lookupWord(token, 'Second Ebook', 'test', 'This is a test.');
+
+  await page.goto('http://localhost:8180/sources/first-ebook/highlights');
 
   await expect(page.getByRole('button', { name: 'First Ebook' })).toBeVisible();
   await page.getByRole('button', { name: 'First Ebook' }).click();
   await page.getByRole('menuitem', { name: 'Second Ebook' }).click();
 
-  await expect(page).toHaveURL(/\/sources\/test-ebook-2\/highlights/);
+  await expect(page).toHaveURL(/\/sources\/second-ebook\/highlights/);
 });
 
 test('dictionary lookup persists candidate card ID in highlight', async ({
@@ -319,21 +271,10 @@ test('dictionary lookup persists candidate card ID in highlight', async ({
 test('highlights grid shows Card ID and NEW status for highlight without matching card', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'fahren',
-    sentence: 'Wir fahren um zwölf Uhr ab.',
-    candidateCardId: 'abfahren-elindulni',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
@@ -359,17 +300,17 @@ test('highlights grid shows Card ID and NEW status for highlight without matchin
 test('highlights grid shows EXISTS status when card with candidate ID exists', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+
+  const highlights = await getHighlights('test-ebook');
+  const candidateCardId = highlights[0].candidateCardId;
+  expect(candidateCardId).not.toBeNull();
+
   await createCard({
-    cardId: 'abfahren-elindulni',
+    cardId: candidateCardId!,
     sourceId: 'test-ebook',
     data: {
       word: 'abfahren',
@@ -379,12 +320,6 @@ test('highlights grid shows EXISTS status when card with candidate ID exists', a
       examples: [],
       audio: [],
     },
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'fahren',
-    sentence: 'Wir fahren um zwölf Uhr ab.',
-    candidateCardId: 'abfahren-elindulni',
   });
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
@@ -398,7 +333,7 @@ test('highlights grid shows EXISTS status when card with candidate ID exists', a
     }>(grid);
     expect(rows).toEqual([
       expect.objectContaining({
-        'Card ID': 'abfahren-elindulni',
+        'Card ID': candidateCardId,
         Status: 'EXISTS',
         Word: 'fahren',
       }),
@@ -409,20 +344,22 @@ test('highlights grid shows EXISTS status when card with candidate ID exists', a
 test('highlights grid shows dash for Card ID when no candidate card ID', async ({
   page,
 }) => {
-  await createSource({
-    id: 'test-ebook',
-    name: 'Test Ebook',
-    startPage: 1,
-    languageLevel: 'B1',
-    cardType: 'VOCABULARY',
-    formatType: 'WORD_LIST_WITH_EXAMPLES',
-    sourceType: 'EBOOK_DICTIONARY',
-  });
-  await createHighlight({
-    sourceId: 'test-ebook',
-    highlightedWord: 'Haus',
-    sentence: 'Das Haus ist groß.',
-  });
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  expect(highlights).toHaveLength(1);
+
+  if (highlights[0].candidateCardId !== null) {
+    await withDbConnection(async (client) => {
+      await client.query(
+        'UPDATE learn_language.highlights SET candidate_card_id = NULL WHERE id = $1',
+        [highlights[0].id]
+      );
+    });
+  }
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
