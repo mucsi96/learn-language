@@ -5,11 +5,6 @@ import { setupDefaultChatModelSettings } from '../utils';
 
 const API_URL = 'http://localhost:8180/api/dictionary';
 
-const PTF_BOLD_START = '\uFFF2';
-const PTF_BOLD_END = '\uFFF3';
-
-const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
-
 // Reassembles an SSE stream into a single string: data lines within
 // each event are joined with \n (per SSE spec), events are concatenated
 // without separator because the AI response is a continuous text stream.
@@ -71,13 +66,13 @@ test('dictionary endpoint streams a word translation to Hungarian', async ({
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toContain('text/event-stream');
   const text = await readSseStream(response);
-  expect(text).toContain(bold('VERB'));
-  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
+  expect(text).toContain('<<B>>VERB<</B>>');
+  expect(text).toContain('<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren');
   expect(text).toContain(
-    bold('Translation (hu): ') + 'elindulni, elhagyni'
+    '<<B>>Translation (hu): <</B>>elindulni, elhagyni'
   );
-  expect(text).toContain(bold('Example (de): ') + 'Wir fahren ab.');
-  expect(text).toContain(bold('Example (hu): ') + 'Elindulunk.');
+  expect(text).toContain('<<B>>Example (de): <</B>>Wir fahren ab.');
+  expect(text).toContain('<<B>>Example (hu): <</B>>Elindulunk.');
 });
 
 test('dictionary endpoint streams a word translation to English', async ({
@@ -91,13 +86,13 @@ test('dictionary endpoint streams a word translation to English', async ({
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toContain('text/event-stream');
   const text = await readSseStream(response);
-  expect(text).toContain(bold('VERB'));
-  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
+  expect(text).toContain('<<B>>VERB<</B>>');
+  expect(text).toContain('<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren');
   expect(text).toContain(
-    bold('Translation (en): ') + 'to depart, to leave'
+    '<<B>>Translation (en): <</B>>to depart, to leave'
   );
-  expect(text).toContain(bold('Example (de): ') + 'Wir fahren ab.');
-  expect(text).toContain(bold('Example (en): ') + 'We depart.');
+  expect(text).toContain('<<B>>Example (de): <</B>>Wir fahren ab.');
+  expect(text).toContain('<<B>>Example (en): <</B>>We depart.');
 });
 
 test('dictionary endpoint returns 401 without authorization header', async ({

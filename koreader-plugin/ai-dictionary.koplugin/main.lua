@@ -59,7 +59,13 @@ local function parseSseResponse(raw)
             table.insert(parts, data)
         end
     end
-    return table.concat(parts, "\n")
+    local text = table.concat(parts, "\n")
+
+    text = text:gsub("<<H>>", "\239\191\177")
+    text = text:gsub("<<B>>", "\239\191\178")
+    text = text:gsub("<</B>>", "\239\191\179")
+
+    return text
 end
 
 local function queryDictionary(serverUrl, token, requestBody)

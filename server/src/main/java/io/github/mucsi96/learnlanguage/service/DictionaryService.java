@@ -69,16 +69,9 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        return chatService.streamForText(model, OperationType.TRANSLATION, systemPrompt, userMessage)
-                .map(this::replacePlaceholdersWithUnicode);
+        return chatService.streamForText(model, OperationType.TRANSLATION, systemPrompt, userMessage);
     }
 
-    private String replacePlaceholdersWithUnicode(String text) {
-        return text
-                .replace("<<H>>", "\uFFF1")
-                .replace("<<B>>", "\uFFF2")
-                .replace("<</B>>", "\uFFF3");
-    }
 
     private ChatModel resolveModel(String requestModel) {
         if (requestModel != null && !requestModel.isBlank()) {
