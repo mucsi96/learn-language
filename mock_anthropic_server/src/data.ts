@@ -188,6 +188,11 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
+export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[] }> = {
+  fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'] },
+  Haus: { normalizedWord: 'Haus', forms: ['die Häuser'] },
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',

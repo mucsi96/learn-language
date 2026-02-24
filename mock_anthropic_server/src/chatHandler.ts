@@ -1,5 +1,5 @@
 import { ClaudeRequest } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS, NORMALIZATIONS } from './data';
 import { messagesMatch, createClaudeResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
@@ -162,6 +162,20 @@ export class ChatHandler {
     return null;
   }
 
+  handleNormalization(request: ClaudeRequest): any | null {
+    if (!messagesMatch(request, 'normalize an inflected German word', '')) {
+      return null;
+    }
+
+    for (const word of Object.keys(NORMALIZATIONS)) {
+      if (messagesMatch(request, 'normalize an inflected German word', word)) {
+        return createClaudeResponse(NORMALIZATIONS[word]);
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: ClaudeRequest): any | null {
     const systemContent = request.system || '';
 
@@ -206,6 +220,9 @@ export class ChatHandler {
 
     const wordListResponse = await this.handleWordListExtraction(request);
     if (wordListResponse) return wordListResponse;
+
+    const normalizationResponse = this.handleNormalization(request);
+    if (normalizationResponse) return normalizationResponse;
 
     const translationResponse = this.handleTranslation(request);
     if (translationResponse) return translationResponse;
