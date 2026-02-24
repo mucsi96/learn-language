@@ -234,12 +234,12 @@ test('highlights page select all checkbox selects all highlights', async ({
 
   const grid = page.getByRole('grid');
   await expect(grid).toBeVisible();
-  await expect(page.getByText('fahren')).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
   await expect(
-    page.getByRole('button', { name: 'Create 2 Cards' })
+    page.getByRole('button').filter({ hasText: 'Create 2 Cards' })
   ).toBeVisible();
 });
 

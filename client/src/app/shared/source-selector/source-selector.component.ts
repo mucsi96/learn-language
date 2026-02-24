@@ -25,10 +25,7 @@ export class SourceSelectorComponent {
 
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
-  readonly mode = computed(() => {
-    if (this.routeMode) return this.routeMode;
-    return this.selectedPageNumber() ? 'page' : 'study';
-  });
+  readonly mode = computed(() => this.routeMode ? this.routeMode : undefined);
 
   constructor() {
     effect(() => {
