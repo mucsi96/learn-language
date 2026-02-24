@@ -43,6 +43,14 @@ interface TranslationResponse {
   examples: string[];
 }
 
+const CARD_STATUS_COLORS: Record<string, string> = {
+  EXISTS: '#4CAF50',
+  NEW: '#2196F3',
+};
+
+const badgeHtml = (label: string, color: string): string =>
+  `<span style="padding:1px 6px;border-radius:4px;font-size:0.7rem;font-weight:500;color:${color};background-color:${color}20;border:1px solid ${color}40">${label}</span>`;
+
 ModuleRegistry.registerModules([
   ClientSideRowModelModule,
   ValidationModule,
@@ -118,6 +126,30 @@ export class HighlightsComponent {
       resizable: false,
       cellRenderer: SelectionCheckboxComponent,
       headerComponent: SelectAllHeaderComponent,
+    },
+    {
+      headerName: 'Card ID',
+      field: 'candidateCardId',
+      flex: 1,
+      sortable: true,
+      cellRenderer: (params: { value: string | null }) => {
+        if (!params.value) return '<span style="color:hsl(220,13%,40%);font-size:0.75rem">-</span>';
+        return `<span style="color:hsl(220,13%,60%);font-size:0.75rem">${params.value}</span>`;
+      },
+    },
+    {
+      headerName: 'Status',
+      field: 'cardExists',
+      width: 100,
+      sortable: true,
+      cellRenderer: (params: { data: Highlight | undefined }) => {
+        if (!params.data?.candidateCardId) return '';
+        const exists = params.data.cardExists;
+        return badgeHtml(
+          exists ? 'EXISTS' : 'NEW',
+          exists ? CARD_STATUS_COLORS['EXISTS'] : CARD_STATUS_COLORS['NEW']
+        );
+      },
     },
     {
       headerName: 'Word',

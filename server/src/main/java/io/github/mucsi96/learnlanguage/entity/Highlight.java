@@ -32,6 +32,9 @@ public class Highlight {
   @Column(nullable = false, columnDefinition = "text")
   private String sentence;
 
+  @Column(name = "candidate_card_id")
+  private String candidateCardId;
+
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 }

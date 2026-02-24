@@ -1192,34 +1192,18 @@ export async function createStudySession(params: {
   return sessionId;
 }
 
-export async function createHighlight(params: {
-  sourceId: string;
-  highlightedWord: string;
-  sentence: string;
-}): Promise<number> {
-  const { sourceId, highlightedWord, sentence } = params;
-
-  return await withDbConnection(async (client) => {
-    const result = await client.query(
-      `INSERT INTO learn_language.highlights (source_id, highlighted_word, sentence, created_at)
-       VALUES ($1, $2, $3, NOW())
-       RETURNING id`,
-      [sourceId, highlightedWord, sentence]
-    );
-    return result.rows[0].id;
-  });
-}
 
 export async function getHighlights(sourceId: string): Promise<
   Array<{
     id: number;
     highlightedWord: string;
     sentence: string;
+    candidateCardId: string | null;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, highlighted_word as "highlightedWord", sentence
+      `SELECT id, highlighted_word as "highlightedWord", sentence, candidate_card_id as "candidateCardId"
        FROM learn_language.highlights
        WHERE source_id = $1
        ORDER BY created_at DESC`,
