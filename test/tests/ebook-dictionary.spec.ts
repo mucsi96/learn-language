@@ -154,10 +154,10 @@ test('highlights page shows highlights for ebook dictionary source', async ({
 
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
-  await expect(page.getByText('fahren')).toBeVisible();
-  await expect(page.getByText('Wir fahren um zwölf Uhr ab.')).toBeVisible();
-  await expect(page.getByText('Haus')).toBeVisible();
-  await expect(page.getByText('Das Haus ist groß.')).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+  await expect(page.getByText('Wir fahren um zwölf Uhr ab.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Haus', { exact: true })).toBeVisible();
+  await expect(page.getByText('Das Haus ist groß.', { exact: true })).toBeVisible();
 });
 
 test('admin page shows Highlights button for ebook dictionary source', async ({
