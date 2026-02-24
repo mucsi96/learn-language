@@ -70,6 +70,8 @@
     <mat-icon>style</mat-icon>
     Cards
   </button>
+  @let iconText = isEbookDictionary() ? 'highlight' : 'menu_book';
+  @let label = isEbookDictionary() ? 'Highlights' : 'Pages';
   <button
     mat-fab
     extended
@@ -77,13 +79,8 @@
     class="action-fab"
     (click)="navigateToPages()"
   >
-    @if (isEbookDictionary()) {
-    <mat-icon>highlight</mat-icon>
-    Highlights
-    } @else {
-    <mat-icon>menu_book</mat-icon>
-    Pages
-    }
+    <mat-icon>{{ iconText }}</mat-icon>
+    {{ label }}
   </button>
 </nav>
 }

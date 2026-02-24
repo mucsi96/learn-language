@@ -14,14 +14,7 @@ import { Source } from '../../parser/types';
 @Component({
   selector: 'app-source-selector',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatMenuModule,
-    RouterLink,
-    StateComponent,
-  ],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatMenuModule, RouterLink, StateComponent],
   templateUrl: './source-selector.component.html',
   styleUrl: './source-selector.component.css',
 })
@@ -61,9 +54,7 @@ export class SourceSelectorComponent {
 
   readonly loading = computed(
     () =>
-      !this.selectedSourceId() ||
-      this.sourcesService.sources.isLoading() ||
-      this.dueCardsService.dueCounts.isLoading()
+      !this.selectedSourceId() || this.sourcesService.sources.isLoading() || this.dueCardsService.dueCounts.isLoading()
   );
 
   readonly selectedSourceName = computed(() => {
@@ -71,18 +62,19 @@ export class SourceSelectorComponent {
     if (!selectedId) {
       return '';
     }
-    return (
-      this.sources()?.find((source) => source.id === selectedId)?.name ||
-      'Select source'
-    );
+    return this.sources()?.find((source) => source.id === selectedId)?.name || 'Select source';
   });
 
   getSourceLink(source: Source): string[] {
     switch (this.mode()) {
-      case 'study': return ['/sources', source.id, 'study'];
-      case 'cards': return ['/sources', source.id, 'cards'];
-      case 'highlights': return ['/sources', source.id, 'highlights'];
-      default: return ['/sources', source.id, 'page', String(source.startPage)];
+      case 'study':
+        return ['/sources', source.id, 'study'];
+      case 'cards':
+        return ['/sources', source.id, 'cards'];
+      default:
+        return source.sourceType === 'ebookDictionary'
+          ? ['/sources', source.id, 'highlights']
+          : ['/sources', source.id, 'page', String(source.startPage)];
     }
   }
 
