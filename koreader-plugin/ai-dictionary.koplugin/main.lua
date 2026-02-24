@@ -14,30 +14,6 @@ local AIDictionary = WidgetContainer:extend {
     is_doc_only = true,
 }
 
-local function positionsEqual(a, b)
-    if type(a) ~= type(b) then return false end
-    if type(a) == "string" then return a == b end
-    if type(a) == "table" then
-        return a.x == b.x and a.y == b.y and a.page == b.page
-    end
-    return false
-end
-
-local function highlightExistsAtPosition(ui, selected_text)
-    local annotations = ui.annotation and ui.annotation.annotations
-    if not annotations then return false end
-    local pos0 = selected_text.pos0
-    local pos1 = selected_text.pos1
-    for _, item in ipairs(annotations) do
-        if item.drawer and item.pos0 and item.pos1
-                and positionsEqual(item.pos0, pos0)
-                and positionsEqual(item.pos1, pos1) then
-            return true
-        end
-    end
-    return false
-end
-
 local function getPluginDir()
     local info = debug.getinfo(1, "S")
     return info.source:match("@?(.*/)") or "."
@@ -165,7 +141,14 @@ function AIDictionary:init()
             enabled = true,
             callback = function()
                 local selected_text = tostring(this.selected_text.text)
-                if not highlightExistsAtPosition(this.ui, this.selected_text) then
+                local existing = this.ui.annotation:getItemIndex({
+                    pos0 = this.selected_text.pos0,
+                    pos1 = this.selected_text.pos1,
+                    page = this.ui.paging
+                        and this.selected_text.pos0.page
+                        or this.selected_text.pos0,
+                })
+                if not existing then
                     this:saveHighlight()
                 end
                 this:onClose()
