@@ -29,7 +29,6 @@ public class DictionaryController {
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @Valid @RequestBody DictionaryRequest request) {
         apiTokenService.validateBearerToken(authorizationHeader);
-        dictionaryService.persistHighlightIfPresent(request);
 
         final SseEmitter emitter = new SseEmitter(120_000L);
 
@@ -46,6 +45,8 @@ public class DictionaryController {
                     emitter.completeWithError(error);
                 },
                 emitter::complete);
+
+        dictionaryService.persistHighlightIfPresent(request);
 
         return emitter;
     }
