@@ -141,7 +141,16 @@ function AIDictionary:init()
             enabled = true,
             callback = function()
                 local selected_text = tostring(this.selected_text.text)
-                this:saveHighlight()
+                local existing = this.ui.annotation:getItemIndex({
+                    pos0 = this.selected_text.pos0,
+                    pos1 = this.selected_text.pos1,
+                    page = this.ui.paging
+                        and this.selected_text.pos0.page
+                        or this.selected_text.pos0,
+                })
+                if not existing then
+                    this:saveHighlight()
+                end
                 this:onClose()
                 self:lookup(selected_text)
             end,
