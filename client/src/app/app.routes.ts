@@ -133,6 +133,7 @@ export const routes: Routes = [
           import('./shared/source-selector/source-selector.component').then(
             (m) => m.SourceSelectorComponent
           ),
+        data: { mode: 'admin' },
       },
       {
         path: '',
@@ -176,6 +177,7 @@ export const routes: Routes = [
           import('./shared/source-selector/source-selector.component').then(
             (m) => m.SourceSelectorComponent
           ),
+        data: { mode: 'admin' },
       },
       {
         path: '',

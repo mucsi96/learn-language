@@ -62,15 +62,23 @@ export class SourceSelectorComponent {
   });
 
   getSourceLink(source: Source): string[] {
-    switch (this.mode()) {
+    const mode = this.mode();
+
+    if (!mode) {
+      throw new Error('Route mode is not set');
+    }
+
+    switch (mode) {
       case 'study':
         return ['/sources', source.id, 'study'];
       case 'cards':
         return ['/sources', source.id, 'cards'];
-      default:
+      case 'admin':
         return source.sourceType === 'ebookDictionary'
           ? ['/sources', source.id, 'highlights']
           : ['/sources', source.id, 'page', String(source.startPage)];
+      default:
+        throw new Error(`Unknown route mode: ${mode}`);
     }
   }
 
