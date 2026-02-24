@@ -17,10 +17,9 @@ import {
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
-import { firstValueFrom } from 'rxjs';
 import { HighlightsService } from '../highlights.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
-import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
+import { BulkCreationProgressDialogComponent, BulkCreationDialogData } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { MultiModelService } from '../multi-model.service';
 import { Highlight, ExtractedItem, Word } from '../parser/types';
 import { injectParams } from '../utils/inject-params';
@@ -231,10 +230,12 @@ export class HighlightsComponent {
     }
 
     this.bulkCreationService.clearProgress();
+    const dialogData: BulkCreationDialogData = { sourceId };
     this.dialog.open(BulkCreationProgressDialogComponent, {
       disableClose: true,
       maxWidth: '100vw',
       maxHeight: '100vh',
+      data: dialogData,
     });
 
     const result = await this.bulkCreationService.createCardsInBulk(
@@ -247,20 +248,6 @@ export class HighlightsComponent {
     if (result.succeeded > 0) {
       this.selectedIds.set([]);
       this.highlightsService.reload();
-      this.suggestCleanup(sourceId);
-    }
-  }
-
-  private async suggestCleanup(sourceId: string): Promise<void> {
-    const snackBarRef = this.snackBar.open(
-      'Clean up highlights that already have cards?',
-      'Clean up',
-      { duration: 10000 }
-    );
-    const dismissal = await firstValueFrom(snackBarRef.afterDismissed());
-    if (dismissal.dismissedByAction) {
-      const { deleted } = await this.highlightsService.cleanupWithCards(sourceId);
-      this.snackBar.open(`Removed ${deleted} highlight(s)`, 'OK', { duration: 3000 });
     }
   }
 

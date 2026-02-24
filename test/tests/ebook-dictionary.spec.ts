@@ -452,7 +452,7 @@ test('select all skips highlights with existing cards', async ({
   ).toBeVisible();
 });
 
-test('cleanup endpoint deletes highlights with existing cards', async ({
+test('bulk creation dialog shows cleanup button and removes highlights with existing cards', async ({
   page,
 }) => {
   await setupDefaultChatModelSettings();
@@ -478,20 +478,25 @@ test('cleanup endpoint deletes highlights with existing cards', async ({
   await page.goto('http://localhost:8180/sources/test-ebook/highlights');
 
   const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('Haus', { exact: true })).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await page.getByRole('button').filter({ hasText: 'Create 1 Cards' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  await expect(dialog.getByText('Remove highlights that already have cards?')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Clean up' }).click();
+
+  await expect(dialog.getByText('Removed 1 highlight(s)')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual(expect.objectContaining({ Word: 'Haus' }));
   }).toPass();
-
-  const response = await fetch(
-    'http://localhost:8180/api/source/test-ebook/highlights/with-cards',
-    { method: 'DELETE' }
-  );
-  expect(response.status).toBe(200);
-  const body = await response.json();
-  expect(body.deleted).toBe(1);
-
-  const remainingHighlights = await getHighlights('test-ebook');
-  expect(remainingHighlights).toHaveLength(1);
-  expect(remainingHighlights[0].highlightedWord).toBe('Haus');
 });
