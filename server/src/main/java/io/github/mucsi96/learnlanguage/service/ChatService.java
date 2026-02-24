@@ -18,6 +18,7 @@ import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -115,6 +116,21 @@ public class ChatService {
         logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
 
         return text;
+    }
+
+    public Flux<String> streamForText(
+            ChatModel model,
+            String systemPrompt,
+            String userMessage) {
+
+        final ChatClient chatClient = chatClientService.getChatClient(model);
+
+        return chatClient
+                .prompt()
+                .system(systemPrompt)
+                .user(u -> u.text(userMessage))
+                .stream()
+                .content();
     }
 
     private <T> T callWithLoggingInternal(

@@ -10,6 +10,20 @@ const PTF_BOLD_END = '\uFFF3';
 
 const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
 
+async function readSseStream(response: Response): Promise<string> {
+  const raw = await response.text();
+  const events = raw.split('\n\n').filter((e) => e.trim());
+  return events
+    .map((event) =>
+      event
+        .split('\n')
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5))
+        .join('\n')
+    )
+    .join('');
+}
+
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.goto('http://localhost:8180/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
@@ -43,48 +57,44 @@ async function lookupWord(
   });
 }
 
-test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
+test('dictionary endpoint streams a word translation to Hungarian', async ({
+  page,
+}) => {
   await setupDefaultChatModelSettings();
   const token = await createTokenViaUI(page, 'Test Token');
 
   const response = await lookupWord(token, 'hu');
 
   expect(response.status).toBe(200);
-  expect(response.headers.get('content-type')).toContain('text/plain');
-  const text = await response.text();
+  expect(response.headers.get('content-type')).toContain('text/event-stream');
+  const text = await readSseStream(response);
   expect(text).toContain(bold('VERB'));
   expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
   expect(text).toContain(
     bold('Translation (hu): ') + 'elindulni, elhagyni'
   );
-  expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren ab.'
-  );
-  expect(text).toContain(
-    bold('Example (hu): ') + 'Elindulunk.'
-  );
+  expect(text).toContain(bold('Example (de): ') + 'Wir fahren ab.');
+  expect(text).toContain(bold('Example (hu): ') + 'Elindulunk.');
 });
 
-test('dictionary endpoint translates a word to English', async ({ page }) => {
+test('dictionary endpoint streams a word translation to English', async ({
+  page,
+}) => {
   await setupDefaultChatModelSettings();
   const token = await createTokenViaUI(page, 'Test Token');
 
   const response = await lookupWord(token, 'en');
 
   expect(response.status).toBe(200);
-  expect(response.headers.get('content-type')).toContain('text/plain');
-  const text = await response.text();
+  expect(response.headers.get('content-type')).toContain('text/event-stream');
+  const text = await readSseStream(response);
   expect(text).toContain(bold('VERB'));
   expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
   expect(text).toContain(
     bold('Translation (en): ') + 'to depart, to leave'
   );
-  expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren ab.'
-  );
-  expect(text).toContain(
-    bold('Example (en): ') + 'We depart.'
-  );
+  expect(text).toContain(bold('Example (de): ') + 'Wir fahren ab.');
+  expect(text).toContain(bold('Example (en): ') + 'We depart.');
 });
 
 test('dictionary endpoint returns 401 without authorization header', async ({
