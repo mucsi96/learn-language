@@ -4,6 +4,7 @@ import { test, expect } from '../fixtures';
 import {
   createSource,
   createHighlight,
+  createCard,
   getHighlights,
   getGridData,
   getSource,
@@ -295,4 +296,149 @@ test('highlights page source selector navigates to other source highlights', asy
   await page.getByRole('menuitem', { name: 'Second Ebook' }).click();
 
   await expect(page).toHaveURL(/\/sources\/test-ebook-2\/highlights/);
+});
+
+test('dictionary lookup persists candidate card ID in highlight', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(
+    token,
+    'Mein erstes Buch',
+    'fahren',
+    'Wir fahren um zwölf Uhr ab.'
+  );
+
+  const highlights = await getHighlights('mein-erstes-buch');
+  expect(highlights).toHaveLength(1);
+  expect(highlights[0].candidateCardId).toBe('abfahren-elindulni');
+});
+
+test('highlights grid shows Card ID and NEW status for highlight without matching card', async ({
+  page,
+}) => {
+  await createSource({
+    id: 'test-ebook',
+    name: 'Test Ebook',
+    startPage: 1,
+    languageLevel: 'B1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'EBOOK_DICTIONARY',
+  });
+  await createHighlight({
+    sourceId: 'test-ebook',
+    highlightedWord: 'fahren',
+    sentence: 'Wir fahren um zwölf Uhr ab.',
+    candidateCardId: 'abfahren-elindulni',
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData<{
+      'Card ID': string;
+      Status: string;
+      Word: string;
+      Sentence: string;
+    }>(grid);
+    expect(rows).toEqual([
+      expect.objectContaining({
+        'Card ID': 'abfahren-elindulni',
+        Status: 'NEW',
+        Word: 'fahren',
+        Sentence: 'Wir fahren um zwölf Uhr ab.',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('highlights grid shows EXISTS status when card with candidate ID exists', async ({
+  page,
+}) => {
+  await createSource({
+    id: 'test-ebook',
+    name: 'Test Ebook',
+    startPage: 1,
+    languageLevel: 'B1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'EBOOK_DICTIONARY',
+  });
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni, elhagyni' },
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      examples: [],
+      audio: [],
+    },
+  });
+  await createHighlight({
+    sourceId: 'test-ebook',
+    highlightedWord: 'fahren',
+    sentence: 'Wir fahren um zwölf Uhr ab.',
+    candidateCardId: 'abfahren-elindulni',
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData<{
+      'Card ID': string;
+      Status: string;
+      Word: string;
+    }>(grid);
+    expect(rows).toEqual([
+      expect.objectContaining({
+        'Card ID': 'abfahren-elindulni',
+        Status: 'EXISTS',
+        Word: 'fahren',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('highlights grid shows dash for Card ID when no candidate card ID', async ({
+  page,
+}) => {
+  await createSource({
+    id: 'test-ebook',
+    name: 'Test Ebook',
+    startPage: 1,
+    languageLevel: 'B1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'EBOOK_DICTIONARY',
+  });
+  await createHighlight({
+    sourceId: 'test-ebook',
+    highlightedWord: 'Haus',
+    sentence: 'Das Haus ist groß.',
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData<{
+      'Card ID': string;
+      Status: string;
+      Word: string;
+    }>(grid);
+    expect(rows).toEqual([
+      expect.objectContaining({
+        'Card ID': '-',
+        Status: '',
+        Word: 'Haus',
+      }),
+    ]);
+  }).toPass();
 });

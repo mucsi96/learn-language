@@ -8,6 +8,7 @@ import {
   SENTENCE_TRANSLATIONS,
   GRAMMAR_SENTENCE_LISTS,
   DICTIONARY_LOOKUPS,
+  NORMALIZATIONS,
 } from './data';
 import { messagesMatch, createGeminiResponse } from './utils';
 import { imageRequestMatch } from './ocr';
@@ -226,6 +227,23 @@ export class ChatHandler {
     return null;
   }
 
+  handleNormalization(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent.includes('normalize an inflected German word')) {
+      return null;
+    }
+
+    for (const word of Object.keys(NORMALIZATIONS)) {
+      if (userContent.includes(word)) {
+        return createGeminiResponse(NORMALIZATIONS[word]);
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
     const userContent = getTextContent(request);
@@ -267,6 +285,9 @@ export class ChatHandler {
 
     const wordListResponse = await this.handleWordListExtraction(request);
     if (wordListResponse) return wordListResponse;
+
+    const normalizationResponse = this.handleNormalization(request);
+    if (normalizationResponse) return normalizationResponse;
 
     const translationResponse = this.handleTranslation(request);
     if (translationResponse) return translationResponse;

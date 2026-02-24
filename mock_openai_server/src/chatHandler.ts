@@ -1,7 +1,7 @@
 import {
   ChatMessage,
 } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS, NORMALIZATIONS } from './data';
 import { messagesMatch, createAssistantResponse } from './utils';
 import { imageMessagesMatch, extractTextFromImageUrl } from './ocr';
 
@@ -180,6 +180,23 @@ export class ChatHandler {
     return null;
   }
 
+  handleNormalization(messages: ChatMessage[]): any | null {
+    const systemMessage = messages[0]?.content;
+    const userMessage = messages[1]?.content;
+
+    if (!systemMessage?.includes('normalize an inflected German word')) {
+      return null;
+    }
+
+    for (const word of Object.keys(NORMALIZATIONS)) {
+      if (typeof userMessage === 'string' && userMessage.includes(word)) {
+        return createAssistantResponse(NORMALIZATIONS[word]);
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(messages: ChatMessage[]): any | null {
     const systemMessage = messages[0]?.content;
     const userMessage = messages[1]?.content;
@@ -235,6 +252,9 @@ export class ChatHandler {
 
     // Debug OCR if image is present
     await this.handleOCRDebug(messages);
+
+    const normalizationResponse = this.handleNormalization(messages);
+    if (normalizationResponse) return normalizationResponse;
 
     // Try translation
     const translationResponse = await this.handleTranslation(messages);
