@@ -77,7 +77,10 @@ export class VocabularyCardType implements CardTypeStrategy {
               this.http,
               `/api/translate/hu?model=${model}`,
               {
-                body: word,
+                body: {
+                  word: word.word,
+                  examples: word.examples,
+                },
                 method: 'POST',
                 headers,
               }
@@ -178,7 +181,10 @@ export class VocabularyCardType implements CardTypeStrategy {
               this.http,
               `/api/translate/${languageCode}?model=${model}`,
               {
-                body: word,
+                body: {
+                  word: word.word,
+                  examples: word.examples,
+                },
                 method: 'POST',
                 headers,
               }

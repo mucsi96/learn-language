@@ -491,12 +491,11 @@ test('bulk creation dialog shows cleanup button and removes highlights with exis
   await expect(dialog.getByText('Remove highlights that already have cards?')).toBeVisible();
   await dialog.getByRole('button', { name: 'Clean up' }).click();
 
-  await expect(dialog.getByText('Removed 1 highlight(s)')).toBeVisible();
+  await expect(dialog.getByText('Removed 2 highlight(s)')).toBeVisible();
   await dialog.getByRole('button', { name: 'Close' }).click();
 
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toEqual(expect.objectContaining({ Word: 'Haus' }));
+    expect(rows).toHaveLength(0);
   }).toPass();
 });

@@ -301,7 +301,6 @@ export class HighlightsComponent {
               {
                 body: {
                   word: normalizedWord,
-                  forms: normalizeResponse.forms,
                   examples: [highlight.sentence],
                 },
                 method: 'POST',

@@ -16,7 +16,7 @@ import io.github.mucsi96.learnlanguage.model.HighlightResponse;
 import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
-import io.github.mucsi96.learnlanguage.model.WordResponse;
+import io.github.mucsi96.learnlanguage.model.TranslateWordRequest;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.HighlightRepository;
 import lombok.RequiredArgsConstructor;
@@ -120,14 +120,13 @@ public class HighlightService {
             final NormalizeWordResponse normalizeResponse = wordNormalizationService.normalize(
                     highlightedWord, sentence, classificationModel);
 
-            final WordResponse wordResponse = WordResponse.builder()
+            final TranslateWordRequest translateRequest = TranslateWordRequest.builder()
                     .word(normalizeResponse.getNormalizedWord())
-                    .forms(normalizeResponse.getForms())
                     .examples(List.of(sentence))
                     .build();
 
             final TranslationResponse translationResponse = translationService.translate(
-                    wordResponse, "hu", translationModel);
+                    translateRequest, "hu", translationModel);
 
             return wordIdService.generateWordId(
                     normalizeResponse.getNormalizedWord(),

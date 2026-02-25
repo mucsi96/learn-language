@@ -119,6 +119,10 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'address',
       examples: ['Can you tell me his address?'],
     },
+    Haus: {
+      translation: 'house',
+      examples: ['The house is big.'],
+    },
   },
   hungarian: {
     hören: {
@@ -152,6 +156,10 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     'die Adresse': {
       translation: 'cím',
       examples: ['Meg tudod mondani a címét?'],
+    },
+    Haus: {
+      translation: 'ház',
+      examples: ['A ház nagy.'],
     },
   },
   'swiss-german': {
@@ -187,6 +195,10 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'd Adrässe',
       examples: ['Chönd Sie mir sini Adrässe säge?'],
     },
+    Haus: {
+      translation: 's Huus',
+      examples: ['S Huus isch gross.'],
+    },
   },
 };
 
@@ -196,6 +208,7 @@ export const GENDERS: Record<string, string> = {
   'der Absender': 'MASCULINE',
   Achtung: 'FEMININE',
   'die Adresse': 'FEMININE',
+  Haus: 'NEUTER',
 };
 
 export const WORD_TYPES: Record<string, string> = {
@@ -207,6 +220,7 @@ export const WORD_TYPES: Record<string, string> = {
   'der Absender': 'NOUN',
   Achtung: 'NOUN',
   'die Adresse': 'NOUN',
+  Haus: 'NOUN',
 };
 
 export const SENTENCE_LISTS: Record<string, string[]> = {
