@@ -138,6 +138,35 @@ test('drag to select words highlights possible duplicates with warning', async (
   await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Possible duplicate');
 });
 
+test('removing a warning span via context menu excludes it from bulk creation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'abfahren-tavozni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'távozni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  const warningSpan = page.getByText('abfahren').first();
+  await expect(warningSpan).toHaveAccessibleDescription('Possible duplicate');
+
+  await warningSpan.click();
+  await page.getByRole('menuitem', { name: 'Remove' }).click();
+
+  await expect(page.getByText('abfahren').first()).not.toHaveAccessibleDescription('Possible duplicate');
+  await expect(page.getByText('Create 2 Cards')).toBeVisible();
+});
+
 test('source selector routing works', async ({ page }) => {
   // Navigate to first source page
   await page.goto('http://localhost:8180/sources/goethe-a1/page/9');

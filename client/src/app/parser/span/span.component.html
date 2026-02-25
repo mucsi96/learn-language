@@ -23,6 +23,7 @@
   [top]="top"
   [width]="width"
   [height]="height"
+  (removed)="removeItem(matches[0].id)"
 />
 } @else {
 <button
@@ -47,7 +48,7 @@
     [warning]="match.warning ?? false"
     [error]="match.error"
     [label]="getItemLabel(match)"
-
+    (removed)="removeItem(match.id)"
   />
   }
 </mat-menu>
