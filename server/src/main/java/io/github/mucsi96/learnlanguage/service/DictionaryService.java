@@ -1,30 +1,20 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import tools.jackson.databind.json.JsonMapper;
 
-import io.github.mucsi96.learnlanguage.entity.Source;
-import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.DictionaryRequest;
-import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
-import io.github.mucsi96.learnlanguage.model.SourceFormatType;
-import io.github.mucsi96.learnlanguage.model.SourceType;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class DictionaryService {
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.of(
@@ -34,21 +24,8 @@ public class DictionaryService {
     private final JsonMapper jsonMapper;
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
-    private final SourceService sourceService;
-    private final HighlightService highlightService;
 
-    @Transactional
-    public void persistHighlightIfPresent(DictionaryRequest request) {
-        if (request.getBookTitle() == null || request.getHighlightedWord() == null
-                || request.getSentence() == null) {
-            return;
-        }
-
-        final Source source = getOrCreateSource(request.getBookTitle());
-        highlightService.persistHighlight(source, request.getHighlightedWord(), request.getSentence());
-    }
-
-    public Flux<String> streamLookup(DictionaryRequest request) {
+    public String lookup(DictionaryRequest request) {
         final String targetLanguage = request.getTargetLanguage();
         final String languageName = LANGUAGE_NAMES.get(targetLanguage);
 
@@ -57,7 +34,8 @@ public class DictionaryService {
                     "Unsupported target language: " + targetLanguage);
         }
 
-        final ChatModel model = resolveModel(request.getModel());
+        final ChatModel model = resolveModel();
+
         final String systemPrompt = buildSystemPrompt(languageName, targetLanguage);
 
         final DictionaryRequest input = DictionaryRequest.builder()
@@ -69,19 +47,23 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        return chatService.streamForText(model, OperationType.TRANSLATION, systemPrompt, userMessage);
+        final String rawResponse = chatService.callForTextWithLogging(
+                model,
+                OperationType.TRANSLATION,
+                systemPrompt,
+                userMessage);
+
+        return replacePlaceholdersWithUnicode(rawResponse);
     }
 
+    private String replacePlaceholdersWithUnicode(String text) {
+        return text
+                .replace("<<H>>", "\uFFF1")
+                .replace("<<B>>", "\uFFF2")
+                .replace("<</B>>", "\uFFF3");
+    }
 
-    private ChatModel resolveModel(String requestModel) {
-        if (requestModel != null && !requestModel.isBlank()) {
-            try {
-                return ChatModel.fromString(requestModel);
-            } catch (IllegalArgumentException e) {
-                log.warn("Unknown model requested: {}, falling back to primary", requestModel);
-            }
-        }
-
+    private ChatModel resolveModel() {
         final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
         final String modelName = primaryModels.get(OperationType.TRANSLATION);
 
@@ -91,30 +73,6 @@ public class DictionaryService {
         }
 
         return ChatModel.fromString(modelName);
-    }
-
-    private Source getOrCreateSource(String bookTitle) {
-        final String sourceId = toSourceId(bookTitle);
-
-        return sourceService.getSourceById(sourceId)
-                .orElseGet(() -> {
-                    final Source newSource = Source.builder()
-                            .id(sourceId)
-                            .name(bookTitle)
-                            .sourceType(SourceType.EBOOK_DICTIONARY)
-                            .startPage(1)
-                            .languageLevel(LanguageLevel.B1)
-                            .cardType(CardType.VOCABULARY)
-                            .formatType(SourceFormatType.WORD_LIST_WITH_EXAMPLES)
-                            .build();
-                    return sourceService.saveSource(newSource);
-                });
-    }
-
-    private static String toSourceId(String bookTitle) {
-        return bookTitle.toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-|-$", "");
     }
 
     private String buildSystemPrompt(String languageName, String targetLanguage) {
