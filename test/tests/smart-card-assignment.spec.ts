@@ -528,16 +528,17 @@ test('smart assignment: hardest cards for each person at front of their queue', 
 
 test('smart assignment: session limited to 50 most complex cards', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
-  const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
 
   for (let i = 1; i <= 60; i++) {
+    const dueDate = new Date(Date.now() - (60 - i) * 86400000);
+
     await createCard({
       cardId: `wort${i}-szo${i}`,
       sourceId: 'goethe-a1',
       data: { word: `wort${i}`, type: 'NOUN', translation: { hu: `szó${i}` } },
-      due: yesterday,
+      due: dueDate,
     });
 
     if (i <= 50) {
