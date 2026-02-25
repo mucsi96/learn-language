@@ -52,17 +52,10 @@ test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toContain('text/plain');
   const text = await response.text();
-  expect(text).toContain(bold('VERB'));
-  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
-  expect(text).toContain(
-    bold('Translation (hu): ') + 'elindulni, elhagyni'
-  );
-  expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren ab.'
-  );
-  expect(text).toContain(
-    bold('Example (hu): ') + 'Elindulunk.'
-  );
+  expect(text).toContain(bold('elindulni, elhagyni'));
+  expect(text).toContain('Wir fahren ab.');
+  expect(text).toContain('Elindulunk.');
+  expect(text).toContain('fährt ab, fuhr ab, ist abgefahren');
 });
 
 test('dictionary endpoint translates a word to English', async ({ page }) => {
@@ -74,17 +67,10 @@ test('dictionary endpoint translates a word to English', async ({ page }) => {
   expect(response.status).toBe(200);
   expect(response.headers.get('content-type')).toContain('text/plain');
   const text = await response.text();
-  expect(text).toContain(bold('VERB'));
-  expect(text).toContain(bold('Forms: ') + 'fährt ab, fuhr ab, ist abgefahren');
-  expect(text).toContain(
-    bold('Translation (en): ') + 'to depart, to leave'
-  );
-  expect(text).toContain(
-    bold('Example (de): ') + 'Wir fahren ab.'
-  );
-  expect(text).toContain(
-    bold('Example (en): ') + 'We depart.'
-  );
+  expect(text).toContain(bold('to depart, to leave'));
+  expect(text).toContain('Wir fahren ab.');
+  expect(text).toContain('We depart.');
+  expect(text).toContain('fährt ab, fuhr ab, ist abgefahren');
 });
 
 test('dictionary endpoint returns 401 without authorization header', async ({

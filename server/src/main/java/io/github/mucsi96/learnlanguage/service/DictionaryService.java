@@ -85,14 +85,10 @@ public class DictionaryService {
                 For nouns: include the article (e.g., "Häuser" becomes "das Haus").
                 For adjectives: use the base form (e.g., "großen" becomes "groß").
 
-                Determine the word type: VERB, NOUN, ADJECTIVE, ADVERB, PRONOUN, PREPOSITION, CONJUNCTION, INTERJECTION, ARTICLE, NUMERAL, or DETERMINER.
-
-                If the word is a noun, determine its grammatical gender: MASCULINE, FEMININE, or NEUTER. For non-nouns, omit gender.
-
                 Generate standard grammatical forms:
                 - For nouns: the plural form (e.g., "die Häuser")
                 - For verbs: 3. Person Singular Präsens, 3. Person Singular Präteritum, and 3. Person Singular Perfekt. Do NOT include pronouns - only the verb forms themselves.
-                - For other word types: omit forms line entirely.
+                - For other word types: omit forms entirely.
 
                 Translate the normalized word to %1$s.
 
@@ -105,32 +101,23 @@ public class DictionaryService {
                 - <<B>> = bold start
                 - <</B>> = bold end
 
-                Return exactly this format (each item on its own line, no blank lines except before the example block):
+                Return exactly this format:
 
-                For verbs:
-                <<H>><<B>>WORD  <<B>>WORD_TYPE<</B>><</B>>
-                <<B>>Forms: <</B>>form1, form2, form3
-                <<B>>Translation (%2$s): <</B>>translation
+                For words with forms (verbs and nouns):
+                <<H>><<B>>translation<</B>>
 
-                <<B>>Example (de): <</B>>German example sentence
-                <<B>>Example (%2$s): <</B>>Translated example sentence
+                German example sentence
+                Translated example sentence
 
-                For nouns:
-                <<H>><<B>>WORD  <<B>>NOUN<</B>> (GENDER)<</B>>
-                <<B>>Forms: <</B>>plural form
-                <<B>>Translation (%2$s): <</B>>translation
+                form1, form2, form3
 
-                <<B>>Example (de): <</B>>German example sentence
-                <<B>>Example (%2$s): <</B>>Translated example sentence
+                For other word types (no forms):
+                <<H>><<B>>translation<</B>>
 
-                For other word types (no forms line):
-                <<H>><<B>>WORD  <<B>>WORD_TYPE<</B>><</B>>
-                <<B>>Translation (%2$s): <</B>>translation
+                German example sentence
+                Translated example sentence
 
-                <<B>>Example (de): <</B>>German example sentence
-                <<B>>Example (%2$s): <</B>>Translated example sentence
-
-                Do not include any other text, explanation, or markdown. Only the formatted output.
+                Do not include any labels, word types, genders, or other text. Only the formatted output.
                 """
                 .formatted(languageName, targetLanguage);
     }
