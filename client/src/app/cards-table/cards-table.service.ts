@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { CardReadiness } from '../shared/state/card-readiness';
 
 export type CardTableRow = {
   id: string;
-  readiness: string;
+  readiness: CardReadiness;
   state: string;
   reps: number;
   lastReviewDaysAgo: number | null;

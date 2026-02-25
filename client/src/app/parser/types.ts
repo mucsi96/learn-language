@@ -1,3 +1,4 @@
+import { CardReadiness } from '../shared/state/card-readiness';
 import { CardState } from '../shared/state/card-state';
 import { AudioData } from '../shared/types/audio-generation.types';
 
@@ -67,7 +68,7 @@ export type Card = {
   };
   sourcePageNumber: number;
   data: CardData;
-  readiness: string;
+  readiness: CardReadiness;
   due: Date;
   stability: number;
   difficulty: number;
@@ -85,7 +86,7 @@ export type CardCreatePayload = {
   sourceId: string;
   sourcePageNumber: number;
   data: CardData;
-  readiness: string;
+  readiness: CardReadiness;
   due: Date;
   stability: number;
   difficulty: number;

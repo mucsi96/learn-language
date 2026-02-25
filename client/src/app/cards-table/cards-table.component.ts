@@ -31,6 +31,7 @@ import {
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
+import { CardReadiness, CARD_READINESS_VALUES } from '../shared/state/card-readiness';
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
@@ -56,7 +57,7 @@ const STATE_COLORS: Record<string, string> = {
   RELEARNING: '#F44336',
 };
 
-const READINESS_COLORS: Record<string, string> = {
+const READINESS_COLORS: Record<CardReadiness, string> = {
   READY: '#4CAF50',
   IN_REVIEW: '#2196F3',
   REVIEWED: '#00BCD4',
@@ -136,11 +137,18 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<string>('');
+  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
   readonly reviewScoreFilter = signal<string>('');
+
+  private readonly readinessParam = computed(() => {
+    const readiness = this.readinessFilter();
+    return readiness.length > 0 && readiness.length < this.readinessOptions.length
+      ? readiness.join(',')
+      : undefined;
+  });
 
   readonly allFilteredIds = resource({
     params: () => {
@@ -149,7 +157,7 @@ export class CardsTableComponent {
       const reviewScoreRange = this.parseReviewScoreRange(this.reviewScoreFilter());
       return {
         sourceId,
-        readiness: this.readinessFilter() || undefined,
+        readiness: this.readinessParam(),
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())
@@ -186,7 +194,7 @@ export class CardsTableComponent {
     deselectAll: () => this.deselectAll(),
   };
 
-  readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
+  readonly readinessOptions = CARD_READINESS_VALUES;
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
   readonly ratingOptions = [
     { value: '1', label: '1 - Again' },
@@ -202,10 +210,12 @@ export class CardsTableComponent {
     { value: '90', label: 'Last 90 days' },
   ];
   readonly reviewScoreOptions = [
-    { value: '0-25', label: '0% - 25%' },
-    { value: '26-50', label: '26% - 50%' },
+    { value: '0-50', label: '0% - 50%' },
     { value: '51-75', label: '51% - 75%' },
-    { value: '76-100', label: '76% - 100%' },
+    { value: '76-90', label: '76% - 90%' },
+    { value: '91-95', label: '91% - 95%' },
+    { value: '96-99', label: '96% - 99%' },
+    { value: '100-100', label: '100%' },
   ];
 
   readonly columnDefs: ColDef[] = [
@@ -233,9 +243,9 @@ export class CardsTableComponent {
       field: 'readiness',
       width: 120,
       sortable: false,
-      cellRenderer: (params: { value: string | null }) => {
+      cellRenderer: (params: { value: CardReadiness | null }) => {
         if (!params.value) return '';
-        return badgeHtml(params.value, READINESS_COLORS[params.value] ?? '#666');
+        return badgeHtml(params.value, READINESS_COLORS[params.value]);
       },
     },
     {
@@ -339,7 +349,7 @@ export class CardsTableComponent {
     }, 300);
   }
 
-  onReadinessFilterChange(value: string): void {
+  onReadinessFilterChange(value: CardReadiness[]): void {
     this.readinessFilter.set(value);
     this.refreshGrid();
   }
@@ -470,7 +480,7 @@ export class CardsTableComponent {
         endRow: params.endRow,
         sortField,
         sortDirection,
-        readiness: this.readinessFilter() || undefined,
+        readiness: this.readinessParam(),
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())

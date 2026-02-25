@@ -7,14 +7,15 @@ import org.springframework.data.jpa.domain.PredicateSpecification;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
 public class CardViewSpecifications {
 
     private CardViewSpecifications() {
     }
 
-    public static PredicateSpecification<CardView> hasReadiness(String readiness) {
-        return (root, cb) -> cb.equal(root.get(CardView_.readiness), readiness);
+    public static PredicateSpecification<CardView> hasReadinessIn(List<String> readinessValues) {
+        return (root, cb) -> root.get(CardView_.readiness).in(readinessValues);
     }
 
     public static PredicateSpecification<CardView> hasSourceId(String sourceId) {
@@ -65,7 +66,7 @@ public class CardViewSpecifications {
 
     public static PredicateSpecification<CardView> isDue() {
         final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
-        return hasReadiness(CardReadiness.READY).and(isDueBefore(cutoff));
+        return hasReadinessIn(List.of(CardReadiness.READY)).and(isDueBefore(cutoff));
     }
 
     public static PredicateSpecification<CardView> isDueForSource(String sourceId) {

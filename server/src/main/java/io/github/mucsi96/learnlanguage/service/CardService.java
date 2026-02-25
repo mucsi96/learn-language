@@ -213,7 +213,7 @@ public class CardService {
     PredicateSpecification<CardView> spec = hasSourceId(sourceId);
 
     if (StringUtils.hasText(readiness)) {
-      spec = spec.and(hasReadiness(readiness));
+      spec = spec.and(hasReadinessIn(List.of(readiness.split(","))));
     }
     if (StringUtils.hasText(state)) {
       spec = spec.and(hasState(state));
