@@ -31,6 +31,7 @@ import {
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
+import { CardReadiness, CARD_READINESS_VALUES } from '../shared/state/card-readiness';
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
@@ -56,7 +57,7 @@ const STATE_COLORS: Record<string, string> = {
   RELEARNING: '#F44336',
 };
 
-const READINESS_COLORS: Record<string, string> = {
+const READINESS_COLORS: Record<CardReadiness, string> = {
   READY: '#4CAF50',
   IN_REVIEW: '#2196F3',
   REVIEWED: '#00BCD4',
@@ -136,7 +137,7 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<string[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
+  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
@@ -189,7 +190,7 @@ export class CardsTableComponent {
     deselectAll: () => this.deselectAll(),
   };
 
-  readonly readinessOptions = ['READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN', 'NEW'];
+  readonly readinessOptions = CARD_READINESS_VALUES;
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
   readonly ratingOptions = [
     { value: '1', label: '1 - Again' },
@@ -344,7 +345,7 @@ export class CardsTableComponent {
     }, 300);
   }
 
-  onReadinessFilterChange(value: string[]): void {
+  onReadinessFilterChange(value: CardReadiness[]): void {
     this.readinessFilter.set(value);
     this.refreshGrid();
   }
