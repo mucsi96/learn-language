@@ -4,6 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { firstValueFrom } from 'rxjs';
+import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   type ColDef,
@@ -206,6 +208,31 @@ export class HighlightsComponent {
       event.api.setGridOption('rowData', highlights);
     }
     event.api.sizeColumnsToFit();
+  }
+
+  async deleteSelected(): Promise<void> {
+    const sourceId = this.routeSourceId();
+    if (typeof sourceId !== 'string') return;
+
+    const ids = this.selectedIds();
+    if (ids.length === 0) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to delete ${ids.length} highlight(s)?`,
+      },
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) return;
+
+    await this.highlightsService.deleteHighlights(sourceId, ids.map(Number));
+    this.selectedIds.set([]);
+    this.snackBar.open(`${ids.length} highlight(s) deleted`, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
   }
 
   async startBulkCreation(): Promise<void> {

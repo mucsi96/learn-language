@@ -499,3 +499,71 @@ test('bulk creation dialog shows cleanup button and removes highlights with exis
     expect(rows).toHaveLength(0);
   }).toPass();
 });
+
+test('deletes selected highlights with confirmation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+  await lookupWord(token, 'Test Ebook', 'Schule', 'Die Schule ist nah.');
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  await page.getByRole('row', { name: /fahren/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /Haus/ }).getByRole('checkbox').click();
+
+  await page.getByRole('button', { name: /Delete 2/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+  await expect(
+    dialog.getByText('Are you sure you want to delete 2 highlight(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('2 highlight(s) deleted')).toBeVisible();
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual(expect.objectContaining({ Word: 'Schule' }));
+  }).toPass();
+
+  const highlights = await getHighlights('test-ebook');
+  expect(highlights).toHaveLength(1);
+  expect(highlights[0].highlightedWord).toBe('Schule');
+});
+
+test('cancels highlight deletion on dialog dismissal', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  await page.getByRole('row', { name: /fahren/ }).getByRole('checkbox').click();
+  await page.getByRole('button', { name: /Delete 1/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
+  await expect(
+    dialog.getByText('Are you sure you want to delete 1 highlight(s)?')
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'No' }).click();
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+  }).toPass();
+
+  const highlights = await getHighlights('test-ebook');
+  expect(highlights).toHaveLength(1);
+});

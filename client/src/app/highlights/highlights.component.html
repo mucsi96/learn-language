@@ -10,17 +10,28 @@
   />
 
   @if (selectedCount() > 0 && !isCreating()) {
-    <button
-      mat-fab
-      extended
-      color="primary"
-      class="create-fab"
-      (click)="startBulkCreation()"
-      [disabled]="isCreating() || resolving()"
-      aria-label="Create cards from selected highlights"
-    >
-      <mat-icon>add_circle</mat-icon>
-      Create {{ selectedCount() }} Cards
-    </button>
+    <div class="selection-actions">
+      <button
+        mat-fab
+        extended
+        class="action-fab delete-fab"
+        (click)="deleteSelected()"
+      >
+        <mat-icon>delete</mat-icon>
+        Delete {{ selectedCount() }}
+      </button>
+      <button
+        mat-fab
+        extended
+        color="primary"
+        class="action-fab"
+        (click)="startBulkCreation()"
+        [disabled]="isCreating() || resolving()"
+        aria-label="Create cards from selected highlights"
+      >
+        <mat-icon>add_circle</mat-icon>
+        Create {{ selectedCount() }} Cards
+      </button>
+    </div>
   }
 </div>
