@@ -143,17 +143,21 @@ export class CardsTableComponent {
   readonly lastReviewDaysAgoFilter = signal<string>('');
   readonly reviewScoreFilter = signal<string>('');
 
+  private readonly readinessParam = computed(() => {
+    const readiness = this.readinessFilter();
+    return readiness.length > 0 && readiness.length < this.readinessOptions.length
+      ? readiness.join(',')
+      : undefined;
+  });
+
   readonly allFilteredIds = resource({
     params: () => {
       const sourceId = this.sourceId();
       if (!sourceId) return undefined;
       const reviewScoreRange = this.parseReviewScoreRange(this.reviewScoreFilter());
-      const readiness = this.readinessFilter();
       return {
         sourceId,
-        readiness: readiness.length > 0 && readiness.length < this.readinessOptions.length
-          ? readiness.join(',')
-          : undefined,
+        readiness: this.readinessParam(),
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())
@@ -468,7 +472,6 @@ export class CardsTableComponent {
     const sortField = sortModel.length > 0 ? sortModel[0].colId : undefined;
     const sortDirection = sortModel.length > 0 ? sortModel[0].sort : undefined;
     const reviewScoreRange = this.parseReviewScoreRange(this.reviewScoreFilter());
-    const readiness = this.readinessFilter();
 
     try {
       const response = await this.cardsTableService.fetchCards({
@@ -477,9 +480,7 @@ export class CardsTableComponent {
         endRow: params.endRow,
         sortField,
         sortDirection,
-        readiness: readiness.length > 0 && readiness.length < this.readinessOptions.length
-          ? readiness.join(',')
-          : undefined,
+        readiness: this.readinessParam(),
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())
