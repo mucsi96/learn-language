@@ -117,17 +117,18 @@ test('filters cards by readiness', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['ready-card', 'known-card'])
-    );
+    expect(before.map((r) => r.ID)).toEqual(['ready-card']);
   }).toPass();
 
   await page.getByLabel('Filter by readiness').click();
   await page.getByRole('option', { name: 'KNOWN' }).click();
+  await page.keyboard.press('Escape');
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.ID)).toEqual(['known-card']);
+    expect(after.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['ready-card', 'known-card'])
+    );
   }).toPass();
 });
 
@@ -914,7 +915,7 @@ test('filters cards by review score', async ({ page }) => {
   }).toPass();
 
   await page.getByLabel('Filter by review score').click();
-  await page.getByRole('option', { name: '76% - 100%' }).click();
+  await page.getByRole('option', { name: '100%' }).click();
 
   await expect(async () => {
     const after = await getGridData(grid);

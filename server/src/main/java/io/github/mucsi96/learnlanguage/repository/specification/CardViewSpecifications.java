@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.PredicateSpecification;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
 public class CardViewSpecifications {
 
@@ -15,6 +16,10 @@ public class CardViewSpecifications {
 
     public static PredicateSpecification<CardView> hasReadiness(String readiness) {
         return (root, cb) -> cb.equal(root.get(CardView_.readiness), readiness);
+    }
+
+    public static PredicateSpecification<CardView> hasReadinessIn(List<String> readinessValues) {
+        return (root, cb) -> root.get(CardView_.readiness).in(readinessValues);
     }
 
     public static PredicateSpecification<CardView> hasSourceId(String sourceId) {
