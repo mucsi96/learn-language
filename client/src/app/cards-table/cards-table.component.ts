@@ -146,7 +146,7 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<readonly CardReadiness[]>(['DRAFT', 'READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
+  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
