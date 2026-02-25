@@ -15,7 +15,7 @@ public class CardResponse {
     private CardSourceResponse source;
     private Integer sourcePageNumber;
     private CardData data;
-    private String readiness;
+    private CardReadiness readiness;
     private LocalDateTime due;
     private Float stability;
     private Float difficulty;

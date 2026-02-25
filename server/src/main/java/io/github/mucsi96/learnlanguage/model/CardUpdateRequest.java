@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CardUpdateRequest {
     private CardData data;
-    private String readiness;
+    private CardReadiness readiness;
     private LocalDateTime due;
     private Float stability;
     private Float difficulty;

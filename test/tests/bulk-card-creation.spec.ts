@@ -553,29 +553,9 @@ test('bulk card creation learning parameters and review state', async ({ page })
       expect(row.due).not.toBeNull();
       const timeDifference = Math.abs((ensureTimezoneAware(row.due).getTime() - currentTime.getTime()) / 1000);
       expect(timeDifference).toBeLessThan(60); // Within 1 minute of test execution
-      expect(row.readiness).toBe('IN_REVIEW');
+      expect(row.readiness).toBe('DRAFT');
     }
   });
-});
-
-test('bulk card creation dialog review link', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  await page.goto('http://localhost:8180/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
-
-  // Select a region
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-
-  // Click the FAB to open the dialog
-  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
-
-  // Click the review link
-  await page.getByRole('dialog').getByRole('link', { name: 'Review' }).click();
-
-  // Verify that we navigate to the in-review-cards page
-  await expect(page).toHaveURL('http://localhost:8180/in-review-cards');
 });
 
 test('bulk speech card creation includes sentence data', async ({ page }) => {
@@ -624,7 +604,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card1?.source_id).toBe('speech-a1');
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
-    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.readiness).toBe('DRAFT');
     expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
     expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
     expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
@@ -717,7 +697,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card1?.source_id).toBe('grammar-a1');
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
-    expect(card1?.readiness).toBe('IN_REVIEW');
+    expect(card1?.readiness).toBe('DRAFT');
     expect(card1?.data.examples[0].en).toBe('This is Paco.');
     expect(card1?.data.examples[0].de).toContain('[ist]');
 

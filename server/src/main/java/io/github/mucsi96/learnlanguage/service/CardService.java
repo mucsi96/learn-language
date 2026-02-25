@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,7 +95,7 @@ public class CardService {
         .toList();
   }
 
-  public List<Card> getCardsByReadiness(String readiness) {
+  public List<Card> getCardsByReadiness(CardReadiness readiness) {
     return cardRepository.findByReadinessOrderByDueAsc(readiness);
   }
 
@@ -213,7 +214,10 @@ public class CardService {
     PredicateSpecification<CardView> spec = hasSourceId(sourceId);
 
     if (StringUtils.hasText(readiness)) {
-      spec = spec.and(hasReadinessIn(List.of(readiness.split(","))));
+      final List<CardReadiness> readinessValues = Arrays.stream(readiness.split(","))
+          .map(CardReadiness::valueOf)
+          .toList();
+      spec = spec.and(hasReadinessIn(readinessValues));
     }
     if (StringUtils.hasText(state)) {
       spec = spec.and(hasState(state));

@@ -6,6 +6,7 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
 
 import io.github.mucsi96.learnlanguage.model.CardData;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
@@ -39,8 +40,9 @@ public class CardView {
     @Type(JsonBinaryType.class)
     private CardData data;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String readiness;
+    private CardReadiness readiness;
 
     @Column(nullable = false)
     private LocalDateTime due;

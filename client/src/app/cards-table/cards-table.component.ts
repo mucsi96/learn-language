@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -58,6 +58,7 @@ const STATE_COLORS: Record<string, string> = {
 };
 
 const READINESS_COLORS: Record<CardReadiness, string> = {
+  DRAFT: '#FF9800',
   READY: '#4CAF50',
   IN_REVIEW: '#2196F3',
   REVIEWED: '#00BCD4',
@@ -105,14 +106,22 @@ ModuleRegistry.registerModules([
 })
 export class CardsTableComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly cardsTableService = inject(CardsTableService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly routeSourceId = injectParams('sourceId');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
+  readonly isDraftMode = signal(false);
 
   constructor() {
+    const hasDraft = this.route.snapshot.queryParamMap.has('draft');
+    this.isDraftMode.set(hasDraft);
+    if (hasDraft) {
+      this.readinessFilter.set(['DRAFT']);
+    }
+
     effect(() => {
       this.sourceId();
       if (this.gridApi) {
@@ -137,7 +146,7 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
+  readonly readinessFilter = signal<readonly CardReadiness[]>(['DRAFT', 'READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');

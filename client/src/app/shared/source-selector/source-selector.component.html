@@ -13,7 +13,7 @@
   </button>
   <mat-menu #menu="matMenu">
     @for (source of sources(); track source.id) {
-    <a mat-menu-item [routerLink]="getSourceLink(source)">
+    <a mat-menu-item [routerLink]="getSourceLink(source)" [queryParams]="getSourceLinkQueryParams(source)">
       <span class="source-link">
         {{ source.name }}
         @if (mode() === 'study') {

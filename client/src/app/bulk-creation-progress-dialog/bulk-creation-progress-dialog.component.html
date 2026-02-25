@@ -6,26 +6,10 @@
   @if (bulkCardService.phase2Progress().length > 0) {
     <app-dot-reporter name="Generating images" [dots]="bulkCardService.phase2Progress()" />
   }
-
-  @if (!bulkCardService.isCreating() && showCleanup) {
-    @if (cleanedUp() === null) {
-      <p class="cleanup-hint">Remove highlights that already have cards?</p>
-    } @else {
-      <p class="cleanup-result">Removed {{ cleanedUp() }} highlight(s)</p>
-    }
-  }
 </mat-dialog-content>
 
 @if (!bulkCardService.isCreating()) {
 <mat-dialog-actions align="end">
-  @if (showCleanup && cleanedUp() === null) {
-    <button mat-button (click)="cleanupHighlights()" [disabled]="cleaning()">
-      Clean up
-    </button>
-  }
-  <a mat-button color="primary" routerLink="/in-review-cards" (click)="closeDialog()">
-    Review
-  </a>
   <button mat-button [mat-dialog-close]="true">Close</button>
 </mat-dialog-actions>
 }

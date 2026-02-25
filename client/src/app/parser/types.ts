@@ -239,15 +239,6 @@ export type ImageSource = {
   index: number;
 };
 
-export type Highlight = {
-  id: number;
-  candidateCardId: string | null;
-  cardExists: boolean;
-  highlightedWord: string;
-  sentence: string;
-  createdAt: string;
-};
-
 export type StudySession = {
   sessionId: string;
 };

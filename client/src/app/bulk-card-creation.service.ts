@@ -147,7 +147,7 @@ export class BulkCardCreationService {
         sourcePageNumber: pageNumber,
         data: cardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'IN_REVIEW'
+        readiness: 'DRAFT'
       } satisfies CardCreatePayload;
 
       await fetchJson(this.http, `/api/card`, {

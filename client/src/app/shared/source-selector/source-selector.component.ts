@@ -75,11 +75,19 @@ export class SourceSelectorComponent {
         return ['/sources', source.id, 'cards'];
       case 'admin':
         return source.sourceType === 'ebookDictionary'
-          ? ['/sources', source.id, 'highlights']
+          ? ['/sources', source.id, 'cards']
           : ['/sources', source.id, 'page', String(source.startPage)];
       default:
         throw new Error(`Unknown route mode: ${mode}`);
     }
+  }
+
+  getSourceLinkQueryParams(source: Source): Record<string, string> | null {
+    const mode = this.mode();
+    if (mode === 'admin' && source.sourceType === 'ebookDictionary') {
+      return { draft: 'true' };
+    }
+    return null;
   }
 
   getDueCounts(sourceId: string): { state: CardState; count: number }[] {
