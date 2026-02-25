@@ -237,22 +237,22 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
 export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
   hu: {
     fahren: [
-      '<<H>><<B>>abfahren  <<B>>VERB<</B>><</B>>',
-      '<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren',
-      '<<B>>Translation (hu): <</B>>elindulni, elhagyni',
+      '<<H>><<B>>elindulni, elhagyni<</B>>',
       '',
-      '<<B>>Example (de): <</B>>Wir fahren ab.',
-      '<<B>>Example (hu): <</B>>Elindulunk.',
+      'Wir fahren ab.',
+      'Elindulunk.',
+      '',
+      'fährt ab, fuhr ab, ist abgefahren',
     ].join('\n'),
   },
   en: {
     fahren: [
-      '<<H>><<B>>abfahren  <<B>>VERB<</B>><</B>>',
-      '<<B>>Forms: <</B>>fährt ab, fuhr ab, ist abgefahren',
-      '<<B>>Translation (en): <</B>>to depart, to leave',
+      '<<H>><<B>>to depart, to leave<</B>>',
       '',
-      '<<B>>Example (de): <</B>>Wir fahren ab.',
-      '<<B>>Example (en): <</B>>We depart.',
+      'Wir fahren ab.',
+      'We depart.',
+      '',
+      'fährt ab, fuhr ab, ist abgefahren',
     ].join('\n'),
   },
 };
