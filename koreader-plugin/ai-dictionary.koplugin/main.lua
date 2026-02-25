@@ -51,23 +51,6 @@ local function loadConfig()
     return config, nil
 end
 
-local function parseSseResponse(raw)
-    local parts = {}
-    for line in raw:gmatch("[^\r\n]+") do
-        local data = line:match("^data:(.*)")
-        if data then
-            table.insert(parts, data)
-        end
-    end
-    local text = table.concat(parts, "\n")
-
-    text = text:gsub("<<H>>", "\239\191\177")
-    text = text:gsub("<<B>>", "\239\191\178")
-    text = text:gsub("<</B>>", "\239\191\179")
-
-    return text
-end
-
 local function queryDictionary(serverUrl, token, requestBody)
     local requestJson = json.encode(requestBody)
 
@@ -80,7 +63,6 @@ local function queryDictionary(serverUrl, token, requestBody)
             ["Content-Type"] = "application/json",
             ["Content-Length"] = tostring(#requestJson),
             ["Authorization"] = "Bearer " .. token,
-            ["Accept"] = "text/event-stream",
         },
         source = ltn12.source.string(requestJson),
         sink = ltn12.sink.table(responseBody),
@@ -93,7 +75,7 @@ local function queryDictionary(serverUrl, token, requestBody)
         return nil, reason
     end
 
-    return parseSseResponse(raw), nil
+    return raw, nil
 end
 
 local function getSentenceAroundSelection(document, selection)

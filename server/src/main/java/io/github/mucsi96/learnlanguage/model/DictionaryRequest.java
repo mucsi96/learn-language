@@ -15,5 +15,4 @@ public class DictionaryRequest {
     private String targetLanguage;
     private String sentence;
     private String highlightedWord;
-    private String model;
 }

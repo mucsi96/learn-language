@@ -6,13 +6,6 @@ const app = express();
 const imageHandler = new ImageGenerationHandler();
 const chatHandler = new ChatHandler();
 
-const splitIntoChunks = (text: string, numChunks: number): string[] => {
-  const chunkSize = Math.ceil(text.length / numChunks);
-  return Array.from({ length: numChunks }, (_, i) =>
-    text.slice(i * chunkSize, (i + 1) * chunkSize)
-  ).filter((chunk) => chunk.length > 0);
-};
-
 app.use(express.json());
 
 // Middleware to log access details
@@ -66,56 +59,6 @@ app.post(
     }
   }
 );
-
-app.post(/\/v1beta\/models\/([^/]+):streamGenerateContent/, async (req, res) => {
-  try {
-    const model = req.params[0];
-    console.log(`Gemini streaming chat request for model: ${model}`);
-    const result = await chatHandler.processRequest(req.body);
-    const fullText = result.candidates[0].content.parts[0].text;
-    const chunks = splitIntoChunks(fullText, 3);
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    for (const chunk of chunks) {
-      const chunkResponse = {
-        candidates: [
-          {
-            content: {
-              parts: [{ text: chunk }],
-              role: 'model',
-            },
-            index: 0,
-          },
-        ],
-        modelVersion: model,
-      };
-      res.write(`data: ${JSON.stringify(chunkResponse)}\r\n\r\n`);
-    }
-
-    const finalChunk = {
-      candidates: [
-        {
-          content: {
-            parts: [{ text: '' }],
-            role: 'model',
-          },
-          finishReason: 'STOP',
-          index: 0,
-        },
-      ],
-      usageMetadata: result.usageMetadata,
-      modelVersion: model,
-    };
-    res.write(`data: ${JSON.stringify(finalChunk)}\r\n\r\n`);
-    res.end();
-  } catch (error: any) {
-    console.error('Streaming chat completion error:', error);
-    res.status(400).json({ error: { message: error.message || 'Invalid request format' } });
-  }
-});
 
 app.post(/\/v1beta\/models\/([^/]+):generateContent/, async (req, res) => {
   try {
