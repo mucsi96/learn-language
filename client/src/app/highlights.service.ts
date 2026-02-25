@@ -28,6 +28,16 @@ export class HighlightsService {
     this.highlights.reload();
   }
 
+  async deleteHighlights(sourceId: string, highlightIds: readonly number[]): Promise<{ deleted: number }> {
+    const result = await fetchJson<{ deleted: number }>(
+      this.http,
+      `/api/source/${sourceId}/highlights`,
+      { method: 'DELETE', body: highlightIds }
+    );
+    this.highlights.reload();
+    return result;
+  }
+
   async cleanupWithCards(sourceId: string): Promise<{ deleted: number }> {
     const result = await fetchJson<{ deleted: number }>(
       this.http,

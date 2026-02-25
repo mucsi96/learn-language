@@ -84,6 +84,14 @@ public class HighlightService {
         return highlightRepository.deleteBySourceAndCandidateCardIdIn(source, existingCardIds);
     }
 
+    @Transactional
+    public int deleteHighlightsByIds(List<Integer> ids) {
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        return highlightRepository.deleteByIdIn(ids);
+    }
+
     public void persistHighlight(Source source, String highlightedWord, String sentence) {
         if (highlightRepository.existsBySourceAndHighlightedWordAndSentence(
                 source, highlightedWord, sentence)) {

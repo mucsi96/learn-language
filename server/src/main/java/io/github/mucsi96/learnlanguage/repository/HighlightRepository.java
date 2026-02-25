@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -23,4 +24,8 @@ public interface HighlightRepository extends JpaRepository<Highlight, Integer> {
     @Modifying
     @Query("DELETE FROM Highlight h WHERE h.source = :source AND h.candidateCardId IN :cardIds")
     int deleteBySourceAndCandidateCardIdIn(@Param("source") Source source, @Param("cardIds") Set<String> cardIds);
+
+    @Modifying
+    @Query("DELETE FROM Highlight h WHERE h.id IN :ids")
+    int deleteByIdIn(@Param("ids") Collection<Integer> ids);
 }
