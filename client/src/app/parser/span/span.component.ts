@@ -1,4 +1,4 @@
-import { Component, HostBinding, inject, input, ResourceRef } from '@angular/core';
+import { Component, computed, HostBinding, inject, input, ResourceRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BBox } from '../types';
@@ -38,7 +38,7 @@ export class SpanComponent {
   private readonly pageService = inject(PageService);
   private readonly candidatesService = inject(CardCandidatesService);
 
-  get matches() {
+  readonly matches = computed(() => {
     const selectionRegions = this.selectionRegions();
     const searchTerm = this.searchTerm();
     if (!searchTerm || !selectionRegions?.length) {
@@ -78,7 +78,7 @@ export class SpanComponent {
     const strategy = this.strategyRegistry.getStrategy(page?.cardType);
     return strategy.filterItemsBySearchTerm(items, searchTerm)
       .filter(item => !this.candidatesService.isIgnored(item.id));
-  }
+  });
 
   @HostBinding('style.top') get top() {
     const  y = this.bbox()?.y;

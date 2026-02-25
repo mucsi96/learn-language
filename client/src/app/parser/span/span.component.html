@@ -1,4 +1,4 @@
-@if (matches.length === 0) {
+@if (matches().length === 0) {
 <div
   class="word"
   exclude-selection
@@ -9,21 +9,21 @@
 >
   {{ text() }}
 </div>
-} @else if (matches.length === 1) {
+} @else if (matches().length === 1) {
 <app-span-match
   [inline]="true"
   [sourceId]="sourceId()"
   [pageNumber]="pageNumber()"
-  [cardId]="matches[0].id"
-  [exists]="matches[0].exists"
-  [warning]="matches[0].warning ?? false"
-  [error]="matches[0].error"
+  [cardId]="matches()[0].id"
+  [exists]="matches()[0].exists"
+  [warning]="matches()[0].warning ?? false"
+  [error]="matches()[0].error"
   [label]="text() ?? ''"
   [left]="left"
   [top]="top"
   [width]="width"
   [height]="height"
-  (removed)="removeItem(matches[0].id)"
+  (removed)="removeItem(matches()[0].id)"
 />
 } @else {
 <button
@@ -39,7 +39,7 @@
   {{ text() }}
 </button>
 <mat-menu #menu="matMenu">
-  @for (match of matches; track match.id) {
+  @for (match of matches(); track match.id) {
   <app-span-match
     [sourceId]="sourceId()"
     [pageNumber]="pageNumber()"

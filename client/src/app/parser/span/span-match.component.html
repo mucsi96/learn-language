@@ -68,7 +68,7 @@
     {{ label() }}
   </a>
   } @else if (warning()) {
-  <button mat-menu-item [ariaDescription]="ariaDescription" [class.warning]="warning()" (click)="removed.emit()">
+  <button mat-menu-item class="warning" [ariaDescription]="ariaDescription" (click)="removed.emit()">
     <mat-icon>delete</mat-icon>
     <span>{{ label() }}</span>
   </button>
