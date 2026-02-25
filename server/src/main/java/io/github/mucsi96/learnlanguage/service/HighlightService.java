@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Highlight;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -15,7 +16,7 @@ import io.github.mucsi96.learnlanguage.model.HighlightResponse;
 import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
-import io.github.mucsi96.learnlanguage.model.WordResponse;
+import io.github.mucsi96.learnlanguage.model.TranslateWordRequest;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.HighlightRepository;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,30 @@ public class HighlightService {
                 .toList();
     }
 
+    @Transactional
+    public int deleteHighlightsWithCards(Source source) {
+        final List<Highlight> highlights = highlightRepository.findBySourceOrderByCreatedAtDesc(source);
+
+        final Set<String> candidateCardIds = highlights.stream()
+                .map(Highlight::getCandidateCardId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        if (candidateCardIds.isEmpty()) {
+            return 0;
+        }
+
+        final Set<String> existingCardIds = cardRepository.findAllById(candidateCardIds).stream()
+                .map(card -> card.getId())
+                .collect(Collectors.toSet());
+
+        if (existingCardIds.isEmpty()) {
+            return 0;
+        }
+
+        return highlightRepository.deleteBySourceAndCandidateCardIdIn(source, existingCardIds);
+    }
+
     public void persistHighlight(Source source, String highlightedWord, String sentence) {
         if (highlightRepository.existsBySourceAndHighlightedWordAndSentence(
                 source, highlightedWord, sentence)) {
@@ -95,14 +120,13 @@ public class HighlightService {
             final NormalizeWordResponse normalizeResponse = wordNormalizationService.normalize(
                     highlightedWord, sentence, classificationModel);
 
-            final WordResponse wordResponse = WordResponse.builder()
+            final TranslateWordRequest translateRequest = TranslateWordRequest.builder()
                     .word(normalizeResponse.getNormalizedWord())
-                    .forms(normalizeResponse.getForms())
                     .examples(List.of(sentence))
                     .build();
 
             final TranslationResponse translationResponse = translationService.translate(
-                    wordResponse, "hu", translationModel);
+                    translateRequest, "hu", translationModel);
 
             return wordIdService.generateWordId(
                     normalizeResponse.getNormalizedWord(),

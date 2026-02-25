@@ -27,4 +27,14 @@ export class HighlightsService {
   reload() {
     this.highlights.reload();
   }
+
+  async cleanupWithCards(sourceId: string): Promise<{ deleted: number }> {
+    const result = await fetchJson<{ deleted: number }>(
+      this.http,
+      `/api/source/${sourceId}/highlights/with-cards`,
+      { method: 'DELETE' }
+    );
+    this.highlights.reload();
+    return result;
+  }
 }

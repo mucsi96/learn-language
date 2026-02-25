@@ -10,7 +10,7 @@ import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.TranslationRequest;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
-import io.github.mucsi96.learnlanguage.model.WordResponse;
+import io.github.mucsi96.learnlanguage.model.TranslateWordRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -41,10 +41,10 @@ public class TranslationService {
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
 
-  public TranslationResponse translate(WordResponse word, String languageCode, ChatModel model) {
+  public TranslationResponse translate(TranslateWordRequest request, String languageCode, ChatModel model) {
     TranslationRequest translationRequest = TranslationRequest.builder()
-        .examples(word.getExamples())
-        .word(word.getWord())
+        .examples(request.getExamples())
+        .word(request.getWord())
         .build();
 
     final String translationRequestJson = jsonMapper.writeValueAsString(translationRequest);

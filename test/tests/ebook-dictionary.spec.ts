@@ -379,3 +379,123 @@ test('highlights grid shows dash for Card ID when no candidate card ID', async (
     ]);
   }).toPass();
 });
+
+test('highlight with existing card has disabled checkbox', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  const fahrenRow = grid.getByRole('row').filter({ hasText: 'Wir fahren um zwölf Uhr ab.' });
+  const hausRow = grid.getByRole('row').filter({ hasText: 'Das Haus ist groß.' });
+
+  await expect(fahrenRow.getByRole('checkbox')).toBeDisabled();
+  await expect(hausRow.getByRole('checkbox')).toBeEnabled();
+});
+
+test('select all skips highlights with existing cards', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('fahren', { exact: true })).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await expect(
+    page.getByRole('button').filter({ hasText: 'Create 1 Cards' })
+  ).toBeVisible();
+});
+
+test('bulk creation dialog shows cleanup button and removes highlights with existing cards', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  const token = await createTokenViaUI(page, 'Ebook Token');
+
+  await lookupWord(token, 'Test Ebook', 'fahren', 'Wir fahren um zwölf Uhr ab.');
+  await lookupWord(token, 'Test Ebook', 'Haus', 'Das Haus ist groß.');
+
+  const highlights = await getHighlights('test-ebook');
+  const fahrenHighlight = highlights.find(h => h.highlightedWord === 'fahren');
+  expect(fahrenHighlight?.candidateCardId).not.toBeNull();
+
+  await createCard({
+    cardId: fahrenHighlight!.candidateCardId!,
+    sourceId: 'test-ebook',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { hu: 'elindulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/test-ebook/highlights');
+
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await expect(page.getByText('Haus', { exact: true })).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await page.getByRole('button').filter({ hasText: 'Create 1 Cards' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  await expect(dialog.getByText('Remove highlights that already have cards?')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Clean up' }).click();
+
+  await expect(dialog.getByText('Removed 2 highlight(s)')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(0);
+  }).toPass();
+});

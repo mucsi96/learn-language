@@ -13,6 +13,7 @@ import type { ICellRendererParams } from 'ag-grid-community';
 
 export type SelectionContext = {
   selectedIdsSet: Signal<ReadonlySet<string>>;
+  disabledIdsSet?: Signal<ReadonlySet<string>>;
   toggleSelection: (id: string) => void;
 };
 
@@ -22,6 +23,7 @@ export type SelectionContext = {
   template: `
     <mat-checkbox
       [checked]="checked()"
+      [disabled]="disabled()"
       (change)="toggle($event)"
       (click)="$event.stopPropagation()"
       aria-label="Select card"
@@ -38,6 +40,7 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
   private readonly injector = inject(Injector);
   private readonly rowId = signal('');
   readonly checked = signal(false);
+  readonly disabled = signal(false);
   private context!: SelectionContext;
 
   agInit(params: ICellRendererParams): void {
@@ -48,6 +51,10 @@ export class SelectionCheckboxComponent implements ICellRendererAngularComp {
     runInInjectionContext(this.injector, () => {
       effect(() => {
         this.checked.set(this.context.selectedIdsSet().has(this.rowId()));
+      });
+      effect(() => {
+        const disabledSet = this.context.disabledIdsSet?.();
+        this.disabled.set(disabledSet?.has(this.rowId()) ?? false);
       });
     });
   }

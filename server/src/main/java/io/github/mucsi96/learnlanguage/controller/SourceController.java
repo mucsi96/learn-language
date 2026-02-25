@@ -108,6 +108,19 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @DeleteMapping("/source/{sourceId}/highlights/with-cards")
+  public ResponseEntity<Map<String, Object>> deleteHighlightsWithCards(@PathVariable String sourceId) {
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
+
+    final int deleted = highlightService.deleteHighlightsWithCards(source);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("deleted", deleted);
+    return ResponseEntity.ok(response);
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/source/{sourceId}/page/{pageNumber}")
   public PageResponse getPage(@PathVariable String sourceId, @PathVariable int pageNumber) throws IOException {
     var source = sourceService.getSourceById(sourceId)

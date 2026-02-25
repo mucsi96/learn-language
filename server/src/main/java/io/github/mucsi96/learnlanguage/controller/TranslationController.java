@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.TranslationResponse;
-import io.github.mucsi96.learnlanguage.model.WordResponse;
+import io.github.mucsi96.learnlanguage.model.TranslateWordRequest;
 import io.github.mucsi96.learnlanguage.service.TranslationService;
 import lombok.RequiredArgsConstructor;
 
@@ -22,9 +22,9 @@ public class TranslationController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PostMapping("/translate/{languageCode}")
     public TranslationResponse translate(
-            @RequestBody WordResponse word,
+            @RequestBody TranslateWordRequest request,
             @PathVariable String languageCode,
             @RequestParam ChatModel model) {
-        return translationService.translate(word, languageCode, model);
+        return translationService.translate(request, languageCode, model);
     }
 }

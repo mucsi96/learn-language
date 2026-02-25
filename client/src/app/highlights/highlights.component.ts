@@ -19,7 +19,7 @@ import {
 } from 'ag-grid-community';
 import { HighlightsService } from '../highlights.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
-import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
+import { BulkCreationProgressDialogComponent, BulkCreationDialogData } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { MultiModelService } from '../multi-model.service';
 import { Highlight, ExtractedItem, Word } from '../parser/types';
 import { injectParams } from '../utils/inject-params';
@@ -83,8 +83,18 @@ export class HighlightsComponent {
   readonly resolving = signal(false);
   readonly isCreating = this.bulkCreationService.isCreating;
 
+  readonly disabledIdsSet = computed(() =>
+    new Set(
+      (this.highlights() ?? [])
+        .filter(h => h.cardExists)
+        .map(h => String(h.id))
+    )
+  );
+
   readonly allHighlightIds = computed(() =>
-    (this.highlights() ?? []).map(h => String(h.id))
+    (this.highlights() ?? [])
+      .filter(h => !h.cardExists)
+      .map(h => String(h.id))
   );
 
   readonly selectedIds = linkedSignal<Highlight[] | undefined, readonly string[]>({
@@ -98,6 +108,7 @@ export class HighlightsComponent {
 
   readonly gridContext = {
     selectedIdsSet: this.selectedIdsSet,
+    disabledIdsSet: this.disabledIdsSet,
     toggleSelection: (id: string) => this.toggleSelection(id),
     selectedIds: this.selectedIds as { (): readonly string[] },
     totalFilteredCount: this.totalFilteredCount,
@@ -219,10 +230,12 @@ export class HighlightsComponent {
     }
 
     this.bulkCreationService.clearProgress();
+    const dialogData: BulkCreationDialogData = { sourceId };
     this.dialog.open(BulkCreationProgressDialogComponent, {
       disableClose: true,
       maxWidth: '100vw',
       maxHeight: '100vh',
+      data: dialogData,
     });
 
     const result = await this.bulkCreationService.createCardsInBulk(
@@ -239,6 +252,7 @@ export class HighlightsComponent {
   }
 
   private toggleSelection(id: string): void {
+    if (this.disabledIdsSet().has(id)) return;
     const current = this.selectedIds();
     const currentSet = this.selectedIdsSet();
     this.selectedIds.set(
@@ -287,7 +301,6 @@ export class HighlightsComponent {
               {
                 body: {
                   word: normalizedWord,
-                  forms: normalizeResponse.forms,
                   examples: [highlight.sentence],
                 },
                 method: 'POST',
