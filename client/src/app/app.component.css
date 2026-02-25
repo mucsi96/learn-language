@@ -1,10 +1,10 @@
 .header {
   border-bottom: 1px solid hsl(215, 14%, 34%);
   display: block;
-  padding: 0;
+  padding: env(safe-area-inset-top) 0 0;
 
   nav {
-    padding: 0 1rem;
+    padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
     max-width: 90rem;
     margin: 0 auto;
     display: flex;
@@ -22,7 +22,7 @@
 
 main {
   display: block;
-  padding: 1px 1rem;
+  padding: 1px max(1rem, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(1rem, env(safe-area-inset-left));
   max-width: 90rem;
   margin: 50px auto 0;
 }
