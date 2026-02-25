@@ -25,10 +25,29 @@
   >
     {{ label() }}
   </a>
+  } @else if (warning()) {
+  <button
+    class="word warning"
+    mat-flat-button
+    exclude-selection
+    [matMenuTriggerFor]="contextMenu"
+    [style.left]="left()"
+    [style.top]="top()"
+    [style.width]="width()"
+    [style.height]="height()"
+    [ariaDescription]="ariaDescription"
+  >
+    {{ label() }}
+  </button>
+  <mat-menu #contextMenu="matMenu">
+    <button mat-menu-item (click)="removed.emit()">
+      <mat-icon>delete</mat-icon>
+      <span>Remove</span>
+    </button>
+  </mat-menu>
   } @else {
   <div
     class="word"
-    [class.warning]="warning()"
     exclude-selection
     [style.left]="left()"
     [style.top]="top()"
@@ -48,8 +67,13 @@
   >
     {{ label() }}
   </a>
+  } @else if (warning()) {
+  <button mat-menu-item class="warning" [ariaDescription]="ariaDescription" (click)="removed.emit()">
+    <mat-icon>delete</mat-icon>
+    <span>{{ label() }}</span>
+  </button>
   } @else {
-  <div mat-menu-item [ariaDescription]="ariaDescription" [class.warning]="warning()">
+  <div mat-menu-item [ariaDescription]="ariaDescription">
     {{ label() }}
   </div>
   }

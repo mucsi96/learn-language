@@ -1,10 +1,12 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-span-match',
-  imports: [MatButtonModule, RouterModule],
+  imports: [MatButtonModule, MatMenuModule, MatIconModule, RouterModule],
   templateUrl: './span-match.component.html',
   styleUrl: './span-match.component.css',
 })
@@ -21,6 +23,7 @@ export class SpanMatchComponent {
   readonly top = input<string>();
   readonly width = input<string>();
   readonly height = input<string>();
+  readonly removed = output<void>();
 
   get ariaDescription() {
     const errorValue = this.error();

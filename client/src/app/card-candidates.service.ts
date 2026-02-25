@@ -59,6 +59,10 @@ export class CardCandidatesService {
     });
   }
 
+  isIgnored(itemId: string): boolean {
+    return this.ignoredIds().has(itemId);
+  }
+
   clearIgnoredItems(): void {
     this.ignoredIds.set(new Set());
   }

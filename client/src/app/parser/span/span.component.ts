@@ -1,4 +1,4 @@
-import { Component, HostBinding, inject, input, ResourceRef } from '@angular/core';
+import { Component, computed, HostBinding, inject, input, ResourceRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { BBox } from '../types';
@@ -8,6 +8,7 @@ import { RouterModule } from '@angular/router';
 import { ExtractionRegion, ExtractedItem } from '../types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 import { PageService } from '../../page.service';
+import { CardCandidatesService } from '../../card-candidates.service';
 import { SpanMatchComponent } from './span-match.component';
 
 @Component({
@@ -35,8 +36,9 @@ export class SpanComponent {
   readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly pageService = inject(PageService);
+  private readonly candidatesService = inject(CardCandidatesService);
 
-  get matches() {
+  readonly matches = computed(() => {
     const selectionRegions = this.selectionRegions();
     const searchTerm = this.searchTerm();
     if (!searchTerm || !selectionRegions?.length) {
@@ -74,8 +76,9 @@ export class SpanComponent {
 
     const page = this.pageService.page.value();
     const strategy = this.strategyRegistry.getStrategy(page?.cardType);
-    return strategy.filterItemsBySearchTerm(items, searchTerm);
-  }
+    return strategy.filterItemsBySearchTerm(items, searchTerm)
+      .filter(item => !this.candidatesService.isIgnored(item.id));
+  });
 
   @HostBinding('style.top') get top() {
     const  y = this.bbox()?.y;
@@ -119,5 +122,9 @@ export class SpanComponent {
     const page = this.pageService.page.value();
     const strategy = this.strategyRegistry.getStrategy(page?.cardType);
     return strategy.getItemLabel(item);
+  }
+
+  removeItem(itemId: string): void {
+    this.candidatesService.ignoreItem(itemId);
   }
 }
