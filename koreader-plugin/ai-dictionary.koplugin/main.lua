@@ -4,20 +4,10 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local TextViewer = require("ui/widget/textviewer")
-local InputDialog = require("ui/widget/inputdialog")
-local InputText = require("ui/widget/inputtext")
-local Font = require("ui/font")
-local Size = require("ui/size")
 
-local http = require("socket.http")
 local https = require("ssl.https")
-local socket = require("socket")
 local ltn12 = require("ltn12")
 local json = require("json")
-local ffi = require("ffi")
-local ffiutil = require("ffi/util")
-
-local Screen = Device.screen
 
 local AIDictionary = WidgetContainer:extend {
     name = "ai-dictionary",
@@ -61,141 +51,35 @@ local function loadConfig()
     return config, nil
 end
 
-local function applyMarkers(text)
-    return text:gsub("<<H>>", "\239\191\177")
-               :gsub("<<B>>", "\239\191\178")
-               :gsub("<</B>>", "\239\191\179")
-end
+local function queryDictionary(serverUrl, token, requestBody)
+    local requestJson = json.encode(requestBody)
 
-local StreamText = InputText:extend{}
+    local responseBody = {}
 
-function StreamText:addChars(chars)
-    self.readonly = false
-    InputText.addChars(self, chars)
-end
+    local _, code = https.request {
+        url = serverUrl .. "/api/dictionary",
+        method = "POST",
+        headers = {
+            ["Content-Type"] = "application/json",
+            ["Content-Length"] = tostring(#requestJson),
+            ["Authorization"] = "Bearer " .. token,
+        },
+        source = ltn12.source.string(requestJson),
+        sink = ltn12.sink.table(responseBody),
+    }
 
-function StreamText:initTextBox(text, char_added)
-    self.for_measurement_only = true
-    InputText.initTextBox(self, text, char_added)
-    UIManager:setDirty(self.parent, function() return "fast", self.dimen end)
-    self.for_measurement_only = false
-end
+    local raw = table.concat(responseBody)
 
-function StreamText:onCloseWidget()
-    UIManager:setDirty(self.parent, function() return "flashui", self.dimen end)
-    return InputText.onCloseWidget(self)
-end
-
-local PROTOCOL_NON_200 = "X-NON-200:"
-
-local function wrapFd(fd)
-    local obj = {}
-    function obj:write(chunk)
-        ffiutil.writeToFD(fd, chunk)
-        return self
-    end
-    function obj:close() return true end
-    return obj
-end
-
-local function backgroundRequest(url, token, requestJson)
-    return function(pid, child_write_fd)
-        https.cert_verify = false
-        local pipe_w = wrapFd(child_write_fd)
-        local code = socket.skip(1, http.request {
-            url = url,
-            method = "POST",
-            headers = {
-                ["Content-Type"] = "application/json",
-                ["Content-Length"] = tostring(#requestJson),
-                ["Authorization"] = "Bearer " .. token,
-                ["Accept"] = "text/event-stream",
-            },
-            source = ltn12.source.string(requestJson),
-            sink = ltn12.sink.file(pipe_w),
-        })
-        if code ~= 200 then
-            ffiutil.writeToFD(child_write_fd,
-                string.format("\r\n%sHTTP %s\n", PROTOCOL_NON_200, tostring(code or "failed")))
-        end
-        ffi.C.close(child_write_fd)
-    end
-end
-
-local function processStream(bgQuery, onChunk)
-    local pid, parent_read_fd = ffiutil.runInSubProcess(bgQuery, true)
-    if not pid then
-        return nil, "Failed to start request"
+    if code ~= 200 then
+        local reason = code and ("HTTP " .. code .. ": " .. raw) or "Connection failed"
+        return nil, reason
     end
 
-    local _coroutine = coroutine.running()
-    local check_interval = 0.125
-    local chunksize = 1024 * 16
-    local buffer = ffi.new('char[?]', chunksize, {0})
-    local buffer_ptr = ffi.cast('void*', buffer)
-    local partial_data = ""
-    local result_parts = {}
-    local completed = false
-    local non200 = false
-
-    while not completed do
-        UIManager:scheduleIn(check_interval, function()
-            coroutine.resume(_coroutine)
-        end)
-        coroutine.yield()
-
-        local readsize = ffiutil.getNonBlockingReadSize(parent_read_fd)
-        if readsize > 0 then
-            local bytes_read = tonumber(ffi.C.read(parent_read_fd, buffer_ptr, chunksize))
-            if bytes_read <= 0 then break end
-
-            partial_data = partial_data .. ffi.string(buffer, bytes_read)
-
-            while true do
-                local line_end = partial_data:find("[\r\n]")
-                if not line_end then break end
-
-                local line = partial_data:sub(1, line_end - 1)
-                partial_data = partial_data:sub(line_end + 1)
-
-                if line:sub(1, 5) == "data:" then
-                    local data = line:sub(6)
-                    table.insert(result_parts, data)
-                    onChunk(data)
-                elseif line:sub(1, #PROTOCOL_NON_200) == PROTOCOL_NON_200 then
-                    non200 = true
-                    table.insert(result_parts, line:sub(#PROTOCOL_NON_200 + 1))
-                    completed = true
-                    break
-                end
-            end
-        elseif readsize == 0 then
-            completed = ffiutil.isSubProcessDone(pid)
-        end
-    end
-
-    ffiutil.terminateSubProcess(pid)
-
-    local function collectAndClean()
-        if ffiutil.isSubProcessDone(pid) then
-            if parent_read_fd then ffiutil.readAllFromFD(parent_read_fd) end
-        else
-            if parent_read_fd and ffiutil.getNonBlockingReadSize(parent_read_fd) ~= 0 then
-                ffiutil.readAllFromFD(parent_read_fd)
-                parent_read_fd = nil
-            end
-            UIManager:scheduleIn(5, collectAndClean)
-        end
-    end
-    UIManager:scheduleIn(5, collectAndClean)
-
-    local result = table.concat(result_parts)
-    if non200 then return nil, "HTTP error: " .. result end
-    if #result == 0 then return nil, "No response received" end
-    return applyMarkers(result), nil
+    return raw, nil
 end
 
 local function getSentenceAroundSelection(document, selection)
+    local Screen = Device.screen
     local page_text = nil
 
     pcall(function()
@@ -297,62 +181,26 @@ function AIDictionary:lookup(highlightedText)
         self.ui.document, highlightedText
     )
 
+    local viewer = TextViewer:new {
+        title = "AI Dictionary",
+        text = "Looking up...",
+    }
+
+    UIManager:show(viewer)
+
     local targetLanguage = config.targetLanguage or "en"
     local serverUrl = config.serverUrl
 
-    local requestJson = json.encode({
-        bookTitle = title,
-        author = author,
-        targetLanguage = targetLanguage,
-        sentence = sentence,
-        highlightedWord = highlightedText,
-    })
+    UIManager:scheduleIn(0.01, function()
+        local result, err = queryDictionary(serverUrl, config.token, {
+            bookTitle = title,
+            author = author,
+            targetLanguage = targetLanguage,
+            sentence = sentence,
+            highlightedWord = highlightedText,
+        })
 
-    local streamDialog = InputDialog:new {
-        title = "AI Dictionary",
-        inputtext_class = StreamText,
-        input_face = Font:getFace("infofont", 20),
-        width = Screen:getWidth() - 2 * Size.margin.default,
-        use_available_height = true,
-        readonly = true,
-        fullscreen = false,
-        allow_newline = true,
-        add_nav_bar = false,
-        cursor_at_end = true,
-        add_scroll_buttons = true,
-        condensed = true,
-        scroll_by_pan = true,
-        buttons = {{
-            {
-                text = "Close",
-                id = "close",
-                callback = function()
-                    UIManager:close(streamDialog)
-                end,
-            },
-        }},
-    }
-
-    streamDialog._input_widget:setText("Looking up...", true)
-    UIManager:show(streamDialog)
-
-    local bgQuery = backgroundRequest(
-        serverUrl .. "/api/dictionary", config.token, requestJson
-    )
-
-    local co = coroutine.create(function()
-        local first_content = true
-        local result, err = processStream(bgQuery, function(chunk)
-            UIManager:nextTick(function()
-                if first_content then
-                    streamDialog._input_widget:setText("", true)
-                    first_content = false
-                end
-                streamDialog:addTextToInput(chunk)
-            end)
-        end)
-
-        UIManager:close(streamDialog)
+        UIManager:close(viewer)
 
         if err then
             UIManager:show(InfoMessage:new {
@@ -366,8 +214,6 @@ function AIDictionary:lookup(highlightedText)
             text = result,
         })
     end)
-
-    coroutine.resume(co)
 end
 
 return AIDictionary
