@@ -243,9 +243,9 @@ export class CardsTableComponent {
       field: 'readiness',
       width: 120,
       sortable: false,
-      cellRenderer: (params: { value: string | null }) => {
+      cellRenderer: (params: { value: CardReadiness | null }) => {
         if (!params.value) return '';
-        return badgeHtml(params.value, READINESS_COLORS[params.value] ?? '#666');
+        return badgeHtml(params.value, READINESS_COLORS[params.value]);
       },
     },
     {
