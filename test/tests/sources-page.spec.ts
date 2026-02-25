@@ -135,7 +135,7 @@ test('drag to select words highlights possible duplicates with warning', async (
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Possible duplicate');
+  await expect(page.getByRole('button', { name: 'abfahren' })).toHaveAccessibleDescription('Possible duplicate');
 });
 
 test('removing a warning span via context menu excludes it from bulk creation', async ({ page }) => {
@@ -157,10 +157,10 @@ test('removing a warning span via context menu excludes it from bulk creation', 
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
-  const warningSpan = page.getByText('abfahren').first();
-  await expect(warningSpan).toHaveAccessibleDescription('Possible duplicate');
+  const warningButton = page.getByRole('button', { name: 'abfahren' });
+  await expect(warningButton).toHaveAccessibleDescription('Possible duplicate');
 
-  await warningSpan.click();
+  await warningButton.click();
   await page.getByRole('menuitem', { name: 'Remove' }).click();
 
   await expect(page.getByText('abfahren').first()).not.toHaveAccessibleDescription('Possible duplicate');
