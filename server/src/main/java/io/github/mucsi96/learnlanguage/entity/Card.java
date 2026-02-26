@@ -46,31 +46,25 @@ public class Card {
     @Column(nullable = false)
     private CardReadiness readiness;
 
-    @Column(nullable = false)
     private LocalDateTime due;
 
-    @Column(nullable = false)
     private Float stability;
 
-    @Column(nullable = false)
     private Float difficulty;
 
-    @Column(name = "elapsed_days", nullable = false)
+    @Column(name = "elapsed_days")
     private Float elapsedDays;
 
-    @Column(name = "scheduled_days", nullable = false)
+    @Column(name = "scheduled_days")
     private Float scheduledDays;
 
-    @Column(name = "learning_steps", nullable = false)
+    @Column(name = "learning_steps")
     private Integer learningSteps;
 
-    @Column(nullable = false)
     private Integer reps;
 
-    @Column(nullable = false)
     private Integer lapses;
 
-    @Column(nullable = false)
     private String state;
 
     @Column(name = "last_review")

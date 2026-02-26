@@ -9,7 +9,6 @@ import {
   downloadImage,
   getImageColor,
   menschenA1Image,
-  ensureTimezoneAware,
   setupDefaultChatModelSettings,
   setupDefaultImageModelSettings,
   menschenA1GrammarImage,
@@ -438,7 +437,7 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'die Abfahrt' })).toHaveAccessibleDescription('Card exists');
 });
 
-test('bulk card creation fsrs attributes', async ({ page }) => {
+test('bulk card creation draft cards have no fsrs attributes', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('http://localhost:8180/sources');
@@ -454,7 +453,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   // Wait for creation to complete
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
-  // Verify FSRS attributes in database
+  // Verify FSRS attributes are null for draft cards
   await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due
@@ -465,14 +464,13 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
     expect(result.rows.length).toBe(1);
     const row = result.rows[0];
 
-    // Check FSRS initial values (from createEmptyCard())
-    expect(row.state).toBe('NEW');
-    expect(row.learning_steps).toBe(0);
-    expect(row.stability).toBe(0);
-    expect(row.difficulty).toBe(0);
-    expect(row.reps).toBe(0);
-    expect(row.lapses).toBe(0);
-    expect(row.due).not.toBeNull();
+    expect(row.state).toBeNull();
+    expect(row.learning_steps).toBeNull();
+    expect(row.stability).toBeNull();
+    expect(row.difficulty).toBeNull();
+    expect(row.reps).toBeNull();
+    expect(row.lapses).toBeNull();
+    expect(row.due).toBeNull();
   });
 });
 
@@ -510,7 +508,7 @@ test('bulk card creation source metadata', async ({ page }) => {
   });
 });
 
-test('bulk card creation learning parameters and review state', async ({ page }) => {
+test('bulk card creation draft cards have correct readiness and no fsrs data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('http://localhost:8180/sources');
@@ -526,9 +524,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
   // Wait for creation to complete
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
-  // Verify learning parameters and review state in database
   await withDbConnection(async (client) => {
-    // Check all three cards
     const result = await client.query(
       `SELECT state, learning_steps, stability, difficulty, reps, lapses, due, readiness
        FROM learn_language.cards
@@ -537,23 +533,15 @@ test('bulk card creation learning parameters and review state', async ({ page })
 
     expect(result.rows.length).toBe(3);
 
-    // Get current time for due date comparison
-    const currentTime = new Date();
-
-    // Check that all cards have the correct initial learning parameters
     for (const row of result.rows) {
-      // Check FSRS initial values
-      expect(row.state).toBe('NEW');
-      expect(row.learning_steps).toBe(0);
-      expect(row.stability).toBe(0);
-      expect(row.difficulty).toBe(0);
-      expect(row.reps).toBe(0);
-      expect(row.lapses).toBe(0);
-
-      expect(row.due).not.toBeNull();
-      const timeDifference = Math.abs((ensureTimezoneAware(row.due).getTime() - currentTime.getTime()) / 1000);
-      expect(timeDifference).toBeLessThan(60); // Within 1 minute of test execution
       expect(row.readiness).toBe('DRAFT');
+      expect(row.state).toBeNull();
+      expect(row.learning_steps).toBeNull();
+      expect(row.stability).toBeNull();
+      expect(row.difficulty).toBeNull();
+      expect(row.reps).toBeNull();
+      expect(row.lapses).toBeNull();
+      expect(row.due).toBeNull();
     }
   });
 });
@@ -603,7 +591,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card1).toBeDefined();
     expect(card1?.source_id).toBe('speech-a1');
     expect(card1?.source_page_number).toBe(1);
-    expect(card1?.state).toBe('NEW');
+    expect(card1?.state).toBeNull();
     expect(card1?.readiness).toBe('DRAFT');
     expect(card1?.data.examples[0].de).toBe('Wie heißt das Lied?');
     expect(card1?.data.examples[0].hu).toBe('Hogy hívják a dalt?');
@@ -696,7 +684,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card1).toBeDefined();
     expect(card1?.source_id).toBe('grammar-a1');
     expect(card1?.source_page_number).toBe(1);
-    expect(card1?.state).toBe('NEW');
+    expect(card1?.state).toBeNull();
     expect(card1?.readiness).toBe('DRAFT');
     expect(card1?.data.examples[0].en).toBe('This is Paco.');
     expect(card1?.data.examples[0].de).toContain('[ist]');

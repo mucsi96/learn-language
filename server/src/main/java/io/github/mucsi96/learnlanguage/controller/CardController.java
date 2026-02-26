@@ -139,25 +139,39 @@ public class CardController {
     final Source source = sourceRepository.findById(request.getSourceId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
 
-    final Card card = Card.builder()
+    final Card.CardBuilder builder = Card.builder()
         .id(request.getId())
         .source(source)
         .sourcePageNumber(request.getSourcePageNumber())
         .data(request.getData())
         .readiness(request.getReadiness())
-        .due(request.getDue())
-        .stability(request.getStability())
-        .difficulty(request.getDifficulty())
-        .elapsedDays(request.getElapsedDays())
-        .scheduledDays(request.getScheduledDays())
-        .learningSteps(request.getLearningSteps())
-        .reps(request.getReps())
-        .lapses(request.getLapses())
-        .state(request.getState())
-        .lastReview(request.getLastReview())
-        .build();
+        .lastReview(request.getLastReview());
 
-    cardService.saveCard(card);
+    if (request.getReadiness() == CardReadiness.DRAFT) {
+      builder
+          .due(request.getDue())
+          .stability(request.getStability())
+          .difficulty(request.getDifficulty())
+          .elapsedDays(request.getElapsedDays())
+          .scheduledDays(request.getScheduledDays())
+          .learningSteps(request.getLearningSteps())
+          .reps(request.getReps())
+          .lapses(request.getLapses())
+          .state(request.getState());
+    } else {
+      builder
+          .due(request.getDue() != null ? request.getDue() : LocalDateTime.now())
+          .stability(request.getStability() != null ? request.getStability() : 0f)
+          .difficulty(request.getDifficulty() != null ? request.getDifficulty() : 0f)
+          .elapsedDays(request.getElapsedDays() != null ? request.getElapsedDays() : 0f)
+          .scheduledDays(request.getScheduledDays() != null ? request.getScheduledDays() : 0f)
+          .learningSteps(request.getLearningSteps() != null ? request.getLearningSteps() : 0)
+          .reps(request.getReps() != null ? request.getReps() : 0)
+          .lapses(request.getLapses() != null ? request.getLapses() : 0)
+          .state(request.getState() != null ? request.getState() : "NEW");
+    }
+
+    cardService.saveCard(builder.build());
 
     return ResponseEntity.ok(new HashMap<>());
   }
@@ -194,6 +208,18 @@ public class CardController {
     if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
     if (request.getState() != null) existingCard.setState(request.getState());
     if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
+
+    if (existingCard.getReadiness() != CardReadiness.DRAFT && existingCard.getDue() == null) {
+      existingCard.setDue(LocalDateTime.now());
+      existingCard.setStability(0f);
+      existingCard.setDifficulty(0f);
+      existingCard.setElapsedDays(0f);
+      existingCard.setScheduledDays(0f);
+      existingCard.setLearningSteps(0);
+      existingCard.setReps(0);
+      existingCard.setLapses(0);
+      existingCard.setState("NEW");
+    }
 
     cardRepository.save(existingCard);
 

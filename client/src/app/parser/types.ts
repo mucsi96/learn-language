@@ -69,15 +69,15 @@ export type Card = {
   sourcePageNumber: number;
   data: CardData;
   readiness: CardReadiness;
-  due: Date;
-  stability: number;
-  difficulty: number;
-  elapsedDays: number;
-  scheduledDays: number;
-  learningSteps: number;
-  reps: number;
-  lapses: number;
-  state: CardState;
+  due?: Date;
+  stability?: number;
+  difficulty?: number;
+  elapsedDays?: number;
+  scheduledDays?: number;
+  learningSteps?: number;
+  reps?: number;
+  lapses?: number;
+  state?: CardState;
   lastReview?: Date;
 };
 
@@ -87,16 +87,6 @@ export type CardCreatePayload = {
   sourcePageNumber: number;
   data: CardData;
   readiness: CardReadiness;
-  due: Date;
-  stability: number;
-  difficulty: number;
-  elapsedDays: number;
-  scheduledDays: number;
-  learningSteps: number;
-  reps: number;
-  lapses: number;
-  state: CardState;
-  lastReview?: Date;
 };
 
 export type Page = {

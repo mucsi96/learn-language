@@ -1,12 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Card, ExampleImage, CardCreatePayload } from './parser/types';
-import { fetchJson } from './utils/fetchJson';
-import { createEmptyCard } from 'ts-fsrs';
-import { FsrsGradingService } from './fsrs-grading.service';
-import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
+  Card,
+  ExampleImage,
+  CardCreatePayload,
   CardCreationRequest,
   CardType,
   CardTypeStrategy,
@@ -14,6 +11,8 @@ import {
   ExtractedItem,
   ImagesByIndex,
 } from './parser/types';
+import { fetchJson } from './utils/fetchJson';
+import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
 import { ImageResponse, ImageSourceRequest } from './shared/types/image-generation.types';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
@@ -39,7 +38,6 @@ interface ImageGenerationResult {
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
-  private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly phase1Progress = signal<DotProgress[]>([]);
@@ -140,18 +138,16 @@ export class BulkCardCreationService {
 
       this.updatePhase1(progressIndex, 'in-progress', `${label}: Creating card...`);
 
-      const emptyCard = createEmptyCard();
-      const cardWithFSRS = {
+      const cardPayload: CardCreatePayload = {
         id: item.id,
         sourceId,
         sourcePageNumber: pageNumber,
         data: cardData,
-        ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'DRAFT'
-      } satisfies CardCreatePayload;
+        readiness: 'DRAFT',
+      };
 
       await fetchJson(this.http, `/api/card`, {
-        body: mapCardDatesToISOStrings(cardWithFSRS),
+        body: cardPayload,
         method: 'POST',
       });
 

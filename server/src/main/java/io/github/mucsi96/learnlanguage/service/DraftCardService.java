@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,15 +76,6 @@ public class DraftCardService {
                             .translation(Map.of("hu", translationResponse.getTranslation()))
                             .build())
                     .readiness(CardReadiness.DRAFT)
-                    .state("NEW")
-                    .due(LocalDateTime.now())
-                    .stability(0f)
-                    .difficulty(0f)
-                    .elapsedDays(0f)
-                    .scheduledDays(0f)
-                    .learningSteps(0)
-                    .reps(0)
-                    .lapses(0)
                     .build());
         } catch (Exception e) {
             log.error("Failed to create draft card for word '{}': {}", highlightedWord, e.getMessage(), e);

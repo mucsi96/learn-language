@@ -44,13 +44,10 @@ public class CardView {
     @Column(nullable = false)
     private CardReadiness readiness;
 
-    @Column(nullable = false)
     private LocalDateTime due;
 
-    @Column(nullable = false)
     private Integer reps;
 
-    @Column(nullable = false)
     private String state;
 
     @Column(name = "last_review")

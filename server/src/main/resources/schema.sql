@@ -27,15 +27,15 @@ CREATE TABLE IF NOT EXISTS learn_language.cards (
     source_page_number integer NOT NULL,
     data jsonb NOT NULL,
     readiness character varying(255) NOT NULL,
-    due timestamp(6) NOT NULL,
-    stability real NOT NULL,
-    difficulty real NOT NULL,
-    elapsed_days real NOT NULL,
-    scheduled_days real NOT NULL,
-    learning_steps integer NOT NULL,
-    reps integer NOT NULL,
-    lapses integer NOT NULL,
-    state character varying(255) NOT NULL,
+    due timestamp(6),
+    stability real,
+    difficulty real,
+    elapsed_days real,
+    scheduled_days real,
+    learning_steps integer,
+    reps integer,
+    lapses integer,
+    state character varying(255),
     last_review timestamp(6),
     CONSTRAINT cards_pkey PRIMARY KEY (id),
     CONSTRAINT card_source_id_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id)
@@ -229,3 +229,13 @@ LEFT JOIN LATERAL (
 ) rs ON true;
 
 CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON learn_language.card_view (id);
+
+ALTER TABLE learn_language.cards ALTER COLUMN due DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN stability DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN difficulty DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN elapsed_days DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN scheduled_days DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN learning_steps DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN reps DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN lapses DROP NOT NULL;
+ALTER TABLE learn_language.cards ALTER COLUMN state DROP NOT NULL;

@@ -1132,7 +1132,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({
     );
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].readiness).toBe('DRAFT');
-    expect(result.rows[0].state).toBe('NEW');
+    expect(result.rows[0].state).toBeNull();
   });
 });
 

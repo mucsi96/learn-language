@@ -268,34 +268,35 @@ export async function createCard(params: {
   cardId: string;
   sourceId: string;
   data: CardData;
-  state?: string;
-  learningSteps?: number;
-  due?: Date;
-  stability?: number;
-  difficulty?: number;
+  state?: string | null;
+  learningSteps?: number | null;
+  due?: Date | null;
+  stability?: number | null;
+  difficulty?: number | null;
   sourcePageNumber?: number;
   lastReview?: Date | null;
-  elapsedDays?: number;
-  scheduledDays?: number;
-  reps?: number;
-  lapses?: number;
+  elapsedDays?: number | null;
+  scheduledDays?: number | null;
+  reps?: number | null;
+  lapses?: number | null;
   readiness?: string;
 }): Promise<void> {
+  const isDraft = (params.readiness ?? 'READY') === 'DRAFT';
   const {
     cardId,
     sourceId,
     data,
-    state = 'NEW',
-    learningSteps = 0,
-    due = new Date(Date.now() - 86400000), // 1 day ago
-    stability = 0.0,
-    difficulty = 0.0,
+    state = isDraft ? null : 'NEW',
+    learningSteps = isDraft ? null : 0,
+    due = isDraft ? null : new Date(Date.now() - 86400000), // 1 day ago
+    stability = isDraft ? null : 0.0,
+    difficulty = isDraft ? null : 0.0,
     sourcePageNumber = 1,
     lastReview = null,
-    elapsedDays = 0,
-    scheduledDays = 0,
-    reps = 0,
-    lapses = 0,
+    elapsedDays = isDraft ? null : 0,
+    scheduledDays = isDraft ? null : 0,
+    reps = isDraft ? null : 0,
+    lapses = isDraft ? null : 0,
     readiness = 'READY',
   } = params;
 

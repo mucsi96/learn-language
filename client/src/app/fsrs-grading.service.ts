@@ -18,15 +18,15 @@ export class FsrsGradingService {
 
   convertToFSRSCard(card: Card): FSRSCard {
     return {
-      due: card.due,
-      stability: card.stability,
-      difficulty: card.difficulty,
-      elapsed_days: card.elapsedDays,
-      scheduled_days: card.scheduledDays,
-      learning_steps: card.learningSteps,
-      reps: card.reps,
-      lapses: card.lapses,
-      state: mapCardStateToTsfsrsState(card.state),
+      due: card.due!,
+      stability: card.stability!,
+      difficulty: card.difficulty!,
+      elapsed_days: card.elapsedDays!,
+      scheduled_days: card.scheduledDays!,
+      learning_steps: card.learningSteps!,
+      reps: card.reps!,
+      lapses: card.lapses!,
+      state: mapCardStateToTsfsrsState(card.state!),
       last_review: card.lastReview,
     };
   }
