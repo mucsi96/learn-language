@@ -6,22 +6,21 @@ import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
   CardCreationRequest,
-  CardCreationResult,
   CardType,
-  ImageGenerationInfo,
   ExtractionRequest,
   ExtractedItem,
   WordList,
   AudioGenerationItem,
   Card,
   CardData,
-  ImagesByIndex,
   LanguageTexts,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 import { getWordTypeInfo } from '../shared/word-type-translations';
 import { getGenderInfo } from '../shared/gender-translations';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { generateExampleImages } from '../utils/image-generation.util';
 
 interface WordTypeResponse {
   type: string;
@@ -50,6 +49,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
@@ -135,7 +135,7 @@ export class VocabularyCardType implements CardTypeStrategy {
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
-  ): Promise<CardCreationResult> {
+  ): Promise<CardData> {
     const word = request.item as ExtractedItem & { word: string; forms: string[]; examples: string[] };
 
     try {
@@ -156,7 +156,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       let gender: string | undefined;
       if (wordTypeResult.response.type === 'NOUN') {
-        progressCallback(30, 'Detecting gender...');
+        progressCallback(20, 'Detecting gender...');
         const genderResponse = await this.multiModelService.call<GenderResponse>(
           'classification',
           (model: string, headers?: Record<string, string>) => fetchJson<GenderResponse>(
@@ -172,7 +172,7 @@ export class VocabularyCardType implements CardTypeStrategy {
         gender = genderResponse.gender;
       }
 
-      progressCallback(50, 'Translating to multiple languages...');
+      progressCallback(40, 'Translating to multiple languages...');
       const translationResults = await Promise.all(
         languages.map(async (languageCode) => {
           const result = await this.multiModelService.callWithModel<TranslationResponse>(
@@ -208,45 +208,46 @@ export class VocabularyCardType implements CardTypeStrategy {
         ])
       );
 
-      progressCallback(80, 'Preparing vocabulary card data...');
+      progressCallback(70, 'Generating images...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = word.examples
+      const imageInputs = word.examples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
-          if (!englishTranslation) {
-            return null;
-          }
-          return {
-            cardId: word.id,
-            exampleIndex,
-            englishTranslation
-          };
+          return englishTranslation ? { exampleIndex, englishTranslation } : null;
         })
-        .filter((info): info is ImageGenerationInfo => info !== null);
+        .filter(nonNullable);
 
-      const cardData = {
+      const imagesMap = await generateExampleImages(
+        this.http,
+        this.environmentConfig.imageModels,
+        imageInputs
+      );
+
+      progressCallback(90, 'Preparing vocabulary card data...');
+
+      const examples = word.examples.map((example, index) => ({
+        ...Object.fromEntries([
+          ['de', example],
+          ...languages.map((languageCode) => [
+            languageCode,
+            exampleTranslations[languageCode]?.[index] || ''
+          ])
+        ]),
+        isSelected: index === 0,
+        images: imagesMap.get(index) ?? [],
+      }));
+
+      return {
         word: word.word,
         type: wordTypeResult.response.type,
         gender: gender,
         translation: translationMap,
         forms: word.forms,
-        examples: word.examples.map((example, index) => ({
-          ...Object.fromEntries([
-            ['de', example],
-            ...languages.map((languageCode) => [
-              languageCode,
-              exampleTranslations[languageCode]?.[index] || ''
-            ])
-          ]),
-          isSelected: index === 0,
-          images: []
-        })),
+        examples,
         translationModel,
         classificationModel,
         extractionModel: word.extractionModel,
       };
-
-      return { cardData, imageGenerationInfos };
 
     } catch (error) {
       throw new Error(`Failed to prepare vocabulary card data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -281,23 +282,6 @@ export class VocabularyCardType implements CardTypeStrategy {
       selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN } : null,
       selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN } : null,
     ].filter(nonNullable);
-  }
-
-  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData {
-    if (!cardData.examples) {
-      return cardData;
-    }
-
-    const updatedExamples = cardData.examples.map((example, idx) => {
-      const existingImages = example.images ?? [];
-      const newImages = images.get(idx) ?? [];
-      return {
-        ...example,
-        images: [...existingImages, ...newImages]
-      } as typeof example;
-    });
-
-    return { ...cardData, examples: updatedExamples };
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {

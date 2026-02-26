@@ -5,9 +5,7 @@ import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
   CardCreationRequest,
-  CardCreationResult,
   CardType,
-  ImageGenerationInfo,
   ExtractionRequest,
   ExtractedItem,
   SentenceList,
@@ -15,11 +13,12 @@ import {
   AudioGenerationItem,
   Card,
   CardData,
-  ImagesByIndex,
   LanguageTexts,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { generateExampleImages } from '../utils/image-generation.util';
 
 interface SentenceIdResponse {
   id: string;
@@ -38,6 +37,7 @@ export class GrammarCardType implements CardTypeStrategy {
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
@@ -94,7 +94,7 @@ export class GrammarCardType implements CardTypeStrategy {
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
-  ): Promise<CardCreationResult> {
+  ): Promise<CardData> {
     const sentence = request.item as Sentence;
 
     try {
@@ -114,32 +114,32 @@ export class GrammarCardType implements CardTypeStrategy {
             )
         );
 
-      progressCallback(80, 'Preparing grammar card data...');
+      progressCallback(60, 'Generating images...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = englishResult.response.translation
-        ? [
-            {
-              cardId: sentence.id,
-              exampleIndex: 0,
-              englishTranslation: englishResult.response.translation,
-            },
-          ]
+      const imageInputs = englishResult.response.translation
+        ? [{ exampleIndex: 0, englishTranslation: englishResult.response.translation }]
         : [];
 
-      const cardData: CardData = {
+      const imagesMap = await generateExampleImages(
+        this.http,
+        this.environmentConfig.imageModels,
+        imageInputs
+      );
+
+      progressCallback(90, 'Preparing grammar card data...');
+
+      return {
         examples: [
           {
             de: sentence.sentence,
             en: englishResult.response.translation,
             isSelected: true,
-            images: [],
+            images: imagesMap.get(0) ?? [],
           },
         ],
         translationModel: englishResult.model,
         extractionModel: sentence.extractionModel,
       };
-
-      return { cardData, imageGenerationInfos };
     } catch (error) {
       throw new Error(
         `Failed to prepare grammar card data: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -170,23 +170,6 @@ export class GrammarCardType implements CardTypeStrategy {
         ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
         : null,
     ].filter(nonNullable);
-  }
-
-  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData {
-    if (!cardData.examples) {
-      return cardData;
-    }
-
-    const updatedExamples = cardData.examples.map((example, idx) => {
-      const existingImages = example.images ?? [];
-      const newImages = images.get(idx) ?? [];
-      return {
-        ...example,
-        images: [...existingImages, ...newImages],
-      } as typeof example;
-    });
-
-    return { ...cardData, examples: updatedExamples };
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {
