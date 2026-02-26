@@ -1232,7 +1232,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, readiness, data FROM learn_language.cards WHERE source_id = 'test-buch'`
+      `SELECT id, readiness, data FROM learn_language.cards WHERE source_id = 'test-buch' ORDER BY id`
     );
     expect(result.rows.length).toBe(2);
     expect(result.rows[0].readiness).toBe('IN_REVIEW');
