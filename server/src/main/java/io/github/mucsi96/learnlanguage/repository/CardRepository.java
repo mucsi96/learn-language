@@ -25,8 +25,11 @@ public interface CardRepository
     @Query("SELECT c FROM Card c ORDER BY c.lastReview DESC")
     List<Card> findTopByOrderByLastReviewDesc(Pageable pageable);
 
-    @Query("SELECT c.source.id, COUNT(c) FROM Card c GROUP BY c.source.id")
+    @Query("SELECT c.source.id, COUNT(c) FROM Card c WHERE c.readiness <> io.github.mucsi96.learnlanguage.model.CardReadiness.DRAFT GROUP BY c.source.id")
     List<Object[]> countCardsBySourceGroupBySource();
+
+    @Query("SELECT c.source.id, COUNT(c) FROM Card c WHERE c.readiness = io.github.mucsi96.learnlanguage.model.CardReadiness.DRAFT GROUP BY c.source.id")
+    List<Object[]> countDraftCardsBySourceGroupBySource();
 
     @Query(value = """
         SELECT source_id, state, COUNT(*) AS card_count

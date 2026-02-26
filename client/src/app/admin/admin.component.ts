@@ -49,11 +49,7 @@ export class AdminComponent {
     const source = this.selectedSource();
     if (!source) return;
 
-    if (source.sourceType === 'ebookDictionary') {
-      this.router.navigate(['/sources', source.id, 'cards'], { queryParams: { draft: true } });
-    } else {
-      this.router.navigate(['/sources', source.id, 'page', source.startPage]);
-    }
+    this.router.navigate(['/sources', source.id, 'page', source.startPage]);
   }
 
   navigateToCards(): void {

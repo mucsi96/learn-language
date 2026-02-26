@@ -68,9 +68,16 @@ public class SourceController {
   public List<SourceResponse> getSources() {
     var sources = sourceService.getAllSources();
     var cardCounts = cardService.getCardCountsBySource();
+    var draftCardCounts = cardService.getDraftCardCountsBySource();
 
     return sources.stream().map(source -> {
       var cardCount = cardCounts.stream()
+          .filter(count -> count.sourceId().equals(source.getId()))
+          .findFirst()
+          .map(SourceCardCount::count)
+          .orElse(0);
+
+      var draftCardCount = draftCardCounts.stream()
           .filter(count -> count.sourceId().equals(source.getId()))
           .findFirst()
           .map(SourceCardCount::count)
@@ -89,6 +96,7 @@ public class SourceController {
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
           .cardCount(cardCount)
+          .draftCardCount(draftCardCount)
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();
