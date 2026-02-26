@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -115,13 +115,13 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
   readonly isDraftMode = computed(() => !!this.draft());
 
-  constructor() {
-    effect(() => {
-      if (this.isDraftMode()) {
-        this.readinessFilter.set(['DRAFT']);
-      }
-    });
+  readonly readinessFilter = linkedSignal<boolean, readonly CardReadiness[]>({
+    source: this.isDraftMode,
+    computation: (isDraft): readonly CardReadiness[] =>
+      isDraft ? ['DRAFT'] : ['READY', 'IN_REVIEW', 'REVIEWED'],
+  });
 
+  constructor() {
     effect(() => {
       this.sourceId();
       if (this.gridApi) {
@@ -146,7 +146,6 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
