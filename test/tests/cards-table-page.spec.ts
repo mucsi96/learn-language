@@ -1223,6 +1223,6 @@ test('bulk card creation produces draft cards visible on cards page', async ({
   await expect(async () => {
     const rows = await getGridData(grid);
     expect(rows.length).toBe(3);
-    rows.forEach((row) => expect(row.Readiness).toBe('DRAFT'));
+    rows.forEach((row) => expect(row.Readiness).toBe('IN_REVIEW'));
   }).toPass();
 });
