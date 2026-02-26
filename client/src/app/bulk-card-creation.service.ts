@@ -121,6 +121,122 @@ export class BulkCardCreationService {
     return summarizeResults(phase1Results);
   }
 
+  async completeDraftCards(
+    cardIds: readonly string[],
+    sourceId: string,
+    cardType: CardType
+  ): Promise<BatchResult> {
+    if (this.isCreating()) {
+      throw new Error('Bulk creation already in progress');
+    }
+
+    if (cardIds.length === 0) {
+      return { total: 0, succeeded: 0, failed: 0, errors: [] };
+    }
+
+    this.isCreating.set(true);
+
+    const strategy = this.strategyRegistry.getStrategy(cardType);
+
+    const cards = await Promise.all(
+      cardIds.map(id => fetchJson<Card>(this.http, `/api/card/${id}`))
+    );
+
+    this.phase1Progress.set(cards.map(card => ({
+      label: strategy.getCardDisplayLabel(card),
+      status: 'pending' as const,
+      tooltip: `${strategy.getCardDisplayLabel(card)}: Queued`,
+    })));
+    this.phase2Progress.set([]);
+
+    const phase1Tasks = cards.map(
+      (card, index) => () =>
+        this.completeSingleDraftCard(card, sourceId, index, strategy)
+    );
+
+    const phase1Results = await processTasksWithRateLimit(phase1Tasks, null);
+
+    const imageItems = phase1Results.reduce<
+      Array<{ cardId: string; imageInfos: ImageGenerationInfo[]; label: string }>
+    >(
+      (acc, result, index) => {
+        if (result.status === 'fulfilled' && result.value.length > 0) {
+          return [...acc, {
+            cardId: cards[index].id,
+            imageInfos: result.value,
+            label: strategy.getCardDisplayLabel(cards[index]),
+          }];
+        }
+        return acc;
+      },
+      []
+    );
+
+    if (imageItems.length > 0) {
+      this.phase2Progress.set(imageItems.map(item => ({
+        label: item.label,
+        status: 'pending' as const,
+        tooltip: `${item.label}: Queued`,
+      })));
+
+      const phase2Tasks = imageItems.map(
+        (item, phase2Index) => () =>
+          this.generateImagesForCard(item.cardId, item.imageInfos, phase2Index, strategy)
+      );
+
+      await processTasksWithRateLimit(
+        phase2Tasks,
+        this.environmentConfig.imageRateLimitPerMinute
+      );
+    }
+
+    this.isCreating.set(false);
+
+    return summarizeResults(phase1Results);
+  }
+
+  private async completeSingleDraftCard(
+    card: Card,
+    sourceId: string,
+    progressIndex: number,
+    strategy: CardTypeStrategy
+  ): Promise<ImageGenerationInfo[]> {
+    const label = strategy.getCardDisplayLabel(card);
+
+    try {
+      this.updatePhase1(progressIndex, 'in-progress', `${label}: Translating...`);
+
+      const item = strategy.buildExtractedItem(card);
+      const request: CardCreationRequest = {
+        item,
+        sourceId,
+        pageNumber: card.sourcePageNumber,
+        cardType: strategy.cardType,
+      };
+
+      const progressCallback = (_progress: number, step: string) => {
+        this.updatePhase1(progressIndex, 'in-progress', `${label}: ${step}`);
+      };
+
+      const { cardData, imageGenerationInfos } = await strategy.createCardData(request, progressCallback);
+
+      this.updatePhase1(progressIndex, 'in-progress', `${label}: Updating card...`);
+
+      await fetchJson(this.http, `/api/card/${card.id}`, {
+        body: { data: cardData },
+        method: 'PUT',
+      });
+
+      this.updatePhase1(progressIndex, 'completed', `${label}: Done`);
+
+      return imageGenerationInfos;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.updatePhase1(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
+      throw error;
+    }
+  }
+
   private async createSingleCard(
     request: CardCreationRequest,
     progressIndex: number,

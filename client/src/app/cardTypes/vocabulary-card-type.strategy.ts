@@ -253,6 +253,18 @@ export class VocabularyCardType implements CardTypeStrategy {
     }
   }
 
+  buildExtractedItem(card: Card): ExtractedItem {
+    return {
+      id: card.id,
+      exists: true,
+      word: card.data.word ?? '',
+      forms: card.data.forms ?? [],
+      examples: (card.data.examples ?? [])
+        .map(e => e.de)
+        .filter((de): de is string => !!de),
+    } as ExtractedItem & { word: string; forms: string[]; examples: string[] };
+  }
+
   requiredAudioLanguages(): string[] {
     return [LANGUAGE_CODES.GERMAN, LANGUAGE_CODES.HUNGARIAN];
   }

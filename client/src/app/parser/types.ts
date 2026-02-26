@@ -197,6 +197,7 @@ export type CardTypeStrategy = {
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardCreationResult>;
+  buildExtractedItem(card: Card): ExtractedItem;
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
   getCardTypeLabel(card: Card): string;

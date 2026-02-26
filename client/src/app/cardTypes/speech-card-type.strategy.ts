@@ -163,6 +163,14 @@ export class SpeechCardType implements CardTypeStrategy {
     }
   }
 
+  buildExtractedItem(card: Card): ExtractedItem {
+    return {
+      id: card.id,
+      exists: true,
+      sentence: card.data.examples?.[0]?.de ?? '',
+    } as ExtractedItem & { sentence: string };
+  }
+
   requiredAudioLanguages(): string[] {
     return [LANGUAGE_CODES.GERMAN, LANGUAGE_CODES.HUNGARIAN];
   }

@@ -1226,3 +1226,57 @@ test('bulk card creation produces draft cards visible on cards page', async ({
     rows.forEach((row) => expect(row.Readiness).toBe('DRAFT'));
   }).toPass();
 });
+
+test('completes draft cards with AI-generated data from cards table', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+
+  await createCard({
+    cardId: 'draft-abfahrt',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'die Abfahrt',
+      translation: { hu: 'indulás' },
+    },
+    readiness: 'DRAFT',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toEqual([
+      expect.objectContaining({ ID: 'draft-abfahrt', Readiness: 'DRAFT' }),
+    ]);
+  }).toPass();
+
+  await page
+    .getByRole('row', { name: /draft-abfahrt/ })
+    .getByRole('checkbox')
+    .click();
+
+  await page
+    .getByRole('button', { name: 'Complete draft cards' })
+    .click();
+
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible({ timeout: 30000 });
+
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'draft-abfahrt'"
+    );
+    expect(result.rows.length).toBe(1);
+    const data = result.rows[0].data;
+    expect(data.word).toBe('die Abfahrt');
+    expect(data.type).toBe('NOUN');
+    expect(data.translation.en).toBeDefined();
+  });
+});

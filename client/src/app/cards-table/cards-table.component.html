@@ -117,6 +117,19 @@
         <mat-icon>volume_off</mat-icon>
         Delete audio {{ selectedCount() }}
       </button>
+      @if (isDraftMode()) {
+        <button
+          mat-fab
+          extended
+          color="primary"
+          class="action-fab"
+          (click)="completeSelectedDrafts()"
+          aria-label="Complete draft cards"
+        >
+          <mat-icon>auto_fix_high</mat-icon>
+          Complete {{ selectedCount() }} Cards
+        </button>
+      }
       <button
         mat-fab
         extended
