@@ -5,7 +5,6 @@ import { languages } from '../shared/constants/languages';
 import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
-  CardCreationRequest,
   CardType,
   ExtractionRequest,
   ExtractedItem,
@@ -132,11 +131,26 @@ export class VocabularyCardType implements CardTypeStrategy {
     );
   }
 
+  createDraftCardData(item: ExtractedItem): CardData {
+    const word = item as ExtractedItem & { word: string; forms: string[]; examples: string[] };
+    return {
+      word: word.word,
+      forms: word.forms,
+      examples: word.examples.map(ex => ({ de: ex })),
+      extractionModel: word.extractionModel,
+    };
+  }
+
   async createCardData(
-    request: CardCreationRequest,
+    cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData> {
-    const word = request.item as ExtractedItem & { word: string; forms: string[]; examples: string[] };
+    const word = cardData.word;
+    if (!word) {
+      throw new Error('Card data is missing required word');
+    }
+    const forms = cardData.forms ?? [];
+    const germanExamples = (cardData.examples ?? []).map(e => e.de).filter(nonNullable);
 
     try {
       progressCallback(10, 'Detecting word type...');
@@ -146,7 +160,7 @@ export class VocabularyCardType implements CardTypeStrategy {
           this.http,
           `/api/word-type?model=${model}`,
           {
-            body: { word: word.word },
+            body: { word },
             method: 'POST',
             headers,
           }
@@ -163,7 +177,7 @@ export class VocabularyCardType implements CardTypeStrategy {
             this.http,
             `/api/gender?model=${model}`,
             {
-              body: { word: word.word },
+              body: { word },
               method: 'POST',
               headers,
             }
@@ -182,8 +196,8 @@ export class VocabularyCardType implements CardTypeStrategy {
               `/api/translate/${languageCode}?model=${model}`,
               {
                 body: {
-                  word: word.word,
-                  examples: word.examples,
+                  word,
+                  examples: germanExamples,
                 },
                 method: 'POST',
                 headers,
@@ -210,7 +224,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       progressCallback(70, 'Generating images...');
 
-      const imageInputs = word.examples
+      const imageInputs = germanExamples
         .map((_, exampleIndex) => {
           const englishTranslation = exampleTranslations['en']?.[exampleIndex];
           return englishTranslation ? { exampleIndex, englishTranslation } : null;
@@ -225,7 +239,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       progressCallback(90, 'Preparing vocabulary card data...');
 
-      const examples = word.examples.map((example, index) => ({
+      const examples = germanExamples.map((example, index) => ({
         ...Object.fromEntries([
           ['de', example],
           ...languages.map((languageCode) => [
@@ -238,15 +252,15 @@ export class VocabularyCardType implements CardTypeStrategy {
       }));
 
       return {
-        word: word.word,
+        word,
         type: wordTypeResult.response.type,
-        gender: gender,
+        gender,
         translation: translationMap,
-        forms: word.forms,
+        forms,
         examples,
         translationModel,
         classificationModel,
-        extractionModel: word.extractionModel,
+        extractionModel: cardData.extractionModel,
       };
 
     } catch (error) {

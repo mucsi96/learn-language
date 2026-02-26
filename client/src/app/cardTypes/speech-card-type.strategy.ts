@@ -4,7 +4,6 @@ import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
-  CardCreationRequest,
   CardType,
   ExtractionRequest,
   ExtractedItem,
@@ -90,11 +89,22 @@ export class SpeechCardType implements CardTypeStrategy {
     );
   }
 
+  createDraftCardData(item: ExtractedItem): CardData {
+    const sentence = item as ExtractedItem & { sentence: string };
+    return {
+      examples: [{ de: sentence.sentence }],
+      extractionModel: sentence.extractionModel,
+    };
+  }
+
   async createCardData(
-    request: CardCreationRequest,
+    cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData> {
-    const sentence = request.item as ExtractedItem & { sentence: string };
+    const sentence = cardData.examples?.[0]?.de;
+    if (!sentence) {
+      throw new Error('Card data is missing required sentence (examples[0].de)');
+    }
 
     try {
       progressCallback(15, 'Translating to Hungarian...');
@@ -106,7 +116,7 @@ export class SpeechCardType implements CardTypeStrategy {
               this.http,
               `/api/translate-sentence/hu?model=${model}`,
               {
-                body: { sentence: sentence.sentence },
+                body: { sentence },
                 method: 'POST',
                 headers,
               }
@@ -122,7 +132,7 @@ export class SpeechCardType implements CardTypeStrategy {
               this.http,
               `/api/translate-sentence/en?model=${model}`,
               {
-                body: { sentence: sentence.sentence },
+                body: { sentence },
                 method: 'POST',
                 headers,
               }
@@ -146,7 +156,7 @@ export class SpeechCardType implements CardTypeStrategy {
       return {
         examples: [
           {
-            de: sentence.sentence,
+            de: sentence,
             hu: hungarianResult.response.translation,
             en: englishResult.response.translation,
             isSelected: true,
@@ -154,7 +164,7 @@ export class SpeechCardType implements CardTypeStrategy {
           },
         ],
         translationModel: hungarianResult.model,
-        extractionModel: sentence.extractionModel,
+        extractionModel: cardData.extractionModel,
       };
     } catch (error) {
       throw new Error(

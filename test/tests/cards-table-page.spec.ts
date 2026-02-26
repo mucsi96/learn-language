@@ -1198,7 +1198,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   }).toPass();
 });
 
-test('bulk card creation produces draft cards visible on cards page', async ({
+test('bulk card creation produces cards visible on cards page', async ({
   page,
 }) => {
   await setupDefaultChatModelSettings();
@@ -1217,12 +1217,12 @@ test('bulk card creation produces draft cards visible on cards page', async ({
 
   await page.getByRole('button', { name: 'Close' }).click();
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
     expect(rows.length).toBe(3);
-    rows.forEach((row) => expect(row.Readiness).toBe('DRAFT'));
+    rows.forEach((row) => expect(row.Readiness).toBe('IN_REVIEW'));
   }).toPass();
 });
