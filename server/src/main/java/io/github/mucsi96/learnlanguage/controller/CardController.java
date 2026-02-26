@@ -19,6 +19,7 @@ import io.github.mucsi96.learnlanguage.service.StudySessionService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardCreateRequest;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
@@ -248,7 +249,7 @@ public class CardController {
 
   @GetMapping("/cards/readiness/{readiness}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable String readiness) {
+  public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable CardReadiness readiness) {
     final List<CardResponse> cards = cardService.getCardsByReadiness(readiness).stream()
         .map(CardResponse::from)
         .toList();

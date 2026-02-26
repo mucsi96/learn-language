@@ -17,7 +17,7 @@ import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.service.ApiTokenService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService;
-import io.github.mucsi96.learnlanguage.service.HighlightService;
+import io.github.mucsi96.learnlanguage.service.DraftCardService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class DictionaryController {
     private final ApiTokenService apiTokenService;
     private final DictionaryService dictionaryService;
     private final SourceService sourceService;
-    private final HighlightService highlightService;
+    private final DraftCardService draftCardService;
 
     @PostMapping(value = "/dictionary", produces = MediaType.TEXT_PLAIN_VALUE)
     @Transactional
@@ -41,7 +41,7 @@ public class DictionaryController {
         if (request.getBookTitle() != null && request.getHighlightedWord() != null
                 && request.getSentence() != null) {
             final Source source = getOrCreateSource(request.getBookTitle());
-            highlightService.persistHighlight(source, request.getHighlightedWord(), request.getSentence());
+            draftCardService.createDraftCard(source, request.getHighlightedWord(), request.getSentence());
         }
 
         return dictionaryService.lookup(request);

@@ -9,6 +9,9 @@ import {
   withDbConnection,
   STORAGE_DIR,
   germanAudioSample,
+  setupDefaultChatModelSettings,
+  setupDefaultImageModelSettings,
+  selectTextRange,
 } from '../utils';
 
 test('navigates to cards table from page view', async ({ page }) => {
@@ -544,6 +547,8 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
 });
 
 test('selects all filtered cards with header checkbox', async ({ page }) => {
+  await page.reload();
+
   await createCard({
     cardId: 'select-all-1',
     sourceId: 'goethe-a1',
@@ -583,6 +588,8 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
 });
 
 test('deselects all cards with header checkbox', async ({ page }) => {
+  await page.reload();
+
   await createCard({
     cardId: 'deselect-1',
     sourceId: 'goethe-a1',
@@ -1021,5 +1028,191 @@ test('filters cards by ID', async ({ page }) => {
   await expect(async () => {
     const rows = await getGridData(grid);
     expect(rows.map((r) => r.ID)).toEqual(['xyz-card']);
+  }).toPass();
+});
+
+test('draft cards are hidden by default', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Entwurf', type: 'NOUN', translation: { en: 'draft' } },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'ready-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'fertig', type: 'ADJECTIVE', translation: { en: 'ready' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(['ready-card']);
+  }).toPass();
+});
+
+test('draft query parameter shows only draft cards', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Entwurf', type: 'NOUN', translation: { en: 'draft' } },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'ready-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'fertig', type: 'ADJECTIVE', translation: { en: 'ready' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(['draft-card']);
+    expect(rows[0].Readiness).toBe('DRAFT');
+  }).toPass();
+});
+
+test('dictionary lookup creates draft card visible on cards page', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByLabel('Token name').fill('Test Token');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+
+  const download = await downloadPromise;
+  const filePath = await download.path();
+  const token = fs.readFileSync(filePath!, 'utf-8');
+
+  const response = await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Mein erstes Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Wir fahren um zwölf Uhr ab.',
+      highlightedWord: 'fahren',
+    }),
+  });
+
+  expect(response.status).toBe(200);
+
+  await page.goto(
+    'http://localhost:8180/sources/mein-erstes-buch/cards?draft=true'
+  );
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(1);
+    expect(rows[0].Readiness).toBe('DRAFT');
+  }).toPass();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, readiness, state FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].readiness).toBe('DRAFT');
+    expect(result.rows[0].state).toBe('NEW');
+  });
+});
+
+test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByLabel('Token name').fill('Test Token');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+
+  const download = await downloadPromise;
+  const filePath = await download.path();
+  const token = fs.readFileSync(filePath!, 'utf-8');
+
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Mein erstes Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Wir fahren um zwölf Uhr ab.',
+      highlightedWord: 'fahren',
+    }),
+  });
+
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Mein erstes Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Wir fahren um zwölf Uhr ab.',
+      highlightedWord: 'fahren',
+    }),
+  });
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
+    );
+    expect(result.rows.length).toBe(1);
+  });
+});
+
+test('bulk card creation produces draft cards visible on cards page', async ({
+  page,
+}) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(3);
+    rows.forEach((row) => expect(row.Readiness).toBe('DRAFT'));
   }).toPass();
 });

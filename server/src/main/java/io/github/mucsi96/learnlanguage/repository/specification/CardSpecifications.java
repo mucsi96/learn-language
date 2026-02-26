@@ -14,7 +14,7 @@ public class CardSpecifications {
     private CardSpecifications() {
     }
 
-    public static PredicateSpecification<Card> hasReadiness(String readiness) {
+    public static PredicateSpecification<Card> hasReadiness(CardReadiness readiness) {
         return (root, cb) -> cb.equal(root.get(Card_.readiness), readiness);
     }
 

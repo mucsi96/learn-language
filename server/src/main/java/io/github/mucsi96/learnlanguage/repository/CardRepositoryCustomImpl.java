@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.repository;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Card_;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
@@ -15,7 +16,7 @@ public class CardRepositoryCustomImpl implements CardRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public void updateReadinessByIds(List<String> ids, String readiness) {
+    public void updateReadinessByIds(List<String> ids, CardReadiness readiness) {
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaUpdate<Card> update = cb.createCriteriaUpdate(Card.class);
         final Root<Card> root = update.from(Card.class);

@@ -35,6 +35,7 @@ import { CardReadiness, CARD_READINESS_VALUES } from '../shared/state/card-readi
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
+import { injectQueryParams } from '../utils/inject-query-params';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -58,11 +59,11 @@ const STATE_COLORS: Record<string, string> = {
 };
 
 const READINESS_COLORS: Record<CardReadiness, string> = {
+  DRAFT: '#FF9800',
   READY: '#4CAF50',
   IN_REVIEW: '#2196F3',
   REVIEWED: '#00BCD4',
-  KNOWN: '#9C27B0',
-  NEW: '#78909C',
+  KNOWN: '#9C27B0'
 };
 
 const badgeHtml = (label: string, color: string): string =>
@@ -108,9 +109,17 @@ export class CardsTableComponent {
   private readonly cardsTableService = inject(CardsTableService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routeSourceId = injectParams<string>('sourceId');
+  private readonly draft = injectQueryParams<string>('draft');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
+  readonly isDraftMode = computed(() => !!this.draft());
+
+  readonly readinessFilter = linkedSignal<boolean, readonly CardReadiness[]>({
+    source: this.isDraftMode,
+    computation: (isDraft): readonly CardReadiness[] =>
+      isDraft ? ['DRAFT'] : ['READY', 'IN_REVIEW', 'REVIEWED'],
+  });
 
   constructor() {
     effect(() => {
@@ -137,7 +146,6 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');

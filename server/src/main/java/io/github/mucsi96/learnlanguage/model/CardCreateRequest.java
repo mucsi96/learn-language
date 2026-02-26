@@ -16,7 +16,7 @@ public class CardCreateRequest {
     private String sourceId;
     private Integer sourcePageNumber;
     private CardData data;
-    private String readiness;
+    private CardReadiness readiness;
     private LocalDateTime due;
     private Float stability;
     private Float difficulty;

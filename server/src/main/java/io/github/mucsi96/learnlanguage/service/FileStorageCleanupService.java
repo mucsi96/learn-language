@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.AudioData;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileStorageCleanupService {
 
-  private static final List<String> REVIEWED_READINESS = List.of("REVIEWED", "READY", "KNOWN");
+  private static final List<CardReadiness> REVIEWED_READINESS = List.of(CardReadiness.REVIEWED, CardReadiness.READY, CardReadiness.KNOWN);
 
   private final FileStorageService fileStorageService;
   private final CardRepository cardRepository;

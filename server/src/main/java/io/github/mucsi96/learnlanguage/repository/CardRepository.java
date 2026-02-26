@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.repository;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.model.CardReadiness;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,9 +18,9 @@ public interface CardRepository
         extends JpaRepository<Card, String>, JpaSpecificationExecutor<Card>, CardRepositoryCustom {
     List<Card> findByIdInOrderByIdAsc(List<String> ids);
 
-    List<Card> findByReadinessOrderByDueAsc(String readiness);
+    List<Card> findByReadinessOrderByDueAsc(CardReadiness readiness);
 
-    List<Card> findByReadinessIn(List<String> readinessList);
+    List<Card> findByReadinessIn(List<CardReadiness> readinessList);
 
     @Query("SELECT c FROM Card c ORDER BY c.lastReview DESC")
     List<Card> findTopByOrderByLastReviewDesc(Pageable pageable);

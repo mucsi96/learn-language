@@ -527,6 +527,7 @@ test('smart assignment: hardest cards for each person at front of their queue', 
 });
 
 test('smart assignment: session limited to 50 most complex cards', async ({ page }) => {
+  await page.reload();
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const tenDaysAgo = new Date(Date.now() - 10 * 86400000);

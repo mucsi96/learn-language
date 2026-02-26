@@ -9,6 +9,8 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -40,8 +42,9 @@ public class Card {
     @Type(JsonBinaryType.class)
     private CardData data;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String readiness;
+    private CardReadiness readiness;
 
     @Column(nullable = false)
     private LocalDateTime due;
@@ -73,23 +76,15 @@ public class Card {
     @Column(name = "last_review")
     private LocalDateTime lastReview;
 
-    public boolean hasReadiness(String readiness) {
-        if (readiness == null) {
-            return false;
-        }
-
-        return readiness.equals(this.readiness);
-    }
-
     public boolean isInReview() {
-        return hasReadiness(CardReadiness.IN_REVIEW);
+        return this.readiness == CardReadiness.IN_REVIEW;
     }
 
     public boolean isReady() {
-        return hasReadiness(CardReadiness.READY);
+        return this.readiness == CardReadiness.READY;
     }
 
     public boolean isReviewed() {
-        return hasReadiness(CardReadiness.REVIEWED);
+        return this.readiness == CardReadiness.REVIEWED;
     }
 }

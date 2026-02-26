@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
-import io.github.mucsi96.learnlanguage.model.HighlightResponse;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
@@ -41,7 +40,6 @@ import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
-import io.github.mucsi96.learnlanguage.service.HighlightService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import io.github.mucsi96.learnlanguage.util.BeanUtils;
@@ -64,7 +62,6 @@ public class SourceController {
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
   private final KnownWordService knownWordService;
-  private final HighlightService highlightService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -96,43 +93,6 @@ public class SourceController {
           .formatType(source.getFormatType())
           .build();
     }).collect(Collectors.toList());
-  }
-
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  @GetMapping("/source/{sourceId}/highlights")
-  public List<HighlightResponse> getHighlights(@PathVariable String sourceId) {
-    final var source = sourceService.getSourceById(sourceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
-
-    return highlightService.getHighlightsBySource(source);
-  }
-
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @DeleteMapping("/source/{sourceId}/highlights")
-  public ResponseEntity<Map<String, Object>> deleteHighlights(
-      @PathVariable String sourceId,
-      @RequestBody List<Integer> highlightIds) {
-    sourceService.getSourceById(sourceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
-
-    final int deleted = highlightService.deleteHighlightsByIds(highlightIds);
-
-    Map<String, Object> response = new HashMap<>();
-    response.put("deleted", deleted);
-    return ResponseEntity.ok(response);
-  }
-
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  @DeleteMapping("/source/{sourceId}/highlights/with-cards")
-  public ResponseEntity<Map<String, Object>> deleteHighlightsWithCards(@PathVariable String sourceId) {
-    final var source = sourceService.getSourceById(sourceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
-
-    final int deleted = highlightService.deleteHighlightsWithCards(source);
-
-    Map<String, Object> response = new HashMap<>();
-    response.put("deleted", deleted);
-    return ResponseEntity.ok(response);
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

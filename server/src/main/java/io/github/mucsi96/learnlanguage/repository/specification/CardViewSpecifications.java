@@ -14,7 +14,7 @@ public class CardViewSpecifications {
     private CardViewSpecifications() {
     }
 
-    public static PredicateSpecification<CardView> hasReadinessIn(List<String> readinessValues) {
+    public static PredicateSpecification<CardView> hasReadinessIn(List<CardReadiness> readinessValues) {
         return (root, cb) -> root.get(CardView_.readiness).in(readinessValues);
     }
 
