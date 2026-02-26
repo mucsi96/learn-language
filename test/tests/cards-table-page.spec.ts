@@ -1267,6 +1267,101 @@ test('complete draft cards button only visible in draft mode', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Complete draft cards' })).not.toBeVisible();
 });
 
+test('draft cards hide delete audio and mark as known actions', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-action-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Entwurf', type: 'NOUN', translation: { en: 'draft' } },
+    readiness: 'DRAFT',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(['draft-action-card']);
+  }).toPass();
+
+  await page
+    .getByRole('row', { name: /draft-action-card/ })
+    .getByRole('checkbox')
+    .click();
+
+  await expect(page.getByRole('button', { name: /Delete 1/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Delete audio/ })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
+});
+
+test('draft cards do not navigate on row click', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-click-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Entwurf', type: 'NOUN', translation: { en: 'draft' } },
+    readiness: 'DRAFT',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(['draft-click-card']);
+  }).toPass();
+
+  await page.getByRole('row', { name: /draft-click-card/ }).click();
+
+  await expect(page).toHaveTitle('Cards');
+});
+
+test('complete button visible for draft cards in non-draft mode', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-in-mixed',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Entwurf', type: 'NOUN', translation: { en: 'draft' } },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'ready-in-mixed',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'fertig', type: 'ADJECTIVE', translation: { en: 'ready' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(['ready-in-mixed']);
+  }).toPass();
+
+  await page.getByLabel('Filter by readiness').click();
+  await page.getByRole('option', { name: 'DRAFT' }).click();
+  await page.keyboard.press('Escape');
+
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.map((r) => r.ID)).toEqual(
+      expect.arrayContaining(['draft-in-mixed', 'ready-in-mixed'])
+    );
+  }).toPass();
+
+  await page
+    .getByRole('row', { name: /draft-in-mixed/ })
+    .getByRole('checkbox')
+    .click();
+
+  await expect(page.getByRole('button', { name: 'Complete draft cards' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Delete audio/ })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
+});
+
 test('bulk card creation produces cards visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

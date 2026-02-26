@@ -125,6 +125,13 @@ export class CardsTableComponent {
     return sources?.find(s => s.id === id)?.cardType;
   });
   readonly isCompletingDrafts = this.bulkCreationService.isCreating;
+  private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
+
+  readonly selectionContainsDrafts = computed(() => {
+    const ids = this.selectedIds();
+    const readinessMap = this.loadedRowReadiness();
+    return ids.some(id => readinessMap.get(id) === 'DRAFT');
+  });
 
   readonly readinessFilter = linkedSignal<boolean, readonly CardReadiness[]>({
     source: this.isDraftMode,
@@ -346,7 +353,7 @@ export class CardsTableComponent {
     if (column?.getColId() === 'id') return;
 
     const row = event.data as CardTableRow;
-    if (!row) return;
+    if (!row || row.readiness === 'DRAFT') return;
 
     this.router.navigate([
       '/sources',
@@ -542,6 +549,10 @@ export class CardsTableComponent {
         maxReviewScore: reviewScoreRange?.max,
         cardFilter: this.cardFilter() || undefined,
       });
+
+      const updatedMap = new Map(this.loadedRowReadiness());
+      response.rows.forEach(row => updatedMap.set(row.id, row.readiness));
+      this.loadedRowReadiness.set(updatedMap);
 
       params.successCallback(response.rows, response.totalCount);
     } catch {
