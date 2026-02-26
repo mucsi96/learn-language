@@ -87,6 +87,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'address',
       examples: ['Can you tell me his address?'],
     },
+    'der Hund': {
+      translation: 'the dog',
+      examples: ['The dog runs fast.'],
+    },
+    'die Katze': {
+      translation: 'the cat',
+      examples: ['The cat likes to sleep.'],
+    },
   },
   hungarian: {
     hören: {
@@ -120,6 +128,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     'die Adresse': {
       translation: 'cím',
       examples: ['Meg tudod mondani a címét?'],
+    },
+    'der Hund': {
+      translation: 'kutya',
+      examples: ['A kutya gyorsan fut.'],
+    },
+    'die Katze': {
+      translation: 'macska',
+      examples: ['A macska szívesen alszik.'],
     },
   },
   'swiss-german': {
@@ -155,6 +171,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'd Adrässe',
       examples: ['Chönd Sie mir sini Adrässe säge?'],
     },
+    'der Hund': {
+      translation: 'de Hund',
+      examples: ['De Hund lauft schnäll.'],
+    },
+    'die Katze': {
+      translation: 'd Chatz',
+      examples: ['D Chatz schlaft gärn.'],
+    },
   },
 };
 
@@ -164,6 +188,8 @@ export const GENDERS: Record<string, string> = {
   'der Absender': 'MASCULINE',
   Achtung: 'FEMININE',
   'die Adresse': 'FEMININE',
+  'der Hund': 'MASCULINE',
+  'die Katze': 'FEMININE',
 };
 
 export const WORD_TYPES: Record<string, string> = {
@@ -175,6 +201,8 @@ export const WORD_TYPES: Record<string, string> = {
   'der Absender': 'NOUN',
   Achtung: 'NOUN',
   'die Adresse': 'NOUN',
+  'der Hund': 'NOUN',
+  'die Katze': 'NOUN',
 };
 
 export const SENTENCE_LISTS: Record<string, string[]> = {
@@ -191,6 +219,8 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
 export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[] }> = {
   fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'] },
   Haus: { normalizedWord: 'Haus', forms: ['die Häuser'] },
+  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'] },
+  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
 };
 
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {

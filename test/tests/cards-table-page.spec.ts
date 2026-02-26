@@ -129,9 +129,7 @@ test('filters cards by readiness', async ({ page }) => {
 
   await expect(async () => {
     const after = await getGridData(grid);
-    expect(after.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['ready-card', 'known-card'])
-    );
+    expect(after.map((r) => r.ID)).toEqual(expect.arrayContaining(['ready-card', 'known-card']));
   }).toPass();
 });
 
@@ -256,9 +254,7 @@ test('filters cards by last review grade', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['easy-card', 'hard-card'])
-    );
+    expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['easy-card', 'hard-card']));
   }).toPass();
 
   await page.getByLabel('Filter by last review grade').click();
@@ -296,9 +292,7 @@ test('filters cards by last review time', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['recent-card', 'old-card'])
-    );
+    expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['recent-card', 'old-card']));
   }).toPass();
 
   await page.getByLabel('Filter by last review time').click();
@@ -476,21 +470,23 @@ test('deletes selected cards with confirmation', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['delete-card-1', 'delete-card-2', 'keep-card'])
-    );
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['delete-card-1', 'delete-card-2', 'keep-card']));
   }).toPass();
 
-  await page.getByRole('row', { name: /delete-card-1/ }).getByRole('checkbox').click();
-  await page.getByRole('row', { name: /delete-card-2/ }).getByRole('checkbox').click();
+  await page
+    .getByRole('row', { name: /delete-card-1/ })
+    .getByRole('checkbox')
+    .click();
+  await page
+    .getByRole('row', { name: /delete-card-2/ })
+    .getByRole('checkbox')
+    .click();
 
   await page.getByRole('button', { name: /Delete 2/ }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Confirmation' });
 
-  await expect(
-    dialog.getByText('Are you sure you want to delete 2 card(s)?')
-  ).toBeVisible();
+  await expect(dialog.getByText('Are you sure you want to delete 2 card(s)?')).toBeVisible();
   await dialog.getByRole('button', { name: 'Yes' }).click();
 
   await expect(page.getByText('2 card(s) deleted')).toBeVisible();
@@ -523,14 +519,15 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
     expect(rows[0]).toEqual(expect.objectContaining({ ID: 'cancel-delete-card' }));
   }).toPass();
 
-  await page.getByRole('row', { name: /cancel-delete-card/ }).getByRole('checkbox').click();
+  await page
+    .getByRole('row', { name: /cancel-delete-card/ })
+    .getByRole('checkbox')
+    .click();
   await page.getByRole('button', { name: /Delete 1/ }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Confirmation' });
 
-  await expect(
-    dialog.getByText('Are you sure you want to delete 1 card(s)?')
-  ).toBeVisible();
+  await expect(dialog.getByText('Are you sure you want to delete 1 card(s)?')).toBeVisible();
   await dialog.getByRole('button', { name: 'No' }).click();
 
   await expect(async () => {
@@ -539,9 +536,7 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
   }).toPass();
 
   await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT id FROM learn_language.cards WHERE id = 'cancel-delete-card'"
-    );
+    const result = await client.query("SELECT id FROM learn_language.cards WHERE id = 'cancel-delete-card'");
     expect(result.rows.length).toBe(1);
   });
 });
@@ -575,16 +570,12 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['select-all-1', 'select-all-2', 'select-all-3'])
-    );
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['select-all-1', 'select-all-2', 'select-all-3']));
   }).toPass();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
-  await expect(
-    page.getByRole('button', { name: /Mark 3 as known/ })
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark 3 as known/ })).toBeVisible();
 });
 
 test('deselects all cards with header checkbox', async ({ page }) => {
@@ -609,20 +600,14 @@ test('deselects all cards with header checkbox', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['deselect-1', 'deselect-2'])
-    );
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['deselect-1', 'deselect-2']));
   }).toPass();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
-  await expect(
-    page.getByRole('button', { name: /Mark 2 as known/ })
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark 2 as known/ })).toBeVisible();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
-  await expect(
-    page.getByRole('button', { name: /Mark .* as known/ })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
 });
 
 test('select all respects current filter', async ({ page }) => {
@@ -661,9 +646,7 @@ test('select all respects current filter', async ({ page }) => {
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
 
-  await expect(
-    page.getByRole('button', { name: /Mark 1 as known/ })
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark 1 as known/ })).toBeVisible();
 });
 
 test('changing filter resets selection', async ({ page }) => {
@@ -693,16 +676,12 @@ test('changing filter resets selection', async ({ page }) => {
   }).toPass();
 
   await page.getByRole('checkbox', { name: 'Select all cards' }).click();
-  await expect(
-    page.getByRole('button', { name: /Mark 2 as known/ })
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark 2 as known/ })).toBeVisible();
 
   await page.getByLabel('Filter by state').click();
   await page.getByRole('option', { name: 'NEW' }).click();
 
-  await expect(
-    page.getByRole('button', { name: /Mark .* as known/ })
-  ).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
 });
 
 test('deletes audio for selected cards with confirmation', async ({ page }) => {
@@ -718,9 +697,7 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
       word: 'Musik',
       type: 'NOUN',
       translation: { en: 'music' },
-      audio: [
-        { id: audioId1, text: 'Musik', language: 'de', voice: 'v1', model: 'eleven_v3' },
-      ],
+      audio: [{ id: audioId1, text: 'Musik', language: 'de', voice: 'v1', model: 'eleven_v3' }],
     },
   });
 
@@ -750,20 +727,22 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['audio-card-1', 'audio-card-2'])
-    );
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['audio-card-1', 'audio-card-2']));
   }).toPass();
 
-  await page.getByRole('row', { name: /audio-card-1/ }).getByRole('checkbox').click();
-  await page.getByRole('row', { name: /audio-card-2/ }).getByRole('checkbox').click();
+  await page
+    .getByRole('row', { name: /audio-card-1/ })
+    .getByRole('checkbox')
+    .click();
+  await page
+    .getByRole('row', { name: /audio-card-2/ })
+    .getByRole('checkbox')
+    .click();
 
   await page.getByRole('button', { name: /Delete audio 2/ }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Confirmation' });
-  await expect(
-    dialog.getByText('Are you sure you want to delete audio for 2 card(s)?')
-  ).toBeVisible();
+  await expect(dialog.getByText('Are you sure you want to delete audio for 2 card(s)?')).toBeVisible();
   await dialog.getByRole('button', { name: 'Yes' }).click();
 
   await expect(page.getByText('Audio deleted for 2 card(s)')).toBeVisible();
@@ -916,9 +895,7 @@ test('filters cards by review score', async ({ page }) => {
   const grid = page.getByRole('grid');
   await expect(async () => {
     const before = await getGridData(grid);
-    expect(before.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['high-score-card', 'low-score-card'])
-    );
+    expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['high-score-card', 'low-score-card']));
   }).toPass();
 
   await page.getByLabel('Filter by review score').click();
@@ -1084,9 +1061,7 @@ test('draft query parameter shows only draft cards', async ({ page }) => {
   }).toPass();
 });
 
-test('dictionary lookup creates draft card visible on cards page', async ({
-  page,
-}) => {
+test('dictionary lookup creates draft card visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
 
   await page.goto('http://localhost:8180/settings/api-tokens');
@@ -1117,9 +1092,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({
   expect(response.status).toBe(200);
 
   await expect(async () => {
-    await page.goto(
-      'http://localhost:8180/sources/mein-erstes-buch/cards?draft=true'
-    );
+    await page.goto('http://localhost:8180/sources/mein-erstes-buch/cards?draft=true');
     const grid = page.getByRole('grid');
     const rows = await getGridData(grid);
     expect(rows.length).toBe(1);
@@ -1166,9 +1139,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
 
   await expect(async () => {
     await withDbConnection(async (client) => {
-      const result = await client.query(
-        `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
-      );
+      const result = await client.query(`SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`);
       expect(result.rows.length).toBe(1);
     });
   }).toPass();
@@ -1190,17 +1161,113 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
 
   await expect(async () => {
     await withDbConnection(async (client) => {
-      const result = await client.query(
-        `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
-      );
+      const result = await client.query(`SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`);
       expect(result.rows.length).toBe(1);
     });
   }).toPass();
 });
 
-test('bulk card creation produces cards visible on cards page', async ({
-  page,
-}) => {
+test('completes selected draft cards from cards table', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByLabel('Token name').fill('Test Token');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+
+  const download = await downloadPromise;
+  const filePath = await download.path();
+  const token = fs.readFileSync(filePath!, 'utf-8');
+
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Test Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Der Hund läuft schnell.',
+      highlightedWord: 'Hund',
+    }),
+  });
+
+  await expect(async () => {
+    await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
+    await expect(page.getByText('hund-kutya')).toBeVisible();
+  }).toPass();
+
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Test Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Die Katze schläft gern.',
+      highlightedWord: 'Katze',
+    }),
+  });
+
+  await expect(async () => {
+    await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
+    await expect(page.getByText('hund-kutya')).toBeVisible();
+    await expect(page.getByRole('row', { name: /hund-kutya/ }).getByRole('checkbox')).toBeVisible();
+    await expect(page.getByRole('row', { name: /katze-macska/ }).getByRole('checkbox')).toBeVisible();
+  }).toPass();
+
+  await page.getByRole('row', { name: /hund-kutya/ }).getByRole('checkbox').click();
+  await page.getByRole('row', { name: /katze-macska/ }).getByRole('checkbox').click();
+
+  await page.getByRole('button').filter({hasText: 'Complete 2 cards'}).click();
+
+  await expect(page.getByText('2 card(s) completed')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, readiness, data FROM learn_language.cards WHERE source_id = 'test-buch' ORDER BY id`
+    );
+    expect(result.rows.length).toBe(2);
+    expect(result.rows[0].readiness).toBe('IN_REVIEW');
+    expect(result.rows[1].readiness).toBe('IN_REVIEW');
+    expect(result.rows[0].data.translation?.hu).toEqual('kutya');
+    expect(result.rows[1].data.translation?.hu).toEqual('macska');
+  });
+});
+
+test('complete draft cards button only visible in draft mode', async ({ page }) => {
+  await createCard({
+    cardId: 'non-draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Baum', type: 'NOUN', translation: { en: 'tree' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'non-draft-card' }));
+  }).toPass();
+
+  await page
+    .getByRole('row', { name: /non-draft-card/ })
+    .getByRole('checkbox')
+    .click();
+
+  await expect(page.getByRole('button', { name: 'Complete draft cards' })).not.toBeVisible();
+});
+
+test('bulk card creation produces cards visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('http://localhost:8180/sources');
@@ -1211,9 +1278,7 @@ test('bulk card creation produces cards visible on cards page', async ({
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
-  ).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Close' }).click();
 

@@ -357,11 +357,14 @@ export async function createCardsWithStates(
     };
   }
 
+  let cardOffset = 0;
+
   for (const cardSpec of cardsToCreate) {
     const { state, count, due_date } = cardSpec;
 
     for (let i = 0; i < count; i++) {
       const cardId = `${sourceId}_${state.toLowerCase()}_${i}`;
+      const adjustedDueDate = new Date(due_date.getTime() + cardOffset * 1000);
 
       await createCard({
         cardId,
@@ -369,8 +372,10 @@ export async function createCardsWithStates(
         data: getWordData(state, i),
         state,
         learningSteps: ['LEARNING', 'RELEARNING'].includes(state) ? 1 : 0,
-        due: due_date,
+        due: adjustedDueDate,
       });
+
+      cardOffset++;
     }
   }
 }

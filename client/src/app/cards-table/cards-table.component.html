@@ -127,6 +127,20 @@
         <mat-icon>check_circle</mat-icon>
         Mark {{ selectedCount() }} as known
       </button>
+      @if (isDraftMode() && sourceCardType()) {
+        <button
+          mat-fab
+          extended
+          color="primary"
+          class="action-fab"
+          (click)="completeDraftCards()"
+          [disabled]="isCompletingDrafts()"
+          aria-label="Complete draft cards"
+        >
+          <mat-icon>auto_fix_high</mat-icon>
+          Complete {{ selectedCount() }} cards
+        </button>
+      }
     </div>
   }
 </div>
