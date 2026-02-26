@@ -35,6 +35,7 @@ import { CardReadiness, CARD_READINESS_VALUES } from '../shared/state/card-readi
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
+import { injectQueryParams } from '../utils/inject-query-params';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -105,21 +106,21 @@ ModuleRegistry.registerModules([
 })
 export class CardsTableComponent {
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly cardsTableService = inject(CardsTableService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly routeSourceId = injectParams('sourceId');
+  private readonly routeSourceId = injectParams<string>('sourceId');
+  private readonly draft = injectQueryParams<string>('draft');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
-  readonly isDraftMode = signal(false);
+  readonly isDraftMode = computed(() => !!this.draft());
 
   constructor() {
-    const hasDraft = this.route.snapshot.queryParamMap.has('draft');
-    this.isDraftMode.set(hasDraft);
-    if (hasDraft) {
-      this.readinessFilter.set(['DRAFT']);
-    }
+    effect(() => {
+      if (this.isDraftMode()) {
+        this.readinessFilter.set(['DRAFT']);
+      }
+    });
 
     effect(() => {
       this.sourceId();
