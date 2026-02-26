@@ -43,9 +43,12 @@ export class BulkCardCreationFabComponent {
     });
 
     const result = await this.bulkCreationService.createCardsInBulk(
-      candidates,
-      selectedSource.sourceId,
-      selectedSource.pageNumber,
+      {
+        kind: 'extractedItems',
+        items: candidates,
+        sourceId: selectedSource.sourceId,
+        pageNumber: selectedSource.pageNumber,
+      },
       cardType
     );
 

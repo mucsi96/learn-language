@@ -4,12 +4,10 @@ import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
-  CardCreationRequest,
   CardType,
   ExtractionRequest,
   ExtractedItem,
   SentenceList,
-  Sentence,
   AudioGenerationItem,
   Card,
   CardData,
@@ -91,11 +89,19 @@ export class GrammarCardType implements CardTypeStrategy {
     );
   }
 
+  createDraftCardData(item: ExtractedItem): CardData {
+    const sentence = item as ExtractedItem & { sentence: string };
+    return {
+      examples: [{ de: sentence.sentence }],
+      extractionModel: sentence.extractionModel,
+    };
+  }
+
   async createCardData(
-    request: CardCreationRequest,
+    cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData> {
-    const sentence = request.item as Sentence;
+    const sentence = cardData.examples?.[0]?.de!;
 
     try {
       progressCallback(30, 'Translating to English...');
@@ -107,7 +113,7 @@ export class GrammarCardType implements CardTypeStrategy {
               this.http,
               `/api/translate-sentence/en?model=${model}`,
               {
-                body: { sentence: sentence.sentence },
+                body: { sentence },
                 method: 'POST',
                 headers,
               }
@@ -131,14 +137,14 @@ export class GrammarCardType implements CardTypeStrategy {
       return {
         examples: [
           {
-            de: sentence.sentence,
+            de: sentence,
             en: englishResult.response.translation,
             isSelected: true,
             images: imagesMap.get(0) ?? [],
           },
         ],
         translationModel: englishResult.model,
-        extractionModel: sentence.extractionModel,
+        extractionModel: cardData.extractionModel,
       };
     } catch (error) {
       throw new Error(

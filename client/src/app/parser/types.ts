@@ -153,12 +153,9 @@ export type ExtractionRegion = {
   items: ExtractedItem[];
 };
 
-export type CardCreationRequest = {
-  item: ExtractedItem;
-  sourceId: string;
-  pageNumber: number;
-  cardType: CardType;
-};
+export type BulkCreationSource =
+  | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number }
+  | { kind: 'draftCardIds'; cardIds: string[] };
 
 export type AudioGenerationItem = {
   text: string;
@@ -180,8 +177,9 @@ export type CardTypeStrategy = {
     items: ExtractedItem[],
     searchTerm: string
   ): ExtractedItem[];
+  createDraftCardData(item: ExtractedItem): CardData;
   createCardData(
-    request: CardCreationRequest,
+    cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData>;
   requiredAudioLanguages(): string[];
