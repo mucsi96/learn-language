@@ -1116,12 +1116,11 @@ test('dictionary lookup creates draft card visible on cards page', async ({
 
   expect(response.status).toBe(200);
 
-  await page.goto(
-    'http://localhost:8180/sources/mein-erstes-buch/cards?draft=true'
-  );
-
-  const grid = page.getByRole('grid');
   await expect(async () => {
+    await page.goto(
+      'http://localhost:8180/sources/mein-erstes-buch/cards?draft=true'
+    );
+    const grid = page.getByRole('grid');
     const rows = await getGridData(grid);
     expect(rows.length).toBe(1);
     expect(rows[0].Readiness).toBe('DRAFT');
@@ -1165,6 +1164,15 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
     }),
   });
 
+  await expect(async () => {
+    await withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
+      );
+      expect(result.rows.length).toBe(1);
+    });
+  }).toPass();
+
   await fetch('http://localhost:8180/api/dictionary', {
     method: 'POST',
     headers: {
@@ -1180,12 +1188,14 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
     }),
   });
 
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
-    );
-    expect(result.rows.length).toBe(1);
-  });
+  await expect(async () => {
+    await withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT id FROM learn_language.cards WHERE source_id = 'mein-erstes-buch'`
+      );
+      expect(result.rows.length).toBe(1);
+    });
+  }).toPass();
 });
 
 test('bulk card creation produces draft cards visible on cards page', async ({
