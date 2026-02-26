@@ -123,6 +123,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'house',
       examples: ['The house is big.'],
     },
+    'der Hund': {
+      translation: 'the dog',
+      examples: ['The dog runs fast.'],
+    },
+    'die Katze': {
+      translation: 'the cat',
+      examples: ['The cat likes to sleep.'],
+    },
   },
   hungarian: {
     hören: {
@@ -160,6 +168,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     Haus: {
       translation: 'ház',
       examples: ['A ház nagy.'],
+    },
+    'der Hund': {
+      translation: 'kutya',
+      examples: ['A kutya gyorsan fut.'],
+    },
+    'die Katze': {
+      translation: 'macska',
+      examples: ['A macska szívesen alszik.'],
     },
   },
   'swiss-german': {
@@ -199,6 +215,14 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 's Huus',
       examples: ['S Huus isch gross.'],
     },
+    'der Hund': {
+      translation: 'de Hund',
+      examples: ['De Hund lauft schnäll.'],
+    },
+    'die Katze': {
+      translation: 'd Chatz',
+      examples: ['D Chatz schlaft gärn.'],
+    },
   },
 };
 
@@ -209,6 +233,8 @@ export const GENDERS: Record<string, string> = {
   Achtung: 'FEMININE',
   'die Adresse': 'FEMININE',
   Haus: 'NEUTER',
+  'der Hund': 'MASCULINE',
+  'die Katze': 'FEMININE',
 };
 
 export const WORD_TYPES: Record<string, string> = {
@@ -221,6 +247,8 @@ export const WORD_TYPES: Record<string, string> = {
   Achtung: 'NOUN',
   'die Adresse': 'NOUN',
   Haus: 'NOUN',
+  'der Hund': 'NOUN',
+  'die Katze': 'NOUN',
 };
 
 export const SENTENCE_LISTS: Record<string, string[]> = {
@@ -244,6 +272,22 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
       '',
       'fährt ab, fuhr ab, ist abgefahren',
     ].join('\n'),
+    Hund: [
+      '<<H>><<B>>kutya<</B>>',
+      '',
+      'Der Hund läuft schnell.',
+      'A kutya gyorsan fut.',
+      '',
+      'die Hunde',
+    ].join('\n'),
+    Katze: [
+      '<<H>><<B>>macska<</B>>',
+      '',
+      'Die Katze schläft gern.',
+      'A macska szívesen alszik.',
+      '',
+      'die Katzen',
+    ].join('\n'),
   },
   en: {
     fahren: [
@@ -260,6 +304,8 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
 export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[] }> = {
   fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'] },
   Haus: { normalizedWord: 'Haus', forms: ['die Häuser'] },
+  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'] },
+  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
 };
 
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
