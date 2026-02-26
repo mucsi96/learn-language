@@ -145,7 +145,10 @@ export class VocabularyCardType implements CardTypeStrategy {
     cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData> {
-    const word = cardData.word!;
+    const word = cardData.word;
+    if (!word) {
+      throw new Error('Card data is missing required word');
+    }
     const forms = cardData.forms ?? [];
     const germanExamples = (cardData.examples ?? []).map(e => e.de).filter(nonNullable);
 

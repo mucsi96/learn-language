@@ -101,7 +101,10 @@ export class GrammarCardType implements CardTypeStrategy {
     cardData: CardData,
     progressCallback: (progress: number, step: string) => void
   ): Promise<CardData> {
-    const sentence = cardData.examples?.[0]?.de!;
+    const sentence = cardData.examples?.[0]?.de;
+    if (!sentence) {
+      throw new Error('Card data is missing required sentence (examples[0].de)');
+    }
 
     try {
       progressCallback(30, 'Translating to English...');

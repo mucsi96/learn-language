@@ -49,20 +49,23 @@ export class BulkCardCreationService {
 
         this.isCreating.set(true);
 
-        this.progress.set(itemsToCreate.map(item => ({
-          label: strategy.getItemLabel(item),
-          status: 'pending' as const,
-          tooltip: `${strategy.getItemLabel(item)}: Queued`,
-        })));
+        try {
+          this.progress.set(itemsToCreate.map(item => ({
+            label: strategy.getItemLabel(item),
+            status: 'pending' as const,
+            tooltip: `${strategy.getItemLabel(item)}: Queued`,
+          })));
 
-        const tasks = itemsToCreate.map(
-          (item, index) => () =>
-            this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
-        );
+          const tasks = itemsToCreate.map(
+            (item, index) => () =>
+              this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
+          );
 
-        const results = await processTasksWithRateLimit(tasks, null);
-        this.isCreating.set(false);
-        return summarizeResults(results);
+          const results = await processTasksWithRateLimit(tasks, null);
+          return summarizeResults(results);
+        } finally {
+          this.isCreating.set(false);
+        }
       }
 
       case 'draftCardIds': {
@@ -72,20 +75,23 @@ export class BulkCardCreationService {
 
         this.isCreating.set(true);
 
-        this.progress.set(source.cardIds.map(id => ({
-          label: id,
-          status: 'pending' as const,
-          tooltip: `${id}: Queued`,
-        })));
+        try {
+          this.progress.set(source.cardIds.map(id => ({
+            label: id,
+            status: 'pending' as const,
+            tooltip: `${id}: Queued`,
+          })));
 
-        const tasks = source.cardIds.map(
-          (cardId, index) => () =>
-            this.processFromDraftCardId(cardId, index, strategy)
-        );
+          const tasks = source.cardIds.map(
+            (cardId, index) => () =>
+              this.processFromDraftCardId(cardId, index, strategy)
+          );
 
-        const results = await processTasksWithRateLimit(tasks, null);
-        this.isCreating.set(false);
-        return summarizeResults(results);
+          const results = await processTasksWithRateLimit(tasks, null);
+          return summarizeResults(results);
+        } finally {
+          this.isCreating.set(false);
+        }
       }
     }
   }
