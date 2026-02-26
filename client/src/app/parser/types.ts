@@ -160,25 +160,12 @@ export type CardCreationRequest = {
   cardType: CardType;
 };
 
-export type ImageGenerationInfo = {
-  cardId: string;
-  exampleIndex: number;
-  englishTranslation: string;
-};
-
-export type CardCreationResult = {
-  cardData: CardData;
-  imageGenerationInfos: ImageGenerationInfo[];
-};
-
 export type AudioGenerationItem = {
   text: string;
   language: string;
   context?: string;
   singleWord?: boolean;
 };
-
-export type ImagesByIndex = Map<number, ExampleImage[]>;
 
 export type LanguageTexts = {
   language: string;
@@ -196,13 +183,12 @@ export type CardTypeStrategy = {
   createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
-  ): Promise<CardCreationResult>;
+  ): Promise<CardData>;
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;
   getCardTypeLabel(card: Card): string;
   getCardAdditionalInfo(card: Card): string | undefined;
   getAudioItems(card: Card): AudioGenerationItem[];
-  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData;
   getLanguageTexts(card: Card): LanguageTexts[];
 };
 

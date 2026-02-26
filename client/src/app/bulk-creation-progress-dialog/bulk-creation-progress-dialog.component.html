@@ -1,11 +1,7 @@
 <h2 mat-dialog-title>Creating Cards</h2>
 
 <mat-dialog-content class="dialog-content">
-  <app-dot-reporter name="Collecting data" [dots]="bulkCardService.phase1Progress()" />
-
-  @if (bulkCardService.phase2Progress().length > 0) {
-    <app-dot-reporter name="Generating images" [dots]="bulkCardService.phase2Progress()" />
-  }
+  <app-dot-reporter name="Progress" [dots]="bulkCardService.progress()" />
 </mat-dialog-content>
 
 @if (!bulkCardService.isCreating()) {

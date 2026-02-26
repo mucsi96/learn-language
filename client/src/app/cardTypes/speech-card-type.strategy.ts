@@ -5,20 +5,19 @@ import { MultiModelService } from '../multi-model.service';
 import {
   CardTypeStrategy,
   CardCreationRequest,
-  CardCreationResult,
   CardType,
-  ImageGenerationInfo,
   ExtractionRequest,
   ExtractedItem,
   SentenceList,
   AudioGenerationItem,
   Card,
   CardData,
-  ImagesByIndex,
   LanguageTexts,
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
+import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { generateExampleImages } from '../utils/image-generation.util';
 
 interface SentenceIdResponse {
   id: string;
@@ -37,6 +36,7 @@ export class SpeechCardType implements CardTypeStrategy {
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
@@ -93,11 +93,11 @@ export class SpeechCardType implements CardTypeStrategy {
   async createCardData(
     request: CardCreationRequest,
     progressCallback: (progress: number, step: string) => void
-  ): Promise<CardCreationResult> {
+  ): Promise<CardData> {
     const sentence = request.item as ExtractedItem & { sentence: string };
 
     try {
-      progressCallback(20, 'Translating to Hungarian...');
+      progressCallback(15, 'Translating to Hungarian...');
       const hungarianResult =
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
@@ -113,7 +113,7 @@ export class SpeechCardType implements CardTypeStrategy {
             )
         );
 
-      progressCallback(50, 'Translating to English...');
+      progressCallback(40, 'Translating to English...');
       const englishResult =
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
@@ -129,33 +129,33 @@ export class SpeechCardType implements CardTypeStrategy {
             )
         );
 
-      progressCallback(80, 'Preparing speech card data...');
+      progressCallback(60, 'Generating images...');
 
-      const imageGenerationInfos: ImageGenerationInfo[] = englishResult.response.translation
-        ? [
-            {
-              cardId: sentence.id,
-              exampleIndex: 0,
-              englishTranslation: englishResult.response.translation,
-            },
-          ]
+      const imageInputs = englishResult.response.translation
+        ? [{ exampleIndex: 0, englishTranslation: englishResult.response.translation }]
         : [];
 
-      const cardData: CardData = {
+      const imagesMap = await generateExampleImages(
+        this.http,
+        this.environmentConfig.imageModels,
+        imageInputs
+      );
+
+      progressCallback(90, 'Preparing speech card data...');
+
+      return {
         examples: [
           {
             de: sentence.sentence,
             hu: hungarianResult.response.translation,
             en: englishResult.response.translation,
             isSelected: true,
-            images: [],
+            images: imagesMap.get(0) ?? [],
           },
         ],
         translationModel: hungarianResult.model,
         extractionModel: sentence.extractionModel,
       };
-
-      return { cardData, imageGenerationInfos };
     } catch (error) {
       throw new Error(
         `Failed to prepare speech card data: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -189,23 +189,6 @@ export class SpeechCardType implements CardTypeStrategy {
         ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN }
         : null,
     ].filter(nonNullable);
-  }
-
-  updateCardDataWithImages(cardData: CardData, images: ImagesByIndex): CardData {
-    if (!cardData.examples) {
-      return cardData;
-    }
-
-    const updatedExamples = cardData.examples.map((example, idx) => {
-      const existingImages = example.images ?? [];
-      const newImages = images.get(idx) ?? [];
-      return {
-        ...example,
-        images: [...existingImages, ...newImages],
-      } as typeof example;
-    });
-
-    return { ...cardData, examples: updatedExamples };
   }
 
   getLanguageTexts(card: Card): LanguageTexts[] {
