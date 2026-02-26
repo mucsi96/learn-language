@@ -10,6 +10,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
+import { BulkCardCreationService } from '../bulk-card-creation.service';
+import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
+import { SourcesService } from '../sources.service';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   type ColDef,
@@ -109,11 +112,19 @@ export class CardsTableComponent {
   private readonly cardsTableService = inject(CardsTableService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly bulkCreationService = inject(BulkCardCreationService);
+  private readonly sourcesService = inject(SourcesService);
   private readonly routeSourceId = injectParams<string>('sourceId');
   private readonly draft = injectQueryParams<string>('draft');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
   readonly isDraftMode = computed(() => !!this.draft());
+  readonly sourceCardType = computed(() => {
+    const sources = this.sourcesService.sources.value();
+    const id = this.sourceId();
+    return sources?.find(s => s.id === id)?.cardType;
+  });
+  readonly isCompletingDrafts = this.bulkCreationService.isCreating;
 
   readonly readinessFilter = linkedSignal<boolean, readonly CardReadiness[]>({
     source: this.isDraftMode,
@@ -439,6 +450,37 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    await this.cardsTableService.refreshCardView();
+    this.refreshGrid();
+  }
+
+  async completeDraftCards(): Promise<void> {
+    const ids = this.selectedIds();
+    const cardType = this.sourceCardType();
+    if (ids.length === 0 || !cardType) return;
+
+    this.bulkCreationService.clearProgress();
+
+    this.dialog.open(BulkCreationProgressDialogComponent, {
+      disableClose: true,
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+    });
+
+    const result = await this.bulkCreationService.createCardsInBulk(
+      { kind: 'draftCardIds', cardIds: [...ids] },
+      cardType
+    );
+
+    this.selectedIds.set([]);
+
+    if (result.succeeded > 0) {
+      this.snackBar.open(`${result.succeeded} card(s) completed`, 'Close', {
+        duration: 3000,
+        verticalPosition: 'top',
+      });
+    }
+
     await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }

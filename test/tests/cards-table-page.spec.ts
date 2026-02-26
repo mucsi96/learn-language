@@ -1198,6 +1198,85 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   }).toPass();
 });
 
+test('completes selected draft cards from cards table', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+
+  await createCard({
+    cardId: 'draft-complete-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Hund', type: 'NOUN' },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'draft-complete-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Katze', type: 'NOUN' },
+    readiness: 'DRAFT',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows.length).toBe(2);
+    rows.forEach((row) => expect(row.Readiness).toBe('DRAFT'));
+  }).toPass();
+
+  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+
+  await page.getByRole('button', { name: 'Complete draft cards' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
+
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await expect(page.getByText('2 card(s) completed')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id, readiness, data FROM learn_language.cards WHERE id IN ('draft-complete-1', 'draft-complete-2')"
+    );
+    expect(result.rows.length).toBe(2);
+    result.rows.forEach((row: { readiness: string; data: { translation?: Record<string, string> } }) => {
+      expect(row.readiness).toBe('IN_REVIEW');
+      expect(row.data.translation).toBeDefined();
+    });
+  });
+});
+
+test('complete draft cards button only visible in draft mode', async ({ page }) => {
+  await createCard({
+    cardId: 'non-draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Baum', type: 'NOUN', translation: { en: 'tree' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'non-draft-card' }));
+  }).toPass();
+
+  await page.getByRole('row', { name: /non-draft-card/ }).getByRole('checkbox').click();
+
+  await expect(
+    page.getByRole('button', { name: 'Complete draft cards' })
+  ).not.toBeVisible();
+});
+
 test('bulk card creation produces cards visible on cards page', async ({
   page,
 }) => {
