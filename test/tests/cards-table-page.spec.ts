@@ -1202,23 +1202,56 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
 
-  await createCard({
-    cardId: 'draft-complete-1',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: { word: 'Hund', type: 'NOUN' },
-    readiness: 'DRAFT',
+  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.getByLabel('Token name').fill('Test Token');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+
+  const download = await downloadPromise;
+  const filePath = await download.path();
+  const token = fs.readFileSync(filePath!, 'utf-8');
+
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Test Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Der Hund läuft schnell.',
+      highlightedWord: 'Hund',
+    }),
   });
 
-  await createCard({
-    cardId: 'draft-complete-2',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: { word: 'Katze', type: 'NOUN' },
-    readiness: 'DRAFT',
+  await fetch('http://localhost:8180/api/dictionary', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Test Buch',
+      author: 'Test Author',
+      targetLanguage: 'hu',
+      sentence: 'Die Katze schläft gern.',
+      highlightedWord: 'Katze',
+    }),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+  await expect(async () => {
+    await withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT id FROM learn_language.cards WHERE source_id = 'test-buch'`
+      );
+      expect(result.rows.length).toBe(2);
+    });
+  }).toPass();
+
+  await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1243,7 +1276,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT id, readiness, data FROM learn_language.cards WHERE id IN ('draft-complete-1', 'draft-complete-2')"
+      `SELECT id, readiness, data FROM learn_language.cards WHERE source_id = 'test-buch'`
     );
     expect(result.rows.length).toBe(2);
     result.rows.forEach((row: { readiness: string; data: { translation?: Record<string, string> } }) => {
