@@ -18,6 +18,7 @@ import {
   summarizeResults,
   BatchResult,
 } from './utils/task-processor';
+import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
   readonly progress = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -61,7 +63,7 @@ export class BulkCardCreationService {
               this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, null);
+          const results = await processTasksWithRateLimit(tasks, this.environmentConfig.imageRateLimitPerMinute);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);
@@ -87,7 +89,7 @@ export class BulkCardCreationService {
               this.processFromDraftCardId(cardId, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, null);
+          const results = await processTasksWithRateLimit(tasks, this.environmentConfig.imageRateLimitPerMinute);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);
