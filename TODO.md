@@ -1,1 +1,1 @@
-
+- do not use html renderes in ag-grid

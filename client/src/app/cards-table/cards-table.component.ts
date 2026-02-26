@@ -62,8 +62,7 @@ const READINESS_COLORS: Record<CardReadiness, string> = {
   READY: '#4CAF50',
   IN_REVIEW: '#2196F3',
   REVIEWED: '#00BCD4',
-  KNOWN: '#9C27B0',
-  NEW: '#78909C',
+  KNOWN: '#9C27B0'
 };
 
 const badgeHtml = (label: string, color: string): string =>
@@ -146,7 +145,7 @@ export class CardsTableComponent {
   });
 
   readonly cardFilter = signal<string>('');
-  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED', 'NEW']);
+  readonly readinessFilter = signal<readonly CardReadiness[]>(['READY', 'IN_REVIEW', 'REVIEWED']);
   readonly stateFilter = signal<string>('');
   readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');

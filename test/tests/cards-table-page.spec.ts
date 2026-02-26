@@ -547,6 +547,8 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
 });
 
 test('selects all filtered cards with header checkbox', async ({ page }) => {
+  await page.reload();
+
   await createCard({
     cardId: 'select-all-1',
     sourceId: 'goethe-a1',
@@ -586,6 +588,8 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
 });
 
 test('deselects all cards with header checkbox', async ({ page }) => {
+  await page.reload();
+
   await createCard({
     cardId: 'deselect-1',
     sourceId: 'goethe-a1',
