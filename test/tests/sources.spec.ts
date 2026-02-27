@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource, getDocuments } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -290,6 +290,7 @@ test('validates required fields when creating source', async ({ page }) => {
 
 test('displays empty state when no sources exist', async ({ page }) => {
   await cleanupDbRecords({ withSources: true });
+  await setupTestRateLimits();
 
   await page.goto('http://localhost:8180/sources');
 
