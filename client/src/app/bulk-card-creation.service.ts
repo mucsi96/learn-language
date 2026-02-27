@@ -110,7 +110,10 @@ export class BulkCardCreationService {
     try {
       this.updateProgress(progressIndex, 'in-progress', `${label}: Creating draft...`);
 
-      const draftCardData = strategy.createDraftCardData(item);
+      const draftCardData = {
+        ...strategy.createDraftCardData(item),
+        ...(item.sourceRectangle ? { sourceRectangle: item.sourceRectangle } : {}),
+      };
       const emptyCard = createEmptyCard();
       const cardPayload = {
         id: item.id,

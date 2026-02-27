@@ -46,6 +46,8 @@ public interface CardRepository
 
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
 
+    List<Card> findBySourceAndSourcePageNumber(Source source, Integer sourcePageNumber);
+
     @Modifying
     void deleteBySource(Source source);
 }

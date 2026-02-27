@@ -646,6 +646,59 @@ test('hungarian translation failure shows error on word spans', async ({ page })
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
 });
 
+test('bulk card creation saves source rectangle coordinates', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
+    );
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.sourceRectangle).toBeDefined();
+    expect(cardData.sourceRectangle.x).toBeGreaterThan(0);
+    expect(cardData.sourceRectangle.y).toBeGreaterThan(0);
+    expect(cardData.sourceRectangle.width).toBeGreaterThan(0);
+    expect(cardData.sourceRectangle.height).toBeGreaterThan(0);
+  });
+});
+
+test('existing card rectangles are displayed on source page', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'rect-test-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'TestWort',
+      type: 'NOUN',
+      translation: { en: 'test word', hu: 'teszt szó', ch: 'Testwort' },
+      forms: [],
+      examples: [],
+      sourceRectangle: { x: 10, y: 20, width: 100, height: 30 },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9');
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  await expect(page.getByRole('img', { name: 'Area with existing card' })).toBeVisible();
+});
+
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

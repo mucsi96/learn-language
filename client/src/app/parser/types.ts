@@ -44,6 +44,13 @@ export type Example = {
   images?: ExampleImage[];
 };
 
+export type SourceRectangle = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type CardData = {
   word?: string;
   type?: string;
@@ -56,6 +63,7 @@ export type CardData = {
   translationModel?: string;
   classificationModel?: string;
   extractionModel?: string;
+  sourceRectangle?: SourceRectangle;
 };
 
 export type Card = {
@@ -110,6 +118,7 @@ export type Page = {
   hasImage?: boolean;
   width: number;
   height: number;
+  cardRectangles?: SourceRectangle[];
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
@@ -121,6 +130,7 @@ export type ExtractedItem = {
   warning?: boolean;
   extractionModel?: string;
   error?: string;
+  sourceRectangle?: SourceRectangle;
 };
 
 export type Sentence = ExtractedItem & {

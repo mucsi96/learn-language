@@ -32,6 +32,7 @@ import { KnownWordsService } from '../../known-words/known-words.service';
 import { PagedSelection, SelectionStateService } from '../../selection-state.service';
 import { injectParams } from '../../utils/inject-params';
 import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
+import { CardRectangleComponent } from '../card-rectangle/card-rectangle.component';
 import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
 
 @Component({
@@ -51,6 +52,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     MatChipsModule,
     BulkCardCreationFabComponent,
     SelectionRectangleComponent,
+    CardRectangleComponent,
     SelectionActionsComponent,
   ],
   templateUrl: './page.component.html',
@@ -92,6 +94,9 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   );
   readonly documentImage = this.pageService.documentImage;
   readonly selectionRegions = this.pageService.selectionRegions
+  readonly cardRectangles = computed(
+    () => this.pageService.page.value()?.cardRectangles ?? []
+  );
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
   );

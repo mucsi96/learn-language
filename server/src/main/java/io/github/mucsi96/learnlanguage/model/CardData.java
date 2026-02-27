@@ -36,4 +36,7 @@ public class CardData implements Serializable {
 
     @JsonInclude(Include.NON_NULL)
     private String extractionModel;
+
+    @JsonInclude(Include.NON_NULL)
+    private SourceRectangle sourceRectangle;
 }

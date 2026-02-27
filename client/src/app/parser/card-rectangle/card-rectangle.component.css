@@ -1,0 +1,8 @@
+.card-rectangle {
+  position: absolute;
+  border: 1px solid hsla(140, 50%, 45%, 0.4);
+  background: hsla(140, 50%, 45%, 0.1);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 2px;
+}

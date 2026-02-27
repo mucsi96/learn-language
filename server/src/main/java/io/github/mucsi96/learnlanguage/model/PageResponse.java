@@ -18,6 +18,7 @@ public class PageResponse {
     private SourceFormatType formatType;
     private Boolean hasImage;
     private List<Span> spans;
+    private List<SourceRectangle> cardRectangles;
 
     @Data
     @Builder

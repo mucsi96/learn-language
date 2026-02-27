@@ -11,6 +11,8 @@ import io.github.mucsi96.learnlanguage.model.CardTableRow;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
+import io.github.mucsi96.learnlanguage.model.SourceRectangle;
+import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
@@ -207,6 +209,13 @@ public class CardService {
         });
 
     cardRepository.saveAll(cards);
+  }
+
+  public List<SourceRectangle> getCardRectanglesForPage(Source source, int pageNumber) {
+    return cardRepository.findBySourceAndSourcePageNumber(source, pageNumber).stream()
+        .filter(card -> card.getData() != null && card.getData().getSourceRectangle() != null)
+        .map(card -> card.getData().getSourceRectangle())
+        .toList();
   }
 
   public void refreshCardView() {

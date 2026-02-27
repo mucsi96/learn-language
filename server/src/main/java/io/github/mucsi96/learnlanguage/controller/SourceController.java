@@ -115,6 +115,9 @@ public class SourceController {
     result.setSourceId(sourceId);
     result.setSourceName(source.getName());
 
+    final var cardRectangles = cardService.getCardRectanglesForPage(source, pageNumber);
+    result.setCardRectangles(cardRectangles);
+
     source.setBookmarkedPage(pageNumber);
     sourceService.saveSource(source);
 

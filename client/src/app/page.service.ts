@@ -12,7 +12,7 @@ import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
-import { ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
+import { ExtractionRegion, ExtractionRegionSelection, Page, SourceRectangle } from './parser/types';
 import { PagedSelection, SelectionStateService } from './selection-state.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
@@ -113,7 +113,15 @@ export class PageService {
               rectangle: sel.rectangle,
             }));
 
-            return { selections, items };
+            const boundingRect = this.computeBoundingRectangle(
+              group.map((sel) => sel.rectangle)
+            );
+            const itemsWithRectangle = items.map((item) => ({
+              ...item,
+              sourceRectangle: boundingRect,
+            }));
+
+            return { selections, items: itemsWithRectangle };
           },
         });
       });
@@ -176,6 +184,14 @@ export class PageService {
 
   clearExtraction() {
     this.extractionGroups.set([]);
+  }
+
+  private computeBoundingRectangle(rectangles: SourceRectangle[]): SourceRectangle {
+    const minX = Math.min(...rectangles.map((r) => r.x));
+    const minY = Math.min(...rectangles.map((r) => r.y));
+    const maxX = Math.max(...rectangles.map((r) => r.x + r.width));
+    const maxY = Math.max(...rectangles.map((r) => r.y + r.height));
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   }
 
   private groupsEqual(a: ExtractionGroup, b: ExtractionGroup): boolean {

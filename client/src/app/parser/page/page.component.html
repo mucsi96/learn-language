@@ -98,6 +98,9 @@
     <mat-spinner></mat-spinner>
   </div>
   }
+  @for (rect of cardRectangles(); track $index) {
+  <app-card-rectangle [rectangle]="rect"></app-card-rectangle>
+  }
   @for (entry of currentPageSelections(); track entry.displayIndex) {
   <app-selection-rectangle
     [selection]="entry.selection"
