@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,25 +13,20 @@ public class RateLimitSettingService {
 
     private static final String IMAGE_PER_MINUTE_KEY = "image-per-minute";
     private static final String AUDIO_PER_MINUTE_KEY = "audio-per-minute";
+    private static final int DEFAULT_RATE_LIMIT = 0;
 
     private final RateLimitSettingRepository rateLimitSettingRepository;
-
-    @Value("${rate-limit.image-per-minute:#{null}}")
-    private Integer defaultImageRateLimit;
-
-    @Value("${rate-limit.audio-per-minute:#{null}}")
-    private Integer defaultAudioRateLimit;
 
     public Integer getImageRateLimitPerMinute() {
         return rateLimitSettingRepository.findById(IMAGE_PER_MINUTE_KEY)
                 .map(RateLimitSetting::getValue)
-                .orElse(defaultImageRateLimit);
+                .orElse(DEFAULT_RATE_LIMIT);
     }
 
     public Integer getAudioRateLimitPerMinute() {
         return rateLimitSettingRepository.findById(AUDIO_PER_MINUTE_KEY)
                 .map(RateLimitSetting::getValue)
-                .orElse(defaultAudioRateLimit);
+                .orElse(DEFAULT_RATE_LIMIT);
     }
 
     @Transactional
