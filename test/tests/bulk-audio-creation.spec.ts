@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createRateLimitSetting,
   createVoiceConfiguration,
   createStudySession,
   getStudySessionCardsBySource,
@@ -11,6 +12,7 @@ import {
 } from '../utils';
 
 async function setupVoiceConfigurations() {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
     model: 'eleven_v3',
@@ -611,6 +613,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
 });
 
 test('bulk audio creation uses only enabled voice configurations', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   // Create enabled German voice
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
@@ -657,6 +660,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
 });
 
 test('bulk audio creation succeeds with all enabled voice configurations', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   // Create enabled voices for both languages
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
@@ -778,6 +782,7 @@ test('bulk audio creation for speech cards', async ({ page }) => {
 });
 
 test('bulk audio creation assigns same voice per language within a card', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
     model: 'eleven_v3',
@@ -838,6 +843,7 @@ test('bulk audio creation assigns same voice per language within a card', async 
 });
 
 test('bulk audio creation assigns voices in round-robin per card', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',
     model: 'eleven_v3',

@@ -13,7 +13,7 @@ export const processTasksWithRateLimit = async <T>(
     return [];
   }
 
-  if (maxPerMinute === null) {
+  if (!maxPerMinute) {
     return Promise.allSettled(tasks.map(task => task()));
   }
 

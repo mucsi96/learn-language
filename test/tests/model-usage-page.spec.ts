@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createModelUsageLog,
+  createRateLimitSetting,
   createVoiceConfiguration,
   getGridData,
   getTableData,
@@ -458,6 +459,7 @@ test('displays model summary tab', async ({ page }) => {
 test('creates chat model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
@@ -486,6 +488,7 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
 test('creates image model usage logs when using bulk card creation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
@@ -513,6 +516,7 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
 
 test('creates audio model usage logs when using bulk audio creation', async ({ page }) => {
   await setupVoiceConfigurations();
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
   await createCard({
     cardId: 'verstehen',
     sourceId: 'goethe-a1',

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   createCard,
+  createRateLimitSetting,
   createReviewLog,
   createLearningPartner,
   getGridData,
@@ -1365,6 +1366,7 @@ test('complete button visible for draft cards in non-draft mode', async ({ page 
 test('bulk card creation produces cards visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
