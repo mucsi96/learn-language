@@ -896,6 +896,11 @@ export async function getRateLimitSettings(): Promise<
   });
 }
 
+export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
+  await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
+}
+
 export async function getTableData<T extends Record<string, string>>(
   table: Locator,
   options: { excludeRowSelector?: string } = {}

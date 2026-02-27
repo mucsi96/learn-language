@@ -1,13 +1,14 @@
 import { test as base, TestInfo } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { cleanupDbRecords, cleanupStorage, populateStorage } from './utils';
+import { cleanupDbRecords, cleanupStorage, populateStorage, setupTestRateLimits } from './utils';
 
 export const test = base.extend({
   page: async ({ page }, use, testInfo: TestInfo) => {
     await cleanupDbRecords();
     cleanupStorage();
     populateStorage();
+    await setupTestRateLimits(100, 100);
 
     // Wait for db and storage to be ready
     await new Promise((resolve) => setTimeout(resolve, 2000));
