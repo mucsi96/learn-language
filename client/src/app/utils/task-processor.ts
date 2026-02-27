@@ -7,14 +7,10 @@ export interface BatchResult {
 
 export const processTasksWithRateLimit = async <T>(
   tasks: ReadonlyArray<() => Promise<T>>,
-  maxPerMinute: number | null
+  maxPerMinute: number
 ): Promise<PromiseSettledResult<T>[]> => {
   if (tasks.length === 0) {
     return [];
-  }
-
-  if (!maxPerMinute) {
-    return Promise.allSettled(tasks.map(task => task()));
   }
 
   const intervalMs = 60_000 / maxPerMinute;

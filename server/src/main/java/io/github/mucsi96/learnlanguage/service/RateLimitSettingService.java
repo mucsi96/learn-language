@@ -13,36 +13,37 @@ public class RateLimitSettingService {
 
     private static final String IMAGE_PER_MINUTE_KEY = "image-per-minute";
     private static final String AUDIO_PER_MINUTE_KEY = "audio-per-minute";
-    private static final int DEFAULT_IMAGE_RATE_LIMIT = 6;
-    private static final int DEFAULT_AUDIO_RATE_LIMIT = 12;
 
     private final RateLimitSettingRepository rateLimitSettingRepository;
 
-    public Integer getImageRateLimitPerMinute() {
-        return rateLimitSettingRepository.findById(IMAGE_PER_MINUTE_KEY)
-                .map(RateLimitSetting::getValue)
-                .orElse(DEFAULT_IMAGE_RATE_LIMIT);
+    public int getImageRateLimitPerMinute() {
+        return getRateLimit(IMAGE_PER_MINUTE_KEY);
     }
 
-    public Integer getAudioRateLimitPerMinute() {
-        return rateLimitSettingRepository.findById(AUDIO_PER_MINUTE_KEY)
-                .map(RateLimitSetting::getValue)
-                .orElse(DEFAULT_AUDIO_RATE_LIMIT);
+    public int getAudioRateLimitPerMinute() {
+        return getRateLimit(AUDIO_PER_MINUTE_KEY);
     }
 
     @Transactional
-    public Integer updateImageRateLimit(int value) {
-        final RateLimitSetting setting = rateLimitSettingRepository.findById(IMAGE_PER_MINUTE_KEY)
-                .map(existing -> existing.toBuilder().value(value).build())
-                .orElse(RateLimitSetting.builder().key(IMAGE_PER_MINUTE_KEY).value(value).build());
-        return rateLimitSettingRepository.save(setting).getValue();
+    public int updateImageRateLimit(int value) {
+        return updateRateLimit(IMAGE_PER_MINUTE_KEY, value);
     }
 
     @Transactional
-    public Integer updateAudioRateLimit(int value) {
-        final RateLimitSetting setting = rateLimitSettingRepository.findById(AUDIO_PER_MINUTE_KEY)
+    public int updateAudioRateLimit(int value) {
+        return updateRateLimit(AUDIO_PER_MINUTE_KEY, value);
+    }
+
+    private int getRateLimit(String key) {
+        return rateLimitSettingRepository.findById(key)
+                .map(RateLimitSetting::getValue)
+                .orElseThrow();
+    }
+
+    private int updateRateLimit(String key, int value) {
+        final RateLimitSetting setting = rateLimitSettingRepository.findById(key)
                 .map(existing -> existing.toBuilder().value(value).build())
-                .orElse(RateLimitSetting.builder().key(AUDIO_PER_MINUTE_KEY).value(value).build());
+                .orElseThrow();
         return rateLimitSettingRepository.save(setting).getValue();
     }
 }

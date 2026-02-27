@@ -20,13 +20,13 @@ public class RateLimitSettingController {
 
     @PutMapping("/image-per-minute")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public Integer updateImageRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
+    public int updateImageRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
         return rateLimitSettingService.updateImageRateLimit(request.getValue());
     }
 
     @PutMapping("/audio-per-minute")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public Integer updateAudioRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
+    public int updateAudioRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
         return rateLimitSettingService.updateAudioRateLimit(request.getValue());
     }
 }
