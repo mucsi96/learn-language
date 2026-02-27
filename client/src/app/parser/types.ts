@@ -203,6 +203,7 @@ export type Source = {
   startPage: number;
   pageCount?: number;
   cardCount?: number;
+  draftCardCount?: number;
   languageLevel?: LanguageLevel;
   cardType?: CardType;
   formatType?: SourceFormatType;

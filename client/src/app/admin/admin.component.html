@@ -36,6 +36,11 @@
         <p class="card-count">
           {{ source.cardCount || 0 }} cards
         </p>
+        @if (source.draftCardCount) {
+        <p class="draft-card-count">
+          {{ source.draftCardCount }} drafts
+        </p>
+        }
       </mat-card-content>
     </mat-card>
   </article>
@@ -70,8 +75,7 @@
     <mat-icon>style</mat-icon>
     Cards
   </button>
-  @let iconText = isEbookDictionary() ? 'drafts' : 'menu_book';
-  @let label = isEbookDictionary() ? 'Draft Cards' : 'Pages';
+  @if (!isEbookDictionary()) {
   <button
     mat-fab
     extended
@@ -79,9 +83,10 @@
     class="action-fab"
     (click)="navigateToPages()"
   >
-    <mat-icon>{{ iconText }}</mat-icon>
-    {{ label }}
+    <mat-icon>menu_book</mat-icon>
+    Pages
   </button>
+  }
 </nav>
 }
 } @else {

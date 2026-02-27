@@ -53,7 +53,7 @@ test('cards button navigates to cards table', async ({ page }) => {
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/cards/);
 });
 
-test('displays card counts', async ({ page }) => {
+test('displays card counts excluding drafts', async ({ page }) => {
   await createCard({
     cardId: 'test-card-1',
     sourceId: 'goethe-a1',
@@ -74,8 +74,20 @@ test('displays card counts', async ({ page }) => {
       translation: { en: 'test2' },
     },
   });
+  await createCard({
+    cardId: 'test-card-draft',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'draft1',
+      type: 'NOUN',
+      translation: { en: 'draft1' },
+    },
+    readiness: 'DRAFT',
+  });
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 drafts')).toBeVisible();
 });
 
 test('displays card count for sources', async ({ page }) => {

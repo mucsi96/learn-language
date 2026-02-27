@@ -86,6 +86,12 @@ p {
   font-size: 0.9rem;
 }
 
+.draft-card-count {
+  color: var(--mat-sys-tertiary);
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+}
+
 .source-actions {
   position: fixed;
   bottom: 24px;

@@ -13,6 +13,7 @@ public class SourceResponse {
     private Integer startPage;
     private Integer pageCount;
     private Integer cardCount;
+    private Integer draftCardCount;
     private LanguageLevel languageLevel;
     private SourceFormatType formatType;
 }
