@@ -13,20 +13,21 @@ public class RateLimitSettingService {
 
     private static final String IMAGE_PER_MINUTE_KEY = "image-per-minute";
     private static final String AUDIO_PER_MINUTE_KEY = "audio-per-minute";
-    private static final int DEFAULT_RATE_LIMIT = 0;
+    private static final int DEFAULT_IMAGE_RATE_LIMIT = 6;
+    private static final int DEFAULT_AUDIO_RATE_LIMIT = 12;
 
     private final RateLimitSettingRepository rateLimitSettingRepository;
 
     public Integer getImageRateLimitPerMinute() {
         return rateLimitSettingRepository.findById(IMAGE_PER_MINUTE_KEY)
                 .map(RateLimitSetting::getValue)
-                .orElse(DEFAULT_RATE_LIMIT);
+                .orElse(DEFAULT_IMAGE_RATE_LIMIT);
     }
 
     public Integer getAudioRateLimitPerMinute() {
         return rateLimitSettingRepository.findById(AUDIO_PER_MINUTE_KEY)
                 .map(RateLimitSetting::getValue)
-                .orElse(DEFAULT_RATE_LIMIT);
+                .orElse(DEFAULT_AUDIO_RATE_LIMIT);
     }
 
     @Transactional

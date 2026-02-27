@@ -39,7 +39,7 @@ export class ImageModelSettingsService {
 
     fetchJson<number>(this.http, '/api/rate-limit-settings/image-per-minute', {
       method: 'PUT',
-      body: { key: 'image-per-minute', value },
+      body: { value },
     });
   }
 }

@@ -104,7 +104,7 @@ export class VoiceConfigService {
 
     fetchJson<number>(this.http, '/api/rate-limit-settings/audio-per-minute', {
       method: 'PUT',
-      body: { key: 'audio-per-minute', value },
+      body: { value },
     });
   }
 
