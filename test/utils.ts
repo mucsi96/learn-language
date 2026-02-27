@@ -136,6 +136,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
     await client.query('DELETE FROM learn_language.image_model_settings');
+    await client.query('DELETE FROM learn_language.rate_limit_settings');
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
     await client.query('DELETE FROM learn_language.api_tokens');
@@ -863,6 +864,41 @@ export async function getImageModelSettings(): Promise<
     );
     return result.rows;
   });
+}
+
+export async function createRateLimitSetting(params: {
+  key: string;
+  value: number;
+}): Promise<void> {
+  const { key, value } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.rate_limit_settings (key, value)
+       VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [key, value]
+    );
+  });
+}
+
+export async function getRateLimitSettings(): Promise<
+  Array<{
+    key: string;
+    value: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT key, value FROM learn_language.rate_limit_settings ORDER BY key`
+    );
+    return result.rows;
+  });
+}
+
+export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
+  await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
 }
 
 export async function getTableData<T extends Record<string, string>>(

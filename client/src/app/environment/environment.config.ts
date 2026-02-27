@@ -56,8 +56,8 @@ export interface EnvironmentConfig {
   clientId: string;
   apiClientId: string;
   mockAuth: boolean;
-  imageRateLimitPerMinute: number | null;
-  audioRateLimitPerMinute: number | null;
+  imageRateLimitPerMinute: number;
+  audioRateLimitPerMinute: number;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];

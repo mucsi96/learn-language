@@ -175,6 +175,12 @@ td.mat-column-actions {
   text-align: center;
 }
 
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .preview-section mat-card-content {
   min-height: 300px;
 }

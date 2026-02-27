@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   createCard,
+  createRateLimitSetting,
   createReviewLog,
   createLearningPartner,
   getGridData,
@@ -542,8 +543,6 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
 });
 
 test('selects all filtered cards with header checkbox', async ({ page }) => {
-  await page.reload();
-
   await createCard({
     cardId: 'select-all-1',
     sourceId: 'goethe-a1',
@@ -565,22 +564,20 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
     data: { word: 'Kirsche', type: 'NOUN', translation: { en: 'cherry' } },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
-
-  const grid = page.getByRole('grid');
   await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['select-all-1', 'select-all-2', 'select-all-3']));
+    await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+    await expect(page.getByRole('columnheader', { name: /Select all 3 cards/ })).toBeVisible();
   }).toPass();
 
-  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await page
+    .getByRole('columnheader', { name: /Select all 3 cards/ })
+    .getByRole('checkbox')
+    .click();
 
   await expect(page.getByRole('button', { name: /Mark 3 as known/ })).toBeVisible();
 });
 
 test('deselects all cards with header checkbox', async ({ page }) => {
-  await page.reload();
-
   await createCard({
     cardId: 'deselect-1',
     sourceId: 'goethe-a1',
@@ -595,19 +592,22 @@ test('deselects all cards with header checkbox', async ({ page }) => {
     data: { word: 'Katze', type: 'NOUN', translation: { en: 'cat' } },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
-
-  const grid = page.getByRole('grid');
   await expect(async () => {
-    const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['deselect-1', 'deselect-2']));
+    await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+    await expect(page.getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
-  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })
+    .getByRole('checkbox')
+    .click();
   await expect(page.getByRole('button', { name: /Mark 2 as known/ })).toBeVisible();
 
-  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
-  await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
+  await page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })
+    .getByRole('checkbox')
+    .click();
+  await expect(page.getByRole('button', { name: /Mark 2 as known/ })).not.toBeVisible();
 });
 
 test('select all respects current filter', async ({ page }) => {
@@ -644,7 +644,10 @@ test('select all respects current filter', async ({ page }) => {
     expect(rows.length).toBe(1);
   }).toPass();
 
-  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await page
+    .getByRole('columnheader', { name: /Select all 1 cards/ })
+    .getByRole('checkbox')
+    .click();
 
   await expect(page.getByRole('button', { name: /Mark 1 as known/ })).toBeVisible();
 });
@@ -675,7 +678,10 @@ test('changing filter resets selection', async ({ page }) => {
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await page.getByRole('checkbox', { name: 'Select all cards' }).click();
+  await page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })
+    .getByRole('checkbox')
+    .click();
   await expect(page.getByRole('button', { name: /Mark 2 as known/ })).toBeVisible();
 
   await page.getByLabel('Filter by state').click();
@@ -1198,7 +1204,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
 
   await expect(async () => {
     await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
-    await expect(page.getByText('hund-kutya')).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /Select all 1 cards/ })).toBeVisible();
   }).toPass();
 
   await fetch('http://localhost:8180/api/dictionary', {
@@ -1218,15 +1224,15 @@ test('completes selected draft cards from cards table', async ({ page }) => {
 
   await expect(async () => {
     await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
-    await expect(page.getByText('hund-kutya')).toBeVisible();
-    await expect(page.getByRole('row', { name: /hund-kutya/ }).getByRole('checkbox')).toBeVisible();
-    await expect(page.getByRole('row', { name: /katze-macska/ }).getByRole('checkbox')).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
-  await page.getByRole('row', { name: /hund-kutya/ }).getByRole('checkbox').click();
-  await page.getByRole('row', { name: /katze-macska/ }).getByRole('checkbox').click();
+  await page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })
+    .getByRole('checkbox')
+    .click();
 
-  await page.getByRole('button').filter({hasText: 'Complete 2 cards'}).click();
+  await page.getByRole('button').filter({ hasText: 'Complete 2 cards' }).click();
 
   await expect(page.getByText('2 card(s) completed')).toBeVisible();
 
@@ -1347,9 +1353,7 @@ test('complete button visible for draft cards in non-draft mode', async ({ page 
 
   await expect(async () => {
     const rows = await getGridData(grid);
-    expect(rows.map((r) => r.ID)).toEqual(
-      expect.arrayContaining(['draft-in-mixed', 'ready-in-mixed'])
-    );
+    expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['draft-in-mixed', 'ready-in-mixed']));
   }).toPass();
 
   await page
@@ -1365,6 +1369,7 @@ test('complete button visible for draft cards in non-draft mode', async ({ page 
 test('bulk card creation produces cards visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();

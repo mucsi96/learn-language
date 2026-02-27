@@ -21,6 +21,7 @@ import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
 import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
+import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,6 +32,7 @@ public class EnvironmentController {
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
   private final ImageModelSettingService imageModelSettingService;
+  private final RateLimitSettingService rateLimitSettingService;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -40,12 +42,6 @@ public class EnvironmentController {
 
   @Value("${spa-client-id:}")
   private String uiClientId;
-
-  @Value("${rate-limit.image-per-minute:#{null}}")
-  private Integer imageRateLimitPerMinute;
-
-  @Value("${rate-limit.audio-per-minute:#{null}}")
-  private Integer audioRateLimitPerMinute;
 
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
       new SupportedLanguage("de", "German"),
@@ -79,8 +75,8 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         environment.matchesProfiles("test"),
-        imageRateLimitPerMinute,
-        audioRateLimitPerMinute,
+        rateLimitSettingService.getImageRateLimitPerMinute(),
+        rateLimitSettingService.getAudioRateLimitPerMinute(),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -119,8 +115,8 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       boolean mockAuth,
-      Integer imageRateLimitPerMinute,
-      Integer audioRateLimitPerMinute,
+      int imageRateLimitPerMinute,
+      int audioRateLimitPerMinute,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,

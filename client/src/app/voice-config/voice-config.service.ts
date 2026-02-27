@@ -1,4 +1,4 @@
-import { Injectable, inject, resource, Injector } from '@angular/core';
+import { Injectable, inject, resource, signal, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { Card } from '../parser/types';
@@ -32,6 +32,7 @@ export class VoiceConfigService {
   readonly audioModels = this.config.audioModels;
   readonly availableVoices = this.config.voices;
   readonly supportedLanguages = this.config.supportedLanguages;
+  readonly audioRateLimitPerMinute = signal(this.config.audioRateLimitPerMinute);
 
   readonly configurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,
@@ -95,6 +96,15 @@ export class VoiceConfigService {
       language: config.language,
       displayName: config.displayName ?? undefined,
       isEnabled: !config.isEnabled,
+    });
+  }
+
+  updateAudioRateLimit(value: number): void {
+    this.audioRateLimitPerMinute.set(value);
+
+    fetchJson<number>(this.http, '/api/rate-limit-settings/audio-per-minute', {
+      method: 'PUT',
+      body: { value },
     });
   }
 

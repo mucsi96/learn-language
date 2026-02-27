@@ -19,12 +19,21 @@ export class ImageModelSettingsComponent {
   private readonly service = inject(ImageModelSettingsService);
 
   readonly imageModels = this.service.imageModels;
+  readonly imageRateLimitPerMinute = this.service.imageRateLimitPerMinute;
 
   onImageCountChange(modelId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = parseInt(input.value, 10);
     if (!isNaN(value) && value >= 0) {
       this.service.updateImageCount(modelId, value);
+    }
+  }
+
+  onRateLimitChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    if (!isNaN(value) && value >= 1) {
+      this.service.updateImageRateLimit(value);
     }
   }
 }

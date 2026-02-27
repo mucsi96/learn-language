@@ -26,7 +26,7 @@ export type SelectAllContext = {
       [checked]="checked()"
       [indeterminate]="indeterminate()"
       (change)="onToggle()"
-      aria-label="Select all cards"
+      [attr.aria-label]="ariaLabel()"
     ></mat-checkbox>
   `,
   styles: `
@@ -40,6 +40,7 @@ export class SelectAllHeaderComponent implements IHeaderAngularComp {
   private readonly injector = inject(Injector);
   readonly checked = signal(false);
   readonly indeterminate = signal(false);
+  readonly ariaLabel = signal('Select all 0 cards');
   private context!: SelectAllContext;
 
   agInit(params: IHeaderParams): void {
@@ -51,6 +52,7 @@ export class SelectAllHeaderComponent implements IHeaderAngularComp {
         const total = this.context.totalFilteredCount();
         this.checked.set(total > 0 && selectedCount === total);
         this.indeterminate.set(selectedCount > 0 && selectedCount < total);
+        this.ariaLabel.set(`Select all ${total} cards`);
       });
     });
   }

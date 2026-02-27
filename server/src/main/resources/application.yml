@@ -1,6 +1,3 @@
-rate-limit:
-  image-per-minute: 6
-  audio-per-minute: 12
 storage:
   directory: ${STORAGE_DIRECTORY}
 spring:
