@@ -646,6 +646,77 @@ test('hungarian translation failure shows error on word spans', async ({ page })
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
 });
 
+test('bulk card creation persists extraction regions', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT source_id, page_number, x, y, width, height
+       FROM learn_language.extraction_regions
+       WHERE source_id = 'goethe-a1'
+       ORDER BY id`
+    );
+
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].source_id).toBe('goethe-a1');
+    expect(result.rows[0].page_number).toBe(9);
+    expect(result.rows[0].x).toBeGreaterThan(0);
+    expect(result.rows[0].y).toBeGreaterThan(0);
+    expect(result.rows[0].width).toBeGreaterThan(0);
+    expect(result.rows[0].height).toBeGreaterThan(0);
+  });
+});
+
+test('persisted extraction regions are shown on page reload', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await expect(page.getByRole('mark', { name: 'Extracted region' }).first()).toBeVisible();
+});
+
+test('persisted extraction regions are shown when navigating back to page', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('link', { name: 'Next page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  await page.getByRole('link', { name: 'Previous page' }).click();
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  await expect(page.getByRole('mark', { name: 'Extracted region' }).first()).toBeVisible();
+});
+
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

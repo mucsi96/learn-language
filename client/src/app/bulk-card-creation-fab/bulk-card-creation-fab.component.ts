@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -9,6 +10,7 @@ import { CardCandidatesService } from '../card-candidates.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { PageService } from '../page.service';
+import { fetchJson } from '../utils/fetchJson';
 
 @Component({
   selector: 'app-bulk-card-creation-fab',
@@ -18,6 +20,7 @@ import { PageService } from '../page.service';
   styleUrl: './bulk-card-creation-fab.component.css',
 })
 export class BulkCardCreationFabComponent {
+  private readonly http = inject(HttpClient);
   readonly candidatesService = inject(CardCandidatesService);
   readonly bulkCreationService = inject(BulkCardCreationService);
   readonly pageService = inject(PageService);
@@ -33,6 +36,8 @@ export class BulkCardCreationFabComponent {
     if (!selectedSource || candidates.length === 0 || !cardType) {
       return;
     }
+
+    const selections = this.pageService.getAllExtractionSelections();
 
     this.bulkCreationService.clearProgress();
 
@@ -53,6 +58,19 @@ export class BulkCardCreationFabComponent {
     );
 
     if (result.succeeded > 0) {
+      const regions = selections.map(sel => ({
+        pageNumber: sel.pageNumber,
+        x: sel.rectangle.x,
+        y: sel.rectangle.y,
+        width: sel.rectangle.width,
+        height: sel.rectangle.height,
+      }));
+
+      await fetchJson(this.http, `/api/source/${selectedSource.sourceId}/extraction-regions`, {
+        body: { regions },
+        method: 'POST',
+      });
+
       this.pageService.reload();
     }
   }

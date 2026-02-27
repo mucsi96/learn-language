@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.Document;
+import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
@@ -33,6 +35,7 @@ import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
+import io.github.mucsi96.learnlanguage.repository.ExtractionRegionRepository;
 import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
@@ -61,6 +64,7 @@ public class SourceController {
   private final AreaGrammarService areaGrammarService;
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
+  private final ExtractionRegionRepository extractionRegionRepository;
   private final KnownWordService knownWordService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
@@ -114,6 +118,16 @@ public class SourceController {
     result.setNumber(pageNumber);
     result.setSourceId(sourceId);
     result.setSourceName(source.getName());
+
+    final var regions = extractionRegionRepository.findBySourceAndPageNumber(source, pageNumber).stream()
+        .map(region -> PageResponse.PersistedExtractionRegion.builder()
+            .x(region.getX())
+            .y(region.getY())
+            .width(region.getWidth())
+            .height(region.getHeight())
+            .build())
+        .toList();
+    result.setExtractionRegions(regions);
 
     source.setBookmarkedPage(pageNumber);
     sourceService.saveSource(source);
@@ -180,6 +194,30 @@ public class SourceController {
     return SentenceListResponse.builder()
         .sentences(sentences)
         .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/extraction-regions")
+  public ResponseEntity<Map<String, String>> saveExtractionRegions(
+      @PathVariable String sourceId,
+      @RequestBody ExtractionRegionCreateRequest request) {
+    final var source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    final var entities = request.getRegions().stream()
+        .map(region -> ExtractionRegion.builder()
+            .source(source)
+            .pageNumber(region.getPageNumber())
+            .x(region.getX())
+            .y(region.getY())
+            .width(region.getWidth())
+            .height(region.getHeight())
+            .build())
+        .toList();
+
+    extractionRegionRepository.saveAll(entities);
+
+    return ResponseEntity.ok(Map.of("detail", "Extraction regions saved"));
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")

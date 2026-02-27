@@ -18,6 +18,7 @@ public class PageResponse {
     private SourceFormatType formatType;
     private Boolean hasImage;
     private List<Span> spans;
+    private List<PersistedExtractionRegion> extractionRegions;
 
     @Data
     @Builder
@@ -34,5 +35,14 @@ public class PageResponse {
             private double width;
             private double height;
         }
+    }
+
+    @Data
+    @Builder
+    public static class PersistedExtractionRegion {
+        private double x;
+        private double y;
+        private double width;
+        private double height;
     }
 }

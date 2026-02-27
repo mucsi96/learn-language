@@ -91,7 +91,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     () => this.pageService.page.value()?.hasImage
   );
   readonly documentImage = this.pageService.documentImage;
-  readonly selectionRegions = this.pageService.selectionRegions
+  readonly selectionRegions = this.pageService.selectionRegions;
+  readonly extractionRegions = computed(
+    () => this.pageService.page.value()?.extractionRegions ?? []
+  );
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
   );

@@ -93,6 +93,14 @@
   margin-top: 1rem;
 }
 
+.persisted-extraction-region {
+  position: absolute;
+  background: hsla(140, 60%, 50%, 0.08);
+  border: 1px dashed hsla(140, 60%, 40%, 0.3);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .extracted-candidates-container {
   position: fixed;
   bottom: 1rem;
