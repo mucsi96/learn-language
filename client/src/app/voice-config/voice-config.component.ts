@@ -55,6 +55,7 @@ export class VoiceConfigComponent {
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
   readonly supportedLanguages = this.service.supportedLanguages;
+  readonly audioRateLimitPerMinute = this.service.audioRateLimitPerMinute;
 
   readonly selectedCardIndex = signal(0);
   readonly previewingConfigId = signal<number | null>(null);
@@ -256,6 +257,14 @@ export class VoiceConfigComponent {
     const cards = this.sampleCards.value();
     if (!cards) return;
     this.selectedCardIndex.update((i) => (i - 1 + cards.length) % cards.length);
+  }
+
+  onAudioRateLimitChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    if (!isNaN(value) && value >= 1) {
+      this.service.updateAudioRateLimit(value);
+    }
   }
 
   refreshCards(): void {

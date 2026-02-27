@@ -136,6 +136,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');
     await client.query('DELETE FROM learn_language.image_model_settings');
+    await client.query('DELETE FROM learn_language.rate_limit_settings');
     await client.query('DELETE FROM learn_language.known_words');
     await client.query('DELETE FROM learn_language.learning_partners');
     await client.query('DELETE FROM learn_language.api_tokens');
@@ -860,6 +861,36 @@ export async function getImageModelSettings(): Promise<
       `SELECT id, model_name as "modelName", image_count as "imageCount"
        FROM learn_language.image_model_settings
        ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function createRateLimitSetting(params: {
+  key: string;
+  value: number;
+}): Promise<void> {
+  const { key, value } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.rate_limit_settings (key, value)
+       VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [key, value]
+    );
+  });
+}
+
+export async function getRateLimitSettings(): Promise<
+  Array<{
+    key: string;
+    value: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT key, value FROM learn_language.rate_limit_settings ORDER BY key`
     );
     return result.rows;
   });

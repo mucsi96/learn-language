@@ -16,9 +16,9 @@ export interface ImageModelSettingRequest {
 })
 export class ImageModelSettingsService {
   private readonly http = inject(HttpClient);
-  readonly imageModels = signal(
-    inject(ENVIRONMENT_CONFIG).imageModels
-  );
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  readonly imageModels = signal(this.environmentConfig.imageModels);
+  readonly imageRateLimitPerMinute = signal(this.environmentConfig.imageRateLimitPerMinute);
 
   updateImageCount(modelId: string, imageCount: number): void {
     this.imageModels.update((models) =>
@@ -31,6 +31,15 @@ export class ImageModelSettingsService {
         modelName: modelId,
         imageCount,
       } satisfies ImageModelSettingRequest,
+    });
+  }
+
+  updateImageRateLimit(value: number): void {
+    this.imageRateLimitPerMinute.set(value);
+
+    fetchJson<number>(this.http, '/api/rate-limit-settings/image-per-minute', {
+      method: 'PUT',
+      body: { key: 'image-per-minute', value },
     });
   }
 }

@@ -41,4 +41,25 @@
       }
     </mat-card-content>
   </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title><h2>Rate Limit</h2></mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="rate-limit-field">
+        <mat-form-field class="count-field">
+          <mat-label>Requests per minute</mat-label>
+          <input
+            matInput
+            type="number"
+            [value]="imageRateLimitPerMinute()"
+            (change)="onRateLimitChange($event)"
+            min="1"
+            aria-label="Image rate limit per minute"
+          />
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>
