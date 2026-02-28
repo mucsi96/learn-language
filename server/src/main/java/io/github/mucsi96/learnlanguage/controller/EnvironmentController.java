@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
-import io.github.mucsi96.learnlanguage.model.ImageModelResponse;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
@@ -20,7 +20,6 @@ import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
-import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +30,6 @@ public class EnvironmentController {
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
-  private final ImageModelSettingService imageModelSettingService;
   private final RateLimitSettingService rateLimitSettingService;
 
   @Value("${tenant-id:}")
@@ -82,7 +80,9 @@ public class EnvironmentController {
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
-        imageModelSettingService.getImageModelsWithSettings(),
+        Arrays.stream(ImageGenerationModel.values())
+            .map(model -> new ImageModelInfo(model.getModelName(), model.getDisplayName()))
+            .toList(),
         audioService.getAvailableModels(),
         elevenLabsAudioService.getVoices(),
         SUPPORTED_LANGUAGES,
@@ -95,6 +95,9 @@ public class EnvironmentController {
   }
 
   public record ChatModelInfo(String modelName, String provider) {
+  }
+
+  public record ImageModelInfo(String id, String displayName) {
   }
 
   public record SupportedLanguage(String code, String displayName) {
@@ -122,7 +125,7 @@ public class EnvironmentController {
       int imageMaxConcurrent,
       int audioMaxConcurrent,
       List<ChatModelInfo> chatModels,
-      List<ImageModelResponse> imageModels,
+      List<ImageModelInfo> imageModels,
       List<AudioModelResponse> audioModels,
       List<VoiceResponse> voices,
       List<SupportedLanguage> supportedLanguages,

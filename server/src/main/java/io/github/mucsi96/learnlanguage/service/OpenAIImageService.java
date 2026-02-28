@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.Base64;
-import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,7 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public List<byte[]> generateImages(String prompt, int imageCount) {
+    public byte[] generateImage(String prompt) {
         final long startTime = System.currentTimeMillis();
         try {
             final ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
@@ -29,28 +28,24 @@ public class OpenAIImageService {
                 .model(MODEL_NAME)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)
-                .n(imageCount)
                 .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
                 .outputCompression(75)
                 .build();
 
-            final List<byte[]> images = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
-                .flatMap(image -> image.b64Json().stream())
+            final byte[] image = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
+                .flatMap(img -> img.b64Json().stream())
                 .map(b64 -> Base64.getDecoder().decode(b64))
-                .toList();
-
-            if (images.isEmpty()) {
-                throw new RuntimeException("No image data returned from OpenAI API");
-            }
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
 
             final long processingTime = System.currentTimeMillis() - startTime;
-            usageLoggingService.logImageUsage(MODEL_NAME, OperationType.IMAGE_GENERATION, images.size(), processingTime);
+            usageLoggingService.logImageUsage(MODEL_NAME, OperationType.IMAGE_GENERATION, 1, processingTime);
 
-            return images;
+            return image;
 
         } catch (Exception e) {
-            log.error("Failed to generate images with OpenAI", e);
-            throw new RuntimeException("Failed to generate images with OpenAI: " + e.getMessage(), e);
+            log.error("Failed to generate image with OpenAI", e);
+            throw new RuntimeException("Failed to generate image with OpenAI: " + e.getMessage(), e);
         }
     }
 }
