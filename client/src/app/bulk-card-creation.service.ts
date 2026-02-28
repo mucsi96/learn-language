@@ -17,6 +17,7 @@ import {
   processTasksWithRateLimit,
   summarizeResults,
   BatchResult,
+  RateLimitConfig,
 } from './utils/task-processor';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 
@@ -28,6 +29,10 @@ export class BulkCardCreationService {
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageRateLimitConfig: RateLimitConfig = {
+    maxPerMinute: this.environmentConfig.imageRateLimitPerMinute,
+    maxConcurrent: this.environmentConfig.imageMaxConcurrent,
+  };
   readonly progress = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -63,7 +68,7 @@ export class BulkCardCreationService {
               this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, this.environmentConfig.imageRateLimitPerMinute);
+          const results = await processTasksWithRateLimit(tasks, this.imageRateLimitConfig);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);
@@ -89,7 +94,7 @@ export class BulkCardCreationService {
               this.processFromDraftCardId(cardId, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, this.environmentConfig.imageRateLimitPerMinute);
+          const results = await processTasksWithRateLimit(tasks, this.imageRateLimitConfig);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);

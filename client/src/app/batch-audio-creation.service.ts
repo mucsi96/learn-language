@@ -15,6 +15,7 @@ import {
   processTasksWithRateLimit,
   summarizeResults,
   BatchResult,
+  RateLimitConfig,
 } from './utils/task-processor';
 
 interface VoiceConfiguration {
@@ -33,6 +34,10 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly audioRateLimitConfig: RateLimitConfig = {
+    maxPerMinute: this.environmentConfig.audioRateLimitPerMinute,
+    maxConcurrent: this.environmentConfig.audioMaxConcurrent,
+  };
   readonly progressDots = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
   private voiceConfigs: VoiceConfiguration[] = [];
@@ -78,7 +83,7 @@ export class BatchAudioCreationService {
 
     const results = await processTasksWithRateLimit(
       tasks,
-      this.environmentConfig.audioRateLimitPerMinute
+      this.audioRateLimitConfig
     );
 
     this.isCreating.set(false);
