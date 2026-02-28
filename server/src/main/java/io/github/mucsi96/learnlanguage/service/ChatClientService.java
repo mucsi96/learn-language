@@ -56,8 +56,8 @@ public class ChatClientService {
       case CLAUDE_HAIKU_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(AnthropicApi.ChatModel.CLAUDE_HAIKU_4_5).build())
           .build();
-      case GEMINI_3_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
-          .defaultOptions(GoogleGenAiChatOptions.builder().model(GoogleGenAiChatModel.ChatModel.GEMINI_3_PRO_PREVIEW).build())
+      case GEMINI_3_1_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
+          .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3.1-pro-preview").build())
           .build();
       case GEMINI_3_FLASH_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
           .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3-flash-preview").build())

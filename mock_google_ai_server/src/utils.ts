@@ -22,7 +22,7 @@ export const messagesMatch = (
 
 export const createGeminiResponse = (
   content: string | object,
-  model: string = 'gemini-3-pro-preview'
+  model: string = 'gemini-3.1-pro-preview'
 ) => {
   const messageContent =
     typeof content === 'object' ? JSON.stringify(content) : content;

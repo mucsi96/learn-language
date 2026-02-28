@@ -20,7 +20,7 @@ public class ImageService {
     final int imageCount = imageModelSettingService.getImageCount(model);
     return switch (model) {
       case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, imageCount);
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, imageCount);
+      case GEMINI_3_1_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, imageCount);
     };
   }
 }

@@ -20,7 +20,7 @@ public enum ChatModel {
   GPT_5_NANO("gpt-5-nano", ModelProvider.OPENAI),
   CLAUDE_SONNET_4_5("claude-sonnet-4-5", ModelProvider.ANTHROPIC),
   CLAUDE_HAIKU_4_5("claude-haiku-4-5", ModelProvider.ANTHROPIC),
-  GEMINI_3_PRO_PREVIEW("gemini-3-pro-preview", ModelProvider.GOOGLE),
+  GEMINI_3_1_PRO_PREVIEW("gemini-3.1-pro-preview", ModelProvider.GOOGLE),
   GEMINI_3_FLASH_PREVIEW("gemini-3-flash-preview", ModelProvider.GOOGLE);
 
   private final String modelName;

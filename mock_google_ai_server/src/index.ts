@@ -32,7 +32,7 @@ app.post('/configure', (req, res) => {
 });
 
 app.post(
-  '/v1beta/models/gemini-3-pro-image-preview:generateContent',
+  '/v1beta/models/gemini-3.1-pro-image-preview:generateContent',
   (req, res) => {
     try {
       const prompt = req.body.contents[0].parts[0].text;
@@ -63,7 +63,7 @@ app.post(
 app.post(/\/v1beta\/models\/([^/]+):generateContent/, async (req, res) => {
   try {
     const model = req.params[0];
-    if (model === 'gemini-3-pro-image-preview') {
+    if (model === 'gemini-3.1-pro-image-preview') {
       return res.status(404).json({ error: { message: 'Use specific image endpoint' } });
     }
     console.log(`Gemini chat request for model: ${model}`);
