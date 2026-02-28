@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -37,26 +36,22 @@ public class ImageController {
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public List<ExampleImageData> createImages(@Valid @RequestBody ImageSourceRequest imageSource) {
+  public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     final String displayName = imageSource.getModel().getDisplayName();
-
-    return imageService.generateImages(imageSource.getInput(), imageSource.getModel()).stream()
-        .map(data -> {
-          final String uuid = UUID.randomUUID().toString();
-          final String filePath = "images/%s.webp".formatted(uuid);
-          try {
-            final byte[] compressed = imageResizeService.resizeImage(
-                data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
-            fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
-          } catch (Exception e) {
-            throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
-          }
-          return ExampleImageData.builder()
-              .id(uuid)
-              .model(displayName)
-              .build();
-        })
-        .toList();
+    final byte[] data = imageService.generateImage(imageSource.getInput(), imageSource.getModel());
+    final String uuid = UUID.randomUUID().toString();
+    final String filePath = "images/%s.webp".formatted(uuid);
+    try {
+      final byte[] compressed = imageResizeService.resizeImage(
+          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
+      fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
+    }
+    return ExampleImageData.builder()
+        .id(uuid)
+        .model(displayName)
+        .build();
   }
 
   @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)
