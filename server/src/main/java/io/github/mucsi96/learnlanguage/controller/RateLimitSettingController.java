@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,10 +18,9 @@ public class RateLimitSettingController {
 
     private final RateLimitSettingService rateLimitSettingService;
 
-    @PutMapping("/{key}")
+    @PutMapping
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public int updateRateLimitSetting(@PathVariable String key,
-            @Valid @RequestBody RateLimitSettingRequest request) {
-        return rateLimitSettingService.updateRateLimit(key, request.getValue());
+    public void updateRateLimitSettings(@Valid @RequestBody RateLimitSettingRequest request) {
+        rateLimitSettingService.updateRateLimitSettings(request);
     }
 }

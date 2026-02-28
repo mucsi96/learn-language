@@ -38,18 +38,18 @@ export class ImageModelSettingsService {
   updateImageRateLimit(value: number): void {
     this.imageRateLimitPerMinute.set(value);
 
-    fetchJson<number>(this.http, '/api/rate-limit-settings/image-per-minute', {
+    fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
-      body: { value },
+      body: { type: 'image', maxPerMinute: value },
     });
   }
 
   updateImageMaxConcurrent(value: number): void {
     this.imageMaxConcurrent.set(value);
 
-    fetchJson<number>(this.http, '/api/rate-limit-settings/image-max-concurrent', {
+    fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
-      body: { value },
+      body: { type: 'image', maxConcurrent: value },
     });
   }
 }

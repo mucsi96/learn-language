@@ -103,18 +103,18 @@ export class VoiceConfigService {
   updateAudioRateLimit(value: number): void {
     this.audioRateLimitPerMinute.set(value);
 
-    fetchJson<number>(this.http, '/api/rate-limit-settings/audio-per-minute', {
+    fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
-      body: { value },
+      body: { type: 'audio', maxPerMinute: value },
     });
   }
 
   updateAudioMaxConcurrent(value: number): void {
     this.audioMaxConcurrent.set(value);
 
-    fetchJson<number>(this.http, '/api/rate-limit-settings/audio-max-concurrent', {
+    fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
-      body: { value },
+      body: { type: 'audio', maxConcurrent: value },
     });
   }
 
