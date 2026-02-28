@@ -691,7 +691,7 @@ test('persisted extraction regions are shown on page reload', async ({ page }) =
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
 
-  await expect(page.getByRole('mark', { name: 'Extracted region' }).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Extracted region' }).first()).toBeVisible();
 });
 
 test('persisted extraction regions are shown when navigating back to page', async ({ page }) => {
@@ -714,7 +714,7 @@ test('persisted extraction regions are shown when navigating back to page', asyn
   await page.getByRole('link', { name: 'Previous page' }).click();
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
-  await expect(page.getByRole('mark', { name: 'Extracted region' }).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Extracted region' }).first()).toBeVisible();
 });
 
 test('bulk grammar card creation extracts sentences with gaps', async ({ page }) => {
