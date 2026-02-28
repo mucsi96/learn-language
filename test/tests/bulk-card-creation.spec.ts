@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createImageModelSetting,
   createSource,
   createRateLimitSetting,
   selectTextRange,
@@ -414,6 +415,34 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData2.translationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData2.classificationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData2.extractionModel).toBe('gemini-3.1-pro-preview');
+  });
+});
+
+test('bulk card creation skips image generation for models with zero image count', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.word).toBe('abfahren');
+    expect(cardData.examples[0].images.length).toBe(2);
+    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
+    expect(cardData.examples[1].images.length).toBe(2);
+    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
   });
 });
 
