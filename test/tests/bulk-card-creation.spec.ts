@@ -479,6 +479,29 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'die Abfahrt' })).toHaveAccessibleDescription('Card exists');
 });
 
+test('bulk card creation dialog shows review cards link', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  const reviewLink = page.getByRole('dialog').getByRole('link', { name: 'Review cards' });
+  await expect(reviewLink).toBeVisible();
+
+  await reviewLink.click();
+
+  await expect(page.getByRole('heading', { name: 'Cards In Review' })).toBeVisible();
+  await expect(page).toHaveURL(/\/in-review-cards$/);
+});
+
 test('bulk card creation fsrs attributes', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

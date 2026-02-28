@@ -4,6 +4,7 @@ import {
   MatDialogModule,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.component';
 
@@ -13,6 +14,7 @@ import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.compon
   imports: [
     MatDialogModule,
     MatButtonModule,
+    RouterLink,
     DotReporterComponent,
   ],
   templateUrl: './bulk-creation-progress-dialog.component.html',

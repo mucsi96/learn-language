@@ -6,6 +6,7 @@
 
 @if (!bulkCardService.isCreating()) {
 <mat-dialog-actions align="end">
+  <a mat-button [routerLink]="['/in-review-cards']" [mat-dialog-close]="true">Review cards</a>
   <button mat-button [mat-dialog-close]="true">Close</button>
 </mat-dialog-actions>
 }
