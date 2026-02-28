@@ -18,6 +18,9 @@ public class ImageService {
 
   public List<byte[]> generateImages(String input, ImageGenerationModel model) {
     final int imageCount = imageModelSettingService.getImageCount(model);
+    if (imageCount == 0) {
+      return List.of();
+    }
     return switch (model) {
       case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, imageCount);
       case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, imageCount);
