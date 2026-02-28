@@ -75,7 +75,7 @@ test('displays chat model usage logs', async ({ page }) => {
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'CLASSIFICATION',
     operationId: 'op-chat-2',
@@ -97,7 +97,7 @@ test('displays chat model usage logs', async ({ page }) => {
 
     expect(gridData.map(({ Time, Rating, Diff, ...rest }) => rest)).toEqual([
       {
-        Model: 'gemini-3-pro-preview',
+        Model: 'gemini-3.1-pro-preview',
         Type: 'CHAT',
         Operation: 'classification',
         Usage: '100 / 25 tokens',
@@ -414,7 +414,7 @@ test('displays model summary tab', async ({ page }) => {
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-summary-3',
@@ -439,7 +439,7 @@ test('displays model summary tab', async ({ page }) => {
 
     expect(summaryData).toEqual([
       {
-        Model: 'gemini-3-pro-preview',
+        Model: 'gemini-3.1-pro-preview',
         'Total Calls': '1',
         'Rated Calls': '1',
         'Avg Rating': '4.00',
@@ -577,7 +577,7 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -617,7 +617,7 @@ test('shows primary badge on fastest model in group', async ({ page }) => {
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -649,7 +649,7 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -747,7 +747,7 @@ test('shows identical label when grouped logs have same response', async ({ page
   });
 
   await createModelUsageLog({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,

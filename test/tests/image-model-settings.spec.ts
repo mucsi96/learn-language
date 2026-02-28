@@ -14,10 +14,10 @@ test('displays all image models with default image counts', async ({ page }) => 
   await expect(page.getByRole('heading', { name: 'Image Models' })).toBeVisible();
 
   await expect(page.getByText('GPT Image 1.5')).toBeVisible();
-  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
+  await expect(page.getByText('Gemini 3.1 Pro')).toBeVisible();
 
   const gptInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 1.5' });
-  const geminiInput = page.getByRole('spinbutton', { name: 'Image count for Gemini 3 Pro' });
+  const geminiInput = page.getByRole('spinbutton', { name: 'Image count for Gemini 3.1 Pro' });
 
   await expect(gptInput).toHaveValue('0');
   await expect(geminiInput).toHaveValue('0');
@@ -25,12 +25,12 @@ test('displays all image models with default image counts', async ({ page }) => 
 
 test('displays image counts from database settings', async ({ page }) => {
   await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
-  await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 5 });
+  await createImageModelSetting({ modelName: 'gemini-3.1-pro-image-preview', imageCount: 5 });
 
   await page.goto('http://localhost:8180/settings/image-models');
 
   const gptInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 1.5' });
-  const geminiInput = page.getByRole('spinbutton', { name: 'Image count for Gemini 3 Pro' });
+  const geminiInput = page.getByRole('spinbutton', { name: 'Image count for Gemini 3.1 Pro' });
 
   await expect(gptInput).toHaveValue('2');
   await expect(geminiInput).toHaveValue('5');

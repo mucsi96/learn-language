@@ -778,7 +778,7 @@ const ALL_OPERATION_TYPES = [
   'CLASSIFICATION',
 ];
 
-const DEFAULT_CHAT_MODEL = 'gemini-3-pro-preview';
+const DEFAULT_CHAT_MODEL = 'gemini-3.1-pro-preview';
 
 export async function setupDefaultChatModelSettings(): Promise<void> {
   for (const operationType of ALL_OPERATION_TYPES) {
@@ -837,7 +837,7 @@ export async function createImageModelSetting(params: {
 
 const DEFAULT_IMAGE_MODEL_SETTINGS = [
   { modelName: 'gpt-image-1.5', imageCount: 1 },
-  { modelName: 'gemini-3-pro-image-preview', imageCount: 3 },
+  { modelName: 'gemini-3.1-pro-image-preview', imageCount: 3 },
 ];
 
 export async function setupDefaultImageModelSettings(): Promise<void> {

@@ -14,7 +14,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
   await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
-  await expect(page.getByText('gemini-3-pro-preview')).toBeVisible();
+  await expect(page.getByText('gemini-3.1-pro-preview')).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();
   await expect(page.getByText('Extraction')).toBeVisible();
@@ -29,7 +29,7 @@ test('can set primary model for operation type', async ({ page }) => {
     isPrimary: false,
   });
   await createChatModelSetting({
-    modelName: 'gemini-3-pro-preview',
+    modelName: 'gemini-3.1-pro-preview',
     operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: true,
@@ -38,7 +38,7 @@ test('can set primary model for operation type', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
-  const geminiRow = page.getByRole('row', { name: 'gemini-3-pro-preview' });
+  const geminiRow = page.getByRole('row', { name: 'gemini-3.1-pro-preview' });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
   const geminiPrimaryRadio = geminiRow.getByRole('radio').first();
 
@@ -54,7 +54,7 @@ test('can set primary model for operation type', async ({ page }) => {
     const settings = await getChatModelSettings();
     const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'TRANSLATION');
     const geminiSetting = settings.find(
-      (s) => s.modelName === 'gemini-3-pro-preview' && s.operationType === 'TRANSLATION'
+      (s) => s.modelName === 'gemini-3.1-pro-preview' && s.operationType === 'TRANSLATION'
     );
 
     expect(gptSetting?.isPrimary).toBe(true);

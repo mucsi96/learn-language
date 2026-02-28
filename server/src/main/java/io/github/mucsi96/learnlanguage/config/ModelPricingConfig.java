@@ -34,7 +34,7 @@ public class ModelPricingConfig {
         Map.entry("claude-sonnet-4-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
         // Google Gemini
-        Map.entry("gemini-3-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
+        Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00")))
     );
 
@@ -42,7 +42,7 @@ public class ModelPricingConfig {
         // OpenAI image models (1024x1024 high quality)
         "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.133")),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
-        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.039"))
+        "gemini-3.1-pro-image-preview", new ImageModelPricing(new BigDecimal("0.039"))
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
