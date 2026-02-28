@@ -2,7 +2,7 @@ import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required, min } from '@angular/forms/signals';
 import { ImageModelSettingsService } from './image-model-settings.service';
 
 @Component({
@@ -26,18 +26,27 @@ export class ImageModelSettingsComponent {
     rateLimitPerMinute: this.service.imageRateLimitPerMinute(),
     maxConcurrent: this.service.imageMaxConcurrent(),
   });
-  readonly rateLimitForm = form(this.rateLimitModel);
+  readonly rateLimitForm = form(this.rateLimitModel, (path) => {
+    required(path.rateLimitPerMinute);
+    min(path.rateLimitPerMinute, 1);
+    required(path.maxConcurrent);
+    min(path.maxConcurrent, 1);
+  });
 
   constructor() {
     effect(() => {
+      if (!this.rateLimitForm().valid()) {
+        return;
+      }
+
       const { rateLimitPerMinute, maxConcurrent } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.imageRateLimitPerMinute());
       const currentMaxConcurrent = untracked(() => this.service.imageMaxConcurrent());
 
-      if (rateLimitPerMinute !== currentRateLimit && rateLimitPerMinute >= 1) {
+      if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateImageRateLimit(rateLimitPerMinute);
       }
-      if (maxConcurrent !== currentMaxConcurrent && maxConcurrent >= 1) {
+      if (maxConcurrent !== currentMaxConcurrent) {
         this.service.updateImageMaxConcurrent(maxConcurrent);
       }
     });

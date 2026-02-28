@@ -1,6 +1,6 @@
 import { Component, effect, inject, computed, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required, min } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -61,7 +61,12 @@ export class VoiceConfigComponent {
     rateLimitPerMinute: this.service.audioRateLimitPerMinute(),
     maxConcurrent: this.service.audioMaxConcurrent(),
   });
-  readonly rateLimitForm = form(this.rateLimitModel);
+  readonly rateLimitForm = form(this.rateLimitModel, (path) => {
+    required(path.rateLimitPerMinute);
+    min(path.rateLimitPerMinute, 1);
+    required(path.maxConcurrent);
+    min(path.maxConcurrent, 1);
+  });
 
   readonly selectedCardIndex = signal(0);
   readonly previewingConfigId = signal<number | null>(null);
@@ -267,14 +272,18 @@ export class VoiceConfigComponent {
 
   constructor() {
     effect(() => {
+      if (!this.rateLimitForm().valid()) {
+        return;
+      }
+
       const { rateLimitPerMinute, maxConcurrent } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.audioRateLimitPerMinute());
       const currentMaxConcurrent = untracked(() => this.service.audioMaxConcurrent());
 
-      if (rateLimitPerMinute !== currentRateLimit && rateLimitPerMinute >= 1) {
+      if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateAudioRateLimit(rateLimitPerMinute);
       }
-      if (maxConcurrent !== currentMaxConcurrent && maxConcurrent >= 1) {
+      if (maxConcurrent !== currentMaxConcurrent) {
         this.service.updateAudioMaxConcurrent(maxConcurrent);
       }
     });
