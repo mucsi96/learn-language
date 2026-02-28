@@ -56,6 +56,7 @@ export class VoiceConfigComponent {
   readonly sampleCards = this.service.sampleCards;
   readonly supportedLanguages = this.service.supportedLanguages;
   readonly audioRateLimitPerMinute = this.service.audioRateLimitPerMinute;
+  readonly audioMaxConcurrent = this.service.audioMaxConcurrent;
 
   readonly selectedCardIndex = signal(0);
   readonly previewingConfigId = signal<number | null>(null);
@@ -264,6 +265,14 @@ export class VoiceConfigComponent {
     const value = parseInt(input.value, 10);
     if (!isNaN(value) && value >= 1) {
       this.service.updateAudioRateLimit(value);
+    }
+  }
+
+  onAudioMaxConcurrentChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    if (!isNaN(value) && value >= 1) {
+      this.service.updateAudioMaxConcurrent(value);
     }
   }
 

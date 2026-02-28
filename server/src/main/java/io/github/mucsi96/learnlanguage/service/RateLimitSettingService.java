@@ -1,9 +1,12 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.RateLimitSetting;
+import io.github.mucsi96.learnlanguage.model.RateLimitSettingRequest;
 import io.github.mucsi96.learnlanguage.repository.RateLimitSettingRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -11,27 +14,31 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RateLimitSettingService {
 
-    private static final String IMAGE_PER_MINUTE_KEY = "image-per-minute";
-    private static final String AUDIO_PER_MINUTE_KEY = "audio-per-minute";
-
     private final RateLimitSettingRepository rateLimitSettingRepository;
 
     public int getImageRateLimitPerMinute() {
-        return getRateLimit(IMAGE_PER_MINUTE_KEY);
+        return getRateLimit("image-per-minute");
     }
 
     public int getAudioRateLimitPerMinute() {
-        return getRateLimit(AUDIO_PER_MINUTE_KEY);
+        return getRateLimit("audio-per-minute");
+    }
+
+    public int getImageMaxConcurrent() {
+        return getRateLimit("image-max-concurrent");
+    }
+
+    public int getAudioMaxConcurrent() {
+        return getRateLimit("audio-max-concurrent");
     }
 
     @Transactional
-    public int updateImageRateLimit(int value) {
-        return updateRateLimit(IMAGE_PER_MINUTE_KEY, value);
-    }
-
-    @Transactional
-    public int updateAudioRateLimit(int value) {
-        return updateRateLimit(AUDIO_PER_MINUTE_KEY, value);
+    public void updateRateLimitSettings(RateLimitSettingRequest request) {
+        final String type = request.getType();
+        Optional.ofNullable(request.getMaxPerMinute())
+                .ifPresent(value -> updateRateLimit(type + "-per-minute", value));
+        Optional.ofNullable(request.getMaxConcurrent())
+                .ifPresent(value -> updateRateLimit(type + "-max-concurrent", value));
     }
 
     private int getRateLimit(String key) {
@@ -40,10 +47,10 @@ public class RateLimitSettingService {
                 .orElseThrow();
     }
 
-    private int updateRateLimit(String key, int value) {
+    private void updateRateLimit(String key, int value) {
         final RateLimitSetting setting = rateLimitSettingRepository.findById(key)
                 .map(existing -> existing.toBuilder().value(value).build())
                 .orElseThrow();
-        return rateLimitSettingRepository.save(setting).getValue();
+        rateLimitSettingRepository.save(setting);
     }
 }

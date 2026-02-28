@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { ExampleImage } from '../parser/types';
 import { ImageResponse, ImageSourceRequest } from '../shared/types/image-generation.types';
 import { fetchJson } from './fetchJson';
+import { TokenPool } from './token-pool';
 
 export type ImageGenerationInput = {
   exampleIndex: number;
@@ -13,7 +14,8 @@ export type ImagesByIndex = Map<number, ExampleImage[]>;
 export const generateExampleImages = async (
   http: HttpClient,
   imageModels: ReadonlyArray<{ id: string; imageCount: number }>,
-  inputs: ReadonlyArray<ImageGenerationInput>
+  inputs: ReadonlyArray<ImageGenerationInput>,
+  imageTokenPool: TokenPool
 ): Promise<ImagesByIndex> => {
   const activeModels = imageModels.filter((model) => model.imageCount > 0);
   if (inputs.length === 0 || activeModels.length === 0) {
@@ -23,6 +25,7 @@ export const generateExampleImages = async (
   const results = await Promise.all(
     inputs.flatMap(input =>
       activeModels.map(async (model) => {
+        await imageTokenPool.acquire();
         try {
           const responses = await fetchJson<ImageResponse[]>(
             http,
@@ -41,6 +44,8 @@ export const generateExampleImages = async (
           }));
         } catch {
           return [];
+        } finally {
+          imageTokenPool.release();
         }
       })
     )

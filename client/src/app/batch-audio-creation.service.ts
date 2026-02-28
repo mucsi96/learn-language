@@ -10,7 +10,7 @@ import {
   VoiceModelPair
 } from './shared/types/audio-generation.types';
 import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
-import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import { RateLimitTokenService } from './rate-limit-token.service';
 import {
   processTasksWithRateLimit,
   summarizeResults,
@@ -32,7 +32,7 @@ interface VoiceConfiguration {
 export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progressDots = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
   private voiceConfigs: VoiceConfiguration[] = [];
@@ -78,7 +78,7 @@ export class BatchAudioCreationService {
 
     const results = await processTasksWithRateLimit(
       tasks,
-      this.environmentConfig.audioRateLimitPerMinute
+      this.rateLimitTokenService.audioPool
     );
 
     this.isCreating.set(false);
@@ -156,30 +156,37 @@ export class BatchAudioCreationService {
     progressIndex: number,
     label: string
   ): Promise<AudioData[]> {
+    const { audioPool } = this.rateLimitTokenService;
+
     const generateSingleAudio = async (item: AudioGenerationItem): Promise<AudioData> => {
       const voice = voicesByLanguage.get(item.language)!;
-      const audioData = await fetchJson<AudioData>(
-        this.http,
-        `/api/audio`,
-        {
-          body: {
-            input: item.text,
-            voice: voice.voice,
-            model: voice.model,
-            language: item.language,
-            selected: true,
-            context: item.context,
-            singleWord: item.singleWord
-          } satisfies AudioSourceRequest,
-          method: 'POST',
-        }
-      );
-      this.updateDot(
-        progressIndex,
-        'in-progress',
-        `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
-      );
-      return audioData;
+      await audioPool.acquire();
+      try {
+        const audioData = await fetchJson<AudioData>(
+          this.http,
+          `/api/audio`,
+          {
+            body: {
+              input: item.text,
+              voice: voice.voice,
+              model: voice.model,
+              language: item.language,
+              selected: true,
+              context: item.context,
+              singleWord: item.singleWord
+            } satisfies AudioSourceRequest,
+            method: 'POST',
+          }
+        );
+        this.updateDot(
+          progressIndex,
+          'in-progress',
+          `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
+        );
+        return audioData;
+      } finally {
+        audioPool.release();
+      }
     };
 
     return items.reduce<Promise<AudioData[]>>(

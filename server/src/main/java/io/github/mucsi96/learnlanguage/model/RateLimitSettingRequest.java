@@ -13,6 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RateLimitSettingRequest {
     @NotNull
+    private String type;
+
     @Min(1)
-    private Integer value;
+    private Integer maxPerMinute;
+
+    @Min(1)
+    private Integer maxConcurrent;
 }

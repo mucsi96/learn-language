@@ -59,6 +59,17 @@
             aria-label="Image rate limit per minute"
           />
         </mat-form-field>
+        <mat-form-field class="count-field">
+          <mat-label>Max concurrent requests</mat-label>
+          <input
+            matInput
+            type="number"
+            [value]="imageMaxConcurrent()"
+            (change)="onMaxConcurrentChange($event)"
+            min="1"
+            aria-label="Image max concurrent requests"
+          />
+        </mat-form-field>
       </div>
     </mat-card-content>
   </mat-card>

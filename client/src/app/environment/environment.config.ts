@@ -58,6 +58,8 @@ export interface EnvironmentConfig {
   mockAuth: boolean;
   imageRateLimitPerMinute: number;
   audioRateLimitPerMinute: number;
+  imageMaxConcurrent: number;
+  audioMaxConcurrent: number;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];

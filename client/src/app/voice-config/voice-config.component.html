@@ -17,6 +17,17 @@
               aria-label="Audio rate limit per minute"
             />
           </mat-form-field>
+          <mat-form-field>
+            <mat-label>Max concurrent requests</mat-label>
+            <input
+              matInput
+              type="number"
+              [value]="audioMaxConcurrent()"
+              (change)="onAudioMaxConcurrentChange($event)"
+              min="1"
+              aria-label="Audio max concurrent requests"
+            />
+          </mat-form-field>
         </div>
       </mat-card-content>
     </mat-card>
