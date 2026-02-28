@@ -1,5 +1,10 @@
 import { TokenPool } from './token-pool';
 
+const ACQUIRE_SETTLE_MS = 50;
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export interface BatchResult {
   total: number;
   succeeded: number;
@@ -15,19 +20,20 @@ export const processTasksWithRateLimit = async <T>(
     return [];
   }
 
-  const execute = async (
-    task: () => Promise<T>
-  ): Promise<PromiseSettledResult<T>> => {
-    await tokenPool.waitForAvailability();
-    try {
-      const value = await task();
-      return { status: 'fulfilled' as const, value };
-    } catch (reason: unknown) {
-      return { status: 'rejected' as const, reason };
-    }
-  };
+  const results: Promise<PromiseSettledResult<T>>[] = [];
 
-  return Promise.all(tasks.map((task) => execute(task)));
+  for (const task of tasks) {
+    await tokenPool.waitForAvailability();
+    results.push(
+      task().then(
+        (value): PromiseSettledResult<T> => ({ status: 'fulfilled', value }),
+        (reason): PromiseSettledResult<T> => ({ status: 'rejected', reason })
+      )
+    );
+    await delay(ACQUIRE_SETTLE_MS);
+  }
+
+  return Promise.all(results);
 };
 
 export const summarizeResults = <T>(
