@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createImageModelSetting,
   createSource,
   createRateLimitSetting,
   selectTextRange,
@@ -417,8 +418,10 @@ test('bulk card creation includes word data', async ({ page }) => {
   });
 });
 
-test('bulk card creation skips image generation when all image counts are zero', async ({ page }) => {
+test('bulk card creation skips image generation for models with zero image count', async ({ page }) => {
   await setupDefaultChatModelSettings();
+  await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('http://localhost:8180/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
@@ -436,8 +439,10 @@ test('bulk card creation skips image generation when all image counts are zero',
     const cardData = result.rows[0].data;
 
     expect(cardData.word).toBe('abfahren');
-    expect(cardData.examples[0].images).toEqual([]);
-    expect(cardData.examples[1].images).toEqual([]);
+    expect(cardData.examples[0].images.length).toBe(2);
+    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
+    expect(cardData.examples[1].images.length).toBe(2);
+    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
   });
 });
 
