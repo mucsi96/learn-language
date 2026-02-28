@@ -393,9 +393,9 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(await getImageColor(page, image2)).toBe('red');
 
     expect(cardData.examples[0].images[0].model).toBe('GPT Image 1.5');
-    expect(cardData.examples[0].images[1].model).toBe('Gemini 3.1 Pro');
-    expect(cardData.examples[0].images[2].model).toBe('Gemini 3.1 Pro');
-    expect(cardData.examples[0].images[3].model).toBe('Gemini 3.1 Pro');
+    expect(cardData.examples[0].images[1].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[0].images[2].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('GPT Image 1.5');
 
     expect(cardData.translationModel).toBe('gemini-3.1-pro-preview');

@@ -42,7 +42,7 @@ public class ModelPricingConfig {
         // OpenAI image models (1024x1024 high quality)
         "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.133")),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
-        "gemini-3.1-pro-image-preview", new ImageModelPricing(new BigDecimal("0.039"))
+        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.039"))
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
