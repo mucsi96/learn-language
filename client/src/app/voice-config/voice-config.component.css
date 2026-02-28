@@ -141,7 +141,7 @@ td.mat-column-actions {
   }
 }
 
-.rate-limit-field {
+.rate-limit-form {
   display: flex;
   flex-direction: column;
   gap: 8px;

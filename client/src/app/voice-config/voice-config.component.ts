@@ -1,5 +1,6 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, effect, inject, computed, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { form, FormField } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +27,7 @@ import { AudioData, AudioResponse } from '../shared/types/audio-generation.types
   standalone: true,
   imports: [
     CommonModule,
+    FormField,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -55,8 +57,11 @@ export class VoiceConfigComponent {
   readonly audioModels = this.service.audioModels;
   readonly sampleCards = this.service.sampleCards;
   readonly supportedLanguages = this.service.supportedLanguages;
-  readonly audioRateLimitPerMinute = this.service.audioRateLimitPerMinute;
-  readonly audioMaxConcurrent = this.service.audioMaxConcurrent;
+  readonly rateLimitModel = signal({
+    rateLimitPerMinute: this.service.audioRateLimitPerMinute(),
+    maxConcurrent: this.service.audioMaxConcurrent(),
+  });
+  readonly rateLimitForm = form(this.rateLimitModel);
 
   readonly selectedCardIndex = signal(0);
   readonly previewingConfigId = signal<number | null>(null);
@@ -260,20 +265,19 @@ export class VoiceConfigComponent {
     this.selectedCardIndex.update((i) => (i - 1 + cards.length) % cards.length);
   }
 
-  onAudioRateLimitChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const value = parseInt(input.value, 10);
-    if (!isNaN(value) && value >= 1) {
-      this.service.updateAudioRateLimit(value);
-    }
-  }
+  constructor() {
+    effect(() => {
+      const { rateLimitPerMinute, maxConcurrent } = this.rateLimitModel();
+      const currentRateLimit = untracked(() => this.service.audioRateLimitPerMinute());
+      const currentMaxConcurrent = untracked(() => this.service.audioMaxConcurrent());
 
-  onAudioMaxConcurrentChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const value = parseInt(input.value, 10);
-    if (!isNaN(value) && value >= 1) {
-      this.service.updateAudioMaxConcurrent(value);
-    }
+      if (rateLimitPerMinute !== currentRateLimit && rateLimitPerMinute >= 1) {
+        this.service.updateAudioRateLimit(rateLimitPerMinute);
+      }
+      if (maxConcurrent !== currentMaxConcurrent && maxConcurrent >= 1) {
+        this.service.updateAudioMaxConcurrent(maxConcurrent);
+      }
+    });
   }
 
   refreshCards(): void {
