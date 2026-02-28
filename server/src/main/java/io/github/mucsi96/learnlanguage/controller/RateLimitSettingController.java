@@ -29,4 +29,16 @@ public class RateLimitSettingController {
     public int updateAudioRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
         return rateLimitSettingService.updateAudioRateLimit(request.getValue());
     }
+
+    @PutMapping("/image-max-concurrent")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public int updateImageMaxConcurrent(@Valid @RequestBody RateLimitSettingRequest request) {
+        return rateLimitSettingService.updateImageMaxConcurrent(request.getValue());
+    }
+
+    @PutMapping("/audio-max-concurrent")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public int updateAudioMaxConcurrent(@Valid @RequestBody RateLimitSettingRequest request) {
+        return rateLimitSettingService.updateAudioMaxConcurrent(request.getValue());
+    }
 }

@@ -20,6 +20,7 @@ export class ImageModelSettingsComponent {
 
   readonly imageModels = this.service.imageModels;
   readonly imageRateLimitPerMinute = this.service.imageRateLimitPerMinute;
+  readonly imageMaxConcurrent = this.service.imageMaxConcurrent;
 
   onImageCountChange(modelId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -34,6 +35,14 @@ export class ImageModelSettingsComponent {
     const value = parseInt(input.value, 10);
     if (!isNaN(value) && value >= 1) {
       this.service.updateImageRateLimit(value);
+    }
+  }
+
+  onMaxConcurrentChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    if (!isNaN(value) && value >= 1) {
+      this.service.updateImageMaxConcurrent(value);
     }
   }
 }

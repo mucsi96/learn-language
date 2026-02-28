@@ -15,12 +15,23 @@ public class ImageService {
   private final OpenAIImageService openAIImageService;
   private final GoogleImageService googleImageService;
   private final ImageModelSettingService imageModelSettingService;
+  private final RateLimitTokenService rateLimitTokenService;
 
   public List<byte[]> generateImages(String input, ImageGenerationModel model) {
     final int imageCount = imageModelSettingService.getImageCount(model);
-    return switch (model) {
-      case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, imageCount);
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, imageCount);
-    };
+    try {
+      rateLimitTokenService.acquireImageToken();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while waiting for image rate limit token", e);
+    }
+    try {
+      return switch (model) {
+        case GPT_IMAGE_1_5 -> openAIImageService.generateImages(input, imageCount);
+        case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImages(input, imageCount);
+      };
+    } finally {
+      rateLimitTokenService.releaseImageToken();
+    }
   }
 }
