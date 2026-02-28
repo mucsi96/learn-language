@@ -457,7 +457,7 @@ test('example image addition', async ({ page }) => {
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
   const regeneratedImageContent = await getImageContent(page.getByRole('img', { name: 'Wir fahren um zwölf Uhr ab.' }).nth(3));
-  expect(await getImageColor(page, regeneratedImageContent)).toBe('blue');
+  expect(await getImageColor(page, regeneratedImageContent)).toBe('yellow');
 
 });
 

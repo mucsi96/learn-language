@@ -23,39 +23,46 @@ export const generateExampleImages = async (
   }
 
   const results = await Promise.all(
-    inputs.flatMap(input =>
-      activeModels.map(async (model) => {
-        await imageTokenPool.acquire();
-        try {
-          const responses = await fetchJson<ImageResponse[]>(
-            http,
-            '/api/image',
-            {
-              body: {
-                input: input.englishTranslation,
-                model: model.id,
-              } satisfies ImageSourceRequest,
-              method: 'POST',
-            }
-          );
-          return responses.map(response => ({
-            exampleIndex: input.exampleIndex,
-            image: { id: response.id, model: response.model } as ExampleImage,
-          }));
-        } catch {
-          return [];
-        } finally {
-          imageTokenPool.release();
-        }
-      })
+    inputs.flatMap((input) =>
+      activeModels.flatMap((model) =>
+        Array.from({ length: model.imageCount }, async () => {
+          await imageTokenPool.acquire();
+          try {
+            const response = await fetchJson<ImageResponse>(
+              http,
+              '/api/image',
+              {
+                body: {
+                  input: input.englishTranslation,
+                  model: model.id,
+                } satisfies ImageSourceRequest,
+                method: 'POST',
+              }
+            );
+            return {
+              exampleIndex: input.exampleIndex,
+              image: { id: response.id, model: response.model } as ExampleImage,
+            };
+          } catch {
+            return undefined;
+          } finally {
+            imageTokenPool.release();
+          }
+        })
+      )
     )
   );
 
-  return results.flat().reduce<ImagesByIndex>(
-    (acc, result) => {
-      const existing = acc.get(result.exampleIndex) ?? [];
-      return new Map([...acc, [result.exampleIndex, [...existing, result.image]]]);
-    },
-    new Map()
-  );
+  return results
+    .filter((result): result is NonNullable<typeof result> => result != null)
+    .reduce<ImagesByIndex>(
+      (acc, result) => {
+        const existing = acc.get(result.exampleIndex) ?? [];
+        return new Map([
+          ...acc,
+          [result.exampleIndex, [...existing, result.image]],
+        ]);
+      },
+      new Map()
+    );
 };
