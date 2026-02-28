@@ -178,6 +178,16 @@ export class PageService {
     this.extractionGroups.set([]);
   }
 
+  getAllExtractionSelections(): ExtractionRegionSelection[] {
+    return this.extractionGroups().flatMap(group =>
+      group.map(sel => ({
+        sourceId: sel.sourceId,
+        pageNumber: sel.pageNumber,
+        rectangle: sel.rectangle,
+      }))
+    );
+  }
+
   private groupsEqual(a: ExtractionGroup, b: ExtractionGroup): boolean {
     if (a.length !== b.length) {
       return false;

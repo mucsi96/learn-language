@@ -132,6 +132,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
     await client.query('DELETE FROM learn_language.study_sessions');
     await client.query('DELETE FROM learn_language.review_logs');
     await client.query('DELETE FROM learn_language.cards');
+    await client.query('DELETE FROM learn_language.extraction_regions');
     await client.query('DELETE FROM learn_language.model_usage_logs');
     await client.query('DELETE FROM learn_language.voice_configurations');
     await client.query('DELETE FROM learn_language.chat_model_settings');

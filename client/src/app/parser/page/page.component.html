@@ -98,6 +98,17 @@
     <mat-spinner></mat-spinner>
   </div>
   }
+  @for (region of extractionRegions(); track $index) {
+  <div
+    class="persisted-extraction-region"
+    role="region"
+    aria-label="Extracted region"
+    [style.left]="'calc(var(--page-width) * ' + region.x + ')'"
+    [style.top]="'calc(var(--page-width) * ' + region.y + ')'"
+    [style.width]="'calc(var(--page-width) * ' + region.width + ')'"
+    [style.height]="'calc(var(--page-width) * ' + region.height + ')'"
+  ></div>
+  }
   @for (entry of currentPageSelections(); track entry.displayIndex) {
   <app-selection-rectangle
     [selection]="entry.selection"

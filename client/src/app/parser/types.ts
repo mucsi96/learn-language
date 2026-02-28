@@ -99,6 +99,13 @@ export type CardCreatePayload = {
   lastReview?: Date;
 };
 
+export type PersistedExtractionRegion = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type Page = {
   number: number;
   spans: Span[];
@@ -110,6 +117,7 @@ export type Page = {
   hasImage?: boolean;
   width: number;
   height: number;
+  extractionRegions?: PersistedExtractionRegion[];
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
@@ -154,7 +162,7 @@ export type ExtractionRegion = {
 };
 
 export type BulkCreationSource =
-  | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number }
+  | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number; selections?: ExtractionRegionSelection[] }
   | { kind: 'draftCardIds'; cardIds: string[] };
 
 export type AudioGenerationItem = {
