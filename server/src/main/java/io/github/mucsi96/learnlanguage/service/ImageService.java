@@ -18,7 +18,7 @@ public class ImageService {
 
   public List<byte[]> generateImages(String input, ImageGenerationModel model) {
     final int imageCount = imageModelSettingService.getImageCount(model);
-    if (imageCount == 0) {
+    if (imageCount <= 0) {
       return List.of();
     }
     return switch (model) {

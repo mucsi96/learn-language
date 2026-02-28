@@ -417,6 +417,30 @@ test('bulk card creation includes word data', async ({ page }) => {
   });
 });
 
+test('bulk card creation skips image generation when all image counts are zero', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await page.goto('http://localhost:8180/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.word).toBe('abfahren');
+    expect(cardData.examples[0].images).toEqual([]);
+    expect(cardData.examples[1].images).toEqual([]);
+  });
+});
+
 test('bulk card creation updates ui after completion', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

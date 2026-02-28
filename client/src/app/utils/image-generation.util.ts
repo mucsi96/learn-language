@@ -15,7 +15,7 @@ export const generateExampleImages = async (
   imageModels: ReadonlyArray<{ id: string; imageCount: number }>,
   inputs: ReadonlyArray<ImageGenerationInput>
 ): Promise<ImagesByIndex> => {
-  const activeModels = imageModels.filter((m) => m.imageCount > 0);
+  const activeModels = imageModels.filter((model) => model.imageCount > 0);
   if (inputs.length === 0 || activeModels.length === 0) {
     return new Map();
   }
