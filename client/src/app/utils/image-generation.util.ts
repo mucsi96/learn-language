@@ -12,16 +12,17 @@ export type ImagesByIndex = Map<number, ExampleImage[]>;
 
 export const generateExampleImages = async (
   http: HttpClient,
-  imageModels: ReadonlyArray<{ id: string }>,
+  imageModels: ReadonlyArray<{ id: string; imageCount: number }>,
   inputs: ReadonlyArray<ImageGenerationInput>
 ): Promise<ImagesByIndex> => {
-  if (inputs.length === 0 || imageModels.length === 0) {
+  const activeModels = imageModels.filter((model) => model.imageCount > 0);
+  if (inputs.length === 0 || activeModels.length === 0) {
     return new Map();
   }
 
   const results = await Promise.all(
     inputs.flatMap(input =>
-      imageModels.map(async (model) => {
+      activeModels.map(async (model) => {
         try {
           const responses = await fetchJson<ImageResponse[]>(
             http,
