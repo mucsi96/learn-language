@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleImageService {
 
-  private static final String MODEL_NAME = "gemini-3.1-pro-image-preview";
+  private static final String MODEL_NAME = "gemini-3-pro-image-preview";
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
@@ -45,7 +45,7 @@ public class GoogleImageService {
           .toList();
 
       if (images.isEmpty()) {
-        throw new RuntimeException("No images found in Gemini 3.1 Pro Image response");
+        throw new RuntimeException("No images found in Gemini 3 Pro Image response");
       }
 
       final long processingTime = System.currentTimeMillis() - startTime;
@@ -54,8 +54,8 @@ public class GoogleImageService {
       return images;
 
     } catch (Exception e) {
-      log.error("Failed to generate images with Gemini 3.1 Pro Image", e);
-      throw new RuntimeException("Failed to generate images with Gemini 3.1 Pro Image: " + e.getMessage(), e);
+      log.error("Failed to generate images with Gemini 3 Pro Image", e);
+      throw new RuntimeException("Failed to generate images with Gemini 3 Pro Image: " + e.getMessage(), e);
     }
   }
 }
