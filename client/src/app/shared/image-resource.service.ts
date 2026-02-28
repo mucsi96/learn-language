@@ -7,6 +7,7 @@ import { fetchJson } from '../utils/fetchJson';
 import { ImageSourceRequest } from './types/image-generation.types';
 import { GridImageResource, GridImageValue } from './image-grid/image-grid.component';
 import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
+import { RateLimitTokenService } from '../rate-limit-token.service';
 
 type PendingImageResource = {
   gridResource: GridImageResource;
@@ -18,6 +19,7 @@ export class ImageResourceService {
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly imageModelSettingsService = inject(ImageModelSettingsService);
+  private readonly rateLimitTokenService = inject(RateLimitTokenService);
 
   createResource(image: ExampleImage): GridImageResource {
     return resource({
@@ -43,29 +45,35 @@ export class ImageResourceService {
       )
     );
 
+    const { imagePool } = this.rateLimitTokenService;
     let placeholderOffset = 0;
     const done = Promise.all(
       imageModels.map(async (model) => {
         const startIdx = placeholderOffset;
         placeholderOffset += model.imageCount;
 
-        const responses = await fetchJson<ExampleImage[]>(
-          this.http,
-          `/api/image`,
-          {
-            body: {
-              input: englishTranslation,
-              model: model.id,
-            } satisfies ImageSourceRequest,
-            method: 'POST',
-          }
-        );
+        await imagePool.acquire();
+        try {
+          const responses = await fetchJson<ExampleImage[]>(
+            this.http,
+            `/api/image`,
+            {
+              body: {
+                input: englishTranslation,
+                model: model.id,
+              } satisfies ImageSourceRequest,
+              method: 'POST',
+            }
+          );
 
-        await Promise.all(
-          responses.slice(0, model.imageCount).map((response, i) =>
-            allPending[startIdx + i].resolve(response)
-          )
-        );
+          await Promise.all(
+            responses.slice(0, model.imageCount).map((response, i) =>
+              allPending[startIdx + i].resolve(response)
+            )
+          );
+        } finally {
+          imagePool.release();
+        }
       })
     ).then(() => undefined);
 

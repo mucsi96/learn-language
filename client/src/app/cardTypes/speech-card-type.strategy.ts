@@ -17,6 +17,7 @@ import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { generateExampleImages } from '../utils/image-generation.util';
+import { RateLimitTokenService } from '../rate-limit-token.service';
 
 interface SentenceIdResponse {
   id: string;
@@ -36,6 +37,7 @@ export class SpeechCardType implements CardTypeStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly rateLimitTokenService = inject(RateLimitTokenService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
@@ -148,7 +150,8 @@ export class SpeechCardType implements CardTypeStrategy {
       const imagesMap = await generateExampleImages(
         this.http,
         this.environmentConfig.imageModels,
-        imageInputs
+        imageInputs,
+        this.rateLimitTokenService.imagePool
       );
 
       progressCallback(90, 'Preparing speech card data...');

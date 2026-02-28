@@ -17,9 +17,8 @@ import {
   processTasksWithRateLimit,
   summarizeResults,
   BatchResult,
-  RateLimitConfig,
 } from './utils/task-processor';
-import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import { RateLimitTokenService } from './rate-limit-token.service';
 
 @Injectable({
   providedIn: 'root',
@@ -28,11 +27,7 @@ export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
   private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  private readonly imageRateLimitConfig: RateLimitConfig = {
-    maxPerMinute: this.environmentConfig.imageRateLimitPerMinute,
-    maxConcurrent: this.environmentConfig.imageMaxConcurrent,
-  };
+  private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progress = signal<DotProgress[]>([]);
   readonly isCreating = signal(false);
 
@@ -68,7 +63,7 @@ export class BulkCardCreationService {
               this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, this.imageRateLimitConfig);
+          const results = await processTasksWithRateLimit(tasks, this.rateLimitTokenService.imagePool);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);
@@ -94,7 +89,7 @@ export class BulkCardCreationService {
               this.processFromDraftCardId(cardId, index, strategy)
           );
 
-          const results = await processTasksWithRateLimit(tasks, this.imageRateLimitConfig);
+          const results = await processTasksWithRateLimit(tasks, this.rateLimitTokenService.imagePool);
           return summarizeResults(results);
         } finally {
           this.isCreating.set(false);
