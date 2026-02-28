@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,27 +19,10 @@ public class RateLimitSettingController {
 
     private final RateLimitSettingService rateLimitSettingService;
 
-    @PutMapping("/image-per-minute")
+    @PutMapping("/{key}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public int updateImageRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
-        return rateLimitSettingService.updateImageRateLimit(request.getValue());
-    }
-
-    @PutMapping("/audio-per-minute")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public int updateAudioRateLimit(@Valid @RequestBody RateLimitSettingRequest request) {
-        return rateLimitSettingService.updateAudioRateLimit(request.getValue());
-    }
-
-    @PutMapping("/image-max-concurrent")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public int updateImageMaxConcurrent(@Valid @RequestBody RateLimitSettingRequest request) {
-        return rateLimitSettingService.updateImageMaxConcurrent(request.getValue());
-    }
-
-    @PutMapping("/audio-max-concurrent")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public int updateAudioMaxConcurrent(@Valid @RequestBody RateLimitSettingRequest request) {
-        return rateLimitSettingService.updateAudioMaxConcurrent(request.getValue());
+    public int updateRateLimitSetting(@PathVariable String key,
+            @Valid @RequestBody RateLimitSettingRequest request) {
+        return rateLimitSettingService.updateRateLimit(key, request.getValue());
     }
 }

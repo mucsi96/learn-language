@@ -35,35 +35,16 @@ public class RateLimitSettingService {
     }
 
     @Transactional
-    public int updateImageRateLimit(int value) {
-        return updateRateLimit(IMAGE_PER_MINUTE_KEY, value);
-    }
-
-    @Transactional
-    public int updateAudioRateLimit(int value) {
-        return updateRateLimit(AUDIO_PER_MINUTE_KEY, value);
-    }
-
-    @Transactional
-    public int updateImageMaxConcurrent(int value) {
-        return updateRateLimit(IMAGE_MAX_CONCURRENT_KEY, value);
-    }
-
-    @Transactional
-    public int updateAudioMaxConcurrent(int value) {
-        return updateRateLimit(AUDIO_MAX_CONCURRENT_KEY, value);
+    public int updateRateLimit(String key, int value) {
+        final RateLimitSetting setting = rateLimitSettingRepository.findById(key)
+                .map(existing -> existing.toBuilder().value(value).build())
+                .orElseThrow();
+        return rateLimitSettingRepository.save(setting).getValue();
     }
 
     private int getRateLimit(String key) {
         return rateLimitSettingRepository.findById(key)
                 .map(RateLimitSetting::getValue)
                 .orElseThrow();
-    }
-
-    private int updateRateLimit(String key, int value) {
-        final RateLimitSetting setting = rateLimitSettingRepository.findById(key)
-                .map(existing -> existing.toBuilder().value(value).build())
-                .orElseThrow();
-        return rateLimitSettingRepository.save(setting).getValue();
     }
 }
