@@ -5,15 +5,13 @@
         <mat-card-title><h2>Rate Limit</h2></mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="rate-limit-field">
+        <div class="rate-limit-form">
           <mat-form-field>
             <mat-label>Requests per minute</mat-label>
             <input
               matInput
               type="number"
-              [value]="audioRateLimitPerMinute()"
-              (change)="onAudioRateLimitChange($event)"
-              min="1"
+              [formField]="rateLimitForm.rateLimitPerMinute"
               aria-label="Audio rate limit per minute"
             />
           </mat-form-field>
@@ -22,9 +20,7 @@
             <input
               matInput
               type="number"
-              [value]="audioMaxConcurrent()"
-              (change)="onAudioMaxConcurrentChange($event)"
-              min="1"
+              [formField]="rateLimitForm.maxConcurrent"
               aria-label="Audio max concurrent requests"
             />
           </mat-form-field>

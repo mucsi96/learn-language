@@ -49,6 +49,12 @@ mat-card-header {
   width: 80px;
 }
 
+.rate-limit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
