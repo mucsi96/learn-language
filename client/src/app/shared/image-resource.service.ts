@@ -45,34 +45,29 @@ export class ImageResourceService {
       )
     );
 
-    const { imagePool } = this.rateLimitTokenService;
+    const { imageGenerationQueue } = this.rateLimitTokenService;
     let pendingIdx = 0;
     const done = Promise.all(
       imageModels.flatMap((model) =>
         Array.from({ length: model.imageCount }, () => {
           const idx = pendingIdx++;
-          return (async () => {
-            await imagePool.acquire();
-            try {
-              const response = await fetchJson<ImageResponse>(
-                this.http,
-                `/api/image`,
-                {
-                  body: {
-                    input: englishTranslation,
-                    model: model.id,
-                  } satisfies ImageSourceRequest,
-                  method: 'POST',
-                }
-              );
-              await allPending[idx].resolve({
-                id: response.id,
-                model: response.model,
-              });
-            } finally {
-              imagePool.release();
-            }
-          })();
+          return imageGenerationQueue.submit(async () => {
+            const response = await fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input: englishTranslation,
+                  model: model.id,
+                } satisfies ImageSourceRequest,
+                method: 'POST',
+              }
+            );
+            await allPending[idx].resolve({
+              id: response.id,
+              model: response.model,
+            });
+          });
         })
       )
     ).then(() => undefined);

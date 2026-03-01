@@ -135,7 +135,7 @@ export class GrammarCardType implements CardTypeStrategy {
         this.http,
         this.environmentConfig.imageModels,
         imageInputs,
-        this.rateLimitTokenService.imagePool
+        this.rateLimitTokenService.imageGenerationQueue
       );
 
       progressCallback(90, 'Preparing grammar card data...');

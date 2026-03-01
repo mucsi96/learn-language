@@ -151,7 +151,7 @@ export class SpeechCardType implements CardTypeStrategy {
         this.http,
         this.environmentConfig.imageModels,
         imageInputs,
-        this.rateLimitTokenService.imagePool
+        this.rateLimitTokenService.imageGenerationQueue
       );
 
       progressCallback(90, 'Preparing speech card data...');

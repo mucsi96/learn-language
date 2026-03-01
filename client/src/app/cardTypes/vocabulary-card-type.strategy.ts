@@ -237,7 +237,7 @@ export class VocabularyCardType implements CardTypeStrategy {
         this.http,
         this.environmentConfig.imageModels,
         imageInputs,
-        this.rateLimitTokenService.imagePool
+        this.rateLimitTokenService.imageGenerationQueue
       );
 
       progressCallback(90, 'Preparing vocabulary card data...');
