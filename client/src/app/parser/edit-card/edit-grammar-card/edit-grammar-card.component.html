@@ -51,7 +51,7 @@
     (click)="addImage()"
     aria-label="Add image"
     [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
-    [matTooltip]="dailyUsageService.isImageLimitReached() ? 'Daily image limit reached (' + dailyUsageService.imageUsageToday() + '/' + dailyUsageService.imageDailyLimit() + ')' : ''"
+    [matTooltip]="dailyUsageService.imageLimitTooltip()"
   >
     <mat-icon>add_photo_alternate</mat-icon>
   </button>

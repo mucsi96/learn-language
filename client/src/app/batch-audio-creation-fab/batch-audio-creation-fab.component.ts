@@ -61,14 +61,14 @@ export class BatchAudioCreationFabComponent {
   );
 
   readonly isAudioLimitExceeded = computed(() => {
-    const limit = this.dailyUsageService.audioDailyLimit();
+    const limit = this.dailyUsageService.audioDailyLimit;
     if (limit === 0) return false;
     return this.dailyUsageService.audioUsageToday() + this.totalAudioItemsNeeded() > limit;
   });
 
   readonly audioLimitTooltip = computed(() => {
     if (!this.isAudioLimitExceeded()) return '';
-    const limit = this.dailyUsageService.audioDailyLimit();
+    const limit = this.dailyUsageService.audioDailyLimit;
     const used = this.dailyUsageService.audioUsageToday();
     const needed = this.totalAudioItemsNeeded();
     return `Daily audio limit reached (${used}/${limit} used, ${needed} needed)`;
@@ -106,6 +106,8 @@ export class BatchAudioCreationFabComponent {
         },
         Promise.resolve({ successful: 0, failed: 0 })
       );
+
+      this.dailyUsageService.reload();
 
       if (results.successful > 0) {
         const cardIds = cards.map(c => c.id);

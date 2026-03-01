@@ -45,14 +45,14 @@ export class BulkCardCreationFabComponent {
   });
 
   readonly isImageLimitExceeded = computed(() => {
-    const limit = this.dailyUsageService.imageDailyLimit();
+    const limit = this.dailyUsageService.imageDailyLimit;
     if (limit === 0) return false;
     return this.dailyUsageService.imageUsageToday() + this.totalImagesNeeded() > limit;
   });
 
   readonly imageLimitTooltip = computed(() => {
     if (!this.isImageLimitExceeded()) return '';
-    const limit = this.dailyUsageService.imageDailyLimit();
+    const limit = this.dailyUsageService.imageDailyLimit;
     const used = this.dailyUsageService.imageUsageToday();
     const needed = this.totalImagesNeeded();
     return `Daily image limit reached (${used}/${limit} used, ${needed} needed)`;
@@ -87,6 +87,8 @@ export class BulkCardCreationFabComponent {
       },
       cardType
     );
+
+    this.dailyUsageService.reload();
 
     if (result.succeeded > 0) {
       const regions = selections.map(sel => ({

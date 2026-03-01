@@ -91,9 +91,15 @@ public class ModelUsageLogController {
     @GetMapping("/model-usage-logs/daily-usage")
     public DailyUsageResponse getDailyUsage() {
         final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
-        final long imageUsage = repository.countByModelTypeSince(ModelType.IMAGE, startOfDay);
-        final long audioUsage = repository.countByModelTypeSince(ModelType.AUDIO, startOfDay);
-        return new DailyUsageResponse(imageUsage, audioUsage);
+        final java.util.Map<ModelType, Long> counts = repository.countByModelTypesSince(startOfDay).stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (ModelType) row[0],
+                row -> (Long) row[1]
+            ));
+        return new DailyUsageResponse(
+            counts.getOrDefault(ModelType.IMAGE, 0L),
+            counts.getOrDefault(ModelType.AUDIO, 0L)
+        );
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

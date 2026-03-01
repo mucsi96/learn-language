@@ -112,6 +112,7 @@ export class EditSpeechCardComponent {
     this.images.update((imgs) => [...imgs, ...placeholders]);
 
     await done;
+    this.dailyUsageService.reload();
 
     const cardData = this.getCardData();
     if (cardData) {

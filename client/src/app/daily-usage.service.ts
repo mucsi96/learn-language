@@ -29,46 +29,38 @@ export class DailyUsageService {
     () => this.usage.value()?.audioUsageToday ?? 0
   );
 
-  readonly imageDailyLimit = computed(
-    () => this.environmentConfig.imageDailyLimit
-  );
+  readonly imageDailyLimit = this.environmentConfig.imageDailyLimit;
 
-  readonly audioDailyLimit = computed(
-    () => this.environmentConfig.audioDailyLimit
-  );
+  readonly audioDailyLimit = this.environmentConfig.audioDailyLimit;
 
   readonly isImageLimitReached = computed(() => {
-    const limit = this.imageDailyLimit();
+    const limit = this.imageDailyLimit;
     return limit > 0 && this.imageUsageToday() >= limit;
   });
 
   readonly isAudioLimitReached = computed(() => {
-    const limit = this.audioDailyLimit();
+    const limit = this.audioDailyLimit;
     return limit > 0 && this.audioUsageToday() >= limit;
   });
 
-  wouldImageLimitBeExceeded(additionalImages: number): boolean {
-    const limit = this.imageDailyLimit();
-    if (limit === 0) return false;
-    return this.imageUsageToday() + additionalImages > limit;
-  }
+  readonly imageLimitTooltip = computed(() => {
+    if (!this.isImageLimitReached()) return '';
+    return `Daily image limit reached (${this.imageUsageToday()}/${this.imageDailyLimit})`;
+  });
 
-  wouldAudioLimitBeExceeded(additionalAudio: number): boolean {
-    const limit = this.audioDailyLimit();
-    if (limit === 0) return false;
-    return this.audioUsageToday() + additionalAudio > limit;
-  }
+  readonly audioLimitTooltip = computed(() => {
+    if (!this.isAudioLimitReached()) return '';
+    return `Daily audio limit reached (${this.audioUsageToday()}/${this.audioDailyLimit})`;
+  });
 
   readonly imageRemainingToday = computed(() => {
-    const limit = this.imageDailyLimit();
-    if (limit === 0) return Infinity;
-    return Math.max(0, limit - this.imageUsageToday());
+    if (this.imageDailyLimit === 0) return Infinity;
+    return Math.max(0, this.imageDailyLimit - this.imageUsageToday());
   });
 
   readonly audioRemainingToday = computed(() => {
-    const limit = this.audioDailyLimit();
-    if (limit === 0) return Infinity;
-    return Math.max(0, limit - this.audioUsageToday());
+    if (this.audioDailyLimit === 0) return Infinity;
+    return Math.max(0, this.audioDailyLimit - this.audioUsageToday());
   });
 
   reload(): void {

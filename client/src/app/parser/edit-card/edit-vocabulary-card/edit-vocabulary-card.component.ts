@@ -169,6 +169,7 @@ export class EditVocabularyCardComponent {
     });
 
     await done;
+    this.dailyUsageService.reload();
 
     const cardData = this.getCardData();
     if (cardData) {
