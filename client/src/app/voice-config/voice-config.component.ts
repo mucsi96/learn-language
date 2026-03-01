@@ -60,12 +60,15 @@ export class VoiceConfigComponent {
   readonly rateLimitModel = signal({
     rateLimitPerMinute: this.service.audioRateLimitPerMinute(),
     maxConcurrentRequests: this.service.audioMaxConcurrentRequests(),
+    dailyLimit: this.service.audioDailyLimit(),
   });
   readonly rateLimitForm = form(this.rateLimitModel, (path) => {
     required(path.rateLimitPerMinute);
     min(path.rateLimitPerMinute, 0);
     required(path.maxConcurrentRequests);
     min(path.maxConcurrentRequests, 0);
+    required(path.dailyLimit);
+    min(path.dailyLimit, 0);
   });
 
   readonly selectedCardIndex = signal(0);
@@ -276,9 +279,10 @@ export class VoiceConfigComponent {
         return;
       }
 
-      const { rateLimitPerMinute, maxConcurrentRequests } = this.rateLimitModel();
+      const { rateLimitPerMinute, maxConcurrentRequests, dailyLimit } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.audioRateLimitPerMinute());
       const currentMaxConcurrent = untracked(() => this.service.audioMaxConcurrentRequests());
+      const currentDailyLimit = untracked(() => this.service.audioDailyLimit());
 
       if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateAudioRateLimit(rateLimitPerMinute);
@@ -286,6 +290,10 @@ export class VoiceConfigComponent {
 
       if (maxConcurrentRequests !== currentMaxConcurrent) {
         this.service.updateAudioMaxConcurrent(maxConcurrentRequests);
+      }
+
+      if (dailyLimit !== currentDailyLimit) {
+        this.service.updateAudioDailyLimit(dailyLimit);
       }
     });
   }

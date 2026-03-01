@@ -66,6 +66,15 @@
             aria-label="Image max concurrent requests"
           />
         </mat-form-field>
+        <mat-form-field>
+          <mat-label>Daily limit (0 = no limit)</mat-label>
+          <input
+            matInput
+            type="number"
+            [formField]="rateLimitForm.dailyLimit"
+            aria-label="Image daily limit"
+          />
+        </mat-form-field>
       </div>
     </mat-card-content>
   </mat-card>

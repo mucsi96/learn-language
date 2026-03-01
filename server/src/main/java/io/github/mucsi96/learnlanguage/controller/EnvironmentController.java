@@ -79,6 +79,8 @@ public class EnvironmentController {
         rateLimitSettingService.getAudioRateLimitPerMinute(),
         rateLimitSettingService.getImageMaxConcurrentRequests(),
         rateLimitSettingService.getAudioMaxConcurrentRequests(),
+        rateLimitSettingService.getImageDailyLimit(),
+        rateLimitSettingService.getAudioDailyLimit(),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -121,6 +123,8 @@ public class EnvironmentController {
       int audioRateLimitPerMinute,
       int imageMaxConcurrentRequests,
       int audioMaxConcurrentRequests,
+      int imageDailyLimit,
+      int audioDailyLimit,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,

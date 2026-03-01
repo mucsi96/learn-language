@@ -20,6 +20,7 @@ export class ImageModelSettingsService {
   readonly imageModels = signal(this.environmentConfig.imageModels);
   readonly imageRateLimitPerMinute = signal(this.environmentConfig.imageRateLimitPerMinute);
   readonly imageMaxConcurrentRequests = signal(this.environmentConfig.imageMaxConcurrentRequests);
+  readonly imageDailyLimit = signal(this.environmentConfig.imageDailyLimit);
 
   updateImageCount(modelId: string, imageCount: number): void {
     this.imageModels.update((models) =>
@@ -50,6 +51,15 @@ export class ImageModelSettingsService {
     fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
       body: { type: 'image', maxConcurrent: value },
+    });
+  }
+
+  updateImageDailyLimit(value: number): void {
+    this.imageDailyLimit.set(value);
+
+    fetchJson(this.http, '/api/rate-limit-settings', {
+      method: 'PUT',
+      body: { type: 'image', dailyLimit: value },
     });
   }
 }
