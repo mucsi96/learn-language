@@ -7,10 +7,12 @@ export class RateLimitTokenService {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   readonly imagePool = new ToolPool(
-    this.environmentConfig.imageRateLimitPerMinute
+    this.environmentConfig.imageRateLimitPerMinute,
+    this.environmentConfig.imageMaxConcurrentRequests
   );
 
   readonly audioPool = new ToolPool(
-    this.environmentConfig.audioRateLimitPerMinute
+    this.environmentConfig.audioRateLimitPerMinute,
+    this.environmentConfig.audioMaxConcurrentRequests
   );
 }

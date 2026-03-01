@@ -55,3 +55,57 @@ test('can update audio rate limit', async ({ page }) => {
   }).toPass();
 });
 
+test('displays image max concurrent requests from database on image models settings page', async ({ page }) => {
+  await createRateLimitSetting({ key: 'image-max-concurrent', value: 5 });
+
+  await page.goto('http://localhost:8180/settings/image-models');
+
+  const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Image max concurrent requests' });
+  await expect(maxConcurrentInput).toBeVisible();
+  await expect(maxConcurrentInput).toHaveValue('5');
+});
+
+test('can update image max concurrent requests', async ({ page }) => {
+  await createRateLimitSetting({ key: 'image-max-concurrent', value: 0 });
+
+  await page.goto('http://localhost:8180/settings/image-models');
+
+  const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Image max concurrent requests' });
+  await maxConcurrentInput.fill('4');
+  await maxConcurrentInput.dispatchEvent('change');
+
+  await expect(async () => {
+    const settings = await getRateLimitSettings();
+    const setting = settings.find((s) => s.key === 'image-max-concurrent');
+    expect(setting).toBeDefined();
+    expect(setting!.value).toBe(4);
+  }).toPass();
+});
+
+test('displays audio max concurrent requests from database on voices settings page', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-max-concurrent', value: 3 });
+
+  await page.goto('http://localhost:8180/settings/voices');
+
+  const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Audio max concurrent requests' });
+  await expect(maxConcurrentInput).toBeVisible();
+  await expect(maxConcurrentInput).toHaveValue('3');
+});
+
+test('can update audio max concurrent requests', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-max-concurrent', value: 3 });
+
+  await page.goto('http://localhost:8180/settings/voices');
+
+  const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Audio max concurrent requests' });
+  await maxConcurrentInput.fill('6');
+  await maxConcurrentInput.dispatchEvent('change');
+
+  await expect(async () => {
+    const settings = await getRateLimitSettings();
+    const setting = settings.find((s) => s.key === 'audio-max-concurrent');
+    expect(setting).toBeDefined();
+    expect(setting!.value).toBe(6);
+  }).toPass();
+});
+

@@ -33,6 +33,7 @@ export class VoiceConfigService {
   readonly availableVoices = this.config.voices;
   readonly supportedLanguages = this.config.supportedLanguages;
   readonly audioRateLimitPerMinute = signal(this.config.audioRateLimitPerMinute);
+  readonly audioMaxConcurrentRequests = signal(this.config.audioMaxConcurrentRequests);
 
   readonly configurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,
@@ -105,6 +106,15 @@ export class VoiceConfigService {
     fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
       body: { type: 'audio', maxPerMinute: value },
+    });
+  }
+
+  updateAudioMaxConcurrent(value: number): void {
+    this.audioMaxConcurrentRequests.set(value);
+
+    fetchJson(this.http, '/api/rate-limit-settings', {
+      method: 'PUT',
+      body: { type: 'audio', maxConcurrent: value },
     });
   }
 
