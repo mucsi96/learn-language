@@ -12,12 +12,13 @@ import {
   CardTypeStrategy,
   ExtractedItem,
 } from './parser/types';
-import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
+import { DotProgress } from './shared/types/dot-progress.types';
 import {
-  processTasksWithRateLimit,
-  summarizeResults,
-  BatchResult,
-} from './utils/task-processor';
+  runPipeline,
+  PipelineResult,
+  PipelineTask,
+  ProgressUpdater,
+} from './utils/processing-pipeline';
 import { RateLimitTokenService } from './rate-limit-token.service';
 
 @Injectable({
@@ -29,71 +30,75 @@ export class BulkCardCreationService {
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progress = signal<DotProgress[]>([]);
-  readonly isCreating = signal(false);
+  readonly isProcessing = signal(false);
+  readonly toolPool = this.rateLimitTokenService.imagePool;
 
   async createCardsInBulk(
     source: BulkCreationSource,
     cardType: CardType
-  ): Promise<BatchResult> {
-    if (this.isCreating()) {
+  ): Promise<PipelineResult> {
+    if (this.isProcessing()) {
       throw new Error('Bulk creation already in progress');
     }
 
     const strategy = this.strategyRegistry.getStrategy(cardType);
+    const tasks = this.buildTasks(source, strategy);
 
+    if (tasks.length === 0) {
+      return { total: 0, succeeded: 0, failed: 0, errors: [] };
+    }
+
+    this.isProcessing.set(true);
+
+    try {
+      return await runPipeline(tasks, this.toolPool, this.progress);
+    } finally {
+      this.isProcessing.set(false);
+    }
+  }
+
+  clearProgress(): void {
+    this.progress.set([]);
+  }
+
+  private buildTasks(
+    source: BulkCreationSource,
+    strategy: CardTypeStrategy
+  ): PipelineTask<void>[] {
     switch (source.kind) {
       case 'extractedItems': {
-        const itemsToCreate = source.items.filter(item => !item.exists);
-
-        if (itemsToCreate.length === 0) {
-          return { total: 0, succeeded: 0, failed: 0, errors: [] };
-        }
-
-        this.isCreating.set(true);
-
-        try {
-          this.progress.set(itemsToCreate.map(item => ({
-            label: strategy.getItemLabel(item),
-            status: 'pending' as const,
-            tooltip: `${strategy.getItemLabel(item)}: Queued`,
-          })));
-
-          const tasks = itemsToCreate.map(
-            (item, index) => () =>
-              this.processFromExtractedItem(item, source.sourceId, source.pageNumber, index, strategy)
-          );
-
-          const results = await processTasksWithRateLimit(tasks, this.rateLimitTokenService.imagePool);
-          return summarizeResults(results);
-        } finally {
-          this.isCreating.set(false);
-        }
+        const itemsToCreate = source.items.filter((item) => !item.exists);
+        return itemsToCreate.map((item) => ({
+          label: strategy.getItemLabel(item),
+          execute: (
+            updateProgress: ProgressUpdater,
+            toolsRequested: () => void
+          ) =>
+            this.processFromExtractedItem(
+              item,
+              source.sourceId,
+              source.pageNumber,
+              updateProgress,
+              toolsRequested,
+              strategy
+            ),
+        }));
       }
 
       case 'draftCardIds': {
-        if (source.cardIds.length === 0) {
-          return { total: 0, succeeded: 0, failed: 0, errors: [] };
-        }
-
-        this.isCreating.set(true);
-
-        try {
-          this.progress.set(source.cardIds.map(id => ({
-            label: id,
-            status: 'pending' as const,
-            tooltip: `${id}: Queued`,
-          })));
-
-          const tasks = source.cardIds.map(
-            (cardId, index) => () =>
-              this.processFromDraftCardId(cardId, index, strategy)
-          );
-
-          const results = await processTasksWithRateLimit(tasks, this.rateLimitTokenService.imagePool);
-          return summarizeResults(results);
-        } finally {
-          this.isCreating.set(false);
-        }
+        return source.cardIds.map((cardId) => ({
+          label: cardId,
+          execute: (
+            updateProgress: ProgressUpdater,
+            toolsRequested: () => void
+          ) =>
+            this.processFromDraftCardId(
+              cardId,
+              updateProgress,
+              toolsRequested,
+              strategy
+            ),
+        }));
       }
     }
   }
@@ -102,13 +107,14 @@ export class BulkCardCreationService {
     item: ExtractedItem,
     sourceId: string,
     pageNumber: number,
-    progressIndex: number,
+    updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const label = strategy.getItemLabel(item);
 
     try {
-      this.updateProgress(progressIndex, 'in-progress', `${label}: Creating draft...`);
+      updateProgress('in-progress', `${label}: Creating draft...`);
 
       const draftCardData = strategy.createDraftCardData(item);
       const emptyCard = createEmptyCard();
@@ -118,7 +124,7 @@ export class BulkCardCreationService {
         sourcePageNumber: pageNumber,
         data: draftCardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'DRAFT'
+        readiness: 'DRAFT',
       } satisfies CardCreatePayload;
 
       await fetchJson(this.http, `/api/card`, {
@@ -126,32 +132,49 @@ export class BulkCardCreationService {
         method: 'POST',
       });
 
-      await this.enrichAndUpdateCard(item.id, draftCardData, label, progressIndex, strategy);
+      await this.enrichAndUpdateCard(
+        item.id,
+        draftCardData,
+        label,
+        updateProgress,
+        toolsRequested,
+        strategy
+      );
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      this.updateProgress(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
+      const errorMsg =
+        error instanceof Error ? error.message : 'Unknown error';
+      updateProgress('error', `${label}: Error - ${errorMsg}`);
       throw error;
     }
   }
 
   private async processFromDraftCardId(
     cardId: string,
-    progressIndex: number,
+    updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     let label = cardId;
 
     try {
-      this.updateProgress(progressIndex, 'in-progress', `${label}: Fetching card...`);
+      updateProgress('in-progress', `${label}: Fetching card...`);
 
       const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
       label = strategy.getCardDisplayLabel(card);
-      this.updateProgress(progressIndex, 'in-progress', `${label}: Processing...`);
+      updateProgress('in-progress', `${label}: Processing...`);
 
-      await this.enrichAndUpdateCard(cardId, card.data, label, progressIndex, strategy);
+      await this.enrichAndUpdateCard(
+        cardId,
+        card.data,
+        label,
+        updateProgress,
+        toolsRequested,
+        strategy
+      );
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      this.updateProgress(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
+      const errorMsg =
+        error instanceof Error ? error.message : 'Unknown error';
+      updateProgress('error', `${label}: Error - ${errorMsg}`);
       throw error;
     }
   }
@@ -160,32 +183,27 @@ export class BulkCardCreationService {
     cardId: string,
     cardData: CardData,
     label: string,
-    progressIndex: number,
+    updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const progressCallback = (_progress: number, step: string) => {
-      this.updateProgress(progressIndex, 'in-progress', `${label}: ${step}`);
+      updateProgress('in-progress', `${label}: ${step}`);
     };
 
-    const enrichedData = await strategy.createCardData(cardData, progressCallback);
+    const enrichedData = await strategy.createCardData(
+      cardData,
+      progressCallback,
+      toolsRequested
+    );
 
-    this.updateProgress(progressIndex, 'in-progress', `${label}: Updating card...`);
+    updateProgress('in-progress', `${label}: Updating card...`);
 
     await fetchJson(this.http, `/api/card/${cardId}`, {
       body: { data: enrichedData, readiness: 'IN_REVIEW' },
       method: 'PUT',
     });
 
-    this.updateProgress(progressIndex, 'completed', `${label}: Done`);
-  }
-
-  private updateProgress(index: number, status: DotStatus, tooltip: string): void {
-    this.progress.update(dots =>
-      dots.map((dot, i) => i === index ? { ...dot, status, tooltip } : dot)
-    );
-  }
-
-  clearProgress(): void {
-    this.progress.set([]);
+    updateProgress('completed', `${label}: Done`);
   }
 }

@@ -1,11 +1,11 @@
-@if (candidatesService.hasCandidates() && !bulkCreationService.isCreating()) {
+@if (candidatesService.hasCandidates() && !bulkCreationService.isProcessing()) {
   <button
     mat-fab
     extended
     color="primary"
     class="bulk-create-fab"
     (click)="startBulkCreation()"
-    [disabled]="bulkCreationService.isCreating()"
+    [disabled]="bulkCreationService.isProcessing()"
     aria-label="Create cards in bulk"
   >
     <mat-icon>add_circle</mat-icon>

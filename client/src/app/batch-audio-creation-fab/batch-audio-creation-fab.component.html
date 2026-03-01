@@ -1,11 +1,11 @@
-@if (hasCardsForAudioGeneration() && !batchAudioService.isCreating()) {
+@if (hasCardsForAudioGeneration() && !batchAudioService.isProcessing()) {
   <button
     mat-fab
     extended
     color="accent"
     class="batch-audio-fab"
     (click)="startBatchAudioCreation()"
-    [disabled]="batchAudioService.isCreating()"
+    [disabled]="batchAudioService.isProcessing()"
     aria-label="Generate audio for cards"
   >
     <mat-icon>volume_up</mat-icon>

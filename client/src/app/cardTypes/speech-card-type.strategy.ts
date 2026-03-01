@@ -101,7 +101,8 @@ export class SpeechCardType implements CardTypeStrategy {
 
   async createCardData(
     cardData: CardData,
-    progressCallback: (progress: number, step: string) => void
+    progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
   ): Promise<CardData> {
     const sentence = cardData.examples?.[0]?.de;
     if (!sentence) {
@@ -151,7 +152,8 @@ export class SpeechCardType implements CardTypeStrategy {
         this.http,
         this.environmentConfig.imageModels,
         imageInputs,
-        this.rateLimitTokenService.imagePool
+        this.rateLimitTokenService.imagePool,
+        onToolsRequested
       );
 
       progressCallback(90, 'Preparing speech card data...');

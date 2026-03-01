@@ -1,10 +1,15 @@
 <h2 mat-dialog-title>Creating Cards</h2>
 
 <mat-dialog-content class="dialog-content">
-  <app-dot-reporter name="Progress" [dots]="bulkCardService.progress()" />
+  <app-pipeline-progress
+    taskLabel="Cards"
+    toolLabel="Image API"
+    [tasks]="bulkCardService.progress()"
+    [toolPool]="bulkCardService.toolPool"
+  />
 </mat-dialog-content>
 
-@if (!bulkCardService.isCreating()) {
+@if (!bulkCardService.isProcessing()) {
 <mat-dialog-actions align="end">
   <a mat-button [routerLink]="['/in-review-cards']" [mat-dialog-close]="true">Review cards</a>
   <button mat-button [mat-dialog-close]="true">Close</button>

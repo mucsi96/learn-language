@@ -1,18 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
-import { TokenPool } from './utils/token-pool';
+import { ToolPool } from './utils/tool-pool';
 
 @Injectable({ providedIn: 'root' })
 export class RateLimitTokenService {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
-  readonly imagePool = new TokenPool(
-    this.environmentConfig.imageMaxConcurrent,
+  readonly imagePool = new ToolPool(
     this.environmentConfig.imageRateLimitPerMinute
   );
 
-  readonly audioPool = new TokenPool(
-    this.environmentConfig.audioMaxConcurrent,
+  readonly audioPool = new ToolPool(
     this.environmentConfig.audioRateLimitPerMinute
   );
 }

@@ -24,21 +24,11 @@ public class RateLimitSettingService {
         return getRateLimit("audio-per-minute");
     }
 
-    public int getImageMaxConcurrent() {
-        return getRateLimit("image-max-concurrent");
-    }
-
-    public int getAudioMaxConcurrent() {
-        return getRateLimit("audio-max-concurrent");
-    }
-
     @Transactional
     public void updateRateLimitSettings(RateLimitSettingRequest request) {
         final String type = request.getType();
         Optional.ofNullable(request.getMaxPerMinute())
                 .ifPresent(value -> updateRateLimit(type + "-per-minute", value));
-        Optional.ofNullable(request.getMaxConcurrent())
-                .ifPresent(value -> updateRateLimit(type + "-max-concurrent", value));
     }
 
     private int getRateLimit(String key) {
