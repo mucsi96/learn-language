@@ -900,6 +900,8 @@ export async function getRateLimitSettings(): Promise<
 export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
   await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
   await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
+  await createRateLimitSetting({ key: 'image-max-concurrent', value: 0 });
+  await createRateLimitSetting({ key: 'audio-max-concurrent', value: 0 });
 }
 
 export async function getTableData<T extends Record<string, string>>(

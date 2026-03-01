@@ -59,10 +59,13 @@ export class VoiceConfigComponent {
   readonly supportedLanguages = this.service.supportedLanguages;
   readonly rateLimitModel = signal({
     rateLimitPerMinute: this.service.audioRateLimitPerMinute(),
+    maxConcurrentRequests: this.service.audioMaxConcurrentRequests(),
   });
   readonly rateLimitForm = form(this.rateLimitModel, (path) => {
     required(path.rateLimitPerMinute);
     min(path.rateLimitPerMinute, 1);
+    required(path.maxConcurrentRequests);
+    min(path.maxConcurrentRequests, 0);
   });
 
   readonly selectedCardIndex = signal(0);
@@ -273,11 +276,16 @@ export class VoiceConfigComponent {
         return;
       }
 
-      const { rateLimitPerMinute } = this.rateLimitModel();
+      const { rateLimitPerMinute, maxConcurrentRequests } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.audioRateLimitPerMinute());
+      const currentMaxConcurrent = untracked(() => this.service.audioMaxConcurrentRequests());
 
       if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateAudioRateLimit(rateLimitPerMinute);
+      }
+
+      if (maxConcurrentRequests !== currentMaxConcurrent) {
+        this.service.updateAudioMaxConcurrent(maxConcurrentRequests);
       }
     });
   }

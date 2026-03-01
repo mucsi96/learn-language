@@ -77,6 +77,8 @@ public class EnvironmentController {
         environment.matchesProfiles("test"),
         rateLimitSettingService.getImageRateLimitPerMinute(),
         rateLimitSettingService.getAudioRateLimitPerMinute(),
+        rateLimitSettingService.getImageMaxConcurrentRequests(),
+        rateLimitSettingService.getAudioMaxConcurrentRequests(),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -117,6 +119,8 @@ public class EnvironmentController {
       boolean mockAuth,
       int imageRateLimitPerMinute,
       int audioRateLimitPerMinute,
+      int imageMaxConcurrentRequests,
+      int audioMaxConcurrentRequests,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,

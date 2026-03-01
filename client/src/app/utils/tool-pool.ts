@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 
 const MINUTE_MS = 60_000;
+const CONCURRENT_POLL_MS = 200;
 
 const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -16,7 +17,10 @@ export class ToolPool {
   readonly waitingCount = this._waitingCount.asReadonly();
   readonly usedThisMinute = this._usedThisMinute.asReadonly();
 
-  constructor(readonly maxPerMinute: number) {}
+  constructor(
+    readonly maxPerMinute: number,
+    readonly maxConcurrent: number = 0
+  ) {}
 
   async acquire(): Promise<void> {
     this._waitingCount.update((n) => n + 1);
@@ -24,16 +28,26 @@ export class ToolPool {
       while (true) {
         this.refreshMinuteWindow();
 
-        if (this.distributedThisMinute < this.maxPerMinute) {
+        const withinMinuteLimit =
+          this.distributedThisMinute < this.maxPerMinute;
+        const withinConcurrentLimit =
+          this.maxConcurrent === 0 ||
+          this._activeCount() < this.maxConcurrent;
+
+        if (withinMinuteLimit && withinConcurrentLimit) {
           this.distributedThisMinute++;
           this._usedThisMinute.set(this.distributedThisMinute);
           this._activeCount.update((n) => n + 1);
           return;
         }
 
-        const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
-        if (waitTime > 0) {
-          await delay(waitTime);
+        if (!withinMinuteLimit) {
+          const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
+          if (waitTime > 0) {
+            await delay(waitTime);
+          }
+        } else {
+          await delay(CONCURRENT_POLL_MS);
         }
       }
     } finally {
@@ -47,14 +61,21 @@ export class ToolPool {
 
   isAvailable(): boolean {
     this.refreshMinuteWindow();
-    return this.distributedThisMinute < this.maxPerMinute;
+    const withinMinuteLimit = this.distributedThisMinute < this.maxPerMinute;
+    const withinConcurrentLimit =
+      this.maxConcurrent === 0 || this._activeCount() < this.maxConcurrent;
+    return withinMinuteLimit && withinConcurrentLimit;
   }
 
   async waitForAvailability(): Promise<void> {
     while (!this.isAvailable()) {
-      const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
-      if (waitTime > 0) {
-        await delay(waitTime);
+      if (this.distributedThisMinute >= this.maxPerMinute) {
+        const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
+        if (waitTime > 0) {
+          await delay(waitTime);
+        }
+      } else {
+        await delay(CONCURRENT_POLL_MS);
       }
     }
   }
