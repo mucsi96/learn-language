@@ -26,12 +26,14 @@ import {
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
 import { ModelUsageLogsService, ModelUsageLog, ModelType, OperationGroup, DiffLine, OperationTypeSummaryGroup } from './model-usage-logs.service';
+import { QuotaLimitHitsService, QuotaLimitHit } from './quota-limit-hits.service';
 import { ExpandCellRendererComponent } from './cell-renderers/expand-cell-renderer.component';
 import { ModelTypeCellRendererComponent } from './cell-renderers/model-type-cell-renderer.component';
 import { ModelNameCellRendererComponent } from './cell-renderers/model-name-cell-renderer.component';
 import { DiffCellRendererComponent } from './cell-renderers/diff-cell-renderer.component';
 import { PerDollarCellRendererComponent } from './cell-renderers/per-dollar-cell-renderer.component';
 import { RatingCellRendererComponent } from './cell-renderers/rating-cell-renderer.component';
+import { QuotaTypeCellRendererComponent } from './cell-renderers/quota-type-cell-renderer.component';
 
 const getUsageDisplay = (log: ModelUsageLog): string => {
   if (log.modelType === 'CHAT') {
@@ -76,6 +78,7 @@ ModuleRegistry.registerModules([
 })
 export class ModelUsageLogsComponent {
   private readonly service = inject(ModelUsageLogsService);
+  private readonly quotaService = inject(QuotaLimitHitsService);
 
   readonly summary = this.service.summary.value;
   readonly groupedSummary = this.service.groupedSummary;
@@ -94,6 +97,13 @@ export class ModelUsageLogsComponent {
 
   readonly canDelete = computed(() => this.dateFilter() !== 'ALL');
 
+  readonly quotaDateFilter = this.quotaService.dateFilter;
+  readonly quotaTypeFilter = this.quotaService.quotaTypeFilter;
+  readonly quotaModelNameFilter = this.quotaService.modelNameFilter;
+  readonly quotaAvailableDates = this.quotaService.availableDates;
+  readonly availableQuotaTypes = this.quotaService.availableQuotaTypes;
+  readonly quotaTotalCount = signal(0);
+
   readonly summaryColumns: string[] = [
     'modelName',
     'totalCalls',
@@ -103,6 +113,7 @@ export class ModelUsageLogsComponent {
   ];
 
   private gridApi: GridApi | null = null;
+  private quotaGridApi: GridApi | null = null;
   private currentPageLogs: ModelUsageLog[] = [];
   private currentGroups: OperationGroup[] = [];
 
@@ -218,6 +229,126 @@ export class ModelUsageLogsComponent {
   };
 
   readonly getRowId = (params: GetRowIdParams) => String(params.data.id);
+
+  readonly quotaColumnDefs: ColDef[] = [
+    {
+      headerName: 'Time',
+      field: 'createdAt',
+      width: 160,
+      sortable: true,
+      valueFormatter: (params) => {
+        if (!params.value) return '';
+        return new Date(params.value).toLocaleString('en-US', {
+          month: 'numeric',
+          day: 'numeric',
+          year: '2-digit',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+      },
+    },
+    {
+      headerName: 'Service',
+      field: 'serviceName',
+      width: 140,
+      sortable: true,
+    },
+    {
+      headerName: 'Model',
+      field: 'modelName',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      cellRenderer: ModelNameCellRendererComponent,
+    },
+    {
+      headerName: 'Operation',
+      field: 'operationType',
+      width: 140,
+      sortable: true,
+    },
+    {
+      headerName: 'Quota Type',
+      field: 'quotaType',
+      width: 120,
+      sortable: true,
+      cellRenderer: QuotaTypeCellRendererComponent,
+    },
+    {
+      headerName: 'Error Code',
+      field: 'errorCode',
+      width: 100,
+      sortable: true,
+    },
+    {
+      headerName: 'Error Message',
+      field: 'errorMessage',
+      flex: 2,
+      minWidth: 200,
+      sortable: false,
+    },
+  ];
+
+  onQuotaGridReady(event: GridReadyEvent): void {
+    this.quotaGridApi = event.api;
+    event.api.setGridOption('datasource', {
+      getRows: (params: IGetRowsParams) => this.loadQuotaRows(params),
+    });
+    event.api.sizeColumnsToFit();
+  }
+
+  onQuotaSortChanged(_event: SortChangedEvent): void {
+    this.refreshQuotaGrid();
+  }
+
+  onQuotaDateFilterChange(value: string): void {
+    this.quotaService.dateFilter.set(value);
+    this.refreshQuotaGrid();
+  }
+
+  onQuotaTypeFilterChange(value: string): void {
+    this.quotaService.quotaTypeFilter.set(value);
+    this.refreshQuotaGrid();
+  }
+
+  onQuotaModelNameFilterChange(value: string): void {
+    this.quotaService.modelNameFilter.set(value);
+    this.refreshQuotaGrid();
+  }
+
+  private refreshQuotaGrid(): void {
+    this.quotaGridApi?.setGridOption('datasource', {
+      getRows: (params: IGetRowsParams) => this.loadQuotaRows(params),
+    });
+  }
+
+  private async loadQuotaRows(params: IGetRowsParams): Promise<void> {
+    const sortModel = params.sortModel;
+    const sortField = sortModel.length > 0 ? sortModel[0].colId : undefined;
+    const sortDirection = sortModel.length > 0 ? sortModel[0].sort : undefined;
+
+    const dateFilter = this.quotaService.dateFilter();
+    const quotaTypeFilter = this.quotaService.quotaTypeFilter();
+    const modelNameFilter = this.quotaService.modelNameFilter();
+
+    try {
+      const response = await this.quotaService.fetchHits({
+        startRow: params.startRow,
+        endRow: params.endRow,
+        date: dateFilter !== 'ALL' ? dateFilter : undefined,
+        quotaType: quotaTypeFilter !== 'ALL' ? quotaTypeFilter : undefined,
+        modelName: modelNameFilter !== 'ALL' ? modelNameFilter : undefined,
+        sortField,
+        sortDirection,
+      });
+
+      this.quotaTotalCount.set(response.totalCount);
+      params.successCallback(response.rows, response.totalCount);
+    } catch {
+      params.failCallback();
+    }
+  }
 
   onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;

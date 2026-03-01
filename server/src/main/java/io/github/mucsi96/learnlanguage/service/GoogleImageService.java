@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
+import com.google.genai.errors.ApiException;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.ImageConfig;
 
@@ -16,8 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 public class GoogleImageService {
 
   private static final String MODEL_NAME = "gemini-3-pro-image-preview";
+  private static final String SERVICE_NAME = "GOOGLE_GEMINI";
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
+  private final QuotaLimitHitService quotaLimitHitService;
 
   public byte[] generateImage(String prompt) {
     final long startTime = System.currentTimeMillis();
@@ -46,6 +49,12 @@ public class GoogleImageService {
 
       return image;
 
+    } catch (ApiException e) {
+      if (e.code() == 429) {
+        quotaLimitHitService.logQuotaLimitHit(SERVICE_NAME, MODEL_NAME, OperationType.IMAGE_GENERATION, e);
+      }
+      log.error("Failed to generate image with Gemini 3 Pro Image", e);
+      throw new RuntimeException("Failed to generate image with Gemini 3 Pro Image: " + e.getMessage(), e);
     } catch (Exception e) {
       log.error("Failed to generate image with Gemini 3 Pro Image", e);
       throw new RuntimeException("Failed to generate image with Gemini 3 Pro Image: " + e.getMessage(), e);

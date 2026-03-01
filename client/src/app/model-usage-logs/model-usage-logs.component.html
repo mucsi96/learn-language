@@ -102,6 +102,48 @@
       </div>
     </mat-tab>
 
+    <mat-tab label="Quota Limit Hits">
+      <div class="tab-content">
+        @let quotaDateOptions = quotaAvailableDates();
+        @let quotaTypes = availableQuotaTypes;
+
+        <div class="filters-section">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date</mat-label>
+            <mat-select [value]="quotaDateFilter()" (selectionChange)="onQuotaDateFilterChange($event.value)" aria-label="Filter quota hits by date">
+              <mat-option value="ALL">All dates</mat-option>
+              @for (option of quotaDateOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Quota Type</mat-label>
+            <mat-select [value]="quotaTypeFilter()" (selectionChange)="onQuotaTypeFilterChange($event.value)" aria-label="Filter by quota type">
+              <mat-option value="ALL">All types</mat-option>
+              @for (type of quotaTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <ag-grid-angular
+          class="usage-grid"
+          [theme]="theme"
+          [columnDefs]="quotaColumnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowModelType]="'infinite'"
+          [cacheBlockSize]="100"
+          [maxBlocksInCache]="10"
+          [getRowId]="getRowId"
+          (gridReady)="onQuotaGridReady($event)"
+          (sortChanged)="onQuotaSortChanged($event)"
+        />
+      </div>
+    </mat-tab>
+
     <mat-tab label="Model Summary">
       <div class="tab-content">
         @let groups = groupedSummary();

@@ -15,6 +15,7 @@ import com.azure.core.util.BinaryData;
 import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,11 @@ public class ChatService {
 
     private static final DateTimeFormatter DEBUG_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
 
+    private static final String GOOGLE_SERVICE_NAME = "GOOGLE_GEMINI";
+
     private final ChatClientService chatClientService;
     private final ModelUsageLoggingService usageLoggingService;
+    private final QuotaLimitHitService quotaLimitHitService;
     private final JsonMapper jsonMapper;
     private final FileStorageService fileStorageService;
     private final Environment environment;
@@ -99,22 +103,27 @@ public class ChatService {
 
         long startTime = System.currentTimeMillis();
 
-        ChatClient chatClient = chatClientService.getChatClient(model);
+        try {
+            ChatClient chatClient = chatClientService.getChatClient(model);
 
-        ChatClient.CallResponseSpec callResponse = chatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(u -> u.text(userMessage))
-                .call();
+            ChatClient.CallResponseSpec callResponse = chatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(u -> u.text(userMessage))
+                    .call();
 
-        final ChatResponse response = callResponse.chatResponse();
-        final String text = response.getResult().getOutput().getText();
+            final ChatResponse response = callResponse.chatResponse();
+            final String text = response.getResult().getOutput().getText();
 
-        long processingTime = System.currentTimeMillis() - startTime;
+            long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+            logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
 
-        return text;
+            return text;
+        } catch (RuntimeException e) {
+            checkAndLogQuotaHit(e, model, operationType);
+            throw e;
+        }
     }
 
     private <T> T callWithLoggingInternal(
@@ -126,23 +135,28 @@ public class ChatService {
 
         long startTime = System.currentTimeMillis();
 
-        ChatClient chatClient = chatClientService.getChatClient(model);
+        try {
+            ChatClient chatClient = chatClientService.getChatClient(model);
 
-        ChatClient.CallResponseSpec callResponse = chatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(userBuilder)
-                .call();
+            ChatClient.CallResponseSpec callResponse = chatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userBuilder)
+                    .call();
 
-        var chatResponse = callResponse.responseEntity(responseType);
-        final ChatResponse response = chatResponse.getResponse();
-        final T entity = chatResponse.getEntity();
+            var chatResponse = callResponse.responseEntity(responseType);
+            final ChatResponse response = chatResponse.getResponse();
+            final T entity = chatResponse.getEntity();
 
-        long processingTime = System.currentTimeMillis() - startTime;
+            long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
+            logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
-        return entity;
+            return entity;
+        } catch (RuntimeException e) {
+            checkAndLogQuotaHit(e, model, operationType);
+            throw e;
+        }
     }
 
     private void logUsage(ChatModel model, OperationType operationType, ChatResponse chatResponse, String text, long processingTime) {
@@ -161,5 +175,33 @@ public class ChatService {
         } catch (Exception e) {
             log.warn("Failed to log chat usage: {}", e.getMessage());
         }
+    }
+
+    private void checkAndLogQuotaHit(RuntimeException exception, ChatModel model, OperationType operationType) {
+        if (model.getProvider() != ModelProvider.GOOGLE) {
+            return;
+        }
+
+        final com.google.genai.errors.ApiException apiException = findApiException(exception);
+        if (apiException != null && apiException.code() == 429) {
+            quotaLimitHitService.logQuotaLimitHit(GOOGLE_SERVICE_NAME, model.getModelName(), operationType, apiException);
+            return;
+        }
+
+        final String message = exception.getMessage();
+        if (message != null && (message.contains("429") || message.contains("RESOURCE_EXHAUSTED"))) {
+            quotaLimitHitService.logQuotaLimitHit(GOOGLE_SERVICE_NAME, model.getModelName(), operationType, 429, message);
+        }
+    }
+
+    private com.google.genai.errors.ApiException findApiException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof com.google.genai.errors.ApiException apiException) {
+                return apiException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }
