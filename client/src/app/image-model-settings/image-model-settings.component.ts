@@ -24,13 +24,10 @@ export class ImageModelSettingsComponent {
 
   readonly rateLimitModel = signal({
     rateLimitPerMinute: this.service.imageRateLimitPerMinute(),
-    maxConcurrent: this.service.imageMaxConcurrent(),
   });
   readonly rateLimitForm = form(this.rateLimitModel, (path) => {
     required(path.rateLimitPerMinute);
     min(path.rateLimitPerMinute, 1);
-    required(path.maxConcurrent);
-    min(path.maxConcurrent, 1);
   });
 
   constructor() {
@@ -39,15 +36,11 @@ export class ImageModelSettingsComponent {
         return;
       }
 
-      const { rateLimitPerMinute, maxConcurrent } = this.rateLimitModel();
+      const { rateLimitPerMinute } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.imageRateLimitPerMinute());
-      const currentMaxConcurrent = untracked(() => this.service.imageMaxConcurrent());
 
       if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateImageRateLimit(rateLimitPerMinute);
-      }
-      if (maxConcurrent !== currentMaxConcurrent) {
-        this.service.updateImageMaxConcurrent(maxConcurrent);
       }
     });
   }

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { ExampleImage } from '../parser/types';
 import { ImageResponse, ImageSourceRequest } from '../shared/types/image-generation.types';
 import { fetchJson } from './fetchJson';
-import { TokenPool } from './token-pool';
+import { ToolPool } from './tool-pool';
 
 export type ImageGenerationInput = {
   exampleIndex: number;
@@ -15,7 +15,7 @@ export const generateExampleImages = async (
   http: HttpClient,
   imageModels: ReadonlyArray<{ id: string; imageCount: number }>,
   inputs: ReadonlyArray<ImageGenerationInput>,
-  imageTokenPool: TokenPool
+  imageTokenPool: ToolPool
 ): Promise<ImagesByIndex> => {
   const activeModels = imageModels.filter((model) => model.imageCount > 0);
   if (inputs.length === 0 || activeModels.length === 0) {

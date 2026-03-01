@@ -1,0 +1,40 @@
+<div class="pipeline-progress">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">{{ taskLabel() }}</span>
+      <span class="section-counter">{{ completedCount() }} / {{ totalCount() }}</span>
+    </div>
+    <div class="dots-container" role="group" [attr.aria-label]="taskLabel()">
+      @for (dot of tasks(); track dot.label) {
+        <span
+          class="dot"
+          [class.pending]="dot.status === 'pending'"
+          [class.in-progress]="dot.status === 'in-progress'"
+          [class.completed]="dot.status === 'completed'"
+          [class.error]="dot.status === 'error'"
+          [matTooltip]="dot.tooltip"
+          [attr.aria-label]="dot.label"
+          role="status"
+        ></span>
+      }
+    </div>
+  </div>
+
+  <div class="section" role="region" [attr.aria-label]="toolLabel()">
+    <div class="section-header">
+      <span class="section-title">{{ toolLabel() }}</span>
+      <span class="section-counter">{{ toolPool().usedThisMinute() }} / {{ toolPool().maxPerMinute }} per min</span>
+    </div>
+    <div class="tool-stats">
+      <span class="stat active" role="status" [attr.aria-label]="toolPool().activeCount() + ' active API calls'">
+        <span class="stat-indicator active-indicator"></span>
+        {{ toolPool().activeCount() }} active
+      </span>
+      <span class="stat-separator">&middot;</span>
+      <span class="stat waiting" role="status" [attr.aria-label]="toolPool().waitingCount() + ' waiting API calls'">
+        <span class="stat-indicator waiting-indicator"></span>
+        {{ toolPool().waitingCount() }} waiting
+      </span>
+    </div>
+  </div>
+</div>

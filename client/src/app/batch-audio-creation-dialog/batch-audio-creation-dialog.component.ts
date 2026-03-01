@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
-import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.component';
+import { PipelineProgressComponent } from '../shared/pipeline-progress/pipeline-progress.component';
 
 @Component({
   selector: 'app-batch-audio-creation-dialog',
@@ -10,7 +10,7 @@ import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.compon
   imports: [
     MatDialogModule,
     MatButtonModule,
-    DotReporterComponent,
+    PipelineProgressComponent,
   ],
   templateUrl: './batch-audio-creation-dialog.component.html',
   styleUrl: './batch-audio-creation-dialog.component.css',

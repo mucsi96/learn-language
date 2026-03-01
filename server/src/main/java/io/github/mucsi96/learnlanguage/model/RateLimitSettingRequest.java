@@ -17,7 +17,4 @@ public class RateLimitSettingRequest {
 
     @Min(1)
     private Integer maxPerMinute;
-
-    @Min(1)
-    private Integer maxConcurrent;
 }

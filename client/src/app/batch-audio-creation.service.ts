@@ -1,21 +1,27 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
-import { Card, CardType, CardTypeStrategy, AudioGenerationItem } from './parser/types';
+import {
+  Card,
+  CardType,
+  CardTypeStrategy,
+  AudioGenerationItem,
+} from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
   AudioSourceRequest,
   AudioData,
-  VoiceModelPair
+  VoiceModelPair,
 } from './shared/types/audio-generation.types';
-import { DotProgress, DotStatus } from './shared/types/dot-progress.types';
+import { DotProgress } from './shared/types/dot-progress.types';
 import { RateLimitTokenService } from './rate-limit-token.service';
 import {
-  processTasksWithRateLimit,
-  summarizeResults,
-  BatchResult,
-} from './utils/task-processor';
+  runPipeline,
+  PipelineResult,
+  PipelineTask,
+  ProgressUpdater,
+} from './utils/processing-pipeline';
 
 interface VoiceConfiguration {
   id: number;
@@ -33,12 +39,16 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
-  readonly progressDots = signal<DotProgress[]>([]);
-  readonly isCreating = signal(false);
+  readonly progress = signal<DotProgress[]>([]);
+  readonly isProcessing = signal(false);
+  readonly toolPool = this.rateLimitTokenService.audioPool;
   private voiceConfigs: VoiceConfiguration[] = [];
 
-  async createAudioInBatch(cards: Card[], cardType: CardType): Promise<BatchResult> {
-    if (this.isCreating()) {
+  async createAudioInBatch(
+    cards: Card[],
+    cardType: CardType
+  ): Promise<PipelineResult> {
+    if (this.isProcessing()) {
       throw new Error('Batch audio creation already in progress');
     }
 
@@ -48,64 +58,69 @@ export class BatchAudioCreationService {
 
     const strategy = this.cardTypeRegistry.getStrategy(cardType);
 
-    this.isCreating.set(true);
+    this.isProcessing.set(true);
 
     try {
       this.voiceConfigs = await fetchJson<VoiceConfiguration[]>(
         this.http,
         '/api/voice-configurations/enabled'
       );
-    } catch (error) {
-      this.isCreating.set(false);
+    } catch {
+      this.isProcessing.set(false);
       throw new Error('Failed to fetch voice configurations');
     }
 
     const missingLanguages = this.getMissingVoiceLanguages(strategy);
     if (missingLanguages.length > 0) {
-      this.isCreating.set(false);
-      throw new Error(`No enabled voice configurations for languages: ${missingLanguages.join(', ')}`);
+      this.isProcessing.set(false);
+      throw new Error(
+        `No enabled voice configurations for languages: ${missingLanguages.join(', ')}`
+      );
     }
 
-    this.progressDots.set(cards.map(card => ({
+    const tasks: PipelineTask<void>[] = cards.map((card, index) => ({
       label: strategy.getCardDisplayLabel(card),
-      status: 'pending' as const,
-      tooltip: `${strategy.getCardDisplayLabel(card)}: Queued`,
-    })));
+      execute: (updateProgress: ProgressUpdater) =>
+        this.processCard(card, index, updateProgress, strategy),
+    }));
 
-    const tasks = cards.map(
-      (card, index) => () => this.createAudioForSingleCard(card, index, strategy)
-    );
+    try {
+      return await runPipeline(tasks, this.toolPool, this.progress);
+    } finally {
+      this.isProcessing.set(false);
+    }
+  }
 
-    const results = await processTasksWithRateLimit(
-      tasks,
-      this.rateLimitTokenService.audioPool
-    );
-
-    this.isCreating.set(false);
-
-    return summarizeResults(results);
+  clearProgress(): void {
+    this.progress.set([]);
   }
 
   private getMissingVoiceLanguages(strategy: CardTypeStrategy): string[] {
     const requiredLanguages = strategy.requiredAudioLanguages();
     return requiredLanguages.filter(
-      (language) => !this.voiceConfigs.some((config) => config.language === language)
+      (language) =>
+        !this.voiceConfigs.some((config) => config.language === language)
     );
   }
 
-  private async createAudioForSingleCard(
+  private async processCard(
     card: Card,
-    progressIndex: number,
+    cardIndex: number,
+    updateProgress: ProgressUpdater,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const existingAudioList: AudioData[] = card.data.audio || [];
-    const label = this.progressDots()[progressIndex].label;
+    const label = strategy.getCardDisplayLabel(card);
 
     try {
-      this.updateDot(progressIndex, 'in-progress', `${label}: Cleaning up unused audio...`);
-      const cleanedAudioList = await this.cleanupUnusedAudio(card, existingAudioList, strategy);
+      updateProgress('in-progress', `${label}: Cleaning up unused audio...`);
+      const cleanedAudioList = await this.cleanupUnusedAudio(
+        card,
+        existingAudioList,
+        strategy
+      );
 
-      this.updateDot(progressIndex, 'in-progress', `${label}: Generating audio...`);
+      updateProgress('in-progress', `${label}: Generating audio...`);
 
       const audioItems = strategy.getAudioItems(card);
       const itemsNeedingAudio = audioItems.filter(
@@ -113,21 +128,24 @@ export class BatchAudioCreationService {
       );
 
       const voicesByLanguage = new Map(
-        [...new Set(itemsNeedingAudio.map(item => item.language))].map(
-          language => [language, this.getVoiceForLanguage(language, progressIndex)]
+        [...new Set(itemsNeedingAudio.map((item) => item.language))].map(
+          (language) => [
+            language,
+            this.getVoiceForLanguage(language, cardIndex),
+          ]
         )
       );
 
       const generatedAudio = await this.generateAudioForItems(
         itemsNeedingAudio,
         voicesByLanguage,
-        progressIndex,
+        updateProgress,
         label
       );
 
       const finalAudioList = [...cleanedAudioList, ...generatedAudio];
 
-      this.updateDot(progressIndex, 'in-progress', `${label}: Updating card...`);
+      updateProgress('in-progress', `${label}: Updating card...`);
 
       const updatedCardData: Partial<Card> = {
         data: {
@@ -142,10 +160,11 @@ export class BatchAudioCreationService {
         method: 'PUT',
       });
 
-      this.updateDot(progressIndex, 'completed', `${label}: Done`);
+      updateProgress('completed', `${label}: Done`);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      this.updateDot(progressIndex, 'error', `${label}: Error - ${errorMsg}`);
+      const errorMsg =
+        error instanceof Error ? error.message : 'Unknown error';
+      updateProgress('error', `${label}: Error - ${errorMsg}`);
       throw error;
     }
   }
@@ -153,39 +172,34 @@ export class BatchAudioCreationService {
   private async generateAudioForItems(
     items: AudioGenerationItem[],
     voicesByLanguage: Map<string, VoiceModelPair>,
-    progressIndex: number,
+    updateProgress: ProgressUpdater,
     label: string
   ): Promise<AudioData[]> {
-    const { audioPool } = this.rateLimitTokenService;
-
-    const generateSingleAudio = async (item: AudioGenerationItem): Promise<AudioData> => {
+    const generateSingleAudio = async (
+      item: AudioGenerationItem
+    ): Promise<AudioData> => {
       const voice = voicesByLanguage.get(item.language)!;
-      await audioPool.acquire();
+      await this.toolPool.acquire();
       try {
-        const audioData = await fetchJson<AudioData>(
-          this.http,
-          `/api/audio`,
-          {
-            body: {
-              input: item.text,
-              voice: voice.voice,
-              model: voice.model,
-              language: item.language,
-              selected: true,
-              context: item.context,
-              singleWord: item.singleWord
-            } satisfies AudioSourceRequest,
-            method: 'POST',
-          }
-        );
-        this.updateDot(
-          progressIndex,
+        const audioData = await fetchJson<AudioData>(this.http, `/api/audio`, {
+          body: {
+            input: item.text,
+            voice: voice.voice,
+            model: voice.model,
+            language: item.language,
+            selected: true,
+            context: item.context,
+            singleWord: item.singleWord,
+          } satisfies AudioSourceRequest,
+          method: 'POST',
+        });
+        updateProgress(
           'in-progress',
           `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
         );
         return audioData;
       } finally {
-        audioPool.release();
+        this.toolPool.release();
       }
     };
 
@@ -199,18 +213,14 @@ export class BatchAudioCreationService {
     );
   }
 
-  private updateDot(index: number, status: DotStatus, tooltip: string): void {
-    this.progressDots.update(dots =>
-      dots.map((dot, i) => i === index ? { ...dot, status, tooltip } : dot)
-    );
-  }
-
   private async cleanupUnusedAudio(
     card: Card,
     audioList: AudioData[],
     strategy: CardTypeStrategy
   ): Promise<AudioData[]> {
-    const validAudioTexts = new Set(strategy.getAudioItems(card).map(item => item.text));
+    const validAudioTexts = new Set(
+      strategy.getAudioItems(card).map((item) => item.text)
+    );
 
     const { toKeep, toDelete } = audioList.reduce<{
       toKeep: AudioData[];
@@ -241,10 +251,13 @@ export class BatchAudioCreationService {
   }
 
   private hasAudioForText(audioList: AudioData[], text: string): boolean {
-    return audioList.some(audio => audio.text === text);
+    return audioList.some((audio) => audio.text === text);
   }
 
-  private getVoiceForLanguage(language: string, cardIndex: number): VoiceModelPair {
+  private getVoiceForLanguage(
+    language: string,
+    cardIndex: number
+  ): VoiceModelPair {
     const languageVoices = this.voiceConfigs.filter(
       (config) => config.language === language && config.isEnabled
     );
@@ -255,9 +268,5 @@ export class BatchAudioCreationService {
     }
 
     throw new Error(`No voices configured for language: ${language}`);
-  }
-
-  clearProgress(): void {
-    this.progressDots.set([]);
   }
 }

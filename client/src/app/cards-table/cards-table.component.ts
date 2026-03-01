@@ -124,7 +124,7 @@ export class CardsTableComponent {
     const id = this.sourceId();
     return sources?.find(s => s.id === id)?.cardType;
   });
-  readonly isCompletingDrafts = this.bulkCreationService.isCreating;
+  readonly isCompletingDrafts = this.bulkCreationService.isProcessing;
   private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
 
   readonly selectionContainsDrafts = computed(() => {

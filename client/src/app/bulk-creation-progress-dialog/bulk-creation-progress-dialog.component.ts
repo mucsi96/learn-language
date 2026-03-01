@@ -6,7 +6,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
-import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.component';
+import { PipelineProgressComponent } from '../shared/pipeline-progress/pipeline-progress.component';
 
 @Component({
   selector: 'app-bulk-creation-progress-dialog',
@@ -15,7 +15,7 @@ import { DotReporterComponent } from '../shared/dot-reporter/dot-reporter.compon
     MatDialogModule,
     MatButtonModule,
     RouterLink,
-    DotReporterComponent,
+    PipelineProgressComponent,
   ],
   templateUrl: './bulk-creation-progress-dialog.component.html',
   styleUrl: './bulk-creation-progress-dialog.component.css',
