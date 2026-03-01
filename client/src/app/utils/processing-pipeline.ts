@@ -13,7 +13,10 @@ export type ProgressUpdater = (status: DotStatus, tooltip: string) => void;
 
 export type PipelineTask<T> = {
   label: string;
-  execute: (updateProgress: ProgressUpdater) => Promise<T>;
+  execute: (
+    updateProgress: ProgressUpdater,
+    toolsRequested: () => void
+  ) => Promise<T>;
 };
 
 const updateDot = (
@@ -53,19 +56,27 @@ export const runPipeline = async <T>(
       updateDot(progress, index, status, tooltip);
     };
 
-    launched.push(
-      task
-        .execute(updater)
-        .then(
-          (value): PromiseSettledResult<T> => ({ status: 'fulfilled', value })
-        )
-        .catch((reason): PromiseSettledResult<T> => {
-          const msg =
-            reason instanceof Error ? reason.message : 'Unknown error';
-          updater('error', `${task.label}: Error - ${msg}`);
-          return { status: 'rejected', reason };
-        })
-    );
+    const toolsRequestedPromise = new Promise<void>((resolve) => {
+      launched.push(
+        task
+          .execute(updater, resolve)
+          .then(
+            (value): PromiseSettledResult<T> => ({
+              status: 'fulfilled',
+              value,
+            })
+          )
+          .catch((reason): PromiseSettledResult<T> => {
+            const msg =
+              reason instanceof Error ? reason.message : 'Unknown error';
+            updater('error', `${task.label}: Error - ${msg}`);
+            resolve();
+            return { status: 'rejected', reason };
+          })
+      );
+    });
+
+    await toolsRequestedPromise;
   }
 
   const settled = await Promise.all(launched);

@@ -70,12 +70,16 @@ export class BulkCardCreationService {
         const itemsToCreate = source.items.filter((item) => !item.exists);
         return itemsToCreate.map((item) => ({
           label: strategy.getItemLabel(item),
-          execute: (updateProgress: ProgressUpdater) =>
+          execute: (
+            updateProgress: ProgressUpdater,
+            toolsRequested: () => void
+          ) =>
             this.processFromExtractedItem(
               item,
               source.sourceId,
               source.pageNumber,
               updateProgress,
+              toolsRequested,
               strategy
             ),
         }));
@@ -84,8 +88,16 @@ export class BulkCardCreationService {
       case 'draftCardIds': {
         return source.cardIds.map((cardId) => ({
           label: cardId,
-          execute: (updateProgress: ProgressUpdater) =>
-            this.processFromDraftCardId(cardId, updateProgress, strategy),
+          execute: (
+            updateProgress: ProgressUpdater,
+            toolsRequested: () => void
+          ) =>
+            this.processFromDraftCardId(
+              cardId,
+              updateProgress,
+              toolsRequested,
+              strategy
+            ),
         }));
       }
     }
@@ -96,6 +108,7 @@ export class BulkCardCreationService {
     sourceId: string,
     pageNumber: number,
     updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const label = strategy.getItemLabel(item);
@@ -124,6 +137,7 @@ export class BulkCardCreationService {
         draftCardData,
         label,
         updateProgress,
+        toolsRequested,
         strategy
       );
     } catch (error) {
@@ -137,6 +151,7 @@ export class BulkCardCreationService {
   private async processFromDraftCardId(
     cardId: string,
     updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     let label = cardId;
@@ -153,6 +168,7 @@ export class BulkCardCreationService {
         card.data,
         label,
         updateProgress,
+        toolsRequested,
         strategy
       );
     } catch (error) {
@@ -168,6 +184,7 @@ export class BulkCardCreationService {
     cardData: CardData,
     label: string,
     updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const progressCallback = (_progress: number, step: string) => {
@@ -176,7 +193,8 @@ export class BulkCardCreationService {
 
     const enrichedData = await strategy.createCardData(
       cardData,
-      progressCallback
+      progressCallback,
+      toolsRequested
     );
 
     updateProgress('in-progress', `${label}: Updating card...`);

@@ -188,7 +188,8 @@ export type CardTypeStrategy = {
   createDraftCardData(item: ExtractedItem): CardData;
   createCardData(
     cardData: CardData,
-    progressCallback: (progress: number, step: string) => void
+    progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
   ): Promise<CardData>;
   requiredAudioLanguages(): string[];
   getCardDisplayLabel(card: Card): string;

@@ -80,8 +80,10 @@ export class BatchAudioCreationService {
 
     const tasks: PipelineTask<void>[] = cards.map((card, index) => ({
       label: strategy.getCardDisplayLabel(card),
-      execute: (updateProgress: ProgressUpdater) =>
-        this.processCard(card, index, updateProgress, strategy),
+      execute: (
+        updateProgress: ProgressUpdater,
+        toolsRequested: () => void
+      ) => this.processCard(card, index, updateProgress, toolsRequested, strategy),
     }));
 
     try {
@@ -107,6 +109,7 @@ export class BatchAudioCreationService {
     card: Card,
     cardIndex: number,
     updateProgress: ProgressUpdater,
+    toolsRequested: () => void,
     strategy: CardTypeStrategy
   ): Promise<void> {
     const existingAudioList: AudioData[] = card.data.audio || [];
@@ -140,7 +143,8 @@ export class BatchAudioCreationService {
         itemsNeedingAudio,
         voicesByLanguage,
         updateProgress,
-        label
+        label,
+        toolsRequested
       );
 
       const finalAudioList = [...cleanedAudioList, ...generatedAudio];
@@ -173,43 +177,47 @@ export class BatchAudioCreationService {
     items: AudioGenerationItem[],
     voicesByLanguage: Map<string, VoiceModelPair>,
     updateProgress: ProgressUpdater,
-    label: string
+    label: string,
+    onToolsRequested: () => void
   ): Promise<AudioData[]> {
-    const generateSingleAudio = async (
-      item: AudioGenerationItem
-    ): Promise<AudioData> => {
-      const voice = voicesByLanguage.get(item.language)!;
-      await this.toolPool.acquire();
-      try {
-        const audioData = await fetchJson<AudioData>(this.http, `/api/audio`, {
-          body: {
-            input: item.text,
-            voice: voice.voice,
-            model: voice.model,
-            language: item.language,
-            selected: true,
-            context: item.context,
-            singleWord: item.singleWord,
-          } satisfies AudioSourceRequest,
-          method: 'POST',
-        });
-        updateProgress(
-          'in-progress',
-          `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
-        );
-        return audioData;
-      } finally {
-        this.toolPool.release();
-      }
-    };
+    if (items.length === 0) {
+      onToolsRequested();
+      return [];
+    }
 
-    return items.reduce<Promise<AudioData[]>>(
-      async (accPromise, item) => {
-        const acc = await accPromise;
-        const audioData = await generateSingleAudio(item);
-        return [...acc, audioData];
-      },
-      Promise.resolve([])
+    const acquirePromises = items.map(() => this.toolPool.acquire());
+    onToolsRequested();
+
+    return Promise.all(
+      items.map(async (item, i) => {
+        const voice = voicesByLanguage.get(item.language)!;
+        await acquirePromises[i];
+        try {
+          const audioData = await fetchJson<AudioData>(
+            this.http,
+            `/api/audio`,
+            {
+              body: {
+                input: item.text,
+                voice: voice.voice,
+                model: voice.model,
+                language: item.language,
+                selected: true,
+                context: item.context,
+                singleWord: item.singleWord,
+              } satisfies AudioSourceRequest,
+              method: 'POST',
+            }
+          );
+          updateProgress(
+            'in-progress',
+            `${label}: Generated "${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"`
+          );
+          return audioData;
+        } finally {
+          this.toolPool.release();
+        }
+      })
     );
   }
 

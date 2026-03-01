@@ -15,42 +15,52 @@ export const generateExampleImages = async (
   http: HttpClient,
   imageModels: ReadonlyArray<{ id: string; imageCount: number }>,
   inputs: ReadonlyArray<ImageGenerationInput>,
-  imageTokenPool: ToolPool
+  imageTokenPool: ToolPool,
+  onToolsRequested?: () => void
 ): Promise<ImagesByIndex> => {
   const activeModels = imageModels.filter((model) => model.imageCount > 0);
   if (inputs.length === 0 || activeModels.length === 0) {
+    onToolsRequested?.();
     return new Map();
   }
 
-  const results = await Promise.all(
-    inputs.flatMap((input) =>
-      activeModels.flatMap((model) =>
-        Array.from({ length: model.imageCount }, async () => {
-          await imageTokenPool.acquire();
-          try {
-            const response = await fetchJson<ImageResponse>(
-              http,
-              '/api/image',
-              {
-                body: {
-                  input: input.englishTranslation,
-                  model: model.id,
-                } satisfies ImageSourceRequest,
-                method: 'POST',
-              }
-            );
-            return {
-              exampleIndex: input.exampleIndex,
-              image: { id: response.id, model: response.model } as ExampleImage,
-            };
-          } catch {
-            return undefined;
-          } finally {
-            imageTokenPool.release();
-          }
-        })
-      )
+  const subtasks = inputs.flatMap((input) =>
+    activeModels.flatMap((model) =>
+      Array.from({ length: model.imageCount }, () => ({
+        input,
+        model,
+      }))
     )
+  );
+
+  const acquirePromises = subtasks.map(() => imageTokenPool.acquire());
+  onToolsRequested?.();
+
+  const results = await Promise.all(
+    subtasks.map(async ({ input, model }, i) => {
+      await acquirePromises[i];
+      try {
+        const response = await fetchJson<ImageResponse>(
+          http,
+          '/api/image',
+          {
+            body: {
+              input: input.englishTranslation,
+              model: model.id,
+            } satisfies ImageSourceRequest,
+            method: 'POST',
+          }
+        );
+        return {
+          exampleIndex: input.exampleIndex,
+          image: { id: response.id, model: response.model } as ExampleImage,
+        };
+      } catch {
+        return undefined;
+      } finally {
+        imageTokenPool.release();
+      }
+    })
   );
 
   return results

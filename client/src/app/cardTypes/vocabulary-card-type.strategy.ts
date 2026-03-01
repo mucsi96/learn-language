@@ -145,7 +145,8 @@ export class VocabularyCardType implements CardTypeStrategy {
 
   async createCardData(
     cardData: CardData,
-    progressCallback: (progress: number, step: string) => void
+    progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
   ): Promise<CardData> {
     const word = cardData.word;
     if (!word) {
@@ -237,7 +238,8 @@ export class VocabularyCardType implements CardTypeStrategy {
         this.http,
         this.environmentConfig.imageModels,
         imageInputs,
-        this.rateLimitTokenService.imagePool
+        this.rateLimitTokenService.imagePool,
+        onToolsRequested
       );
 
       progressCallback(90, 'Preparing vocabulary card data...');
