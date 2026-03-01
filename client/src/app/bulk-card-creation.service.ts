@@ -51,7 +51,7 @@ export class BulkCardCreationService {
     this.isProcessing.set(true);
 
     try {
-      return await runPipeline(tasks, this.toolPool, this.progress);
+      return await runPipeline(tasks, this.progress);
     } finally {
       this.isProcessing.set(false);
     }

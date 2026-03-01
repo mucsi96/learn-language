@@ -45,20 +45,6 @@ export class ToolPool {
     this._activeCount.update((n) => n - 1);
   }
 
-  isAvailable(): boolean {
-    this.refreshMinuteWindow();
-    return this.distributedThisMinute < this.maxPerMinute;
-  }
-
-  async waitForAvailability(): Promise<void> {
-    while (!this.isAvailable()) {
-      const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
-      if (waitTime > 0) {
-        await delay(waitTime);
-      }
-    }
-  }
-
   private refreshMinuteWindow(): void {
     const now = Date.now();
     if (now - this.minuteWindowStart >= MINUTE_MS) {

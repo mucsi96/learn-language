@@ -1,5 +1,4 @@
 import { WritableSignal } from '@angular/core';
-import { ToolPool } from './tool-pool';
 import { DotProgress, DotStatus } from '../shared/types/dot-progress.types';
 
 export type PipelineResult = {
@@ -32,7 +31,6 @@ const updateDot = (
 
 export const runPipeline = async <T>(
   tasks: ReadonlyArray<PipelineTask<T>>,
-  toolPool: ToolPool,
   progress: WritableSignal<DotProgress[]>
 ): Promise<PipelineResult> => {
   if (tasks.length === 0) {
@@ -50,8 +48,6 @@ export const runPipeline = async <T>(
   const launched: Promise<PromiseSettledResult<T>>[] = [];
 
   for (const [index, task] of tasks.entries()) {
-    await toolPool.waitForAvailability();
-
     const updater: ProgressUpdater = (status, tooltip) => {
       updateDot(progress, index, status, tooltip);
     };
