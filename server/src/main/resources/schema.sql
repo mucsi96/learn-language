@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS learn_language.rate_limit_settings (
 );
 
 INSERT INTO learn_language.rate_limit_settings (key, value)
-VALUES ('image-per-minute', 6), ('audio-per-minute', 12),
+VALUES ('image-per-minute', 6), ('audio-per-minute', 0),
        ('image-max-concurrent', 0), ('audio-max-concurrent', 3)
 ON CONFLICT (key) DO NOTHING;
 

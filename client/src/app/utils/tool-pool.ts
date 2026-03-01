@@ -29,6 +29,7 @@ export class ToolPool {
         this.refreshMinuteWindow();
 
         const withinMinuteLimit =
+          this.maxPerMinute === 0 ||
           this.distributedThisMinute < this.maxPerMinute;
         const withinConcurrentLimit =
           this.maxConcurrent === 0 ||
@@ -61,7 +62,9 @@ export class ToolPool {
 
   isAvailable(): boolean {
     this.refreshMinuteWindow();
-    const withinMinuteLimit = this.distributedThisMinute < this.maxPerMinute;
+    const withinMinuteLimit =
+      this.maxPerMinute === 0 ||
+      this.distributedThisMinute < this.maxPerMinute;
     const withinConcurrentLimit =
       this.maxConcurrent === 0 || this._activeCount() < this.maxConcurrent;
     return withinMinuteLimit && withinConcurrentLimit;
@@ -69,7 +72,7 @@ export class ToolPool {
 
   async waitForAvailability(): Promise<void> {
     while (!this.isAvailable()) {
-      if (this.distributedThisMinute >= this.maxPerMinute) {
+      if (this.maxPerMinute > 0 && this.distributedThisMinute >= this.maxPerMinute) {
         const waitTime = MINUTE_MS - (Date.now() - this.minuteWindowStart);
         if (waitTime > 0) {
           await delay(waitTime);
