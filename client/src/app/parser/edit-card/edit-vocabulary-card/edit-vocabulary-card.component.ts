@@ -17,6 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
 import { Card, CardData } from '../../types';
@@ -26,6 +27,7 @@ import {
   GridImageResource,
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
+import { DailyUsageService } from '../../../daily-usage.service';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -39,6 +41,7 @@ import { ImageResourceService } from '../../../shared/image-resource.service';
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     ImageGridComponent,
   ],
   templateUrl: './edit-vocabulary-card.component.html',
@@ -54,6 +57,7 @@ export class EditVocabularyCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  readonly dailyUsageService = inject(DailyUsageService);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
 

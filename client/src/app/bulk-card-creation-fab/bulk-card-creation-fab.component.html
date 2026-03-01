@@ -5,7 +5,8 @@
     color="primary"
     class="bulk-create-fab"
     (click)="startBulkCreation()"
-    [disabled]="bulkCreationService.isProcessing()"
+    [disabled]="bulkCreationService.isProcessing() || isImageLimitExceeded()"
+    [matTooltip]="imageLimitTooltip()"
     aria-label="Create cards in bulk"
   >
     <mat-icon>add_circle</mat-icon>

@@ -16,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { Card, CardData } from '../../types';
 import {
@@ -23,6 +24,7 @@ import {
   GridImageResource,
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
+import { DailyUsageService } from '../../../daily-usage.service';
 import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
@@ -35,6 +37,7 @@ import { createGrammarGapRegex } from '../../../shared/constants/grammar.constan
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     MatChipsModule,
     ImageGridComponent,
   ],
@@ -51,6 +54,7 @@ export class EditGrammarCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  readonly dailyUsageService = inject(DailyUsageService);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
   readonly formModel = linkedSignal(() => ({

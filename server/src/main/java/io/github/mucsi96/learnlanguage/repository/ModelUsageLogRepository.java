@@ -34,6 +34,9 @@ public interface ModelUsageLogRepository extends JpaRepository<ModelUsageLog, Lo
             + "ORDER BY m.operationType, COALESCE(AVG(m.rating), 0.0) DESC")
     List<Object[]> getModelSummary();
 
+    @Query("SELECT COUNT(m) FROM ModelUsageLog m WHERE m.modelType = :modelType AND m.createdAt >= :start")
+    long countByModelTypeSince(@Param("modelType") ModelType modelType, @Param("start") LocalDateTime start);
+
     @Modifying
     @Query("DELETE FROM ModelUsageLog m WHERE m.createdAt >= :start AND m.createdAt < :end"
             + " AND (:modelType IS NULL OR m.modelType = :modelType)"

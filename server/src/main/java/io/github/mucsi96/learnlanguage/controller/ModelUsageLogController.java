@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -82,6 +83,17 @@ public class ModelUsageLogController {
 
         repository.updateRatingById(id, request.rating());
         return ResponseEntity.noContent().build();
+    }
+
+    public record DailyUsageResponse(long imageUsageToday, long audioUsageToday) {}
+
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @GetMapping("/model-usage-logs/daily-usage")
+    public DailyUsageResponse getDailyUsage() {
+        final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
+        final long imageUsage = repository.countByModelTypeSince(ModelType.IMAGE, startOfDay);
+        final long audioUsage = repository.countByModelTypeSince(ModelType.AUDIO, startOfDay);
+        return new DailyUsageResponse(imageUsage, audioUsage);
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

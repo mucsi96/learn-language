@@ -74,7 +74,8 @@
         mat-icon-button
         (click)="addImage($index)"
         aria-label="Add example image"
-        [disabled]="areImagesLoading($index)"
+        [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
+        [matTooltip]="dailyUsageService.isImageLimitReached() ? 'Daily image limit reached (' + dailyUsageService.imageUsageToday() + '/' + dailyUsageService.imageDailyLimit() + ')' : ''"
       >
         <mat-icon>add_photo_alternate</mat-icon>
       </button>

@@ -4,10 +4,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
 import { Card, CardType } from '../parser/types';
+import { CardTypeRegistry } from '../cardTypes/card-type.registry';
+import { DailyUsageService } from '../daily-usage.service';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
@@ -15,7 +18,7 @@ import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
 @Component({
   selector: 'app-batch-audio-creation-fab',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule, MatTooltipModule],
   templateUrl: './batch-audio-creation-fab.component.html',
   styleUrl: './batch-audio-creation-fab.component.css',
 })
@@ -24,6 +27,8 @@ export class BatchAudioCreationFabComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
   private readonly http = inject(HttpClient);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  readonly dailyUsageService = inject(DailyUsageService);
   readonly refreshTrigger = input(0);
   readonly cards = resource<Card[], unknown>({
     params: () => this.refreshTrigger(),
@@ -40,6 +45,34 @@ export class BatchAudioCreationFabComponent {
 
   readonly cardsForAudioCount = computed(() => this.cardsForAudio().length);
   readonly hasCardsForAudioGeneration = computed(() => this.cardsForAudioCount() > 0);
+
+  readonly totalAudioItemsNeeded = computed(() =>
+    this.cardsForAudio().reduce((sum, card) => {
+      const cardType = card.source.cardType;
+      if (!cardType) return sum;
+      const strategy = this.cardTypeRegistry.getStrategy(cardType);
+      const existingAudio = card.data.audio ?? [];
+      const audioItems = strategy.getAudioItems(card);
+      const missingCount = audioItems.filter(
+        item => !existingAudio.some(a => a.text === item.text)
+      ).length;
+      return sum + missingCount;
+    }, 0)
+  );
+
+  readonly isAudioLimitExceeded = computed(() => {
+    const limit = this.dailyUsageService.audioDailyLimit();
+    if (limit === 0) return false;
+    return this.dailyUsageService.audioUsageToday() + this.totalAudioItemsNeeded() > limit;
+  });
+
+  readonly audioLimitTooltip = computed(() => {
+    if (!this.isAudioLimitExceeded()) return '';
+    const limit = this.dailyUsageService.audioDailyLimit();
+    const used = this.dailyUsageService.audioUsageToday();
+    const needed = this.totalAudioItemsNeeded();
+    return `Daily audio limit reached (${used}/${limit} used, ${needed} needed)`;
+  });
 
   async startBatchAudioCreation(): Promise<void> {
     const cards = this.cardsForAudio();

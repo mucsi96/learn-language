@@ -20,4 +20,7 @@ public class RateLimitSettingRequest {
 
     @Min(0)
     private Integer maxConcurrent;
+
+    @Min(0)
+    private Integer dailyLimit;
 }
