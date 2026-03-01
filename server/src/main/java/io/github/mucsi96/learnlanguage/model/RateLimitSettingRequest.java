@@ -15,7 +15,7 @@ public class RateLimitSettingRequest {
     @NotNull
     private String type;
 
-    @Min(1)
+    @Min(0)
     private Integer maxPerMinute;
 
     @Min(0)

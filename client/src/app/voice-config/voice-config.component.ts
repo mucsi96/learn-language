@@ -63,7 +63,7 @@ export class VoiceConfigComponent {
   });
   readonly rateLimitForm = form(this.rateLimitModel, (path) => {
     required(path.rateLimitPerMinute);
-    min(path.rateLimitPerMinute, 1);
+    min(path.rateLimitPerMinute, 0);
     required(path.maxConcurrentRequests);
     min(path.maxConcurrentRequests, 0);
   });
