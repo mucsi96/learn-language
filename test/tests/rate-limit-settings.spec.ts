@@ -197,10 +197,10 @@ test('returns 429 when image daily limit is reached', async ({ request }) => {
   await createRateLimitSetting({ key: 'image-daily-limit', value: 2 });
   await seedImageUsageLogs(2);
 
-  const response = await request.post('http://localhost:8080/api/image', {
+  const response = await request.post('http://localhost:8180/api/image', {
     data: {
       input: 'test prompt',
-      model: 'gemini-2.0-flash-preview-image-generation',
+      model: 'gemini-3-pro-image-preview',
     },
   });
 
@@ -211,7 +211,7 @@ test('returns 429 when audio daily limit is reached', async ({ request }) => {
   await createRateLimitSetting({ key: 'audio-daily-limit', value: 2 });
   await seedAudioUsageLogs(2);
 
-  const response = await request.post('http://localhost:8080/api/audio', {
+  const response = await request.post('http://localhost:8180/api/audio', {
     data: {
       input: 'test text',
       voice: 'test-voice',
