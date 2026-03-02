@@ -79,6 +79,7 @@ export type Card = {
   lapses: number;
   state: CardState;
   lastReview?: Date;
+  flagged?: boolean;
 };
 
 export type CardCreatePayload = {
@@ -213,6 +214,7 @@ export type Source = {
   pageCount?: number;
   cardCount?: number;
   draftCardCount?: number;
+  flaggedCardCount?: number;
   languageLevel?: LanguageLevel;
   cardType?: CardType;
   formatType?: SourceFormatType;

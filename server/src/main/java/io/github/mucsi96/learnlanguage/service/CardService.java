@@ -132,6 +132,20 @@ public class CardService {
         .toList();
   }
 
+  public List<Card> getFlaggedCards() {
+    return cardRepository.findByFlaggedTrueOrderByDueAsc();
+  }
+
+  public List<SourceCardCount> getFlaggedCardCountsBySource() {
+    return cardRepository.countFlaggedCardsBySourceGroupBySource()
+        .stream()
+        .map(record -> new SourceCardCount(
+            (String) record[0],
+            ((Long) record[1]).intValue())
+        )
+        .toList();
+  }
+
   public List<String> getFilteredCardIds(
       String sourceId,
       String readiness, String state,

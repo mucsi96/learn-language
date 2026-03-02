@@ -14,6 +14,7 @@ public class SourceResponse {
     private Integer pageCount;
     private Integer cardCount;
     private Integer draftCardCount;
+    private Integer flaggedCardCount;
     private LanguageLevel languageLevel;
     private SourceFormatType formatType;
 }

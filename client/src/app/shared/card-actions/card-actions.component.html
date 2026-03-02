@@ -13,9 +13,9 @@
       <mat-icon>record_voice_over</mat-icon>
       <span>Voice Selection</span>
     </button>
-    <button mat-menu-item (click)="markForReview()">
-      <mat-icon>flag</mat-icon>
-      <span>Mark for Review</span>
+    <button mat-menu-item (click)="toggleFlag()">
+      <mat-icon>{{ isFlagged() ? 'flag' : 'outlined_flag' }}</mat-icon>
+      <span>{{ isFlagged() ? 'Remove Flag' : 'Flag Card' }}</span>
     </button>
     <a
       mat-menu-item

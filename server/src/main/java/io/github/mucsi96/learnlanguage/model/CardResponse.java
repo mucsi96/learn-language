@@ -26,6 +26,7 @@ public class CardResponse {
     private Integer lapses;
     private String state;
     private LocalDateTime lastReview;
+    private Boolean flagged;
 
     public static CardResponse from(Card card) {
         final Source source = card.getSource();
@@ -54,6 +55,7 @@ public class CardResponse {
                 .lapses(card.getLapses())
                 .state(card.getState())
                 .lastReview(card.getLastReview())
+                .flagged(card.getFlagged())
                 .build();
     }
 

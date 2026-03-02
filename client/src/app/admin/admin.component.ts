@@ -1,15 +1,19 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, resource } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { SourceDialogComponent } from '../shared/source-dialog/source-dialog.component';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
-import { Source } from '../parser/types';
+import { Source, Card } from '../parser/types';
+import { fetchJson } from '../utils/fetchJson';
+import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
+import { CardTypeRegistry } from '../cardTypes/card-type.registry';
 
 @Component({
   selector: 'app-admin',
@@ -25,10 +29,28 @@ import { Source } from '../parser/types';
 export class AdminComponent {
   private readonly sourcesService = inject(SourcesService);
   private readonly dialog = inject(MatDialog);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly cardTypeRegistry = inject(CardTypeRegistry);
 
   readonly sources = this.sourcesService.sources.value;
   readonly loading = this.sourcesService.sources.isLoading;
+
+  readonly flaggedCards = resource<Card[], unknown>({
+    loader: async () => {
+      const cards = await fetchJson<Card[]>(this.http, '/api/cards/flagged');
+      return cards.map(card => mapCardDatesFromISOStrings(card));
+    },
+  });
+
+  readonly totalFlaggedCount = computed(() => this.flaggedCards.value()?.length ?? 0);
+
+  getCardLabel(card: Card): string {
+    const cardType = card.source.cardType;
+    if (!cardType) return card.data?.word ?? card.id;
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getCardDisplayLabel(card);
+  }
   readonly selectedSourceId = signal<string | null>(null);
   readonly selectedSource = computed(() => {
     const id = this.selectedSourceId();

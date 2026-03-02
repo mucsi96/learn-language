@@ -195,6 +195,7 @@ public class CardController {
     if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
     if (request.getState() != null) existingCard.setState(request.getState());
     if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
+    if (request.getFlagged() != null) existingCard.setFlagged(request.getFlagged());
 
     cardRepository.save(existingCard);
 
@@ -252,6 +253,15 @@ public class CardController {
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable CardReadiness readiness) {
     final List<CardResponse> cards = cardService.getCardsByReadiness(readiness).stream()
+        .map(CardResponse::from)
+        .toList();
+    return ResponseEntity.ok(cards);
+  }
+
+  @GetMapping("/cards/flagged")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<List<CardResponse>> getFlaggedCards() {
+    final List<CardResponse> cards = cardService.getFlaggedCards().stream()
         .map(CardResponse::from)
         .toList();
     return ResponseEntity.ok(cards);

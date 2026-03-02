@@ -56,6 +56,9 @@ public class CardView {
     @Column(name = "last_review")
     private LocalDateTime lastReview;
 
+    @Column(nullable = false)
+    private Boolean flagged;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "card_type")
     private CardType cardType;

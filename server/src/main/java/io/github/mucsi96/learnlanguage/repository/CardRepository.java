@@ -31,6 +31,11 @@ public interface CardRepository
     @Query("SELECT c.source.id, COUNT(c) FROM Card c WHERE c.readiness = io.github.mucsi96.learnlanguage.model.CardReadiness.DRAFT GROUP BY c.source.id")
     List<Object[]> countDraftCardsBySourceGroupBySource();
 
+    List<Card> findByFlaggedTrueOrderByDueAsc();
+
+    @Query("SELECT c.source.id, COUNT(c) FROM Card c WHERE c.flagged = true GROUP BY c.source.id")
+    List<Object[]> countFlaggedCardsBySourceGroupBySource();
+
     @Query(value = """
         SELECT source_id, state, COUNT(*) AS card_count
         FROM (
