@@ -44,6 +44,8 @@ public interface CardRepository
         """, nativeQuery = true)
     List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 
+    List<Card> findBySourceIdAndFlaggedTrueOrderBySourcePageNumberAsc(String sourceId);
+
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
 
     @Modifying

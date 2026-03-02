@@ -195,6 +195,7 @@ public class CardController {
     if (request.getLapses() != null) existingCard.setLapses(request.getLapses());
     if (request.getState() != null) existingCard.setState(request.getState());
     if (request.getLastReview() != null) existingCard.setLastReview(request.getLastReview());
+    if (request.getFlagged() != null) existingCard.setFlagged(request.getFlagged());
 
     cardRepository.save(existingCard);
 
@@ -246,6 +247,16 @@ public class CardController {
     Map<String, String> response = new HashMap<>();
     response.put("detail", "Card deleted successfully");
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/source/{sourceId}/flagged-cards")
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  public ResponseEntity<List<CardResponse>> getFlaggedCards(@PathVariable String sourceId) {
+    final List<CardResponse> cards = cardRepository.findBySourceIdAndFlaggedTrueOrderBySourcePageNumberAsc(sourceId)
+        .stream()
+        .map(CardResponse::from)
+        .toList();
+    return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/cards/readiness/{readiness}")

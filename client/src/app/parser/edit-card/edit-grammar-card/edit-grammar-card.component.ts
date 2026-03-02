@@ -209,6 +209,7 @@ export class EditGrammarCardComponent {
         | 'reps'
         | 'lapses'
         | 'state'
+        | 'flagged'
       >
     | undefined {
     const sourceId = this.selectedSourceId();

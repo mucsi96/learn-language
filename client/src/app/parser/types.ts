@@ -79,6 +79,7 @@ export type Card = {
   lapses: number;
   state: CardState;
   lastReview?: Date;
+  flagged: boolean;
 };
 
 export type CardCreatePayload = {

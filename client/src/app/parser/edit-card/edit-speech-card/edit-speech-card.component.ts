@@ -150,6 +150,7 @@ export class EditSpeechCardComponent {
         | 'reps'
         | 'lapses'
         | 'state'
+        | 'flagged'
       >
     | undefined {
     const sourceId = this.selectedSourceId();

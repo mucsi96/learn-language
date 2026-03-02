@@ -7,6 +7,7 @@ import {
   inject,
   linkedSignal,
   OnDestroy,
+  resource,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +34,9 @@ import { PagedSelection, SelectionStateService } from '../../selection-state.ser
 import { injectParams } from '../../utils/inject-params';
 import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
 import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
+import { Card } from '../types';
+import { fetchJson } from '../../utils/fetchJson';
+import { MatListModule } from '@angular/material/list';
 
 @Component({
   selector: 'app-page',
@@ -52,6 +56,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     BulkCardCreationFabComponent,
     SelectionRectangleComponent,
     SelectionActionsComponent,
+    MatListModule,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -126,6 +131,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly hasExtractionStarted = computed(() =>
     this.selectionRegions().length > 0
   );
+  readonly flaggedCards = resource({
+    params: () => ({ sourceId: this.routeSourceId() }),
+    loader: async ({ params: { sourceId } }) => {
+      if (!sourceId) return [] as Card[];
+      return fetchJson<Card[]>(this.http, `/api/source/${sourceId}/flagged-cards`);
+    },
+  });
   private resizeObserver: ResizeObserver | undefined;
   private readonly scrollPositionService = inject(ScrollPositionService);
   readonly uploading = signal(false);

@@ -46,6 +46,19 @@
   </button>
   }
 </div>
+@if (flaggedCards.value()?.length) {
+<nav aria-label="Flagged cards" class="flagged-cards">
+  <mat-icon class="flagged-cards-icon">flag</mat-icon>
+  @for (card of flaggedCards.value(); track card.id) {
+  <a
+    mat-button
+    [routerLink]="['/sources', selectedSourceId(), 'page', card.sourcePageNumber, 'cards', card.id]"
+    class="flagged-card-link"
+    [attr.aria-label]="'Edit flagged card: ' + (card.data.word ?? card.id)"
+  >{{ card.data.word ?? card.id }}</a>
+  }
+</nav>
+}
 } @if (pageLoading()) {
 <mat-spinner class="page-loading" />
 } @else if (isEmptyImageSource()) {

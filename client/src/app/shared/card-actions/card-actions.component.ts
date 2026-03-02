@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -27,29 +27,27 @@ import { CardResourceLike } from '../types/card-resource.types';
 export class CardActionsComponent {
   card = input<CardResourceLike>();
   languageTexts = input<LanguageTexts[]>([]);
-  markedForReview = output<void>();
   cardProcessed = output<void>();
 
   private readonly http = inject(HttpClient);
   private readonly dialog = inject(MatDialog);
 
-  async markForReview(event?: Event) {
+  readonly isFlagged = computed(() => this.card()?.value()?.flagged ?? false);
+
+  async toggleFlag(event?: Event) {
     if (event) {
       event.stopPropagation();
     }
     const cardId = this.card()?.value()?.id;
     if (!cardId) return;
 
-    try {
-      await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { readiness: 'IN_REVIEW' },
-        method: 'PUT',
-      });
-      this.card()?.reload?.();
-      this.cardProcessed.emit();
-    } catch (error) {
-      console.error('Error marking card for review:', error);
-    }
+    const newFlagged = !this.isFlagged();
+
+    await fetchJson(this.http, `/api/card/${cardId}`, {
+      body: { flagged: newFlagged },
+      method: 'PUT',
+    });
+    this.card()?.reload?.();
   }
 
   async openVoiceSelection(event?: Event) {
@@ -60,7 +58,6 @@ export class CardActionsComponent {
     const card = this.card()?.value();
     if (!card) return;
 
-    // Use provided language texts
     const languageTexts = this.languageTexts();
     if (languageTexts.length === 0) {
       console.warn('No language texts provided for voice selection');
@@ -95,20 +92,16 @@ export class CardActionsComponent {
       selected: Boolean(entry.selected),
     }));
 
-    try {
-      await fetchJson(this.http, `/api/card/${card.id}`, {
-        method: 'PUT',
-        body: {
-          data: {
-            ...card.data,
-            audio: sanitizedAudio,
-          },
+    await fetchJson(this.http, `/api/card/${card.id}`, {
+      method: 'PUT',
+      body: {
+        data: {
+          ...card.data,
+          audio: sanitizedAudio,
         },
-      });
-      this.card()?.reload?.();
-      this.cardProcessed.emit();
-    } catch (error) {
-      console.error('Error saving voice selection:', error);
-    }
+      },
+    });
+    this.card()?.reload?.();
+    this.cardProcessed.emit();
   }
 }

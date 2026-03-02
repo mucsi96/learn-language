@@ -207,6 +207,7 @@ export class EditVocabularyCardComponent {
         | 'reps'
         | 'lapses'
         | 'state'
+        | 'flagged'
       >
     | undefined {
     const sourceId = this.selectedSourceId();
