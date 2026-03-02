@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { HttpClient } from '@angular/common/http';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
 import { Card, CardData } from '../../types';
@@ -28,6 +29,9 @@ import {
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
 import { DailyUsageService } from '../../../daily-usage.service';
+import { MultiModelService } from '../../../multi-model.service';
+import { fetchJson } from '../../../utils/fetchJson';
+import { nonNullable } from '../../../utils/type-guards';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -56,7 +60,9 @@ export class EditVocabularyCardComponent {
   saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
+  private readonly http = inject(HttpClient);
   private readonly imageResourceService = inject(ImageResourceService);
+  private readonly multiModelService = inject(MultiModelService);
   readonly dailyUsageService = inject(DailyUsageService);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
   readonly genderOptions = GENDER_TRANSLATIONS;
@@ -157,8 +163,38 @@ export class EditVocabularyCardComponent {
   }
 
   async addImage(exampleIdx: number) {
-    const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
-    if (!englishTranslation) return;
+    let englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
+
+    if (!englishTranslation) {
+      const word = this.word();
+      const germanExamples = this.examples()?.map((e) => e()).filter(nonNullable) ?? [];
+
+      if (!word || germanExamples.length === 0) return;
+
+      const result = await this.multiModelService.call<{
+        translation: string;
+        examples: string[];
+      }>(
+        'translation',
+        (model: string, headers?: Record<string, string>) =>
+          fetchJson(this.http, `/api/translate/en?model=${model}`, {
+            body: { word, examples: germanExamples },
+            method: 'POST',
+            headers,
+          })
+      );
+
+      englishTranslation = result.examples?.[exampleIdx];
+      if (!englishTranslation) return;
+
+      const examplesTranslations = this.examplesTranslations();
+      if (examplesTranslations?.['en']?.[exampleIdx]) {
+        examplesTranslations['en'][exampleIdx].set(englishTranslation);
+      }
+      if (result.translation && this.translation['en']) {
+        this.translation['en'].set(result.translation);
+      }
+    }
 
     const { placeholders, done } =
       this.imageResourceService.generateImages(englishTranslation);
