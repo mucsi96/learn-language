@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS learn_language.cards (
     lapses integer NOT NULL,
     state character varying(255) NOT NULL,
     last_review timestamp(6),
+    flagged boolean NOT NULL DEFAULT false,
     CONSTRAINT cards_pkey PRIMARY KEY (id),
     CONSTRAINT card_source_id_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id)
 );
@@ -204,6 +205,7 @@ SELECT
     c.reps,
     c.state,
     c.last_review,
+    c.flagged,
     s.card_type,
     lr.rating AS last_review_rating,
     lp.name AS last_review_learning_partner_name,

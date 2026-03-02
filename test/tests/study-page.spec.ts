@@ -357,7 +357,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   await expect(flashcard.getByLabel('State: Review')).toBeVisible();
 });
 
-test('mark for review menu item visible in context menu', async ({ page }) => {
+test('flag card menu item visible in context menu', async ({ page }) => {
   await createCard({
     cardId: 'testen-tesztelni',
     sourceId: 'goethe-a1',
@@ -383,7 +383,7 @@ test('mark for review menu item visible in context menu', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Mark for Review' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Flag Card' })).toBeVisible();
 });
 
 test('edit card menu item visible in context menu', async ({ page }) => {
@@ -416,7 +416,7 @@ test('edit card menu item visible in context menu', async ({ page }) => {
   await expect(page.getByRole('menuitem', { name: 'Edit Card' })).toBeVisible();
 });
 
-test('mark for review button functionality', async ({ page }) => {
+test('flag card sets flagged in database', async ({ page }) => {
   await createCard({
     cardId: 'markieren-megjelolni',
     sourceId: 'goethe-a1',
@@ -442,16 +442,14 @@ test('mark for review button functionality', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
-  await page.getByRole('menuitem', { name: 'Mark for Review' }).click();
-
-  await expect(page.getByText('All caught up!')).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Flag Card' }).click();
 
   const card = await getCardFromDb('markieren-megjelolni');
-  expect(card.readiness).toBe('IN_REVIEW');
+  expect(card.flagged).toBe(true);
+  expect(card.readiness).toBe('READY');
 });
 
-test('mark for review button loads next card', async ({ page }) => {
-  // Create two cards
+test('unflag card via context menu', async ({ page }) => {
   await createCard({
     cardId: 'erste-elso',
     sourceId: 'goethe-a1',
@@ -470,44 +468,18 @@ test('mark for review button loads next card', async ({ page }) => {
         },
       ],
     },
-    readiness: 'READY',
-  });
-
-  await createCard({
-    cardId: 'zweite-masodik',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 31,
-    data: {
-      word: 'zweite',
-      type: 'ADJECTIVE',
-      translation: { en: 'second', hu: 'második', ch: 'zwöiti' },
-      examples: [
-        {
-          de: 'Das ist meine zweite Karte.',
-          hu: 'Ez a második kártyám.',
-          en: 'This is my second card.',
-          ch: 'Das isch mini zwöiti Charte.',
-          isSelected: true,
-        },
-      ],
-    },
-    readiness: 'READY',
+    flagged: true,
   });
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const flashcard = page.getByRole('article', { name: 'Flashcard' });
-
-  // Verify first card is showing (due earlier)
-  await expect(flashcard.getByRole('heading', { name: 'első' })).toBeVisible();
-
   await page.getByRole('button', { name: 'Card actions' }).click();
-  await page.getByRole('menuitem', { name: 'Mark for Review' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Remove Flag' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Remove Flag' }).click();
 
-  // Verify the second card is now showing
-  await expect(flashcard.getByRole('heading', { name: 'második' })).toBeVisible();
-  await expect(flashcard.getByRole('heading', { name: 'első' })).not.toBeVisible();
+  const card = await getCardFromDb('erste-elso');
+  expect(card.flagged).toBe(false);
 });
 
 test('edit card button navigation', async ({ page }) => {

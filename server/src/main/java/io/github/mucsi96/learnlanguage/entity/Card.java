@@ -76,6 +76,10 @@ public class Card {
     @Column(name = "last_review")
     private LocalDateTime lastReview;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean flagged = false;
+
     public boolean isInReview() {
         return this.readiness == CardReadiness.IN_REVIEW;
     }

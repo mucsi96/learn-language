@@ -27,28 +27,30 @@ import { CardResourceLike } from '../types/card-resource.types';
 export class CardActionsComponent {
   card = input<CardResourceLike>();
   languageTexts = input<LanguageTexts[]>([]);
-  markedForReview = output<void>();
   cardProcessed = output<void>();
 
   private readonly http = inject(HttpClient);
   private readonly dialog = inject(MatDialog);
 
-  async markForReview(event?: Event) {
+  isFlagged(): boolean {
+    return this.card()?.value()?.flagged ?? false;
+  }
+
+  async toggleFlag(event?: Event) {
     if (event) {
       event.stopPropagation();
     }
-    const cardId = this.card()?.value()?.id;
-    if (!cardId) return;
+    const card = this.card()?.value();
+    if (!card) return;
 
     try {
-      await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { readiness: 'IN_REVIEW' },
+      await fetchJson(this.http, `/api/card/${card.id}`, {
+        body: { flagged: !card.flagged },
         method: 'PUT',
       });
       this.card()?.reload?.();
-      this.cardProcessed.emit();
     } catch (error) {
-      console.error('Error marking card for review:', error);
+      console.error('Error toggling card flag:', error);
     }
   }
 

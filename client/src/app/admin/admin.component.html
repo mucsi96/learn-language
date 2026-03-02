@@ -41,11 +41,36 @@
           {{ source.draftCardCount }} drafts
         </p>
         }
+        @if (source.flaggedCardCount) {
+        <p class="flagged-card-count">
+          {{ source.flaggedCardCount }} flagged
+        </p>
+        }
       </mat-card-content>
     </mat-card>
   </article>
   }
 </section>
+@if (totalFlaggedCount()) {
+<section class="flagged-cards" aria-label="Flagged cards">
+  <h2>Flagged Cards ({{ totalFlaggedCount() }})</h2>
+  <div class="flagged-list">
+    @for (card of flaggedCards.value(); track card.id) {
+    <a
+      class="flagged-item"
+      [attr.href]="'/sources/' + card.source.id + '/page/' + card.sourcePageNumber + '/cards/' + card.id"
+      (click)="$event.preventDefault(); router.navigate(['/sources', card.source.id, 'page', card.sourcePageNumber, 'cards', card.id])"
+      [attr.aria-label]="'Edit flagged card: ' + getCardLabel(card)"
+    >
+      <mat-icon class="flagged-icon">flag</mat-icon>
+      <span class="flagged-label">{{ getCardLabel(card) }}</span>
+      <span class="flagged-source">{{ card.source.name }}</span>
+      <mat-icon class="flagged-edit-icon">edit</mat-icon>
+    </a>
+    }
+  </div>
+</section>
+}
 @if (selectedSource()) {
 <nav class="source-actions" aria-label="Source actions">
   <button
