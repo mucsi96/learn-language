@@ -32,6 +32,14 @@ public class RateLimitSettingService {
         return getRateLimit("audio-max-concurrent");
     }
 
+    public int getImageDailyLimit() {
+        return getRateLimit("image-daily-limit");
+    }
+
+    public int getAudioDailyLimit() {
+        return getRateLimit("audio-daily-limit");
+    }
+
     @Transactional
     public void updateRateLimitSettings(RateLimitSettingRequest request) {
         final String type = request.getType();
@@ -39,6 +47,8 @@ public class RateLimitSettingService {
                 .ifPresent(value -> updateRateLimit(type + "-per-minute", value));
         Optional.ofNullable(request.getMaxConcurrent())
                 .ifPresent(value -> updateRateLimit(type + "-max-concurrent", value));
+        Optional.ofNullable(request.getDailyLimit())
+                .ifPresent(value -> updateRateLimit(type + "-daily-limit", value));
     }
 
     private int getRateLimit(String key) {

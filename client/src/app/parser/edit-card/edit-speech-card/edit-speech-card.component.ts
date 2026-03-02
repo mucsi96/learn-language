@@ -14,12 +14,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Card, CardData } from '../../types';
 import {
   ImageGridComponent,
   GridImageResource,
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
+import { DailyUsageService } from '../../../daily-usage.service';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -31,6 +33,7 @@ import { ImageResourceService } from '../../../shared/image-resource.service';
     MatButtonModule,
     MatIcon,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     ImageGridComponent,
   ],
   templateUrl: './edit-speech-card.component.html',
@@ -46,6 +49,7 @@ export class EditSpeechCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  readonly dailyUsageService = inject(DailyUsageService);
 
   readonly formModel = linkedSignal(() => ({
     sentence: this.card()?.data.examples?.[0]?.de ?? '',
@@ -108,6 +112,7 @@ export class EditSpeechCardComponent {
     this.images.update((imgs) => [...imgs, ...placeholders]);
 
     await done;
+    this.dailyUsageService.reload();
 
     const cardData = this.getCardData();
     if (cardData) {

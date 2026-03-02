@@ -60,6 +60,8 @@ export interface EnvironmentConfig {
   audioRateLimitPerMinute: number;
   imageMaxConcurrentRequests: number;
   audioMaxConcurrentRequests: number;
+  imageDailyLimit: number;
+  audioDailyLimit: number;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];

@@ -25,12 +25,15 @@ export class ImageModelSettingsComponent {
   readonly rateLimitModel = signal({
     rateLimitPerMinute: this.service.imageRateLimitPerMinute(),
     maxConcurrentRequests: this.service.imageMaxConcurrentRequests(),
+    dailyLimit: this.service.imageDailyLimit(),
   });
   readonly rateLimitForm = form(this.rateLimitModel, (path) => {
     required(path.rateLimitPerMinute);
     min(path.rateLimitPerMinute, 0);
     required(path.maxConcurrentRequests);
     min(path.maxConcurrentRequests, 0);
+    required(path.dailyLimit);
+    min(path.dailyLimit, 0);
   });
 
   constructor() {
@@ -39,9 +42,10 @@ export class ImageModelSettingsComponent {
         return;
       }
 
-      const { rateLimitPerMinute, maxConcurrentRequests } = this.rateLimitModel();
+      const { rateLimitPerMinute, maxConcurrentRequests, dailyLimit } = this.rateLimitModel();
       const currentRateLimit = untracked(() => this.service.imageRateLimitPerMinute());
       const currentMaxConcurrent = untracked(() => this.service.imageMaxConcurrentRequests());
+      const currentDailyLimit = untracked(() => this.service.imageDailyLimit());
 
       if (rateLimitPerMinute !== currentRateLimit) {
         this.service.updateImageRateLimit(rateLimitPerMinute);
@@ -49,6 +53,10 @@ export class ImageModelSettingsComponent {
 
       if (maxConcurrentRequests !== currentMaxConcurrent) {
         this.service.updateImageMaxConcurrent(maxConcurrentRequests);
+      }
+
+      if (dailyLimit !== currentDailyLimit) {
+        this.service.updateImageDailyLimit(dailyLimit);
       }
     });
   }

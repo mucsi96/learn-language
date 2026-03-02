@@ -5,7 +5,8 @@
     color="accent"
     class="batch-audio-fab"
     (click)="startBatchAudioCreation()"
-    [disabled]="batchAudioService.isProcessing()"
+    [disabled]="batchAudioService.isProcessing() || isAudioLimitExceeded()"
+    [matTooltip]="audioLimitTooltip()"
     aria-label="Generate audio for cards"
   >
     <mat-icon>volume_up</mat-icon>

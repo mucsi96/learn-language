@@ -902,6 +902,8 @@ export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: 
   await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
   await createRateLimitSetting({ key: 'image-max-concurrent', value: 0 });
   await createRateLimitSetting({ key: 'audio-max-concurrent', value: 0 });
+  await createRateLimitSetting({ key: 'image-daily-limit', value: 0 });
+  await createRateLimitSetting({ key: 'audio-daily-limit', value: 0 });
 }
 
 export async function getTableData<T extends Record<string, string>>(
