@@ -183,6 +183,21 @@ export class EditVocabularyCardComponent {
     return images.some((image) => image.isLoading());
   }
 
+  isImageButtonDisabled(exampleIdx: number): boolean {
+    return (
+      this.areImagesLoading(exampleIdx) ||
+      this.dailyUsageService.isImageLimitReached() ||
+      !this.examplesTranslations()?.['en'][exampleIdx]()
+    );
+  }
+
+  imageButtonTooltip(exampleIdx: number): string {
+    if (!this.examplesTranslations()?.['en'][exampleIdx]()) {
+      return 'English translation required for image generation';
+    }
+    return this.dailyUsageService.imageLimitTooltip();
+  }
+
   onFavoriteToggled(exampleIdx: number, imageIdx: number) {
     const images = this.exampleImages()?.[exampleIdx];
     if (!images?.length) return;

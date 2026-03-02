@@ -9,6 +9,15 @@
     ></textarea>
   </mat-form-field>
   <mat-form-field class="field">
+    <mat-label>English Translation</mat-label>
+    <textarea
+      matInput
+      [formField]="speechForm.englishTranslation"
+      aria-label="English translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
     <mat-label>Hungarian Translation</mat-label>
     <textarea
       matInput
@@ -25,8 +34,8 @@
     mat-icon-button
     (click)="addImage()"
     aria-label="Add image"
-    [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
-    [matTooltip]="dailyUsageService.imageLimitTooltip()"
+    [disabled]="isImageButtonDisabled()"
+    [matTooltip]="imageButtonTooltip()"
   >
     <mat-icon>add_photo_alternate</mat-icon>
   </button>

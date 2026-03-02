@@ -185,6 +185,21 @@ export class EditGrammarCardComponent {
     return imgs.some((image) => image.isLoading());
   }
 
+  isImageButtonDisabled(): boolean {
+    return (
+      this.areImagesLoading() ||
+      this.dailyUsageService.isImageLimitReached() ||
+      !this.formModel().englishTranslation
+    );
+  }
+
+  imageButtonTooltip(): string {
+    if (!this.formModel().englishTranslation) {
+      return 'English translation required for image generation';
+    }
+    return this.dailyUsageService.imageLimitTooltip();
+  }
+
   onFavoriteToggled(imageIdx: number) {
     const imgs = this.images();
     if (!imgs?.length) return;

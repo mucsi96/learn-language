@@ -24,6 +24,12 @@
   column-gap: 1rem;
 }
 
+.translations {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 1rem;
+}
+
 .example {
   display: grid;
   gap: 1rem;
@@ -38,7 +44,7 @@
 
 .example-fields {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   column-gap: 1rem;
 }
 

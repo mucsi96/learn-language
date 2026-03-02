@@ -26,7 +26,7 @@
   </mat-form-field>
   }
 </div>
-<div class="word">
+<div class="translations">
   <mat-form-field class="field">
     <mat-label>German</mat-label>
     <input
@@ -34,6 +34,15 @@
       type="text"
       [(ngModel)]="word"
       aria-label="German translation"
+    />
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>English</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['en']"
+      aria-label="English translation"
     />
   </mat-form-field>
   <mat-form-field class="field">
@@ -74,8 +83,8 @@
         mat-icon-button
         (click)="addImage($index)"
         aria-label="Add example image"
-        [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
-        [matTooltip]="dailyUsageService.imageLimitTooltip()"
+        [disabled]="isImageButtonDisabled($index)"
+        [matTooltip]="imageButtonTooltip($index)"
       >
         <mat-icon>add_photo_alternate</mat-icon>
       </button>
@@ -91,6 +100,15 @@
         />
       </mat-form-field>
       @if(examplesTranslations(); as examplesTranslations) {
+      <mat-form-field class="field">
+        <mat-label>English</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['en'][$index]"
+          aria-label="Example in English"
+        />
+      </mat-form-field>
       <mat-form-field class="field">
         <mat-label>Hungarian</mat-label>
         <input

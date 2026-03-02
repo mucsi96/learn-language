@@ -809,3 +809,166 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     expect(cardData.examples[0].de).toBe('Das Kind [spielt] im Garten.');
   });
 });
+
+test('vocabulary card shows english translation fields', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('to leave');
+  await expect(page.getByLabel('Example in English', { exact: true })).toHaveValue(
+    "We leave at twelve o'clock."
+  );
+});
+
+test('vocabulary card without english translation disables image button', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'haus-haz',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Haus',
+      type: 'NOUN',
+      gender: 'NEUTER',
+      forms: [],
+      translation: {
+        hu: 'ház',
+        ch: 'Huus',
+      },
+      examples: [
+        {
+          de: 'Das Haus ist groß.',
+          hu: 'A ház nagy.',
+          ch: 'S Huus isch gross.',
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/haus-haz');
+
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Example in English', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Add example image' })).toBeDisabled();
+
+  await page.getByLabel('English translation', { exact: true }).fill('house');
+  await page.getByLabel('Example in English', { exact: true }).fill('The house is big.');
+
+  await page.getByRole('button', { name: 'Add example image' }).click();
+  await expect(page.getByRole('img')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'haus-haz'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    expect(cardData.translation.en).toBe('house');
+    expect(cardData.examples[0].en).toBe('The house is big.');
+    expect(cardData.examples[0].images).toHaveLength(4);
+  });
+});
+
+test('speech card shows english translation field', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'speech-missing-en',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 10,
+    data: {
+      examples: [
+        {
+          de: 'Wie heißen Sie?',
+          hu: 'Hogy hívják Önt?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/speech-a1/page/10/cards/speech-missing-en');
+
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Add image' })).toBeDisabled();
+
+  await page.getByLabel('English translation', { exact: true }).fill('What is your name?');
+  await page.getByRole('button', { name: 'Add image' }).click();
+  await expect(page.getByRole('img')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'speech-missing-en'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].en).toBe('What is your name?');
+    expect(cardData.examples[0].images).toHaveLength(4);
+  });
+});
+
+test('grammar card shows english translation field', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'grammar-missing-en',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 1,
+    data: {
+      examples: [
+        {
+          de: 'Er [geht] zur Schule.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/grammar-a1/page/1/cards/grammar-missing-en');
+
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Add image' })).toBeDisabled();
+
+  await page.getByLabel('English translation', { exact: true }).fill('He goes to school.');
+  await page.getByRole('button', { name: 'Add image' }).click();
+  await expect(page.getByRole('img')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'grammar-missing-en'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].en).toBe('He goes to school.');
+    expect(cardData.examples[0].images).toHaveLength(4);
+  });
+});
