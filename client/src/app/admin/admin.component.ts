@@ -37,6 +37,14 @@ ModuleRegistry.registerModules([
   RowSelectionModule,
 ]);
 
+type UnhealthyCardResponse = {
+  id: string;
+  source: { id: string; name: string; cardType: string };
+  sourcePageNumber: number;
+  data: Card['data'];
+  missingFields: string;
+};
+
 type UnhealthyCardRow = {
   id: string;
   word: string;
@@ -77,11 +85,8 @@ export class AdminComponent {
 
   readonly totalFlaggedCount = computed(() => this.flaggedCards.value()?.length ?? 0);
 
-  readonly unhealthyCards = resource<Card[], unknown>({
-    loader: async () => {
-      const cards = await fetchJson<Card[]>(this.http, '/api/cards/unhealthy');
-      return cards.map(card => mapCardDatesFromISOStrings(card));
-    },
+  readonly unhealthyCards = resource<UnhealthyCardResponse[], unknown>({
+    loader: () => fetchJson<UnhealthyCardResponse[]>(this.http, '/api/cards/unhealthy'),
   });
 
   readonly unhealthyCardRows = computed<UnhealthyCardRow[]>(() => {
@@ -89,16 +94,16 @@ export class AdminComponent {
     if (!cards) return [];
     return cards.map(card => ({
       id: card.id,
-      word: this.getCardLabel(card),
-      source: card.source.name ?? '',
-      cardType: card.source.cardType ?? '',
-      missingFields: this.getMissingFields(card),
+      word: card.data?.word ?? card.id,
+      source: card.source.name,
+      cardType: card.source.cardType,
+      missingFields: card.missingFields,
     }));
   });
 
   readonly totalUnhealthyCount = computed(() => this.unhealthyCards.value()?.length ?? 0);
 
-  private unhealthyGridApi: GridApi | null = null;
+  private readonly unhealthyGridApi = signal<GridApi | null>(null);
   readonly selectedUnhealthyIds = signal<readonly string[]>([]);
 
   readonly unhealthyTheme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
@@ -144,13 +149,14 @@ export class AdminComponent {
   readonly getUnhealthyRowId = (params: GetRowIdParams) => params.data.id;
 
   onUnhealthyGridReady(event: GridReadyEvent): void {
-    this.unhealthyGridApi = event.api;
+    this.unhealthyGridApi.set(event.api);
     event.api.sizeColumnsToFit();
   }
 
   onUnhealthySelectionChanged(): void {
-    if (!this.unhealthyGridApi) return;
-    const selectedRows = this.unhealthyGridApi.getSelectedRows() as UnhealthyCardRow[];
+    const api = this.unhealthyGridApi();
+    if (!api) return;
+    const selectedRows = api.getSelectedRows() as UnhealthyCardRow[];
     this.selectedUnhealthyIds.set(selectedRows.map(row => row.id));
   }
 
@@ -268,21 +274,5 @@ export class AdminComponent {
         console.error('Error deleting source:', error);
       }
     }
-  }
-
-  private getMissingFields(card: Card): string {
-    const missing: string[] = [];
-    const translation = card.data?.translation;
-
-    if (!translation?.['en']) missing.push('English translation');
-    if (!translation?.['hu']) missing.push('Hungarian translation');
-    if (!translation?.['ch']) missing.push('Swiss German translation');
-
-    if (card.source.cardType === 'vocabulary') {
-      if (!card.data?.gender) missing.push('gender');
-      if (!card.data?.type) missing.push('word type');
-    }
-
-    return missing.join(', ');
   }
 }

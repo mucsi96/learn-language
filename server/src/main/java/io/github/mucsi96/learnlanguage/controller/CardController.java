@@ -23,6 +23,7 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
+import io.github.mucsi96.learnlanguage.model.UnhealthyCardResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -269,11 +270,8 @@ public class CardController {
 
   @GetMapping("/cards/unhealthy")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<List<CardResponse>> getUnhealthyCards() {
-    final List<CardResponse> cards = cardService.getUnhealthyCards().stream()
-        .map(CardResponse::from)
-        .toList();
-    return ResponseEntity.ok(cards);
+  public ResponseEntity<List<UnhealthyCardResponse>> getUnhealthyCards() {
+    return ResponseEntity.ok(cardService.getUnhealthyCards());
   }
 
   @PutMapping("/cards/mark-draft")

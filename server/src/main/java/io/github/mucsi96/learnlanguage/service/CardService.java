@@ -11,6 +11,7 @@ import io.github.mucsi96.learnlanguage.model.CardTableRow;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
+import io.github.mucsi96.learnlanguage.model.UnhealthyCardResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
@@ -136,8 +137,24 @@ public class CardService {
     return cardRepository.findByFlaggedTrueOrderByDueAsc();
   }
 
-  public List<Card> getUnhealthyCards() {
-    return cardRepository.findUnhealthyCards();
+  public List<UnhealthyCardResponse> getUnhealthyCards() {
+    final List<Object[]> rows = cardRepository.findUnhealthyCardIdsWithMissingFields();
+    final List<String> ids = rows.stream().map(row -> (String) row[0]).toList();
+
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+
+    final var cardsById = cardRepository.findByIdInOrderByIdAsc(ids).stream()
+        .collect(Collectors.toMap(Card::getId, card -> card));
+
+    return rows.stream()
+        .map(row -> {
+          final String id = (String) row[0];
+          final String missingFields = (String) row[1];
+          return UnhealthyCardResponse.from(cardsById.get(id), missingFields);
+        })
+        .toList();
   }
 
   public List<SourceCardCount> getUnhealthyCardCountsBySource() {
