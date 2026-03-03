@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
@@ -14,6 +15,33 @@ import { Source, Card } from '../parser/types';
 import { fetchJson } from '../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
 import { CardTypeRegistry } from '../cardTypes/card-type.registry';
+import { AgGridAngular } from 'ag-grid-angular';
+import {
+  type ColDef,
+  type GridReadyEvent,
+  type GridApi,
+  type GetRowIdParams,
+  ModuleRegistry,
+  ClientSideRowModelModule,
+  ValidationModule,
+  ColumnAutoSizeModule,
+  themeMaterial,
+  colorSchemeDarkBlue,
+} from 'ag-grid-community';
+
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule,
+  ValidationModule,
+  ColumnAutoSizeModule,
+]);
+
+type UnhealthyCardRow = {
+  id: string;
+  word: string;
+  source: string;
+  cardType: string;
+  missingFields: string;
+};
 
 @Component({
   selector: 'app-admin',
@@ -22,6 +50,7 @@ import { CardTypeRegistry } from '../cardTypes/card-type.registry';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    AgGridAngular,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
@@ -32,6 +61,7 @@ export class AdminComponent {
   readonly router = inject(Router);
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly sources = this.sourcesService.sources.value;
   readonly loading = this.sourcesService.sources.isLoading;
@@ -45,12 +75,111 @@ export class AdminComponent {
 
   readonly totalFlaggedCount = computed(() => this.flaggedCards.value()?.length ?? 0);
 
+  readonly unhealthyCards = resource<Card[], unknown>({
+    loader: async () => {
+      const cards = await fetchJson<Card[]>(this.http, '/api/cards/unhealthy');
+      return cards.map(card => mapCardDatesFromISOStrings(card));
+    },
+  });
+
+  readonly unhealthyCardRows = computed<UnhealthyCardRow[]>(() => {
+    const cards = this.unhealthyCards.value();
+    if (!cards) return [];
+    return cards.map(card => ({
+      id: card.id,
+      word: this.getCardLabel(card),
+      source: card.source.name ?? '',
+      cardType: card.source.cardType ?? '',
+      missingFields: this.getMissingFields(card),
+    }));
+  });
+
+  readonly totalUnhealthyCount = computed(() => this.unhealthyCards.value()?.length ?? 0);
+
+  private unhealthyGridApi: GridApi | null = null;
+  readonly selectedUnhealthyIds = signal<readonly string[]>([]);
+
+  readonly unhealthyTheme = themeMaterial.withPart(colorSchemeDarkBlue).withParams({
+    backgroundColor: 'hsl(215, 28%, 17%)',
+    foregroundColor: 'hsl(220, 13%, 91%)',
+    headerBackgroundColor: 'hsl(217, 19%, 27%)',
+    headerTextColor: 'hsl(220, 13%, 91%)',
+    headerFontWeight: 500,
+    rowHoverColor: 'hsl(217, 19%, 22%)',
+    accentColor: 'hsl(220, 89%, 53%)',
+    selectedRowBackgroundColor: 'hsl(220, 89%, 53%, 0.15)',
+    fontFamily: 'system-ui',
+  });
+
+  readonly unhealthyColumnDefs: ColDef[] = [
+    {
+      headerName: 'Word',
+      field: 'word',
+      flex: 2,
+      checkboxSelection: true,
+      headerCheckboxSelection: true,
+    },
+    {
+      headerName: 'Source',
+      field: 'source',
+      flex: 1,
+    },
+    {
+      headerName: 'Type',
+      field: 'cardType',
+      width: 120,
+    },
+    {
+      headerName: 'Missing',
+      field: 'missingFields',
+      flex: 2,
+    },
+  ];
+
+  readonly unhealthyDefaultColDef: ColDef = {
+    resizable: true,
+    sortable: true,
+  };
+
+  readonly getUnhealthyRowId = (params: GetRowIdParams) => params.data.id;
+
+  onUnhealthyGridReady(event: GridReadyEvent): void {
+    this.unhealthyGridApi = event.api;
+    event.api.sizeColumnsToFit();
+  }
+
+  onUnhealthySelectionChanged(): void {
+    if (!this.unhealthyGridApi) return;
+    const selectedRows = this.unhealthyGridApi.getSelectedRows() as UnhealthyCardRow[];
+    this.selectedUnhealthyIds.set(selectedRows.map(row => row.id));
+  }
+
+  async markSelectedAsDraft(): Promise<void> {
+    const ids = this.selectedUnhealthyIds();
+    if (ids.length === 0) return;
+
+    await fetchJson(this.http, '/api/cards/mark-draft', {
+      method: 'put',
+      body: [...ids],
+    });
+
+    this.snackBar.open(`${ids.length} card(s) moved to draft`, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+
+    this.selectedUnhealthyIds.set([]);
+    this.unhealthyCards.reload();
+    this.sourcesService.refetchSources();
+  }
+
   getCardLabel(card: Card): string {
     const cardType = card.source.cardType;
     if (!cardType) return card.data?.word ?? card.id;
     const strategy = this.cardTypeRegistry.getStrategy(cardType);
     return strategy.getCardDisplayLabel(card);
   }
+
   readonly selectedSourceId = signal<string | null>(null);
   readonly selectedSource = computed(() => {
     const id = this.selectedSourceId();
@@ -139,5 +268,21 @@ export class AdminComponent {
         console.error('Error deleting source:', error);
       }
     }
+  }
+
+  private getMissingFields(card: Card): string {
+    const missing: string[] = [];
+    const translation = card.data?.translation;
+
+    if (!translation?.['en']) missing.push('English translation');
+    if (!translation?.['hu']) missing.push('Hungarian translation');
+    if (!translation?.['ch']) missing.push('Swiss German translation');
+
+    if (card.source.cardType === 'vocabulary') {
+      if (!card.data?.gender) missing.push('gender');
+      if (!card.data?.type) missing.push('word type');
+    }
+
+    return missing.join(', ');
   }
 }

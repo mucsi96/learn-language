@@ -15,6 +15,7 @@ public class SourceResponse {
     private Integer cardCount;
     private Integer draftCardCount;
     private Integer flaggedCardCount;
+    private Integer unhealthyCardCount;
     private LanguageLevel languageLevel;
     private SourceFormatType formatType;
 }

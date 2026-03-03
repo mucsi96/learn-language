@@ -267,6 +267,24 @@ public class CardController {
     return ResponseEntity.ok(cards);
   }
 
+  @GetMapping("/cards/unhealthy")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<List<CardResponse>> getUnhealthyCards() {
+    final List<CardResponse> cards = cardService.getUnhealthyCards().stream()
+        .map(CardResponse::from)
+        .toList();
+    return ResponseEntity.ok(cards);
+  }
+
+  @PutMapping("/cards/mark-draft")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ResponseEntity<Map<String, String>> markCardsAsDraft(@RequestBody List<String> cardIds) {
+    cardService.markCardsAsDraft(cardIds);
+
+    return ResponseEntity.ok(Map.of("detail",
+        String.format("%d card(s) marked as draft", cardIds.size())));
+  }
+
   @GetMapping("/cards/missing-audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {

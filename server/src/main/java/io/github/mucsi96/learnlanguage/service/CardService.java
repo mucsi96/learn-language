@@ -9,7 +9,9 @@ import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableRow;
 import io.github.mucsi96.learnlanguage.model.AudioData;
+import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
+import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
@@ -32,6 +34,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -134,6 +137,60 @@ public class CardService {
 
   public List<Card> getFlaggedCards() {
     return cardRepository.findByFlaggedTrueOrderByDueAsc();
+  }
+
+  public List<Card> getUnhealthyCards() {
+    return cardRepository.findByReadinessIn(List.of(CardReadiness.READY, CardReadiness.REVIEWED, CardReadiness.KNOWN))
+        .stream()
+        .filter(card -> isUnhealthy(card, cardTypeStrategyFactory))
+        .toList();
+  }
+
+  public List<SourceCardCount> getUnhealthyCardCountsBySource() {
+    return cardRepository.findByReadinessIn(List.of(CardReadiness.READY, CardReadiness.REVIEWED, CardReadiness.KNOWN))
+        .stream()
+        .filter(card -> isUnhealthy(card, cardTypeStrategyFactory))
+        .collect(Collectors.groupingBy(card -> card.getSource().getId(), Collectors.counting()))
+        .entrySet().stream()
+        .map(entry -> new SourceCardCount(entry.getKey(), entry.getValue().intValue()))
+        .toList();
+  }
+
+  @Transactional
+  public void markCardsAsDraft(List<String> cardIds) {
+    cardRepository.updateReadinessByIds(cardIds, CardReadiness.DRAFT);
+  }
+
+  private static boolean isUnhealthy(Card card, CardTypeStrategyFactory strategyFactory) {
+    final CardData data = card.getData();
+    if (data == null) {
+      return true;
+    }
+
+    if (isMissingTranslation(data)) {
+      return true;
+    }
+
+    final CardType cardType = card.getSource().getCardType();
+    return cardType == CardType.VOCABULARY && isMissingVocabularyFields(data);
+  }
+
+  private static boolean isMissingTranslation(CardData data) {
+    final Map<String, String> translation = data.getTranslation();
+    if (translation == null || translation.isEmpty()) {
+      return true;
+    }
+    return !hasText(translation.get("en"))
+        || !hasText(translation.get("hu"))
+        || !hasText(translation.get("ch"));
+  }
+
+  private static boolean isMissingVocabularyFields(CardData data) {
+    return !hasText(data.getGender()) || !hasText(data.getType());
+  }
+
+  private static boolean hasText(String value) {
+    return value != null && !value.isBlank();
   }
 
   public List<SourceCardCount> getFlaggedCardCountsBySource() {

@@ -46,6 +46,11 @@
           {{ source.flaggedCardCount }} flagged
         </p>
         }
+        @if (source.unhealthyCardCount) {
+        <p class="unhealthy-card-count">
+          {{ source.unhealthyCardCount }} unhealthy
+        </p>
+        }
       </mat-card-content>
     </mat-card>
   </article>
@@ -69,6 +74,36 @@
     </a>
     }
   </div>
+</section>
+}
+@if (totalUnhealthyCount()) {
+<section class="unhealthy-cards" aria-label="Unhealthy cards">
+  <div class="unhealthy-header">
+    <h2>Unhealthy Cards ({{ totalUnhealthyCount() }})</h2>
+    @if (selectedUnhealthyIds().length) {
+    <button
+      mat-flat-button
+      class="mark-draft-button"
+      (click)="markSelectedAsDraft()"
+      [attr.aria-label]="'Move ' + selectedUnhealthyIds().length + ' card(s) to draft'"
+    >
+      <mat-icon>drafts</mat-icon>
+      Move {{ selectedUnhealthyIds().length }} to draft
+    </button>
+    }
+  </div>
+  <ag-grid-angular
+    class="unhealthy-grid"
+    [theme]="unhealthyTheme"
+    [rowData]="unhealthyCardRows()"
+    [columnDefs]="unhealthyColumnDefs"
+    [defaultColDef]="unhealthyDefaultColDef"
+    [getRowId]="getUnhealthyRowId"
+    [rowSelection]="'multiple'"
+    [suppressRowClickSelection]="true"
+    (gridReady)="onUnhealthyGridReady($event)"
+    (selectionChanged)="onUnhealthySelectionChanged()"
+  />
 </section>
 }
 @if (selectedSource()) {

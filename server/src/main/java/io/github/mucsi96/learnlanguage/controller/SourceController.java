@@ -74,6 +74,7 @@ public class SourceController {
     var cardCounts = cardService.getCardCountsBySource();
     var draftCardCounts = cardService.getDraftCardCountsBySource();
     var flaggedCardCounts = cardService.getFlaggedCardCountsBySource();
+    var unhealthyCardCounts = cardService.getUnhealthyCardCountsBySource();
 
     return sources.stream().map(source -> {
       var cardCount = cardCounts.stream()
@@ -94,6 +95,12 @@ public class SourceController {
           .map(SourceCardCount::count)
           .orElse(0);
 
+      var unhealthyCardCount = unhealthyCardCounts.stream()
+          .filter(count -> count.sourceId().equals(source.getId()))
+          .findFirst()
+          .map(SourceCardCount::count)
+          .orElse(0);
+
       Integer pageCount = null;
       if (source.getSourceType() == SourceType.IMAGES) {
         pageCount = documentRepository.findFirstBySourceOrderByPageNumberDesc(source).map(Document::getPageNumber).orElse(0);
@@ -109,6 +116,7 @@ public class SourceController {
           .cardCount(cardCount)
           .draftCardCount(draftCardCount)
           .flaggedCardCount(flaggedCardCount)
+          .unhealthyCardCount(unhealthyCardCount)
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();
