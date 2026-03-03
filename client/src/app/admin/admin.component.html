@@ -99,8 +99,7 @@
     [columnDefs]="unhealthyColumnDefs"
     [defaultColDef]="unhealthyDefaultColDef"
     [getRowId]="getUnhealthyRowId"
-    [rowSelection]="'multiple'"
-    [suppressRowClickSelection]="true"
+    [rowSelection]="{ mode: 'multiRow', checkboxes: true, headerCheckbox: true, enableClickSelection: false }"
     (gridReady)="onUnhealthyGridReady($event)"
     (selectionChanged)="onUnhealthySelectionChanged()"
   />

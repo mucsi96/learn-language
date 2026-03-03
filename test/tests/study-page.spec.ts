@@ -444,9 +444,11 @@ test('flag card sets flagged in database', async ({ page }) => {
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Flag Card' }).click();
 
-  const card = await getCardFromDb('markieren-megjelolni');
-  expect(card.flagged).toBe(true);
-  expect(card.readiness).toBe('READY');
+  await expect(async () => {
+    const card = await getCardFromDb('markieren-megjelolni');
+    expect(card.flagged).toBe(true);
+    expect(card.readiness).toBe('READY');
+  }).toPass();
 });
 
 test('unflag card via context menu', async ({ page }) => {

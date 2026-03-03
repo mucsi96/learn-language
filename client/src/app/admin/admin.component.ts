@@ -25,6 +25,7 @@ import {
   ClientSideRowModelModule,
   ValidationModule,
   ColumnAutoSizeModule,
+  RowSelectionModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
@@ -33,6 +34,7 @@ ModuleRegistry.registerModules([
   ClientSideRowModelModule,
   ValidationModule,
   ColumnAutoSizeModule,
+  RowSelectionModule,
 ]);
 
 type UnhealthyCardRow = {
@@ -116,8 +118,6 @@ export class AdminComponent {
       headerName: 'Word',
       field: 'word',
       flex: 2,
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
     },
     {
       headerName: 'Source',
