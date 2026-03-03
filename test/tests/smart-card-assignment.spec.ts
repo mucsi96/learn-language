@@ -599,17 +599,21 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  const initialCards = await getStudySessionCards(page);
-  expect(initialCards[0].learningPartnerId).toBeNull();
-  expect(initialCards[1].learningPartnerId).toBe(partnerId);
+  await expect(async () => {
+    const initialCards = await getStudySessionCards(page);
+    expect(initialCards[0].learningPartnerId).toBeNull();
+    expect(initialCards[1].learningPartnerId).toBe(partnerId);
+  }).toPass();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Good' }).click();
   await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
-  const updatedCards = await getStudySessionCardsBySource('goethe-a1');
-  const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
-  expect(gradedCard?.learningPartnerId).toBe(partnerId);
+  await expect(async () => {
+    const updatedCards = await getStudySessionCardsBySource('goethe-a1');
+    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
+    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+  }).toPass();
 });
 
 test('smart assignment: learning card assignee does not swap after grading', async ({

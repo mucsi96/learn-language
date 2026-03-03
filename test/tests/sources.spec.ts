@@ -240,7 +240,7 @@ test('can delete a source and its cards', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Confirmation' })).not.toBeVisible();
 
-  await expect(page.getByText('Goethe B1')).not.toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' })).not.toBeVisible();
 
   const sourceAfterDelete = await getSource('goethe-b1');
   expect(sourceAfterDelete).toBeNull();

@@ -136,6 +136,25 @@ public class CardService {
     return cardRepository.findByFlaggedTrueOrderByDueAsc();
   }
 
+  public List<Card> getUnhealthyCards() {
+    return cardRepository.findUnhealthyCards();
+  }
+
+  public List<SourceCardCount> getUnhealthyCardCountsBySource() {
+    return cardRepository.countUnhealthyCardsBySourceGroupBySource()
+        .stream()
+        .map(record -> new SourceCardCount(
+            (String) record[0],
+            ((Long) record[1]).intValue())
+        )
+        .toList();
+  }
+
+  @Transactional
+  public void markCardsAsDraft(List<String> cardIds) {
+    cardRepository.updateReadinessByIds(cardIds, CardReadiness.DRAFT);
+  }
+
   public List<SourceCardCount> getFlaggedCardCountsBySource() {
     return cardRepository.countFlaggedCardsBySourceGroupBySource()
         .stream()

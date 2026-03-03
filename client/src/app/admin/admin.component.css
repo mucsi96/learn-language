@@ -98,6 +98,12 @@ p {
   font-size: 0.85rem;
 }
 
+.unhealthy-card-count {
+  color: #FF9800;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+}
+
 .flagged-cards {
   margin-top: 2rem;
 }
@@ -160,6 +166,34 @@ p {
   width: 1.125rem;
   height: 1.125rem;
   flex-shrink: 0;
+}
+
+.unhealthy-cards {
+  margin-top: 2rem;
+}
+
+.unhealthy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.unhealthy-header h2 {
+  color: var(--mat-sys-on-surface);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.mark-draft-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unhealthy-grid {
+  height: 400px;
+  width: 100%;
 }
 
 .source-actions {

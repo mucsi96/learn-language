@@ -215,6 +215,7 @@ export type Source = {
   cardCount?: number;
   draftCardCount?: number;
   flaggedCardCount?: number;
+  unhealthyCardCount?: number;
   languageLevel?: LanguageLevel;
   cardType?: CardType;
   formatType?: SourceFormatType;
