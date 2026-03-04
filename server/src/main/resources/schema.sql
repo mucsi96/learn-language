@@ -216,7 +216,7 @@ SELECT
         (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '') OR
         (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '') OR
         (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '') OR
-        (s.card_type = 'VOCABULARY' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
+        (s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
         (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''))
     ) THEN true ELSE false END AS is_unhealthy
 FROM learn_language.cards c
@@ -263,7 +263,7 @@ WITH computed AS (
             CASE WHEN c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '' THEN 'English translation' END,
             CASE WHEN c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '' THEN 'Hungarian translation' END,
             CASE WHEN c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '' THEN 'Swiss German translation' END,
-            CASE WHEN s.card_type = 'VOCABULARY' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '') THEN 'gender' END,
+            CASE WHEN s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '') THEN 'gender' END,
             CASE WHEN s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = '') THEN 'word type' END
         ], NULL) AS missing_fields
     FROM learn_language.cards c

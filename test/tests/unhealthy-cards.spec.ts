@@ -103,6 +103,29 @@ test('unhealthy filter does not show speech cards missing gender or word type', 
   }).toPass();
 });
 
+test('unhealthy filter does not show non-noun vocabulary cards without gender', async ({ page }) => {
+  await createCard({
+    cardId: 'verb-no-gender',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'spielen',
+      type: 'VERB',
+      translation: { en: 'to play', hu: 'játszani', ch: 'spile' },
+      forms: [],
+      examples: [],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(0);
+  }).toPass();
+});
+
 test('unhealthy filter does not show healthy cards', async ({ page }) => {
   await createCard({
     cardId: 'healthy-card',
