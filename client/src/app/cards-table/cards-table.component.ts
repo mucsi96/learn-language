@@ -401,7 +401,6 @@ export class CardsTableComponent {
       queryParams,
       queryParamsHandling: 'merge',
     });
-    this.refreshGrid();
   }
 
   onCardFilterChange(value: string): void {
