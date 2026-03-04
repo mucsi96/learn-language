@@ -22,11 +22,17 @@ public interface ReviewLogRepository
         SELECT card_id,
                (4.0 - rating) * GREATEST(EXTRACT(EPOCH FROM NOW() - review) / 86400, 1) as complexity
         FROM (
-            SELECT DISTINCT ON (card_id) card_id, rating, review
-            FROM learn_language.review_logs
-            WHERE card_id IN :cardIds AND learning_partner_id IS NULL
-            ORDER BY card_id, review DESC
-        ) latest_reviews
+            SELECT DISTINCT ON (rl.card_id) rl.card_id, rl.rating, rl.review
+            FROM learn_language.review_logs rl
+            INNER JOIN (
+                SELECT card_id, MAX(review::date) as last_review_date
+                FROM learn_language.review_logs
+                WHERE card_id IN :cardIds AND learning_partner_id IS NULL
+                GROUP BY card_id
+            ) latest ON rl.card_id = latest.card_id AND rl.review::date = latest.last_review_date
+            WHERE rl.learning_partner_id IS NULL
+            ORDER BY rl.card_id, rl.review ASC
+        ) first_review_on_last_day
         """, nativeQuery = true)
     List<Object[]> findCardComplexitiesWithoutPartner(@Param("cardIds") List<String> cardIds);
 
@@ -34,11 +40,17 @@ public interface ReviewLogRepository
         SELECT card_id,
                (4.0 - rating) * GREATEST(EXTRACT(EPOCH FROM NOW() - review) / 86400, 1) as complexity
         FROM (
-            SELECT DISTINCT ON (card_id) card_id, rating, review
-            FROM learn_language.review_logs
-            WHERE card_id IN :cardIds AND learning_partner_id = :learningPartnerId
-            ORDER BY card_id, review DESC
-        ) latest_reviews
+            SELECT DISTINCT ON (rl.card_id) rl.card_id, rl.rating, rl.review
+            FROM learn_language.review_logs rl
+            INNER JOIN (
+                SELECT card_id, MAX(review::date) as last_review_date
+                FROM learn_language.review_logs
+                WHERE card_id IN :cardIds AND learning_partner_id = :learningPartnerId
+                GROUP BY card_id
+            ) latest ON rl.card_id = latest.card_id AND rl.review::date = latest.last_review_date
+            WHERE rl.learning_partner_id = :learningPartnerId
+            ORDER BY rl.card_id, rl.review ASC
+        ) first_review_on_last_day
         """, nativeQuery = true)
     List<Object[]> findCardComplexitiesWithPartner(
         @Param("cardIds") List<String> cardIds,
