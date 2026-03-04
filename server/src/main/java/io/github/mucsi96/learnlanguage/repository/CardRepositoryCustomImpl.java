@@ -47,7 +47,7 @@ public class CardRepositoryCustomImpl implements CardRepositoryCustom {
                 .getResultList();
 
         return results.stream()
-                .map(row -> UnhealthyCardResponse.from((Card) row[0], (String) row[2]))
+                .map(row -> UnhealthyCardResponse.from((Card) row[0], (String) row[1]))
                 .toList();
     }
 }
