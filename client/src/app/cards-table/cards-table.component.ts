@@ -411,6 +411,7 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
+    this.selectedIds.set([]);
     await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
