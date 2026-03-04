@@ -36,14 +36,18 @@ public class CardRepositoryCustomImpl implements CardRepositoryCustom {
 
         final List<Object[]> results = session
                 .createNativeQuery(
-                        "SELECT {c.*}, ARRAY_TO_STRING(missing_fields, ', ') AS missing_fields FROM learn_language.unhealthy_cards c ORDER BY c.due ASC",
+                        "SELECT {c.*}, {s.*}, ARRAY_TO_STRING(c.missing_fields, ', ') AS missing_fields " +
+                        "FROM learn_language.unhealthy_cards c " +
+                        "JOIN learn_language.sources s ON c.source_id = s.id " +
+                        "ORDER BY c.due ASC",
                         Object[].class)
                 .addEntity("c", Card.class)
+                .addJoin("s", "c.source")
                 .addScalar("missing_fields", String.class)
                 .getResultList();
 
         return results.stream()
-                .map(row -> UnhealthyCardResponse.from((Card) row[0], (String) row[1]))
+                .map(row -> UnhealthyCardResponse.from((Card) row[0], (String) row[2]))
                 .toList();
     }
 }

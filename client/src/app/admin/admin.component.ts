@@ -39,7 +39,7 @@ ModuleRegistry.registerModules([
 
 type UnhealthyCardResponse = {
   id: string;
-  word: string;
+  word: string | null;
   source: { id: string; name: string; cardType: string };
   missingFields: string;
 };
