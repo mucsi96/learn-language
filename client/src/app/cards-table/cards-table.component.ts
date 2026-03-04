@@ -151,8 +151,11 @@ export class CardsTableComponent {
 
   readonly readinessFilter = linkedSignal<QuickFilter | null, readonly CardReadiness[]>({
     source: this.activeQuickFilter,
-    computation: (quickFilter): readonly CardReadiness[] =>
-      quickFilter === 'draft' ? ['DRAFT'] : ['READY', 'IN_REVIEW', 'REVIEWED'],
+    computation: (quickFilter): readonly CardReadiness[] => {
+      if (quickFilter === 'draft') return ['DRAFT'];
+      if (quickFilter === 'flagged' || quickFilter === 'unhealthy') return [];
+      return ['READY', 'IN_REVIEW', 'REVIEWED'];
+    },
   });
 
   constructor() {
