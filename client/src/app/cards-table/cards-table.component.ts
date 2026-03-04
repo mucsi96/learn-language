@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, linkedSignal, resource, signal } f
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -40,6 +41,8 @@ import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
 import { injectQueryParams } from '../utils/inject-query-params';
+
+type QuickFilter = 'unhealthy' | 'flagged' | 'draft';
 
 const RATING_LABELS: Record<number, string> = {
   1: '1 - Again',
@@ -83,6 +86,11 @@ const formatDaysAgo = (days: number): string => {
   return `${Math.floor(days / 365)} years ago`;
 };
 
+const VALID_QUICK_FILTERS: readonly QuickFilter[] = ['unhealthy', 'flagged', 'draft'];
+
+const parseQuickFilter = (value: string | null): QuickFilter | null =>
+  VALID_QUICK_FILTERS.includes(value as QuickFilter) ? (value as QuickFilter) : null;
+
 ModuleRegistry.registerModules([
   InfiniteRowModelModule,
   ClientSideRowModelModule,
@@ -100,6 +108,7 @@ ModuleRegistry.registerModules([
   imports: [
     CommonModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -117,10 +126,11 @@ export class CardsTableComponent {
   private readonly bulkCreationService = inject(BulkCardCreationService);
   private readonly sourcesService = inject(SourcesService);
   private readonly routeSourceId = injectParams<string>('sourceId');
-  private readonly draft = injectQueryParams<string>('draft');
+  private readonly filterParam = injectQueryParams<string>('filter');
 
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
-  readonly isDraftMode = computed(() => !!this.draft());
+  readonly activeQuickFilter = computed(() => parseQuickFilter(this.filterParam() as string | null));
+  readonly isDraftMode = computed(() => this.activeQuickFilter() === 'draft');
   readonly sourceCardType = computed(() => {
     const sources = this.sourcesService.sources.value();
     const id = this.sourceId();
@@ -135,10 +145,10 @@ export class CardsTableComponent {
     return ids.some(id => readinessMap.get(id) === 'DRAFT');
   });
 
-  readonly readinessFilter = linkedSignal<boolean, readonly CardReadiness[]>({
-    source: this.isDraftMode,
-    computation: (isDraft): readonly CardReadiness[] =>
-      isDraft ? ['DRAFT'] : ['READY', 'IN_REVIEW', 'REVIEWED'],
+  readonly readinessFilter = linkedSignal<QuickFilter | null, readonly CardReadiness[]>({
+    source: this.activeQuickFilter,
+    computation: (quickFilter): readonly CardReadiness[] =>
+      quickFilter === 'draft' ? ['DRAFT'] : ['READY', 'IN_REVIEW', 'REVIEWED'],
   });
 
   constructor() {
@@ -178,6 +188,14 @@ export class CardsTableComponent {
       : undefined;
   });
 
+  private readonly flaggedParam = computed(() =>
+    this.activeQuickFilter() === 'flagged' ? true : undefined
+  );
+
+  private readonly unhealthyParam = computed(() =>
+    this.activeQuickFilter() === 'unhealthy' ? true : undefined
+  );
+
   readonly allFilteredIds = resource({
     params: () => {
       const sourceId = this.sourceId();
@@ -196,6 +214,8 @@ export class CardsTableComponent {
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,
         cardFilter: this.cardFilter() || undefined,
+        flagged: this.flaggedParam(),
+        unhealthy: this.unhealthyParam(),
       };
     },
     loader: ({ params }) =>
@@ -365,6 +385,16 @@ export class CardsTableComponent {
       'cards',
       row.id,
     ]);
+  }
+
+  onQuickFilterChange(filter: QuickFilter): void {
+    const current = this.activeQuickFilter();
+    const queryParams = current === filter ? { filter: null } : { filter };
+    this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+    });
+    this.refreshGrid();
   }
 
   onCardFilterChange(value: string): void {
@@ -550,6 +580,8 @@ export class CardsTableComponent {
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,
         cardFilter: this.cardFilter() || undefined,
+        flagged: this.flaggedParam(),
+        unhealthy: this.unhealthyParam(),
       });
 
       const updatedMap = new Map(this.loadedRowReadiness());

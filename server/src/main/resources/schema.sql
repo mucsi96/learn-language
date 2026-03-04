@@ -211,7 +211,14 @@ SELECT
     s.card_type,
     lr.rating AS last_review_rating,
     lp.name AS last_review_learning_partner_name,
-    rs.review_score
+    rs.review_score,
+    CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
+        (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '') OR
+        (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '') OR
+        (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '') OR
+        (s.card_type = 'VOCABULARY' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
+        (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''))
+    ) THEN true ELSE false END AS is_unhealthy
 FROM learn_language.cards c
 JOIN learn_language.sources s ON c.source_id = s.id
 LEFT JOIN LATERAL (

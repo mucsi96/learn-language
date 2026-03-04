@@ -71,4 +71,7 @@ public class CardView {
 
     @Column(name = "review_score")
     private Integer reviewScore;
+
+    @Column(name = "is_unhealthy", nullable = false)
+    private Boolean isUnhealthy;
 }

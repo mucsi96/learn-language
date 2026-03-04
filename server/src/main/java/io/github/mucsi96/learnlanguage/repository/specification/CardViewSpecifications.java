@@ -64,6 +64,14 @@ public class CardViewSpecifications {
         return (root, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.due), cutoff);
     }
 
+    public static PredicateSpecification<CardView> isFlagged() {
+        return (root, cb) -> cb.isTrue(root.get(CardView_.flagged));
+    }
+
+    public static PredicateSpecification<CardView> isUnhealthy() {
+        return (root, cb) -> cb.isTrue(root.get(CardView_.isUnhealthy));
+    }
+
     public static PredicateSpecification<CardView> isDue() {
         final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
         return hasReadinessIn(List.of(CardReadiness.READY)).and(isDueBefore(cutoff));

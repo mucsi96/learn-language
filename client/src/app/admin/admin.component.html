@@ -41,70 +41,11 @@
           {{ source.draftCardCount }} drafts
         </p>
         }
-        @if (source.flaggedCardCount) {
-        <p class="flagged-card-count">
-          {{ source.flaggedCardCount }} flagged
-        </p>
-        }
-        @if (source.unhealthyCardCount) {
-        <p class="unhealthy-card-count">
-          {{ source.unhealthyCardCount }} unhealthy
-        </p>
-        }
       </mat-card-content>
     </mat-card>
   </article>
   }
 </section>
-@if (totalFlaggedCount()) {
-<section class="flagged-cards" aria-label="Flagged cards">
-  <h2>Flagged Cards ({{ totalFlaggedCount() }})</h2>
-  <div class="flagged-list">
-    @for (card of flaggedCards.value(); track card.id) {
-    <a
-      class="flagged-item"
-      [attr.href]="'/sources/' + card.source.id + '/page/' + card.sourcePageNumber + '/cards/' + card.id"
-      (click)="$event.preventDefault(); router.navigate(['/sources', card.source.id, 'page', card.sourcePageNumber, 'cards', card.id])"
-      [attr.aria-label]="'Edit flagged card: ' + getCardLabel(card)"
-    >
-      <mat-icon class="flagged-icon">flag</mat-icon>
-      <span class="flagged-label">{{ getCardLabel(card) }}</span>
-      <span class="flagged-source">{{ card.source.name }}</span>
-      <mat-icon class="flagged-edit-icon">edit</mat-icon>
-    </a>
-    }
-  </div>
-</section>
-}
-@if (totalUnhealthyCount()) {
-<section class="unhealthy-cards" aria-label="Unhealthy cards">
-  <div class="unhealthy-header">
-    <h2>Unhealthy Cards ({{ totalUnhealthyCount() }})</h2>
-    @if (selectedUnhealthyIds().length) {
-    <button
-      mat-flat-button
-      class="mark-draft-button"
-      (click)="markSelectedAsDraft()"
-      [attr.aria-label]="'Move ' + selectedUnhealthyIds().length + ' card(s) to draft'"
-    >
-      <mat-icon>drafts</mat-icon>
-      Move {{ selectedUnhealthyIds().length }} to draft
-    </button>
-    }
-  </div>
-  <ag-grid-angular
-    class="unhealthy-grid"
-    [theme]="unhealthyTheme"
-    [rowData]="unhealthyCardRows()"
-    [columnDefs]="unhealthyColumnDefs"
-    [defaultColDef]="unhealthyDefaultColDef"
-    [getRowId]="getUnhealthyRowId"
-    [rowSelection]="{ mode: 'multiRow', checkboxes: true, headerCheckbox: true, enableClickSelection: false }"
-    (gridReady)="onUnhealthyGridReady($event)"
-    (selectionChanged)="onUnhealthySelectionChanged()"
-  />
-</section>
-}
 @if (selectedSource()) {
 <nav class="source-actions" aria-label="Source actions">
   <button

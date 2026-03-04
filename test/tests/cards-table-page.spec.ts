@@ -1057,7 +1057,7 @@ test('draft query parameter shows only draft cards', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1098,7 +1098,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   expect(response.status).toBe(200);
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/mein-erstes-buch/cards?draft=true');
+    await page.goto('http://localhost:8180/sources/mein-erstes-buch/cards?filter=draft');
     const grid = page.getByRole('grid');
     const rows = await getGridData(grid);
     expect(rows.length).toBe(1);
@@ -1203,7 +1203,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
+    await page.goto('http://localhost:8180/sources/test-buch/cards?filter=draft');
     await expect(page.getByRole('columnheader', { name: /Select all 1 cards/ })).toBeVisible();
   }).toPass();
 
@@ -1223,7 +1223,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/test-buch/cards?draft=true');
+    await page.goto('http://localhost:8180/sources/test-buch/cards?filter=draft');
     await expect(page.getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
@@ -1282,7 +1282,7 @@ test('draft cards hide delete audio and mark as known actions', async ({ page })
     readiness: 'DRAFT',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1309,7 +1309,7 @@ test('draft cards do not navigate on row click', async ({ page }) => {
     readiness: 'DRAFT',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?draft=true');
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1389,5 +1389,126 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
     const rows = await getGridData(grid);
     expect(rows.length).toBe(3);
     rows.forEach((row) => expect(row.Readiness).toBe('IN_REVIEW'));
+  }).toPass();
+});
+
+test('quick filter buttons toggle URL filter param', async ({ page }) => {
+  await createCard({
+    cardId: 'qf-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      gender: 'M',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    flagged: true,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await page.getByRole('button', { name: 'Filter flagged cards' }).click();
+  await expect(page).toHaveURL(/filter=flagged/);
+
+  await page.getByRole('button', { name: 'Filter flagged cards' }).click();
+  await expect(page).not.toHaveURL(/filter=/);
+});
+
+test('quick filter flagged shows only flagged cards', async ({ page }) => {
+  await createCard({
+    cardId: 'flagged-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      gender: 'M',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    flagged: true,
+  });
+
+  await createCard({
+    cardId: 'normal-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Katze',
+      type: 'NOUN',
+      gender: 'F',
+      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=flagged');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]['ID']).toBe('flagged-card');
+  }).toPass();
+});
+
+test('quick filter draft shows only draft cards', async ({ page }) => {
+  await createCard({
+    cardId: 'draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Haus',
+      type: 'NOUN',
+      translation: { en: 'house' },
+    },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'ready-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Katze',
+      type: 'NOUN',
+      gender: 'F',
+      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]['ID']).toBe('draft-card');
+    expect(rows[0]['Readiness']).toBe('DRAFT');
+  }).toPass();
+});
+
+test('quick filter persists on page reload', async ({ page }) => {
+  await createCard({
+    cardId: 'flagged-reload',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      gender: 'M',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    flagged: true,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=flagged');
+  await page.reload();
+
+  await expect(page).toHaveURL(/filter=flagged/);
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]['ID']).toBe('flagged-reload');
   }).toPass();
 });
