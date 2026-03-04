@@ -39,9 +39,8 @@ ModuleRegistry.registerModules([
 
 type UnhealthyCardResponse = {
   id: string;
+  word: string;
   source: { id: string; name: string; cardType: string };
-  sourcePageNumber: number;
-  data: Card['data'];
   missingFields: string;
 };
 
@@ -94,7 +93,7 @@ export class AdminComponent {
     if (!cards) return [];
     return cards.map(card => ({
       id: card.id,
-      word: card.data?.word ?? card.id,
+      word: card.word ?? card.id,
       source: card.source.name,
       cardType: card.source.cardType,
       missingFields: card.missingFields,

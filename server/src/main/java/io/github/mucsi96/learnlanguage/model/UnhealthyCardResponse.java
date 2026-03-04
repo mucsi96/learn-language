@@ -10,27 +10,28 @@ import lombok.Data;
 public class UnhealthyCardResponse {
 
     private String id;
-    private CardResponse.CardSourceResponse source;
-    private Integer sourcePageNumber;
-    private CardData data;
+    private String word;
+    private UnhealthyCardSource source;
     private String missingFields;
+
+    @Data
+    @Builder
+    public static class UnhealthyCardSource {
+        private String id;
+        private String name;
+        private CardType cardType;
+    }
 
     public static UnhealthyCardResponse from(Card card, String missingFields) {
         final Source source = card.getSource();
         return UnhealthyCardResponse.builder()
                 .id(card.getId())
-                .source(CardResponse.CardSourceResponse.builder()
+                .word(card.getData() != null ? card.getData().getWord() : null)
+                .source(UnhealthyCardSource.builder()
                         .id(source.getId())
                         .name(source.getName())
-                        .sourceType(source.getSourceType())
-                        .startPage(source.getStartPage())
-                        .bookmarkedPage(source.getBookmarkedPage())
-                        .languageLevel(source.getLanguageLevel())
                         .cardType(source.getCardType())
-                        .formatType(source.getFormatType())
                         .build())
-                .sourcePageNumber(card.getSourcePageNumber())
-                .data(card.getData())
                 .missingFields(missingFields)
                 .build();
     }
