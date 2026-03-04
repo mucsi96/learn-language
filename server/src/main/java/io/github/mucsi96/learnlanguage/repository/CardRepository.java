@@ -54,9 +54,6 @@ public interface CardRepository
     @Modifying
     void deleteBySource(Source source);
 
-    @Query(value = "SELECT id, ARRAY_TO_STRING(missing_fields, ', ') AS missing_fields FROM learn_language.unhealthy_cards ORDER BY due ASC", nativeQuery = true)
-    List<Object[]> findUnhealthyCardIdsWithMissingFields();
-
-    @Query(value = "SELECT source_id, COUNT(*) FROM learn_language.unhealthy_cards GROUP BY source_id", nativeQuery = true)
-    List<Object[]> countUnhealthyCardsBySourceGroupBySource();
+    @Query(value = "SELECT source_id AS sourceId, COUNT(*) AS count FROM learn_language.unhealthy_cards GROUP BY source_id", nativeQuery = true)
+    List<SourceCardCountProjection> countUnhealthyCardsBySourceGroupBySource();
 }

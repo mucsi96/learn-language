@@ -138,31 +138,15 @@ public class CardService {
   }
 
   public List<UnhealthyCardResponse> getUnhealthyCards() {
-    final List<Object[]> rows = cardRepository.findUnhealthyCardIdsWithMissingFields();
-    final List<String> ids = rows.stream().map(row -> (String) row[0]).toList();
-
-    if (ids.isEmpty()) {
-      return List.of();
-    }
-
-    final var cardsById = cardRepository.findByIdInOrderByIdAsc(ids).stream()
-        .collect(Collectors.toMap(Card::getId, card -> card));
-
-    return rows.stream()
-        .map(row -> {
-          final String id = (String) row[0];
-          final String missingFields = (String) row[1];
-          return UnhealthyCardResponse.from(cardsById.get(id), missingFields);
-        })
-        .toList();
+    return cardRepository.findUnhealthyCards();
   }
 
   public List<SourceCardCount> getUnhealthyCardCountsBySource() {
     return cardRepository.countUnhealthyCardsBySourceGroupBySource()
         .stream()
-        .map(record -> new SourceCardCount(
-            (String) record[0],
-            ((Long) record[1]).intValue())
+        .map(projection -> new SourceCardCount(
+            projection.getSourceId(),
+            projection.getCount().intValue())
         )
         .toList();
   }
