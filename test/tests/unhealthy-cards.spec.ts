@@ -176,8 +176,7 @@ test('move selected unhealthy cards to draft', async ({ page }) => {
     expect(rows.length).toBeGreaterThanOrEqual(1);
   }).toPass();
 
-  const firstCheckbox = grid.locator('.ag-selection-checkbox').first();
-  await firstCheckbox.click();
+  await grid.getByRole('checkbox').first().click();
 
   const draftButton = section.getByRole('button', { name: /Move .* to draft/ });
   await expect(draftButton).toBeVisible();

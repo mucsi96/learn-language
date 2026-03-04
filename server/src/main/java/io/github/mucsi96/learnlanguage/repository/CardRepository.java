@@ -54,39 +54,6 @@ public interface CardRepository
     @Modifying
     void deleteBySource(Source source);
 
-    @Query(value = """
-        SELECT c.*
-        FROM learn_language.cards c
-        JOIN learn_language.sources s ON c.source_id = s.id
-        WHERE c.readiness IN ('READY', 'REVIEWED', 'KNOWN')
-        AND (
-            c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = ''
-            OR c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = ''
-            OR c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = ''
-            OR (s.card_type = 'VOCABULARY' AND (
-                c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = ''
-                OR c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''
-            ))
-        )
-        ORDER BY c.due ASC
-        """, nativeQuery = true)
-    List<Card> findUnhealthyCards();
-
-    @Query(value = """
-        SELECT c.source_id, COUNT(*)
-        FROM learn_language.cards c
-        JOIN learn_language.sources s ON c.source_id = s.id
-        WHERE c.readiness IN ('READY', 'REVIEWED', 'KNOWN')
-        AND (
-            c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = ''
-            OR c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = ''
-            OR c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = ''
-            OR (s.card_type = 'VOCABULARY' AND (
-                c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = ''
-                OR c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''
-            ))
-        )
-        GROUP BY c.source_id
-        """, nativeQuery = true)
-    List<Object[]> countUnhealthyCardsBySourceGroupBySource();
+    @Query(value = "SELECT source_id AS sourceId, COUNT(*) AS count FROM learn_language.unhealthy_cards GROUP BY source_id", nativeQuery = true)
+    List<SourceCardCountProjection> countUnhealthyCardsBySourceGroupBySource();
 }

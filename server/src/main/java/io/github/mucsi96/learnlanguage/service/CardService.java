@@ -11,6 +11,7 @@ import io.github.mucsi96.learnlanguage.model.CardTableRow;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
+import io.github.mucsi96.learnlanguage.model.UnhealthyCardResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
@@ -136,16 +137,16 @@ public class CardService {
     return cardRepository.findByFlaggedTrueOrderByDueAsc();
   }
 
-  public List<Card> getUnhealthyCards() {
+  public List<UnhealthyCardResponse> getUnhealthyCards() {
     return cardRepository.findUnhealthyCards();
   }
 
   public List<SourceCardCount> getUnhealthyCardCountsBySource() {
     return cardRepository.countUnhealthyCardsBySourceGroupBySource()
         .stream()
-        .map(record -> new SourceCardCount(
-            (String) record[0],
-            ((Long) record[1]).intValue())
+        .map(projection -> new SourceCardCount(
+            projection.getSourceId(),
+            projection.getCount().intValue())
         )
         .toList();
   }

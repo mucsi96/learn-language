@@ -248,3 +248,19 @@ LEFT JOIN LATERAL (
 ) rs ON true;
 
 CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON learn_language.card_view (id);
+
+CREATE OR REPLACE VIEW learn_language.unhealthy_cards AS
+WITH computed AS (
+    SELECT c.*,
+        ARRAY_REMOVE(ARRAY[
+            CASE WHEN c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '' THEN 'English translation' END,
+            CASE WHEN c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '' THEN 'Hungarian translation' END,
+            CASE WHEN c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '' THEN 'Swiss German translation' END,
+            CASE WHEN s.card_type = 'VOCABULARY' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '') THEN 'gender' END,
+            CASE WHEN s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = '') THEN 'word type' END
+        ], NULL) AS missing_fields
+    FROM learn_language.cards c
+    JOIN learn_language.sources s ON c.source_id = s.id
+    WHERE c.readiness IN ('READY', 'REVIEWED', 'KNOWN')
+)
+SELECT * FROM computed WHERE ARRAY_LENGTH(missing_fields, 1) > 0;
