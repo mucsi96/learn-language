@@ -527,6 +527,72 @@ test('smart assignment: hardest cards for each person at front of their queue', 
   expect(sessionCards[3].learningPartnerId).toBe(partnerId);
 });
 
+test('smart assignment: uses first grading of the day instead of last corrected review', async ({
+  page,
+}) => {
+  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const yesterday = new Date(Date.now() - 86400000);
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
+  const twoDaysAgoMorning = new Date(twoDaysAgo);
+  twoDaysAgoMorning.setHours(9, 0, 0, 0);
+  const twoDaysAgoLater = new Date(twoDaysAgo);
+  twoDaysAgoLater.setHours(9, 10, 0, 0);
+
+  await createCard({
+    cardId: 'corrected-javitott',
+    sourceId: 'goethe-a1',
+    data: { word: 'korrigiert', type: 'VERB', translation: { hu: 'javított' } },
+    due: yesterday,
+  });
+  await createCard({
+    cardId: 'easy-konnyu',
+    sourceId: 'goethe-a1',
+    data: { word: 'leicht', type: 'ADJECTIVE', translation: { hu: 'könnyű' } },
+    due: yesterday,
+  });
+
+  await createReviewLog({
+    cardId: 'corrected-javitott',
+    learningPartnerId: null,
+    rating: 1,
+    review: twoDaysAgoMorning,
+  });
+  await createReviewLog({
+    cardId: 'corrected-javitott',
+    learningPartnerId: null,
+    rating: 4,
+    review: twoDaysAgoLater,
+  });
+
+  await createReviewLog({
+    cardId: 'easy-konnyu',
+    learningPartnerId: null,
+    rating: 4,
+    review: twoDaysAgoMorning,
+  });
+
+  await createReviewLog({
+    cardId: 'corrected-javitott',
+    learningPartnerId: partnerId,
+    rating: 4,
+    review: twoDaysAgoMorning,
+  });
+  await createReviewLog({
+    cardId: 'easy-konnyu',
+    learningPartnerId: partnerId,
+    rating: 4,
+    review: twoDaysAgoMorning,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const sessionCards = await getStudySessionCards(page);
+
+  const correctedCard = sessionCards.find((c) => c.cardId === 'corrected-javitott');
+  expect(correctedCard?.learningPartnerId).toBeNull();
+});
+
 test('smart assignment: session limited to 50 most complex cards', async ({ page }) => {
   await page.reload();
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
