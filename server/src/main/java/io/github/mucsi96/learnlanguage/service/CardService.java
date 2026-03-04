@@ -172,13 +172,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter,
+      String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
-        minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
 
     return cardViewRepository.findAll(spec).stream()
         .map(CardView::getId)
@@ -192,13 +192,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter,
+      String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo, lastReviewRating,
-        minReviewScore, maxReviewScore, cardFilter, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
@@ -252,7 +252,7 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo, Integer lastReviewRating,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter,
+      String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
 
     PredicateSpecification<CardView> spec = hasSourceId(sourceId);
@@ -286,6 +286,12 @@ public class CardService {
     }
     if (StringUtils.hasText(cardFilter)) {
       spec = spec.and(hasCardFilter(cardFilter));
+    }
+    if (Boolean.TRUE.equals(flagged)) {
+      spec = spec.and(isFlagged());
+    }
+    if (Boolean.TRUE.equals(unhealthy)) {
+      spec = spec.and(isUnhealthy());
     }
 
     return spec;

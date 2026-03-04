@@ -35,6 +35,8 @@ export type CardTableParams = {
   minReviewScore?: number;
   maxReviewScore?: number;
   cardFilter?: string;
+  flagged?: boolean;
+  unhealthy?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -64,6 +66,8 @@ export class CardsTableService {
         ? { maxReviewScore: params.maxReviewScore }
         : {}),
       ...(params.cardFilter ? { cardFilter: params.cardFilter } : {}),
+      ...(params.flagged ? { flagged: params.flagged } : {}),
+      ...(params.unhealthy ? { unhealthy: params.unhealthy } : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
       new HttpParams()
@@ -86,6 +90,8 @@ export class CardsTableService {
     minReviewScore?: number;
     maxReviewScore?: number;
     cardFilter?: string;
+    flagged?: boolean;
+    unhealthy?: boolean;
   }): Promise<string[]> {
     const httpParams = Object.entries({
       ...(params.readiness ? { readiness: params.readiness } : {}),
@@ -103,6 +109,8 @@ export class CardsTableService {
         ? { maxReviewScore: params.maxReviewScore }
         : {}),
       ...(params.cardFilter ? { cardFilter: params.cardFilter } : {}),
+      ...(params.flagged ? { flagged: params.flagged } : {}),
+      ...(params.unhealthy ? { unhealthy: params.unhealthy } : {}),
     }).reduce(
       (acc, [key, value]) => acc.set(key, String(value)),
       new HttpParams()

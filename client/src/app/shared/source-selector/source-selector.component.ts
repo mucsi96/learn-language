@@ -85,7 +85,7 @@ export class SourceSelectorComponent {
   getSourceLinkQueryParams(source: Source): Record<string, string> | null {
     const mode = this.mode();
     if (mode === 'admin' && source.sourceType === 'ebookDictionary') {
-      return { draft: 'true' };
+      return { filter: 'draft' };
     }
     return null;
   }
