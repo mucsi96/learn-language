@@ -1,33 +1,41 @@
 <div class="container">
-  <div class="quick-filters" role="group" aria-label="Quick filters">
-    <button
-      mat-stroked-button
-      [class.active]="activeQuickFilter() === 'unhealthy'"
-      (click)="onQuickFilterChange('unhealthy')"
-      aria-label="Filter unhealthy cards"
-    >
-      <mat-icon>healing</mat-icon>
-      Unhealthy
-    </button>
-    <button
-      mat-stroked-button
-      [class.active]="activeQuickFilter() === 'flagged'"
-      (click)="onQuickFilterChange('flagged')"
-      aria-label="Filter flagged cards"
-    >
-      <mat-icon>flag</mat-icon>
-      Flagged
-    </button>
-    <button
-      mat-stroked-button
-      [class.active]="activeQuickFilter() === 'draft'"
-      (click)="onQuickFilterChange('draft')"
-      aria-label="Filter draft cards"
-    >
-      <mat-icon>drafts</mat-icon>
-      Draft
-    </button>
-  </div>
+  @if (unhealthyCount() || flaggedCount() || draftCount()) {
+    <div class="quick-filters" role="group" aria-label="Quick filters">
+      @if (unhealthyCount()) {
+        <button
+          mat-stroked-button
+          [class.active]="activeQuickFilter() === 'unhealthy'"
+          (click)="onQuickFilterChange('unhealthy')"
+          aria-label="Filter unhealthy cards"
+        >
+          <mat-icon>healing</mat-icon>
+          Unhealthy ({{ unhealthyCount() }})
+        </button>
+      }
+      @if (flaggedCount()) {
+        <button
+          mat-stroked-button
+          [class.active]="activeQuickFilter() === 'flagged'"
+          (click)="onQuickFilterChange('flagged')"
+          aria-label="Filter flagged cards"
+        >
+          <mat-icon>flag</mat-icon>
+          Flagged ({{ flaggedCount() }})
+        </button>
+      }
+      @if (draftCount()) {
+        <button
+          mat-stroked-button
+          [class.active]="activeQuickFilter() === 'draft'"
+          (click)="onQuickFilterChange('draft')"
+          aria-label="Filter draft cards"
+        >
+          <mat-icon>drafts</mat-icon>
+          Draft ({{ draftCount() }})
+        </button>
+      }
+    </div>
+  }
 
   <div class="filters-section" role="region" aria-label="Card filters">
     <mat-form-field appearance="outline" class="filter-field">

@@ -131,11 +131,15 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
   readonly activeQuickFilter = computed(() => parseQuickFilter(this.filterParam() as string | null));
   readonly isDraftMode = computed(() => this.activeQuickFilter() === 'draft');
-  readonly sourceCardType = computed(() => {
+  private readonly currentSource = computed(() => {
     const sources = this.sourcesService.sources.value();
     const id = this.sourceId();
-    return sources?.find(s => s.id === id)?.cardType;
+    return sources?.find(s => s.id === id);
   });
+  readonly sourceCardType = computed(() => this.currentSource()?.cardType);
+  readonly unhealthyCount = computed(() => this.currentSource()?.unhealthyCardCount ?? 0);
+  readonly flaggedCount = computed(() => this.currentSource()?.flaggedCardCount ?? 0);
+  readonly draftCount = computed(() => this.currentSource()?.draftCardCount ?? 0);
   readonly isCompletingDrafts = this.bulkCreationService.isProcessing;
   private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
 
