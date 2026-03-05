@@ -54,6 +54,6 @@ public interface CardRepository
     @Modifying
     void deleteBySource(Source source);
 
-    @Query(value = "SELECT source_id AS sourceId, COUNT(*) AS count FROM learn_language.unhealthy_cards GROUP BY source_id", nativeQuery = true)
+    @Query(value = "SELECT source_id AS sourceId, COUNT(*) AS count FROM learn_language.card_view WHERE is_unhealthy = true GROUP BY source_id", nativeQuery = true)
     List<SourceCardCountProjection> countUnhealthyCardsBySourceGroupBySource();
 }
