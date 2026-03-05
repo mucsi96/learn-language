@@ -1,4 +1,41 @@
 @if(pageNumber()) {
+@if (sourceType() === 'pdf') {
+<div class="document-selector">
+  @if (hasMultipleDocuments()) {
+  <mat-form-field>
+    <mat-label>Document</mat-label>
+    <mat-select
+      [value]="selectedDocumentId()"
+      (selectionChange)="onDocumentChange($event.value)"
+      aria-label="Select document"
+    >
+      @for (doc of documents(); track doc.id) {
+      <mat-option [value]="doc.id">{{ doc.fileName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
+  <button
+    mat-icon-button
+    aria-label="Add PDF document"
+    (click)="pdfFileInput.click()"
+    [disabled]="uploading()"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+  <input
+    #pdfFileInput
+    type="file"
+    accept=".pdf"
+    (change)="onPdfFileSelected($event)"
+    class="hidden-file-input"
+    aria-label="Upload PDF file"
+  />
+  @if (uploading()) {
+  <mat-spinner diameter="24"></mat-spinner>
+  }
+</div>
+}
 <div class="page-nav">
   <a
     mat-icon-button
