@@ -125,15 +125,50 @@ public class SourceController {
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/source/{sourceId}/page/{pageNumber}")
-  public PageResponse getPage(@PathVariable String sourceId, @PathVariable int pageNumber) throws IOException {
+  public PageResponse getPage(
+      @PathVariable String sourceId,
+      @PathVariable int pageNumber,
+      @RequestParam(required = false) Integer documentId) throws IOException {
     var source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found"));
 
-    var result = documentProcessorService.processDocument(source, pageNumber);
+    Document selectedDocument = null;
+    List<Document> pdfDocuments = List.of();
+
+    if (source.getSourceType() == SourceType.PDF) {
+      pdfDocuments = documentRepository.findAllBySourceAndPageNumberIsNullOrderByIdAsc(source);
+
+      if (documentId != null) {
+        final var requestedDocumentId = documentId;
+        selectedDocument = pdfDocuments.stream()
+            .filter(d -> d.getId().equals(requestedDocumentId))
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+      } else if (source.getBookmarkedDocumentId() != null) {
+        final var bookmarkedId = source.getBookmarkedDocumentId();
+        selectedDocument = pdfDocuments.stream()
+            .filter(d -> d.getId().equals(bookmarkedId))
+            .findFirst()
+            .orElse(pdfDocuments.isEmpty() ? null : pdfDocuments.get(0));
+      } else if (!pdfDocuments.isEmpty()) {
+        selectedDocument = pdfDocuments.get(0);
+      }
+    }
+
+    var result = documentProcessorService.processDocument(source, pageNumber, selectedDocument);
 
     result.setNumber(pageNumber);
     result.setSourceId(sourceId);
     result.setSourceName(source.getName());
+
+    if (source.getSourceType() == SourceType.PDF) {
+      result.setDocuments(pdfDocuments.stream()
+          .map(d -> PageResponse.DocumentInfo.builder()
+              .id(d.getId())
+              .fileName(d.getFileName())
+              .build())
+          .toList());
+    }
 
     final var regions = extractionRegionRepository.findBySourceAndPageNumber(source, pageNumber).stream()
         .map(region -> PageResponse.PersistedExtractionRegion.builder()
@@ -146,6 +181,9 @@ public class SourceController {
     result.setExtractionRegions(regions);
 
     source.setBookmarkedPage(pageNumber);
+    if (selectedDocument != null) {
+      source.setBookmarkedDocumentId(selectedDocument.getId());
+    }
     sourceService.saveSource(source);
 
     return result;
@@ -342,13 +380,41 @@ public class SourceController {
       Source source = sourceService.getSourceById(sourceId)
           .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
+      String originalFilename = file.getOriginalFilename();
+
+      if (source.getSourceType() == SourceType.PDF) {
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
+          Map<String, Object> errorResponse = new HashMap<>();
+          errorResponse.put("error", "Only PDF files are allowed");
+          return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        BinaryData fileData = BinaryData.fromBytes(file.getBytes());
+        fileStorageService.saveFile(fileData, "sources/" + originalFilename);
+
+        Document document = Document.builder()
+            .source(source)
+            .fileName(originalFilename)
+            .pageNumber(null)
+            .build();
+        final var savedDocument = documentRepository.save(document);
+
+        source.setBookmarkedDocumentId(savedDocument.getId());
+        sourceService.saveSource(source);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("fileName", originalFilename);
+        response.put("documentId", savedDocument.getId());
+        response.put("detail", "PDF document uploaded successfully");
+        return ResponseEntity.ok(response);
+      }
+
       if (source.getSourceType() != SourceType.IMAGES) {
         Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Document upload is only supported for image sources");
+        errorResponse.put("error", "Document upload is only supported for PDF and image sources");
         return ResponseEntity.badRequest().body(errorResponse);
       }
 
-      String originalFilename = file.getOriginalFilename();
       if (originalFilename == null || !isImageFile(originalFilename)) {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed");

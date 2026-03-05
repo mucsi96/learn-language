@@ -23,6 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 import { uploadDocument } from '../../utils/uploadDocument';
@@ -49,6 +50,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     MatLabel,
     MatInputModule,
     MatChipsModule,
+    MatSelectModule,
     BulkCardCreationFabComponent,
     SelectionRectangleComponent,
     SelectionActionsComponent,
@@ -97,6 +99,15 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   );
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
+  );
+  readonly documents = computed(
+    () => this.pageService.page.value()?.documents ?? []
+  );
+  readonly selectedDocumentId = computed(
+    () => this.pageService.page.value()?.documentId
+  );
+  readonly hasMultipleDocuments = computed(
+    () => this.documents().length > 1
   );
   readonly pageLoading = this.pageService.page.isLoading;
   readonly selectionRegionsLoading = computed(() =>
@@ -272,6 +283,45 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
     this.sourcesService.refetchSources();
     this.pageService.reload();
+  }
+
+  onDocumentChange(documentId: number) {
+    this.pageService.setDocument(documentId);
+  }
+
+  async handlePdfUpload(file: File): Promise<void> {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      this.uploadError.set('Only PDF files are allowed');
+      return;
+    }
+
+    this.uploading.set(true);
+    this.uploadError.set(null);
+
+    try {
+      const sourceId = this.selectedSourceId();
+      if (!sourceId) return;
+
+      const result = await uploadDocument<{ fileName: string; documentId: number }>(
+        this.http,
+        `/api/source/${sourceId}/documents`,
+        file
+      );
+
+      this.pageService.setDocument(result.documentId);
+    } catch (error) {
+      this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      this.uploading.set(false);
+    }
+  }
+
+  onPdfFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handlePdfUpload(input.files[0]);
+      input.value = '';
+    }
   }
 
   async addToKnownWords(itemLabel: string, itemId: string): Promise<void> {

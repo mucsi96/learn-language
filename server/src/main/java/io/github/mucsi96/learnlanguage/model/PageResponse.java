@@ -17,8 +17,17 @@ public class PageResponse {
     private CardType cardType;
     private SourceFormatType formatType;
     private Boolean hasImage;
+    private Integer documentId;
+    private List<DocumentInfo> documents;
     private List<Span> spans;
     private List<PersistedExtractionRegion> extractionRegions;
+
+    @Data
+    @Builder
+    public static class DocumentInfo {
+        private Integer id;
+        private String fileName;
+    }
 
     @Data
     @Builder

@@ -15,7 +15,7 @@ import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import { ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
 import { PagedSelection, SelectionStateService } from './selection-state.service';
 
-type SelectedSource = { sourceId: string; pageNumber: number } | undefined;
+type SelectedSource = { sourceId: string; pageNumber: number; documentId?: number } | undefined;
 type SelectedRectangle = {
   x: number;
   y: number;
@@ -44,9 +44,12 @@ export class PageService {
         return;
       }
 
+      const params = selectedSource.documentId
+        ? `?documentId=${selectedSource.documentId}`
+        : '';
       return fetchJson<Page>(
         this.http,
-        `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`
+        `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}${params}`
       );
     },
   });
@@ -144,6 +147,18 @@ export class PageService {
 
   setSource(sourceId: string, pageNumber: number) {
     this.selectedSource.set({ sourceId, pageNumber });
+  }
+
+  setDocument(documentId: number) {
+    const selectedSource = this.selectedSource();
+    if (!selectedSource) {
+      return;
+    }
+
+    this.selectedSource.set({
+      ...selectedSource,
+      documentId,
+    });
   }
 
   addSelectedRectangle(rectangle: SelectedRectangle) {

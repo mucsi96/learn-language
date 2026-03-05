@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image } from '../utils';
+import { createCard, createDocument, getDocuments, getSource, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image } from '../utils';
 
 async function navigateToSource(page, sourceName: string) {
   await page.goto('http://localhost:8180/sources');
@@ -244,4 +244,74 @@ test('speech source selector routing works', async ({ page }) => {
 
   await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a1/page/9');
   await expect(page.getByText('die Abfahrt')).toBeVisible();
+});
+
+test('displays document selector with multiple PDFs', async ({ page }) => {
+  await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  await navigateToSource(page, 'Goethe A1');
+
+  await expect(page.getByLabel('Select document')).toBeVisible();
+});
+
+test('switches between documents using dropdown', async ({ page }) => {
+  await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  await navigateToSource(page, 'Goethe A1');
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
+
+  await page.getByLabel('Select document').click();
+  await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
+
+  await expect(page.getByText('die Adresse')).toBeVisible();
+});
+
+test('preserves last used document on revisit', async ({ page }) => {
+  await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  await navigateToSource(page, 'Goethe A1');
+
+  await page.getByLabel('Select document').click();
+  await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
+  await expect(page.getByText('die Adresse')).toBeVisible();
+
+  await navigateToSource(page, 'Goethe A1');
+  await expect(page.getByText('die Adresse')).toBeVisible();
+
+  const source = await getSource('goethe-a1');
+  expect(source?.bookmarkedDocumentId).not.toBeNull();
+});
+
+test('does not show document selector with single PDF', async ({ page }) => {
+  await navigateToSource(page, 'Goethe A1');
+
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
+  await expect(page.getByLabel('Select document')).not.toBeVisible();
+});
+
+test('uploads additional PDF document to source', async ({ page }) => {
+  await navigateToSource(page, 'Goethe A1');
+  await expect(page.getByText('die Abfahrt')).toBeVisible();
+
+  await expect(page.getByLabel('Select document')).not.toBeVisible();
+
+  await page.getByLabel('Upload PDF file').setInputFiles({
+    name: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+    mimeType: 'application/pdf',
+    buffer: require('fs').readFileSync(require('path').join(__dirname, '..', 'Goethe-Zertifikat_A2_Wortliste.pdf')),
+  });
+
+  await expect(page.getByLabel('Select document')).toBeVisible();
+
+  const documents = await getDocuments('goethe-a1');
+  expect(documents.length).toBe(2);
 });

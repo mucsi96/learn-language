@@ -22,6 +22,8 @@ public interface DocumentRepository extends JpaRepository<Document, Integer> {
 
     Optional<Document> findBySourceAndPageNumberIsNull(Source source);
 
+    List<Document> findAllBySourceAndPageNumberIsNullOrderByIdAsc(Source source);
+
     Optional<Document> findFirstBySourceOrderByPageNumberDesc(Source source);
 
     void deleteBySource(Source source);
