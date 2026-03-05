@@ -41,6 +41,8 @@ import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
+import io.github.mucsi96.learnlanguage.service.CardService.SourceStateCount;
+import io.github.mucsi96.learnlanguage.service.CardService.SourceReadinessCount;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
@@ -75,6 +77,8 @@ public class SourceController {
     var draftCardCounts = cardService.getDraftCardCountsBySource();
     var flaggedCardCounts = cardService.getFlaggedCardCountsBySource();
     var unhealthyCardCounts = cardService.getUnhealthyCardCountsBySource();
+    var stateCounts = cardService.getCardStateCountsBySource();
+    var readinessCounts = cardService.getCardReadinessCountsBySource();
 
     return sources.stream().map(source -> {
       var cardCount = cardCounts.stream()
@@ -101,6 +105,14 @@ public class SourceController {
           .map(SourceCardCount::count)
           .orElse(0);
 
+      final Map<String, Integer> sourceStateCounts = stateCounts.stream()
+          .filter(sc -> sc.sourceId().equals(source.getId()))
+          .collect(Collectors.toMap(SourceStateCount::state, SourceStateCount::count));
+
+      final Map<String, Integer> sourceReadinessCounts = readinessCounts.stream()
+          .filter(rc -> rc.sourceId().equals(source.getId()))
+          .collect(Collectors.toMap(rc -> rc.readiness().name(), SourceReadinessCount::count));
+
       Integer pageCount = null;
       if (source.getSourceType() == SourceType.IMAGES) {
         pageCount = documentRepository.findFirstBySourceOrderByPageNumberDesc(source).map(Document::getPageNumber).orElse(0);
@@ -117,6 +129,8 @@ public class SourceController {
           .draftCardCount(draftCardCount)
           .flaggedCardCount(flaggedCardCount)
           .unhealthyCardCount(unhealthyCardCount)
+          .stateCounts(sourceStateCounts)
+          .readinessCounts(sourceReadinessCounts)
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();

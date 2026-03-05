@@ -49,6 +49,12 @@ public interface CardRepository
         """, nativeQuery = true)
     List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
 
+    @Query("SELECT c.source.id, c.state, COUNT(c) FROM Card c WHERE c.readiness <> io.github.mucsi96.learnlanguage.model.CardReadiness.DRAFT GROUP BY c.source.id, c.state")
+    List<Object[]> countCardsByStateAndSourceGroupBySource();
+
+    @Query("SELECT c.source.id, c.readiness, COUNT(c) FROM Card c GROUP BY c.source.id, c.readiness")
+    List<Object[]> countCardsByReadinessAndSourceGroupBySource();
+
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
 
     @Modifying
