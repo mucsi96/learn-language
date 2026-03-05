@@ -42,6 +42,8 @@ import static io.github.mucsi96.learnlanguage.repository.specification.CardViewS
 public class CardService {
 
   public static record SourceCardCount(String sourceId, Integer count) {}
+  public static record SourceStateCount(String sourceId, String state, Integer count) {}
+  public static record SourceReadinessCount(String sourceId, CardReadiness readiness, Integer count) {}
 
   private final CardRepository cardRepository;
   private final CardViewRepository cardViewRepository;
@@ -157,6 +159,28 @@ public class CardService {
         .map(record -> new SourceCardCount(
             (String) record[0],
             ((Long) record[1]).intValue())
+        )
+        .toList();
+  }
+
+  public List<SourceStateCount> getCardStateCountsBySource() {
+    return cardRepository.countCardsByStateAndSourceGroupBySource()
+        .stream()
+        .map(record -> new SourceStateCount(
+            (String) record[0],
+            (String) record[1],
+            ((Long) record[2]).intValue())
+        )
+        .toList();
+  }
+
+  public List<SourceReadinessCount> getCardReadinessCountsBySource() {
+    return cardRepository.countCardsByReadinessAndSourceGroupBySource()
+        .stream()
+        .map(record -> new SourceReadinessCount(
+            (String) record[0],
+            (CardReadiness) record[1],
+            ((Long) record[2]).intValue())
         )
         .toList();
   }

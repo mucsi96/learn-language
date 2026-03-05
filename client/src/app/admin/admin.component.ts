@@ -10,6 +10,19 @@ import { SourcesService } from '../sources.service';
 import { SourceDialogComponent } from '../shared/source-dialog/source-dialog.component';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { Source } from '../parser/types';
+import { StateComponent } from '../shared/state/state.component';
+import { CardState } from '../shared/state/card-state';
+
+const READINESS_LABELS: Record<string, string> = {
+  'DRAFT': 'Draft',
+  'IN_REVIEW': 'In Review',
+  'REVIEWED': 'Reviewed',
+  'READY': 'Ready',
+  'KNOWN': 'Known',
+};
+
+const STATE_ORDER: readonly CardState[] = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
+const READINESS_ORDER = ['READY', 'KNOWN', 'IN_REVIEW', 'REVIEWED'] as const;
 
 @Component({
   selector: 'app-admin',
@@ -18,6 +31,7 @@ import { Source } from '../parser/types';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    StateComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
@@ -45,6 +59,33 @@ export class AdminComponent {
   readonly isEbookDictionary = computed(() =>
     this.selectedSource()?.sourceType === 'ebookDictionary'
   );
+
+  hasStateCounts(source: Source): boolean {
+    return Object.keys(source.stateCounts ?? {}).length > 0;
+  }
+
+  getStateCounts(source: Source): { state: CardState; count: number }[] {
+    const counts = source.stateCounts ?? {};
+    return STATE_ORDER
+      .filter((state) => counts[state] !== undefined)
+      .map((state) => ({ state, count: counts[state] }));
+  }
+
+  hasReadinessCounts(source: Source): boolean {
+    const counts = source.readinessCounts ?? {};
+    return READINESS_ORDER.some((r) => counts[r] !== undefined);
+  }
+
+  getReadinessCounts(source: Source): { readiness: string; count: number }[] {
+    const counts = source.readinessCounts ?? {};
+    return READINESS_ORDER
+      .filter((readiness) => counts[readiness] !== undefined)
+      .map((readiness) => ({ readiness, count: counts[readiness] }));
+  }
+
+  getReadinessLabel(readiness: string): string {
+    return READINESS_LABELS[readiness] ?? readiness;
+  }
 
   navigateToPages(): void {
     const source = this.selectedSource();
