@@ -68,13 +68,6 @@ if command -v snap >/dev/null 2>&1; then
     fi
 fi
 
-if command -v pip3 >/dev/null 2>&1; then
-    echo "Updating pip..."
-    pip3 install --upgrade pip
-    echo "Updating Python project requirements..."
-    pip3 install --upgrade -r requirements.txt
-fi
-
 if command -v az >/dev/null 2>&1; then
     echo "Ensuring Azure CLI extensions are up to date..."
     az extension list --query "[].name" -o tsv | while IFS= read -r extension; do
