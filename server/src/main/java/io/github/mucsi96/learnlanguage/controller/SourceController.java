@@ -162,7 +162,7 @@ public class SourceController {
         .toList();
     result.setExtractionRegions(regions);
 
-    source.setBookmarkedPage(pageNumber);
+    source.setBookmarkedPage(result.getNumber());
     if (selectedDocument != null) {
       source.setBookmarkedDocumentId(selectedDocument.getId());
     }

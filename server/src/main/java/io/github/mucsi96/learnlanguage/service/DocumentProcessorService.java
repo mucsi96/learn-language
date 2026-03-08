@@ -81,10 +81,12 @@ public class DocumentProcessorService {
     final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
-      var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
+      final int pageCount = document.getNumberOfPages();
+      final int clampedPageNumber = Math.max(1, Math.min(pageNumber, pageCount));
+      var mediaBox = document.getPage(clampedPageNumber - 1).getMediaBox();
       var width = mediaBox.getWidth();
       var height = mediaBox.getHeight();
-      var spans = new SpanExtractor().extractSpans(bytes, pageNumber).stream()
+      var spans = new SpanExtractor().extractSpans(bytes, clampedPageNumber).stream()
           .map((SpanExtractor.Span span) -> {
             String searchTerm = Pattern.compile("\\s?[,/(-]").split(span.getText())[0].strip();
             return PageResponse.Span.builder()
@@ -103,13 +105,14 @@ public class DocumentProcessorService {
       return PageResponse.builder()
           .width(width)
           .height(height)
-          .number(pageNumber)
+          .number(clampedPageNumber)
           .sourceId(source.getId())
           .sourceName(source.getName())
           .sourceType(SourceType.PDF)
           .cardType(source.getCardType())
           .formatType(source.getFormatType())
           .documentId(pdfDocument.getId())
+          .pageCount(pageCount)
           .spans(spans)
           .build();
     }

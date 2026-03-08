@@ -157,6 +157,7 @@ export class PageService {
 
     this.selectedSource.set({
       ...selectedSource,
+      pageNumber: 1,
       documentId,
     });
   }

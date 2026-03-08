@@ -122,6 +122,7 @@ export type Page = {
   formatType?: SourceFormatType;
   hasImage?: boolean;
   documentId?: number;
+  pageCount?: number;
   documents?: DocumentInfo[];
   width: number;
   height: number;

@@ -272,6 +272,41 @@ test('switches between documents using dropdown', async ({ page }) => {
   await expect(page.getByText('die Adresse')).toBeVisible();
 });
 
+test('resets page to 1 when switching documents', async ({ page }) => {
+  await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  await navigateToSource(page, 'Goethe A1');
+  await page.getByRole('link', { name: 'Next page' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('10');
+
+  await page.getByLabel('Select document').click();
+  await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
+
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
+  await expect(page).toHaveURL(/\/page\/1$/);
+});
+
+test('resets bookmarked page when switching documents', async ({ page }) => {
+  await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  await navigateToSource(page, 'Goethe A1');
+  await page.getByRole('link', { name: 'Next page' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('10');
+
+  await page.getByLabel('Select document').click();
+  await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
+
+  const source = await getSource('goethe-a1');
+  expect(source?.bookmarkedPage).toBe(1);
+});
+
 test('preserves last used document on revisit', async ({ page }) => {
   await createDocument({
     sourceId: 'goethe-a1',

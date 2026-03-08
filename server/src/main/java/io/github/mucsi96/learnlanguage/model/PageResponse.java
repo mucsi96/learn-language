@@ -18,6 +18,7 @@ public class PageResponse {
     private SourceFormatType formatType;
     private Boolean hasImage;
     private Integer documentId;
+    private Integer pageCount;
     private List<DocumentInfo> documents;
     private List<Span> spans;
     private List<PersistedExtractionRegion> extractionRegions;

@@ -286,6 +286,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onDocumentChange(documentId: number) {
+    this.router.navigate(['/sources', this.selectedSourceId(), 'page', 1]);
     this.pageService.setDocument(documentId);
   }
 
@@ -308,6 +309,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
         file
       );
 
+      this.router.navigate(['/sources', sourceId, 'page', 1]);
       this.pageService.setDocument(result.documentId);
     } catch (error) {
       this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
