@@ -156,6 +156,51 @@ test('strips non-favorite images from reviewed cards and deletes their files', a
   });
 });
 
+test('strips all images from known cards including favorites', async ({ page }) => {
+  const favoriteImageId = 'fav-image-known-1';
+  const nonFavoriteImageId = 'non-fav-image-known-1';
+
+  await createCard({
+    cardId: 'known-card-with-images',
+    sourceId: 'goethe-a1',
+    readiness: 'KNOWN',
+    data: {
+      word: 'Tisch',
+      type: 'NOUN',
+      translation: { en: 'table', hu: 'asztal' },
+      forms: [],
+      examples: [
+        {
+          de: 'Der Tisch ist rund.',
+          en: 'The table is round.',
+          hu: 'Az asztal kerek.',
+          isSelected: true,
+          images: [
+            { id: favoriteImageId, isFavorite: true },
+            { id: nonFavoriteImageId },
+          ],
+        },
+      ],
+    },
+  });
+
+  writeStorageFile(`images/${favoriteImageId}.webp`, yellowImage);
+  writeStorageFile(`images/${nonFavoriteImageId}.webp`, redImage);
+
+  await triggerCleanup();
+
+  expect(storageFileExists(`images/${favoriteImageId}.webp`)).toBe(false);
+  expect(storageFileExists(`images/${nonFavoriteImageId}.webp`)).toBe(false);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'known-card-with-images'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images).toBeNull();
+  });
+});
+
 test('preserves non-favorite images on in-review cards', async ({ page }) => {
   const favoriteImageId = 'fav-image-2';
   const nonFavoriteImageId = 'non-fav-image-2';
