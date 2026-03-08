@@ -40,9 +40,7 @@ import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
-import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
-import io.github.mucsi96.learnlanguage.service.CardService.SourceStateCount;
-import io.github.mucsi96.learnlanguage.service.CardService.SourceReadinessCount;
+import io.github.mucsi96.learnlanguage.service.CardService.SourceStats;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
@@ -72,34 +70,16 @@ public class SourceController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
   public List<SourceResponse> getSources() {
-    var sources = sourceService.getAllSources();
-
-    final Map<String, Integer> cardCountMap = cardService.getCardCountsBySource().stream()
-        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
-
-    final Map<String, Integer> draftCardCountMap = cardService.getDraftCardCountsBySource().stream()
-        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
-
-    final Map<String, Integer> flaggedCardCountMap = cardService.getFlaggedCardCountsBySource().stream()
-        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
-
-    final Map<String, Integer> unhealthyCardCountMap = cardService.getUnhealthyCardCountsBySource().stream()
-        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
-
-    final Map<String, List<SourceStateCount>> stateCountsBySource = cardService.getCardStateCountsBySource().stream()
-        .collect(Collectors.groupingBy(SourceStateCount::sourceId));
-
-    final Map<String, List<SourceReadinessCount>> readinessCountsBySource = cardService.getCardReadinessCountsBySource().stream()
-        .collect(Collectors.groupingBy(SourceReadinessCount::sourceId));
+    final var sources = sourceService.getAllSources();
+    final var statsMap = cardService.getSourceStats();
+    final var emptyStats = SourceStats.builder()
+        .cardCount(0).draftCardCount(0).flaggedCardCount(0).unhealthyCardCount(0)
+        .stateCounts(Map.of()).readinessCounts(Map.of())
+        .build();
 
     return sources.stream().map(source -> {
       final var sourceId = source.getId();
-
-      final Map<String, Integer> sourceStateCounts = stateCountsBySource.getOrDefault(sourceId, List.of()).stream()
-          .collect(Collectors.toMap(SourceStateCount::state, SourceStateCount::count));
-
-      final Map<String, Integer> sourceReadinessCounts = readinessCountsBySource.getOrDefault(sourceId, List.of()).stream()
-          .collect(Collectors.toMap(rc -> rc.readiness().name(), SourceReadinessCount::count));
+      final var stats = statsMap.getOrDefault(sourceId, emptyStats);
 
       Integer pageCount = null;
       if (source.getSourceType() == SourceType.IMAGES) {
@@ -113,12 +93,12 @@ public class SourceController {
           .cardType(source.getCardType())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
-          .cardCount(cardCountMap.getOrDefault(sourceId, 0))
-          .draftCardCount(draftCardCountMap.getOrDefault(sourceId, 0))
-          .flaggedCardCount(flaggedCardCountMap.getOrDefault(sourceId, 0))
-          .unhealthyCardCount(unhealthyCardCountMap.getOrDefault(sourceId, 0))
-          .stateCounts(sourceStateCounts)
-          .readinessCounts(sourceReadinessCounts)
+          .cardCount(stats.getCardCount())
+          .draftCardCount(stats.getDraftCardCount())
+          .flaggedCardCount(stats.getFlaggedCardCount())
+          .unhealthyCardCount(stats.getUnhealthyCardCount())
+          .stateCounts(stats.getStateCounts())
+          .readinessCounts(stats.getReadinessCounts())
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();

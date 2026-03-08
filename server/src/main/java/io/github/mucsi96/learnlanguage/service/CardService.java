@@ -31,9 +31,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.Builder;
+import lombok.Data;
 
 import static io.github.mucsi96.learnlanguage.repository.specification.CardViewSpecifications.*;
 
@@ -41,9 +46,16 @@ import static io.github.mucsi96.learnlanguage.repository.specification.CardViewS
 @RequiredArgsConstructor
 public class CardService {
 
-  public static record SourceCardCount(String sourceId, Integer count) {}
-  public static record SourceStateCount(String sourceId, String state, Integer count) {}
-  public static record SourceReadinessCount(String sourceId, CardReadiness readiness, Integer count) {}
+  @Builder
+  @Data
+  public static class SourceStats {
+    private final int cardCount;
+    private final int draftCardCount;
+    private final int flaggedCardCount;
+    private final int unhealthyCardCount;
+    private final Map<String, Integer> stateCounts;
+    private final Map<String, Integer> readinessCounts;
+  }
 
   private final CardRepository cardRepository;
   private final CardViewRepository cardViewRepository;
@@ -114,75 +126,64 @@ public class CardService {
     return cardRepository.findTopByOrderByLastReviewDesc(PageRequest.of(0, limit));
   }
 
-  public List<SourceCardCount> getCardCountsBySource() {
-    return cardRepository.countCardsBySourceGroupBySource()
-        .stream()
-        .map(record -> new SourceCardCount(
-            (String) record[0],
-            ((Long) record[1]).intValue())
-        )
-        .toList();
-  }
+  public Map<String, SourceStats> getSourceStats() {
+    final Map<String, Map<String, Integer>> stateCounts = new HashMap<>();
+    final Map<String, Map<String, Integer>> readinessCounts = new HashMap<>();
+    final Map<String, Integer> cardCounts = new HashMap<>();
+    final Map<String, Integer> draftCounts = new HashMap<>();
+    final Map<String, Integer> flaggedCounts = new HashMap<>();
+    final Map<String, Integer> unhealthyCounts = new HashMap<>();
 
-  public List<SourceCardCount> getDraftCardCountsBySource() {
-    return cardRepository.countDraftCardsBySourceGroupBySource()
-        .stream()
-        .map(record -> new SourceCardCount(
-            (String) record[0],
-            ((Long) record[1]).intValue())
-        )
-        .toList();
+    cardRepository.getSourceCardStats().forEach(row -> {
+      final var sourceId = (String) row[0];
+      final var readiness = (String) row[1];
+      final var state = (String) row[2];
+      final var flagged = (Boolean) row[3];
+      final var unhealthy = (Boolean) row[4];
+      final var count = ((Long) row[5]).intValue();
+
+      final var isDraft = "DRAFT".equals(readiness);
+
+      if (isDraft) {
+        draftCounts.merge(sourceId, count, Integer::sum);
+      } else {
+        cardCounts.merge(sourceId, count, Integer::sum);
+        stateCounts.computeIfAbsent(sourceId, k -> new HashMap<>())
+            .merge(state, count, Integer::sum);
+      }
+
+      readinessCounts.computeIfAbsent(sourceId, k -> new HashMap<>())
+          .merge(readiness, count, Integer::sum);
+
+      if (flagged) {
+        flaggedCounts.merge(sourceId, count, Integer::sum);
+      }
+      if (unhealthy) {
+        unhealthyCounts.merge(sourceId, count, Integer::sum);
+      }
+    });
+
+    return readinessCounts.keySet().stream()
+        .collect(Collectors.toMap(
+            sourceId -> sourceId,
+            sourceId -> SourceStats.builder()
+                .cardCount(cardCounts.getOrDefault(sourceId, 0))
+                .draftCardCount(draftCounts.getOrDefault(sourceId, 0))
+                .flaggedCardCount(flaggedCounts.getOrDefault(sourceId, 0))
+                .unhealthyCardCount(unhealthyCounts.getOrDefault(sourceId, 0))
+                .stateCounts(stateCounts.getOrDefault(sourceId, Map.of()))
+                .readinessCounts(readinessCounts.getOrDefault(sourceId, Map.of()))
+                .build()
+        ));
   }
 
   public List<Card> getFlaggedCards() {
     return cardRepository.findByFlaggedTrueOrderByDueAsc();
   }
 
-  public List<SourceCardCount> getUnhealthyCardCountsBySource() {
-    return cardRepository.countUnhealthyCardsBySourceGroupBySource()
-        .stream()
-        .map(projection -> new SourceCardCount(
-            projection.getSourceId(),
-            projection.getCount().intValue())
-        )
-        .toList();
-  }
-
   @Transactional
   public void markCardsAsDraft(List<String> cardIds) {
     cardRepository.updateReadinessByIds(cardIds, CardReadiness.DRAFT);
-  }
-
-  public List<SourceCardCount> getFlaggedCardCountsBySource() {
-    return cardRepository.countFlaggedCardsBySourceGroupBySource()
-        .stream()
-        .map(record -> new SourceCardCount(
-            (String) record[0],
-            ((Long) record[1]).intValue())
-        )
-        .toList();
-  }
-
-  public List<SourceStateCount> getCardStateCountsBySource() {
-    return cardRepository.countCardsByStateAndSourceGroupBySource()
-        .stream()
-        .map(record -> new SourceStateCount(
-            (String) record[0],
-            (String) record[1],
-            ((Long) record[2]).intValue())
-        )
-        .toList();
-  }
-
-  public List<SourceReadinessCount> getCardReadinessCountsBySource() {
-    return cardRepository.countCardsByReadinessAndSourceGroupBySource()
-        .stream()
-        .map(record -> new SourceReadinessCount(
-            (String) record[0],
-            CardReadiness.valueOf((String) record[1]),
-            ((Long) record[2]).intValue())
-        )
-        .toList();
   }
 
   public List<String> getFilteredCardIds(
