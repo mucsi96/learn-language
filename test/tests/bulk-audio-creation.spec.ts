@@ -1236,7 +1236,7 @@ test('bulk audio creation skips front audio when front audio disabled', async ({
   });
 });
 
-test('bulk audio creation cleans up front audio when front audio disabled', async ({ page }) => {
+test('bulk audio creation hides generate button when front audio disabled and card has all back audio', async ({ page }) => {
   await createAudioSetting({ key: 'front-enabled', value: 0 });
   await setupVoiceConfigurations();
   await createCard({

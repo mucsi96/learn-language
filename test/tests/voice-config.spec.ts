@@ -205,14 +205,14 @@ test('settings page has left navigation with voices and data models links', asyn
 
 test('displays front audio toggle in settings', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/voices');
-  const toggle = page.getByRole('switch', { name: 'Enable front audio' });
+  const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeVisible();
   await expect(toggle).toBeChecked();
 });
 
 test('front audio toggle persists when disabled', async ({ page }) => {
   await page.goto('http://localhost:8180/settings/voices');
-  const toggle = page.getByRole('switch', { name: 'Enable front audio' });
+  const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeChecked();
 
   await toggle.click();
@@ -229,7 +229,7 @@ test('front audio toggle persists when disabled', async ({ page }) => {
 test('front audio toggle reflects disabled state from server', async ({ page }) => {
   await createAudioSetting({ key: 'front-enabled', value: 0 });
   await page.goto('http://localhost:8180/settings/voices');
-  const toggle = page.getByRole('switch', { name: 'Enable front audio' });
+  const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeVisible();
   await expect(toggle).not.toBeChecked();
 });

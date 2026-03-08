@@ -22,9 +22,8 @@ public class AudioSettingService {
 
     @Transactional
     public void setFrontAudioEnabled(boolean enabled) {
-        final AudioSetting setting = audioSettingRepository.findById("front-enabled")
-                .map(existing -> existing.toBuilder().value(enabled ? 1 : 0).build())
-                .orElseThrow();
-        audioSettingRepository.save(setting);
+        audioSettingRepository.save(
+                AudioSetting.builder().key("front-enabled").value(enabled ? 1 : 0).build()
+        );
     }
 }

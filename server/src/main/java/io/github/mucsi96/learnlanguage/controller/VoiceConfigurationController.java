@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,8 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.FrontAudioRequest;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationRequest;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationResponse;
 import io.github.mucsi96.learnlanguage.service.AudioSettingService;
@@ -63,10 +66,9 @@ public class VoiceConfigurationController {
     }
 
     @PutMapping("/front-audio")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public void updateFrontAudioEnabled(@RequestBody FrontAudioRequest request) {
-        audioSettingService.setFrontAudioEnabled(request.enabled());
+        audioSettingService.setFrontAudioEnabled(request.isEnabled());
     }
-
-    public record FrontAudioRequest(boolean enabled) {}
 }
