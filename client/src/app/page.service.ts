@@ -44,12 +44,12 @@ export class PageService {
         return;
       }
 
-      const params = selectedSource.documentId
-        ? `?documentId=${selectedSource.documentId}`
-        : '';
       return fetchJson<Page>(
         this.http,
-        `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}${params}`
+        `/api/source/${selectedSource.sourceId}/page/${selectedSource.pageNumber}`,
+        selectedSource.documentId != null
+          ? { params: { documentId: String(selectedSource.documentId) } }
+          : undefined
       );
     },
   });

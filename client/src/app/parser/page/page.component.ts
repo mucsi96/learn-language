@@ -292,8 +292,8 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onDocumentChange(documentId: number) {
-    this.router.navigate(['/sources', this.selectedSourceId(), 'page', 1]);
     this.pageService.setDocument(documentId);
+    this.router.navigate(['/sources', this.selectedSourceId(), 'page', 1]);
   }
 
   async handlePdfUpload(file: File): Promise<void> {
@@ -315,8 +315,8 @@ export class PageComponent implements AfterViewInit, OnDestroy {
         file
       );
 
-      this.router.navigate(['/sources', sourceId, 'page', 1]);
       this.pageService.setDocument(result.documentId);
+      this.router.navigate(['/sources', sourceId, 'page', 1]);
     } catch (error) {
       this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
     } finally {
