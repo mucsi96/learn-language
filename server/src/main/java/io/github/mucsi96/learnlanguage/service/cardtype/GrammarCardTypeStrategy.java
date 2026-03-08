@@ -27,7 +27,7 @@ public class GrammarCardTypeStrategy implements CardTypeStrategy {
         return Stream.of(
                 example.map(ExampleData::getDe)
                         .filter(this::hasText)
-                        .map(de -> new AudioTextItem(de, "de"))
+                        .map(de -> new AudioTextItem(de, "de", false))
         ).flatMap(Optional::stream).toList();
     }
 

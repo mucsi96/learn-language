@@ -9,6 +9,7 @@ import {
   germanAudioSample,
   hungarianAudioSample,
   downloadAudio,
+  setupTestRateLimits,
 } from '../utils';
 
 async function setupVoiceConfigurations() {
@@ -1133,4 +1134,169 @@ test('bulk audio creation does not fail when no session exists', async ({ page }
 
   const sessionCards = await getStudySessionCardsBySource('goethe-a1');
   expect(sessionCards.length).toBe(0);
+});
+
+test('bulk audio fab hides when front audio disabled and only front audio missing', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+      audio: [
+        {
+          id: 'audio-id-1',
+          text: 'verstehen',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'de',
+          selected: true,
+        },
+        {
+          id: 'audio-id-3',
+          text: 'Ich verstehe Deutsch.',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'de',
+          selected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
+});
+
+test('bulk audio creation skips front audio when front audio disabled', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await setupVoiceConfigurations();
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+
+    expect(cardData.audio).toBeDefined();
+    const audioList = cardData.audio;
+    expect(Array.isArray(audioList)).toBeTruthy();
+
+    const findAudioByText = (text: string) => audioList.find((audio: any) => audio.text === text);
+
+    expect(findAudioByText('verstehen')).toBeDefined();
+    expect(findAudioByText('Ich verstehe Deutsch.')).toBeDefined();
+
+    expect(findAudioByText('érteni')).toBeUndefined();
+    expect(findAudioByText('Értem a németet.')).toBeUndefined();
+  });
+});
+
+test('bulk audio creation cleans up front audio when front audio disabled', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await setupVoiceConfigurations();
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+      audio: [
+        {
+          id: 'audio-id-1',
+          text: 'verstehen',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'de',
+          selected: true,
+        },
+        {
+          id: 'audio-id-2',
+          text: 'érteni',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'hu',
+          selected: true,
+        },
+        {
+          id: 'audio-id-3',
+          text: 'Ich verstehe Deutsch.',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'de',
+          selected: true,
+        },
+        {
+          id: 'audio-id-4',
+          text: 'Értem a németet.',
+          voice: 'test-voice',
+          model: 'eleven_turbo_v2_5',
+          language: 'hu',
+          selected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });

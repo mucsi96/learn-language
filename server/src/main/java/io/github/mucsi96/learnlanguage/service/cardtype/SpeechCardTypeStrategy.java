@@ -27,10 +27,10 @@ public class SpeechCardTypeStrategy implements CardTypeStrategy {
         return Stream.of(
                 example.map(ExampleData::getDe)
                         .filter(this::hasText)
-                        .map(de -> new AudioTextItem(de, "de")),
+                        .map(de -> new AudioTextItem(de, "de", false)),
                 example.map(ExampleData::getHu)
                         .filter(this::hasText)
-                        .map(hu -> new AudioTextItem(hu, "hu"))
+                        .map(hu -> new AudioTextItem(hu, "hu", true))
         ).flatMap(Optional::stream).toList();
     }
 

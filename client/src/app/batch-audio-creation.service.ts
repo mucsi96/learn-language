@@ -9,6 +9,7 @@ import {
 } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
+import { VoiceConfigService } from './voice-config/voice-config.service';
 import {
   AudioSourceRequest,
   AudioData,
@@ -39,6 +40,7 @@ export class BatchAudioCreationService {
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
+  private readonly voiceConfigService = inject(VoiceConfigService);
   readonly progress = signal<DotProgress[]>([]);
   readonly isProcessing = signal(false);
   readonly toolPool = this.rateLimitTokenService.audioPool;
@@ -70,7 +72,7 @@ export class BatchAudioCreationService {
       throw new Error('Failed to fetch voice configurations');
     }
 
-    const missingLanguages = this.getMissingVoiceLanguages(strategy);
+    const missingLanguages = this.getMissingVoiceLanguages(strategy, cards);
     if (missingLanguages.length > 0) {
       this.isProcessing.set(false);
       throw new Error(
@@ -97,9 +99,16 @@ export class BatchAudioCreationService {
     this.progress.set([]);
   }
 
-  private getMissingVoiceLanguages(strategy: CardTypeStrategy): string[] {
-    const requiredLanguages = strategy.requiredAudioLanguages();
-    return requiredLanguages.filter(
+  private filterAudioItems(items: AudioGenerationItem[]): AudioGenerationItem[] {
+    const frontAudioEnabled = this.voiceConfigService.frontAudioEnabled();
+    return frontAudioEnabled ? items : items.filter(item => !item.isFrontAudio);
+  }
+
+  private getMissingVoiceLanguages(strategy: CardTypeStrategy, cards: Card[]): string[] {
+    const neededLanguages = [...new Set(
+      cards.flatMap(card => this.filterAudioItems(strategy.getAudioItems(card)).map(item => item.language))
+    )];
+    return neededLanguages.filter(
       (language) =>
         !this.voiceConfigs.some((config) => config.language === language)
     );
@@ -125,7 +134,7 @@ export class BatchAudioCreationService {
 
       updateProgress('in-progress', `${label}: Generating audio...`);
 
-      const audioItems = strategy.getAudioItems(card);
+      const audioItems = this.filterAudioItems(strategy.getAudioItems(card));
       const itemsNeedingAudio = audioItems.filter(
         (item) => !this.hasAudioForText(cleanedAudioList, item.text)
       );
@@ -227,7 +236,7 @@ export class BatchAudioCreationService {
     strategy: CardTypeStrategy
   ): Promise<AudioData[]> {
     const validAudioTexts = new Set(
-      strategy.getAudioItems(card).map((item) => item.text)
+      this.filterAudioItems(strategy.getAudioItems(card)).map((item) => item.text)
     );
 
     const { toKeep, toDelete } = audioList.reduce<{

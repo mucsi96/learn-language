@@ -17,6 +17,8 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
+import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategy.AudioTextItem;
+import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,11 +32,14 @@ public class FileStorageCleanupService {
   private final FileStorageService fileStorageService;
   private final CardRepository cardRepository;
   private final DocumentRepository documentRepository;
+  private final RateLimitSettingService rateLimitSettingService;
+  private final CardTypeStrategyFactory cardTypeStrategyFactory;
 
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
   public void cleanupUnreferencedFiles() {
     stripNonFavoriteImagesFromReviewedCards();
+    stripFrontAudioFromCards();
     cleanupAudioFiles();
     cleanupImageFiles();
     cleanupSourceDocuments();
@@ -61,6 +66,45 @@ public class FileStorageCleanupService {
 
     cardRepository.saveAll(cards);
     log.info("Stripped non-favorite images from {} cards", cards.size());
+  }
+
+  private void stripFrontAudioFromCards() {
+    if (rateLimitSettingService.isAudioFrontEnabled()) {
+      return;
+    }
+
+    final var cards = cardRepository.findAll().stream()
+        .filter(card -> card.getSource().getCardType() != null)
+        .filter(card -> Optional.ofNullable(card.getData().getAudio())
+            .map(audio -> !audio.isEmpty())
+            .orElse(false))
+        .toList();
+
+    final var cardsWithFrontAudio = cards.stream()
+        .filter(card -> {
+          final var strategy = cardTypeStrategyFactory.getStrategy(card.getSource().getCardType());
+          final Set<String> frontTexts = strategy.getFrontAudioTexts(card.getData()).stream()
+              .map(AudioTextItem::text)
+              .collect(Collectors.toSet());
+          return card.getData().getAudio().stream()
+              .anyMatch(audio -> audio.getText() != null && frontTexts.contains(audio.getText()));
+        })
+        .toList();
+
+    cardsWithFrontAudio.forEach(card -> {
+      final var strategy = cardTypeStrategyFactory.getStrategy(card.getSource().getCardType());
+      final Set<String> frontTexts = strategy.getFrontAudioTexts(card.getData()).stream()
+          .map(AudioTextItem::text)
+          .collect(Collectors.toSet());
+      card.getData().setAudio(
+          card.getData().getAudio().stream()
+              .filter(audio -> audio.getText() == null || !frontTexts.contains(audio.getText()))
+              .toList()
+      );
+    });
+
+    cardRepository.saveAll(cardsWithFrontAudio);
+    log.info("Stripped front audio from {} cards", cardsWithFrontAudio.size());
   }
 
   private void cleanupAudioFiles() {

@@ -23,4 +23,12 @@ public class RateLimitSettingController {
     public void updateRateLimitSettings(@Valid @RequestBody RateLimitSettingRequest request) {
         rateLimitSettingService.updateRateLimitSettings(request);
     }
+
+    @PutMapping("/front-audio")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public void updateFrontAudioEnabled(@RequestBody FrontAudioRequest request) {
+        rateLimitSettingService.setAudioFrontEnabled(request.enabled());
+    }
+
+    public record FrontAudioRequest(boolean enabled) {}
 }

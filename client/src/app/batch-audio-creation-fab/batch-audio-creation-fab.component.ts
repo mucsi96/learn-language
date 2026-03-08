@@ -10,6 +10,7 @@ import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
 import { Card, CardType } from '../parser/types';
 import { CardTypeRegistry } from '../cardTypes/card-type.registry';
+import { VoiceConfigService } from '../voice-config/voice-config.service';
 import { DailyUsageService } from '../daily-usage.service';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
@@ -28,6 +29,7 @@ export class BatchAudioCreationFabComponent {
   readonly snackBar = inject(MatSnackBar);
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly voiceConfigService = inject(VoiceConfigService);
   readonly dailyUsageService = inject(DailyUsageService);
   readonly refreshTrigger = input(0);
   readonly cards = resource<Card[], unknown>({
@@ -46,19 +48,21 @@ export class BatchAudioCreationFabComponent {
   readonly cardsForAudioCount = computed(() => this.cardsForAudio().length);
   readonly hasCardsForAudioGeneration = computed(() => this.cardsForAudioCount() > 0);
 
-  readonly totalAudioItemsNeeded = computed(() =>
-    this.cardsForAudio().reduce((sum, card) => {
+  readonly totalAudioItemsNeeded = computed(() => {
+    const frontAudioEnabled = this.voiceConfigService.frontAudioEnabled();
+    return this.cardsForAudio().reduce((sum, card) => {
       const cardType = card.source.cardType;
       if (!cardType) return sum;
       const strategy = this.cardTypeRegistry.getStrategy(cardType);
       const existingAudio = card.data.audio ?? [];
-      const audioItems = strategy.getAudioItems(card);
+      const audioItems = strategy.getAudioItems(card)
+        .filter(item => frontAudioEnabled || !item.isFrontAudio);
       const missingCount = audioItems.filter(
         item => !existingAudio.some(a => a.text === item.text)
       ).length;
       return sum + missingCount;
-    }, 0)
-  );
+    }, 0);
+  });
 
   readonly isAudioLimitExceeded = computed(() => {
     const limit = this.dailyUsageService.audioDailyLimit;

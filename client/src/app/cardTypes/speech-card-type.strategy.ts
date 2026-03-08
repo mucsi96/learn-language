@@ -201,7 +201,7 @@ export class SpeechCardType implements CardTypeStrategy {
         ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
         : null,
       example?.hu
-        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN }
+        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN, isFrontAudio: true }
         : null,
     ].filter(nonNullable);
   }
