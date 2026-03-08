@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { test, expect } from '../fixtures';
 import { createCard, createDocument, getDocuments, getSource, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image, withDbConnection } from '../utils';
 
@@ -269,7 +271,7 @@ test('displays document selector with multiple PDFs', async ({ page }) => {
 
   await navigateToSource(page, 'Goethe A1');
 
-  await expect(page.getByLabel('Select document')).toBeVisible();
+  await expect(page.getByLabel('Document')).toBeVisible();
 });
 
 test('switches between documents using dropdown', async ({ page }) => {
@@ -281,7 +283,7 @@ test('switches between documents using dropdown', async ({ page }) => {
   await navigateToSource(page, 'Goethe A1');
   await expect(page.getByText('die Abfahrt')).toBeVisible();
 
-  await page.getByLabel('Select document').click();
+  await page.getByLabel('Document').click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
 
   await expect(page.getByText('die Adresse')).toBeVisible();
@@ -297,7 +299,7 @@ test('resets page to 1 when switching documents', async ({ page }) => {
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('10');
 
-  await page.getByLabel('Select document').click();
+  await page.getByLabel('Document').click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
 
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
@@ -314,7 +316,7 @@ test('resets bookmarked page when switching documents', async ({ page }) => {
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('10');
 
-  await page.getByLabel('Select document').click();
+  await page.getByLabel('Document').click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
 
@@ -330,7 +332,7 @@ test('preserves last used document on revisit', async ({ page }) => {
 
   await navigateToSource(page, 'Goethe A1');
 
-  await page.getByLabel('Select document').click();
+  await page.getByLabel('Document').click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
   await expect(page.getByText('die Adresse')).toBeVisible();
 
@@ -345,22 +347,22 @@ test('does not show document selector with single PDF', async ({ page }) => {
   await navigateToSource(page, 'Goethe A1');
 
   await expect(page.getByText('die Abfahrt')).toBeVisible();
-  await expect(page.getByLabel('Select document')).not.toBeVisible();
+  await expect(page.getByLabel('Document')).not.toBeVisible();
 });
 
 test('uploads additional PDF document to source', async ({ page }) => {
   await navigateToSource(page, 'Goethe A1');
   await expect(page.getByText('die Abfahrt')).toBeVisible();
 
-  await expect(page.getByLabel('Select document')).not.toBeVisible();
+  await expect(page.getByLabel('Document')).not.toBeVisible();
 
   await page.getByLabel('Upload PDF file').setInputFiles({
     name: 'Goethe-Zertifikat_A2_Wortliste.pdf',
     mimeType: 'application/pdf',
-    buffer: require('fs').readFileSync(require('path').join(__dirname, '..', 'Goethe-Zertifikat_A2_Wortliste.pdf')),
+    buffer: readFileSync(join(__dirname, '..', 'Goethe-Zertifikat_A2_Wortliste.pdf')),
   });
 
-  await expect(page.getByLabel('Select document')).toBeVisible();
+  await expect(page.getByLabel('Document')).toBeVisible();
 
   const documents = await getDocuments('goethe-a1');
   expect(documents.length).toBe(2);
@@ -387,7 +389,7 @@ test('extraction regions are scoped to document', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/page/1');
   await expect(page.getByRole('region', { name: 'Extracted region' })).toBeVisible();
 
-  await page.getByLabel('Select document').click();
+  await page.getByLabel('Document').click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
 
   await expect(page.getByRole('region', { name: 'Extracted region' })).not.toBeVisible();

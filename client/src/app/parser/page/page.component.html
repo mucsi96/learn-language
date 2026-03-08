@@ -6,7 +6,6 @@
     <mat-select
       [value]="selectedDocumentId()"
       (selectionChange)="onDocumentChange($event.value)"
-      aria-label="Select document"
     >
       @for (doc of documents(); track doc.id) {
       <mat-option [value]="doc.id">{{ doc.fileName }}</mat-option>
