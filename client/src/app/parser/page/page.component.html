@@ -1,7 +1,7 @@
 @if(pageNumber()) {
-@if (sourceType() === 'pdf' && hasMultipleDocuments()) {
-<div class="document-selector">
-  <mat-form-field>
+<div class="page-nav">
+  @if (sourceType() === 'pdf' && hasMultipleDocuments()) {
+  <mat-form-field class="document-selector">
     <mat-label>Document</mat-label>
     <mat-select
       [value]="selectedDocumentId()"
@@ -13,9 +13,7 @@
       }
     </mat-select>
   </mat-form-field>
-</div>
-}
-<div class="page-nav">
+  }
   <a
     mat-icon-button
     [routerLink]="[
