@@ -16,12 +16,9 @@
   }
   <a
     mat-icon-button
-    [routerLink]="[
-      '/sources',
-      selectedSourceId(),
-      'page',
-      (pageNumber() ?? 0) - 1
-    ]"
+    [routerLink]="(pageNumber() ?? 0) > 1 ? ['/sources', selectedSourceId(), 'page', (pageNumber() ?? 0) - 1] : null"
+    [attr.disabled]="(pageNumber() ?? 0) <= 1 ? '' : null"
+    [class.disabled]="(pageNumber() ?? 0) <= 1"
     aria-label="Previous page"
     ><mat-icon>arrow_back_ios_new</mat-icon></a
   >

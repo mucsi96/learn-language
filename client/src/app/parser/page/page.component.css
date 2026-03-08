@@ -5,6 +5,11 @@
   justify-content: center;
 }
 
+.page-nav a.disabled {
+  pointer-events: none;
+  opacity: 0.38;
+}
+
 .page-layout {
   position: relative;
   outline: 1px solid darkslategray
