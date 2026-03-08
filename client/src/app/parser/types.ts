@@ -107,6 +107,11 @@ export type PersistedExtractionRegion = {
   height: number;
 };
 
+export type DocumentInfo = {
+  id: number;
+  fileName: string;
+};
+
 export type Page = {
   number: number;
   spans: Span[];
@@ -116,6 +121,9 @@ export type Page = {
   cardType?: CardType;
   formatType?: SourceFormatType;
   hasImage?: boolean;
+  documentId?: number;
+  pageCount?: number;
+  documents?: DocumentInfo[];
   width: number;
   height: number;
   extractionRegions?: PersistedExtractionRegion[];

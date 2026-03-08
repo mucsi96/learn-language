@@ -1,13 +1,22 @@
 @if(pageNumber()) {
 <div class="page-nav">
+  @if (sourceType() === 'pdf' && hasMultipleDocuments()) {
+  <mat-form-field class="document-selector">
+    <mat-label>Document</mat-label>
+    <mat-select
+      [value]="selectedDocumentId()"
+      (selectionChange)="onDocumentChange($event.value)"
+    >
+      @for (doc of documents(); track doc.id) {
+      <mat-option [value]="doc.id">{{ doc.fileName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
   <a
     mat-icon-button
-    [routerLink]="[
-      '/sources',
-      selectedSourceId(),
-      'page',
-      (pageNumber() ?? 0) - 1
-    ]"
+    [routerLink]="(pageNumber() ?? 0) > 1 ? ['/sources', selectedSourceId(), 'page', (pageNumber() ?? 0) - 1] : null"
+    [class.disabled]="(pageNumber() ?? 0) <= 1"
     aria-label="Previous page"
     ><mat-icon>arrow_back_ios_new</mat-icon></a
   >
@@ -16,18 +25,16 @@
     <input
       matInput
       type="number"
+      min="1"
+      [max]="pageCount() ?? null"
       [(ngModel)]="pageNumber"
       (change)="onPageChange()"
     />
   </mat-form-field>
   <a
     mat-icon-button
-    [routerLink]="[
-      '/sources',
-      selectedSourceId(),
-      'page',
-      (pageNumber() ?? 0) + 1
-    ]"
+    [routerLink]="!pageCount() || (pageNumber() ?? 0) < pageCount()! ? ['/sources', selectedSourceId(), 'page', (pageNumber() ?? 0) + 1] : null"
+    [class.disabled]="pageCount() && (pageNumber() ?? 0) >= pageCount()!"
     aria-label="Next page"
     ><mat-icon>arrow_forward_ios</mat-icon></a
   >
@@ -39,6 +46,29 @@
     <mat-icon>table_view</mat-icon>
     Cards
   </a>
+  @if (sourceType() === 'pdf') {
+  <button
+    mat-button
+    aria-label="Add PDF document"
+    (click)="pdfFileInput.click()"
+    [disabled]="uploading()"
+  >
+    @if (uploading()) {
+    <mat-spinner diameter="18"></mat-spinner>
+    } @else {
+    <mat-icon>add</mat-icon>
+    }
+    Add PDF
+  </button>
+  <input
+    #pdfFileInput
+    type="file"
+    accept=".pdf"
+    (change)="onPdfFileSelected($event)"
+    class="hidden-file-input"
+    aria-label="Upload PDF file"
+  />
+  }
   @if (sourceType() === 'images' && hasImage()) {
   <button mat-button (click)="deleteImage()">
     <mat-icon>delete</mat-icon>

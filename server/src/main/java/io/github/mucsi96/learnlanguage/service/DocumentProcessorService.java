@@ -34,11 +34,11 @@ public class DocumentProcessorService {
   private final FileStorageService fileStorageService;
   private final DocumentRepository documentRepository;
 
-  public PageResponse processDocument(Source source, int pageNumber) throws IOException {
+  public PageResponse processDocument(Source source, int pageNumber, Document pdfDocument) throws IOException {
     if (source.getSourceType() == SourceType.IMAGES) {
       return processImageDocument(source, pageNumber);
     }
-    return processPdfDocument(source, pageNumber);
+    return processPdfDocument(pdfDocument, source, pageNumber);
   }
 
   private PageResponse processImageDocument(Source source, int pageNumber) throws IOException {
@@ -77,16 +77,16 @@ public class DocumentProcessorService {
         .build();
   }
 
-  private PageResponse processPdfDocument(Source source, int pageNumber) throws IOException {
-    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
-        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
+  private PageResponse processPdfDocument(Document pdfDocument, Source source, int pageNumber) throws IOException {
     final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
-      var mediaBox = document.getPage(pageNumber - 1).getMediaBox();
+      final int pageCount = document.getNumberOfPages();
+      final int clampedPageNumber = Math.max(1, Math.min(pageNumber, pageCount));
+      var mediaBox = document.getPage(clampedPageNumber - 1).getMediaBox();
       var width = mediaBox.getWidth();
       var height = mediaBox.getHeight();
-      var spans = new SpanExtractor().extractSpans(bytes, pageNumber).stream()
+      var spans = new SpanExtractor().extractSpans(bytes, clampedPageNumber).stream()
           .map((SpanExtractor.Span span) -> {
             String searchTerm = Pattern.compile("\\s?[,/(-]").split(span.getText())[0].strip();
             return PageResponse.Span.builder()
@@ -105,12 +105,14 @@ public class DocumentProcessorService {
       return PageResponse.builder()
           .width(width)
           .height(height)
-          .number(pageNumber)
+          .number(clampedPageNumber)
           .sourceId(source.getId())
           .sourceName(source.getName())
           .sourceType(SourceType.PDF)
           .cardType(source.getCardType())
           .formatType(source.getFormatType())
+          .documentId(pdfDocument.getId())
+          .pageCount(pageCount)
           .spans(spans)
           .build();
     }
@@ -121,7 +123,8 @@ public class DocumentProcessorService {
     if (source.getSourceType() == SourceType.IMAGES) {
       return getImagePageArea(source, pageNumber, x, y, width, height);
     }
-    return getPdfPageArea(source, pageNumber, x, y, width, height);
+    final Document pdfDocument = resolvePdfDocument(source);
+    return getPdfPageArea(pdfDocument, pageNumber, x, y, width, height);
   }
 
   private byte[] getImagePageArea(Source source, int pageNumber, double x, double y, double width, double height)
@@ -146,10 +149,8 @@ public class DocumentProcessorService {
     return outputStream.toByteArray();
   }
 
-  private byte[] getPdfPageArea(Source source, int pageNumber, double x, double y, double width, double height)
+  private byte[] getPdfPageArea(Document pdfDocument, int pageNumber, double x, double y, double width, double height)
       throws IOException {
-    Document pdfDocument = documentRepository.findBySourceAndPageNumberIsNull(source)
-        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
     final byte[] bytes = fileStorageService.fetchFile("sources/" + pdfDocument.getFileName()).toBytes();
 
     try (PDDocument document = Loader.loadPDF(bytes)) {
@@ -206,5 +207,15 @@ public class DocumentProcessorService {
     final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(combined, "png", outputStream);
     return outputStream.toByteArray();
+  }
+
+  private Document resolvePdfDocument(Source source) {
+    final Integer bookmarkedDocumentId = source.getBookmarkedDocumentId();
+    if (bookmarkedDocumentId != null) {
+      return documentRepository.findById(bookmarkedDocumentId)
+          .orElseThrow(() -> new ResourceNotFoundException("Bookmarked PDF document not found for source " + source.getId()));
+    }
+    return documentRepository.findBySourceAndPageNumberIsNull(source)
+        .orElseThrow(() -> new ResourceNotFoundException("PDF document not found for source " + source.getId()));
   }
 }

@@ -42,6 +42,7 @@ export async function createSource(params: {
   formatType: string;
   sourceType?: string;
   bookmarkedPage?: number | null;
+  bookmarkedDocumentId?: number | null;
 }): Promise<void> {
   const {
     id,
@@ -52,13 +53,14 @@ export async function createSource(params: {
     formatType,
     sourceType = 'PDF',
     bookmarkedPage = null,
+    bookmarkedDocumentId = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage]
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId]
     );
   });
 }
@@ -109,13 +111,15 @@ export async function getSource(id: string): Promise<{
   formatType: string;
   sourceType: string | null;
   bookmarkedPage: number | null;
+  bookmarkedDocumentId: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, name, start_page as "startPage",
               language_level as "languageLevel", card_type as "cardType",
               format_type as "formatType", source_type as "sourceType",
-              bookmarked_page as "bookmarkedPage"
+              bookmarked_page as "bookmarkedPage",
+              bookmarked_document_id as "bookmarkedDocumentId"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]

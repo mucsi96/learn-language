@@ -100,7 +100,7 @@ export class BulkCardCreationFabComponent {
       }));
 
       await fetchJson(this.http, `/api/source/${selectedSource.sourceId}/extraction-regions`, {
-        body: { regions },
+        body: { documentId: page?.documentId, regions },
         method: 'POST',
       });
 

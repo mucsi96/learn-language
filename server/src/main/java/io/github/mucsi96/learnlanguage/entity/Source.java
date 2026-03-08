@@ -34,6 +34,9 @@ public class Source {
 
   private Integer bookmarkedPage;
 
+  @Column(name = "bookmarked_document_id")
+  private Integer bookmarkedDocumentId;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "language_level")
   private LanguageLevel languageLevel;
