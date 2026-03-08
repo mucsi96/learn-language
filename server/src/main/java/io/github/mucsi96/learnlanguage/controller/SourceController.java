@@ -40,7 +40,7 @@ import io.github.mucsi96.learnlanguage.service.AreaGrammarService;
 import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
-import io.github.mucsi96.learnlanguage.service.CardService.SourceCardCount;
+import io.github.mucsi96.learnlanguage.service.CardService.SourceStats;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
@@ -70,36 +70,16 @@ public class SourceController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
   public List<SourceResponse> getSources() {
-    var sources = sourceService.getAllSources();
-    var cardCounts = cardService.getCardCountsBySource();
-    var draftCardCounts = cardService.getDraftCardCountsBySource();
-    var flaggedCardCounts = cardService.getFlaggedCardCountsBySource();
-    var unhealthyCardCounts = cardService.getUnhealthyCardCountsBySource();
+    final var sources = sourceService.getAllSources();
+    final var statsMap = cardService.getSourceStats();
+    final var emptyStats = SourceStats.builder()
+        .cardCount(0).draftCardCount(0).flaggedCardCount(0).unhealthyCardCount(0)
+        .stateCounts(Map.of()).readinessCounts(Map.of())
+        .build();
 
     return sources.stream().map(source -> {
-      var cardCount = cardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      var draftCardCount = draftCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      var flaggedCardCount = flaggedCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      var unhealthyCardCount = unhealthyCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
+      final var sourceId = source.getId();
+      final var stats = statsMap.getOrDefault(sourceId, emptyStats);
 
       Integer pageCount = null;
       if (source.getSourceType() == SourceType.IMAGES) {
@@ -107,16 +87,18 @@ public class SourceController {
       }
 
       return SourceResponse.builder()
-          .id(source.getId())
+          .id(sourceId)
           .name(source.getName())
           .sourceType(source.getSourceType())
           .cardType(source.getCardType())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
-          .cardCount(cardCount)
-          .draftCardCount(draftCardCount)
-          .flaggedCardCount(flaggedCardCount)
-          .unhealthyCardCount(unhealthyCardCount)
+          .cardCount(stats.getCardCount())
+          .draftCardCount(stats.getDraftCardCount())
+          .flaggedCardCount(stats.getFlaggedCardCount())
+          .unhealthyCardCount(stats.getUnhealthyCardCount())
+          .stateCounts(stats.getStateCounts())
+          .readinessCounts(stats.getReadinessCounts())
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
           .build();

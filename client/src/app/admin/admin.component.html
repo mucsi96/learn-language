@@ -4,7 +4,7 @@
 <div class="header">
   <div>
     <h1>Sources</h1>
-    <p>Select a source to manage:</p>
+    <p>Manage your learning sources</p>
   </div>
   <button
     mat-flat-button
@@ -27,19 +27,61 @@
   >
     <mat-card>
       <mat-card-content>
-        <h2 class="source-title">
-          {{ source.name }}
-        </h2>
-        @if (source.languageLevel) {
-        <p class="language-level">{{ source.languageLevel }}</p>
+        <div class="source-header">
+          <h2 class="source-title">{{ source.name }}</h2>
+          @if (source.languageLevel) {
+          <span class="level-badge">{{ source.languageLevel }}</span>
+          }
+        </div>
+
+        <div class="total-cards">
+          <span class="total-count">{{ source.cardCount || 0 }}</span>
+          <span class="total-label">cards</span>
+        </div>
+
+        @if (hasStateCounts(source)) {
+        <div class="state-row" aria-label="Card states">
+          @for (entry of getStateCounts(source); track entry.state) {
+          <app-state [state]="entry.state" [count]="entry.count" />
+          }
+        </div>
         }
-        <p class="card-count">
-          {{ source.cardCount || 0 }} cards
-        </p>
-        @if (source.draftCardCount) {
-        <p class="draft-card-count">
-          {{ source.draftCardCount }} drafts
-        </p>
+
+        @if (hasReadinessCounts(source)) {
+        <div class="readiness-row" aria-label="Card readiness">
+          @for (entry of getReadinessCounts(source); track entry.readiness) {
+          <span
+            class="readiness-chip"
+            [ngClass]="'readiness-' + entry.readiness.toLowerCase()"
+            [attr.aria-label]="entry.readiness + ': ' + entry.count"
+          >
+            {{ getReadinessLabel(entry.readiness) }} {{ entry.count }}
+          </span>
+          }
+        </div>
+        }
+
+        @if (source.draftCardCount || source.flaggedCardCount || source.unhealthyCardCount) {
+        <div class="alert-row" aria-label="Card alerts">
+          @if (source.draftCardCount) {
+          <span class="alert-chip draft" aria-label="Draft cards">
+            <mat-icon>edit_note</mat-icon>
+            {{ source.draftCardCount }} draft
+          </span>
+          }
+          @if (source.flaggedCardCount) {
+          <span class="alert-chip flagged" aria-label="Flagged cards">
+            <mat-icon>flag</mat-icon>
+            {{ source.flaggedCardCount }} flagged
+          </span>
+          }
+          @if (source.unhealthyCardCount) {
+          <span class="alert-chip unhealthy" aria-label="Unhealthy cards">
+            <mat-icon>warning</mat-icon>
+            {{ source.unhealthyCardCount }} unhealthy
+          </span>
+          }
+        </div>
         }
       </mat-card-content>
     </mat-card>

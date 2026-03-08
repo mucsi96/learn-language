@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.util.Map;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,6 +18,8 @@ public class SourceResponse {
     private Integer draftCardCount;
     private Integer flaggedCardCount;
     private Integer unhealthyCardCount;
+    private Map<String, Integer> stateCounts;
+    private Map<String, Integer> readinessCounts;
     private LanguageLevel languageLevel;
     private SourceFormatType formatType;
 }

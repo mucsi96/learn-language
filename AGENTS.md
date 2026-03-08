@@ -16,6 +16,7 @@
 - Use Stream API instead of loops (`stream().map()`, `filter()`, `reduce()`, `flatMap()`, `findFirst()`, `anyMatch()`, `allMatch()`, etc.)
 - Never mutate collections - use `Stream.concat()` or create new collections instead of `add()`/`addAll()`
 - Use `final` for variables
+- Prefer JPA projection interfaces over `Object[]` for native query results
 
 ## TypeScript Code style
 - Use `const` for all variables

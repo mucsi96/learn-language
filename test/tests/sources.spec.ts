@@ -86,8 +86,8 @@ test('displays card counts excluding drafts', async ({ page }) => {
     readiness: 'DRAFT',
   });
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 drafts')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 draft')).toBeVisible();
 });
 
 test('displays card count for sources', async ({ page }) => {
@@ -124,9 +124,110 @@ test('displays card count for sources', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('Ready 1')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0')).toBeVisible();
+});
+
+test('displays card state counts for sources', async ({ page }) => {
+  await createCard({
+    cardId: 'test-new-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    state: 'NEW',
+    data: {
+      word: 'neu1',
+      type: 'NOUN',
+      translation: { en: 'new1' },
+    },
+  });
+  await createCard({
+    cardId: 'test-new-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    state: 'NEW',
+    data: {
+      word: 'neu2',
+      type: 'NOUN',
+      translation: { en: 'new2' },
+    },
+  });
+  await createCard({
+    cardId: 'test-review-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    state: 'REVIEW',
+    data: {
+      word: 'review1',
+      type: 'NOUN',
+      translation: { en: 'review1' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  const source = page.getByRole('article', { name: 'Goethe A1' });
+  await expect(source.getByText('Ready 3')).toBeVisible();
+  await expect(source.getByTitle('New')).toContainText('2');
+  await expect(source.getByTitle('Review')).toContainText('1');
+});
+
+test('displays flagged and unhealthy card counts', async ({ page }) => {
+  await createCard({
+    cardId: 'test-flagged-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    flagged: true,
+    data: {
+      word: 'flagged1',
+      type: 'NOUN',
+      translation: { en: 'flagged1' },
+    },
+  });
+  await createCard({
+    cardId: 'test-flagged-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    flagged: true,
+    data: {
+      word: 'flagged2',
+      type: 'NOUN',
+      translation: { en: 'flagged2' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  const source = page.getByRole('article', { name: 'Goethe A1' });
+  await expect(source.getByLabel('Flagged cards')).toContainText('2 flagged');
+});
+
+test('displays readiness breakdown for sources', async ({ page }) => {
+  await createCard({
+    cardId: 'test-ready-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    readiness: 'READY',
+    data: {
+      word: 'ready1',
+      type: 'NOUN',
+      translation: { en: 'ready1' },
+    },
+  });
+  await createCard({
+    cardId: 'test-known-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    readiness: 'KNOWN',
+    data: {
+      word: 'known1',
+      type: 'NOUN',
+      translation: { en: 'known1' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources');
+  const source = page.getByRole('article', { name: 'Goethe A1' });
+  await expect(source.getByLabel('READY: 1')).toBeVisible();
+  await expect(source.getByLabel('KNOWN: 1')).toBeVisible();
 });
 
 test('can create a new source', async ({ page }) => {
@@ -229,7 +330,7 @@ test('can delete a source and its cards', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('Ready 2')).toBeVisible();
 
   await page.getByRole('article', { name: 'Goethe B1' }).click();
   await page.getByRole('button', { name: 'Delete' }).click();
