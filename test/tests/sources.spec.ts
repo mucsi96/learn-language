@@ -86,7 +86,7 @@ test('displays card counts excluding drafts', async ({ page }) => {
     readiness: 'DRAFT',
   });
   await page.goto('http://localhost:8180/sources');
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
   await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 draft')).toBeVisible();
 });
 
@@ -124,9 +124,9 @@ test('displays card count for sources', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('2 cards')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('1 cards')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('Ready 1')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0')).toBeVisible();
 });
 
 test('displays card state counts for sources', async ({ page }) => {
@@ -166,7 +166,7 @@ test('displays card state counts for sources', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
-  await expect(source.getByText('3 cards')).toBeVisible();
+  await expect(source.getByText('Ready 3')).toBeVisible();
   await expect(source.getByTitle('New')).toContainText('2');
   await expect(source.getByTitle('Review')).toContainText('1');
 });
@@ -330,7 +330,7 @@ test('can delete a source and its cards', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('2 cards')).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('Ready 2')).toBeVisible();
 
   await page.getByRole('article', { name: 'Goethe B1' }).click();
   await page.getByRole('button', { name: 'Delete' }).click();
