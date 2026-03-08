@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createAudioSetting,
+  createRateLimitSetting,
   createVoiceConfiguration,
   createStudySession,
   getStudySessionCardsBySource,
