@@ -11,10 +11,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AudioSettingService {
 
+    private static final String FRONT_ENABLED_KEY = "front-enabled";
+
     private final AudioSettingRepository audioSettingRepository;
 
     public boolean isFrontAudioEnabled() {
-        return audioSettingRepository.findById("front-enabled")
+        return audioSettingRepository.findById(FRONT_ENABLED_KEY)
                 .map(AudioSetting::getValue)
                 .map(value -> value != 0)
                 .orElse(true);
@@ -23,7 +25,7 @@ public class AudioSettingService {
     @Transactional
     public void setFrontAudioEnabled(boolean enabled) {
         audioSettingRepository.save(
-                AudioSetting.builder().key("front-enabled").value(enabled ? 1 : 0).build()
+                AudioSetting.builder().key(FRONT_ENABLED_KEY).value(enabled ? 1 : 0).build()
         );
     }
 }
