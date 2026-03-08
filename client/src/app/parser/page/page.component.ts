@@ -32,6 +32,7 @@ import { CardCandidatesService } from '../../card-candidates.service';
 import { KnownWordsService } from '../../known-words/known-words.service';
 import { PagedSelection, SelectionStateService } from '../../selection-state.service';
 import { injectParams } from '../../utils/inject-params';
+import { injectQueryParams } from '../../utils/inject-query-params';
 import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
 import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
 
@@ -64,6 +65,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly routeSourceId = injectParams('sourceId');
   private readonly routePageNumber = injectParams('pageNumber');
+  private readonly routeDocumentId = injectQueryParams('documentId');
   private readonly elRef = inject(ElementRef);
   private readonly http = inject(HttpClient);
   readonly candidatesService = inject(CardCandidatesService);
@@ -150,8 +152,13 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const sourceId = this.routeSourceId();
       const pageNumber = this.routePageNumber();
+      const documentId = this.routeDocumentId();
       if (sourceId && pageNumber) {
-        this.pageService.setSource(String(sourceId), Number(pageNumber));
+        this.pageService.setSource(
+          String(sourceId),
+          Number(pageNumber),
+          documentId ? Number(documentId) : undefined
+        );
       }
     });
 
@@ -292,8 +299,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onDocumentChange(documentId: number) {
-    this.pageService.setDocument(documentId);
-    this.router.navigate(['/sources', this.selectedSourceId(), 'page', 1]);
+    this.router.navigate(
+      ['/sources', this.selectedSourceId(), 'page', 1],
+      { queryParams: { documentId } }
+    );
   }
 
   async handlePdfUpload(file: File): Promise<void> {
@@ -315,8 +324,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
         file
       );
 
-      this.pageService.setDocument(result.documentId);
-      this.router.navigate(['/sources', sourceId, 'page', 1]);
+      this.router.navigate(
+        ['/sources', sourceId, 'page', 1],
+        { queryParams: { documentId: result.documentId } }
+      );
     } catch (error) {
       this.uploadError.set(error instanceof Error ? error.message : 'Upload failed');
     } finally {

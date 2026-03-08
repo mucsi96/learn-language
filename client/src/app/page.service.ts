@@ -145,21 +145,8 @@ export class PageService {
     }
   }
 
-  setSource(sourceId: string, pageNumber: number) {
-    this.selectedSource.set({ sourceId, pageNumber });
-  }
-
-  setDocument(documentId: number) {
-    const selectedSource = this.selectedSource();
-    if (!selectedSource) {
-      return;
-    }
-
-    this.selectedSource.set({
-      ...selectedSource,
-      pageNumber: 1,
-      documentId,
-    });
+  setSource(sourceId: string, pageNumber: number, documentId?: number) {
+    this.selectedSource.set({ sourceId, pageNumber, documentId });
   }
 
   addSelectedRectangle(rectangle: SelectedRectangle) {
