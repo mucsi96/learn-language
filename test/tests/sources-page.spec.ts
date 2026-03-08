@@ -25,6 +25,14 @@ test('previous page', async ({ page }) => {
   await expect(page.getByText('Seite 8')).toBeVisible();
 });
 
+test('disables previous page button on page 1', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/1');
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
+
+  const prevButton = page.getByRole('link', { name: 'Previous page' });
+  await expect(prevButton).toHaveClass(/disabled/);
+});
+
 test('next page', async ({ page }) => {
   await navigateToSource(page, 'Goethe A1');
   await page.getByRole('link', { name: 'Next page' }).click();
