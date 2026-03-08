@@ -73,44 +73,32 @@ public class SourceController {
   @GetMapping("/sources")
   public List<SourceResponse> getSources() {
     var sources = sourceService.getAllSources();
-    var cardCounts = cardService.getCardCountsBySource();
-    var draftCardCounts = cardService.getDraftCardCountsBySource();
-    var flaggedCardCounts = cardService.getFlaggedCardCountsBySource();
-    var unhealthyCardCounts = cardService.getUnhealthyCardCountsBySource();
-    var stateCounts = cardService.getCardStateCountsBySource();
-    var readinessCounts = cardService.getCardReadinessCountsBySource();
+
+    final Map<String, Integer> cardCountMap = cardService.getCardCountsBySource().stream()
+        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
+
+    final Map<String, Integer> draftCardCountMap = cardService.getDraftCardCountsBySource().stream()
+        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
+
+    final Map<String, Integer> flaggedCardCountMap = cardService.getFlaggedCardCountsBySource().stream()
+        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
+
+    final Map<String, Integer> unhealthyCardCountMap = cardService.getUnhealthyCardCountsBySource().stream()
+        .collect(Collectors.toMap(SourceCardCount::sourceId, SourceCardCount::count));
+
+    final Map<String, List<SourceStateCount>> stateCountsBySource = cardService.getCardStateCountsBySource().stream()
+        .collect(Collectors.groupingBy(SourceStateCount::sourceId));
+
+    final Map<String, List<SourceReadinessCount>> readinessCountsBySource = cardService.getCardReadinessCountsBySource().stream()
+        .collect(Collectors.groupingBy(SourceReadinessCount::sourceId));
 
     return sources.stream().map(source -> {
-      var cardCount = cardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
+      final var sourceId = source.getId();
 
-      var draftCardCount = draftCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      var flaggedCardCount = flaggedCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      var unhealthyCardCount = unhealthyCardCounts.stream()
-          .filter(count -> count.sourceId().equals(source.getId()))
-          .findFirst()
-          .map(SourceCardCount::count)
-          .orElse(0);
-
-      final Map<String, Integer> sourceStateCounts = stateCounts.stream()
-          .filter(sc -> sc.sourceId().equals(source.getId()))
+      final Map<String, Integer> sourceStateCounts = stateCountsBySource.getOrDefault(sourceId, List.of()).stream()
           .collect(Collectors.toMap(SourceStateCount::state, SourceStateCount::count));
 
-      final Map<String, Integer> sourceReadinessCounts = readinessCounts.stream()
-          .filter(rc -> rc.sourceId().equals(source.getId()))
+      final Map<String, Integer> sourceReadinessCounts = readinessCountsBySource.getOrDefault(sourceId, List.of()).stream()
           .collect(Collectors.toMap(rc -> rc.readiness().name(), SourceReadinessCount::count));
 
       Integer pageCount = null;
@@ -119,16 +107,16 @@ public class SourceController {
       }
 
       return SourceResponse.builder()
-          .id(source.getId())
+          .id(sourceId)
           .name(source.getName())
           .sourceType(source.getSourceType())
           .cardType(source.getCardType())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
-          .cardCount(cardCount)
-          .draftCardCount(draftCardCount)
-          .flaggedCardCount(flaggedCardCount)
-          .unhealthyCardCount(unhealthyCardCount)
+          .cardCount(cardCountMap.getOrDefault(sourceId, 0))
+          .draftCardCount(draftCardCountMap.getOrDefault(sourceId, 0))
+          .flaggedCardCount(flaggedCardCountMap.getOrDefault(sourceId, 0))
+          .unhealthyCardCount(unhealthyCardCountMap.getOrDefault(sourceId, 0))
           .stateCounts(sourceStateCounts)
           .readinessCounts(sourceReadinessCounts)
           .languageLevel(source.getLanguageLevel())

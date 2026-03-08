@@ -179,7 +179,7 @@ public class CardService {
         .stream()
         .map(record -> new SourceReadinessCount(
             (String) record[0],
-            (CardReadiness) record[1],
+            CardReadiness.valueOf((String) record[1]),
             ((Long) record[2]).intValue())
         )
         .toList();
