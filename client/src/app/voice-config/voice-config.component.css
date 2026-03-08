@@ -147,6 +147,10 @@ td.mat-column-actions {
   gap: 8px;
 }
 
+.front-audio-toggle {
+  margin-top: 8px;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

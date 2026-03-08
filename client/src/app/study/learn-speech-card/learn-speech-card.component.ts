@@ -15,6 +15,7 @@ import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { VoiceConfigService } from '../../voice-config/voice-config.service';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -33,6 +34,7 @@ export class LearnSpeechCardComponent {
 
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly voiceConfigService = inject(VoiceConfigService);
 
   readonly selectedExample = computed(() =>
     this.card()?.value()?.data.examples?.find((ex) => ex.isSelected)
@@ -72,6 +74,11 @@ export class LearnSpeechCardComponent {
     effect(() => {
       const currentSentence = this.sentence();
       const playAudioFn = this.onPlayAudio();
+      const isRevealed = this.isRevealed();
+
+      if (!isRevealed && !this.voiceConfigService.frontAudioEnabled()) {
+        return;
+      }
 
       if (currentSentence && playAudioFn) {
         playAudioFn([currentSentence]);

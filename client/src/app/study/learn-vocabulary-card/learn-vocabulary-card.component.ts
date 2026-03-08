@@ -18,6 +18,7 @@ import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
+import { VoiceConfigService } from '../../voice-config/voice-config.service';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -40,6 +41,7 @@ export class LearnVocabularyCardComponent {
 
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly voiceConfigService = inject(VoiceConfigService);
 
   readonly selectedExample = computed(() =>
     this.card()?.value()?.data.examples?.find((ex) => ex.isSelected)
@@ -97,6 +99,11 @@ export class LearnVocabularyCardComponent {
       const currentWord = this.word();
       const currentExample = this.example();
       const playAudioFn = this.onPlayAudio();
+      const isRevealed = this.isRevealed();
+
+      if (!isRevealed && !this.voiceConfigService.frontAudioEnabled()) {
+        return;
+      }
 
       if (currentWord && playAudioFn) {
         const texts = [currentWord, currentExample].filter(Boolean) as string[];

@@ -11,9 +11,9 @@ public interface CardTypeStrategy {
 
     List<AudioTextItem> getRequiredAudioTexts(CardData cardData);
 
-    record AudioTextItem(String text, String language) {}
+    record AudioTextItem(String text, String language, boolean isFront) {}
 
-    default boolean isMissingAudio(CardData cardData) {
+    default boolean isMissingAudio(CardData cardData, boolean frontAudioEnabled) {
         if (cardData == null) {
             return false;
         }
@@ -22,8 +22,15 @@ public interface CardTypeStrategy {
         final List<AudioTextItem> requiredTexts = getRequiredAudioTexts(cardData);
 
         return requiredTexts.stream()
+                .filter(item -> frontAudioEnabled || !item.isFront())
                 .filter(item -> hasText(item.text()))
                 .anyMatch(item -> !hasAudioForText(audioList, item.text()));
+    }
+
+    default List<AudioTextItem> getFrontAudioTexts(CardData cardData) {
+        return getRequiredAudioTexts(cardData).stream()
+                .filter(AudioTextItem::isFront)
+                .toList();
     }
 
     private boolean hasAudioForText(List<AudioData> audioList, String text) {

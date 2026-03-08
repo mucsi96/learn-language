@@ -23,4 +23,5 @@ public class RateLimitSettingController {
     public void updateRateLimitSettings(@Valid @RequestBody RateLimitSettingRequest request) {
         rateLimitSettingService.updateRateLimitSettings(request);
     }
+
 }

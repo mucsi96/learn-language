@@ -179,6 +179,7 @@ export type AudioGenerationItem = {
   language: string;
   context?: string;
   singleWord?: boolean;
+  isFront?: boolean;
 };
 
 export type LanguageTexts = {

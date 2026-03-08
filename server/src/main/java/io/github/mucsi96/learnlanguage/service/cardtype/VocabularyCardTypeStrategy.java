@@ -27,19 +27,19 @@ public class VocabularyCardTypeStrategy implements CardTypeStrategy {
         return Stream.of(
                 Optional.ofNullable(cardData.getWord())
                         .filter(this::hasText)
-                        .map(word -> new AudioTextItem(word, "de")),
+                        .map(word -> new AudioTextItem(word, "de", false)),
                 Optional.ofNullable(cardData.getTranslation())
                         .map(t -> t.get("hu"))
                         .filter(this::hasText)
-                        .map(hu -> new AudioTextItem(hu, "hu")),
+                        .map(hu -> new AudioTextItem(hu, "hu", true)),
                 selectedExample
                         .map(ExampleData::getDe)
                         .filter(this::hasText)
-                        .map(de -> new AudioTextItem(de, "de")),
+                        .map(de -> new AudioTextItem(de, "de", false)),
                 selectedExample
                         .map(ExampleData::getHu)
                         .filter(this::hasText)
-                        .map(hu -> new AudioTextItem(hu, "hu"))
+                        .map(hu -> new AudioTextItem(hu, "hu", true))
         ).flatMap(Optional::stream).toList();
     }
 
