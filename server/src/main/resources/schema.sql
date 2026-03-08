@@ -127,8 +127,17 @@ CREATE TABLE IF NOT EXISTS learn_language.rate_limit_settings (
 INSERT INTO learn_language.rate_limit_settings (key, value)
 VALUES ('image-per-minute', 6), ('audio-per-minute', 0),
        ('image-max-concurrent', 0), ('audio-max-concurrent', 3),
-       ('image-daily-limit', 0), ('audio-daily-limit', 0),
-       ('audio-front-enabled', 1)
+       ('image-daily-limit', 0), ('audio-daily-limit', 0)
+ON CONFLICT (key) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS learn_language.audio_settings (
+    key character varying(255) NOT NULL,
+    value integer NOT NULL,
+    CONSTRAINT audio_settings_pkey PRIMARY KEY (key)
+);
+
+INSERT INTO learn_language.audio_settings (key, value)
+VALUES ('front-enabled', 1)
 ON CONFLICT (key) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS learn_language.known_words (

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createVoiceConfiguration, getVoiceConfigurations, createCard, createRateLimitSetting, withDbConnection } from '../utils';
+import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAudioSetting, withDbConnection } from '../utils';
 
 test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.goto('http://localhost:8180');
@@ -220,14 +220,14 @@ test('front audio toggle persists when disabled', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT value FROM learn_language.rate_limit_settings WHERE key = 'audio-front-enabled'"
+      "SELECT value FROM learn_language.audio_settings WHERE key = 'front-enabled'"
     );
     expect(result.rows[0].value).toBe(0);
   });
 });
 
 test('front audio toggle reflects disabled state from server', async ({ page }) => {
-  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-enabled', value: 0 });
   await page.goto('http://localhost:8180/settings/voices');
   const toggle = page.getByRole('switch', { name: 'Enable front audio' });
   await expect(toggle).toBeVisible();

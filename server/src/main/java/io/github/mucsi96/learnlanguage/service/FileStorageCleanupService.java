@@ -32,7 +32,7 @@ public class FileStorageCleanupService {
   private final FileStorageService fileStorageService;
   private final CardRepository cardRepository;
   private final DocumentRepository documentRepository;
-  private final RateLimitSettingService rateLimitSettingService;
+  private final AudioSettingService audioSettingService;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
 
   @EventListener(ApplicationReadyEvent.class)
@@ -69,7 +69,7 @@ public class FileStorageCleanupService {
   }
 
   private void stripFrontAudioFromCards() {
-    if (rateLimitSettingService.isAudioFrontEnabled()) {
+    if (audioSettingService.isFrontAudioEnabled()) {
       return;
     }
 

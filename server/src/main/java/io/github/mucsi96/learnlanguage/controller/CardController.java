@@ -14,8 +14,8 @@ import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.service.CardService;
+import io.github.mucsi96.learnlanguage.service.AudioSettingService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
-import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import io.github.mucsi96.learnlanguage.service.StudySessionService;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.CardData;
@@ -47,7 +47,7 @@ public class CardController {
   private final ReviewLogRepository reviewLogRepository;
   private final LearningPartnerService learningPartnerService;
   private final StudySessionService studySessionService;
-  private final RateLimitSettingService rateLimitSettingService;
+  private final AudioSettingService audioSettingService;
 
   @GetMapping("/source/{sourceId}/cards")
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
@@ -285,7 +285,7 @@ public class CardController {
   @GetMapping("/cards/missing-audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {
-    final boolean frontAudioEnabled = rateLimitSettingService.isAudioFrontEnabled();
+    final boolean frontAudioEnabled = audioSettingService.isFrontAudioEnabled();
     final List<CardResponse> cards = cardService.getCardsMissingAudio(frontAudioEnabled).stream()
         .map(CardResponse::from)
         .toList();

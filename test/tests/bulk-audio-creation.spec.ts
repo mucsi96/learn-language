@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
-  createRateLimitSetting,
+  createAudioSetting,
   createVoiceConfiguration,
   createStudySession,
   getStudySessionCardsBySource,
@@ -1137,7 +1137,7 @@ test('bulk audio creation does not fail when no session exists', async ({ page }
 });
 
 test('bulk audio fab hides when front audio disabled and only front audio missing', async ({ page }) => {
-  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-enabled', value: 0 });
   await createCard({
     cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
@@ -1185,7 +1185,7 @@ test('bulk audio fab hides when front audio disabled and only front audio missin
 });
 
 test('bulk audio creation skips front audio when front audio disabled', async ({ page }) => {
-  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-enabled', value: 0 });
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'verstehen-erteni',
@@ -1237,7 +1237,7 @@ test('bulk audio creation skips front audio when front audio disabled', async ({
 });
 
 test('bulk audio creation cleans up front audio when front audio disabled', async ({ page }) => {
-  await createRateLimitSetting({ key: 'audio-front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-enabled', value: 0 });
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'verstehen-erteni',

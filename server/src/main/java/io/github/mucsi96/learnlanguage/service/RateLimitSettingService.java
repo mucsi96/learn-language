@@ -40,15 +40,6 @@ public class RateLimitSettingService {
         return getRateLimit("audio-daily-limit");
     }
 
-    public boolean isAudioFrontEnabled() {
-        return getRateLimit("audio-front-enabled") != 0;
-    }
-
-    @Transactional
-    public void setAudioFrontEnabled(boolean enabled) {
-        updateRateLimit("audio-front-enabled", enabled ? 1 : 0);
-    }
-
     @Transactional
     public void updateRateLimitSettings(RateLimitSettingRequest request) {
         final String type = request.getType();

@@ -18,6 +18,7 @@ import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import io.github.mucsi96.learnlanguage.service.AudioService;
+import io.github.mucsi96.learnlanguage.service.AudioSettingService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
 import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
@@ -33,6 +34,7 @@ public class EnvironmentController {
   private final ChatModelSettingService chatModelSettingService;
   private final ImageModelSettingService imageModelSettingService;
   private final RateLimitSettingService rateLimitSettingService;
+  private final AudioSettingService audioSettingService;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -81,7 +83,7 @@ public class EnvironmentController {
         rateLimitSettingService.getAudioMaxConcurrentRequests(),
         rateLimitSettingService.getImageDailyLimit(),
         rateLimitSettingService.getAudioDailyLimit(),
-        rateLimitSettingService.isAudioFrontEnabled(),
+        audioSettingService.isFrontAudioEnabled(),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),

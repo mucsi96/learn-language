@@ -900,6 +900,22 @@ export async function getRateLimitSettings(): Promise<
   });
 }
 
+export async function createAudioSetting(params: {
+  key: string;
+  value: number;
+}): Promise<void> {
+  const { key, value } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.audio_settings (key, value)
+       VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [key, value]
+    );
+  });
+}
+
 export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
   await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
   await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
@@ -907,7 +923,7 @@ export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: 
   await createRateLimitSetting({ key: 'audio-max-concurrent', value: 0 });
   await createRateLimitSetting({ key: 'image-daily-limit', value: 0 });
   await createRateLimitSetting({ key: 'audio-daily-limit', value: 0 });
-  await createRateLimitSetting({ key: 'audio-front-enabled', value: 1 });
+  await createAudioSetting({ key: 'front-enabled', value: 1 });
 }
 
 export async function getTableData<T extends Record<string, string>>(

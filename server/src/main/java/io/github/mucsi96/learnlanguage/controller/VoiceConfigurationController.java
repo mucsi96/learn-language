@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationRequest;
 import io.github.mucsi96.learnlanguage.model.VoiceConfigurationResponse;
+import io.github.mucsi96.learnlanguage.service.AudioSettingService;
 import io.github.mucsi96.learnlanguage.service.VoiceConfigurationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class VoiceConfigurationController {
 
     private final VoiceConfigurationService voiceConfigurationService;
+    private final AudioSettingService audioSettingService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -59,4 +61,12 @@ public class VoiceConfigurationController {
         voiceConfigurationService.deleteVoiceConfiguration(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/front-audio")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public void updateFrontAudioEnabled(@RequestBody FrontAudioRequest request) {
+        audioSettingService.setFrontAudioEnabled(request.enabled());
+    }
+
+    public record FrontAudioRequest(boolean enabled) {}
 }

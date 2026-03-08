@@ -132,7 +132,7 @@ export class VoiceConfigService {
   updateFrontAudioEnabled(enabled: boolean): void {
     this.frontAudioEnabled.set(enabled);
 
-    fetchJson(this.http, '/api/rate-limit-settings/front-audio', {
+    fetchJson(this.http, '/api/voice-configurations/front-audio', {
       method: 'PUT',
       body: { enabled },
     });
