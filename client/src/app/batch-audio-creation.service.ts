@@ -101,7 +101,7 @@ export class BatchAudioCreationService {
 
   private filterAudioItems(items: AudioGenerationItem[]): AudioGenerationItem[] {
     const frontAudioEnabled = this.voiceConfigService.frontAudioEnabled();
-    return frontAudioEnabled ? items : items.filter(item => !item.isFrontAudio);
+    return frontAudioEnabled ? items : items.filter(item => !item.isFront);
   }
 
   private getMissingVoiceLanguages(strategy: CardTypeStrategy, cards: Card[]): string[] {

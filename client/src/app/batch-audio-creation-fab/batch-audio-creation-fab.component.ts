@@ -56,7 +56,7 @@ export class BatchAudioCreationFabComponent {
       const strategy = this.cardTypeRegistry.getStrategy(cardType);
       const existingAudio = card.data.audio ?? [];
       const audioItems = strategy.getAudioItems(card)
-        .filter(item => frontAudioEnabled || !item.isFrontAudio);
+        .filter(item => frontAudioEnabled || !item.isFront);
       const missingCount = audioItems.filter(
         item => !existingAudio.some(a => a.text === item.text)
       ).length;
