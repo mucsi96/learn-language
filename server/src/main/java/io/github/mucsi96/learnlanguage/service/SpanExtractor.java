@@ -130,7 +130,7 @@ public class SpanExtractor extends PDFTextStripper {
 
       this.setStartPage(pageNumber);
       this.setEndPage(pageNumber);
-      PDPage pdPage = document.getPage(pageNumber);
+      PDPage pdPage = document.getPage(pageNumber - 1);
       PDRectangle cropBox = pdPage.getCropBox();
 
       // flip y-axis
