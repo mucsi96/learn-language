@@ -52,7 +52,7 @@
           @for (entry of getReadinessCounts(source); track entry.readiness) {
           <span
             class="readiness-chip"
-            [class]="'readiness-chip readiness-' + entry.readiness.toLowerCase()"
+            [ngClass]="'readiness-' + entry.readiness.toLowerCase()"
             [attr.aria-label]="entry.readiness + ': ' + entry.count"
           >
             {{ getReadinessLabel(entry.readiness) }} {{ entry.count }}

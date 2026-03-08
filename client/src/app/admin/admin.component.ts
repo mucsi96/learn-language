@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -14,7 +15,6 @@ import { StateComponent } from '../shared/state/state.component';
 import { CardState } from '../shared/state/card-state';
 
 const READINESS_LABELS: Record<string, string> = {
-  'DRAFT': 'Draft',
   'IN_REVIEW': 'In Review',
   'REVIEWED': 'Reviewed',
   'READY': 'Ready',
@@ -27,6 +27,7 @@ const READINESS_ORDER = ['READY', 'KNOWN', 'IN_REVIEW', 'REVIEWED'] as const;
 @Component({
   selector: 'app-admin',
   imports: [
+    NgClass,
     MatProgressSpinnerModule,
     MatCardModule,
     MatButtonModule,
@@ -61,7 +62,8 @@ export class AdminComponent {
   );
 
   hasStateCounts(source: Source): boolean {
-    return Object.keys(source.stateCounts ?? {}).length > 0;
+    const counts = source.stateCounts ?? {};
+    return STATE_ORDER.some((s) => counts[s] !== undefined);
   }
 
   getStateCounts(source: Source): { state: CardState; count: number }[] {

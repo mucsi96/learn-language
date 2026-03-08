@@ -102,9 +102,9 @@ public class CardService {
 
     return cardRepository.findTop50MostDueGroupedByStateAndSourceId().stream()
         .map(row -> SourceDueCardCountResponse.builder()
-            .sourceId((String) row[0])
-            .state((String) row[1])
-            .count(((Number) row[2]).longValue())
+            .sourceId(row.getSourceId())
+            .state(row.getState())
+            .count(row.getCount())
             .build())
         .toList();
   }
@@ -135,12 +135,12 @@ public class CardService {
     final Map<String, Integer> unhealthyCounts = new HashMap<>();
 
     cardRepository.getSourceCardStats().forEach(row -> {
-      final var sourceId = (String) row[0];
-      final var readiness = (String) row[1];
-      final var state = (String) row[2];
-      final var flagged = (Boolean) row[3];
-      final var unhealthy = (Boolean) row[4];
-      final var count = ((Long) row[5]).intValue();
+      final var sourceId = row.getSourceId();
+      final var readiness = row.getReadiness();
+      final var state = row.getState();
+      final var flagged = row.getFlagged();
+      final var unhealthy = row.getUnhealthy();
+      final var count = row.getCount().intValue();
 
       final var isDraft = "DRAFT".equals(readiness);
 

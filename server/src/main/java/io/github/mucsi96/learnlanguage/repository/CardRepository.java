@@ -28,7 +28,7 @@ public interface CardRepository
     List<Card> findByFlaggedTrueOrderByDueAsc();
 
     @Query(value = """
-        SELECT source_id, state, COUNT(*) AS card_count
+        SELECT source_id AS sourceId, state AS state, COUNT(*) AS count
         FROM (
             SELECT source_id, state,
                    ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
@@ -38,15 +38,16 @@ public interface CardRepository
         WHERE row_num <= 50
         GROUP BY source_id, state
         """, nativeQuery = true)
-    List<Object[]> findTop50MostDueGroupedByStateAndSourceId();
+    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId();
 
     @Query(value = """
-        SELECT c.source_id, c.readiness, c.state, c.flagged, COALESCE(cv.is_unhealthy, false), COUNT(*)
+        SELECT c.source_id AS sourceId, c.readiness AS readiness, c.state AS state,
+               c.flagged AS flagged, COALESCE(cv.is_unhealthy, false) AS unhealthy, COUNT(*) AS count
         FROM learn_language.cards c
         LEFT JOIN learn_language.card_view cv ON c.id = cv.id
         GROUP BY c.source_id, c.readiness, c.state, c.flagged, cv.is_unhealthy
         """, nativeQuery = true)
-    List<Object[]> getSourceCardStats();
+    List<SourceCardStatsProjection> getSourceCardStats();
 
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
 
