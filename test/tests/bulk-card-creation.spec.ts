@@ -730,7 +730,7 @@ test('bulk card creation persists extraction regions', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT source_id, page_number, x, y, width, height
+      `SELECT source_id, page_number, document_id, x, y, width, height
        FROM learn_language.extraction_regions
        WHERE source_id = 'goethe-a1'
        ORDER BY id`
@@ -739,6 +739,7 @@ test('bulk card creation persists extraction regions', async ({ page }) => {
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].source_id).toBe('goethe-a1');
     expect(result.rows[0].page_number).toBe(9);
+    expect(result.rows[0].document_id).not.toBeNull();
     expect(result.rows[0].x).toBeGreaterThan(0);
     expect(result.rows[0].y).toBeGreaterThan(0);
     expect(result.rows[0].width).toBeGreaterThan(0);

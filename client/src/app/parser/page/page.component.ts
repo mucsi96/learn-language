@@ -106,6 +106,9 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly selectedDocumentId = computed(
     () => this.pageService.page.value()?.documentId
   );
+  readonly pageCount = computed(
+    () => this.pageService.page.value()?.pageCount
+  );
   readonly hasMultipleDocuments = computed(
     () => this.documents().length > 1
   );

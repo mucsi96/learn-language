@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createDocument, getDocuments, getSource, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image } from '../utils';
+import { createCard, createDocument, getDocuments, getSource, selectTextRange, scrollElementToTop, setupDefaultChatModelSettings, setupDefaultImageModelSettings, menschenA1Image, withDbConnection } from '../utils';
 
 async function navigateToSource(page, sourceName: string) {
   await page.goto('http://localhost:8180/sources');
@@ -31,6 +31,13 @@ test('disables previous page button on page 1', async ({ page }) => {
 
   const prevButton = page.getByRole('link', { name: 'Previous page' });
   await expect(prevButton).toHaveClass(/disabled/);
+});
+
+test('disables next page button on last page', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/999');
+
+  const nextButton = page.getByRole('link', { name: 'Next page' });
+  await expect(nextButton).toHaveClass(/disabled/);
 });
 
 test('next page', async ({ page }) => {
@@ -357,4 +364,31 @@ test('uploads additional PDF document to source', async ({ page }) => {
 
   const documents = await getDocuments('goethe-a1');
   expect(documents.length).toBe(2);
+});
+
+test('extraction regions are scoped to document', async ({ page }) => {
+  const secondDoc = await createDocument({
+    sourceId: 'goethe-a1',
+    fileName: 'Goethe-Zertifikat_A2_Wortliste.pdf',
+  });
+
+  const documents = await getDocuments('goethe-a1');
+  const firstDocId = documents.find(d => d.fileName === 'A1_SD1_Wortliste_02.pdf')!.id;
+  const secondDocId = documents.find(d => d.fileName === 'Goethe-Zertifikat_A2_Wortliste.pdf')!.id;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.extraction_regions (source_id, page_number, document_id, x, y, width, height)
+       VALUES ('goethe-a1', 1, $1, 10, 20, 100, 50)`,
+      [firstDocId]
+    );
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/1');
+  await expect(page.getByRole('region', { name: 'Extracted region' })).toBeVisible();
+
+  await page.getByLabel('Select document').click();
+  await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
+
+  await expect(page.getByRole('region', { name: 'Extracted region' })).not.toBeVisible();
 });

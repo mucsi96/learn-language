@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class ExtractionRegionCreateRequest {
+    private Integer documentId;
     private List<Region> regions;
 
     @Data
