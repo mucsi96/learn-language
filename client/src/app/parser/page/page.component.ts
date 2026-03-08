@@ -181,11 +181,14 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   }
 
   onPageChange() {
+    const max = this.pageCount();
+    const clamped = Math.max(1, max ? Math.min(this.pageNumber()!, max) : this.pageNumber()!);
+    this.pageNumber.set(clamped);
     this.router.navigate([
       '/sources',
       this.selectedSourceId(),
       'page',
-      this.pageNumber(),
+      clamped,
     ]);
   }
 

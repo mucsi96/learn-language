@@ -27,6 +27,8 @@
     <input
       matInput
       type="number"
+      min="1"
+      [max]="pageCount()"
       [(ngModel)]="pageNumber"
       (change)="onPageChange()"
     />
