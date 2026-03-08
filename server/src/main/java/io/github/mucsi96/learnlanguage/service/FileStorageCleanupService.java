@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileStorageCleanupService {
 
-  private static final List<CardReadiness> REVIEWED_READINESS = List.of(CardReadiness.REVIEWED, CardReadiness.READY, CardReadiness.KNOWN);
+  private static final List<CardReadiness> REVIEWED_READINESS = List.of(CardReadiness.REVIEWED, CardReadiness.READY);
 
   private final FileStorageService fileStorageService;
   private final CardRepository cardRepository;
@@ -34,10 +34,26 @@ public class FileStorageCleanupService {
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
   public void cleanupUnreferencedFiles() {
+    stripAllImagesFromKnownCards();
     stripNonFavoriteImagesFromReviewedCards();
     cleanupAudioFiles();
     cleanupImageFiles();
     cleanupSourceDocuments();
+  }
+
+  private void stripAllImagesFromKnownCards() {
+    final var cards = cardRepository.findByReadinessIn(List.of(CardReadiness.KNOWN)).stream()
+        .filter(card -> Optional.ofNullable(card.getData().getExamples())
+            .map(examples -> examples.stream()
+                .anyMatch(example -> example.getImages() != null && !example.getImages().isEmpty()))
+            .orElse(false))
+        .toList();
+
+    cards.forEach(card -> card.getData().getExamples()
+        .forEach(example -> example.setImages(null)));
+
+    cardRepository.saveAll(cards);
+    log.info("Stripped all images from {} known cards", cards.size());
   }
 
   private void stripNonFavoriteImagesFromReviewedCards() {
