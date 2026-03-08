@@ -14,6 +14,7 @@ import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
+import io.github.mucsi96.learnlanguage.repository.SourceCardStatsProjection;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +32,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import static io.github.mucsi96.learnlanguage.repository.specification.CardViewSpecifications.*;
 
@@ -47,7 +48,7 @@ import static io.github.mucsi96.learnlanguage.repository.specification.CardViewS
 public class CardService {
 
   @Builder
-  @Data
+  @Value
   public static class SourceStats {
     private final int cardCount;
     private final int draftCardCount;
@@ -127,54 +128,54 @@ public class CardService {
   }
 
   public Map<String, SourceStats> getSourceStats() {
-    final Map<String, Map<String, Integer>> stateCounts = new HashMap<>();
-    final Map<String, Map<String, Integer>> readinessCounts = new HashMap<>();
-    final Map<String, Integer> cardCounts = new HashMap<>();
-    final Map<String, Integer> draftCounts = new HashMap<>();
-    final Map<String, Integer> flaggedCounts = new HashMap<>();
-    final Map<String, Integer> unhealthyCounts = new HashMap<>();
+    return cardRepository.getSourceCardStats().stream()
+        .collect(Collectors.groupingBy(
+            SourceCardStatsProjection::getSourceId,
+            Collectors.collectingAndThen(Collectors.toList(), rows -> {
+              final Predicate<SourceCardStatsProjection> isDraft =
+                  row -> "DRAFT".equals(row.getReadiness());
 
-    cardRepository.getSourceCardStats().forEach(row -> {
-      final var sourceId = row.getSourceId();
-      final var readiness = row.getReadiness();
-      final var state = row.getState();
-      final var flagged = row.getFlagged();
-      final var unhealthy = row.getUnhealthy();
-      final var count = row.getCount().intValue();
+              final int cardCount = rows.stream()
+                  .filter(isDraft.negate())
+                  .mapToInt(row -> row.getCount().intValue())
+                  .sum();
 
-      final var isDraft = "DRAFT".equals(readiness);
+              final int draftCardCount = rows.stream()
+                  .filter(isDraft)
+                  .mapToInt(row -> row.getCount().intValue())
+                  .sum();
 
-      if (isDraft) {
-        draftCounts.merge(sourceId, count, Integer::sum);
-      } else {
-        cardCounts.merge(sourceId, count, Integer::sum);
-        stateCounts.computeIfAbsent(sourceId, k -> new HashMap<>())
-            .merge(state, count, Integer::sum);
-      }
+              final int flaggedCardCount = rows.stream()
+                  .filter(row -> row.getFlagged())
+                  .mapToInt(row -> row.getCount().intValue())
+                  .sum();
 
-      readinessCounts.computeIfAbsent(sourceId, k -> new HashMap<>())
-          .merge(readiness, count, Integer::sum);
+              final int unhealthyCardCount = rows.stream()
+                  .filter(row -> row.getUnhealthy())
+                  .mapToInt(row -> row.getCount().intValue())
+                  .sum();
 
-      if (flagged) {
-        flaggedCounts.merge(sourceId, count, Integer::sum);
-      }
-      if (unhealthy) {
-        unhealthyCounts.merge(sourceId, count, Integer::sum);
-      }
-    });
+              final Map<String, Integer> stateCounts = rows.stream()
+                  .filter(isDraft.negate())
+                  .collect(Collectors.groupingBy(
+                      SourceCardStatsProjection::getState,
+                      Collectors.summingInt(row -> row.getCount().intValue())));
 
-    return readinessCounts.keySet().stream()
-        .collect(Collectors.toMap(
-            sourceId -> sourceId,
-            sourceId -> SourceStats.builder()
-                .cardCount(cardCounts.getOrDefault(sourceId, 0))
-                .draftCardCount(draftCounts.getOrDefault(sourceId, 0))
-                .flaggedCardCount(flaggedCounts.getOrDefault(sourceId, 0))
-                .unhealthyCardCount(unhealthyCounts.getOrDefault(sourceId, 0))
-                .stateCounts(stateCounts.getOrDefault(sourceId, Map.of()))
-                .readinessCounts(readinessCounts.getOrDefault(sourceId, Map.of()))
-                .build()
-        ));
+              final Map<String, Integer> readinessCounts = rows.stream()
+                  .filter(isDraft.negate())
+                  .collect(Collectors.groupingBy(
+                      SourceCardStatsProjection::getReadiness,
+                      Collectors.summingInt(row -> row.getCount().intValue())));
+
+              return SourceStats.builder()
+                  .cardCount(cardCount)
+                  .draftCardCount(draftCardCount)
+                  .flaggedCardCount(flaggedCardCount)
+                  .unhealthyCardCount(unhealthyCardCount)
+                  .stateCounts(stateCounts)
+                  .readinessCounts(readinessCounts)
+                  .build();
+            })));
   }
 
   public List<Card> getFlaggedCards() {
