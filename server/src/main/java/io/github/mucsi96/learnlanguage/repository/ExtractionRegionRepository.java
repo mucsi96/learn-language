@@ -8,5 +8,7 @@ import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.Source;
 
 public interface ExtractionRegionRepository extends JpaRepository<ExtractionRegion, Integer> {
-    List<ExtractionRegion> findBySourceAndPageNumber(Source source, Integer pageNumber);
+    List<ExtractionRegion> findBySourceAndPageNumberAndDocumentId(Source source, Integer pageNumber, Integer documentId);
+
+    List<ExtractionRegion> findBySourceAndPageNumberAndDocumentIdIsNull(Source source, Integer pageNumber);
 }

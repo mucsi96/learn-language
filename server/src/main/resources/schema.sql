@@ -189,6 +189,8 @@ CREATE TABLE IF NOT EXISTS learn_language.extraction_regions (
     CONSTRAINT extraction_region_source_fkey FOREIGN KEY (source_id) REFERENCES learn_language.sources(id) ON DELETE CASCADE
 );
 
+ALTER TABLE learn_language.extraction_regions ADD COLUMN IF NOT EXISTS document_id integer;
+
 CREATE INDEX IF NOT EXISTS extraction_regions_source_page_idx
     ON learn_language.extraction_regions (source_id, page_number);
 

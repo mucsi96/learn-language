@@ -152,7 +152,11 @@ public class SourceController {
           .toList());
     }
 
-    final var regions = extractionRegionRepository.findBySourceAndPageNumber(source, pageNumber).stream()
+    final var selectedDocumentId = selectedDocument != null ? selectedDocument.getId() : null;
+    final var regions = (selectedDocumentId != null
+        ? extractionRegionRepository.findBySourceAndPageNumberAndDocumentId(source, pageNumber, selectedDocumentId)
+        : extractionRegionRepository.findBySourceAndPageNumberAndDocumentIdIsNull(source, pageNumber))
+        .stream()
         .map(region -> PageResponse.PersistedExtractionRegion.builder()
             .x(region.getX())
             .y(region.getY())
@@ -244,6 +248,7 @@ public class SourceController {
         .map(region -> ExtractionRegion.builder()
             .source(source)
             .pageNumber(region.getPageNumber())
+            .documentId(request.getDocumentId())
             .x(region.getX())
             .y(region.getY())
             .width(region.getWidth())

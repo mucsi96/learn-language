@@ -25,6 +25,9 @@ public class ExtractionRegion {
     @Column(name = "page_number", nullable = false)
     private Integer pageNumber;
 
+    @Column(name = "document_id")
+    private Integer documentId;
+
     @Column(nullable = false)
     private Double x;
 
