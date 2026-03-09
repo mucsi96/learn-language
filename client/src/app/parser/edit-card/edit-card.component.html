@@ -17,6 +17,17 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
+      @if (isFlagged()) {
+        <button
+          type="button"
+          mat-flat-button
+          (click)="removeFlag()"
+          aria-label="Remove flag"
+        >
+          <mat-icon>flag</mat-icon>
+          Remove flag
+        </button>
+      }
       @if (isInReview()) {
         <button
           type="button"
