@@ -136,15 +136,15 @@ export class EditCardComponent {
       this.card.reload();
       this.showSnackBar('Flag removed successfully');
     } catch {
-      this.showSnackBar('Failed to remove flag');
+      this.showSnackBar('Failed to remove flag', 'error');
     }
   }
 
-  private showSnackBar(message: string) {
+  private showSnackBar(message: string, type: 'success' | 'error' = 'success') {
     this.snackBar.open(message, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
-      panelClass: ['success'],
+      panelClass: [type],
     });
   }
 
