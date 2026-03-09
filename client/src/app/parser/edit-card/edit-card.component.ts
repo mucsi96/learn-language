@@ -85,6 +85,10 @@ export class EditCardComponent {
     return card?.readiness === 'IN_REVIEW';
   });
 
+  readonly isFlagged = computed(() => {
+    return this.card.value()?.flagged ?? false;
+  });
+
   readonly canMarkAsReviewed = computed(() => {
     return this.isInReview() && this.markAsReviewedAvailable();
   });
@@ -118,12 +122,29 @@ export class EditCardComponent {
     this.pendingCardEdits.set(cardData);
   }
 
+  async removeFlag() {
+    const cardId = this.selectedCardId();
+    if (!cardId) {
+      return;
+    }
 
-  private showSnackBar(message: string) {
+    try {
+      await fetchJson(this.http, `/api/card/${cardId}`, {
+        body: { flagged: false },
+        method: 'PUT',
+      });
+      this.card.reload();
+      this.showSnackBar('Flag removed successfully');
+    } catch {
+      this.showSnackBar('Failed to remove flag', 'error');
+    }
+  }
+
+  private showSnackBar(message: string, type: 'success' | 'error' = 'success') {
     this.snackBar.open(message, 'Close', {
       duration: 3000,
       verticalPosition: 'top',
-      panelClass: ['success'],
+      panelClass: [type],
     });
   }
 

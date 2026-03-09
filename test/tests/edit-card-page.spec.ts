@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   downloadImage,
+  getCardFromDb,
   getImageColor,
   getImageContent,
   withDbConnection,
@@ -808,4 +809,71 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     const cardData = result.rows[0].data;
     expect(cardData.examples[0].de).toBe('Das Kind [spielt] im Garten.');
   });
+});
+
+test('remove flag button is visible for flagged card', async ({ page }) => {
+  await createCard({
+    cardId: 'flagged-card-visible',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'sehen',
+      type: 'VERB',
+      forms: ['sieht', 'sah', 'gesehen'],
+      translation: { en: 'to see', hu: 'látni', ch: 'gseh' },
+      examples: [
+        {
+          de: 'Ich sehe den Hund.',
+          hu: 'Látom a kutyát.',
+          en: 'I see the dog.',
+          ch: 'Ich gseh de Hund.',
+          isSelected: true,
+        },
+      ],
+    },
+    flagged: true,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-visible');
+
+  await expect(page.getByRole('button', { name: 'Remove flag' })).toBeVisible();
+});
+
+test('remove flag button is not visible for unflagged card', async ({ page }) => {
+  await prepareCard(page);
+
+  await expect(page.getByRole('button', { name: 'Remove flag' })).not.toBeVisible();
+});
+
+test('remove flag unflags card in database', async ({ page }) => {
+  await createCard({
+    cardId: 'flagged-card-unflag',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'laufen',
+      type: 'VERB',
+      forms: ['läuft', 'lief', 'gelaufen'],
+      translation: { en: 'to run', hu: 'futni', ch: 'laufe' },
+      examples: [
+        {
+          de: 'Er läuft schnell.',
+          hu: 'Gyorsan fut.',
+          en: 'He runs fast.',
+          ch: 'Er lauft schnäll.',
+          isSelected: true,
+        },
+      ],
+    },
+    flagged: true,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-unflag');
+
+  await page.getByRole('button', { name: 'Remove flag' }).click();
+  await expect(page.getByText('Flag removed successfully')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove flag' })).not.toBeVisible();
+
+  const card = await getCardFromDb('flagged-card-unflag');
+  expect(card.flagged).toBe(false);
 });
