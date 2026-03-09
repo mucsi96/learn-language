@@ -165,6 +165,12 @@ export class CardsTableComponent {
         this.cardsTableService.refreshCardView().then(() => this.refreshGrid());
       }
     });
+    effect(() => {
+      this.activeQuickFilter();
+      if (this.gridApi) {
+        this.refreshGrid();
+      }
+    });
   }
 
   private gridApi: GridApi | null = null;
