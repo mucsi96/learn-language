@@ -129,10 +129,16 @@ export class EditCardComponent {
     }
 
     try {
+      const pendingEdits = this.pendingCardEdits();
+      const requestBody = pendingEdits
+        ? { ...pendingEdits, flagged: false }
+        : { flagged: false };
+
       await fetchJson(this.http, `/api/card/${cardId}`, {
-        body: { flagged: false },
+        body: requestBody,
         method: 'PUT',
       });
+      this.pendingCardEdits.set(undefined);
       this.card.reload();
       this.showSnackBar('Flag removed successfully');
     } catch {
