@@ -834,7 +834,7 @@ test('remove flag button is visible for flagged card', async ({ page }) => {
     flagged: true,
   });
 
-  await navigateToCardEditing(page);
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-visible');
 
   await expect(page.getByRole('button', { name: 'Remove flag' })).toBeVisible();
 });
@@ -868,7 +868,7 @@ test('remove flag unflags card in database', async ({ page }) => {
     flagged: true,
   });
 
-  await navigateToCardEditing(page);
+  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-unflag');
 
   await page.getByRole('button', { name: 'Remove flag' }).click();
   await expect(page.getByText('Flag removed successfully')).toBeVisible();

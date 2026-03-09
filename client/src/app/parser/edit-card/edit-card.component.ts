@@ -128,15 +128,17 @@ export class EditCardComponent {
       return;
     }
 
-    await fetchJson(this.http, `/api/card/${cardId}`, {
-      body: { flagged: false },
-      method: 'PUT',
-    });
-
-    this.card.reload();
-    this.showSnackBar('Flag removed successfully');
+    try {
+      await fetchJson(this.http, `/api/card/${cardId}`, {
+        body: { flagged: false },
+        method: 'PUT',
+      });
+      this.card.reload();
+      this.showSnackBar('Flag removed successfully');
+    } catch {
+      this.showSnackBar('Failed to remove flag');
+    }
   }
-
 
   private showSnackBar(message: string) {
     this.snackBar.open(message, 'Close', {

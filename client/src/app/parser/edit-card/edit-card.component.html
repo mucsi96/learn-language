@@ -8,6 +8,7 @@
   </div>
   <h2 class="title">
     {{ getCardTypeTitle() }}
+    <span class="title-spacer"></span>
     @if (card.value()) {
       <button
         mat-icon-button
@@ -24,7 +25,7 @@
           (click)="removeFlag()"
           aria-label="Remove flag"
         >
-          <mat-icon>flag</mat-icon>
+          <mat-icon>flag_off</mat-icon>
           Remove flag
         </button>
       }
