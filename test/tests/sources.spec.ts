@@ -175,11 +175,24 @@ test('displays card state counts only for ready cards', async ({ page }) => {
       translation: { en: 'known1' },
     },
   });
+  await createCard({
+    cardId: 'test-in-review-new',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    state: 'NEW',
+    readiness: 'IN_REVIEW',
+    data: {
+      word: 'inreview1',
+      type: 'NOUN',
+      translation: { en: 'inreview1' },
+    },
+  });
 
   await page.goto('http://localhost:8180/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await expect(source.getByText('Ready 3')).toBeVisible();
   await expect(source.getByText('Known 1')).toBeVisible();
+  await expect(source.getByLabel('IN_REVIEW: 1')).toBeVisible();
   await expect(source.getByTitle('New')).toContainText('2');
   await expect(source.getByTitle('Review')).toContainText('1');
 });
