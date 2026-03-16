@@ -155,8 +155,11 @@ public class CardService {
                   .mapToInt(row -> row.getCount().intValue())
                   .sum();
 
+              final Predicate<SourceCardStatsProjection> isReady =
+                  row -> "READY".equals(row.getReadiness());
+
               final Map<String, Integer> stateCounts = rows.stream()
-                  .filter(isDraft.negate())
+                  .filter(isReady)
                   .collect(Collectors.groupingBy(
                       SourceCardStatsProjection::getState,
                       Collectors.summingInt(row -> row.getCount().intValue())));
