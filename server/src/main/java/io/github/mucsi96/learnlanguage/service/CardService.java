@@ -133,7 +133,7 @@ public class CardService {
             SourceCardStatsProjection::getSourceId,
             Collectors.collectingAndThen(Collectors.toList(), rows -> {
               final Predicate<SourceCardStatsProjection> isDraft =
-                  row -> "DRAFT".equals(row.getReadiness());
+                  row -> CardReadiness.DRAFT.name().equals(row.getReadiness());
 
               final int cardCount = rows.stream()
                   .filter(isDraft.negate())
@@ -156,7 +156,7 @@ public class CardService {
                   .sum();
 
               final Predicate<SourceCardStatsProjection> isReady =
-                  row -> "READY".equals(row.getReadiness());
+                  row -> CardReadiness.READY.name().equals(row.getReadiness());
 
               final Map<String, Integer> stateCounts = rows.stream()
                   .filter(isReady)
