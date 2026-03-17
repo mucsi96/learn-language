@@ -165,7 +165,7 @@ export class BatchAudioCreationService {
           ...card.data,
           audio: finalAudioList,
         },
-        readiness: 'READY',
+        readiness: card.readiness === 'DRAFT' ? 'DRAFT' : 'READY',
       };
 
       await fetchJson(this.http, `/api/card/${card.id}`, {
