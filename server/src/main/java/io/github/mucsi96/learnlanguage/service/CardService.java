@@ -115,10 +115,8 @@ public class CardService {
   }
 
   public List<Card> getCardsMissingAudio(boolean frontAudioEnabled) {
-    return cardRepository.findAll()
+    return cardRepository.findByReadinessIn(List.of(CardReadiness.DRAFT, CardReadiness.REVIEWED, CardReadiness.READY))
         .stream()
-        .filter(card -> card.getReadiness() != CardReadiness.IN_REVIEW
-            && card.getReadiness() != CardReadiness.KNOWN)
         .filter(card -> cardTypeStrategyFactory.getStrategy(card.getSource().getCardType())
             .isMissingAudio(card.getData(), frontAudioEnabled))
         .toList();
