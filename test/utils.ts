@@ -601,14 +601,18 @@ export async function getImageDimensions(
   );
 }
 
-export function downloadAudio(id: string): Buffer {
+export function assertAudioExists(id: string): void {
   const audioPath = path.join(STORAGE_DIR, 'audio', `${id}.mp3`);
 
   if (!fs.existsSync(audioPath)) {
     throw new Error(`Audio ${id}.mp3 does not exist in storage.`);
   }
 
-  return fs.readFileSync(audioPath);
+  const stats = fs.statSync(audioPath);
+
+  if (stats.size === 0) {
+    throw new Error(`Audio ${id}.mp3 exists but is empty.`);
+  }
 }
 
 export function uploadMockImage(imageData: Buffer): string {
