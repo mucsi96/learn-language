@@ -18,6 +18,8 @@ import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategy.AudioTextItem;
+import com.azure.core.util.BinaryData;
+
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,7 @@ public class FileStorageCleanupService {
   private final DocumentRepository documentRepository;
   private final AudioSettingService audioSettingService;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
+  private final AudioTrimService audioTrimService;
 
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
@@ -41,6 +44,7 @@ public class FileStorageCleanupService {
     stripAllImagesFromKnownCards();
     stripNonFavoriteImagesFromReviewedCards();
     stripFrontAudioFromCards();
+    trimAudioSilence();
     cleanupAudioFiles();
     cleanupImageFiles();
     cleanupSourceDocuments();
@@ -121,6 +125,31 @@ public class FileStorageCleanupService {
 
     cardRepository.saveAll(cardsWithFrontAudio);
     log.info("Stripped front audio from {} cards", cardsWithFrontAudio.size());
+  }
+
+  private void trimAudioSilence() {
+    final var allFiles = fileStorageService.listFiles("audio");
+
+    final long trimmed = allFiles.stream()
+        .filter(filePath -> {
+          try {
+            final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
+            final byte[] trimmedAudio = audioTrimService.trimSilence(original);
+
+            if (trimmedAudio.length < original.length) {
+              fileStorageService.saveFile(BinaryData.fromBytes(trimmedAudio), filePath);
+              log.info("Trimmed silence from {}: {} -> {} bytes", filePath, original.length, trimmedAudio.length);
+              return true;
+            }
+            return false;
+          } catch (Exception e) {
+            log.warn("Failed to trim silence from {}", filePath, e);
+            return false;
+          }
+        })
+        .count();
+
+    log.info("Trimmed silence from {} of {} audio files", trimmed, allFiles.size());
   }
 
   private void cleanupAudioFiles() {

@@ -79,13 +79,6 @@ public class AudioController {
         .body(audioData);
   }
 
-  @PostMapping("/audio/trim-all")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<java.util.Map<String, Integer>> trimAllAudio() {
-    final int trimmed = audioService.trimAllExistingAudio();
-    return ResponseEntity.ok(java.util.Map.of("trimmed", trimmed));
-  }
-
   @DeleteMapping("/audio/{id}")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Void> deleteAudio(@PathVariable String id) {
