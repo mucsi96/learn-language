@@ -8,6 +8,10 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     if [ "$ID" = "ubuntu" ]; then
         echo "Running on Ubuntu. Checking dependencies..."
 
+        # Update package cache
+        echo "Updating package cache..."
+        sudo apt-get update
+
         # Check and install azure-cli
         if ! command -v az >/dev/null 2>&1; then
             echo "Installing Azure CLI..."
