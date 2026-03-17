@@ -40,6 +40,14 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "jq is already installed."
         fi
 
+        # Check and install ffmpeg
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+            echo "Installing ffmpeg..."
+            sudo apt-get install -y ffmpeg
+        else
+            echo "ffmpeg is already installed."
+        fi
+
         # Check and install SDKMAN
         if [ ! -d "$HOME/.sdkman" ]; then
             echo "Installing SDKMAN..."
