@@ -148,6 +148,11 @@
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-model-google-genai</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.googlecode.soundlibs</groupId>
+      <artifactId>jlayer</artifactId>
+      <version>1.0.1.4</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
