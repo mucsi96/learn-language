@@ -34,6 +34,7 @@ public class FileStorageCleanupService {
   private final DocumentRepository documentRepository;
   private final AudioSettingService audioSettingService;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
+  private final AudioTrimService audioTrimService;
 
   @EventListener(ApplicationReadyEvent.class)
   @Transactional
@@ -41,6 +42,7 @@ public class FileStorageCleanupService {
     stripAllImagesFromKnownCards();
     stripNonFavoriteImagesFromReviewedCards();
     stripFrontAudioFromCards();
+    trimAudioSilence();
     cleanupAudioFiles();
     cleanupImageFiles();
     cleanupSourceDocuments();
@@ -121,6 +123,14 @@ public class FileStorageCleanupService {
 
     cardRepository.saveAll(cardsWithFrontAudio);
     log.info("Stripped front audio from {} cards", cardsWithFrontAudio.size());
+  }
+
+  private void trimAudioSilence() {
+    final var allFiles = fileStorageService.listFiles("audio");
+
+    allFiles.forEach(audioTrimService::trimSilence);
+
+    log.info("Processed {} audio files for silence trimming", allFiles.size());
   }
 
   private void cleanupAudioFiles() {

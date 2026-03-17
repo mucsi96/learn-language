@@ -7,9 +7,7 @@ import {
   createStudySession,
   getStudySessionCardsBySource,
   withDbConnection,
-  germanAudioSample,
-  hungarianAudioSample,
-  downloadAudio,
+  assertAudioExists,
   setupTestRateLimits,
 } from '../utils';
 
@@ -409,20 +407,20 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
     // Should have audio for German word (German samples)
     const verstehenAudio = findAudioByText('verstehen');
     expect(verstehenAudio).toBeDefined();
-    expect(downloadAudio(verstehenAudio.id).equals(germanAudioSample)).toBeTruthy();
+    assertAudioExists(verstehenAudio.id);
 
     const exampleAudio = findAudioByText('Ich verstehe Deutsch.');
     expect(exampleAudio).toBeDefined();
-    expect(downloadAudio(exampleAudio.id).equals(germanAudioSample)).toBeTruthy();
+    assertAudioExists(exampleAudio.id);
 
     // Should have audio for Hungarian translations (Hungarian samples)
     const translationAudio = findAudioByText('érteni');
     expect(translationAudio).toBeDefined();
-    expect(downloadAudio(translationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+    assertAudioExists(translationAudio.id);
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+    assertAudioExists(translationExampleAudio.id);
   });
 });
 
@@ -632,15 +630,15 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
     // Should have added missing audio (language-specific samples)
     const translationAudio = findAudioByText('érteni');
     expect(translationAudio).toBeDefined();
-    expect(downloadAudio(translationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+    assertAudioExists(translationAudio.id);
 
     const exampleAudio = findAudioByText('Ich verstehe Deutsch.');
     expect(exampleAudio).toBeDefined();
-    expect(downloadAudio(exampleAudio.id).equals(germanAudioSample)).toBeTruthy();
+    assertAudioExists(exampleAudio.id);
 
     const translationExampleAudio = findAudioByText('Értem a németet.');
     expect(translationExampleAudio).toBeDefined();
-    expect(downloadAudio(translationExampleAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+    assertAudioExists(translationExampleAudio.id);
   });
 });
 
@@ -805,11 +803,11 @@ test('bulk audio creation for speech cards', async ({ page }) => {
 
     const germanSentenceAudio = findAudioByText('Guten Morgen, wie geht es Ihnen?');
     expect(germanSentenceAudio).toBeDefined();
-    expect(downloadAudio(germanSentenceAudio.id).equals(germanAudioSample)).toBeTruthy();
+    assertAudioExists(germanSentenceAudio.id);
 
     const hungarianTranslationAudio = findAudioByText('Jó reggelt, hogy van?');
     expect(hungarianTranslationAudio).toBeDefined();
-    expect(downloadAudio(hungarianTranslationAudio.id).equals(hungarianAudioSample)).toBeTruthy();
+    assertAudioExists(hungarianTranslationAudio.id);
   });
 });
 

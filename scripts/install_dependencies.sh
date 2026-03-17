@@ -8,6 +8,10 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
     if [ "$ID" = "ubuntu" ]; then
         echo "Running on Ubuntu. Checking dependencies..."
 
+        # Update package cache
+        echo "Updating package cache..."
+        sudo apt-get update
+
         # Check and install azure-cli
         if ! command -v az >/dev/null 2>&1; then
             echo "Installing Azure CLI..."
@@ -38,6 +42,14 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             sudo apt-get install -y jq
         else
             echo "jq is already installed."
+        fi
+
+        # Check and install ffmpeg
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+            echo "Installing ffmpeg..."
+            sudo apt-get install -y ffmpeg
+        else
+            echo "ffmpeg is already installed."
         fi
 
         # Check and install SDKMAN
