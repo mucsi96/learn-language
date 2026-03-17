@@ -58,7 +58,7 @@ public class AudioController {
 
     byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
     fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
-    audioTrimService.trimSilence(fileStorageService.resolveFilePath(filePath));
+    audioTrimService.trimSilence(filePath);
 
     return AudioData.builder()
         .id(uuid)

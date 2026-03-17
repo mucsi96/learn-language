@@ -29,7 +29,7 @@ public class FileStorageService {
     Files.createDirectories(storagePath);
   }
 
-  public Path resolveFilePath(String fileName) throws IOException {
+  Path resolveFilePath(String fileName) throws IOException {
     Path filePath = storagePath.resolve(fileName).normalize();
 
     // Security check: ensure the resolved path is within the storage directory

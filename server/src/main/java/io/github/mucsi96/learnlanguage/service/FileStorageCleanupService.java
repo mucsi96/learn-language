@@ -128,13 +128,7 @@ public class FileStorageCleanupService {
   private void trimAudioSilence() {
     final var allFiles = fileStorageService.listFiles("audio");
 
-    allFiles.forEach(filePath -> {
-      try {
-        audioTrimService.trimSilence(fileStorageService.resolveFilePath(filePath));
-      } catch (Exception e) {
-        log.warn("Failed to trim silence from {}", filePath, e);
-      }
-    });
+    allFiles.forEach(audioTrimService::trimSilence);
 
     log.info("Processed {} audio files for silence trimming", allFiles.size());
   }
