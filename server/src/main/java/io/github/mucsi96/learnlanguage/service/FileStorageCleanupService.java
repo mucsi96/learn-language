@@ -18,8 +18,6 @@ import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategy.AudioTextItem;
-import com.azure.core.util.BinaryData;
-
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -130,26 +128,15 @@ public class FileStorageCleanupService {
   private void trimAudioSilence() {
     final var allFiles = fileStorageService.listFiles("audio");
 
-    final long trimmed = allFiles.stream()
-        .filter(filePath -> {
-          try {
-            final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
-            final byte[] trimmedAudio = audioTrimService.trimSilence(original);
+    allFiles.forEach(filePath -> {
+      try {
+        audioTrimService.trimSilence(fileStorageService.resolveFilePath(filePath));
+      } catch (Exception e) {
+        log.warn("Failed to trim silence from {}", filePath, e);
+      }
+    });
 
-            if (trimmedAudio.length < original.length) {
-              fileStorageService.saveFile(BinaryData.fromBytes(trimmedAudio), filePath);
-              log.info("Trimmed silence from {}: {} -> {} bytes", filePath, original.length, trimmedAudio.length);
-              return true;
-            }
-            return false;
-          } catch (Exception e) {
-            log.warn("Failed to trim silence from {}", filePath, e);
-            return false;
-          }
-        })
-        .count();
-
-    log.info("Trimmed silence from {} of {} audio files", trimmed, allFiles.size());
+    log.info("Processed {} audio files for silence trimming", allFiles.size());
   }
 
   private void cleanupAudioFiles() {

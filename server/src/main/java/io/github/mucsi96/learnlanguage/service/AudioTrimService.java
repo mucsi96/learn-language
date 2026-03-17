@@ -1,8 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.springframework.stereotype.Service;
 
@@ -12,19 +12,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AudioTrimService {
 
-  public byte[] trimSilence(byte[] mp3Bytes) {
+  public void trimSilence(Path filePath) {
     try {
-      final Path inputFile = Files.createTempFile("audio-trim-in-", ".mp3");
-      final Path outputFile = Files.createTempFile("audio-trim-out-", ".mp3");
+      final long originalSize = Files.size(filePath);
+      final Path tempOutput = filePath.resolveSibling(filePath.getFileName() + ".trimmed.mp3");
 
       try {
-        Files.write(inputFile, mp3Bytes);
-
         final Process process = new ProcessBuilder(
             "ffmpeg", "-y",
-            "-i", inputFile.toString(),
+            "-i", filePath.toString(),
             "-af", "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
-            outputFile.toString()
+            tempOutput.toString()
         ).redirectErrorStream(true).start();
 
         final int exitCode = process.waitFor();
@@ -32,22 +30,20 @@ public class AudioTrimService {
         if (exitCode != 0) {
           final String output = new String(process.getInputStream().readAllBytes());
           log.warn("ffmpeg exited with code {}: {}", exitCode, output);
-          return mp3Bytes;
+          return;
         }
 
-        final byte[] trimmed = Files.readAllBytes(outputFile);
-        log.info("Trimmed audio silence: {} -> {} bytes", mp3Bytes.length, trimmed.length);
-        return trimmed;
+        Files.move(tempOutput, filePath, StandardCopyOption.REPLACE_EXISTING);
+        final long trimmedSize = Files.size(filePath);
+        log.info("Trimmed audio silence: {} -> {} bytes ({})", originalSize, trimmedSize, filePath);
       } finally {
-        Files.deleteIfExists(inputFile);
-        Files.deleteIfExists(outputFile);
+        Files.deleteIfExists(tempOutput);
       }
-    } catch (IOException | InterruptedException e) {
-      log.warn("Failed to trim silence from audio, returning original", e);
+    } catch (Exception e) {
+      log.warn("Failed to trim silence from {}", filePath, e);
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-      return mp3Bytes;
     }
   }
 }

@@ -24,6 +24,7 @@ import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
 import io.github.mucsi96.learnlanguage.service.AudioService;
+import io.github.mucsi96.learnlanguage.service.AudioTrimService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 
@@ -36,6 +37,7 @@ public class AudioController {
 
   private final FileStorageService fileStorageService;
   private final AudioService audioService;
+  private final AudioTrimService audioTrimService;
   private final RateLimitSettingService rateLimitSettingService;
   private final ModelUsageLogRepository modelUsageLogRepository;
 
@@ -56,6 +58,7 @@ public class AudioController {
 
     byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
     fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
+    audioTrimService.trimSilence(fileStorageService.resolveFilePath(filePath));
 
     return AudioData.builder()
         .id(uuid)
