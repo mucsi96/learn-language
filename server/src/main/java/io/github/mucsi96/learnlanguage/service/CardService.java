@@ -117,7 +117,8 @@ public class CardService {
   public List<Card> getCardsMissingAudio(boolean frontAudioEnabled) {
     return cardRepository.findAll()
         .stream()
-        .filter(card -> !card.isInReview())
+        .filter(card -> card.getReadiness() != CardReadiness.IN_REVIEW
+            && card.getReadiness() != CardReadiness.KNOWN)
         .filter(card -> cardTypeStrategyFactory.getStrategy(card.getSource().getCardType())
             .isMissingAudio(card.getData(), frontAudioEnabled))
         .toList();
