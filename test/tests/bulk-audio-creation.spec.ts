@@ -1137,6 +1137,35 @@ test('bulk audio creation does not fail when no session exists', async ({ page }
   expect(sessionCards.length).toBe(0);
 });
 
+test('bulk audio fab hides for cards with known readiness', async ({ page }) => {
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni', ch: 'verstoh' },
+      forms: ['versteht', 'verstand', 'verstanden'],
+      examples: [
+        {
+          de: 'Ich verstehe Deutsch.',
+          hu: 'Értem a németet.',
+          en: 'I understand German.',
+          ch: 'Ich verstoh Tüütsch.',
+          isSelected: true,
+          images: [{ id: 'test-image-id' }],
+        },
+      ],
+    },
+    readiness: 'KNOWN',
+  });
+
+  await page.goto('http://localhost:8180/in-review-cards');
+
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
+});
+
 test('bulk audio fab hides when front audio disabled and only front audio missing', async ({ page }) => {
   await createAudioSetting({ key: 'front-enabled', value: 0 });
   await createCard({
