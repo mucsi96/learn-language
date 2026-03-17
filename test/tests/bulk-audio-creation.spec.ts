@@ -470,7 +470,7 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
   });
 });
 
-test('bulk audio creation preserves draft readiness', async ({ page }) => {
+test('bulk audio creation excludes draft cards', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'draft-card',
@@ -497,16 +497,7 @@ test('bulk audio creation preserves draft readiness', async ({ page }) => {
 
   await page.goto('http://localhost:8180/in-review-cards');
 
-  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
-
-  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
-
-  await withDbConnection(async (client) => {
-    const result = await client.query("SELECT readiness FROM learn_language.cards WHERE id = 'draft-card'");
-
-    expect(result.rows.length).toBe(1);
-    expect(result.rows[0].readiness).toBe('DRAFT');
-  });
+  await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
 
 test('bulk audio creation updates ui after completion', async ({ page }) => {
