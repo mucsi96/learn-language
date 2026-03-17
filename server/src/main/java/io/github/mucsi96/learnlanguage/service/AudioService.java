@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.azure.core.util.BinaryData;
+
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class AudioService {
 
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final AudioTrimService audioTrimService;
+  private final FileStorageService fileStorageService;
 
   public byte[] generateAudio(String input, String voiceName, String model, String language, String context, boolean singleWord) throws IOException {
     if ("eleven_turbo_v2_5".equals(model) || "eleven_v3".equals(model)) {
@@ -37,6 +40,33 @@ public class AudioService {
     } else {
       throw new IllegalArgumentException("Unsupported audio model: " + model);
     }
+  }
+
+  public int trimAllExistingAudio() {
+    final List<String> audioFiles = fileStorageService.listFiles("audio");
+    log.info("Found {} existing audio files to process", audioFiles.size());
+
+    final int trimmed = (int) audioFiles.stream()
+        .filter(filePath -> {
+          try {
+            final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
+            final byte[] trimmedAudio = audioTrimService.trimSilence(original);
+
+            if (trimmedAudio.length < original.length) {
+              fileStorageService.saveFile(BinaryData.fromBytes(trimmedAudio), filePath);
+              log.info("Trimmed {}: {} -> {} bytes", filePath, original.length, trimmedAudio.length);
+              return true;
+            }
+            return false;
+          } catch (Exception e) {
+            log.warn("Failed to process {}", filePath, e);
+            return false;
+          }
+        })
+        .count();
+
+    log.info("Trimmed silence from {} of {} audio files", trimmed, audioFiles.size());
+    return trimmed;
   }
 
   public List<AudioModelResponse> getAvailableModels() {
