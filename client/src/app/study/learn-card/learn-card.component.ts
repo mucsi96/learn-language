@@ -104,6 +104,13 @@ export class LearnCardComponent implements OnDestroy {
         this.checkForExistingSession(String(sourceId));
       }
     });
+
+    effect(() => {
+      const card = this.card();
+      if (card?.data.audio?.length) {
+        this.audioPlaybackService.prefetchAudio(this.http, card.data.audio);
+      }
+    });
   }
 
   private async checkForExistingSession(sourceId: string) {
@@ -193,6 +200,7 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.audioPlaybackService.stopPlayback();
+    this.audioPlaybackService.clearCache();
     this.studySessionService.refreshSession();
   }
 }

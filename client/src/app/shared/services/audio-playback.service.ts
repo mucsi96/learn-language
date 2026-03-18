@@ -7,35 +7,39 @@ import { AudioData } from '../types/audio-generation.types';
   providedIn: 'root'
 })
 export class AudioPlaybackService {
-  private readonly AUDIO_DELAY_MS = 500; // Fixed delay between audio files
+  private readonly AUDIO_DELAY_MS = 500;
   private currentAudioElements: HTMLAudioElement[] = [];
   private audioTimeouts: number[] = [];
+  private readonly audioCache = new Map<string, Promise<string>>();
 
-  /**
-   * Play a sequence of audio files with a delay between them
-   * @param http HttpClient instance for fetching audio
-   * @param audioEntries Array of AudioData entries to play
-   */
+  prefetchAudio(http: HttpClient, audioEntries: AudioData[]): void {
+    audioEntries.forEach(entry => {
+      const url = `/api/audio/${entry.id}`;
+      if (!this.audioCache.has(url)) {
+        this.audioCache.set(url, fetchAudio(http, url));
+      }
+    });
+  }
+
+  clearCache(): void {
+    this.audioCache.clear();
+  }
+
   async playAudioSequence(
     http: HttpClient,
     audioEntries: AudioData[]
   ): Promise<void> {
-    // Stop any current playback first
     this.stopPlayback();
 
     try {
       for (let i = 0; i < audioEntries.length; i++) {
-        const audioUrl = await fetchAudio(
-          http,
-          `/api/audio/${audioEntries[i].id}`
-        );
+        const url = `/api/audio/${audioEntries[i].id}`;
+        const audioUrl = await (this.audioCache.get(url) ?? fetchAudio(http, url));
         const audio = new Audio(audioUrl);
         this.currentAudioElements.push(audio);
 
-        // Play audio and wait for it to finish
         await this.playAudioAndWait(audio);
 
-        // Add delay between audios except for the last one
         if (i < audioEntries.length - 1) {
           await this.delay(this.AUDIO_DELAY_MS);
         }
