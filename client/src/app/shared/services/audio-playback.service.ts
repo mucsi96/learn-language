@@ -16,14 +16,18 @@ export class AudioPlaybackService {
     audioEntries
       .map(entry => `/api/audio/${entry.id}`)
       .filter(url => !this.audioCache.has(url))
-      .forEach(url => this.audioCache.set(url, fetchAudio(http, url)));
+      .forEach(url => {
+        const promise = fetchAudio(http, url).catch(err => {
+          this.audioCache.delete(url);
+          throw err;
+        });
+        this.audioCache.set(url, promise);
+      });
   }
 
-  async clearCache(): Promise<void> {
-    await Promise.all(
-      [...this.audioCache.values()].map(p =>
-        p.then(url => URL.revokeObjectURL(url)).catch(() => {})
-      )
+  clearCache(): void {
+    this.audioCache.forEach(p =>
+      p.then(url => URL.revokeObjectURL(url)).catch(() => {})
     );
     this.audioCache.clear();
   }
