@@ -13,15 +13,18 @@ export class AudioPlaybackService {
   private readonly audioCache = new Map<string, Promise<string>>();
 
   prefetchAudio(http: HttpClient, audioEntries: AudioData[]): void {
-    audioEntries.forEach(entry => {
-      const url = `/api/audio/${entry.id}`;
-      if (!this.audioCache.has(url)) {
-        this.audioCache.set(url, fetchAudio(http, url));
-      }
-    });
+    audioEntries
+      .map(entry => `/api/audio/${entry.id}`)
+      .filter(url => !this.audioCache.has(url))
+      .forEach(url => this.audioCache.set(url, fetchAudio(http, url)));
   }
 
-  clearCache(): void {
+  async clearCache(): Promise<void> {
+    await Promise.all(
+      [...this.audioCache.values()].map(p =>
+        p.then(url => URL.revokeObjectURL(url)).catch(() => {})
+      )
+    );
     this.audioCache.clear();
   }
 
@@ -32,18 +35,19 @@ export class AudioPlaybackService {
     this.stopPlayback();
 
     try {
-      for (let i = 0; i < audioEntries.length; i++) {
-        const url = `/api/audio/${audioEntries[i].id}`;
+      await audioEntries.reduce(async (prev, entry, i) => {
+        await prev;
+        const url = `/api/audio/${entry.id}`;
         const audioUrl = await (this.audioCache.get(url) ?? fetchAudio(http, url));
         const audio = new Audio(audioUrl);
-        this.currentAudioElements.push(audio);
+        this.currentAudioElements = [...this.currentAudioElements, audio];
 
         await this.playAudioAndWait(audio);
 
         if (i < audioEntries.length - 1) {
           await this.delay(this.AUDIO_DELAY_MS);
         }
-      }
+      }, Promise.resolve());
     } catch (error) {
       console.warn('Error playing audio sequence:', error);
     } finally {
@@ -51,20 +55,12 @@ export class AudioPlaybackService {
     }
   }
 
-  /**
-   * Play audio from text array by finding matching AudioData entries
-   * @param http HttpClient instance for fetching audio
-   * @param texts Array of text strings to play audio for
-   * @param audioList Complete list of AudioData to search from
-   * @param delayMs Delay in milliseconds between audio files (default: 1500ms for learn-card)
-   */
   async playAudioForTexts(
     http: HttpClient,
     texts: string[],
     audioList: AudioData[],
     delayMs: number = 500
   ): Promise<void> {
-    // Filter texts that have audio available
     const audioEntries = texts
       .map(text => this.getAudioForText(audioList, text))
       .filter((audio): audio is AudioData => audio !== undefined);
@@ -74,32 +70,21 @@ export class AudioPlaybackService {
     }
   }
 
-  /**
-   * Stop all current audio playback
-   */
   stopPlayback(): void {
-    // Stop all audio elements
     this.currentAudioElements.forEach((audio) => {
       audio.pause();
       audio.currentTime = 0;
     });
     this.currentAudioElements = [];
 
-    // Clear all timeouts
     this.audioTimeouts.forEach(timeout => clearTimeout(timeout));
     this.audioTimeouts = [];
   }
 
-  /**
-   * Find audio entry for a specific text
-   */
   private getAudioForText(audioList: AudioData[], text: string): AudioData | undefined {
     return audioList.find(audio => audio.text === text && audio.selected);
   }
 
-  /**
-   * Play audio and wait for it to finish
-   */
   private async playAudioAndWait(audio: HTMLAudioElement): Promise<void> {
     return new Promise<void>((resolve) => {
       const handleEnd = () => {
@@ -125,9 +110,6 @@ export class AudioPlaybackService {
     });
   }
 
-  /**
-   * Create a delay promise
-   */
   private delay(ms: number): Promise<void> {
     return new Promise<void>((resolve) => {
       const timeout = window.setTimeout(resolve, ms);

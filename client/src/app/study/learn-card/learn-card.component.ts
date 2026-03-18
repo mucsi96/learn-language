@@ -164,6 +164,7 @@ export class LearnCardComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.audioPlaybackService.stopPlayback();
+    this.audioPlaybackService.clearCache();
     this.studySessionService.clearSession();
   }
 
