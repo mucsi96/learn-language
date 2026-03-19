@@ -3,33 +3,56 @@ import { HttpClient } from '@angular/common/http';
 import { fetchAudio } from '../../utils/fetchAudio';
 import { AudioData } from '../types/audio-generation.types';
 
+type PreparedAudio = {
+  readonly text: string;
+  readonly element: HTMLAudioElement;
+  readonly blobUrl: string;
+};
+
 @Injectable({
   providedIn: 'root'
 })
 export class AudioPlaybackService {
-  private readonly AUDIO_DELAY_MS = 500;
   private currentAudioElements: HTMLAudioElement[] = [];
-  private audioTimeouts: number[] = [];
-  private readonly audioCache = new Map<string, Promise<string>>();
+  private preparedAudios: PreparedAudio[] = [];
 
-  prefetchAudio(http: HttpClient, audioEntries: AudioData[]): void {
-    audioEntries
-      .map(entry => `/api/audio/${entry.id}`)
-      .filter(url => !this.audioCache.has(url))
-      .forEach(url => {
-        const promise = fetchAudio(http, url).catch(err => {
-          this.audioCache.delete(url);
-          throw err;
-        });
-        this.audioCache.set(url, promise);
-      });
+  prepareAudio(http: HttpClient, audioEntries: AudioData[]): void {
+    this.releasePrepared();
+
+    const selected = audioEntries.filter(entry => entry.selected && entry.text);
+    selected.forEach(entry => {
+      const url = `/api/audio/${entry.id}`;
+      fetchAudio(http, url).then(blobUrl => {
+        const element = new Audio(blobUrl);
+        element.load();
+        this.preparedAudios = [
+          ...this.preparedAudios,
+          { text: entry.text!, element, blobUrl },
+        ];
+      }).catch(err => console.warn('Failed to prepare audio:', err));
+    });
   }
 
-  clearCache(): void {
-    this.audioCache.forEach(p =>
-      p.then(url => URL.revokeObjectURL(url)).catch(() => {})
-    );
-    this.audioCache.clear();
+  async playAudioForTexts(texts: string[]): Promise<void> {
+    this.stopPlayback();
+
+    const audioEntries = texts
+      .map(text => this.preparedAudios.find(a => a.text === text))
+      .filter((a): a is PreparedAudio => a !== undefined);
+
+    if (audioEntries.length === 0) return;
+
+    try {
+      await audioEntries.reduce(async (prev, prepared) => {
+        await prev;
+        this.currentAudioElements = [...this.currentAudioElements, prepared.element];
+        await this.playAudioAndWait(prepared.element);
+      }, Promise.resolve());
+    } catch (error) {
+      console.warn('Error playing audio sequence:', error);
+    } finally {
+      this.currentAudioElements = [];
+    }
   }
 
   async playAudioSequence(
@@ -39,18 +62,14 @@ export class AudioPlaybackService {
     this.stopPlayback();
 
     try {
-      await audioEntries.reduce(async (prev, entry, i) => {
+      await audioEntries.reduce(async (prev, entry) => {
         await prev;
         const url = `/api/audio/${entry.id}`;
-        const audioUrl = await (this.audioCache.get(url) ?? fetchAudio(http, url));
+        const audioUrl = await fetchAudio(http, url);
         const audio = new Audio(audioUrl);
         this.currentAudioElements = [...this.currentAudioElements, audio];
-
         await this.playAudioAndWait(audio);
-
-        if (i < audioEntries.length - 1) {
-          await this.delay(this.AUDIO_DELAY_MS);
-        }
+        URL.revokeObjectURL(audioUrl);
       }, Promise.resolve());
     } catch (error) {
       console.warn('Error playing audio sequence:', error);
@@ -59,37 +78,22 @@ export class AudioPlaybackService {
     }
   }
 
-  async playAudioForTexts(
-    http: HttpClient,
-    texts: string[],
-    audioList: AudioData[],
-    delayMs: number = 500
-  ): Promise<void> {
-    const audioEntries = texts
-      .map(text => this.getAudioForText(audioList, text))
-      .filter((audio): audio is AudioData => audio !== undefined);
-
-    if (audioEntries.length > 0) {
-      await this.playAudioSequence(http, audioEntries);
-    }
-  }
-
   stopPlayback(): void {
-    this.currentAudioElements.forEach((audio) => {
+    this.currentAudioElements.forEach(audio => {
       audio.pause();
       audio.currentTime = 0;
     });
     this.currentAudioElements = [];
-
-    this.audioTimeouts.forEach(timeout => clearTimeout(timeout));
-    this.audioTimeouts = [];
   }
 
-  private getAudioForText(audioList: AudioData[], text: string): AudioData | undefined {
-    return audioList.find(audio => audio.text === text && audio.selected);
+  releasePrepared(): void {
+    this.stopPlayback();
+    this.preparedAudios.forEach(a => URL.revokeObjectURL(a.blobUrl));
+    this.preparedAudios = [];
   }
 
   private async playAudioAndWait(audio: HTMLAudioElement): Promise<void> {
+    audio.currentTime = 0;
     return new Promise<void>((resolve) => {
       const handleEnd = () => {
         audio.removeEventListener('ended', handleEnd);
@@ -111,13 +115,6 @@ export class AudioPlaybackService {
         console.warn('Audio playback failed:', error);
         handleError();
       });
-    });
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise<void>((resolve) => {
-      const timeout = window.setTimeout(resolve, ms);
-      this.audioTimeouts.push(timeout);
     });
   }
 }

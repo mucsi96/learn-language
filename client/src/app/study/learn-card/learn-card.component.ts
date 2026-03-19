@@ -52,6 +52,7 @@ export class LearnCardComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private lastPreparedCardId: string | null = null;
 
   private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
 
@@ -107,8 +108,9 @@ export class LearnCardComponent implements OnDestroy {
 
     effect(() => {
       const card = this.card();
-      if (card?.data.audio?.length) {
-        this.audioPlaybackService.prefetchAudio(this.http, card.data.audio);
+      if (card?.data.audio?.length && card.id !== this.lastPreparedCardId) {
+        this.lastPreparedCardId = card.id;
+        this.audioPlaybackService.prepareAudio(this.http, card.data.audio);
       }
     });
   }
@@ -163,8 +165,7 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.audioPlaybackService.stopPlayback();
-    this.audioPlaybackService.clearCache();
+    this.audioPlaybackService.releasePrepared();
     this.studySessionService.clearSession();
   }
 
@@ -183,14 +184,7 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   private async playAudioSequence(texts: string[]) {
-    const audioList = this.card()?.data.audio;
-    if (!audioList || audioList.length === 0) return;
-
-    await this.audioPlaybackService.playAudioForTexts(
-      this.http,
-      texts,
-      audioList
-    );
+    await this.audioPlaybackService.playAudioForTexts(texts);
   }
 
   toggleReveal() {
@@ -200,8 +194,8 @@ export class LearnCardComponent implements OnDestroy {
   onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
-    this.audioPlaybackService.stopPlayback();
-    this.audioPlaybackService.clearCache();
+    this.lastPreparedCardId = null;
+    this.audioPlaybackService.releasePrepared();
     this.studySessionService.refreshSession();
   }
 }
