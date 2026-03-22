@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.AddCardsToSessionRequest;
+import io.github.mucsi96.learnlanguage.model.SessionStatsResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.service.StudySessionService;
@@ -48,6 +49,16 @@ public class StudySessionController {
             @PathVariable String sourceId,
             @RequestHeader(value = "X-Timezone", required = true) String timezone) {
         return studySessionService.getCurrentCardBySourceId(sourceId, startOfDayUtc(parseTimezone(timezone)))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/source/{sourceId}/study-session/stats")
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    public ResponseEntity<SessionStatsResponse> getSessionStats(
+            @PathVariable String sourceId,
+            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+        return studySessionService.getSessionStats(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }

@@ -66,7 +66,8 @@ export class FsrsGradingService {
   async gradeCard(
     card: Card,
     grade: 'Again' | 'Hard' | 'Good' | 'Easy',
-    learningPartnerId?: number | null
+    learningPartnerId?: number | null,
+    reviewDuration?: number | null
   ): Promise<void> {
     // Convert grade to FSRS Rating
     const rating = this.convertGradeToRating(grade);
@@ -89,6 +90,7 @@ export class FsrsGradingService {
         ...mapCardDatesToISOStrings(cardUpdateData),
         learningPartnerId: learningPartnerId ?? null,
         rating,
+        reviewDuration: reviewDuration ?? null,
       },
     });
   }

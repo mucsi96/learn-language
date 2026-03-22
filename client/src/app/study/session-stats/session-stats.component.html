@@ -1,0 +1,78 @@
+<div class="stats-container" role="region" aria-label="Session statistics">
+  <div class="stats-grid">
+    <div class="stat-card" role="group" aria-label="Total time">
+      <mat-icon class="stat-icon">timer</mat-icon>
+      <span class="stat-value">{{ formatDuration(stats().totalDurationMs) }}</span>
+      <span class="stat-label">Total time</span>
+    </div>
+
+    <div class="stat-card" role="group" aria-label="Average per card">
+      <mat-icon class="stat-icon">speed</mat-icon>
+      <span class="stat-value">{{ formatDuration(stats().averageDurationMs) }}</span>
+      <span class="stat-label">Avg per card</span>
+    </div>
+
+    <div class="stat-card good" role="group" aria-label="Good reviews">
+      <mat-icon class="stat-icon">check_circle</mat-icon>
+      <span class="stat-value">{{ stats().goodCount }}</span>
+      <span class="stat-label">Good</span>
+    </div>
+
+    <div class="stat-card bad" role="group" aria-label="Struggled reviews">
+      <mat-icon class="stat-icon">replay</mat-icon>
+      <span class="stat-value">{{ stats().badCount }}</span>
+      <span class="stat-label">Struggled</span>
+    </div>
+  </div>
+
+  <div class="accuracy-bar" role="group" aria-label="Accuracy">
+    <div class="accuracy-header">
+      <span class="accuracy-label">Accuracy</span>
+      <span class="accuracy-value">{{ accuracy }}%</span>
+    </div>
+    <div class="progress-track" role="progressbar" [attr.aria-valuenow]="accuracy" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-fill" [style.width.%]="accuracy"></div>
+    </div>
+  </div>
+
+  @if (stats().studyMode === 'WITH_PARTNER' && stats().personStats.length > 0) {
+    <div class="partner-stats" role="group" aria-label="Per person statistics">
+      <h3 class="partner-stats-title">Per person</h3>
+      @for (person of stats().personStats; track person.name) {
+        <div class="person-card" role="group" [attr.aria-label]="person.name + ' statistics'">
+          <div class="person-header">
+            <mat-icon class="person-icon">person</mat-icon>
+            <span class="person-name">{{ person.name }}</span>
+          </div>
+          <div class="person-details">
+            <div class="person-stat">
+              <mat-icon>timer</mat-icon>
+              <span>{{ formatDuration(person.totalDurationMs) }}</span>
+            </div>
+            <div class="person-stat">
+              <mat-icon>speed</mat-icon>
+              <span>{{ formatDuration(person.averageDurationMs) }}</span>
+            </div>
+            <div class="person-stat good">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ person.goodCount }}</span>
+            </div>
+            <div class="person-stat bad">
+              <mat-icon>replay</mat-icon>
+              <span>{{ person.badCount }}</span>
+            </div>
+          </div>
+          <div class="person-accuracy">
+            <div class="progress-track" role="progressbar"
+              [attr.aria-valuenow]="personAccuracy(person.goodCount, person.badCount)"
+              [attr.aria-label]="person.name + ' accuracy'"
+              aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill" [style.width.%]="personAccuracy(person.goodCount, person.badCount)"></div>
+            </div>
+            <span class="accuracy-value">{{ personAccuracy(person.goodCount, person.badCount) }}%</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
