@@ -1,79 +1,86 @@
-<div class="stats-container" role="region" aria-label="Session statistics">
-  <div class="stats-grid">
-    <mat-card class="stat-card" role="group" aria-label="Total time">
-      <mat-icon class="stat-icon">timer</mat-icon>
-      <span class="stat-value">{{ formatDuration(stats().totalDurationMs) }}</span>
-      <span class="stat-label">Total time</span>
-    </mat-card>
+@if (stats().studyMode === 'WITH_PARTNER' && personStatsWithAccuracy().length > 0) {
+  <div class="partner-stats-container" role="region" aria-label="Session statistics">
+    @for (person of personStatsWithAccuracy(); track person.name) {
+      <div class="stats-container" role="group" [attr.aria-label]="person.name + ' statistics'">
+        <h3 class="person-title">{{ person.name }}</h3>
+        <div class="stats-grid">
+          <mat-card class="stat-card" role="group" aria-label="Total time">
+            <mat-icon class="stat-icon">timer</mat-icon>
+            <span class="stat-value">{{ formatDuration(person.totalDurationMs) }}</span>
+            <span class="stat-label">Total time</span>
+          </mat-card>
 
-    <mat-card class="stat-card" role="group" aria-label="Average per card">
-      <mat-icon class="stat-icon">speed</mat-icon>
-      <span class="stat-value">{{ formatDuration(stats().averageDurationMs) }}</span>
-      <span class="stat-label">Avg per card</span>
-    </mat-card>
+          <mat-card class="stat-card" role="group" aria-label="Average per card">
+            <mat-icon class="stat-icon">speed</mat-icon>
+            <span class="stat-value">{{ formatDuration(person.averageDurationMs) }}</span>
+            <span class="stat-label">Avg per card</span>
+          </mat-card>
 
-    <mat-card class="stat-card good" role="group" aria-label="Good reviews">
-      <mat-icon class="stat-icon">check_circle</mat-icon>
-      <span class="stat-value">{{ stats().goodCount }}</span>
-      <span class="stat-label">Good</span>
-    </mat-card>
+          <mat-card class="stat-card good" role="group" aria-label="Good reviews">
+            <mat-icon class="stat-icon">check_circle</mat-icon>
+            <span class="stat-value">{{ person.goodCount }}</span>
+            <span class="stat-label">Good</span>
+          </mat-card>
 
-    <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
-      <mat-icon class="stat-icon">replay</mat-icon>
-      <span class="stat-value">{{ stats().badCount }}</span>
-      <span class="stat-label">Struggled</span>
-    </mat-card>
-  </div>
+          <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
+            <mat-icon class="stat-icon">replay</mat-icon>
+            <span class="stat-value">{{ person.badCount }}</span>
+            <span class="stat-label">Struggled</span>
+          </mat-card>
+        </div>
 
-  <div class="accuracy-section" role="group" aria-label="Accuracy">
-    <div class="accuracy-header">
-      <span class="accuracy-label">Accuracy</span>
-      <span class="accuracy-value">{{ accuracy() }}%</span>
-    </div>
-    <mat-progress-bar
-      mode="determinate"
-      [value]="accuracy()"
-      aria-label="Accuracy"
-    />
-  </div>
-
-  @if (stats().studyMode === 'WITH_PARTNER' && personStatsWithAccuracy().length > 0) {
-    <div class="partner-stats" role="group" aria-label="Per person statistics">
-      <h3 class="partner-stats-title">Per person</h3>
-      @for (person of personStatsWithAccuracy(); track person.name) {
-        <mat-card class="person-card" role="group" [attr.aria-label]="person.name + ' statistics'">
-          <div class="person-header">
-            <mat-icon class="person-icon">person</mat-icon>
-            <span class="person-name">{{ person.name }}</span>
-          </div>
-          <div class="person-details">
-            <div class="person-stat">
-              <mat-icon>timer</mat-icon>
-              <span>{{ formatDuration(person.totalDurationMs) }}</span>
-            </div>
-            <div class="person-stat">
-              <mat-icon>speed</mat-icon>
-              <span>{{ formatDuration(person.averageDurationMs) }}</span>
-            </div>
-            <div class="person-stat good">
-              <mat-icon>check_circle</mat-icon>
-              <span>{{ person.goodCount }}</span>
-            </div>
-            <div class="person-stat bad">
-              <mat-icon>replay</mat-icon>
-              <span>{{ person.badCount }}</span>
-            </div>
-          </div>
-          <div class="person-accuracy">
-            <mat-progress-bar
-              mode="determinate"
-              [value]="person.accuracy"
-              [attr.aria-label]="person.name + ' accuracy'"
-            />
+        <div class="accuracy-section" role="group" aria-label="Accuracy">
+          <div class="accuracy-header">
+            <span class="accuracy-label">Accuracy</span>
             <span class="accuracy-value">{{ person.accuracy }}%</span>
           </div>
-        </mat-card>
-      }
+          <mat-progress-bar
+            mode="determinate"
+            [value]="person.accuracy"
+            [attr.aria-label]="person.name + ' accuracy'"
+          />
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="stats-container" role="region" aria-label="Session statistics">
+    <div class="stats-grid">
+      <mat-card class="stat-card" role="group" aria-label="Total time">
+        <mat-icon class="stat-icon">timer</mat-icon>
+        <span class="stat-value">{{ formatDuration(stats().totalDurationMs) }}</span>
+        <span class="stat-label">Total time</span>
+      </mat-card>
+
+      <mat-card class="stat-card" role="group" aria-label="Average per card">
+        <mat-icon class="stat-icon">speed</mat-icon>
+        <span class="stat-value">{{ formatDuration(stats().averageDurationMs) }}</span>
+        <span class="stat-label">Avg per card</span>
+      </mat-card>
+
+      <mat-card class="stat-card good" role="group" aria-label="Good reviews">
+        <mat-icon class="stat-icon">check_circle</mat-icon>
+        <span class="stat-value">{{ stats().goodCount }}</span>
+        <span class="stat-label">Good</span>
+      </mat-card>
+
+      <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
+        <mat-icon class="stat-icon">replay</mat-icon>
+        <span class="stat-value">{{ stats().badCount }}</span>
+        <span class="stat-label">Struggled</span>
+      </mat-card>
     </div>
-  }
-</div>
+
+    <div class="accuracy-section" role="group" aria-label="Accuracy">
+      <div class="accuracy-header">
+        <span class="accuracy-label">Accuracy</span>
+        <span class="accuracy-value">{{ accuracy() }}%</span>
+      </div>
+      <mat-progress-bar
+        mode="determinate"
+        [value]="accuracy()"
+        aria-label="Accuracy"
+      />
+    </div>
+  </div>
+}
