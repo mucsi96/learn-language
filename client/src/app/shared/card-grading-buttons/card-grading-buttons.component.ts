@@ -16,7 +16,7 @@ type Grade = 'Again' | 'Hard' | 'Good' | 'Easy';
 export class CardGradingButtonsComponent {
   card = input<CardResourceLike | null>(null);
   learningPartnerId = input<number | null>(null);
-  cardShownAt = input<number | null>(null);
+  reviewDuration = input<number | null>(null);
   graded = output<Grade>();
   cardProcessed = output<void>();
 
@@ -26,11 +26,8 @@ export class CardGradingButtonsComponent {
     const cardData = this.card()?.value();
     if (!cardData) return;
 
-    const shownAt = this.cardShownAt();
-    const reviewDuration = shownAt !== null ? Date.now() - shownAt : null;
-
     try {
-      await this.fsrsGradingService.gradeCard(cardData, grade, this.learningPartnerId(), reviewDuration);
+      await this.fsrsGradingService.gradeCard(cardData, grade, this.learningPartnerId(), this.reviewDuration());
       this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {

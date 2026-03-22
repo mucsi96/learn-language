@@ -89,7 +89,7 @@
     <app-card-grading-buttons
       [card]="cardResource"
       [learningPartnerId]="currentTurn().partnerId"
-      [cardShownAt]="cardShownAt()"
+      [reviewDuration]="reviewDuration()"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
   }
