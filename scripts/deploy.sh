@@ -2,22 +2,24 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-KUBE_CONTENT=$(az keyvault secret show --vault-name p06-learn-language --name k8s-config --query value -o tsv)
+: "${K8S_CONFIG:?Environment variable K8S_CONFIG is required}"
+: "${HOSTNAME:?Environment variable HOSTNAME is required}"
+: "${API_CLIENT_ID:?Environment variable API_CLIENT_ID is required}"
+: "${DOCKERHUB_USERNAME:?Environment variable DOCKERHUB_USERNAME is required}"
+: "${AZURE_KEYVAULT_ENDPOINT:?Environment variable AZURE_KEYVAULT_ENDPOINT is required}"
 
 # Create a temporary file in /dev/shm (RAM) to avoid writing to disk
 KUBECONFIG_FILE=$(mktemp /dev/shm/kubeconfig.XXXXXX)
 chmod 600 "$KUBECONFIG_FILE"
-echo "$KUBE_CONTENT" > "$KUBECONFIG_FILE"
+echo "$K8S_CONFIG" > "$KUBECONFIG_FILE"
 export KUBECONFIG="$KUBECONFIG_FILE"
 
 # Ensure the temporary file is deleted when the script exits
 trap 'rm -f "$KUBECONFIG_FILE"' EXIT
 
-hostname=$(az keyvault secret show --vault-name p06-learn-language --name hostname --query value --output tsv)
-apiClientId=$(az keyvault secret show --vault-name p06-learn-language --name api-client-id --query value --output tsv)
 # Get latest tags for both server and client
-serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
-clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/mucsi96/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
+serverLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/learn-language-server/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
+clientLatestTag=$(curl -s "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/learn-language-client/tags/" | jq -r '.results | map(select(.name != "latest")) | sort_by(.last_updated) | reverse | .[0].name')
 
 echo "Updating Helm repositories..."
 helm repo add mucsi96 https://mucsi96.github.io/k8s-helm-charts --force-update
@@ -25,18 +27,19 @@ helm repo add mucsi96 https://mucsi96.github.io/k8s-helm-charts --force-update
 springAppChartVersion=$(helm search repo mucsi96/spring-app --output json | jq -r '.[0].version')
 clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -r '.[0].version')
 
-echo "Deploying server: mucsi96/learn-language-server:$serverLatestTag to $hostname using spring-app chart $springAppChartVersion"
+echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag to $HOSTNAME using spring-app chart $springAppChartVersion"
 
 helm upgrade learn-language-server mucsi96/spring-app \
     --install \
     --version $springAppChartVersion \
     --namespace learn-language \
-    --set image=mucsi96/learn-language-server:$serverLatestTag \
+    --set image=$DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag \
     --set entryPoint=web \
-    --set host=$hostname \
+    --set host=$HOSTNAME \
     --set basePath=/api \
-    --set clientId=$apiClientId \
+    --set clientId=$API_CLIENT_ID \
     --set serviceAccountName=learn-language-api-workload-identity \
+    --set env.AZURE_KEYVAULT_ENDPOINT=$AZURE_KEYVAULT_ENDPOINT \
     --set env.STORAGE_DIRECTORY=/app/storage \
     --set persistentVolumeClaims[0].name=learn-language-pvc \
     --set persistentVolumeClaims[0].accessMode=ReadWriteOnce \
@@ -50,13 +53,13 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set resources.limits.cpu=2 \
     --wait
 
-echo "Deploying client: mucsi96/learn-language-client:$clientLatestTag to $hostname using client-app chart $clientAppChartVersion"
+echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag to $HOSTNAME using client-app chart $clientAppChartVersion"
 
 helm upgrade learn-language-client mucsi96/client-app \
     --install \
     --version $clientAppChartVersion \
     --namespace learn-language \
-    --set image=mucsi96/learn-language-client:$clientLatestTag \
-    --set host=$hostname \
+    --set image=$DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag \
+    --set host=$HOSTNAME \
     --set entryPoint=web \
     --wait
