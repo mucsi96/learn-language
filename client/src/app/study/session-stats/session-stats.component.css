@@ -17,26 +17,21 @@
   align-items: center;
   gap: 4px;
   padding: 16px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stat-icon {
   font-size: 1.25rem;
   width: 1.25rem;
   height: 1.25rem;
-  opacity: 0.6;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .stat-card.good .stat-icon {
-  color: #6BCB77;
-  opacity: 1;
+  color: var(--mat-sys-tertiary);
 }
 
 .stat-card.bad .stat-icon {
-  color: #FF6B6B;
-  opacity: 1;
+  color: var(--mat-sys-error);
 }
 
 .stat-value {
@@ -49,10 +44,10 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 0.6;
+  color: var(--mat-sys-on-surface-variant);
 }
 
-.accuracy-bar {
+.accuracy-section {
   margin-bottom: 1.5rem;
 }
 
@@ -66,27 +61,13 @@
 .accuracy-label {
   font-size: 0.875rem;
   font-weight: 500;
-  opacity: 0.8;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .accuracy-value {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--mat-sys-on-surface);
-}
-
-.progress-track {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #FF6B6B 0%, #FFD93D 40%, #6BCB77 70%);
-  border-radius: 4px;
-  transition: width 0.6s ease-out;
 }
 
 .partner-stats {
@@ -98,7 +79,7 @@
 .partner-stats-title {
   font-size: 0.875rem;
   font-weight: 500;
-  opacity: 0.7;
+  color: var(--mat-sys-on-surface-variant);
   margin: 0 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -106,9 +87,6 @@
 
 .person-card {
   padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .person-header {
@@ -122,7 +100,7 @@
   font-size: 1.25rem;
   width: 1.25rem;
   height: 1.25rem;
-  opacity: 0.6;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .person-name {
@@ -149,17 +127,15 @@
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
-  opacity: 0.5;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .person-stat.good mat-icon {
-  color: #6BCB77;
-  opacity: 1;
+  color: var(--mat-sys-tertiary);
 }
 
 .person-stat.bad mat-icon {
-  color: #FF6B6B;
-  opacity: 1;
+  color: var(--mat-sys-error);
 }
 
 .person-accuracy {
@@ -168,7 +144,7 @@
   gap: 8px;
 }
 
-.person-accuracy .progress-track {
+.person-accuracy mat-progress-bar {
   flex: 1;
 }
 

@@ -1,6 +1,7 @@
-import { Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SessionStats } from '../../parser/types';
 
 function formatDuration(ms: number): string {
@@ -10,10 +11,15 @@ function formatDuration(ms: number): string {
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 }
 
+function calcAccuracy(goodCount: number, badCount: number): number {
+  const total = goodCount + badCount;
+  return total > 0 ? Math.round((goodCount / total) * 100) : 0;
+}
+
 @Component({
   selector: 'app-session-stats',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule, MatCardModule, MatProgressBarModule],
   templateUrl: './session-stats.component.html',
   styleUrl: './session-stats.component.css',
 })
@@ -22,14 +28,15 @@ export class SessionStatsComponent {
 
   readonly formatDuration = formatDuration;
 
-  get accuracy(): number {
+  readonly accuracy = computed(() => {
     const s = this.stats();
-    const total = s.goodCount + s.badCount;
-    return total > 0 ? Math.round((s.goodCount / total) * 100) : 0;
-  }
+    return calcAccuracy(s.goodCount, s.badCount);
+  });
 
-  personAccuracy(goodCount: number, badCount: number): number {
-    const total = goodCount + badCount;
-    return total > 0 ? Math.round((goodCount / total) * 100) : 0;
-  }
+  readonly personStatsWithAccuracy = computed(() =>
+    this.stats().personStats.map((person) => ({
+      ...person,
+      accuracy: calcAccuracy(person.goodCount, person.badCount),
+    }))
+  );
 }

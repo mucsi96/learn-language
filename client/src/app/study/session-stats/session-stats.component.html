@@ -1,45 +1,47 @@
 <div class="stats-container" role="region" aria-label="Session statistics">
   <div class="stats-grid">
-    <div class="stat-card" role="group" aria-label="Total time">
+    <mat-card class="stat-card" role="group" aria-label="Total time">
       <mat-icon class="stat-icon">timer</mat-icon>
       <span class="stat-value">{{ formatDuration(stats().totalDurationMs) }}</span>
       <span class="stat-label">Total time</span>
-    </div>
+    </mat-card>
 
-    <div class="stat-card" role="group" aria-label="Average per card">
+    <mat-card class="stat-card" role="group" aria-label="Average per card">
       <mat-icon class="stat-icon">speed</mat-icon>
       <span class="stat-value">{{ formatDuration(stats().averageDurationMs) }}</span>
       <span class="stat-label">Avg per card</span>
-    </div>
+    </mat-card>
 
-    <div class="stat-card good" role="group" aria-label="Good reviews">
+    <mat-card class="stat-card good" role="group" aria-label="Good reviews">
       <mat-icon class="stat-icon">check_circle</mat-icon>
       <span class="stat-value">{{ stats().goodCount }}</span>
       <span class="stat-label">Good</span>
-    </div>
+    </mat-card>
 
-    <div class="stat-card bad" role="group" aria-label="Struggled reviews">
+    <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
       <mat-icon class="stat-icon">replay</mat-icon>
       <span class="stat-value">{{ stats().badCount }}</span>
       <span class="stat-label">Struggled</span>
-    </div>
+    </mat-card>
   </div>
 
-  <div class="accuracy-bar" role="group" aria-label="Accuracy">
+  <div class="accuracy-section" role="group" aria-label="Accuracy">
     <div class="accuracy-header">
       <span class="accuracy-label">Accuracy</span>
-      <span class="accuracy-value">{{ accuracy }}%</span>
+      <span class="accuracy-value">{{ accuracy() }}%</span>
     </div>
-    <div class="progress-track" role="progressbar" [attr.aria-valuenow]="accuracy" aria-valuemin="0" aria-valuemax="100">
-      <div class="progress-fill" [style.width.%]="accuracy"></div>
-    </div>
+    <mat-progress-bar
+      mode="determinate"
+      [value]="accuracy()"
+      aria-label="Accuracy"
+    />
   </div>
 
-  @if (stats().studyMode === 'WITH_PARTNER' && stats().personStats.length > 0) {
+  @if (stats().studyMode === 'WITH_PARTNER' && personStatsWithAccuracy().length > 0) {
     <div class="partner-stats" role="group" aria-label="Per person statistics">
       <h3 class="partner-stats-title">Per person</h3>
-      @for (person of stats().personStats; track person.name) {
-        <div class="person-card" role="group" [attr.aria-label]="person.name + ' statistics'">
+      @for (person of personStatsWithAccuracy(); track person.name) {
+        <mat-card class="person-card" role="group" [attr.aria-label]="person.name + ' statistics'">
           <div class="person-header">
             <mat-icon class="person-icon">person</mat-icon>
             <span class="person-name">{{ person.name }}</span>
@@ -63,15 +65,14 @@
             </div>
           </div>
           <div class="person-accuracy">
-            <div class="progress-track" role="progressbar"
-              [attr.aria-valuenow]="personAccuracy(person.goodCount, person.badCount)"
+            <mat-progress-bar
+              mode="determinate"
+              [value]="person.accuracy"
               [attr.aria-label]="person.name + ' accuracy'"
-              aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-fill" [style.width.%]="personAccuracy(person.goodCount, person.badCount)"></div>
-            </div>
-            <span class="accuracy-value">{{ personAccuracy(person.goodCount, person.badCount) }}%</span>
+            />
+            <span class="accuracy-value">{{ person.accuracy }}%</span>
           </div>
-        </div>
+        </mat-card>
       }
     </div>
   }

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -314,7 +315,8 @@ public class StudySessionService {
                 .collect(Collectors.toMap(
                         rl -> rl.getCard().getId() + ":" + (rl.getLearningPartner() != null ? rl.getLearningPartner().getId() : "self"),
                         rl -> rl,
-                        (first, second) -> first));
+                        (first, second) -> first,
+                        LinkedHashMap::new));
 
         final List<ReviewLog> firstReviews = firstReviewPerCard.values().stream().toList();
 

@@ -4,15 +4,16 @@ import {
   inject,
   signal,
   computed,
+  resource,
   OnDestroy,
   HostListener,
   viewChild,
+  Injector,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
 import { injectParams } from '../../utils/inject-params';
-import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
@@ -23,7 +24,7 @@ import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-c
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { ConfettiComponent } from '../confetti/confetti.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
-import { Card, LanguageTexts, SessionStats } from '../../parser/types';
+import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 import { SessionStatsComponent } from '../session-stats/session-stats.component';
@@ -32,7 +33,6 @@ import { SessionStatsComponent } from '../session-stats/session-stats.component'
   selector: 'app-learn-card',
   standalone: true,
   imports: [
-    CommonModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -54,6 +54,7 @@ export class LearnCardComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly injector = inject(Injector);
   private lastPreparedCardId: string | null = null;
 
   private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
@@ -94,7 +95,25 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly currentTurn = this.studySessionService.currentTurn;
   readonly cardShownAt = signal<number | null>(null);
-  readonly sessionStats = signal<SessionStats | null>(null);
+
+  private readonly sessionComplete = computed(() => {
+    const cardData = this.currentCardData.value();
+    const isLoading = this.currentCardData.isLoading();
+    return !isLoading && cardData === null && this.hasSession();
+  });
+
+  readonly sessionStats = resource({
+    params: () => {
+      const sourceId = this.currentSourceId;
+      const complete = this.sessionComplete();
+      return complete && sourceId ? { sourceId } : undefined;
+    },
+    loader: async ({ params }) => {
+      if (!params) return null;
+      return this.studySessionService.fetchSessionStats(params.sourceId);
+    },
+    injector: this.injector,
+  });
 
   constructor() {
     effect(() => {
@@ -122,15 +141,6 @@ export class LearnCardComponent implements OnDestroy {
       const card = this.card();
       if (card) {
         this.cardShownAt.set(Date.now());
-      }
-    });
-
-    effect(() => {
-      const cardData = this.currentCardData.value();
-      const isLoading = this.currentCardData.isLoading();
-      const sourceId = this.currentSourceId;
-      if (!isLoading && cardData === null && sourceId && this.hasSession()) {
-        this.loadSessionStats(sourceId);
       }
     });
   }
@@ -209,11 +219,6 @@ export class LearnCardComponent implements OnDestroy {
 
   toggleReveal() {
     this.isRevealed.update((revealed) => !revealed);
-  }
-
-  private async loadSessionStats(sourceId: string) {
-    const stats = await this.studySessionService.fetchSessionStats(sourceId);
-    this.sessionStats.set(stats);
   }
 
   onCardProcessed() {
