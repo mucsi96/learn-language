@@ -53,10 +53,10 @@ public interface ReviewLogRepository
             ORDER BY rl.card_id, rl.review ASC
         ) first_review_on_last_day
         """, nativeQuery = true)
-    List<ReviewLog> findByCardIdInAndReviewGreaterThanEqualOrderByIdAsc(
-            List<String> cardIds, LocalDateTime since);
-
     List<Object[]> findCardComplexitiesWithPartner(
         @Param("cardIds") List<String> cardIds,
         @Param("learningPartnerId") Integer learningPartnerId);
+
+    List<ReviewLog> findByCardIdInAndReviewGreaterThanEqualOrderByIdAsc(
+            List<String> cardIds, LocalDateTime since);
 }
