@@ -27,7 +27,9 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
+import io.github.mucsi96.learnlanguage.model.SessionStatsResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
@@ -291,6 +293,84 @@ public class StudySessionService {
                     .studyMode(session.getStudyMode())
                     .build();
         });
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SessionStatsResponse> getSessionStats(String sourceId, LocalDateTime startOfDay) {
+        return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .map(session -> buildSessionStats(session, startOfDay));
+    }
+
+    private SessionStatsResponse buildSessionStats(StudySession session, LocalDateTime startOfDay) {
+        final List<String> cardIds = session.getCards().stream()
+                .map(sc -> sc.getCard().getId())
+                .toList();
+
+        final List<ReviewLog> allReviews = reviewLogRepository
+                .findByCardIdInAndReviewGreaterThanEqualOrderByIdAsc(cardIds, startOfDay);
+
+        final Map<String, ReviewLog> firstReviewPerCard = allReviews.stream()
+                .collect(Collectors.toMap(
+                        rl -> rl.getCard().getId() + ":" + (rl.getLearningPartner() != null ? rl.getLearningPartner().getId() : "self"),
+                        rl -> rl,
+                        (first, second) -> first));
+
+        final List<ReviewLog> firstReviews = firstReviewPerCard.values().stream().toList();
+
+        final long totalDurationMs = firstReviews.stream()
+                .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
+                .sum();
+
+        final int totalCards = firstReviews.size();
+        final long averageDurationMs = totalCards > 0 ? totalDurationMs / totalCards : 0;
+
+        final int goodCount = (int) firstReviews.stream()
+                .filter(rl -> rl.getRating() >= 3)
+                .count();
+
+        final int badCount = (int) firstReviews.stream()
+                .filter(rl -> rl.getRating() < 3)
+                .count();
+
+        final List<SessionStatsResponse.PersonStats> personStats;
+        if ("WITH_PARTNER".equals(session.getStudyMode())) {
+            final String userName = getCurrentUserFirstName();
+
+            final Map<String, List<ReviewLog>> byPerson = firstReviews.stream()
+                    .collect(Collectors.groupingBy(
+                            rl -> rl.getLearningPartner() != null ? rl.getLearningPartner().getName() : userName));
+
+            personStats = byPerson.entrySet().stream()
+                    .map(entry -> {
+                        final List<ReviewLog> reviews = entry.getValue();
+                        final long personTotal = reviews.stream()
+                                .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
+                                .sum();
+                        final int personCards = reviews.size();
+                        return SessionStatsResponse.PersonStats.builder()
+                                .name(entry.getKey())
+                                .totalDurationMs(personTotal)
+                                .averageDurationMs(personCards > 0 ? personTotal / personCards : 0)
+                                .goodCount((int) reviews.stream().filter(rl -> rl.getRating() >= 3).count())
+                                .badCount((int) reviews.stream().filter(rl -> rl.getRating() < 3).count())
+                                .totalCards(personCards)
+                                .build();
+                    })
+                    .toList();
+        } else {
+            personStats = List.of();
+        }
+
+        return SessionStatsResponse.builder()
+                .totalDurationMs(totalDurationMs)
+                .averageDurationMs(averageDurationMs)
+                .goodCount(goodCount)
+                .badCount(badCount)
+                .totalCards(totalCards)
+                .studyMode(session.getStudyMode())
+                .personStats(personStats)
+                .build();
     }
 
     private String getCurrentUserFirstName() {

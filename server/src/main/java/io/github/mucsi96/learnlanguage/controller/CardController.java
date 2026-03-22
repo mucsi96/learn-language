@@ -234,6 +234,7 @@ public class CardController {
           .scheduledDays(request.getScheduledDays().doubleValue())
           .learningSteps(request.getLearningSteps())
           .review(LocalDateTime.now())
+          .reviewDuration(request.getReviewDuration())
           .build();
 
       reviewLogRepository.save(reviewLog);

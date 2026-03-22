@@ -23,9 +23,10 @@ import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-c
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { ConfettiComponent } from '../confetti/confetti.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
-import { Card, LanguageTexts } from '../../parser/types';
+import { Card, LanguageTexts, SessionStats } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
+import { SessionStatsComponent } from '../session-stats/session-stats.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -42,6 +43,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
     ConfettiComponent,
+    SessionStatsComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -91,6 +93,8 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentTurn = this.studySessionService.currentTurn;
+  readonly cardShownAt = signal<number | null>(null);
+  readonly sessionStats = signal<SessionStats | null>(null);
 
   constructor() {
     effect(() => {
@@ -111,6 +115,22 @@ export class LearnCardComponent implements OnDestroy {
       if (card?.data.audio?.length && card.id !== this.lastPreparedCardId) {
         this.lastPreparedCardId = card.id;
         this.audioPlaybackService.prepareAudio(this.http, card.data.audio);
+      }
+    });
+
+    effect(() => {
+      const card = this.card();
+      if (card) {
+        this.cardShownAt.set(Date.now());
+      }
+    });
+
+    effect(() => {
+      const cardData = this.currentCardData.value();
+      const isLoading = this.currentCardData.isLoading();
+      const sourceId = this.currentSourceId;
+      if (!isLoading && cardData === null && sourceId && this.hasSession()) {
+        this.loadSessionStats(sourceId);
       }
     });
   }
@@ -191,10 +211,16 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.update((revealed) => !revealed);
   }
 
+  private async loadSessionStats(sourceId: string) {
+    const stats = await this.studySessionService.fetchSessionStats(sourceId);
+    this.sessionStats.set(stats);
+  }
+
   onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.lastPreparedCardId = null;
+    this.cardShownAt.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.refreshSession();
   }

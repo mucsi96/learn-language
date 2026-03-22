@@ -26,5 +26,6 @@ public class CardUpdateRequest {
     private LocalDateTime lastReview;
     private Integer learningPartnerId;
     private Integer rating;
+    private Integer reviewDuration;
     private Boolean flagged;
 }
