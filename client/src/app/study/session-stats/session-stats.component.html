@@ -1,72 +1,25 @@
-<ng-template #statsGrid let-totalDurationMs="totalDurationMs" let-averageDurationMs="averageDurationMs" let-goodCount="goodCount" let-badCount="badCount" let-accuracy="accuracy" let-personName="personName">
-  <div class="stats-grid">
-    <mat-card class="stat-card" role="group" aria-label="Total time">
-      <mat-icon class="stat-icon">timer</mat-icon>
-      <span class="stat-value" aria-label="value">{{ formatDuration(totalDurationMs) }}</span>
-      <span class="stat-label">Total time</span>
-    </mat-card>
-
-    <mat-card class="stat-card" role="group" aria-label="Average per card">
-      <mat-icon class="stat-icon">speed</mat-icon>
-      <span class="stat-value" aria-label="value">{{ formatDuration(averageDurationMs) }}</span>
-      <span class="stat-label">Avg per card</span>
-    </mat-card>
-
-    <mat-card class="stat-card good" role="group" aria-label="Good reviews">
-      <mat-icon class="stat-icon">check_circle</mat-icon>
-      <span class="stat-value" aria-label="value">{{ goodCount }}</span>
-      <span class="stat-label">Good</span>
-    </mat-card>
-
-    <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
-      <mat-icon class="stat-icon">replay</mat-icon>
-      <span class="stat-value" aria-label="value">{{ badCount }}</span>
-      <span class="stat-label">Struggled</span>
-    </mat-card>
-  </div>
-
-  <div class="accuracy-section" role="group" aria-label="Accuracy">
-    <div class="accuracy-header">
-      <span class="stat-label">Accuracy</span>
-      <span class="stat-value" aria-label="value">{{ accuracy }}%</span>
-    </div>
-    <mat-progress-bar
-      mode="determinate"
-      [value]="accuracy"
-      [attr.aria-label]="personName ? personName + ' accuracy' : 'Accuracy'"
-    />
-  </div>
-</ng-template>
-
 @if (stats().studyMode === 'WITH_PARTNER' && personStatsWithAccuracy().length > 0) {
   <div class="partner-stats-container" role="region" aria-label="Session statistics">
     @for (person of personStatsWithAccuracy(); track person.name) {
       <div class="stats-container" role="group" [attr.aria-label]="person.name + ' statistics'">
         <h3 class="person-title">{{ person.name }}</h3>
-        <ng-container
-          *ngTemplateOutlet="statsGrid; context: {
-            totalDurationMs: person.totalDurationMs,
-            averageDurationMs: person.averageDurationMs,
-            goodCount: person.goodCount,
-            badCount: person.badCount,
-            accuracy: person.accuracy,
-            personName: person.name
-          }"
+        <app-stats-grid
+          [totalDurationMs]="person.totalDurationMs"
+          [averageDurationMs]="person.averageDurationMs"
+          [goodCount]="person.goodCount"
+          [badCount]="person.badCount"
+          [accuracyLabel]="person.name + ' accuracy'"
         />
       </div>
     }
   </div>
 } @else {
   <div class="stats-container" role="region" aria-label="Session statistics">
-    <ng-container
-      *ngTemplateOutlet="statsGrid; context: {
-        totalDurationMs: stats().totalDurationMs,
-        averageDurationMs: stats().averageDurationMs,
-        goodCount: stats().goodCount,
-        badCount: stats().badCount,
-        accuracy: accuracy(),
-        personName: null
-      }"
+    <app-stats-grid
+      [totalDurationMs]="stats().totalDurationMs"
+      [averageDurationMs]="stats().averageDurationMs"
+      [goodCount]="stats().goodCount"
+      [badCount]="stats().badCount"
     />
   </div>
 }

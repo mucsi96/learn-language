@@ -1,16 +1,6 @@
 import { Component, computed, input } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SessionStats } from '../../parser/types';
-
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.round(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-}
+import { StatsGridComponent } from '../stats-grid/stats-grid.component';
 
 function calcAccuracy(goodCount: number, badCount: number): number {
   const total = goodCount + badCount;
@@ -20,14 +10,12 @@ function calcAccuracy(goodCount: number, badCount: number): number {
 @Component({
   selector: 'app-session-stats',
   standalone: true,
-  imports: [NgTemplateOutlet, MatIconModule, MatCardModule, MatProgressBarModule],
+  imports: [StatsGridComponent],
   templateUrl: './session-stats.component.html',
   styleUrl: './session-stats.component.css',
 })
 export class SessionStatsComponent {
   stats = input.required<SessionStats>();
-
-  readonly formatDuration = formatDuration;
 
   readonly accuracy = computed(() => {
     const s = this.stats();
