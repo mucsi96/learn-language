@@ -257,3 +257,20 @@ export type StudySessionCard = {
   turnName: string;
   studyMode: 'SOLO' | 'WITH_PARTNER';
 };
+
+export type PersonStats = {
+  name: string;
+  totalDurationMs: number;
+  averageDurationMs: number;
+  goodCount: number;
+  badCount: number;
+};
+
+export type SessionStats = {
+  totalDurationMs: number;
+  averageDurationMs: number;
+  goodCount: number;
+  badCount: number;
+  studyMode: 'SOLO' | 'WITH_PARTNER';
+  personStats: PersonStats[];
+};

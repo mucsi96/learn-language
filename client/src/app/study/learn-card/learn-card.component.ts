@@ -4,15 +4,16 @@ import {
   inject,
   signal,
   computed,
+  resource,
   OnDestroy,
   HostListener,
   viewChild,
+  Injector,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { StudySessionService } from '../../study-session.service';
 import { injectParams } from '../../utils/inject-params';
-import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient } from '@angular/common/http';
 import { CardGradingButtonsComponent } from '../../shared/card-grading-buttons/card-grading-buttons.component';
@@ -26,12 +27,12 @@ import { AudioPlaybackService } from '../../shared/services/audio-playback.servi
 import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
+import { SessionStatsComponent } from '../session-stats/session-stats.component';
 
 @Component({
   selector: 'app-learn-card',
   standalone: true,
   imports: [
-    CommonModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -42,6 +43,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     LearnGrammarCardComponent,
     LearnCardSkeletonComponent,
     ConfettiComponent,
+    SessionStatsComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -52,6 +54,7 @@ export class LearnCardComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
+  private readonly injector = inject(Injector);
   private lastPreparedCardId: string | null = null;
 
   private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
@@ -91,6 +94,25 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentTurn = this.studySessionService.currentTurn;
+  private readonly cardShownAt = signal<number | null>(null);
+  readonly reviewDuration = signal<number | null>(null);
+
+  private readonly sessionComplete = computed(() => {
+    const cardData = this.currentCardData.value();
+    const isLoading = this.currentCardData.isLoading();
+    return !isLoading && cardData === null && this.hasSession();
+  });
+
+  readonly sessionStats = resource({
+    params: () => {
+      const sourceId = this.currentSourceId;
+      const complete = this.sessionComplete();
+      return complete && sourceId ? { sourceId } : undefined;
+    },
+    loader: async ({ params }) =>
+      this.studySessionService.fetchSessionStats(params.sourceId),
+    injector: this.injector,
+  });
 
   constructor() {
     effect(() => {
@@ -111,6 +133,13 @@ export class LearnCardComponent implements OnDestroy {
       if (card?.data.audio?.length && card.id !== this.lastPreparedCardId) {
         this.lastPreparedCardId = card.id;
         this.audioPlaybackService.prepareAudio(this.http, card.data.audio);
+      }
+    });
+
+    effect(() => {
+      const card = this.card();
+      if (card) {
+        this.cardShownAt.set(Date.now());
       }
     });
   }
@@ -188,13 +217,20 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   toggleReveal() {
-    this.isRevealed.update((revealed) => !revealed);
+    const wasRevealed = this.isRevealed();
+    const shownAt = this.cardShownAt();
+    if (!wasRevealed && shownAt !== null) {
+      this.reviewDuration.set(Date.now() - shownAt);
+    }
+    this.isRevealed.set(!wasRevealed);
   }
 
   onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.lastPreparedCardId = null;
+    this.cardShownAt.set(null);
+    this.reviewDuration.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.refreshSession();
   }

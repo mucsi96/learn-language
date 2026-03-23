@@ -36,6 +36,9 @@
   <h2>All caught up!</h2>
   <p>No cards are due for review right now.</p>
   <p>Great job keeping up with your studies! 🎉</p>
+  @if (sessionStats.value(); as stats) {
+    <app-session-stats [stats]="stats" />
+  }
 </div>
 } @else {
 <div class="learn-card-container">
@@ -86,6 +89,7 @@
     <app-card-grading-buttons
       [card]="cardResource"
       [learningPartnerId]="currentTurn().partnerId"
+      [reviewDuration]="reviewDuration()"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
   }

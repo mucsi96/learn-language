@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector, computed, inject, resource, signal } from '@angular/core';
 import { fetchJson } from './utils/fetchJson';
-import { StudySession, StudySessionCard } from './parser/types';
+import { SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 import { DueCardsService } from './due-cards.service';
 
@@ -84,6 +84,13 @@ export class StudySessionService {
   refreshSession() {
     this.sessionVersion.update((v) => v + 1);
     this.dueCardsService.refetchDueCounts();
+  }
+
+  async fetchSessionStats(sourceId: string): Promise<SessionStats | null> {
+    return await fetchJson<SessionStats>(
+      this.http,
+      `/api/source/${sourceId}/study-session/stats`
+    );
   }
 
   clearSession() {

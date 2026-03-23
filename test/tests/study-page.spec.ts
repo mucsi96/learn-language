@@ -7,6 +7,7 @@ import {
   createCard,
   uploadMockImage,
   createCardsWithStates,
+  createLearningPartner,
   getReviewLogsByCardId,
   getCardFromDb,
   getReviewLogs,
@@ -1535,4 +1536,152 @@ test('color keys do not grade when card is not revealed', async ({ page }) => {
 
   await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Good' })).not.toBeVisible();
+});
+
+test('session stats appear on celebration page after completing all cards', async ({ page }) => {
+  await createCard({
+    cardId: 'stats-test-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 80,
+    data: {
+      word: 'Statistik',
+      type: 'NOUN',
+      gender: 'FEMININE',
+      translation: { en: 'statistics', hu: 'statisztika', ch: 'Statistik' },
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await createCard({
+    cardId: 'stats-test-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 81,
+    data: {
+      word: 'Ergebnis',
+      type: 'NOUN',
+      gender: 'NEUTER',
+      translation: { en: 'result', hu: 'eredmény', ch: 'Ergebnis' },
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+
+  const statsRegion = page.getByRole('region', { name: 'Session statistics' });
+  await expect(statsRegion).toBeVisible();
+
+  await expect(statsRegion.getByRole('group', { name: 'Total time' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(statsRegion.getByRole('group', { name: 'Average per card' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(statsRegion.getByRole('group', { name: 'Good reviews' }).getByLabel('value')).toHaveText('1');
+  await expect(statsRegion.getByRole('group', { name: 'Struggled reviews' }).getByLabel('value')).toHaveText('1');
+  await expect(statsRegion.getByRole('group', { name: 'Accuracy' })).toContainText('50%');
+});
+
+test('session stats show per-person breakdown when studying with partner', async ({ page }) => {
+  await createLearningPartner({ name: 'Alice', isActive: true });
+
+  await createCard({
+    cardId: 'partner-stats-card-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 82,
+    data: {
+      word: 'Partner',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'partner', hu: 'partner', ch: 'Partner' },
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await createCard({
+    cardId: 'partner-stats-card-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 83,
+    data: {
+      word: 'Freund',
+      type: 'NOUN',
+      gender: 'MASCULINE',
+      translation: { en: 'friend', hu: 'barát', ch: 'Fründ' },
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Again' }).click();
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+
+  const statsRegion = page.getByRole('region', { name: 'Session statistics' });
+  await expect(statsRegion).toBeVisible();
+
+  const meStats = statsRegion.getByRole('group', { name: 'Me statistics' });
+  await expect(meStats).toBeVisible();
+  await expect(meStats.getByRole('group', { name: 'Total time' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(meStats.getByRole('group', { name: 'Average per card' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(meStats.getByRole('group', { name: 'Good reviews' }).getByLabel('value')).toHaveText('1');
+  await expect(meStats.getByRole('group', { name: 'Struggled reviews' }).getByLabel('value')).toHaveText('0');
+  await expect(meStats.getByRole('group', { name: 'Accuracy' })).toContainText('100%');
+
+  const aliceStats = statsRegion.getByRole('group', { name: 'Alice statistics' });
+  await expect(aliceStats).toBeVisible();
+  await expect(aliceStats.getByRole('group', { name: 'Total time' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(aliceStats.getByRole('group', { name: 'Average per card' }).getByLabel('value')).toHaveText(/\d+s/);
+  await expect(aliceStats.getByRole('group', { name: 'Good reviews' }).getByLabel('value')).toHaveText('0');
+  await expect(aliceStats.getByRole('group', { name: 'Struggled reviews' }).getByLabel('value')).toHaveText('1');
+  await expect(aliceStats.getByRole('group', { name: 'Accuracy' })).toContainText('0%');
 });
