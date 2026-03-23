@@ -264,7 +264,6 @@ export type PersonStats = {
   averageDurationMs: number;
   goodCount: number;
   badCount: number;
-  totalCards: number;
 };
 
 export type SessionStats = {
@@ -272,7 +271,6 @@ export type SessionStats = {
   averageDurationMs: number;
   goodCount: number;
   badCount: number;
-  totalCards: number;
   studyMode: 'SOLO' | 'WITH_PARTNER';
   personStats: PersonStats[];
 };

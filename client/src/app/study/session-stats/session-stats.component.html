@@ -1,6 +1,6 @@
-@if (stats().studyMode === 'WITH_PARTNER' && personStatsWithAccuracy().length > 0) {
+@if (stats().studyMode === 'WITH_PARTNER' && stats().personStats.length > 0) {
   <div class="partner-stats-container" role="region" aria-label="Session statistics">
-    @for (person of personStatsWithAccuracy(); track person.name) {
+    @for (person of stats().personStats; track person.name) {
       <div class="stats-container" role="group" [attr.aria-label]="person.name + ' statistics'">
         <h3 class="person-title">{{ person.name }}</h3>
         <app-stats-grid

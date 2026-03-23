@@ -16,7 +16,6 @@ public class SessionStatsResponse {
     private long averageDurationMs;
     private int goodCount;
     private int badCount;
-    private int totalCards;
     private String studyMode;
     private List<PersonStats> personStats;
 
@@ -30,6 +29,5 @@ public class SessionStatsResponse {
         private long averageDurationMs;
         private int goodCount;
         private int badCount;
-        private int totalCards;
     }
 }

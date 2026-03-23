@@ -109,10 +109,8 @@ export class LearnCardComponent implements OnDestroy {
       const complete = this.sessionComplete();
       return complete && sourceId ? { sourceId } : undefined;
     },
-    loader: async ({ params }) => {
-      if (!params) return null;
-      return this.studySessionService.fetchSessionStats(params.sourceId);
-    },
+    loader: async ({ params }) =>
+      this.studySessionService.fetchSessionStats(params.sourceId),
     injector: this.injector,
   });
 

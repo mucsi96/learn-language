@@ -324,8 +324,8 @@ public class StudySessionService {
                 .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
                 .sum();
 
-        final int totalCards = firstReviews.size();
-        final long averageDurationMs = totalCards > 0 ? totalDurationMs / totalCards : 0;
+        final int reviewCount = firstReviews.size();
+        final long averageDurationMs = reviewCount > 0 ? totalDurationMs / reviewCount : 0;
 
         final int goodCount = (int) firstReviews.stream()
                 .filter(rl -> rl.getRating() >= 3)
@@ -349,14 +349,13 @@ public class StudySessionService {
                         final long personTotal = reviews.stream()
                                 .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
                                 .sum();
-                        final int personCards = reviews.size();
+                        final int personReviewCount = reviews.size();
                         return SessionStatsResponse.PersonStats.builder()
                                 .name(entry.getKey())
                                 .totalDurationMs(personTotal)
-                                .averageDurationMs(personCards > 0 ? personTotal / personCards : 0)
+                                .averageDurationMs(personReviewCount > 0 ? personTotal / personReviewCount : 0)
                                 .goodCount((int) reviews.stream().filter(rl -> rl.getRating() >= 3).count())
                                 .badCount((int) reviews.stream().filter(rl -> rl.getRating() < 3).count())
-                                .totalCards(personCards)
                                 .build();
                     })
                     .toList();
@@ -369,7 +368,6 @@ public class StudySessionService {
                 .averageDurationMs(averageDurationMs)
                 .goodCount(goodCount)
                 .badCount(badCount)
-                .totalCards(totalCards)
                 .studyMode(session.getStudyMode())
                 .personStats(personStats)
                 .build();
