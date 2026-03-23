@@ -1599,10 +1599,10 @@ test('session stats appear on celebration page after completing all cards', asyn
   const statsRegion = page.getByRole('region', { name: 'Session statistics' });
   await expect(statsRegion).toBeVisible();
 
-  await expect(statsRegion.getByRole('group', { name: 'Total time' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(statsRegion.getByRole('group', { name: 'Average per card' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(statsRegion.getByRole('group', { name: 'Good reviews' }).locator('.stat-value')).toHaveText('1');
-  await expect(statsRegion.getByRole('group', { name: 'Struggled reviews' }).locator('.stat-value')).toHaveText('1');
+  await expect(statsRegion.getByRole('group', { name: 'Total time' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(statsRegion.getByRole('group', { name: 'Average per card' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(statsRegion.getByRole('group', { name: 'Good reviews' })getByLabel('value')).toHaveText('1');
+  await expect(statsRegion.getByRole('group', { name: 'Struggled reviews' })getByLabel('value')).toHaveText('1');
   await expect(statsRegion.getByRole('group', { name: 'Accuracy' })).toContainText('50%');
 });
 
@@ -1671,17 +1671,17 @@ test('session stats show per-person breakdown when studying with partner', async
 
   const meStats = statsRegion.getByRole('group', { name: 'Me statistics' });
   await expect(meStats).toBeVisible();
-  await expect(meStats.getByRole('group', { name: 'Total time' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(meStats.getByRole('group', { name: 'Average per card' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(meStats.getByRole('group', { name: 'Good reviews' }).locator('.stat-value')).toHaveText('1');
-  await expect(meStats.getByRole('group', { name: 'Struggled reviews' }).locator('.stat-value')).toHaveText('0');
+  await expect(meStats.getByRole('group', { name: 'Total time' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(meStats.getByRole('group', { name: 'Average per card' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(meStats.getByRole('group', { name: 'Good reviews' })getByLabel('value')).toHaveText('1');
+  await expect(meStats.getByRole('group', { name: 'Struggled reviews' })getByLabel('value')).toHaveText('0');
   await expect(meStats.getByRole('group', { name: 'Accuracy' })).toContainText('100%');
 
   const aliceStats = statsRegion.getByRole('group', { name: 'Alice statistics' });
   await expect(aliceStats).toBeVisible();
-  await expect(aliceStats.getByRole('group', { name: 'Total time' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(aliceStats.getByRole('group', { name: 'Average per card' }).locator('.stat-value')).toHaveText(/\d+s/);
-  await expect(aliceStats.getByRole('group', { name: 'Good reviews' }).locator('.stat-value')).toHaveText('0');
-  await expect(aliceStats.getByRole('group', { name: 'Struggled reviews' }).locator('.stat-value')).toHaveText('1');
+  await expect(aliceStats.getByRole('group', { name: 'Total time' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(aliceStats.getByRole('group', { name: 'Average per card' })getByLabel('value')).toHaveText(/\d+s/);
+  await expect(aliceStats.getByRole('group', { name: 'Good reviews' })getByLabel('value')).toHaveText('0');
+  await expect(aliceStats.getByRole('group', { name: 'Struggled reviews' })getByLabel('value')).toHaveText('1');
   await expect(aliceStats.getByRole('group', { name: 'Accuracy' })).toContainText('0%');
 });

@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -19,7 +20,7 @@ function calcAccuracy(goodCount: number, badCount: number): number {
 @Component({
   selector: 'app-session-stats',
   standalone: true,
-  imports: [MatIconModule, MatCardModule, MatProgressBarModule],
+  imports: [NgTemplateOutlet, MatIconModule, MatCardModule, MatProgressBarModule],
   templateUrl: './session-stats.component.html',
   styleUrl: './session-stats.component.css',
 })

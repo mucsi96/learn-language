@@ -63,5 +63,5 @@ public class ReviewLog {
     @Column(nullable = false)
     private LocalDateTime review;
 
-    private Integer reviewDuration;
+    private Long reviewDuration;
 }

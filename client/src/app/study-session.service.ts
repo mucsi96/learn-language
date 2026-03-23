@@ -87,14 +87,10 @@ export class StudySessionService {
   }
 
   async fetchSessionStats(sourceId: string): Promise<SessionStats | null> {
-    try {
-      return await fetchJson<SessionStats>(
-        this.http,
-        `/api/source/${sourceId}/study-session/stats`
-      );
-    } catch {
-      return null;
-    }
+    return await fetchJson<SessionStats>(
+      this.http,
+      `/api/source/${sourceId}/study-session/stats`
+    );
   }
 
   clearSession() {

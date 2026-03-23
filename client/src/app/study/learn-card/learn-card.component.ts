@@ -94,7 +94,7 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentTurn = this.studySessionService.currentTurn;
-  private cardShownAt: number | null = null;
+  private readonly cardShownAt = signal<number | null>(null);
   readonly reviewDuration = signal<number | null>(null);
 
   private readonly sessionComplete = computed(() => {
@@ -141,7 +141,7 @@ export class LearnCardComponent implements OnDestroy {
     effect(() => {
       const card = this.card();
       if (card) {
-        this.cardShownAt = Date.now();
+        this.cardShownAt.set(Date.now());
       }
     });
   }
@@ -220,8 +220,9 @@ export class LearnCardComponent implements OnDestroy {
 
   toggleReveal() {
     const wasRevealed = this.isRevealed();
-    if (!wasRevealed && this.cardShownAt !== null) {
-      this.reviewDuration.set(Date.now() - this.cardShownAt);
+    const shownAt = this.cardShownAt();
+    if (!wasRevealed && shownAt !== null) {
+      this.reviewDuration.set(Date.now() - shownAt);
     }
     this.isRevealed.set(!wasRevealed);
   }
@@ -230,7 +231,7 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];
     this.lastPreparedCardId = null;
-    this.cardShownAt = null;
+    this.cardShownAt.set(null);
     this.reviewDuration.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.refreshSession();
