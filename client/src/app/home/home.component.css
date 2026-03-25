@@ -38,6 +38,16 @@ p {
   pointer-events: none;
 }
 
+.card-link.disabled.has-export {
+  opacity: 0.8;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.card-link.disabled.has-export button {
+  pointer-events: auto;
+}
+
 .sources mat-card {
   background: var(--mat-sys-surface);
   border: 1px solid var(--mat-sys-surface-container);

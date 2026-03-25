@@ -8,6 +8,7 @@
   <a
     [routerLink]="['/sources', source.id, 'study']"
     [class.disabled]="!hasDueCards(source.id)"
+    [class.has-export]="!hasDueCards(source.id) && hasStruggledCards(source.id)"
     class="card-link"
   >
     <mat-card
@@ -22,6 +23,12 @@
           <app-state [state]="dueCount.state" [count]="dueCount.count" />
           }
         </h2>
+        @if (!hasDueCards(source.id) && hasStruggledCards(source.id)) {
+          <button mat-stroked-button (click)="downloadStruggledCardsPdf($event, source.id)" aria-label="Export struggled cards as PDF">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Export struggled cards
+          </button>
+        }
       </mat-card-content>
     </mat-card>
   </a>

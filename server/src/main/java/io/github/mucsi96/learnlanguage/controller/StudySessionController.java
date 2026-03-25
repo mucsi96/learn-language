@@ -16,6 +16,7 @@ import io.github.mucsi96.learnlanguage.model.AddCardsToSessionRequest;
 import io.github.mucsi96.learnlanguage.model.SessionStatsResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
+import io.github.mucsi96.learnlanguage.service.StudySessionPdfService;
 import io.github.mucsi96.learnlanguage.service.StudySessionService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class StudySessionController {
 
     private final StudySessionService studySessionService;
+    private final StudySessionPdfService studySessionPdfService;
 
     @GetMapping("/source/{sourceId}/study-session")
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
@@ -60,6 +62,19 @@ public class StudySessionController {
             @RequestHeader(value = "X-Timezone", required = true) String timezone) {
         return studySessionService.getSessionStats(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/source/{sourceId}/study-session/struggled-cards.pdf")
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    public ResponseEntity<byte[]> getStruggledCardsPdf(
+            @PathVariable String sourceId,
+            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+        return studySessionPdfService.generateStruggledCardsPdf(sourceId, startOfDayUtc(parseTimezone(timezone)))
+                .map(pdf -> ResponseEntity.ok()
+                        .header("Content-Type", "application/pdf")
+                        .header("Content-Disposition", "attachment; filename=\"struggled-cards.pdf\"")
+                        .body(pdf))
                 .orElse(ResponseEntity.noContent().build());
     }
 

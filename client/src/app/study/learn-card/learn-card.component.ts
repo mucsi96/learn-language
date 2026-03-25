@@ -225,6 +225,12 @@ export class LearnCardComponent implements OnDestroy {
     this.isRevealed.set(!wasRevealed);
   }
 
+  async downloadStruggledCardsPdf() {
+    if (this.currentSourceId) {
+      await this.studySessionService.downloadStruggledCardsPdf(this.currentSourceId);
+    }
+  }
+
   onCardProcessed() {
     this.isRevealed.set(false);
     this.lastPlayedTexts = [];

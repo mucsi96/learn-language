@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector, computed, inject, resource, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { fetchJson } from './utils/fetchJson';
 import { SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
@@ -91,6 +92,33 @@ export class StudySessionService {
       this.http,
       `/api/source/${sourceId}/study-session/stats`
     );
+  }
+
+  async downloadStruggledCardsPdf(sourceId: string): Promise<void> {
+    const response = await firstValueFrom(
+      this.http.get(`/api/source/${sourceId}/study-session/struggled-cards.pdf`, {
+        responseType: 'blob',
+      })
+    );
+    const blob = response as Blob;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'struggled-cards.pdf';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async checkSessionHasStruggledCards(sourceId: string): Promise<boolean> {
+    try {
+      const stats = await fetchJson<SessionStats>(
+        this.http,
+        `/api/source/${sourceId}/study-session/stats`
+      );
+      return stats !== null && stats.badCount > 0;
+    } catch {
+      return false;
+    }
   }
 
   clearSession() {
