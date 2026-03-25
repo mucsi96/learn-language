@@ -63,6 +63,16 @@ public class StudySessionController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
+    @PostMapping("/source/{sourceId}/study-session/skip-card/{cardId}")
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    public ResponseEntity<Void> skipCard(
+            @PathVariable String sourceId,
+            @PathVariable String cardId,
+            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+        studySessionService.moveCardToBack(cardId, sourceId, startOfDayUtc(parseTimezone(timezone)), null);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/study-sessions/add-cards")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<Void> addCardsToSessions(

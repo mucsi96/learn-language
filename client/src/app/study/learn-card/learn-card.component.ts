@@ -76,7 +76,7 @@ export class LearnCardComponent implements OnDestroy {
   readonly isCheckingSession = signal(true);
   private readonly isGrading = signal(false);
   private lastPlayedTexts: string[] = [];
-  private currentSourceId: string | null = null;
+  currentSourceId: string | null = null;
 
   readonly currentCardType = computed(() => this.card()?.source.cardType);
 
@@ -161,10 +161,8 @@ export class LearnCardComponent implements OnDestroy {
 
   private static readonly GRADE_BY_KEY = {
     'Red': 'Again',
-    'Yellow': 'Hard',
     'Green': 'Good',
-    'Blue': 'Easy',
-  } as const satisfies Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'>;
+  } as const satisfies Record<string, 'Again' | 'Good'>;
 
   @HostListener('document:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {
