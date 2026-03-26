@@ -19,7 +19,6 @@ export class CardGradingButtonsComponent {
   sourceId = input<string | null>(null);
   learningPartnerId = input<number | null>(null);
   reviewDuration = input<number | null>(null);
-  graded = output<Grade>();
   cardProcessed = output<void>();
 
   private readonly fsrsGradingService = inject(FsrsGradingService);

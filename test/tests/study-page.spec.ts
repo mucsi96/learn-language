@@ -751,6 +751,11 @@ test('skip button moves card to back without grading', async ({ page }) => {
   const reviewLogs = await getReviewLogsByCardId('uberspringen-atugrani');
   expect(reviewLogs).toEqual([]);
 
+  const skippedCard = await getCardFromDb('uberspringen-atugrani');
+  expect(skippedCard.state).toBe('NEW');
+  expect(skippedCard.reps).toBe(0);
+  expect(skippedCard.lapses).toBe(0);
+
   await flashcard.getByRole('heading', { name: 'várni' }).click();
   await page.getByRole('button', { name: 'Correct' }).click();
 
