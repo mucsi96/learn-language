@@ -1141,7 +1141,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await flashcard.click();
+  await flashcard.getByText('Minden nap busszal járok dolgozni.').click();
 
   await expect(flashcard.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
   await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
@@ -1177,11 +1177,11 @@ test('speech card grading functionality', async ({ page }) => {
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText('Ma nagyon szép az idő.')).toBeVisible();
 
-  await flashcard.click();
+  await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -1215,7 +1215,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
   await expect(flashcard.locator('.gap-word.masked')).toHaveText('jeden');
 
-  await flashcard.click();
+  await flashcard.getByText('Ich gehe').click();
 
   await expect(flashcard.locator('.gap-word.highlighted')).toBeVisible();
   await expect(flashcard.locator('.gap-word.highlighted')).toHaveText('jeden');
@@ -1247,11 +1247,11 @@ test('grammar card grading functionality', async ({ page }) => {
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.locator('.gap-word.masked')).toHaveText('trinkt');
 
-  await flashcard.click();
+  await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -1396,14 +1396,19 @@ test('all color keys map to correct grades', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  const gradeButtons = page.getByRole('button', { name: 'Incorrect' });
 
-  for (const key of ['Red', 'Green']) {
-    await expect(flashcard.getByRole('heading')).toBeVisible();
-    await flashcard.click();
-    await expect(gradeButtons).toBeVisible();
-    await pressRemoteKey(page, key);
-  }
+  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
+  await flashcard.getByRole('heading', { name: 'piros' }).click();
+  await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
+  await pressRemoteKey(page, 'Red');
+
+  // Wait for grading buttons to disappear (card unreveals after grading)
+  await expect(page.getByRole('button', { name: 'Incorrect' })).not.toBeVisible();
+
+  await expect(flashcard.getByRole('heading', { name: 'zöld' })).toBeVisible();
+  await flashcard.getByRole('heading', { name: 'zöld' }).click();
+  await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
+  await pressRemoteKey(page, 'Green');
 
   await expect(flashcard).toBeVisible();
 
@@ -1490,16 +1495,13 @@ test('session stats appear on celebration page after completing all cards', asyn
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'statisztika' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'eredmény' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'eredmény' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -1560,16 +1562,13 @@ test('session stats show per-person breakdown when studying with partner', async
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'partner' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'barát' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'barát' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();

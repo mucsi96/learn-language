@@ -234,7 +234,7 @@ test('speech card audio plays on study page', async ({ page }) => {
 
   await expect(flashcard.getByText('Jó reggelt, hogy van?' )).toBeVisible();
 
-  await flashcard.click();
+  await flashcard.getByText('Jó reggelt, hogy van?').click();
 
   await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?' )).toBeVisible();
 
