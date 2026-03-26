@@ -63,16 +63,13 @@ test('export struggled cards button appears on celebration page when there are s
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'siker' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'hiba' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'hiba' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -113,8 +110,7 @@ test('export struggled cards button does not appear when all cards answered corr
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'helyes' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -155,12 +151,10 @@ test('export struggled cards button triggers PDF download', async ({ page }) => 
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'letolteni' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'letolteni' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -206,12 +200,10 @@ test('export struggled cards button visible on study page when returning after s
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'haz' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'haz' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -255,8 +247,7 @@ test('export button not visible on study page return when no struggled cards', a
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'helyes' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -329,20 +320,16 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'egyutt' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'egyedul' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'egyutt' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard).toBeVisible();
-  await flashcard.click();
+  await flashcard.getByRole('heading', { name: 'egyedul' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
