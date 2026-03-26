@@ -1,11 +1,11 @@
 <div class="grading-buttons">
-  <button mat-raised-button class="grade-incorrect" (click)="gradeCard('Again')">
-    <mat-icon>close</mat-icon>
-    Incorrect
-  </button>
   <button mat-raised-button class="grade-skip" (click)="skipCard()">
     <mat-icon>skip_next</mat-icon>
     Skip
+  </button>
+  <button mat-raised-button class="grade-incorrect" (click)="gradeCard('Again')">
+    <mat-icon>close</mat-icon>
+    Incorrect
   </button>
   <button mat-raised-button class="grade-correct" (click)="gradeCard('Good')">
     <mat-icon>check</mat-icon>
