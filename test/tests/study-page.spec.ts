@@ -693,6 +693,70 @@ test('correct button functionality', async ({ page }) => {
   ]);
 });
 
+test('skip button moves card to back without grading', async ({ page }) => {
+  await createCard({
+    cardId: 'uberspringen-atugrani',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 46,
+    data: {
+      word: 'überspringen',
+      type: 'VERB',
+      translation: { en: 'to skip', hu: 'átugrani', ch: 'überspringe' },
+      examples: [
+        {
+          de: 'Ich überspringe die Frage.',
+          hu: 'Átugrom a kérdést.',
+          en: 'I skip the question.',
+          ch: 'Ich überspringe d Frag.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await createCard({
+    cardId: 'warten-varni2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 47,
+    data: {
+      word: 'warten',
+      type: 'VERB',
+      translation: { en: 'to wait', hu: 'várni', ch: 'warte' },
+      examples: [
+        {
+          de: 'Ich warte hier.',
+          hu: 'Itt várok.',
+          en: 'I wait here.',
+          ch: 'Ich warte da.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard.getByRole('heading', { name: 'átugrani' })).toBeVisible();
+
+  await flashcard.getByRole('heading', { name: 'átugrani' }).click();
+
+  await page.getByRole('button', { name: 'Skip' }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'várni' })).toBeVisible();
+  await expect(flashcard.getByRole('heading', { name: 'átugrani' })).not.toBeVisible();
+
+  const reviewLogs = await getReviewLogsByCardId('uberspringen-atugrani');
+  expect(reviewLogs).toEqual([]);
+
+  await flashcard.getByRole('heading', { name: 'várni' }).click();
+  await page.getByRole('button', { name: 'Correct' }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'átugrani' })).toBeVisible();
+});
+
 test('grading card updates database', async ({ page }) => {
   await createCard({
     cardId: 'datenbank-adatbazis',

@@ -89,7 +89,7 @@
     <div class="grading-buttons-container">
       <app-card-grading-buttons
         [card]="cardResource"
-        [sourceId]="currentSourceId"
+        [sourceId]="sourceId()"
         [learningPartnerId]="currentTurn().partnerId"
         [reviewDuration]="reviewDuration()"
         (cardProcessed)="onCardProcessed()">
