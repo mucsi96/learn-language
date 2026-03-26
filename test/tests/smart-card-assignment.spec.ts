@@ -672,7 +672,7 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
   }).toPass();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
   await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
   await expect(async () => {

@@ -177,7 +177,7 @@ test('study page revealed state', async ({ page }) => {
   expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 });
 
 test('source selector routing works', async ({ page }) => {
@@ -549,7 +549,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
   // Initially grading buttons should not be visible
   await expect(page.getByRole('button', { name: 'Incorrect' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Skip' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 
   // Click to reveal the card
   await flashcard.getByRole('heading', { name: 'értékelni' }).click();
@@ -557,7 +557,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
   // Now grading buttons should be visible
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 });
 
 test('incorrect button functionality', async ({ page }) => {
@@ -681,7 +681,7 @@ test('correct button functionality', async ({ page }) => {
   await flashcard.getByRole('heading', { name: 'jó' }).click();
 
   // Click Correct button
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   // Verify next card is loaded
   await expect(flashcard.getByRole('heading', { name: 'harmadik' })).toBeVisible();
@@ -757,7 +757,7 @@ test('skip button moves card to back without grading', async ({ page }) => {
   expect(skippedCard.lapses).toBe(0);
 
   await flashcard.getByRole('heading', { name: 'várni' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByRole('heading', { name: 'átugrani' })).toBeVisible();
 });
@@ -793,7 +793,7 @@ test('grading card updates database', async ({ page }) => {
   await flashcard.getByRole('heading', { name: 'adatbázis' }).click();
 
   // Click Correct button
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(async () => {
     const card = await getCardFromDb('datenbank-adatbazis');
@@ -832,7 +832,7 @@ test('grading card creates review log', async ({ page }) => {
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
   await flashcard.getByRole('heading', { name: 'napló' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(async () => {
     const reviewLogs = await getReviewLogsByCardId('protokoll-naplo');
@@ -874,11 +874,11 @@ test('grading with no next card shows empty state', async ({ page }) => {
 
   await expect(flashcard.getByLabel('State: New')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   // Should show empty state
   await expect(page.getByText('All caught up!')).toBeVisible();
@@ -904,10 +904,10 @@ test('confetti celebration appears when all cards are caught up', async ({ page 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
   await flashcard.getByRole('heading', { name: 'ünnepelni' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await flashcard.getByRole('heading', { name: 'ünnepelni' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
   await expect(page.locator('app-confetti canvas')).toBeVisible();
@@ -951,11 +951,11 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
 
   await expect(flashcard.getByLabel('State: New')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'most' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'most' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'később' })).not.toBeVisible();
@@ -1082,7 +1082,7 @@ test('card graded with Incorrect reappears after other due cards', async ({ page
   await expect(flashcard.getByRole('heading', { name: 'várni' })).toBeVisible();
 
   await flashcard.getByRole('heading', { name: 'várni' }).click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByRole('heading', { name: 'visszajönni' })).toBeVisible();
 });
@@ -1149,7 +1149,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
   expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 });
 
 test('speech card grading functionality', async ({ page }) => {
@@ -1178,11 +1178,11 @@ test('speech card grading functionality', async ({ page }) => {
   await expect(flashcard.getByText('Ma nagyon szép az idő.')).toBeVisible();
 
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
@@ -1248,11 +1248,11 @@ test('grammar card grading functionality', async ({ page }) => {
   await expect(flashcard.locator('.gap-word.masked')).toHaveText('trinkt');
 
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
@@ -1284,17 +1284,17 @@ test('Enter key reveals and unreveals card', async ({ page }) => {
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 
   await page.keyboard.press('Enter');
 
   await expect(flashcard.getByText('Tastatur', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 
   await page.keyboard.press('Enter');
 
   await expect(flashcard.getByRole('heading', { name: 'billentyűzet' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 });
 
 test('Green color key grades card as Correct when revealed', async ({ page }) => {
@@ -1345,12 +1345,12 @@ test('Green color key grades card as Correct when revealed', async ({ page }) =>
   await expect(flashcard.getByRole('heading', { name: 'távirányító' })).toBeVisible();
 
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Correct' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 
   await pressRemoteKey(page, 'Green');
 
   await expect(flashcard.getByRole('heading', { name: 'televízió' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 });
 
 test('all color keys map to correct grades', async ({ page }) => {
@@ -1443,7 +1443,7 @@ test('color keys do not grade when card is not revealed', async ({ page }) => {
   await pressRemoteKey(page, 'Red');
 
   await expect(flashcard.getByRole('heading', { name: 'védelem' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Correct' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 });
 
 test('session stats appear on celebration page after completing all cards', async ({ page }) => {
@@ -1492,7 +1492,7 @@ test('session stats appear on celebration page after completing all cards', asyn
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
@@ -1500,7 +1500,7 @@ test('session stats appear on celebration page after completing all cards', asyn
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -1562,7 +1562,7 @@ test('session stats show per-person breakdown when studying with partner', async
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
@@ -1570,7 +1570,7 @@ test('session stats show per-person breakdown when studying with partner', async
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
