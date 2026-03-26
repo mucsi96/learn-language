@@ -120,7 +120,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly existingSessionStats = resource({
     params: () => {
-      const sourceId = this.currentSourceId;
+      const sourceId = this.sourceId();
       const hasExisting = this.hasExistingSession();
       const hasActive = this.hasSession();
       const checking = this.isCheckingSession();
@@ -246,8 +246,9 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   async downloadStruggledCardsPdf() {
-    if (this.currentSourceId) {
-      await this.studySessionService.downloadStruggledCardsPdf(this.currentSourceId);
+    const sourceId = this.sourceId();
+    if (sourceId) {
+      await this.studySessionService.downloadStruggledCardsPdf(sourceId);
     }
   }
 
