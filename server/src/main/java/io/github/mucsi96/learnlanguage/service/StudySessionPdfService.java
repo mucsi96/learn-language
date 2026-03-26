@@ -167,10 +167,14 @@ public class StudySessionPdfService {
         }
     }
 
+    private PDRectangle landscapeA4() {
+        return new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
+    }
+
     private void addEmptyPage(PDDocument document, String sourceName, String dateStr,
             PDFont regularFont, PDFont boldFont) {
         try {
-            final PDPage page = new PDPage(PDRectangle.A4);
+            final PDPage page = new PDPage(landscapeA4());
             document.addPage(page);
             try (final PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 final float pageWidth = page.getMediaBox().getWidth();
@@ -191,9 +195,7 @@ public class StudySessionPdfService {
 
     private void addCardsPages(PDDocument document, List<Card> cards, String sourceName,
             CardType cardType, String dateStr, String personName, PDFont regularFont, PDFont boldFont) {
-        final String title = personName != null
-                ? sourceName + " - " + personName + " - " + dateStr
-                : sourceName + " - " + dateStr;
+        final String title = sourceName + " - " + dateStr;
 
         final List<String> headers = getHeaders(cardType);
         final List<Float> colWidths = getColumnWidths(cardType);
@@ -201,16 +203,17 @@ public class StudySessionPdfService {
                 .map(card -> getCardRow(card, cardType))
                 .toList();
 
-        renderPages(document, title, headers, colWidths, rows, regularFont, boldFont);
+        renderPages(document, title, headers, colWidths, rows, personName, regularFont, boldFont);
     }
 
     private void renderPages(PDDocument document, String title, List<String> headers,
-            List<Float> colWidths, List<List<String>> rows, PDFont regularFont, PDFont boldFont) {
+            List<Float> colWidths, List<List<String>> rows, String personName,
+            PDFont regularFont, PDFont boldFont) {
         final int totalRows = rows.size();
         int renderedRows = 0;
 
         do {
-            final PDPage page = new PDPage(PDRectangle.A4);
+            final PDPage page = new PDPage(landscapeA4());
             document.addPage(page);
             final float pageWidth = page.getMediaBox().getWidth();
             final float pageHeight = page.getMediaBox().getHeight();
@@ -218,6 +221,11 @@ public class StudySessionPdfService {
 
             try (final PDPageContentStream cs = new PDPageContentStream(document, page)) {
                 drawTitle(cs, title, pageWidth, pageHeight, boldFont);
+
+                if (personName != null) {
+                    drawPersonName(cs, personName, pageWidth, pageHeight, regularFont);
+                }
+
                 final float headerY = pageHeight - MARGIN - TITLE_HEIGHT;
                 final float afterHeaderY = drawTableHeader(cs, headers, colWidths, MARGIN, headerY, tableWidth, boldFont);
 
@@ -252,6 +260,16 @@ public class StudySessionPdfService {
         final float titleWidth = font.getStringWidth(title) / 1000 * 16;
         cs.newLineAtOffset((pageWidth - titleWidth) / 2, pageHeight - MARGIN - 20);
         cs.showText(title);
+        cs.endText();
+    }
+
+    private void drawPersonName(PDPageContentStream cs, String personName, float pageWidth,
+            float pageHeight, PDFont font) throws IOException {
+        cs.beginText();
+        cs.setFont(font, 10);
+        final float nameWidth = font.getStringWidth(personName) / 1000 * 10;
+        cs.newLineAtOffset(pageWidth - MARGIN - nameWidth, pageHeight - MARGIN - 12);
+        cs.showText(personName);
         cs.endText();
     }
 
@@ -354,17 +372,17 @@ public class StudySessionPdfService {
         if (cardType == CardType.SPEECH) {
             return List.of("#", "Hungarian (Front)", "German (Back)", "English");
         }
-        return List.of("#", "Hungarian (Front)", "German (Back)", "Type", "Gender", "Example (DE)");
+        return List.of("#", "Hungarian", "Hungarian Example", "German", "Forms", "German Example");
     }
 
     private List<Float> getColumnWidths(CardType cardType) {
         if (cardType == CardType.GRAMMAR) {
-            return List.of(0.06f, 0.38f, 0.28f, 0.28f);
+            return List.of(0.05f, 0.40f, 0.30f, 0.25f);
         }
         if (cardType == CardType.SPEECH) {
-            return List.of(0.06f, 0.37f, 0.30f, 0.27f);
+            return List.of(0.05f, 0.35f, 0.32f, 0.28f);
         }
-        return List.of(0.05f, 0.22f, 0.20f, 0.10f, 0.10f, 0.33f);
+        return List.of(0.04f, 0.14f, 0.26f, 0.14f, 0.16f, 0.26f);
     }
 
     private List<String> getCardRow(Card card, CardType cardType) {
@@ -388,11 +406,11 @@ public class StudySessionPdfService {
         }
 
         final String huTranslation = data.getTranslation() != null ? data.getTranslation().getOrDefault("hu", "") : "";
+        final String huExample = getSelectedExample(data).map(ExampleData::getHu).orElse("");
         final String word = data.getWord() != null ? data.getWord() : "";
-        final String type = data.getType() != null ? data.getType() : "";
-        final String gender = data.getGender() != null ? data.getGender() : "";
-        final String example = getSelectedExample(data).map(ExampleData::getDe).orElse("");
-        return List.of(pageNum, huTranslation, word, type, gender, example);
+        final String forms = data.getForms() != null ? String.join(", ", data.getForms()) : "";
+        final String deExample = getSelectedExample(data).map(ExampleData::getDe).orElse("");
+        return List.of(pageNum, huTranslation, huExample, word, forms, deExample);
     }
 
     private String extractGapWords(String sentence) {
