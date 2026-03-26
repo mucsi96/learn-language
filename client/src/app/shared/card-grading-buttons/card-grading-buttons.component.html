@@ -1,18 +1,14 @@
 <div class="grading-buttons">
-  <button mat-raised-button class="grade-again" (click)="gradeCard('Again')">
-    <mat-icon>replay</mat-icon>
-    Again
+  <button mat-raised-button class="grade-skip" (click)="skipCard()">
+    <mat-icon>skip_next</mat-icon>
+    Skip
   </button>
-  <button mat-raised-button class="grade-hard" (click)="gradeCard('Hard')">
-    <mat-icon>south</mat-icon>
-    Hard
+  <button mat-raised-button class="grade-incorrect" (click)="gradeCard('Again')">
+    <mat-icon>close</mat-icon>
+    Incorrect
   </button>
-  <button mat-raised-button class="grade-good" (click)="gradeCard('Good')">
+  <button mat-raised-button class="grade-correct" (click)="gradeCard('Good')">
     <mat-icon>check</mat-icon>
-    Good
-  </button>
-  <button mat-raised-button class="grade-easy" (click)="gradeCard('Easy')">
-    <mat-icon>north</mat-icon>
-    Easy
+    Correct
   </button>
 </div>

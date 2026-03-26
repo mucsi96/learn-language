@@ -143,7 +143,7 @@ test('study page alternates between user and active partner', async ({ page }) =
   const turnIndicator = page.getByRole('status', { name: 'Current turn' });
 
   await page.getByRole('heading', { name: 'első' }).click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(turnIndicator).toContainText('Alice');
 });
@@ -196,10 +196,10 @@ test('review log records learning partner when grading', async ({ page }) => {
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await flashcard.getByRole('heading', { name: 'első' }).click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await flashcard.getByRole('heading', { name: 'második' }).click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
 
@@ -226,7 +226,7 @@ test('review log has null learning partner when no partner is active', async ({ 
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await flashcard.getByRole('heading', { name: 'tanulni' }).click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
 
