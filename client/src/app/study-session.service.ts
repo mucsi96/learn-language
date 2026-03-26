@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector, computed, inject, resource, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { fetchJson } from './utils/fetchJson';
 import { SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
@@ -102,8 +103,11 @@ export class StudySessionService {
   }
 
   async downloadStruggledCardsPdf(sourceId: string): Promise<void> {
-    const response = await fetch(`/api/source/${sourceId}/study-session/struggled-cards.pdf`);
-    const blob = await response.blob();
+    const blob = await firstValueFrom(
+      this.http.get(`/api/source/${sourceId}/study-session/struggled-cards.pdf`, {
+        responseType: 'blob',
+      })
+    );
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
