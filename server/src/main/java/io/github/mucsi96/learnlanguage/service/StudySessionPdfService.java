@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,7 +47,10 @@ import static io.github.mucsi96.learnlanguage.repository.specification.StudySess
 public class StudySessionPdfService {
 
     private static final float MARGIN = 40;
-    private static final float ROW_HEIGHT = 20;
+    private static final float FONT_SIZE = 8;
+    private static final float LINE_HEIGHT = 11;
+    private static final int MAX_LINES = 2;
+    private static final float ROW_HEIGHT = LINE_HEIGHT * MAX_LINES + 8;
     private static final float HEADER_HEIGHT = 25;
     private static final float TITLE_HEIGHT = 40;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -322,12 +326,18 @@ public class StudySessionPdfService {
                     cs.lineTo(cellX, y - ROW_HEIGHT);
                     cs.stroke();
                 }
-                final String text = truncateText(cells.get(i), font, 8, cellWidth - 10);
-                cs.beginText();
-                cs.setFont(font, 8);
-                cs.newLineAtOffset(cellX + 5, y - ROW_HEIGHT + 6);
-                cs.showText(text);
-                cs.endText();
+                final List<String> lines = wrapText(cells.get(i), font, FONT_SIZE, cellWidth - 10);
+                IntStream.range(0, lines.size()).forEach(lineIdx -> {
+                    try {
+                        cs.beginText();
+                        cs.setFont(font, FONT_SIZE);
+                        cs.newLineAtOffset(cellX + 5, y - 4 - LINE_HEIGHT * (lineIdx + 1) + LINE_HEIGHT - FONT_SIZE + 2);
+                        cs.showText(lines.get(lineIdx));
+                        cs.endText();
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to draw text line", e);
+                    }
+                });
             } catch (IOException e) {
                 throw new RuntimeException("Failed to draw row cell", e);
             }
@@ -340,17 +350,36 @@ public class StudySessionPdfService {
                 .sum();
     }
 
-    private String truncateText(String text, PDFont font, float fontSize, float maxWidth) {
+    private List<String> wrapText(String text, PDFont font, float fontSize, float maxWidth) {
         if (text == null || text.isEmpty()) {
-            return "";
+            return List.of("");
         }
         try {
-            final float textWidth = font.getStringWidth(text) / 1000 * fontSize;
-            if (textWidth <= maxWidth) {
-                return text;
+            if (font.getStringWidth(text) / 1000 * fontSize <= maxWidth) {
+                return List.of(text);
             }
-            return IntStream.iterate(text.length() - 1, len -> len > 0, len -> len - 1)
-                    .mapToObj(len -> text.substring(0, len) + "...")
+            final String[] words = text.split("(?<=\\s)|(?=\\s)");
+            final int splitIdx = IntStream.range(0, words.length)
+                    .reduce(0, (acc, i) -> {
+                        try {
+                            final String soFar = String.join("", Arrays.copyOfRange(words, 0, i + 1));
+                            return font.getStringWidth(soFar) / 1000 * fontSize <= maxWidth ? i + 1 : acc;
+                        } catch (IOException e) {
+                            return acc;
+                        }
+                    });
+            final int effectiveSplit = splitIdx == 0 ? 1 : splitIdx;
+            final String firstLine = String.join("", Arrays.copyOfRange(words, 0, effectiveSplit));
+            if (effectiveSplit >= words.length) {
+                return List.of(firstLine);
+            }
+            final String secondLine = String.join("", Arrays.copyOfRange(words, effectiveSplit, words.length))
+                    .stripLeading();
+            if (font.getStringWidth(secondLine) / 1000 * fontSize <= maxWidth) {
+                return List.of(firstLine, secondLine);
+            }
+            final String truncated = IntStream.iterate(secondLine.length() - 1, len -> len > 0, len -> len - 1)
+                    .mapToObj(len -> secondLine.substring(0, len) + "...")
                     .filter(candidate -> {
                         try {
                             return font.getStringWidth(candidate) / 1000 * fontSize <= maxWidth;
@@ -360,34 +389,34 @@ public class StudySessionPdfService {
                     })
                     .findFirst()
                     .orElse("...");
+            return List.of(firstLine, truncated);
         } catch (IOException e) {
-            return text.substring(0, Math.min(text.length(), 20));
+            return List.of(text.substring(0, Math.min(text.length(), 20)));
         }
     }
 
     private List<String> getHeaders(CardType cardType) {
         if (cardType == CardType.GRAMMAR) {
-            return List.of("#", "German (Front)", "English", "Answer");
+            return List.of("German (Front)", "English", "Answer");
         }
         if (cardType == CardType.SPEECH) {
-            return List.of("#", "Hungarian (Front)", "German (Back)", "English");
+            return List.of("Hungarian (Front)", "German (Back)", "English");
         }
-        return List.of("#", "Hungarian", "Hungarian Example", "German", "Forms", "German Example");
+        return List.of("Hungarian", "Hungarian Example", "German", "Forms", "German Example");
     }
 
     private List<Float> getColumnWidths(CardType cardType) {
         if (cardType == CardType.GRAMMAR) {
-            return List.of(0.05f, 0.40f, 0.30f, 0.25f);
+            return List.of(0.42f, 0.32f, 0.26f);
         }
         if (cardType == CardType.SPEECH) {
-            return List.of(0.05f, 0.35f, 0.32f, 0.28f);
+            return List.of(0.37f, 0.33f, 0.30f);
         }
-        return List.of(0.04f, 0.14f, 0.26f, 0.14f, 0.16f, 0.26f);
+        return List.of(0.15f, 0.27f, 0.15f, 0.16f, 0.27f);
     }
 
     private List<String> getCardRow(Card card, CardType cardType) {
         final CardData data = card.getData();
-        final String pageNum = String.valueOf(card.getSourcePageNumber());
 
         if (cardType == CardType.GRAMMAR) {
             final String deSentence = getSelectedExample(data).map(ExampleData::getDe).orElse("");
@@ -395,14 +424,14 @@ public class StudySessionPdfService {
             final String maskedSentence = GRAMMAR_GAP_PATTERN.matcher(deSentence)
                     .replaceAll(mr -> "_".repeat(mr.group(1).length()));
             final String gapWords = extractGapWords(deSentence);
-            return List.of(pageNum, maskedSentence, enSentence, gapWords);
+            return List.of(maskedSentence, enSentence, gapWords);
         }
 
         if (cardType == CardType.SPEECH) {
             final String huSentence = getSelectedExample(data).map(ExampleData::getHu).orElse("");
             final String deSentence = getSelectedExample(data).map(ExampleData::getDe).orElse("");
             final String enSentence = getSelectedExample(data).map(ExampleData::getEn).orElse("");
-            return List.of(pageNum, huSentence, deSentence, enSentence);
+            return List.of(huSentence, deSentence, enSentence);
         }
 
         final String huTranslation = data.getTranslation() != null ? data.getTranslation().getOrDefault("hu", "") : "";
@@ -410,7 +439,7 @@ public class StudySessionPdfService {
         final String word = data.getWord() != null ? data.getWord() : "";
         final String forms = data.getForms() != null ? String.join(", ", data.getForms()) : "";
         final String deExample = getSelectedExample(data).map(ExampleData::getDe).orElse("");
-        return List.of(pageNum, huTranslation, huExample, word, forms, deExample);
+        return List.of(huTranslation, huExample, word, forms, deExample);
     }
 
     private String extractGapWords(String sentence) {
