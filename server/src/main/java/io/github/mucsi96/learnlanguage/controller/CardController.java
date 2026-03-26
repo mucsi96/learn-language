@@ -53,7 +53,7 @@ public class CardController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<CardTableResponse> getCards(
       @PathVariable String sourceId,
-      @RequestHeader(value = "X-Timezone", required = true) String timezone,
+      @RequestHeader("X-Timezone") String timezone,
       @RequestParam(defaultValue = "0") int startRow,
       @RequestParam(defaultValue = "100") int endRow,
       @RequestParam(required = false) String sortField,
@@ -83,7 +83,7 @@ public class CardController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   public ResponseEntity<List<String>> getFilteredCardIds(
       @PathVariable String sourceId,
-      @RequestHeader(value = "X-Timezone", required = true) String timezone,
+      @RequestHeader("X-Timezone") String timezone,
       @RequestParam(required = false) String readiness,
       @RequestParam(required = false) String state,
       @RequestParam(required = false) Integer minReps,
@@ -182,7 +182,7 @@ public class CardController {
   @Transactional
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
       @RequestBody CardUpdateRequest request,
-      @RequestHeader(value = "X-Timezone", required = true) String timezone) throws Exception {
+      @RequestHeader("X-Timezone") String timezone) throws Exception {
     Card existingCard = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 

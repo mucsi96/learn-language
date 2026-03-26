@@ -269,7 +269,7 @@ public class SourceController {
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource(
-      @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+      @RequestHeader("X-Timezone") String timezone) {
     return cardService.getDueCardCountsBySource(startOfDayUtc(parseTimezone(timezone)));
   }
 

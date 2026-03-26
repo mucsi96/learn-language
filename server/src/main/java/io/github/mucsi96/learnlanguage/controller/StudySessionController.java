@@ -29,7 +29,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<StudySessionResponse> getExistingSession(
             @PathVariable String sourceId,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader("X-Timezone") String timezone) {
         return studySessionService.getExistingSession(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
@@ -39,7 +39,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<StudySessionResponse> createSession(
             @PathVariable String sourceId,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader("X-Timezone") String timezone) {
         return ResponseEntity.ok(studySessionService.createSession(sourceId, startOfDayUtc(parseTimezone(timezone))));
     }
 
@@ -47,7 +47,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(
             @PathVariable String sourceId,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader("X-Timezone") String timezone) {
         return studySessionService.getCurrentCardBySourceId(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
@@ -57,7 +57,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<SessionStatsResponse> getSessionStats(
             @PathVariable String sourceId,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader("X-Timezone") String timezone) {
         return studySessionService.getSessionStats(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
@@ -77,7 +77,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public ResponseEntity<Void> addCardsToSessions(
             @RequestBody AddCardsToSessionRequest request,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader("X-Timezone") String timezone) {
         studySessionService.addCardsToSessions(request.getCardIds(), startOfDayUtc(parseTimezone(timezone)));
         return ResponseEntity.noContent().build();
     }
