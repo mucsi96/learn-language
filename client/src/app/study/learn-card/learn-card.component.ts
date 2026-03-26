@@ -76,7 +76,11 @@ export class LearnCardComponent implements OnDestroy {
   readonly isCheckingSession = signal(true);
   private readonly isGrading = signal(false);
   private lastPlayedTexts: string[] = [];
-  private currentSourceId: string | null = null;
+
+  readonly sourceId = computed(() => {
+    const id = this.routeSourceId();
+    return id ? String(id) : null;
+  });
 
   readonly currentCardType = computed(() => this.card()?.source.cardType);
 
@@ -105,7 +109,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly sessionStats = resource({
     params: () => {
-      const sourceId = this.currentSourceId;
+      const sourceId = this.sourceId();
       const complete = this.sessionComplete();
       return complete && sourceId ? { sourceId } : undefined;
     },
@@ -129,17 +133,19 @@ export class LearnCardComponent implements OnDestroy {
     injector: this.injector,
   });
 
+  private previousSourceId: string | null = null;
+
   constructor() {
     effect(() => {
-      const sourceId = this.routeSourceId();
+      const sourceId = this.sourceId();
       if (sourceId) {
-        const sourceChanged = this.currentSourceId !== null && this.currentSourceId !== String(sourceId);
-        this.currentSourceId = String(sourceId);
+        const sourceChanged = this.previousSourceId !== null && this.previousSourceId !== sourceId;
+        this.previousSourceId = sourceId;
         if (sourceChanged) {
           this.studySessionService.clearSession();
           this.isCheckingSession.set(true);
         }
-        this.checkForExistingSession(String(sourceId));
+        this.checkForExistingSession(sourceId);
       }
     });
 
@@ -169,17 +175,16 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   async startSession() {
-    if (this.currentSourceId) {
-      await this.studySessionService.createSession(this.currentSourceId);
+    const sourceId = this.sourceId();
+    if (sourceId) {
+      await this.studySessionService.createSession(sourceId);
     }
   }
 
   private static readonly GRADE_BY_KEY = {
     'Red': 'Again',
-    'Yellow': 'Hard',
     'Green': 'Good',
-    'Blue': 'Easy',
-  } as const satisfies Record<string, 'Again' | 'Hard' | 'Good' | 'Easy'>;
+  } as const satisfies Record<string, 'Again' | 'Good'>;
 
   @HostListener('document:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {

@@ -65,7 +65,7 @@ export class FsrsGradingService {
    */
   async gradeCard(
     card: Card,
-    grade: 'Again' | 'Hard' | 'Good' | 'Easy',
+    grade: 'Again' | 'Good',
     learningPartnerId?: number | null,
     reviewDuration?: number | null
   ): Promise<void> {
@@ -99,17 +99,13 @@ export class FsrsGradingService {
    * Convert our grade format to FSRS Rating
    */
   private convertGradeToRating(
-    grade: 'Again' | 'Hard' | 'Good' | 'Easy'
-  ): Rating.Again | Rating.Hard | Rating.Good | Rating.Easy {
+    grade: 'Again' | 'Good'
+  ): Rating.Again | Rating.Good {
     switch (grade) {
       case 'Again':
         return Rating.Again;
-      case 'Hard':
-        return Rating.Hard;
       case 'Good':
         return Rating.Good;
-      case 'Easy':
-        return Rating.Easy;
     }
   }
 }

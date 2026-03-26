@@ -82,6 +82,14 @@ export class StudySessionService {
     return session;
   }
 
+  async skipCard(sourceId: string, cardId: string): Promise<void> {
+    await fetchJson(
+      this.http,
+      `/api/source/${sourceId}/study-session/skip-card/${cardId}`,
+      { method: 'POST' }
+    );
+  }
+
   refreshSession() {
     this.sessionVersion.update((v) => v + 1);
     this.dueCardsService.refetchDueCounts();
