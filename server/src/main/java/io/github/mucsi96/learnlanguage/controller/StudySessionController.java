@@ -69,7 +69,7 @@ public class StudySessionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
     public ResponseEntity<byte[]> getStruggledCardsPdf(
             @PathVariable String sourceId,
-            @RequestHeader(value = "X-Timezone", required = true) String timezone) {
+            @RequestHeader(value = "X-Timezone") String timezone) {
         return studySessionPdfService.generateStruggledCardsPdf(sourceId, startOfDayUtc(parseTimezone(timezone)))
                 .map(pdf -> ResponseEntity.ok()
                         .header("Content-Type", "application/pdf")

@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,14 +10,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -44,8 +49,8 @@ public class StudySessionPdfService {
     private static final float ROW_HEIGHT = 20;
     private static final float HEADER_HEIGHT = 25;
     private static final float TITLE_HEIGHT = 40;
-    private static final float SECTION_GAP = 30;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Pattern GRAMMAR_GAP_PATTERN = Pattern.compile("\\[([^\\]]+)\\]");
 
     private final StudySessionRepository studySessionRepository;
     private final ReviewLogRepository reviewLogRepository;
@@ -89,7 +94,7 @@ public class StudySessionPdfService {
         }
 
         final List<Card> struggledCards = struggledReviews.stream()
-                .map(rl -> rl.getCard())
+                .map(ReviewLog::getCard)
                 .distinct()
                 .toList();
 
@@ -105,16 +110,19 @@ public class StudySessionPdfService {
                         rl -> rl.getLearningPartner() != null ? rl.getLearningPartner().getName() : userName));
 
         try (final PDDocument document = new PDDocument()) {
+            final PDFont regularFont = loadFont(document, "fonts/DejaVuSans.ttf");
+            final PDFont boldFont = loadFont(document, "fonts/DejaVuSans-Bold.ttf");
+
             byPerson.forEach((personName, reviews) -> {
                 final List<Card> cards = reviews.stream()
                         .map(ReviewLog::getCard)
                         .distinct()
                         .toList();
-                addCardsPage(document, cards, sourceName, cardType, dateStr, personName);
+                addCardsPages(document, cards, sourceName, cardType, dateStr, personName, regularFont, boldFont);
             });
 
             if (document.getNumberOfPages() == 0) {
-                addEmptyPage(document, sourceName, dateStr);
+                addEmptyPage(document, sourceName, dateStr, regularFont, boldFont);
             }
 
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -128,7 +136,9 @@ public class StudySessionPdfService {
     private byte[] buildSinglePagePdf(List<Card> cards, String sourceName, CardType cardType,
             String dateStr, String personName) {
         try (final PDDocument document = new PDDocument()) {
-            addCardsPage(document, cards, sourceName, cardType, dateStr, personName);
+            final PDFont regularFont = loadFont(document, "fonts/DejaVuSans.ttf");
+            final PDFont boldFont = loadFont(document, "fonts/DejaVuSans-Bold.ttf");
+            addCardsPages(document, cards, sourceName, cardType, dateStr, personName, regularFont, boldFont);
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
             return out.toByteArray();
@@ -139,7 +149,10 @@ public class StudySessionPdfService {
 
     private byte[] buildEmptyPdf(StudySession session) {
         try (final PDDocument document = new PDDocument()) {
-            addEmptyPage(document, session.getSource().getName(), LocalDate.now().format(DATE_FORMAT));
+            final PDFont regularFont = loadFont(document, "fonts/DejaVuSans.ttf");
+            final PDFont boldFont = loadFont(document, "fonts/DejaVuSans-Bold.ttf");
+            addEmptyPage(document, session.getSource().getName(), LocalDate.now().format(DATE_FORMAT),
+                    regularFont, boldFont);
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
             return out.toByteArray();
@@ -148,18 +161,23 @@ public class StudySessionPdfService {
         }
     }
 
-    private void addEmptyPage(PDDocument document, String sourceName, String dateStr) {
+    private PDFont loadFont(PDDocument document, String classpath) throws IOException {
+        try (final InputStream fontStream = new ClassPathResource(classpath).getInputStream()) {
+            return PDType0Font.load(document, fontStream);
+        }
+    }
+
+    private void addEmptyPage(PDDocument document, String sourceName, String dateStr,
+            PDFont regularFont, PDFont boldFont) {
         try {
             final PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
             try (final PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                final PDType1Font boldFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
                 final float pageWidth = page.getMediaBox().getWidth();
                 final float pageHeight = page.getMediaBox().getHeight();
 
                 drawTitle(cs, sourceName + " - " + dateStr, pageWidth, pageHeight, boldFont);
 
-                final PDType1Font regularFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
                 cs.beginText();
                 cs.setFont(regularFont, 12);
                 cs.newLineAtOffset(MARGIN, pageHeight - MARGIN - TITLE_HEIGHT - 30);
@@ -171,17 +189,27 @@ public class StudySessionPdfService {
         }
     }
 
-    private void addCardsPage(PDDocument document, List<Card> cards, String sourceName,
-            CardType cardType, String dateStr, String personName) {
+    private void addCardsPages(PDDocument document, List<Card> cards, String sourceName,
+            CardType cardType, String dateStr, String personName, PDFont regularFont, PDFont boldFont) {
         final String title = personName != null
                 ? sourceName + " - " + personName + " - " + dateStr
                 : sourceName + " - " + dateStr;
 
-        final String[] headers = getHeaders(cardType);
-        final float[] colWidths = getColumnWidths(cardType);
+        final List<String> headers = getHeaders(cardType);
+        final List<Float> colWidths = getColumnWidths(cardType);
+        final List<List<String>> rows = cards.stream()
+                .map(card -> getCardRow(card, cardType))
+                .toList();
 
-        int cardIndex = 0;
-        while (cardIndex < cards.size()) {
+        renderPages(document, title, headers, colWidths, rows, regularFont, boldFont);
+    }
+
+    private void renderPages(PDDocument document, String title, List<String> headers,
+            List<Float> colWidths, List<List<String>> rows, PDFont regularFont, PDFont boldFont) {
+        final int totalRows = rows.size();
+        int renderedRows = 0;
+
+        do {
             final PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
             final float pageWidth = page.getMediaBox().getWidth();
@@ -189,27 +217,36 @@ public class StudySessionPdfService {
             final float tableWidth = pageWidth - 2 * MARGIN;
 
             try (final PDPageContentStream cs = new PDPageContentStream(document, page)) {
-                final PDType1Font boldFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-                final PDType1Font regularFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-
                 drawTitle(cs, title, pageWidth, pageHeight, boldFont);
-                float y = pageHeight - MARGIN - TITLE_HEIGHT;
+                final float headerY = pageHeight - MARGIN - TITLE_HEIGHT;
+                final float afterHeaderY = drawTableHeader(cs, headers, colWidths, MARGIN, headerY, tableWidth, boldFont);
 
-                y = drawTableHeader(cs, headers, colWidths, MARGIN, y, tableWidth, boldFont);
+                final int startRow = renderedRows;
+                final float startY = afterHeaderY;
+                final int rowsOnPage = IntStream.range(startRow, totalRows)
+                        .takeWhile(i -> startY - (i - startRow + 1) * ROW_HEIGHT > MARGIN)
+                        .map(i -> 1)
+                        .sum();
 
-                while (cardIndex < cards.size() && y > MARGIN + ROW_HEIGHT) {
-                    final String[] row = getCardRow(cards.get(cardIndex), cardType);
-                    y = drawTableRow(cs, row, colWidths, MARGIN, y, tableWidth, regularFont);
-                    cardIndex++;
-                }
+                final int finalRenderedRows = renderedRows;
+                IntStream.range(0, rowsOnPage).forEach(i -> {
+                    final float rowY = startY - i * ROW_HEIGHT;
+                    try {
+                        drawTableRow(cs, rows.get(finalRenderedRows + i), colWidths, MARGIN, rowY, tableWidth, regularFont);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to draw row", e);
+                    }
+                });
+
+                renderedRows += rowsOnPage;
             } catch (IOException e) {
                 throw new RuntimeException("Failed to write PDF page", e);
             }
-        }
+        } while (renderedRows < totalRows);
     }
 
     private void drawTitle(PDPageContentStream cs, String title, float pageWidth, float pageHeight,
-            PDType1Font font) throws IOException {
+            PDFont font) throws IOException {
         cs.beginText();
         cs.setFont(font, 16);
         final float titleWidth = font.getStringWidth(title) / 1000 * 16;
@@ -218,8 +255,8 @@ public class StudySessionPdfService {
         cs.endText();
     }
 
-    private float drawTableHeader(PDPageContentStream cs, String[] headers, float[] colWidths,
-            float x, float y, float tableWidth, PDType1Font font) throws IOException {
+    private float drawTableHeader(PDPageContentStream cs, List<String> headers, List<Float> colWidths,
+            float x, float y, float tableWidth, PDFont font) throws IOException {
         cs.setNonStrokingColor(0.85f, 0.85f, 0.85f);
         cs.addRect(x, y - HEADER_HEIGHT, tableWidth, HEADER_HEIGHT);
         cs.fill();
@@ -229,130 +266,141 @@ public class StudySessionPdfService {
         cs.addRect(x, y - HEADER_HEIGHT, tableWidth, HEADER_HEIGHT);
         cs.stroke();
 
-        float cellX = x;
-        for (int i = 0; i < headers.length; i++) {
-            final float cellWidth = colWidths[i] * tableWidth;
-            if (i > 0) {
-                cs.moveTo(cellX, y);
-                cs.lineTo(cellX, y - HEADER_HEIGHT);
-                cs.stroke();
+        IntStream.range(0, headers.size()).forEach(i -> {
+            final float cellX = computeCellX(colWidths, tableWidth, x, i);
+            final float cellWidth = colWidths.get(i) * tableWidth;
+            try {
+                if (i > 0) {
+                    cs.moveTo(cellX, y);
+                    cs.lineTo(cellX, y - HEADER_HEIGHT);
+                    cs.stroke();
+                }
+                cs.beginText();
+                cs.setFont(font, 9);
+                cs.newLineAtOffset(cellX + 5, y - HEADER_HEIGHT + 8);
+                cs.showText(headers.get(i));
+                cs.endText();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to draw header cell", e);
             }
-            cs.beginText();
-            cs.setFont(font, 9);
-            cs.newLineAtOffset(cellX + 5, y - HEADER_HEIGHT + 8);
-            cs.showText(headers[i]);
-            cs.endText();
-            cellX += cellWidth;
-        }
+        });
 
         return y - HEADER_HEIGHT;
     }
 
-    private float drawTableRow(PDPageContentStream cs, String[] cells, float[] colWidths,
-            float x, float y, float tableWidth, PDType1Font font) throws IOException {
+    private void drawTableRow(PDPageContentStream cs, List<String> cells, List<Float> colWidths,
+            float x, float y, float tableWidth, PDFont font) throws IOException {
         cs.setNonStrokingColor(0f, 0f, 0f);
         cs.setLineWidth(0.3f);
         cs.addRect(x, y - ROW_HEIGHT, tableWidth, ROW_HEIGHT);
         cs.stroke();
 
-        float cellX = x;
-        for (int i = 0; i < cells.length; i++) {
-            final float cellWidth = colWidths[i] * tableWidth;
-            if (i > 0) {
-                cs.moveTo(cellX, y);
-                cs.lineTo(cellX, y - ROW_HEIGHT);
-                cs.stroke();
-            }
-            final String text = truncateText(cells[i], font, 8, cellWidth - 10);
-            cs.beginText();
-            cs.setFont(font, 8);
-            cs.newLineAtOffset(cellX + 5, y - ROW_HEIGHT + 6);
-            cs.showText(text);
-            cs.endText();
-            cellX += cellWidth;
-        }
-
-        return y - ROW_HEIGHT;
-    }
-
-    private String truncateText(String text, PDType1Font font, float fontSize, float maxWidth) {
-        try {
-            if (text == null || text.isEmpty()) {
-                return "";
-            }
-            final String sanitized = sanitizeForPdf(text);
-            final float textWidth = font.getStringWidth(sanitized) / 1000 * fontSize;
-            if (textWidth <= maxWidth) {
-                return sanitized;
-            }
-            String truncated = sanitized;
-            while (truncated.length() > 1) {
-                truncated = truncated.substring(0, truncated.length() - 1);
-                final float w = font.getStringWidth(truncated + "...") / 1000 * fontSize;
-                if (w <= maxWidth) {
-                    return truncated + "...";
+        IntStream.range(0, cells.size()).forEach(i -> {
+            final float cellX = computeCellX(colWidths, tableWidth, x, i);
+            final float cellWidth = colWidths.get(i) * tableWidth;
+            try {
+                if (i > 0) {
+                    cs.moveTo(cellX, y);
+                    cs.lineTo(cellX, y - ROW_HEIGHT);
+                    cs.stroke();
                 }
-            }
-            return "...";
-        } catch (IOException e) {
-            return text != null ? text.substring(0, Math.min(text.length(), 20)) : "";
-        }
-    }
-
-    private String sanitizeForPdf(String text) {
-        if (text == null) {
-            return "";
-        }
-        final StringBuilder sb = new StringBuilder(text.length());
-        text.chars().forEach(cp -> {
-            if (cp >= 32 && cp <= 126) {
-                sb.append((char) cp);
-            } else {
-                sb.append('?');
+                final String text = truncateText(cells.get(i), font, 8, cellWidth - 10);
+                cs.beginText();
+                cs.setFont(font, 8);
+                cs.newLineAtOffset(cellX + 5, y - ROW_HEIGHT + 6);
+                cs.showText(text);
+                cs.endText();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to draw row cell", e);
             }
         });
-        return sb.toString();
     }
 
-    private String[] getHeaders(CardType cardType) {
+    private float computeCellX(List<Float> colWidths, float tableWidth, float x, int index) {
+        return x + (float) IntStream.range(0, index)
+                .mapToDouble(i -> colWidths.get(i) * tableWidth)
+                .sum();
+    }
+
+    private String truncateText(String text, PDFont font, float fontSize, float maxWidth) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        try {
+            final float textWidth = font.getStringWidth(text) / 1000 * fontSize;
+            if (textWidth <= maxWidth) {
+                return text;
+            }
+            return IntStream.iterate(text.length() - 1, len -> len > 0, len -> len - 1)
+                    .mapToObj(len -> text.substring(0, len) + "...")
+                    .filter(candidate -> {
+                        try {
+                            return font.getStringWidth(candidate) / 1000 * fontSize <= maxWidth;
+                        } catch (IOException e) {
+                            return true;
+                        }
+                    })
+                    .findFirst()
+                    .orElse("...");
+        } catch (IOException e) {
+            return text.substring(0, Math.min(text.length(), 20));
+        }
+    }
+
+    private List<String> getHeaders(CardType cardType) {
         if (cardType == CardType.GRAMMAR) {
-            return new String[]{"#", "German (Front)", "English", "German (Answer)"};
+            return List.of("#", "German (Front)", "English", "Answer");
         }
         if (cardType == CardType.SPEECH) {
-            return new String[]{"#", "Hungarian (Front)", "German (Back)", "English"};
+            return List.of("#", "Hungarian (Front)", "German (Back)", "English");
         }
-        return new String[]{"#", "Hungarian (Front)", "German (Back)", "Type", "Gender", "Example (DE)"};
+        return List.of("#", "Hungarian (Front)", "German (Back)", "Type", "Gender", "Example (DE)");
     }
 
-    private float[] getColumnWidths(CardType cardType) {
+    private List<Float> getColumnWidths(CardType cardType) {
         if (cardType == CardType.GRAMMAR) {
-            return new float[]{0.06f, 0.38f, 0.28f, 0.28f};
+            return List.of(0.06f, 0.38f, 0.28f, 0.28f);
         }
         if (cardType == CardType.SPEECH) {
-            return new float[]{0.06f, 0.37f, 0.30f, 0.27f};
+            return List.of(0.06f, 0.37f, 0.30f, 0.27f);
         }
-        return new float[]{0.05f, 0.22f, 0.20f, 0.10f, 0.10f, 0.33f};
+        return List.of(0.05f, 0.22f, 0.20f, 0.10f, 0.10f, 0.33f);
     }
 
-    private String[] getCardRow(Card card, CardType cardType) {
+    private List<String> getCardRow(Card card, CardType cardType) {
         final CardData data = card.getData();
+        final String pageNum = String.valueOf(card.getSourcePageNumber());
+
         if (cardType == CardType.GRAMMAR) {
             final String deSentence = getSelectedExample(data).map(ExampleData::getDe).orElse("");
             final String enSentence = getSelectedExample(data).map(ExampleData::getEn).orElse("");
-            return new String[]{String.valueOf(card.getSourcePageNumber()), deSentence, enSentence, deSentence};
+            final String maskedSentence = GRAMMAR_GAP_PATTERN.matcher(deSentence)
+                    .replaceAll(mr -> "_".repeat(mr.group(1).length()));
+            final String gapWords = extractGapWords(deSentence);
+            return List.of(pageNum, maskedSentence, enSentence, gapWords);
         }
+
         if (cardType == CardType.SPEECH) {
             final String huSentence = getSelectedExample(data).map(ExampleData::getHu).orElse("");
             final String deSentence = getSelectedExample(data).map(ExampleData::getDe).orElse("");
             final String enSentence = getSelectedExample(data).map(ExampleData::getEn).orElse("");
-            return new String[]{String.valueOf(card.getSourcePageNumber()), huSentence, deSentence, enSentence};
+            return List.of(pageNum, huSentence, deSentence, enSentence);
         }
+
         final String huTranslation = data.getTranslation() != null ? data.getTranslation().getOrDefault("hu", "") : "";
         final String word = data.getWord() != null ? data.getWord() : "";
         final String type = data.getType() != null ? data.getType() : "";
         final String gender = data.getGender() != null ? data.getGender() : "";
         final String example = getSelectedExample(data).map(ExampleData::getDe).orElse("");
-        return new String[]{String.valueOf(card.getSourcePageNumber()), huTranslation, word, type, gender, example};
+        return List.of(pageNum, huTranslation, word, type, gender, example);
+    }
+
+    private String extractGapWords(String sentence) {
+        final Matcher matcher = GRAMMAR_GAP_PATTERN.matcher(sentence);
+        final List<String> gaps = matcher.results()
+                .map(mr -> mr.group(1))
+                .toList();
+        return String.join(", ", gaps);
     }
 
     private Optional<ExampleData> getSelectedExample(CardData data) {
