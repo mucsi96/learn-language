@@ -65,15 +65,15 @@ test('export struggled cards button appears on celebration page when there are s
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -115,7 +115,7 @@ test('export struggled cards button does not appear when all cards answered corr
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -157,11 +157,11 @@ test('export struggled cards button triggers PDF download', async ({ page }) => 
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -208,11 +208,11 @@ test('export struggled cards button visible on study page when returning after s
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -257,7 +257,7 @@ test('export button not visible on study page return when no struggled cards', a
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
@@ -331,19 +331,19 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard).toBeVisible();
   await flashcard.click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
