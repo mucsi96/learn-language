@@ -672,7 +672,7 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
   }).toPass();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
-  await page.getByRole('button', { name: 'Good' }).click();
+  await page.getByRole('button', { name: 'Correct' }).click();
   await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
   await expect(async () => {
@@ -699,14 +699,14 @@ test('smart assignment: learning card assignee does not swap after grading', asy
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
   await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
   const afterFirstGrade = await getStudySessionCardsBySource('goethe-a1');
   expect(afterFirstGrade[0].learningPartnerId).toBe(partnerId);
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
-  await page.getByRole('button', { name: 'Again' }).click();
+  await page.getByRole('button', { name: 'Incorrect' }).click();
   await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
   const afterSecondGrade = await getStudySessionCardsBySource('goethe-a1');
