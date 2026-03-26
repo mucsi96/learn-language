@@ -109,18 +109,6 @@ export class StudySessionService {
     URL.revokeObjectURL(url);
   }
 
-  async checkSessionHasStruggledCards(sourceId: string): Promise<boolean> {
-    try {
-      const stats = await fetchJson<SessionStats>(
-        this.http,
-        `/api/source/${sourceId}/study-session/stats`
-      );
-      return stats !== null && stats.badCount > 0;
-    } catch {
-      return false;
-    }
-  }
-
   clearSession() {
     this.sourceId.set(undefined);
     this.hasSession.set(false);

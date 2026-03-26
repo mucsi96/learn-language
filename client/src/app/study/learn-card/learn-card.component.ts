@@ -114,6 +114,21 @@ export class LearnCardComponent implements OnDestroy {
     injector: this.injector,
   });
 
+  readonly existingSessionStats = resource({
+    params: () => {
+      const sourceId = this.currentSourceId;
+      const hasExisting = this.hasExistingSession();
+      const hasActive = this.hasSession();
+      const checking = this.isCheckingSession();
+      return !checking && hasExisting && !hasActive && sourceId
+        ? { sourceId }
+        : undefined;
+    },
+    loader: async ({ params }) =>
+      this.studySessionService.fetchSessionStats(params.sourceId),
+    injector: this.injector,
+  });
+
   constructor() {
     effect(() => {
       const sourceId = this.routeSourceId();

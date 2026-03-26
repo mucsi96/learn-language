@@ -172,9 +172,9 @@ test('export struggled cards button triggers PDF download', async ({ page }) => 
   expect(download.suggestedFilename()).toBe('struggled-cards.pdf');
 });
 
-test('export struggled cards button visible on home page when source has no due cards', async ({ page }) => {
+test('export struggled cards button visible on study page when returning after session completion', async ({ page }) => {
   await createCard({
-    cardId: 'home-pdf-card',
+    cardId: 'return-pdf-card',
     sourceId: 'goethe-a1',
     sourcePageNumber: 94,
     data: {
@@ -216,18 +216,64 @@ test('export struggled cards button visible on home page when source has no due 
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
 
+  await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).toBeVisible();
 });
 
-test('export struggled cards with partner mode creates separate pages', async ({ page }) => {
+test('export button not visible on study page return when no struggled cards', async ({ page }) => {
+  await createCard({
+    cardId: 'return-no-pdf-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 95,
+    data: {
+      word: 'Richtig',
+      type: 'ADJECTIVE',
+      translation: { en: 'correct', hu: 'helyes', ch: 'richtig' },
+      examples: [
+        {
+          de: 'Das ist richtig.',
+          hu: 'Ez helyes.',
+          en: 'This is correct.',
+          ch: 'Das isch richtig.',
+          isSelected: true,
+        },
+      ],
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(flashcard).toBeVisible();
+  await flashcard.click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+
+  await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
+});
+
+test('export struggled cards with partner mode triggers PDF download', async ({ page }) => {
   await createLearningPartner({ name: 'Alice', isActive: true });
 
   await createCard({
     cardId: 'partner-pdf-card-1',
     sourceId: 'goethe-a1',
-    sourcePageNumber: 95,
+    sourcePageNumber: 96,
     data: {
       word: 'Zusammen',
       type: 'ADVERB',
@@ -254,7 +300,7 @@ test('export struggled cards with partner mode creates separate pages', async ({
   await createCard({
     cardId: 'partner-pdf-card-2',
     sourceId: 'goethe-a1',
-    sourcePageNumber: 96,
+    sourcePageNumber: 97,
     data: {
       word: 'Allein',
       type: 'ADVERB',
