@@ -14,6 +14,14 @@
       <mat-icon>play_arrow</mat-icon>
       Continue
     </button>
+    @if (existingSessionStats.value(); as stats) {
+      @if (stats.badCount > 0) {
+        <button mat-stroked-button (click)="downloadStruggledCardsPdf()" aria-label="Export struggled cards as PDF">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Export struggled cards
+        </button>
+      }
+    }
   } @else {
     <h2>Ready to study?</h2>
     <p>Click start to begin your study session.</p>
@@ -38,6 +46,12 @@
   <p>Great job keeping up with your studies! 🎉</p>
   @if (sessionStats.value(); as stats) {
     <app-session-stats [stats]="stats" />
+    @if (stats.badCount > 0) {
+      <button mat-flat-button (click)="downloadStruggledCardsPdf()" aria-label="Export struggled cards as PDF">
+        <mat-icon>picture_as_pdf</mat-icon>
+        Export struggled cards
+      </button>
+    }
   }
 </div>
 } @else {

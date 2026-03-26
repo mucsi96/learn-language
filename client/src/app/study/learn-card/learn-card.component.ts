@@ -118,6 +118,21 @@ export class LearnCardComponent implements OnDestroy {
     injector: this.injector,
   });
 
+  readonly existingSessionStats = resource({
+    params: () => {
+      const sourceId = this.sourceId();
+      const hasExisting = this.hasExistingSession();
+      const hasActive = this.hasSession();
+      const checking = this.isCheckingSession();
+      return !checking && hasExisting && !hasActive && sourceId
+        ? { sourceId }
+        : undefined;
+    },
+    loader: async ({ params }) =>
+      this.studySessionService.fetchSessionStats(params.sourceId),
+    injector: this.injector,
+  });
+
   private previousSourceId: string | null = null;
 
   constructor() {
@@ -228,6 +243,13 @@ export class LearnCardComponent implements OnDestroy {
       this.reviewDuration.set(Date.now() - shownAt);
     }
     this.isRevealed.set(!wasRevealed);
+  }
+
+  async downloadStruggledCardsPdf() {
+    const sourceId = this.sourceId();
+    if (sourceId) {
+      await this.studySessionService.downloadStruggledCardsPdf(sourceId);
+    }
   }
 
   onCardProcessed() {
