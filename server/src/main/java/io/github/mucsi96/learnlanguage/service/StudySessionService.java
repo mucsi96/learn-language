@@ -311,14 +311,20 @@ public class StudySessionService {
         final List<ReviewLog> allReviews = reviewLogRepository
                 .findByCardIdInAndReviewGreaterThanEqualOrderByIdAsc(cardIds, startOfDay);
 
-        final Map<String, ReviewLog> firstReviewPerCard = allReviews.stream()
-                .collect(Collectors.toMap(
+        final Map<String, List<ReviewLog>> reviewsPerCard = allReviews.stream()
+                .collect(Collectors.groupingBy(
                         rl -> rl.getCard().getId() + ":" + (rl.getLearningPartner() != null ? rl.getLearningPartner().getId() : "self"),
-                        rl -> rl,
-                        (first, second) -> first,
-                        LinkedHashMap::new));
+                        LinkedHashMap::new,
+                        Collectors.toList()));
 
-        final List<ReviewLog> firstReviews = firstReviewPerCard.values().stream().toList();
+        final Set<String> strugglingKeys = reviewsPerCard.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(rl -> rl.getRating() < 3))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        final List<ReviewLog> firstReviews = reviewsPerCard.values().stream()
+                .map(reviews -> reviews.getFirst())
+                .toList();
 
         final long totalDurationMs = firstReviews.stream()
                 .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
@@ -327,35 +333,44 @@ public class StudySessionService {
         final int reviewCount = firstReviews.size();
         final long averageDurationMs = reviewCount > 0 ? totalDurationMs / reviewCount : 0;
 
-        final int goodCount = (int) firstReviews.stream()
-                .filter(rl -> rl.getRating() >= 3)
+        final int badCount = (int) reviewsPerCard.keySet().stream()
+                .filter(strugglingKeys::contains)
                 .count();
 
-        final int badCount = (int) firstReviews.stream()
-                .filter(rl -> rl.getRating() < 3)
+        final int goodCount = (int) reviewsPerCard.keySet().stream()
+                .filter(key -> !strugglingKeys.contains(key))
                 .count();
 
         final List<SessionStatsResponse.PersonStats> personStats;
         if ("WITH_PARTNER".equals(session.getStudyMode())) {
             final String userName = getCurrentUserFirstName();
 
-            final Map<String, List<ReviewLog>> byPerson = firstReviews.stream()
+            final Map<String, List<Map.Entry<String, List<ReviewLog>>>> byPerson = reviewsPerCard.entrySet().stream()
                     .collect(Collectors.groupingBy(
-                            rl -> rl.getLearningPartner() != null ? rl.getLearningPartner().getName() : userName));
+                            entry -> {
+                                final ReviewLog first = entry.getValue().getFirst();
+                                return first.getLearningPartner() != null ? first.getLearningPartner().getName() : userName;
+                            }));
 
             personStats = byPerson.entrySet().stream()
                     .map(entry -> {
-                        final List<ReviewLog> reviews = entry.getValue();
-                        final long personTotal = reviews.stream()
-                                .mapToLong(rl -> rl.getReviewDuration() != null ? rl.getReviewDuration() : 0)
+                        final List<Map.Entry<String, List<ReviewLog>>> cardEntries = entry.getValue();
+                        final long personTotal = cardEntries.stream()
+                                .mapToLong(ce -> {
+                                    final ReviewLog first = ce.getValue().getFirst();
+                                    return first.getReviewDuration() != null ? first.getReviewDuration() : 0;
+                                })
                                 .sum();
-                        final int personReviewCount = reviews.size();
+                        final int personReviewCount = cardEntries.size();
+                        final int personBadCount = (int) cardEntries.stream()
+                                .filter(ce -> strugglingKeys.contains(ce.getKey()))
+                                .count();
                         return SessionStatsResponse.PersonStats.builder()
                                 .name(entry.getKey())
                                 .totalDurationMs(personTotal)
                                 .averageDurationMs(personReviewCount > 0 ? personTotal / personReviewCount : 0)
-                                .goodCount((int) reviews.stream().filter(rl -> rl.getRating() >= 3).count())
-                                .badCount((int) reviews.stream().filter(rl -> rl.getRating() < 3).count())
+                                .goodCount(personReviewCount - personBadCount)
+                                .badCount(personBadCount)
                                 .build();
                     })
                     .toList();

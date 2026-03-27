@@ -73,15 +73,15 @@ public class StudySessionPdfService {
         final List<ReviewLog> allReviews = reviewLogRepository
                 .findByCardIdInAndReviewGreaterThanEqualOrderByIdAsc(cardIds, startOfDay);
 
-        final Map<String, ReviewLog> firstReviewPerCard = allReviews.stream()
-                .collect(Collectors.toMap(
+        final Map<String, List<ReviewLog>> reviewsPerCard = allReviews.stream()
+                .collect(Collectors.groupingBy(
                         rl -> rl.getCard().getId() + ":" + (rl.getLearningPartner() != null ? rl.getLearningPartner().getId() : "self"),
-                        rl -> rl,
-                        (first, second) -> first,
-                        LinkedHashMap::new));
+                        LinkedHashMap::new,
+                        Collectors.toList()));
 
-        final List<ReviewLog> struggledReviews = firstReviewPerCard.values().stream()
-                .filter(rl -> rl.getRating() < 3)
+        final List<ReviewLog> struggledReviews = reviewsPerCard.values().stream()
+                .filter(reviews -> reviews.stream().anyMatch(rl -> rl.getRating() < 3))
+                .map(reviews -> reviews.getFirst())
                 .toList();
 
         if (struggledReviews.isEmpty()) {
