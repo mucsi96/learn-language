@@ -112,6 +112,31 @@ test('study page shows turn indicator when partner is active', async ({ page }) 
   await expect(page.getByRole('status', { name: 'Current turn' })).toBeVisible();
 });
 
+test('study page hides turn indicator when card is revealed', async ({ page }) => {
+  await createLearningPartner({ name: 'Alice', isActive: true });
+  await createCard({
+    cardId: 'test-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 10,
+    data: {
+      word: 'lernen',
+      type: 'VERB',
+      translation: { en: 'to learn', hu: 'tanulni' },
+    },
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const turnIndicator = page.getByRole('status', { name: 'Current turn' });
+
+  await expect(turnIndicator).toBeVisible();
+
+  await page.getByRole('heading', { name: 'tanulni' }).click();
+
+  await expect(turnIndicator).not.toBeVisible();
+});
+
 test('study page alternates between user and active partner', async ({ page }) => {
   await createLearningPartner({ name: 'Alice', isActive: true });
 
