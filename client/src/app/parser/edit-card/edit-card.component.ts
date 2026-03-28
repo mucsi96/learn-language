@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Location } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -35,6 +36,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
   styleUrl: './edit-card.component.css',
 })
 export class EditCardComponent {
+  private readonly location = inject(Location);
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly routeSourceId = injectParams('sourceId');
@@ -187,7 +189,7 @@ export class EditCardComponent {
     if (result) {
       await this.deleteCard();
       this.showSnackBar('Card deleted successfully');
-      window.history.back();
+      this.location.back();
     }
   }
 
