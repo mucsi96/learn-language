@@ -225,6 +225,7 @@ export type Source = {
   draftCardCount?: number;
   flaggedCardCount?: number;
   unhealthyCardCount?: number;
+  suggestedKnownCardCount?: number;
   stateCounts?: Record<string, number>;
   readinessCounts?: Record<string, number>;
   languageLevel?: LanguageLevel;

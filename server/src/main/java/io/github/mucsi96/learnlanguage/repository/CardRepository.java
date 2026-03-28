@@ -42,7 +42,9 @@ public interface CardRepository
 
     @Query(value = """
         SELECT c.source_id AS sourceId, c.readiness AS readiness, c.state AS state,
-               c.flagged AS flagged, COALESCE(cv.is_unhealthy, false) AS unhealthy, COUNT(*) AS count
+               c.flagged AS flagged, COALESCE(cv.is_unhealthy, false) AS unhealthy,
+               COUNT(*) AS count,
+               SUM(CASE WHEN COALESCE(cv.is_suggested_known, false) THEN 1 ELSE 0 END) AS suggestedKnownCount
         FROM learn_language.cards c
         LEFT JOIN learn_language.card_view cv ON c.id = cv.id
         GROUP BY c.source_id, c.readiness, c.state, c.flagged, cv.is_unhealthy

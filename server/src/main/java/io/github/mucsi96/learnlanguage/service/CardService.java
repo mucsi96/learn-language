@@ -54,6 +54,7 @@ public class CardService {
     private final int draftCardCount;
     private final int flaggedCardCount;
     private final int unhealthyCardCount;
+    private final int suggestedKnownCardCount;
     private final Map<String, Integer> stateCounts;
     private final Map<String, Integer> readinessCounts;
   }
@@ -154,6 +155,10 @@ public class CardService {
                   .mapToInt(row -> row.getCount().intValue())
                   .sum();
 
+              final int suggestedKnownCardCount = rows.stream()
+                  .mapToInt(row -> row.getSuggestedKnownCount().intValue())
+                  .sum();
+
               final Predicate<SourceCardStatsProjection> isReady =
                   row -> CardReadiness.READY.name().equals(row.getReadiness());
 
@@ -174,6 +179,7 @@ public class CardService {
                   .draftCardCount(draftCardCount)
                   .flaggedCardCount(flaggedCardCount)
                   .unhealthyCardCount(unhealthyCardCount)
+                  .suggestedKnownCardCount(suggestedKnownCardCount)
                   .stateCounts(stateCounts)
                   .readinessCounts(readinessCounts)
                   .build();
@@ -195,13 +201,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter, Boolean flagged, Boolean unhealthy,
+      String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo,
-        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, suggestedKnown, startOfDayUtc);
 
     return cardViewRepository.findAll(spec).stream()
         .map(CardView::getId)
@@ -215,13 +221,13 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter, Boolean flagged, Boolean unhealthy,
+      String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo,
-        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, suggestedKnown, startOfDayUtc);
 
     final int pageSize = Math.max(1, endRow - startRow);
     final int page = startRow / pageSize;
@@ -275,7 +281,7 @@ public class CardService {
       Integer minReps, Integer maxReps,
       Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
-      String cardFilter, Boolean flagged, Boolean unhealthy,
+      String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
 
     PredicateSpecification<CardView> spec = hasSourceId(sourceId);
@@ -312,6 +318,9 @@ public class CardService {
     }
     if (Boolean.TRUE.equals(unhealthy)) {
       spec = spec.and(isUnhealthy());
+    }
+    if (Boolean.TRUE.equals(suggestedKnown)) {
+      spec = spec.and(isSuggestedKnown());
     }
 
     return spec;

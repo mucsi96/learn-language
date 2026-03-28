@@ -18,6 +18,7 @@ public class SourceResponse {
     private Integer draftCardCount;
     private Integer flaggedCardCount;
     private Integer unhealthyCardCount;
+    private Integer suggestedKnownCardCount;
     private Map<String, Integer> stateCounts;
     private Map<String, Integer> readinessCounts;
     private LanguageLevel languageLevel;

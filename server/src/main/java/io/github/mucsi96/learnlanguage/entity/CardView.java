@@ -71,4 +71,7 @@ public class CardView {
 
     @Column(name = "is_unhealthy", nullable = false)
     private Boolean isUnhealthy;
+
+    @Column(name = "is_suggested_known", nullable = false)
+    private Boolean isSuggestedKnown;
 }

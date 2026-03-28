@@ -42,7 +42,7 @@ import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
 import { injectQueryParams } from '../utils/inject-query-params';
 
-type QuickFilter = 'unhealthy' | 'flagged' | 'draft';
+type QuickFilter = 'unhealthy' | 'flagged' | 'draft' | 'suggestedKnown';
 
 const STATE_COLORS: Record<string, string> = {
   NEW: '#2196F3',
@@ -72,7 +72,7 @@ const formatDaysAgo = (days: number): string => {
   return `${Math.floor(days / 365)} years ago`;
 };
 
-const VALID_QUICK_FILTERS: readonly QuickFilter[] = ['unhealthy', 'flagged', 'draft'];
+const VALID_QUICK_FILTERS: readonly QuickFilter[] = ['unhealthy', 'flagged', 'draft', 'suggestedKnown'];
 
 const parseQuickFilter = (value: string | null): QuickFilter | null =>
   VALID_QUICK_FILTERS.includes(value as QuickFilter) ? (value as QuickFilter) : null;
@@ -126,6 +126,7 @@ export class CardsTableComponent {
   readonly unhealthyCount = computed(() => this.currentSource()?.unhealthyCardCount ?? 0);
   readonly flaggedCount = computed(() => this.currentSource()?.flaggedCardCount ?? 0);
   readonly draftCount = computed(() => this.currentSource()?.draftCardCount ?? 0);
+  readonly suggestedKnownCount = computed(() => this.currentSource()?.suggestedKnownCardCount ?? 0);
   readonly isCompletingDrafts = this.bulkCreationService.isProcessing;
   private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
 
@@ -139,7 +140,7 @@ export class CardsTableComponent {
     source: this.activeQuickFilter,
     computation: (quickFilter): readonly CardReadiness[] => {
       if (quickFilter === 'draft') return ['DRAFT'];
-      if (quickFilter === 'flagged' || quickFilter === 'unhealthy') return [];
+      if (quickFilter === 'flagged' || quickFilter === 'unhealthy' || quickFilter === 'suggestedKnown') return [];
       return ['READY', 'IN_REVIEW', 'REVIEWED'];
     },
   });
@@ -194,6 +195,10 @@ export class CardsTableComponent {
     this.activeQuickFilter() === 'unhealthy' ? true : undefined
   );
 
+  private readonly suggestedKnownParam = computed(() =>
+    this.activeQuickFilter() === 'suggestedKnown' ? true : undefined
+  );
+
   readonly allFilteredIds = resource({
     params: () => {
       const sourceId = this.sourceId();
@@ -211,6 +216,7 @@ export class CardsTableComponent {
         cardFilter: this.cardFilter() || undefined,
         flagged: this.flaggedParam(),
         unhealthy: this.unhealthyParam(),
+        suggestedKnown: this.suggestedKnownParam(),
       };
     },
     loader: ({ params }) =>
@@ -551,6 +557,7 @@ export class CardsTableComponent {
         cardFilter: this.cardFilter() || undefined,
         flagged: this.flaggedParam(),
         unhealthy: this.unhealthyParam(),
+        suggestedKnown: this.suggestedKnownParam(),
       });
 
       const updatedMap = new Map(this.loadedRowReadiness());

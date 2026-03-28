@@ -7,4 +7,5 @@ public interface SourceCardStatsProjection {
     Boolean getFlagged();
     Boolean getUnhealthy();
     Long getCount();
+    Long getSuggestedKnownCount();
 }

@@ -1,5 +1,5 @@
 <div class="container">
-  @if (unhealthyCount() || flaggedCount() || draftCount()) {
+  @if (unhealthyCount() || flaggedCount() || draftCount() || suggestedKnownCount()) {
     <div class="quick-filters" role="group" aria-label="Quick filters">
       @if (unhealthyCount()) {
         <button
@@ -21,6 +21,17 @@
         >
           <mat-icon>flag</mat-icon>
           Flagged ({{ flaggedCount() }})
+        </button>
+      }
+      @if (suggestedKnownCount()) {
+        <button
+          mat-stroked-button
+          [class.active]="activeQuickFilter() === 'suggestedKnown'"
+          (click)="onQuickFilterChange('suggestedKnown')"
+          aria-label="Filter suggested known cards"
+        >
+          <mat-icon>check_circle</mat-icon>
+          Suggested known ({{ suggestedKnownCount() }})
         </button>
       }
       @if (draftCount()) {

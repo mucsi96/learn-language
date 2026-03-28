@@ -68,6 +68,10 @@ public class CardViewSpecifications {
         return (root, cb) -> cb.isTrue(root.get(CardView_.isUnhealthy));
     }
 
+    public static PredicateSpecification<CardView> isSuggestedKnown() {
+        return (root, cb) -> cb.isTrue(root.get(CardView_.isSuggestedKnown));
+    }
+
     public static PredicateSpecification<CardView> isDue() {
         final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
         return hasReadinessIn(List.of(CardReadiness.READY)).and(isDueBefore(cutoff));
