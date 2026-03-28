@@ -1590,6 +1590,7 @@ test('quick filter suggested known shows only cards meeting criteria', async ({ 
     cardId: 'suggested-known-card',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
+    readiness: 'READY',
     data: {
       word: 'Hund',
       type: 'NOUN',
@@ -1606,6 +1607,7 @@ test('quick filter suggested known shows only cards meeting criteria', async ({ 
     cardId: 'not-suggested-card',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
+    readiness: 'READY',
     data: {
       word: 'Katze',
       type: 'NOUN',
@@ -1633,6 +1635,7 @@ test('quick filter suggested known button displays count', async ({ page }) => {
     cardId: 'sk-count-1',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
+    readiness: 'READY',
     data: {
       word: 'Hund',
       type: 'NOUN',
@@ -1649,6 +1652,7 @@ test('quick filter suggested known button displays count', async ({ page }) => {
     cardId: 'sk-count-2',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
+    readiness: 'READY',
     data: {
       word: 'Katze',
       type: 'NOUN',

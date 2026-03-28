@@ -6,6 +6,6 @@ public interface SourceCardStatsProjection {
     String getState();
     Boolean getFlagged();
     Boolean getUnhealthy();
-    Boolean getSuggestedKnown();
     Long getCount();
+    Long getSuggestedKnownCount();
 }
