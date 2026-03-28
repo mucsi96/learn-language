@@ -1664,6 +1664,8 @@ test('quick filter suggested known button displays count', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const suggestedKnownButton = page.getByRole('button', { name: 'Filter suggested known cards' });
-  await expect(suggestedKnownButton).toBeVisible();
-  await expect(suggestedKnownButton).toContainText('Suggested known (2)');
+  await expect(async () => {
+    await expect(suggestedKnownButton).toBeVisible();
+    await expect(suggestedKnownButton).toContainText('Suggested known (2)');
+  }).toPass();
 });

@@ -156,7 +156,7 @@ public class CardService {
                   .sum();
 
               final int suggestedKnownCardCount = rows.stream()
-                  .filter(row -> row.getSuggestedKnown())
+                  .filter(row -> Boolean.TRUE.equals(row.getSuggestedKnown()))
                   .mapToInt(row -> row.getCount().intValue())
                   .sum();
 
