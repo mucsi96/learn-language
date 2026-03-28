@@ -14,11 +14,8 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardType;
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
-import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
-import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.service.DictionaryService.LookupResult;
@@ -32,48 +29,33 @@ public class DraftCardService {
 
     private final CardService cardService;
     private final SourceService sourceService;
-    private final WordNormalizationService wordNormalizationService;
     private final WordIdService wordIdService;
-    private final ChatModelSettingService chatModelSettingService;
 
     @Async
     @Transactional
-    public void createDraftCard(String bookTitle, String highlightedWord, String sentence,
-            String targetLanguage, LookupResult lookupResult) {
+    public void createDraftCard(String bookTitle, String targetLanguage, LookupResult lookupResult) {
         try {
             final Source source = getOrCreateSource(bookTitle);
 
-            final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
-
-            final ChatModel classificationModel = ChatModel
-                    .fromString(primaryModels.get(OperationType.CLASSIFICATION));
-
-            final NormalizeWordResponse normalizeResponse = wordNormalizationService.normalize(
-                    highlightedWord, sentence, classificationModel);
-
-            final String normalizedWord = normalizeResponse.getNormalizedWord();
-
             final String cardId = wordIdService.generateWordId(
-                    normalizedWord,
+                    lookupResult.normalizedWord(),
                     lookupResult.translation());
 
             if (cardService.getCardById(cardId).isPresent()) {
                 return;
             }
 
-            final ExampleData example = ExampleData.builder()
-                    .de(lookupResult.germanExample())
-                    .build();
-
             cardService.saveCard(Card.builder()
                     .id(cardId)
                     .source(source)
                     .sourcePageNumber(1)
                     .data(CardData.builder()
-                            .word(normalizedWord)
+                            .word(lookupResult.normalizedWord())
                             .translation(Map.of(targetLanguage, lookupResult.translation()))
                             .forms(lookupResult.forms())
-                            .examples(List.of(example))
+                            .examples(List.of(ExampleData.builder()
+                                    .de(lookupResult.germanExample())
+                                    .build()))
                             .build())
                     .readiness(CardReadiness.DRAFT)
                     .state("NEW")
@@ -87,7 +69,7 @@ public class DraftCardService {
                     .lapses(0)
                     .build());
         } catch (Exception e) {
-            log.error("Failed to create draft card for word '{}': {}", highlightedWord, e.getMessage(), e);
+            log.error("Failed to create draft card: {}", e.getMessage(), e);
         }
     }
 

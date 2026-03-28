@@ -263,6 +263,7 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
 };
 
 interface DictionaryLookup {
+  normalizedWord: string;
   translation: string;
   germanExample: string;
   translatedExample: string;
@@ -272,18 +273,21 @@ interface DictionaryLookup {
 export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>> = {
   hu: {
     fahren: {
+      normalizedWord: 'abfahren',
       translation: 'elindulni, elhagyni',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'Elindulunk.',
       forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
     },
     Hund: {
+      normalizedWord: 'der Hund',
       translation: 'kutya',
       germanExample: 'Der Hund läuft schnell.',
       translatedExample: 'A kutya gyorsan fut.',
       forms: ['die Hunde'],
     },
     Katze: {
+      normalizedWord: 'die Katze',
       translation: 'macska',
       germanExample: 'Die Katze schläft gern.',
       translatedExample: 'A macska szívesen alszik.',
@@ -292,6 +296,7 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>
   },
   en: {
     fahren: {
+      normalizedWord: 'abfahren',
       translation: 'to depart, to leave',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'We depart.',

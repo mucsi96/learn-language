@@ -27,12 +27,13 @@ public class DictionaryService {
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
 
-    record DictionaryLookupResponse(String translation, String germanExample,
-            String translatedExample, List<String> forms) {
+    record DictionaryLookupResponse(String normalizedWord, String translation,
+            String germanExample, String translatedExample, List<String> forms) {
     }
 
-    public record LookupResult(String formattedResponse, String translation,
-            String germanExample, String translatedExample, List<String> forms) {
+    public record LookupResult(String formattedResponse, String normalizedWord,
+            String translation, String germanExample, String translatedExample,
+            List<String> forms) {
     }
 
     public LookupResult lookup(DictionaryRequest request) {
@@ -66,8 +67,9 @@ public class DictionaryService {
 
         final String formattedResponse = formatResponse(response);
 
-        return new LookupResult(formattedResponse, response.translation(),
-                response.germanExample(), response.translatedExample(), response.forms());
+        return new LookupResult(formattedResponse, response.normalizedWord(),
+                response.translation(), response.germanExample(),
+                response.translatedExample(), response.forms());
     }
 
     private static String formatResponse(DictionaryLookupResponse response) {
@@ -102,15 +104,15 @@ public class DictionaryService {
                 You are a German language dictionary lookup assistant.
                 Your task is to perform a dictionary lookup for a highlighted word from a German text.
 
-                The highlighted word may be in any conjugated, declined, or inflected form. Normalize it to its standard dictionary base form (Grundform).
+                The highlighted word may be in any conjugated, declined, or inflected form. Normalize it to its standard dictionary base form (Grundform) and return it as normalizedWord.
                 For verbs: use the infinitive form. If the word is a separable verb prefix or part of a separable verb in the sentence, reconstruct the full infinitive (e.g., "fahren" in "Wir fahren um zwölf Uhr ab." becomes "abfahren").
                 For nouns: include the article (e.g., "Häuser" becomes "das Haus").
                 For adjectives: use the base form (e.g., "großen" becomes "groß").
 
                 Translate the normalized word to %s.
 
-                Generate standard grammatical forms:
-                - For nouns: the plural form (e.g., "die Häuser")
+                Generate standard grammatical forms. Return only the forms list, do NOT include the base form itself:
+                - For nouns: only the plural form with article (e.g., ["die Häuser"])
                 - For verbs: 3. Person Singular Präsens, 3. Person Singular Präteritum, and 3. Person Singular Perfekt. Do NOT include pronouns - only the verb forms themselves.
                 - For other word types: return an empty forms list.
 
