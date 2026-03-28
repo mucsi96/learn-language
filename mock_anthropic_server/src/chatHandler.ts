@@ -1,5 +1,5 @@
 import { ClaudeRequest } from './types';
-import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS, NORMALIZATIONS } from './data';
+import { WORD_LISTS, TRANSLATIONS, WORD_TYPES, GENDERS, SENTENCE_LISTS, GRAMMAR_SENTENCE_LISTS, SENTENCE_TRANSLATIONS, NORMALIZATIONS, DICTIONARY_LOOKUPS } from './data';
 import { messagesMatch, createClaudeResponse } from './utils';
 import { imageRequestMatch } from './ocr';
 
@@ -176,6 +176,34 @@ export class ChatHandler {
     return null;
   }
 
+  handleDictionaryLookup(request: ClaudeRequest): any | null {
+    const systemContent = request.system || '';
+
+    if (!systemContent.includes('dictionary lookup')) {
+      return null;
+    }
+
+    let targetLanguage: string | null = null;
+    if (systemContent.includes('Translate the normalized word to English')) {
+      targetLanguage = 'english';
+    } else if (systemContent.includes('Translate the normalized word to Hungarian')) {
+      targetLanguage = 'hungarian';
+    }
+
+    if (!targetLanguage) {
+      return null;
+    }
+
+    const lookups = DICTIONARY_LOOKUPS[targetLanguage];
+    for (const word of Object.keys(lookups)) {
+      if (messagesMatch(request, 'dictionary lookup', word)) {
+        return createClaudeResponse(lookups[word]);
+      }
+    }
+
+    return null;
+  }
+
   handleSentenceTranslation(request: ClaudeRequest): any | null {
     const systemContent = request.system || '';
 
@@ -220,6 +248,9 @@ export class ChatHandler {
 
     const wordListResponse = await this.handleWordListExtraction(request);
     if (wordListResponse) return wordListResponse;
+
+    const dictionaryLookupResponse = this.handleDictionaryLookup(request);
+    if (dictionaryLookupResponse) return dictionaryLookupResponse;
 
     const normalizationResponse = this.handleNormalization(request);
     if (normalizationResponse) return normalizationResponse;

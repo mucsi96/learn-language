@@ -1,10 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,11 +23,13 @@ public class DictionaryService {
             "en", "English",
             "hu", "Hungarian");
 
-    private static final Pattern TRANSLATION_PATTERN = Pattern.compile("<<B>>(.+?)<</B>>");
-
     private final JsonMapper jsonMapper;
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
+
+    record DictionaryLookupResponse(String translation, String germanExample,
+            String translatedExample, List<String> forms) {
+    }
 
     public record LookupResult(String formattedResponse, String translation,
             String germanExample, String translatedExample, List<String> forms) {
@@ -46,7 +46,7 @@ public class DictionaryService {
 
         final ChatModel model = resolveModel();
 
-        final String systemPrompt = buildSystemPrompt(languageName, targetLanguage);
+        final String systemPrompt = buildSystemPrompt(languageName);
 
         final DictionaryRequest input = DictionaryRequest.builder()
                 .bookTitle(request.getBookTitle())
@@ -57,45 +57,32 @@ public class DictionaryService {
 
         final String userMessage = jsonMapper.writeValueAsString(input);
 
-        final String rawResponse = chatService.callForTextWithLogging(
+        final DictionaryLookupResponse response = chatService.callWithLogging(
                 model,
                 OperationType.TRANSLATION,
                 systemPrompt,
-                userMessage);
+                userMessage,
+                DictionaryLookupResponse.class);
 
-        return parseResponse(rawResponse);
+        final String formattedResponse = formatResponse(response);
+
+        return new LookupResult(formattedResponse, response.translation(),
+                response.germanExample(), response.translatedExample(), response.forms());
     }
 
-    private static LookupResult parseResponse(String rawResponse) {
-        final String formattedResponse = replacePlaceholdersWithUnicode(rawResponse);
+    private static String formatResponse(DictionaryLookupResponse response) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("\uFFF1\uFFF2").append(response.translation()).append("\uFFF3\n");
+        sb.append("\n");
+        sb.append(response.germanExample()).append("\n");
+        sb.append(response.translatedExample());
 
-        final Matcher matcher = TRANSLATION_PATTERN.matcher(rawResponse);
-        final String translation = matcher.find() ? matcher.group(1).trim() : null;
+        if (response.forms() != null && !response.forms().isEmpty()) {
+            sb.append("\n\n");
+            sb.append(response.forms().stream().collect(Collectors.joining(", ")));
+        }
 
-        final List<String> contentLines = Arrays.stream(rawResponse.split("\n"))
-                .skip(1)
-                .filter(line -> !line.isBlank())
-                .map(String::trim)
-                .toList();
-
-        final String germanExample = contentLines.size() > 0 ? contentLines.get(0) : null;
-        final String translatedExample = contentLines.size() > 1 ? contentLines.get(1) : null;
-
-        final List<String> forms = contentLines.size() > 2
-                ? Arrays.stream(contentLines.get(2).split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList()
-                : List.of();
-
-        return new LookupResult(formattedResponse, translation, germanExample, translatedExample, forms);
-    }
-
-    private static String replacePlaceholdersWithUnicode(String text) {
-        return text
-                .replace("<<H>>", "\uFFF1")
-                .replace("<<B>>", "\uFFF2")
-                .replace("<</B>>", "\uFFF3");
+        return sb.toString();
     }
 
     private ChatModel resolveModel() {
@@ -110,50 +97,27 @@ public class DictionaryService {
         return ChatModel.fromString(modelName);
     }
 
-    private String buildSystemPrompt(String languageName, String targetLanguage) {
+    private String buildSystemPrompt(String languageName) {
         return """
                 You are a German language dictionary lookup assistant.
-                Your task is to perform a dictionary lookup for a highlighted word from a German text and return a pre-formatted result.
+                Your task is to perform a dictionary lookup for a highlighted word from a German text.
 
                 The highlighted word may be in any conjugated, declined, or inflected form. Normalize it to its standard dictionary base form (Grundform).
                 For verbs: use the infinitive form. If the word is a separable verb prefix or part of a separable verb in the sentence, reconstruct the full infinitive (e.g., "fahren" in "Wir fahren um zwölf Uhr ab." becomes "abfahren").
                 For nouns: include the article (e.g., "Häuser" becomes "das Haus").
                 For adjectives: use the base form (e.g., "großen" becomes "groß").
 
+                Translate the normalized word to %s.
+
                 Generate standard grammatical forms:
                 - For nouns: the plural form (e.g., "die Häuser")
                 - For verbs: 3. Person Singular Präsens, 3. Person Singular Präteritum, and 3. Person Singular Perfekt. Do NOT include pronouns - only the verb forms themselves.
-                - For other word types: omit forms entirely.
+                - For other word types: return an empty forms list.
 
-                Translate the normalized word to %1$s.
-
-                Create a simple example sentence in German that uses the word in exactly the same context as the provided input sentence, but make it shorter and simpler (A1-A2 level). Translate this example to %1$s as well.
+                Create a simple example sentence in German that uses the word in exactly the same context as the provided input sentence, but make it shorter and simpler (A1-A2 level). Translate this example to %s as well.
 
                 Use the book title and author as context for appropriate register and style.
-
-                You must format the output as plain text using these special markers:
-                - <<H>> = header line marker (place at the very start of the first line)
-                - <<B>> = bold start
-                - <</B>> = bold end
-
-                Return exactly this format:
-
-                For words with forms (verbs and nouns):
-                <<H>><<B>>translation<</B>>
-
-                German example sentence
-                Translated example sentence
-
-                form1, form2, form3
-
-                For other word types (no forms):
-                <<H>><<B>>translation<</B>>
-
-                German example sentence
-                Translated example sentence
-
-                Do not include any labels, word types, genders, or other text. Only the formatted output.
                 """
-                .formatted(languageName, targetLanguage);
+                .formatted(languageName, languageName);
     }
 }

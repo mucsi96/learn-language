@@ -223,6 +223,25 @@ export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: str
   Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
 };
 
+export const DICTIONARY_LOOKUPS: Record<string, Record<string, { translation: string; germanExample: string; translatedExample: string; forms: string[] }>> = {
+  hungarian: {
+    fahren: {
+      translation: 'elindulni, elhagyni',
+      germanExample: 'Wir fahren ab.',
+      translatedExample: 'Elindulunk.',
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+    },
+  },
+  english: {
+    fahren: {
+      translation: 'to depart, to leave',
+      germanExample: 'Wir fahren ab.',
+      translatedExample: 'We depart.',
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+    },
+  },
+};
+
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',
