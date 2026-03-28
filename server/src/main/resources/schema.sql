@@ -239,7 +239,13 @@ SELECT
         (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '') OR
         (s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
         (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''))
-    ) THEN true ELSE false END AS is_unhealthy
+    ) THEN true ELSE false END AS is_unhealthy,
+    CASE WHEN c.readiness = 'READY'
+        AND c.state = 'REVIEW'
+        AND c.stability >= 30
+        AND c.reps >= 5
+        AND c.lapses <= 1
+    THEN true ELSE false END AS is_suggested_known
 FROM learn_language.cards c
 JOIN learn_language.sources s ON c.source_id = s.id
 LEFT JOIN LATERAL (

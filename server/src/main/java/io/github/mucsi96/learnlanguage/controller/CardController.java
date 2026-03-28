@@ -67,12 +67,13 @@ public class CardController {
       @RequestParam(required = false) Integer maxReviewScore,
       @RequestParam(required = false) String cardFilter,
       @RequestParam(required = false) Boolean flagged,
-      @RequestParam(required = false) Boolean unhealthy) {
+      @RequestParam(required = false) Boolean unhealthy,
+      @RequestParam(required = false) Boolean suggestedKnown) {
 
     final CardTableResponse response = cardService.getCardTable(
         sourceId, startRow, endRow, sortField, sortDirection,
         readiness, state, minReps, maxReps, lastReviewDaysAgo,
-        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy,
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, suggestedKnown,
         startOfDayUtc(parseTimezone(timezone)));
 
     return ResponseEntity.ok(response);
@@ -92,12 +93,13 @@ public class CardController {
       @RequestParam(required = false) Integer maxReviewScore,
       @RequestParam(required = false) String cardFilter,
       @RequestParam(required = false) Boolean flagged,
-      @RequestParam(required = false) Boolean unhealthy) {
+      @RequestParam(required = false) Boolean unhealthy,
+      @RequestParam(required = false) Boolean suggestedKnown) {
 
     final List<String> ids = cardService.getFilteredCardIds(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo,
-        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy,
+        minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, suggestedKnown,
         startOfDayUtc(parseTimezone(timezone)));
 
     return ResponseEntity.ok(ids);

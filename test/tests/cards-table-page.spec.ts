@@ -1548,6 +1548,7 @@ test('quick filter buttons show count and hide when no matching cards', async ({
   await expect(page.getByRole('button', { name: 'Filter flagged cards' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Filter unhealthy cards' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Filter draft cards' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Filter suggested known cards' })).not.toBeVisible();
 });
 
 test('quick filter buttons display card counts', async ({ page }) => {
@@ -1582,4 +1583,87 @@ test('quick filter buttons display card counts', async ({ page }) => {
   const flaggedButton = page.getByRole('button', { name: 'Filter flagged cards' });
   await expect(flaggedButton).toBeVisible();
   await expect(flaggedButton).toContainText('Flagged (2)');
+});
+
+test('quick filter suggested known shows only cards meeting criteria', async ({ page }) => {
+  await createCard({
+    cardId: 'suggested-known-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      gender: 'M',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    state: 'REVIEW',
+    stability: 50,
+    reps: 8,
+    lapses: 0,
+  });
+
+  await createCard({
+    cardId: 'not-suggested-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Katze',
+      type: 'NOUN',
+      gender: 'F',
+      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
+    },
+    state: 'LEARNING',
+    stability: 2,
+    reps: 1,
+    lapses: 0,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=suggestedKnown');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]['ID']).toBe('suggested-known-card');
+  }).toPass();
+});
+
+test('quick filter suggested known button displays count', async ({ page }) => {
+  await createCard({
+    cardId: 'sk-count-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      gender: 'M',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    state: 'REVIEW',
+    stability: 40,
+    reps: 6,
+    lapses: 0,
+  });
+
+  await createCard({
+    cardId: 'sk-count-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'Katze',
+      type: 'NOUN',
+      gender: 'F',
+      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
+    },
+    state: 'REVIEW',
+    stability: 35,
+    reps: 5,
+    lapses: 1,
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  const suggestedKnownButton = page.getByRole('button', { name: 'Filter suggested known cards' });
+  await expect(suggestedKnownButton).toBeVisible();
+  await expect(suggestedKnownButton).toContainText('Suggested known (2)');
 });

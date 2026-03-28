@@ -72,7 +72,7 @@ public class SourceController {
     final var sources = sourceService.getAllSources();
     final var statsMap = cardService.getSourceStats();
     final var emptyStats = SourceStats.builder()
-        .cardCount(0).draftCardCount(0).flaggedCardCount(0).unhealthyCardCount(0)
+        .cardCount(0).draftCardCount(0).flaggedCardCount(0).unhealthyCardCount(0).suggestedKnownCardCount(0)
         .stateCounts(Map.of()).readinessCounts(Map.of())
         .build();
 
@@ -96,6 +96,7 @@ public class SourceController {
           .draftCardCount(stats.getDraftCardCount())
           .flaggedCardCount(stats.getFlaggedCardCount())
           .unhealthyCardCount(stats.getUnhealthyCardCount())
+          .suggestedKnownCardCount(stats.getSuggestedKnownCardCount())
           .stateCounts(stats.getStateCounts())
           .readinessCounts(stats.getReadinessCounts())
           .languageLevel(source.getLanguageLevel())
