@@ -1,6 +1,7 @@
 import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { DataRefreshService } from '../data-refresh.service';
 
 export interface LearningPartner {
   id: number;
@@ -19,15 +20,12 @@ export interface LearningPartnerRequest {
 export class LearningPartnersService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
-  readonly partners = resource<LearningPartner[], never>({
+  readonly partners = resource({
     injector: this.injector,
-    loader: async () => {
-      return await fetchJson<LearningPartner[]>(
-        this.http,
-        '/api/learning-partners'
-      );
-    },
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<LearningPartner[]>(this.http, '/api/learning-partners'),
   });
 
   async createPartner(request: LearningPartnerRequest): Promise<LearningPartner> {

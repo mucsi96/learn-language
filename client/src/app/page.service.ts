@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import { ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
 import { PagedSelection, SelectionStateService } from './selection-state.service';
+import { DataRefreshService } from './data-refresh.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number; documentId?: number } | undefined;
 type SelectedRectangle = {
@@ -32,12 +33,14 @@ export class PageService {
   private readonly injector = inject(Injector);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly selectionStateService = inject(SelectionStateService);
+  private readonly dataRefreshService = inject(DataRefreshService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly extractionGroups = signal<ExtractionGroup[]>([]);
 
   readonly page = resource({
     params: () => ({
       selectedSource: this.selectedSource(),
+      _refresh: this.dataRefreshService.refreshTrigger(),
     }),
     loader: async ({ params: { selectedSource } }) => {
       if (!selectedSource) {

@@ -1,6 +1,7 @@
 import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { DataRefreshService } from '../data-refresh.service';
 
 export interface ApiToken {
   id: number;
@@ -21,12 +22,12 @@ export interface ApiTokenCreateResponse {
 export class ApiTokensService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
-  readonly tokens = resource<ApiToken[], never>({
+  readonly tokens = resource({
     injector: this.injector,
-    loader: async () => {
-      return await fetchJson<ApiToken[]>(this.http, '/api/api-tokens');
-    },
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<ApiToken[]>(this.http, '/api/api-tokens'),
   });
 
   async createToken(name: string): Promise<ApiTokenCreateResponse> {

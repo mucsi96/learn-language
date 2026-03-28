@@ -41,6 +41,7 @@ import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
 import { injectQueryParams } from '../utils/inject-query-params';
+import { DataRefreshService } from '../data-refresh.service';
 
 type QuickFilter = 'unhealthy' | 'flagged' | 'draft' | 'suggestedKnown';
 
@@ -111,6 +112,7 @@ export class CardsTableComponent {
   private readonly dialog = inject(MatDialog);
   private readonly bulkCreationService = inject(BulkCardCreationService);
   private readonly sourcesService = inject(SourcesService);
+  private readonly dataRefreshService = inject(DataRefreshService);
   private readonly routeSourceId = injectParams<string>('sourceId');
   private readonly filterParam = injectQueryParams<string>('filter');
 
@@ -156,6 +158,12 @@ export class CardsTableComponent {
       this.activeQuickFilter();
       if (this.gridApi) {
         this.refreshGrid();
+      }
+    });
+    effect(() => {
+      this.dataRefreshService.refreshTrigger();
+      if (this.gridApi) {
+        this.cardsTableService.refreshCardView().then(() => this.refreshGrid());
       }
     });
   }
@@ -205,6 +213,7 @@ export class CardsTableComponent {
       if (!sourceId) return undefined;
       const reviewScoreRange = this.parseReviewScoreRange(this.reviewScoreFilter());
       return {
+        _refresh: this.dataRefreshService.refreshTrigger(),
         sourceId,
         readiness: this.readinessParam(),
         state: this.stateFilter() || undefined,

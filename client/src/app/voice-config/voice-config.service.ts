@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { Card } from '../parser/types';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { DataRefreshService } from '../data-refresh.service';
 
 export interface VoiceConfiguration {
   id: number;
@@ -28,6 +29,7 @@ export class VoiceConfigService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   private readonly config = inject(ENVIRONMENT_CONFIG);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
   readonly audioModels = this.config.audioModels;
   readonly availableVoices = this.config.voices;
@@ -37,21 +39,16 @@ export class VoiceConfigService {
   readonly audioDailyLimit = signal(this.config.audioDailyLimit);
   readonly frontAudioEnabled = signal(this.config.frontAudioEnabled);
 
-  readonly configurations = resource<VoiceConfiguration[], never>({
+  readonly configurations = resource({
     injector: this.injector,
-    loader: async () => {
-      return await fetchJson<VoiceConfiguration[]>(
-        this.http,
-        '/api/voice-configurations'
-      );
-    },
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<VoiceConfiguration[]>(this.http, '/api/voice-configurations'),
   });
 
-  readonly sampleCards = resource<Card[], never>({
+  readonly sampleCards = resource({
     injector: this.injector,
-    loader: async () => {
-      return await fetchJson<Card[]>(this.http, '/api/cards/sample');
-    },
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<Card[]>(this.http, '/api/cards/sample'),
   });
 
   async createConfiguration(

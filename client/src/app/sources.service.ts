@@ -2,16 +2,17 @@ import { inject, Injectable, resource } from '@angular/core';
 import { Source } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
+import { DataRefreshService } from './data-refresh.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SourcesService {
   private readonly http = inject(HttpClient);
-  readonly sources = resource<Source[], unknown>({
-    loader: async () => {
-      return fetchJson(this.http, '/api/sources');
-    },
+  private readonly dataRefreshService = inject(DataRefreshService);
+  readonly sources = resource({
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<Source[]>(this.http, '/api/sources'),
   });
 
   refetchSources() {

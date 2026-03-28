@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../utils/fetchJson';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { DataRefreshService } from '../data-refresh.service';
 
 export interface ModelUsageLog {
   id: number;
@@ -80,16 +81,16 @@ export interface ModelUsageLogFetchParams {
 export class ModelUsageLogsService {
   private readonly http = inject(HttpClient);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
   readonly dateFilter = signal<string>(this.getTodayDateString());
   readonly modelTypeFilter = signal<ModelType | 'ALL'>('ALL');
   readonly operationTypeFilter = signal<string>('ALL');
   readonly modelNameFilter = signal<string>('ALL');
 
-  readonly summary = resource<ModelSummary[], unknown>({
-    loader: async () => {
-      return await fetchJson<ModelSummary[]>(this.http, '/api/model-usage-logs/summary');
-    },
+  readonly summary = resource({
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<ModelSummary[]>(this.http, '/api/model-usage-logs/summary'),
   });
 
   readonly groupedSummary = computed<OperationTypeSummaryGroup[]>(() => {

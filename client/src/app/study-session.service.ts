@@ -5,6 +5,7 @@ import { fetchJson } from './utils/fetchJson';
 import { SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 import { DueCardsService } from './due-cards.service';
+import { DataRefreshService } from './data-refresh.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,7 @@ export class StudySessionService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   private readonly dueCardsService = inject(DueCardsService);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
@@ -24,6 +26,7 @@ export class StudySessionService {
       sourceId: this.sourceId(),
       hasSession: this.hasSession(),
       version: this.sessionVersion(),
+      _refresh: this.dataRefreshService.refreshTrigger(),
     }),
     loader: async ({ params: { sourceId, hasSession } }) => {
       if (!sourceId || !hasSession) {

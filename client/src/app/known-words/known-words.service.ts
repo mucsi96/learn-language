@@ -1,6 +1,7 @@
 import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
+import { DataRefreshService } from '../data-refresh.service';
 
 export interface KnownWordDTO {
   word: string;
@@ -22,15 +23,12 @@ export interface KnownWordsImportResponse {
 export class KnownWordsService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
-  readonly knownWords = resource<KnownWordsResponse, never>({
+  readonly knownWords = resource({
     injector: this.injector,
-    loader: async () => {
-      return await fetchJson<KnownWordsResponse>(
-        this.http,
-        '/api/known-words'
-      );
-    },
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<KnownWordsResponse>(this.http, '/api/known-words'),
   });
 
   async importWords(text: string): Promise<KnownWordsImportResponse> {

@@ -39,10 +39,6 @@ export class InReviewCardsComponent {
     () => (this.totalCount() > 0 && this.remainingCount() <= 0 ? 1 : 0)
   );
 
-  constructor() {
-    this.inReviewCardsService.refetchCards();
-  }
-
   onCardReviewed(cardId: string) {
     this.reviewedCardIds.update((ids) => [...ids, cardId]);
   }

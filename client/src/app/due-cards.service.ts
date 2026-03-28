@@ -2,6 +2,7 @@ import { inject, Injectable, resource } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from './utils/fetchJson';
 import { CardState } from './shared/state/card-state';
+import { DataRefreshService } from './data-refresh.service';
 
 export interface SourceDueCardCount {
   sourceId: string;
@@ -14,11 +15,11 @@ export interface SourceDueCardCount {
 })
 export class DueCardsService {
   private readonly http = inject(HttpClient);
+  private readonly dataRefreshService = inject(DataRefreshService);
 
-  readonly dueCounts = resource<SourceDueCardCount[], unknown>({
-    loader: async () => {
-      return fetchJson(this.http, '/api/sources/due-cards-count');
-    },
+  readonly dueCounts = resource({
+    params: () => ({ _refresh: this.dataRefreshService.refreshTrigger() }),
+    loader: async () => fetchJson<SourceDueCardCount[]>(this.http, '/api/sources/due-cards-count'),
   });
 
   refetchDueCounts() {
