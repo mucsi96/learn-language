@@ -41,10 +41,6 @@ public class CardViewSpecifications {
         };
     }
 
-    public static PredicateSpecification<CardView> hasLastReviewRating(int rating) {
-        return (root, cb) -> cb.equal(root.get(CardView_.lastReviewRating), rating);
-    }
-
     public static PredicateSpecification<CardView> hasMinReviewScore(int minScore) {
         return (root, cb) -> cb.greaterThanOrEqualTo(root.get(CardView_.reviewScore), minScore);
     }

@@ -63,14 +63,11 @@ public class CardView {
     @Column(name = "card_type")
     private CardType cardType;
 
-    @Column(name = "last_review_rating")
-    private Integer lastReviewRating;
-
-    @Column(name = "last_review_learning_partner_name")
-    private String lastReviewLearningPartnerName;
-
     @Column(name = "review_score")
     private Integer reviewScore;
+
+    @Column(name = "correct_streak")
+    private Integer correctStreak;
 
     @Column(name = "is_unhealthy", nullable = false)
     private Boolean isUnhealthy;

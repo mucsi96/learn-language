@@ -193,14 +193,14 @@ public class CardService {
       String sourceId,
       String readiness, String state,
       Integer minReps, Integer maxReps,
-      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
       String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating,
+        lastReviewDaysAgo,
         minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
 
     return cardViewRepository.findAll(spec).stream()
@@ -213,14 +213,14 @@ public class CardService {
       String sortField, String sortDirection,
       String readiness, String state,
       Integer minReps, Integer maxReps,
-      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
       String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating,
+        lastReviewDaysAgo,
         minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy, startOfDayUtc);
 
     final int pageSize = Math.max(1, endRow - startRow);
@@ -273,7 +273,7 @@ public class CardService {
   private PredicateSpecification<CardView> buildCardTableSpec(
       String sourceId, String readiness, String state,
       Integer minReps, Integer maxReps,
-      Integer lastReviewDaysAgo, Integer lastReviewRating,
+      Integer lastReviewDaysAgo,
       Integer minReviewScore, Integer maxReviewScore,
       String cardFilter, Boolean flagged, Boolean unhealthy,
       LocalDateTime startOfDayUtc) {
@@ -297,9 +297,6 @@ public class CardService {
     }
     if (lastReviewDaysAgo != null) {
       spec = spec.and(hasLastReviewAfter(lastReviewDaysAgo, startOfDayUtc));
-    }
-    if (lastReviewRating != null) {
-      spec = spec.and(hasLastReviewRating(lastReviewRating));
     }
     if (minReviewScore != null) {
       spec = spec.and(hasMinReviewScore(minReviewScore));
@@ -331,6 +328,7 @@ public class CardService {
 
     final String mappedField = switch (sortField) {
       case "reps" -> "reps";
+      case "correctStreak" -> "correctStreak";
       case "lastReviewDaysAgo" -> "lastReview";
       case "state" -> "state";
       case "readiness" -> "readiness";
@@ -352,8 +350,7 @@ public class CardService {
         .state(view.getState())
         .reps(view.getReps())
         .lastReviewDaysAgo(reviewDaysAgo)
-        .lastReviewRating(view.getLastReviewRating())
-        .lastReviewPerson(view.getLastReviewLearningPartnerName())
+        .correctStreak(view.getCorrectStreak())
         .reviewScore(view.getReviewScore())
         .sourcePageNumber(view.getSourcePageNumber())
         .build();
