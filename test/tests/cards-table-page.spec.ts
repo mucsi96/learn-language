@@ -188,6 +188,90 @@ test('displays review information in table', async ({ page }) => {
   }).toPass();
 });
 
+test('displays streak of 0 when last review is incorrect', async ({ page }) => {
+  await createCard({
+    cardId: 'incorrect-streak-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'schwer', type: 'ADJECTIVE', translation: { en: 'hard' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'incorrect-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 60000),
+  });
+
+  await createReviewLog({
+    cardId: 'incorrect-streak-card',
+    rating: 1,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        ID: 'incorrect-streak-card',
+        Streak: '0',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('displays correct streak count for multiple consecutive correct reviews', async ({ page }) => {
+  await createCard({
+    cardId: 'multi-streak-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'gut', type: 'ADJECTIVE', translation: { en: 'good' } },
+    state: 'REVIEW',
+    reps: 4,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 1,
+    review: new Date(Date.now() - 240000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 180000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 4,
+    review: new Date(Date.now() - 120000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 60000),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        ID: 'multi-streak-card',
+        Streak: '3',
+      }),
+    ]);
+  }).toPass();
+});
+
 test('navigates to card editing on row click', async ({ page }) => {
   await createCard({
     cardId: 'click-card',
