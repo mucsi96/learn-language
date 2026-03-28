@@ -499,9 +499,8 @@ test('card deletion', async ({ page }) => {
   await page.getByRole('button', { name: 'Yes' }).click();
   await expect(page.getByText('Card deleted successfully')).toBeVisible();
 
-  // Verify navigation back to the source page
-  await page.waitForURL(/\/sources\/goethe-a1\/page\/9/);
-  expect(page.url()).toContain('/sources/goethe-a1/page/9');
+  await expect(page.getByText('Seite 9')).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('9');
 
   await withDbConnection(async (client) => {
     const result = await client.query("SELECT id FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
