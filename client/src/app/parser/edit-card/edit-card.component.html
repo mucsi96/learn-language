@@ -1,11 +1,6 @@
 @if (isLoading()) {
   <mat-spinner class="page-loading" />
 } @else {
-  <div class="top-actions">
-    <a mat-icon-button [routerLink]="backNavigationUrl()" aria-label="Go back">
-      <mat-icon>arrow_back</mat-icon>
-    </a>
-  </div>
   <h2 class="title">
     {{ getCardTypeTitle() }}
     <span class="title-spacer"></span>
