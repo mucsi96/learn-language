@@ -97,11 +97,12 @@ test('card editing page', async ({ page }) => {
   await navigateToCardEditing(page);
 
   // Word section
-  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Főnév');
-  await expect(page.getByRole('combobox', { name: 'Gender' })).toHaveText('Feminine');
   await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('abfahren');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('elindulni, elhagyni');
   await expect(page.getByLabel('Swiss German translation', { exact: true })).toHaveValue('abfahra, verlah');
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('to leave');
+  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Főnév');
+  await expect(page.getByRole('combobox', { name: 'Gender' })).toHaveText('Feminine');
 
   // Forms section
   await expect(page.getByLabel('Form', { exact: true }).nth(0)).toHaveValue('fährt ab');
@@ -115,6 +116,9 @@ test('card editing page', async ({ page }) => {
   );
   await expect(page.getByLabel('Example in Swiss German', { exact: true }).nth(0)).toHaveValue(
     'Mir fahred am zwöufi ab.'
+  );
+  await expect(page.getByLabel('Example in English', { exact: true }).nth(0)).toHaveValue(
+    "We leave at twelve o'clock."
   );
 
   // Images
@@ -163,6 +167,7 @@ test('card editing in db', async ({ page }) => {
   });
   await navigateToCardEditing(page);
   await page.getByLabel('Hungarian translation').fill('elindulni, elutazni');
+  await page.getByLabel('English translation', { exact: true }).fill('to depart');
 
   await expect(page.getByRole('img')).toHaveCount(2);
 
@@ -200,6 +205,7 @@ test('card editing in db', async ({ page }) => {
     const cardData = result.rows[0].data;
 
     expect(cardData.translation.hu).toBe('elindulni, elutazni');
+    expect(cardData.translation.en).toBe('to depart');
     expect(cardData.examples[0].isSelected).toBeUndefined();
     expect(cardData.examples[1].isSelected).toBe(true);
     expect(cardData.word).toBe('abfahren');
@@ -619,6 +625,7 @@ test('speech card editing page displays sentence and translations', async ({ pag
 
   await expect(page.getByLabel('German Sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('Good morning, how are you?');
   const imageContent = await getImageContent(page.getByRole('img', { name: 'Guten Morgen, wie geht es Ihnen?' }));
   expect(await getImageColor(page, imageContent)).toBe('yellow');
 });
@@ -646,6 +653,7 @@ test('speech card editing updates sentence in database', async ({ page }) => {
   await page.goto('http://localhost:8180/sources/speech-a1/page/11/cards/e5f6g7h8');
 
   await page.getByLabel('Hungarian translation', { exact: true }).fill('Busszal utazom.');
+  await page.getByLabel('English translation', { exact: true }).fill('I ride the bus.');
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
@@ -655,6 +663,7 @@ test('speech card editing updates sentence in database', async ({ page }) => {
     const cardData = result.rows[0].data;
     expect(cardData.examples[0].de).toBe('Ich fahre mit dem Bus.');
     expect(cardData.examples[0].hu).toBe('Busszal utazom.');
+    expect(cardData.examples[0].en).toBe('I ride the bus.');
   });
 });
 
@@ -707,6 +716,7 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   await page.goto('http://localhost:8180/in-review-cards');
 
   await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
+  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('The dog runs fast.');
   await expect(page.locator('.sentence-preview')).toContainText('Der Hund _____ schnell.');
 });
 
@@ -801,6 +811,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 
   await page.getByRole('button', { name: 'Add Gap from Selection' }).click();
+  await page.getByLabel('English translation', { exact: true }).fill('The child is playing in the garden.');
   await page.getByRole('button', { name: 'Save card' }).click();
 
   await withDbConnection(async (client) => {
@@ -808,6 +819,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
     expect(cardData.examples[0].de).toBe('Das Kind [spielt] im Garten.');
+    expect(cardData.examples[0].en).toBe('The child is playing in the garden.');
   });
 });
 
