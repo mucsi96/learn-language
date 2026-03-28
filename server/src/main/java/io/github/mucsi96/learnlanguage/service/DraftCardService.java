@@ -21,8 +21,7 @@ import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
-import io.github.mucsi96.learnlanguage.model.TranslateWordRequest;
-import io.github.mucsi96.learnlanguage.model.TranslationResponse;
+import io.github.mucsi96.learnlanguage.service.DictionaryService.LookupResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,13 +33,13 @@ public class DraftCardService {
     private final CardService cardService;
     private final SourceService sourceService;
     private final WordNormalizationService wordNormalizationService;
-    private final TranslationService translationService;
     private final WordIdService wordIdService;
     private final ChatModelSettingService chatModelSettingService;
 
     @Async
     @Transactional
-    public void createDraftCard(String bookTitle, String highlightedWord, String sentence) {
+    public void createDraftCard(String bookTitle, String highlightedWord, String sentence,
+            String targetLanguage, LookupResult lookupResult) {
         try {
             final Source source = getOrCreateSource(bookTitle);
 
@@ -48,28 +47,23 @@ public class DraftCardService {
 
             final ChatModel classificationModel = ChatModel
                     .fromString(primaryModels.get(OperationType.CLASSIFICATION));
-            final ChatModel translationModel = ChatModel
-                    .fromString(primaryModels.get(OperationType.TRANSLATION));
 
             final NormalizeWordResponse normalizeResponse = wordNormalizationService.normalize(
                     highlightedWord, sentence, classificationModel);
 
             final String normalizedWord = normalizeResponse.getNormalizedWord();
 
-            final TranslationResponse translationResponse = translationService.translate(
-                    TranslateWordRequest.builder()
-                            .word(normalizedWord)
-                            .examples(List.of(sentence))
-                            .build(),
-                    "hu", translationModel);
-
             final String cardId = wordIdService.generateWordId(
                     normalizedWord,
-                    translationResponse.getTranslation());
+                    lookupResult.translation());
 
             if (cardService.getCardById(cardId).isPresent()) {
                 return;
             }
+
+            final ExampleData example = ExampleData.builder()
+                    .de(lookupResult.germanExample())
+                    .build();
 
             cardService.saveCard(Card.builder()
                     .id(cardId)
@@ -77,11 +71,9 @@ public class DraftCardService {
                     .sourcePageNumber(1)
                     .data(CardData.builder()
                             .word(normalizedWord)
-                            .translation(Map.of("hu", translationResponse.getTranslation()))
-                            .forms(normalizeResponse.getForms())
-                            .examples(List.of(ExampleData.builder()
-                                    .de(sentence)
-                                    .build()))
+                            .translation(Map.of(targetLanguage, lookupResult.translation()))
+                            .forms(lookupResult.forms())
+                            .examples(List.of(example))
                             .build())
                     .readiness(CardReadiness.DRAFT)
                     .state("NEW")

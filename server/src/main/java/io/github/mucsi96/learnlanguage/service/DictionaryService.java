@@ -1,6 +1,10 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,11 +25,17 @@ public class DictionaryService {
             "en", "English",
             "hu", "Hungarian");
 
+    private static final Pattern TRANSLATION_PATTERN = Pattern.compile("<<B>>(.+?)<</B>>");
+
     private final JsonMapper jsonMapper;
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
 
-    public String lookup(DictionaryRequest request) {
+    public record LookupResult(String formattedResponse, String translation,
+            String germanExample, String translatedExample, List<String> forms) {
+    }
+
+    public LookupResult lookup(DictionaryRequest request) {
         final String targetLanguage = request.getTargetLanguage();
         final String languageName = LANGUAGE_NAMES.get(targetLanguage);
 
@@ -53,10 +63,35 @@ public class DictionaryService {
                 systemPrompt,
                 userMessage);
 
-        return replacePlaceholdersWithUnicode(rawResponse);
+        return parseResponse(rawResponse);
     }
 
-    private String replacePlaceholdersWithUnicode(String text) {
+    private static LookupResult parseResponse(String rawResponse) {
+        final String formattedResponse = replacePlaceholdersWithUnicode(rawResponse);
+
+        final Matcher matcher = TRANSLATION_PATTERN.matcher(rawResponse);
+        final String translation = matcher.find() ? matcher.group(1).trim() : null;
+
+        final List<String> contentLines = Arrays.stream(rawResponse.split("\n"))
+                .skip(1)
+                .filter(line -> !line.isBlank())
+                .map(String::trim)
+                .toList();
+
+        final String germanExample = contentLines.size() > 0 ? contentLines.get(0) : null;
+        final String translatedExample = contentLines.size() > 1 ? contentLines.get(1) : null;
+
+        final List<String> forms = contentLines.size() > 2
+                ? Arrays.stream(contentLines.get(2).split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList()
+                : List.of();
+
+        return new LookupResult(formattedResponse, translation, germanExample, translatedExample, forms);
+    }
+
+    private static String replacePlaceholdersWithUnicode(String text) {
         return text
                 .replace("<<H>>", "\uFFF1")
                 .replace("<<B>>", "\uFFF2")

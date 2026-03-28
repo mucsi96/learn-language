@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.mucsi96.learnlanguage.model.DictionaryRequest;
 import io.github.mucsi96.learnlanguage.service.ApiTokenService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService;
+import io.github.mucsi96.learnlanguage.service.DictionaryService.LookupResult;
 import io.github.mucsi96.learnlanguage.service.DraftCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,14 @@ public class DictionaryController {
             @Valid @RequestBody DictionaryRequest request) {
         apiTokenService.validateBearerToken(authorizationHeader);
 
+        final LookupResult result = dictionaryService.lookup(request);
+
         if (request.getBookTitle() != null && request.getHighlightedWord() != null
                 && request.getSentence() != null) {
             draftCardService.createDraftCard(request.getBookTitle(), request.getHighlightedWord(),
-                    request.getSentence());
+                    request.getSentence(), request.getTargetLanguage(), result);
         }
 
-        return dictionaryService.lookup(request);
+        return result.formattedResponse();
     }
 }
