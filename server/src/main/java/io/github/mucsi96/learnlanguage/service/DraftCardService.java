@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ExampleData;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -30,10 +33,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DraftCardService {
 
+    private static final List<String> LANGUAGES = List.of("hu", "en", "ch");
+
     private final CardService cardService;
     private final SourceService sourceService;
     private final WordNormalizationService wordNormalizationService;
     private final TranslationService translationService;
+    private final WordTypeService wordTypeService;
+    private final GenderDetectionService genderDetectionService;
     private final WordIdService wordIdService;
     private final ChatModelSettingService chatModelSettingService;
 
@@ -53,16 +60,41 @@ public class DraftCardService {
             final NormalizeWordResponse normalizeResponse = wordNormalizationService.normalize(
                     highlightedWord, sentence, classificationModel);
 
-            final TranslationResponse translationResponse = translationService.translate(
-                    TranslateWordRequest.builder()
-                            .word(normalizeResponse.getNormalizedWord())
-                            .examples(List.of(sentence))
-                            .build(),
-                    "hu", translationModel);
+            final String normalizedWord = normalizeResponse.getNormalizedWord();
+            final List<String> germanExamples = List.of(sentence);
+
+            final String wordType = wordTypeService.detectWordType(normalizedWord, classificationModel);
+
+            final String gender = "NOUN".equals(wordType)
+                    ? genderDetectionService.detectGender(normalizedWord, classificationModel)
+                    : null;
+
+            final Map<String, TranslationResponse> translations = LANGUAGES.stream()
+                    .collect(Collectors.toMap(
+                            lang -> lang,
+                            lang -> translationService.translate(
+                                    TranslateWordRequest.builder()
+                                            .word(normalizedWord)
+                                            .examples(germanExamples)
+                                            .build(),
+                                    lang, translationModel)));
+
+            final Map<String, String> translationMap = translations.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTranslation()));
+
+            final List<ExampleData> examples = IntStream.range(0, germanExamples.size())
+                    .mapToObj(i -> ExampleData.builder()
+                            .de(germanExamples.get(i))
+                            .hu(getExampleAt(translations.get("hu"), i))
+                            .en(getExampleAt(translations.get("en"), i))
+                            .ch(getExampleAt(translations.get("ch"), i))
+                            .isSelected(i == 0)
+                            .build())
+                    .toList();
 
             final String cardId = wordIdService.generateWordId(
-                    normalizeResponse.getNormalizedWord(),
-                    translationResponse.getTranslation());
+                    normalizedWord,
+                    translationMap.get("hu"));
 
             if (cardService.getCardById(cardId).isPresent()) {
                 return;
@@ -73,8 +105,14 @@ public class DraftCardService {
                     .source(source)
                     .sourcePageNumber(1)
                     .data(CardData.builder()
-                            .word(normalizeResponse.getNormalizedWord())
-                            .translation(Map.of("hu", translationResponse.getTranslation()))
+                            .word(normalizedWord)
+                            .type(wordType)
+                            .gender(gender)
+                            .translation(translationMap)
+                            .forms(normalizeResponse.getForms())
+                            .examples(examples)
+                            .translationModel(translationModel.getModelName())
+                            .classificationModel(classificationModel.getModelName())
                             .build())
                     .readiness(CardReadiness.DRAFT)
                     .state("NEW")
@@ -90,6 +128,11 @@ public class DraftCardService {
         } catch (Exception e) {
             log.error("Failed to create draft card for word '{}': {}", highlightedWord, e.getMessage(), e);
         }
+    }
+
+    private static String getExampleAt(TranslationResponse response, int index) {
+        final List<String> examples = response.getExamples();
+        return (examples != null && index < examples.size()) ? examples.get(index) : null;
     }
 
     private Source getOrCreateSource(String bookTitle) {
