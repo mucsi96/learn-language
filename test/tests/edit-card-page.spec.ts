@@ -49,14 +49,6 @@ async function prepareCard(page: Page) {
   return await navigateToCardEditing(page);
 }
 
-test('back button navigates to source page', async ({ page }) => {
-  await prepareCard(page);
-  await page.getByRole('link', { name: 'Back' }).click();
-  await expect(page.getByText('Seite 9')).toBeVisible();
-  await expect(page.getByText('die Abfahrt')).toBeVisible();
-  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('9');
-});
-
 test('card editing page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);
@@ -667,31 +659,6 @@ test('speech card editing updates sentence in database', async ({ page }) => {
   });
 });
 
-test('speech card back navigation works', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
-  await createCard({
-    cardId: 'i9j0k1l2',
-    sourceId: 'speech-a1',
-    sourcePageNumber: 12,
-    data: {
-      examples: [
-        {
-          de: 'Das Wetter ist schön.',
-          hu: 'Szép az idő.',
-          en: 'The weather is nice.',
-          isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
-        },
-      ],
-    },
-  });
-
-  await page.goto('http://localhost:8180/sources/speech-a1/page/12/cards/i9j0k1l2');
-
-  await page.getByRole('link', { name: 'Back' }).click();
-  await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('12');
-});
 
 test('grammar card editing shows complete sentence and gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();

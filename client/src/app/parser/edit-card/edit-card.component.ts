@@ -5,7 +5,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -28,7 +27,6 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
     MatCardModule,
     MatProgressSpinnerModule,
     MatIcon,
-    RouterModule,
     EditVocabularyCardComponent,
     EditSpeechCardComponent,
     EditGrammarCardComponent,
@@ -38,7 +36,6 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 })
 export class EditCardComponent {
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly routeSourceId = injectParams('sourceId');
   private readonly routePageNumber = injectParams('pageNumber');
@@ -66,19 +63,6 @@ export class EditCardComponent {
   });
 
   readonly isLoading = computed(() => this.card.isLoading());
-
-  readonly backNavigationUrl = computed(() => {
-    const card = this.card.value();
-    const readiness = card?.readiness;
-    const sourceId = this.selectedSourceId();
-    const pageNumber = this.selectedPageNumber();
-
-    if (readiness === 'IN_REVIEW' || readiness === 'REVIEWED') {
-      return ['/in-review-cards'];
-    }
-
-    return ['/sources', sourceId, 'page', pageNumber];
-  });
 
   readonly isInReview = computed(() => {
     const card = this.card.value();
@@ -203,7 +187,7 @@ export class EditCardComponent {
     if (result) {
       await this.deleteCard();
       this.showSnackBar('Card deleted successfully');
-      await this.router.navigate(this.backNavigationUrl());
+      window.history.back();
     }
   }
 
