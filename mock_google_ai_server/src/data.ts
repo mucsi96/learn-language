@@ -262,42 +262,41 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
-export const DICTIONARY_LOOKUPS: Record<string, Record<string, string>> = {
+interface DictionaryLookup {
+  translation: string;
+  germanExample: string;
+  translatedExample: string;
+  forms: string[];
+}
+
+export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>> = {
   hu: {
-    fahren: [
-      '<<H>><<B>>elindulni, elhagyni<</B>>',
-      '',
-      'Wir fahren ab.',
-      'Elindulunk.',
-      '',
-      'fährt ab, fuhr ab, ist abgefahren',
-    ].join('\n'),
-    Hund: [
-      '<<H>><<B>>kutya<</B>>',
-      '',
-      'Der Hund läuft schnell.',
-      'A kutya gyorsan fut.',
-      '',
-      'die Hunde',
-    ].join('\n'),
-    Katze: [
-      '<<H>><<B>>macska<</B>>',
-      '',
-      'Die Katze schläft gern.',
-      'A macska szívesen alszik.',
-      '',
-      'die Katzen',
-    ].join('\n'),
+    fahren: {
+      translation: 'elindulni, elhagyni',
+      germanExample: 'Wir fahren ab.',
+      translatedExample: 'Elindulunk.',
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+    },
+    Hund: {
+      translation: 'kutya',
+      germanExample: 'Der Hund läuft schnell.',
+      translatedExample: 'A kutya gyorsan fut.',
+      forms: ['die Hunde'],
+    },
+    Katze: {
+      translation: 'macska',
+      germanExample: 'Die Katze schläft gern.',
+      translatedExample: 'A macska szívesen alszik.',
+      forms: ['die Katzen'],
+    },
   },
   en: {
-    fahren: [
-      '<<H>><<B>>to depart, to leave<</B>>',
-      '',
-      'Wir fahren ab.',
-      'We depart.',
-      '',
-      'fährt ab, fuhr ab, ist abgefahren',
-    ].join('\n'),
+    fahren: {
+      translation: 'to depart, to leave',
+      germanExample: 'Wir fahren ab.',
+      translatedExample: 'We depart.',
+      forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
+    },
   },
 };
 
