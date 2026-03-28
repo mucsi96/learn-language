@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector, computed, inject, resource, signal } from '@angular/core';
+import { SourcesService } from './sources.service';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from './utils/fetchJson';
 import { SessionStats, StudySession, StudySessionCard } from './parser/types';
@@ -13,17 +14,16 @@ export class StudySessionService {
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
   private readonly dueCardsService = inject(DueCardsService);
+  private readonly sourcesService = inject(SourcesService);
 
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
   readonly hasExistingSession = signal(false);
-  private sessionVersion = signal(0);
 
   readonly currentCard = resource({
     params: () => ({
       sourceId: this.sourceId(),
       hasSession: this.hasSession(),
-      version: this.sessionVersion(),
     }),
     loader: async ({ params: { sourceId, hasSession } }) => {
       if (!sourceId || !hasSession) {
@@ -91,8 +91,9 @@ export class StudySessionService {
   }
 
   refreshSession() {
-    this.sessionVersion.update((v) => v + 1);
+    this.currentCard.reload();
     this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
   }
 
   async fetchSessionStats(sourceId: string): Promise<SessionStats | null> {

@@ -13,6 +13,8 @@ import { injectParams } from '../../utils/inject-params';
 import { Card } from '../types';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { InReviewCardsService } from '../../in-review-cards.service';
+import { DueCardsService } from '../../due-cards.service';
+import { SourcesService } from '../../sources.service';
 import { fetchJson } from '../../utils/fetchJson';
 import { mapCardDatesFromISOStrings } from '../../utils/date-mapping.util';
 import { EditVocabularyCardComponent } from './edit-vocabulary-card/edit-vocabulary-card.component';
@@ -43,6 +45,8 @@ export class EditCardComponent {
   private readonly routePageNumber = injectParams('pageNumber');
   private readonly routeCardId = injectParams('cardId');
   readonly inReviewCardsService = inject(InReviewCardsService);
+  private readonly dueCardsService = inject(DueCardsService);
+  private readonly sourcesService = inject(SourcesService);
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
 
@@ -126,6 +130,7 @@ export class EditCardComponent {
       });
       this.pendingCardEdits.set(undefined);
       this.card.reload();
+      this.sourcesService.refetchSources();
       this.showSnackBar('Flag removed successfully');
     } catch {
       this.showSnackBar('Failed to remove flag', 'error');
@@ -176,6 +181,8 @@ export class EditCardComponent {
     this.pendingCardEdits.set(undefined);
     this.card.reload();
     this.inReviewCardsService.refetchCards();
+    this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
     this.showSnackBar('Card marked as reviewed successfully');
   }
 
@@ -203,8 +210,8 @@ export class EditCardComponent {
       method: 'DELETE',
     });
 
-    if (this.isInReview()) {
-      this.inReviewCardsService.refetchCards();
-    }
+    this.inReviewCardsService.refetchCards();
+    this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
   }
 }

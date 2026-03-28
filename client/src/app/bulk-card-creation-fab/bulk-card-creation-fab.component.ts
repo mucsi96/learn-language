@@ -12,6 +12,8 @@ import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { PageService } from '../page.service';
 import { DailyUsageService } from '../daily-usage.service';
+import { SourcesService } from '../sources.service';
+import { InReviewCardsService } from '../in-review-cards.service';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { fetchJson } from '../utils/fetchJson';
 
@@ -30,6 +32,8 @@ export class BulkCardCreationFabComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
   readonly dailyUsageService = inject(DailyUsageService);
+  private readonly sourcesService = inject(SourcesService);
+  private readonly inReviewCardsService = inject(InReviewCardsService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   readonly totalImagesNeeded = computed(() => {
@@ -89,6 +93,8 @@ export class BulkCardCreationFabComponent {
     );
 
     this.dailyUsageService.reload();
+    this.sourcesService.refetchSources();
+    this.inReviewCardsService.refetchCards();
 
     if (result.succeeded > 0) {
       const regions = selections.map(sel => ({
