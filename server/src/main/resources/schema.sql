@@ -231,9 +231,8 @@ SELECT
     c.last_review,
     c.flagged,
     s.card_type,
-    lr.rating AS last_review_rating,
-    lp.name AS last_review_learning_partner_name,
     rs.review_score,
+    cs.correct_streak,
     CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
         (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '') OR
         (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '') OR
@@ -244,13 +243,14 @@ SELECT
 FROM learn_language.cards c
 JOIN learn_language.sources s ON c.source_id = s.id
 LEFT JOIN LATERAL (
-    SELECT rating, learning_partner_id
-    FROM learn_language.review_logs
-    WHERE card_id = c.id
-    ORDER BY review DESC
-    LIMIT 1
-) lr ON true
-LEFT JOIN learn_language.learning_partners lp ON lr.learning_partner_id = lp.id
+    SELECT COALESCE(MIN(rn) FILTER (WHERE rating < 3) - 1,
+                    MAX(rn))::integer AS correct_streak
+    FROM (
+        SELECT rating, ROW_NUMBER() OVER (ORDER BY review DESC) AS rn
+        FROM learn_language.review_logs
+        WHERE card_id = c.id
+    ) ranked
+) cs ON true
 LEFT JOIN LATERAL (
     SELECT
         CASE

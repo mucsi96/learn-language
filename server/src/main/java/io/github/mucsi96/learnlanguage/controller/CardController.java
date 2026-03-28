@@ -63,7 +63,6 @@ public class CardController {
       @RequestParam(required = false) Integer minReps,
       @RequestParam(required = false) Integer maxReps,
       @RequestParam(required = false) Integer lastReviewDaysAgo,
-      @RequestParam(required = false) Integer lastReviewRating,
       @RequestParam(required = false) Integer minReviewScore,
       @RequestParam(required = false) Integer maxReviewScore,
       @RequestParam(required = false) String cardFilter,
@@ -72,7 +71,7 @@ public class CardController {
 
     final CardTableResponse response = cardService.getCardTable(
         sourceId, startRow, endRow, sortField, sortDirection,
-        readiness, state, minReps, maxReps, lastReviewDaysAgo, lastReviewRating,
+        readiness, state, minReps, maxReps, lastReviewDaysAgo,
         minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy,
         startOfDayUtc(parseTimezone(timezone)));
 
@@ -89,7 +88,6 @@ public class CardController {
       @RequestParam(required = false) Integer minReps,
       @RequestParam(required = false) Integer maxReps,
       @RequestParam(required = false) Integer lastReviewDaysAgo,
-      @RequestParam(required = false) Integer lastReviewRating,
       @RequestParam(required = false) Integer minReviewScore,
       @RequestParam(required = false) Integer maxReviewScore,
       @RequestParam(required = false) String cardFilter,
@@ -98,7 +96,7 @@ public class CardController {
 
     final List<String> ids = cardService.getFilteredCardIds(
         sourceId, readiness, state, minReps, maxReps,
-        lastReviewDaysAgo, lastReviewRating,
+        lastReviewDaysAgo,
         minReviewScore, maxReviewScore, cardFilter, flagged, unhealthy,
         startOfDayUtc(parseTimezone(timezone)));
 

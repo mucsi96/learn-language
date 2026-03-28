@@ -44,20 +44,6 @@ import { injectQueryParams } from '../utils/inject-query-params';
 
 type QuickFilter = 'unhealthy' | 'flagged' | 'draft';
 
-const RATING_LABELS: Record<number, string> = {
-  1: '1 - Again',
-  2: '2 - Hard',
-  3: '3 - Good',
-  4: '4 - Easy',
-};
-
-const RATING_COLORS: Record<number, string> = {
-  1: '#dc3545',
-  2: '#fd7e14',
-  3: '#28a745',
-  4: '#0d6efd',
-};
-
 const STATE_COLORS: Record<string, string> = {
   NEW: '#2196F3',
   LEARNING: '#4CAF50',
@@ -190,7 +176,6 @@ export class CardsTableComponent {
 
   readonly cardFilter = signal<string>('');
   readonly stateFilter = signal<string>('');
-  readonly lastReviewRatingFilter = signal<string>('');
   readonly lastReviewDaysAgoFilter = signal<string>('');
   readonly reviewScoreFilter = signal<string>('');
 
@@ -220,9 +205,6 @@ export class CardsTableComponent {
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())
-          : undefined,
-        lastReviewRating: this.lastReviewRatingFilter()
-          ? Number(this.lastReviewRatingFilter())
           : undefined,
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,
@@ -257,12 +239,6 @@ export class CardsTableComponent {
 
   readonly readinessOptions = CARD_READINESS_VALUES;
   readonly stateOptions = ['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'];
-  readonly ratingOptions = [
-    { value: '1', label: '1 - Again' },
-    { value: '2', label: '2 - Hard' },
-    { value: '3', label: '3 - Good' },
-    { value: '4', label: '4 - Easy' },
-  ];
   readonly lastReviewDaysAgoOptions = [
     { value: '0', label: 'Today' },
     { value: '3', label: 'Last 3 days' },
@@ -326,6 +302,12 @@ export class CardsTableComponent {
       sortable: true,
     },
     {
+      headerName: 'Streak',
+      field: 'correctStreak',
+      width: 100,
+      sortable: true,
+    },
+    {
       headerName: 'Last review',
       field: 'lastReviewDaysAgo',
       width: 150,
@@ -334,30 +316,12 @@ export class CardsTableComponent {
         params.value != null ? formatDaysAgo(params.value) : '',
     },
     {
-      headerName: 'Grade',
-      field: 'lastReviewRating',
-      width: 110,
-      sortable: false,
-      cellRenderer: (params: { value: number | null }) => {
-        if (params.value == null) return '';
-        const label = RATING_LABELS[params.value] ?? String(params.value);
-        return badgeHtml(label, RATING_COLORS[params.value] ?? '#666');
-      },
-    },
-    {
       headerName: 'Score',
       field: 'reviewScore',
       width: 100,
       sortable: true,
       valueFormatter: (params) =>
         params.value != null ? `${params.value}%` : '',
-    },
-    {
-      headerName: 'Person',
-      field: 'lastReviewPerson',
-      width: 120,
-      sortable: false,
-      valueFormatter: (params) => params.value ?? 'Me',
     },
   ];
 
@@ -426,11 +390,6 @@ export class CardsTableComponent {
 
   onStateFilterChange(value: string): void {
     this.stateFilter.set(value);
-    this.refreshGrid();
-  }
-
-  onRatingFilterChange(value: string): void {
-    this.lastReviewRatingFilter.set(value);
     this.refreshGrid();
   }
 
@@ -586,9 +545,6 @@ export class CardsTableComponent {
         state: this.stateFilter() || undefined,
         lastReviewDaysAgo: this.lastReviewDaysAgoFilter()
           ? Number(this.lastReviewDaysAgoFilter())
-          : undefined,
-        lastReviewRating: this.lastReviewRatingFilter()
-          ? Number(this.lastReviewRatingFilter())
           : undefined,
         minReviewScore: reviewScoreRange?.min,
         maxReviewScore: reviewScoreRange?.max,

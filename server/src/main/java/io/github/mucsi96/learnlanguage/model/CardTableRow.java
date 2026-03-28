@@ -15,8 +15,7 @@ public class CardTableRow {
     private String state;
     private Integer reps;
     private Integer lastReviewDaysAgo;
-    private Integer lastReviewRating;
-    private String lastReviewPerson;
+    private Integer correctStreak;
     private Integer reviewScore;
     private Integer sourcePageNumber;
 }

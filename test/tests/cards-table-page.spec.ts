@@ -5,7 +5,6 @@ import {
   createCard,
   createRateLimitSetting,
   createReviewLog,
-  createLearningPartner,
   getGridData,
   withDbConnection,
   STORAGE_DIR,
@@ -159,8 +158,6 @@ test('marks selected cards as known', async ({ page }) => {
 });
 
 test('displays review information in table', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Anna', isActive: true });
-
   await createCard({
     cardId: 'reviewed-card',
     sourceId: 'goethe-a1',
@@ -174,7 +171,6 @@ test('displays review information in table', async ({ page }) => {
   await createReviewLog({
     cardId: 'reviewed-card',
     rating: 3,
-    learningPartnerId: partnerId,
     review: new Date(),
   });
 
@@ -186,8 +182,91 @@ test('displays review information in table', async ({ page }) => {
       expect.objectContaining({
         ID: 'reviewed-card',
         Reviews: '3',
-        Grade: '3 - Good',
-        Person: 'Anna',
+        Streak: '1',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('displays streak of 0 when last review is incorrect', async ({ page }) => {
+  await createCard({
+    cardId: 'incorrect-streak-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'schwer', type: 'ADJECTIVE', translation: { en: 'hard' } },
+    state: 'REVIEW',
+    reps: 2,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'incorrect-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 60000),
+  });
+
+  await createReviewLog({
+    cardId: 'incorrect-streak-card',
+    rating: 1,
+    review: new Date(),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        ID: 'incorrect-streak-card',
+        Streak: '0',
+      }),
+    ]);
+  }).toPass();
+});
+
+test('displays correct streak count for multiple consecutive correct reviews', async ({ page }) => {
+  await createCard({
+    cardId: 'multi-streak-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'gut', type: 'ADJECTIVE', translation: { en: 'good' } },
+    state: 'REVIEW',
+    reps: 4,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 1,
+    review: new Date(Date.now() - 240000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 180000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 4,
+    review: new Date(Date.now() - 120000),
+  });
+
+  await createReviewLog({
+    cardId: 'multi-streak-card',
+    rating: 3,
+    review: new Date(Date.now() - 60000),
+  });
+
+  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows).toEqual([
+      expect.objectContaining({
+        ID: 'multi-streak-card',
+        Streak: '3',
       }),
     ]);
   }).toPass();
@@ -215,56 +294,6 @@ test('navigates to card editing on row click', async ({ page }) => {
   await page.getByRole('row', { name: /click-card/ }).click();
 
   await expect(page).toHaveTitle('Edit Card');
-});
-
-test('filters cards by last review grade', async ({ page }) => {
-  await createCard({
-    cardId: 'easy-card',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: { word: 'einfach', type: 'ADJECTIVE', translation: { en: 'easy' } },
-    state: 'REVIEW',
-    reps: 5,
-    lastReview: new Date(),
-  });
-
-  await createReviewLog({
-    cardId: 'easy-card',
-    rating: 4,
-    review: new Date(),
-  });
-
-  await createCard({
-    cardId: 'hard-card',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 10,
-    data: { word: 'schwer', type: 'ADJECTIVE', translation: { en: 'hard' } },
-    state: 'REVIEW',
-    reps: 2,
-    lastReview: new Date(),
-  });
-
-  await createReviewLog({
-    cardId: 'hard-card',
-    rating: 2,
-    review: new Date(),
-  });
-
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
-
-  const grid = page.getByRole('grid');
-  await expect(async () => {
-    const before = await getGridData(grid);
-    expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['easy-card', 'hard-card']));
-  }).toPass();
-
-  await page.getByLabel('Filter by last review grade').click();
-  await page.getByRole('option', { name: '4 - Easy' }).click();
-
-  await expect(async () => {
-    const after = await getGridData(grid);
-    expect(after.map((r) => r.ID)).toEqual(['easy-card']);
-  }).toPass();
 });
 
 test('filters cards by last review time', async ({ page }) => {

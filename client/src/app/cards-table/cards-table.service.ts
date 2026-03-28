@@ -8,9 +8,8 @@ export type CardTableRow = {
   readiness: CardReadiness;
   state: string;
   reps: number;
+  correctStreak: number | null;
   lastReviewDaysAgo: number | null;
-  lastReviewRating: number | null;
-  lastReviewPerson: string | null;
   reviewScore: number | null;
   sourcePageNumber: number;
 };
@@ -31,7 +30,6 @@ export type CardTableParams = {
   minReps?: number;
   maxReps?: number;
   lastReviewDaysAgo?: number;
-  lastReviewRating?: number;
   minReviewScore?: number;
   maxReviewScore?: number;
   cardFilter?: string;
@@ -55,9 +53,6 @@ export class CardsTableService {
       ...(params.maxReps !== undefined ? { maxReps: params.maxReps } : {}),
       ...(params.lastReviewDaysAgo !== undefined
         ? { lastReviewDaysAgo: params.lastReviewDaysAgo }
-        : {}),
-      ...(params.lastReviewRating !== undefined
-        ? { lastReviewRating: params.lastReviewRating }
         : {}),
       ...(params.minReviewScore !== undefined
         ? { minReviewScore: params.minReviewScore }
@@ -86,7 +81,6 @@ export class CardsTableService {
     readiness?: string;
     state?: string;
     lastReviewDaysAgo?: number;
-    lastReviewRating?: number;
     minReviewScore?: number;
     maxReviewScore?: number;
     cardFilter?: string;
@@ -98,9 +92,6 @@ export class CardsTableService {
       ...(params.state ? { state: params.state } : {}),
       ...(params.lastReviewDaysAgo !== undefined
         ? { lastReviewDaysAgo: params.lastReviewDaysAgo }
-        : {}),
-      ...(params.lastReviewRating !== undefined
-        ? { lastReviewRating: params.lastReviewRating }
         : {}),
       ...(params.minReviewScore !== undefined
         ? { minReviewScore: params.minReviewScore }
