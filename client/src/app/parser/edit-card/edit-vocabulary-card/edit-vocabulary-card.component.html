@@ -54,6 +54,15 @@
       aria-label="Swiss German translation"
     />
   </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>English</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['en']"
+      aria-label="English translation"
+    />
+  </mat-form-field>
 </div>
 <h2>Forms</h2>
 <div class="forms">
@@ -107,6 +116,15 @@
           type="text"
           [(ngModel)]="examplesTranslations['ch'][$index]"
           aria-label="Example in Swiss German"
+        />
+      </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>English</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['en'][$index]"
+          aria-label="Example in English"
         />
       </mat-form-field>
       }
