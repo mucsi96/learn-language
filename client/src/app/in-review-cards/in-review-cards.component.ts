@@ -3,6 +3,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { InReviewCardsService } from '../in-review-cards.service';
+import { DueCardsService } from '../due-cards.service';
+import { SourcesService } from '../sources.service';
 import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
 import { ReviewCardItemComponent } from './review-card-item/review-card-item.component';
 
@@ -21,6 +23,8 @@ import { ReviewCardItemComponent } from './review-card-item/review-card-item.com
 })
 export class InReviewCardsComponent {
   private readonly inReviewCardsService = inject(InReviewCardsService);
+  private readonly dueCardsService = inject(DueCardsService);
+  private readonly sourcesService = inject(SourcesService);
 
   readonly cards = this.inReviewCardsService.cards.value;
   readonly loading = computed(
@@ -45,9 +49,13 @@ export class InReviewCardsComponent {
 
   onCardReviewed(cardId: string) {
     this.reviewedCardIds.update((ids) => [...ids, cardId]);
+    this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
   }
 
   onCardDeleted(cardId: string) {
     this.inReviewCardsService.refetchCards();
+    this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
   }
 }

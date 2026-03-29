@@ -37,6 +37,8 @@ import {
 } from 'ag-grid-community';
 import { injectParams } from '../utils/inject-params';
 import { CardReadiness, CARD_READINESS_VALUES } from '../shared/state/card-readiness';
+import { DueCardsService } from '../due-cards.service';
+import { InReviewCardsService } from '../in-review-cards.service';
 import { CardsTableService, CardTableRow } from './cards-table.service';
 import { SelectAllHeaderComponent } from './select-all-header.component';
 import { SelectionCheckboxComponent } from './selection-checkbox.component';
@@ -111,6 +113,8 @@ export class CardsTableComponent {
   private readonly dialog = inject(MatDialog);
   private readonly bulkCreationService = inject(BulkCardCreationService);
   private readonly sourcesService = inject(SourcesService);
+  private readonly dueCardsService = inject(DueCardsService);
+  private readonly inReviewCardsService = inject(InReviewCardsService);
   private readonly routeSourceId = injectParams<string>('sourceId');
   private readonly filterParam = injectQueryParams<string>('filter');
 
@@ -421,6 +425,8 @@ export class CardsTableComponent {
     this.selectedIds.set([]);
     await this.cardsTableService.refreshCardView();
     this.refreshGrid();
+    this.sourcesService.refetchSources();
+    this.dueCardsService.refetchDueCounts();
   }
 
   async deleteSelected(): Promise<void> {
@@ -445,6 +451,9 @@ export class CardsTableComponent {
     });
     await this.cardsTableService.refreshCardView();
     this.refreshGrid();
+    this.sourcesService.refetchSources();
+    this.dueCardsService.refetchDueCounts();
+    this.inReviewCardsService.refetchCards();
   }
 
   async deleteSelectedAudio(): Promise<void> {
@@ -500,6 +509,8 @@ export class CardsTableComponent {
 
     await this.cardsTableService.refreshCardView();
     this.refreshGrid();
+    this.sourcesService.refetchSources();
+    this.inReviewCardsService.refetchCards();
   }
 
   private toggleSelection(id: string): void {
