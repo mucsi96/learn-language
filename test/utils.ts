@@ -167,6 +167,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
+      cardLimit: 50
     });
     await createDocument({
       sourceId: 'goethe-a1',
