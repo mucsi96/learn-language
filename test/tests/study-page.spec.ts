@@ -13,6 +13,10 @@ import {
   getReviewLogs,
   setupDefaultChatModelSettings,
   setupDefaultImageModelSettings,
+  cleanupDbRecords,
+  createSource,
+  createDocument,
+  getStudySessionCardsBySource,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '@playwright/test';
@@ -1591,4 +1595,82 @@ test('session stats show per-person breakdown when studying with partner', async
   await expect(aliceStats.getByRole('group', { name: 'Good reviews' }).getByLabel('value')).toHaveText('0');
   await expect(aliceStats.getByRole('group', { name: 'Struggled reviews' }).getByLabel('value')).toHaveText('1');
   await expect(aliceStats.getByRole('group', { name: 'Accuracy' })).toContainText('0%');
+});
+
+test('study session respects source card limit', async ({ page }) => {
+  await cleanupDbRecords({ withSources: true });
+  await createSource({
+    id: 'limited-source',
+    name: 'Limited Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
+    cardLimit: 3,
+  });
+  await createDocument({
+    sourceId: 'limited-source',
+    fileName: 'A1_SD1_Wortliste_02.pdf',
+  });
+
+  for (let i = 1; i <= 5; i++) {
+    await createCard({
+      cardId: `card-${i}`,
+      sourceId: 'limited-source',
+      data: { word: `wort${i}`, type: 'NOUN', translation: { hu: `szó${i}` } },
+      due: new Date(Date.now() - i * 86400000),
+    });
+  }
+
+  await page.goto('http://localhost:8180/sources/limited-source/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
+
+  const sessionCards = await getStudySessionCardsBySource('limited-source');
+  expect(sessionCards.length).toBe(3);
+});
+
+test('study session respects source new card limit', async ({ page }) => {
+  await cleanupDbRecords({ withSources: true });
+  await createSource({
+    id: 'new-limited-source',
+    name: 'New Limited Source',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardType: 'VOCABULARY',
+    formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
+    newCardLimit: 2,
+  });
+  await createDocument({
+    sourceId: 'new-limited-source',
+    fileName: 'A1_SD1_Wortliste_02.pdf',
+  });
+
+  for (let i = 1; i <= 3; i++) {
+    await createCard({
+      cardId: `new-card-${i}`,
+      sourceId: 'new-limited-source',
+      data: { word: `neuwort${i}`, type: 'NOUN', translation: { hu: `újszó${i}` } },
+      state: 'NEW',
+      due: new Date(Date.now() - i * 86400000),
+    });
+  }
+
+  for (let i = 1; i <= 2; i++) {
+    await createCard({
+      cardId: `review-card-${i}`,
+      sourceId: 'new-limited-source',
+      data: { word: `altwort${i}`, type: 'NOUN', translation: { hu: `régiszó${i}` } },
+      state: 'REVIEW',
+      reps: 3,
+      due: new Date(Date.now() - i * 86400000),
+    });
+  }
+
+  await page.goto('http://localhost:8180/sources/new-limited-source/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
+
+  const sessionCards = await getStudySessionCardsBySource('new-limited-source');
+  expect(sessionCards.length).toBe(4);
 });

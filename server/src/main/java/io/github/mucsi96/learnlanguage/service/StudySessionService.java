@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -81,10 +82,12 @@ public class StudySessionService {
                     .build();
         }
 
-        final int cardLimit = source.getCardLimit() != null ? source.getCardLimit() : Integer.MAX_VALUE;
-
-        final List<Card> allDueCards = cardRepository.findAll(
-                Specification.where(isDueForSource(sourceId)), PageRequest.of(0, cardLimit, Sort.by("due"))).getContent();
+        final List<Card> allDueCards = source.getCardLimit() != null
+                ? cardRepository.findAll(
+                        Specification.where(isDueForSource(sourceId)),
+                        PageRequest.of(0, source.getCardLimit(), Sort.by("due"))).getContent()
+                : cardRepository.findAll(
+                        Specification.where(isDueForSource(sourceId)), Sort.by("due"));
         final List<Card> dueCards = source.getNewCardLimit() != null
                 ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
                 : allDueCards;
@@ -100,9 +103,10 @@ public class StudySessionService {
                 .cards(new ArrayList<>())
                 .build();
 
+        final int effectiveLimit = source.getCardLimit() != null ? source.getCardLimit() : dueCards.size();
         final List<StudySessionCard> sessionCards = activePartner
-                .map(partner -> assignCardsSmartly(dueCards, session, partner, cardLimit, 0))
-                .orElseGet(() -> assignCardsSolo(dueCards, session, cardLimit, 0));
+                .map(partner -> assignCardsSmartly(dueCards, session, partner, effectiveLimit, 0))
+                .orElseGet(() -> assignCardsSolo(dueCards, session, effectiveLimit, 0));
 
         final StudySession sessionWithCards = session.toBuilder()
                 .cards(new ArrayList<>(sessionCards))
@@ -187,13 +191,11 @@ public class StudySessionService {
         final List<Card> reviewCards = cards.stream()
                 .filter(c -> !"NEW".equals(c.getState()))
                 .toList();
-        final List<Card> newCards = cards.stream()
+        final List<Card> limitedNewCards = cards.stream()
                 .filter(c -> "NEW".equals(c.getState()))
                 .limit(newCardLimit)
                 .toList();
-        return cards.stream()
-                .filter(c -> reviewCards.contains(c) || newCards.contains(c))
-                .toList();
+        return Stream.concat(reviewCards.stream(), limitedNewCards.stream()).toList();
     }
 
     private Map<String, Double> toComplexityMap(List<Object[]> rows) {
@@ -243,23 +245,35 @@ public class StudySessionService {
         studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> {
-                    final Integer cardLimit = session.getSource().getCardLimit();
+                    final Source source = session.getSource();
                     final Set<String> existingCardIds = session.getCards().stream()
                             .map(sc -> sc.getCard().getId())
                             .collect(Collectors.toSet());
 
-                    final List<Card> newCards = cards.stream()
+                    final List<Card> candidateCards = cards.stream()
                             .filter(c -> !existingCardIds.contains(c.getId()))
                             .toList();
 
-                    if (newCards.isEmpty()) {
+                    if (candidateCards.isEmpty()) {
                         return;
                     }
 
-                    final int remainingSlots = cardLimit != null
-                            ? cardLimit - session.getCards().size()
-                            : Integer.MAX_VALUE;
+                    final int remainingSlots = source.getCardLimit() != null
+                            ? source.getCardLimit() - session.getCards().size()
+                            : candidateCards.size();
                     if (remainingSlots <= 0) {
+                        return;
+                    }
+
+                    final List<Card> slotLimitedCards = candidateCards.stream()
+                            .limit(remainingSlots)
+                            .toList();
+
+                    final List<Card> limitedCards = source.getNewCardLimit() != null
+                            ? applyNewCardLimitForSession(slotLimitedCards, session, source.getNewCardLimit())
+                            : slotLimitedCards;
+
+                    if (limitedCards.isEmpty()) {
                         return;
                     }
 
@@ -273,12 +287,20 @@ public class StudySessionService {
                             : Optional.empty();
 
                     final List<StudySessionCard> newSessionCards = activePartner
-                            .map(partner -> assignCardsSmartly(newCards, session, partner, remainingSlots,
+                            .map(partner -> assignCardsSmartly(limitedCards, session, partner, limitedCards.size(),
                                     positionOffset))
-                            .orElseGet(() -> assignCardsSolo(newCards, session, remainingSlots, positionOffset));
+                            .orElseGet(() -> assignCardsSolo(limitedCards, session, limitedCards.size(), positionOffset));
 
                     studySessionCardRepository.saveAll(newSessionCards);
                 });
+    }
+
+    private List<Card> applyNewCardLimitForSession(List<Card> candidates, StudySession session, int newCardLimit) {
+        final long existingNewCardCount = session.getCards().stream()
+                .filter(sc -> "NEW".equals(sc.getCard().getState()))
+                .count();
+        final int remainingNewSlots = (int) Math.max(0, newCardLimit - existingNewCardCount);
+        return applyNewCardLimit(candidates, remainingNewSlots);
     }
 
     @Transactional
