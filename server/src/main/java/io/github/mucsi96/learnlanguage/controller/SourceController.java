@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
+import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
@@ -315,21 +316,22 @@ public class SourceController {
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
       @RequestBody SourceRequest request) {
-    Source existingSource = sourceService.getSourceById(sourceId)
+    final Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-    existingSource.setName(request.getName() != null ? request.getName() : existingSource.getName());
-    existingSource.setSourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType());
-    existingSource.setStartPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage());
-    existingSource.setLanguageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel());
-    existingSource.setCardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType());
-    existingSource.setFormatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType());
-    existingSource.setCardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit());
-    existingSource.setNewCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit());
-    existingSource.setLearningPartner(request.getLearningPartnerId() != null
-        ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
-        : null);
-    sourceService.saveSource(existingSource);
+    final Source updatedSource = existingSource.toBuilder()
+        .name(request.getName() != null ? request.getName() : existingSource.getName())
+        .sourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType())
+        .startPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage())
+        .languageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel())
+        .cardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType())
+        .formatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType())
+        .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
+        .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
+        .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
+        .build();
+
+    sourceService.saveSource(updatedSource);
 
     return ResponseEntity.ok(Map.of("detail", "Source updated successfully"));
   }
@@ -481,6 +483,16 @@ public class SourceController {
       return MediaType.parseMediaType("image/webp");
     }
     return MediaType.APPLICATION_OCTET_STREAM;
+  }
+
+  private LearningPartner resolveLearningPartner(Integer learningPartnerId, Source existingSource) {
+    if (learningPartnerId == null) {
+      return existingSource.getLearningPartner();
+    }
+    if (learningPartnerId == 0) {
+      return null;
+    }
+    return learningPartnerService.getLearningPartnerById(learningPartnerId);
   }
 
   private boolean isImageFile(String filename) {

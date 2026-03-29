@@ -138,7 +138,9 @@ export class SourceDialogComponent {
           : result.formatType || undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
-        learningPartnerId: result.learningPartnerId,
+        learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
+          ? 0
+          : result.learningPartnerId,
       };
       this.dialogRef.close(formData);
     }

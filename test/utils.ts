@@ -1096,8 +1096,8 @@ export async function createLearningPartner(params: { name: string }): Promise<n
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.learning_partners (name, is_active)
-       VALUES ($1, false)
+      `INSERT INTO learn_language.learning_partners (name)
+       VALUES ($1)
        RETURNING id`,
       [name]
     );
