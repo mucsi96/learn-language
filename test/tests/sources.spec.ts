@@ -512,8 +512,8 @@ test('edit dialog shows card limit and new card limit fields with defaults', asy
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  const cardLimitField = page.getByRole('spinbutton', { name: 'Card Limit' });
-  const newCardLimitField = page.getByRole('spinbutton', { name: 'New Card Limit' });
+  const cardLimitField = page.getByRole('spinbutton', { name: 'Card Limit', exact: true });
+  const newCardLimitField = page.getByRole('spinbutton', { name: 'New Card Limit', exact: true });
 
   await expect(cardLimitField).toBeVisible();
   await expect(newCardLimitField).toBeVisible();
@@ -529,14 +529,17 @@ test('can edit card limit and new card limit', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByRole('spinbutton', { name: 'Card Limit' }).fill('30');
-  await page.getByRole('spinbutton', { name: 'New Card Limit' }).fill('10');
+  await page.getByRole('spinbutton', { name: 'Card Limit', exact: true }).fill('30');
+  await page.getByRole('spinbutton', { name: 'New Card Limit', exact: true }).fill('10');
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
 
-  const updatedSource = await getSource('goethe-a1');
-  expect(updatedSource?.cardLimit).toBe(30);
-  expect(updatedSource?.newCardLimit).toBe(10);
+  await expect(async () => {
+    const updatedSource = await getSource('goethe-a1');
+    expect(updatedSource?.cardLimit).toBe(30);
+    expect(updatedSource?.newCardLimit).toBe(10);
+  }).toPass();
+
 });
 

@@ -17,6 +17,7 @@ import {
   createSource,
   createDocument,
   getStudySessionCardsBySource,
+  setupTestRateLimits,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Page } from '@playwright/test';
@@ -1599,6 +1600,7 @@ test('session stats show per-person breakdown when studying with partner', async
 
 test('study session respects source card limit', async ({ page }) => {
   await cleanupDbRecords({ withSources: true });
+  await setupTestRateLimits();
   await createSource({
     id: 'limited-source',
     name: 'Limited Source',
@@ -1632,6 +1634,7 @@ test('study session respects source card limit', async ({ page }) => {
 
 test('study session respects source new card limit', async ({ page }) => {
   await cleanupDbRecords({ withSources: true });
+  await setupTestRateLimits();
   await createSource({
     id: 'new-limited-source',
     name: 'New Limited Source',
