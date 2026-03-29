@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS learn_language.sources (
     format_type character varying(255),
     source_type character varying(255),
     bookmarked_document_id integer,
+    card_limit integer,
+    new_card_limit integer,
     CONSTRAINT sources_pkey PRIMARY KEY (id)
 );
 
