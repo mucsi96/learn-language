@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "sources", schema = "learn_language")
@@ -54,4 +55,9 @@ public class Source {
 
   @Column(name = "new_card_limit")
   private Integer newCardLimit;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "learning_partner_id")
+  @ToString.Exclude
+  private LearningPartner learningPartner;
 }

@@ -4,6 +4,7 @@ import {
   createLearningPartner,
   getLearningPartners,
   getReviewLogs,
+  setSourceLearningPartner,
 } from '../utils';
 
 test('learning partners settings page displays empty state', async ({ page }) => {
@@ -24,7 +25,6 @@ test('can add a learning partner', async ({ page }) => {
   const partners = await getLearningPartners();
   expect(partners.length).toBe(1);
   expect(partners[0].name).toBe('Alice');
-  expect(partners[0].isActive).toBe(false);
 });
 
 test('can add multiple learning partners', async ({ page }) => {
@@ -40,40 +40,6 @@ test('can add multiple learning partners', async ({ page }) => {
 
   const partners = await getLearningPartners();
   expect(partners.length).toBe(2);
-});
-
-test('can activate a learning partner', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: false });
-
-  await page.goto('http://localhost:8180/settings/learning-partners');
-
-  await page.getByRole('switch', { name: "Activate Alice" }).click();
-
-  await expect(page.getByRole('switch', { name: "Deactivate Alice" })).toBeVisible();
-
-  const partners = await getLearningPartners();
-  expect(partners[0].isActive).toBe(true);
-});
-
-test('activating one partner deactivates others', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
-  await createLearningPartner({ name: 'Bob', isActive: false });
-
-  await page.goto('http://localhost:8180/settings/learning-partners');
-
-  await expect(page.getByRole('switch', { name: 'Deactivate Alice' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Activate Bob' })).toBeVisible();
-
-  await page.getByRole('switch', { name: 'Activate Bob' }).click();
-
-  await expect(page.getByRole('switch', { name: 'Activate Alice' })).toBeVisible();
-  await expect(page.getByRole('switch', { name: 'Deactivate Bob' })).toBeVisible();
-
-  const partners = await getLearningPartners();
-  const alice = partners.find(p => p.name === 'Alice');
-  const bob = partners.find(p => p.name === 'Bob');
-  expect(alice?.isActive).toBe(false);
-  expect(bob?.isActive).toBe(true);
 });
 
 test('can delete a learning partner', async ({ page }) => {
@@ -93,8 +59,9 @@ test('can delete a learning partner', async ({ page }) => {
   expect(partners.length).toBe(0);
 });
 
-test('study page shows turn indicator when partner is active', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
+test('study page shows turn indicator when source has learning partner', async ({ page }) => {
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
   await createCard({
     cardId: 'test-card',
     sourceId: 'goethe-a1',
@@ -113,7 +80,8 @@ test('study page shows turn indicator when partner is active', async ({ page }) 
 });
 
 test('study page hides turn indicator when card is revealed', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
   await createCard({
     cardId: 'test-card',
     sourceId: 'goethe-a1',
@@ -137,8 +105,9 @@ test('study page hides turn indicator when card is revealed', async ({ page }) =
   await expect(turnIndicator).not.toBeVisible();
 });
 
-test('study page alternates between user and active partner', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
+test('study page alternates between user and source partner', async ({ page }) => {
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
 
   await createCard({
     cardId: 'card1',
@@ -173,7 +142,7 @@ test('study page alternates between user and active partner', async ({ page }) =
   await expect(turnIndicator).toContainText('Alice');
 });
 
-test('study page does not show turn indicator when no partner is active', async ({ page }) => {
+test('study page does not show turn indicator when source has no partner', async ({ page }) => {
   await createCard({
     cardId: 'test-card',
     sourceId: 'goethe-a1',
@@ -192,7 +161,8 @@ test('study page does not show turn indicator when no partner is active', async 
 });
 
 test('review log records learning partner when grading', async ({ page }) => {
-  const aliceId = await createLearningPartner({ name: 'Alice', isActive: true });
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
 
   await createCard({
     cardId: 'card1',
@@ -234,7 +204,7 @@ test('review log records learning partner when grading', async ({ page }) => {
   expect(reviewLogs[1].learningPartnerId).toBe(aliceId);
 });
 
-test('review log has null learning partner when no partner is active', async ({ page }) => {
+test('review log has null learning partner when source has no partner', async ({ page }) => {
   await createCard({
     cardId: 'test-card',
     sourceId: 'goethe-a1',

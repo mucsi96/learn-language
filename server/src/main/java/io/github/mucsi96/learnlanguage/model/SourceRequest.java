@@ -20,4 +20,5 @@ public class SourceRequest {
     private SourceFormatType formatType;
     private Integer cardLimit;
     private Integer newCardLimit;
+    private Integer learningPartnerId;
 }

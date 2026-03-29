@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('http://localhost:8180/sources');
@@ -541,5 +541,60 @@ test('can edit card limit and new card limit', async ({ page }) => {
     expect(updatedSource?.newCardLimit).toBe(10);
   }).toPass();
 
+});
+
+test('can assign a learning partner to a source', async ({ page }) => {
+  await createLearningPartner({ name: 'Alice' });
+
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+
+  await page.getByLabel('Learning Partner').click();
+  await page.getByRole('option', { name: 'Alice' }).click();
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const updatedSource = await getSource('goethe-a1');
+    expect(updatedSource?.learningPartnerId).not.toBeNull();
+  }).toPass();
+});
+
+test('can remove a learning partner from a source', async ({ page }) => {
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await page.getByLabel('Learning Partner').click();
+  await page.getByRole('option', { name: 'Alice' }).click();
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const source = await getSource('goethe-a1');
+    expect(source?.learningPartnerId).toBe(aliceId);
+  }).toPass();
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await page.getByLabel('Learning Partner').click();
+  await page.getByRole('option', { name: 'None' }).click();
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const updatedSource = await getSource('goethe-a1');
+    expect(updatedSource?.learningPartnerId).toBeNull();
+  }).toPass();
 });
 

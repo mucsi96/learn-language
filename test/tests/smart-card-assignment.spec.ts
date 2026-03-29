@@ -5,11 +5,13 @@ import {
   createReviewLog,
   getStudySessionCards,
   getStudySessionCardsBySource,
+  setSourceLearningPartner,
   withDbConnection,
 } from '../utils';
 
 test('smart assignment: equal distribution between user and partner', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({
@@ -50,7 +52,8 @@ test('smart assignment: equal distribution between user and partner', async ({ p
 });
 
 test('smart assignment: odd number of cards gives extra card to user', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({
@@ -85,7 +88,8 @@ test('smart assignment: odd number of cards gives extra card to user', async ({ 
 });
 
 test('smart assignment: user gets first card, partner gets second', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({
@@ -113,7 +117,8 @@ test('smart assignment: user gets first card, partner gets second', async ({ pag
 });
 
 test('smart assignment: card with higher user complexity assigned to user', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
@@ -169,7 +174,8 @@ test('smart assignment: card with higher user complexity assigned to user', asyn
 });
 
 test('smart assignment: card reviewed only by user assigned to partner', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
@@ -213,7 +219,8 @@ test('smart assignment: card reviewed only by user assigned to partner', async (
 });
 
 test('smart assignment: elapsed days increases complexity', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const fiveDaysAgo = new Date(Date.now() - 5 * 86400000);
@@ -272,7 +279,8 @@ test('smart assignment: elapsed days increases complexity', async ({ page }) => 
 test('smart assignment: primary rule (equal distribution) overrides secondary preference', async ({
   page,
 }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
 
@@ -355,7 +363,8 @@ test('smart assignment: no partner means no smart assignment', async ({ page }) 
 });
 
 test('smart assignment: new cards without reviews distributed evenly', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   for (let i = 1; i <= 6; i++) {
@@ -388,7 +397,8 @@ test('smart assignment: new cards without reviews distributed evenly', async ({ 
 });
 
 test('smart assignment: single card goes to user', async ({ page }) => {
-  await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({
@@ -408,7 +418,8 @@ test('smart assignment: single card goes to user', async ({ page }) => {
 });
 
 test('smart assignment: complexity combines rating and elapsed days', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
@@ -467,7 +478,8 @@ test('smart assignment: complexity combines rating and elapsed days', async ({ p
 test('smart assignment: hardest cards for each person at front of their queue', async ({
   page,
 }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const fiveDaysAgo = new Date(Date.now() - 5 * 86400000);
@@ -531,7 +543,8 @@ test('smart assignment: hardest cards for each person at front of their queue', 
 test('smart assignment: uses first grading of the day instead of last corrected review', async ({
   page,
 }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const twoDaysAgoMorning = new Date(twoDaysAgo);
@@ -599,7 +612,8 @@ test('smart assignment: session limited to configured card limit', async ({ page
   await withDbConnection(async (client) => {
     await client.query(`UPDATE learn_language.sources SET card_limit = 50 WHERE id = 'goethe-a1'`);
   });
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const tenDaysAgo = new Date(Date.now() - 10 * 86400000);
 
@@ -650,7 +664,8 @@ test('smart assignment: session limited to configured card limit', async ({ page
 });
 
 test('smart assignment: new card assignee swaps after grading', async ({ page }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({
@@ -689,7 +704,8 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
 test('smart assignment: learning card assignee does not swap after grading', async ({
   page,
 }) => {
-  const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
 
   await createCard({

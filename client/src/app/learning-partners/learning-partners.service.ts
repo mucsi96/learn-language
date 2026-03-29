@@ -5,12 +5,10 @@ import { fetchJson } from '../utils/fetchJson';
 export interface LearningPartner {
   id: number;
   name: string;
-  isActive: boolean;
 }
 
 export interface LearningPartnerRequest {
   name: string;
-  isActive?: boolean;
 }
 
 @Injectable({
@@ -64,12 +62,5 @@ export class LearningPartnersService {
       method: 'DELETE',
     });
     this.partners.reload();
-  }
-
-  async setActivePartner(partner: LearningPartner): Promise<void> {
-    await this.updatePartner(partner.id, {
-      name: partner.name,
-      isActive: !partner.isActive,
-    });
   }
 }

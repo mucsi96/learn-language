@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createLearningPartner } from '../utils';
+import { createCard, createLearningPartner, setSourceLearningPartner } from '../utils';
 
 test('export struggled cards button appears on celebration page when there are struggled cards', async ({ page }) => {
   await createCard({
@@ -259,7 +259,8 @@ test('export button not visible on study page return when no struggled cards', a
 });
 
 test('export struggled cards with partner mode triggers PDF download', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
 
   await createCard({
     cardId: 'partner-pdf-card-1',

@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -28,7 +27,6 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSlideToggleModule,
     MatListModule,
     MatTooltipModule,
     MatDialogModule,
@@ -60,10 +58,6 @@ export class LearningPartnersComponent {
     } finally {
       this.isAdding.set(false);
     }
-  }
-
-  async toggleActive(partner: LearningPartner): Promise<void> {
-    await this.service.setActivePartner(partner);
   }
 
   async deletePartner(partner: LearningPartner): Promise<void> {

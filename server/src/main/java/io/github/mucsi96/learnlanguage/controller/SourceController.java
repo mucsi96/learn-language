@@ -43,8 +43,8 @@ import io.github.mucsi96.learnlanguage.service.CardService.SourceStats;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
+import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
-import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
@@ -65,6 +65,7 @@ public class SourceController {
   private final DocumentRepository documentRepository;
   private final ExtractionRegionRepository extractionRegionRepository;
   private final KnownWordService knownWordService;
+  private final LearningPartnerService learningPartnerService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -103,6 +104,7 @@ public class SourceController {
           .formatType(source.getFormatType())
           .cardLimit(source.getCardLimit())
           .newCardLimit(source.getNewCardLimit())
+          .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
           .build();
     }).collect(Collectors.toList());
   }
@@ -289,6 +291,9 @@ public class SourceController {
         .formatType(request.getFormatType())
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
+        .learningPartner(request.getLearningPartnerId() != null
+            ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
+            : null)
         .build();
 
     sourceService.saveSource(source);
@@ -313,18 +318,17 @@ public class SourceController {
     Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-    Source updates = Source.builder()
-        .name(request.getName())
-        .sourceType(request.getSourceType())
-        .startPage(request.getStartPage())
-        .languageLevel(request.getLanguageLevel())
-        .cardType(request.getCardType())
-        .formatType(request.getFormatType())
-        .cardLimit(request.getCardLimit())
-        .newCardLimit(request.getNewCardLimit())
-        .build();
-
-    BeanUtils.copyNonNullProperties(updates, existingSource);
+    existingSource.setName(request.getName() != null ? request.getName() : existingSource.getName());
+    existingSource.setSourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType());
+    existingSource.setStartPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage());
+    existingSource.setLanguageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel());
+    existingSource.setCardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType());
+    existingSource.setFormatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType());
+    existingSource.setCardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit());
+    existingSource.setNewCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit());
+    existingSource.setLearningPartner(request.getLearningPartnerId() != null
+        ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
+        : null);
     sourceService.saveSource(existingSource);
 
     return ResponseEntity.ok(Map.of("detail", "Source updated successfully"));
