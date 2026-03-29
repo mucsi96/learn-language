@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createCardsWithStates } from '../utils';
+import { createCard, createCardsWithStates, createStudySession } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 
 test('displays welcome message', async ({ page }) => {
@@ -71,6 +71,32 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
   await expect(goetheA1Card.getByTitle('Learning', { exact: true })).toContainText('15');
   await expect(goetheA1Card.getByTitle('Review', { exact: true })).toContainText('10');
   await expect(goetheA1Card.getByTitle('Relearning', { exact: true })).toContainText('5');
+});
+
+test('due card counts are independent per source when study session exists', async ({ page }) => {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+
+  await createCardsWithStates('goethe-a1', [
+    { state: 'NEW', count: 3, due_date: yesterday },
+  ]);
+
+  await createCardsWithStates('goethe-a2', [
+    { state: 'NEW', count: 2, due_date: yesterday },
+    { state: 'REVIEW', count: 1, due_date: yesterday },
+  ]);
+
+  const a1CardIds = Array.from({ length: 3 }, (_, i) => `goethe-a1_new_${i}`);
+  await createStudySession({ sourceId: 'goethe-a1', cardIds: a1CardIds });
+
+  await page.goto('http://localhost:8180');
+
+  const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
+  await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('3');
+
+  const goetheA2Card = page.getByRole('heading', { name: 'Goethe A2' });
+  await expect(goetheA2Card.getByTitle('New', { exact: true })).toContainText('2');
+  await expect(goetheA2Card.getByTitle('Review', { exact: true })).toContainText('1');
 });
 
 test('in review cards not on home page', async ({ page }) => {
