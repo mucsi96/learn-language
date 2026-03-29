@@ -346,7 +346,7 @@ test('preserves last used document on revisit', async ({ page }) => {
 
   await page.getByLabel('Document', { exact: true }).click();
   await page.getByRole('option', { name: 'Goethe-Zertifikat_A2_Wortliste.pdf' }).click();
-  await expect(page.getByText('die Adresse')).toBeVisible();
+  await expect(page.getByText('GOETHE-ZERTIFIKAT A2')).toBeVisible();
 
   await navigateToSource(page, 'Goethe A1');
   await expect(page.getByText('DEUTSCHPRÜFUNG FÜR')).toBeVisible();

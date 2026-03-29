@@ -223,9 +223,10 @@ export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: str
   Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
 };
 
-export const DICTIONARY_LOOKUPS: Record<string, Record<string, { translation: string; germanExample: string; translatedExample: string; forms: string[] }>> = {
+export const DICTIONARY_LOOKUPS: Record<string, Record<string, { normalizedWord: string; translation: string; germanExample: string; translatedExample: string; forms: string[] }>> = {
   hungarian: {
     fahren: {
+      normalizedWord: 'abfahren',
       translation: 'elindulni, elhagyni',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'Elindulunk.',
@@ -234,6 +235,7 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, { translation: st
   },
   english: {
     fahren: {
+      normalizedWord: 'abfahren',
       translation: 'to depart, to leave',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'We depart.',

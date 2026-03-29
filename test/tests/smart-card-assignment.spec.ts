@@ -700,15 +700,19 @@ test('smart assignment: learning card assignee does not swap after grading', asy
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
-  await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
-  const afterFirstGrade = await getStudySessionCardsBySource('goethe-a1');
-  expect(afterFirstGrade[0].learningPartnerId).toBe(partnerId);
+  await expect(async () => {
+    const updatedCards = await getStudySessionCardsBySource('goethe-a1');
+    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
+    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+  }).toPass();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
-  await page.getByRole('article', { name: 'Flashcard' }).waitFor();
 
-  const afterSecondGrade = await getStudySessionCardsBySource('goethe-a1');
-  expect(afterSecondGrade[0].learningPartnerId).toBe(partnerId);
+  await expect(async () => {
+    const updatedCards = await getStudySessionCardsBySource('goethe-a1');
+    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
+    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+  }).toPass();
 });
