@@ -81,12 +81,13 @@ public class StudySessionService {
                     .build();
         }
 
-        final int cardLimit = source.getCardLimit();
-        final int newCardLimit = source.getNewCardLimit();
+        final int cardLimit = source.getCardLimit() != null ? source.getCardLimit() : Integer.MAX_VALUE;
 
         final List<Card> allDueCards = cardRepository.findAll(
                 Specification.where(isDueForSource(sourceId)), PageRequest.of(0, cardLimit, Sort.by("due"))).getContent();
-        final List<Card> dueCards = applyNewCardLimit(allDueCards, newCardLimit);
+        final List<Card> dueCards = source.getNewCardLimit() != null
+                ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
+                : allDueCards;
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
 
         final String sessionId = UUID.randomUUID().toString();
@@ -242,7 +243,7 @@ public class StudySessionService {
         studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> {
-                    final int cardLimit = session.getSource().getCardLimit();
+                    final Integer cardLimit = session.getSource().getCardLimit();
                     final Set<String> existingCardIds = session.getCards().stream()
                             .map(sc -> sc.getCard().getId())
                             .collect(Collectors.toSet());
@@ -255,7 +256,9 @@ public class StudySessionService {
                         return;
                     }
 
-                    final int remainingSlots = cardLimit - session.getCards().size();
+                    final int remainingSlots = cardLimit != null
+                            ? cardLimit - session.getCards().size()
+                            : Integer.MAX_VALUE;
                     if (remainingSlots <= 0) {
                         return;
                     }

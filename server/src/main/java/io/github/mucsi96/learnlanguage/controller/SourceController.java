@@ -287,8 +287,8 @@ public class SourceController {
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())
-        .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : 50)
-        .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : 50)
+        .cardLimit(request.getCardLimit())
+        .newCardLimit(request.getNewCardLimit())
         .build();
 
     sourceService.saveSource(source);

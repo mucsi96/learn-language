@@ -49,11 +49,9 @@ public class Source {
   @Column(name = "format_type")
   private SourceFormatType formatType;
 
-  @Builder.Default
-  @Column(name = "card_limit", nullable = false)
-  private Integer cardLimit = 50;
+  @Column(name = "card_limit")
+  private Integer cardLimit;
 
-  @Builder.Default
-  @Column(name = "new_card_limit", nullable = false)
-  private Integer newCardLimit = 50;
+  @Column(name = "new_card_limit")
+  private Integer newCardLimit;
 }

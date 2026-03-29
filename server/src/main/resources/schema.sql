@@ -47,8 +47,8 @@ ALTER TABLE learn_language.cards ADD COLUMN IF NOT EXISTS flagged BOOLEAN NOT NU
 
 ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS bookmarked_document_id integer;
 
-ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS card_limit integer NOT NULL DEFAULT 50;
-ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS new_card_limit integer NOT NULL DEFAULT 50;
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS card_limit integer;
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS new_card_limit integer;
 
 ALTER TABLE learn_language.sources DROP CONSTRAINT IF EXISTS sources_bookmarked_document_fkey;
 ALTER TABLE learn_language.sources
