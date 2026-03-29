@@ -12,6 +12,7 @@ import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
 import { PageService } from '../page.service';
 import { DailyUsageService } from '../daily-usage.service';
+import { DueCardsService } from '../due-cards.service';
 import { SourcesService } from '../sources.service';
 import { InReviewCardsService } from '../in-review-cards.service';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
@@ -32,6 +33,7 @@ export class BulkCardCreationFabComponent {
   readonly dialog = inject(MatDialog);
   readonly snackBar = inject(MatSnackBar);
   readonly dailyUsageService = inject(DailyUsageService);
+  private readonly dueCardsService = inject(DueCardsService);
   private readonly sourcesService = inject(SourcesService);
   private readonly inReviewCardsService = inject(InReviewCardsService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
@@ -93,6 +95,7 @@ export class BulkCardCreationFabComponent {
     );
 
     this.dailyUsageService.reload();
+    this.dueCardsService.refetchDueCounts();
     this.sourcesService.refetchSources();
     this.inReviewCardsService.refetchCards();
 
