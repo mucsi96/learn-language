@@ -12,6 +12,8 @@ import { Card, CardType } from '../parser/types';
 import { CardTypeRegistry } from '../cardTypes/card-type.registry';
 import { VoiceConfigService } from '../voice-config/voice-config.service';
 import { DailyUsageService } from '../daily-usage.service';
+import { DueCardsService } from '../due-cards.service';
+import { SourcesService } from '../sources.service';
 import { fetchJson } from '../utils/fetchJson';
 import { HttpClient } from '@angular/common/http';
 import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
@@ -31,6 +33,8 @@ export class BatchAudioCreationFabComponent {
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly voiceConfigService = inject(VoiceConfigService);
   readonly dailyUsageService = inject(DailyUsageService);
+  private readonly dueCardsService = inject(DueCardsService);
+  private readonly sourcesService = inject(SourcesService);
   readonly refreshTrigger = input(0);
   readonly cards = resource<Card[], unknown>({
     params: () => this.refreshTrigger(),
@@ -125,6 +129,8 @@ export class BatchAudioCreationFabComponent {
         }
 
         this.cards.reload();
+        this.dueCardsService.refetchDueCounts();
+        this.sourcesService.refetchSources();
         this.snackBar.open(
           `Audio generated successfully for ${results.successful} card${results.successful === 1 ? '' : 's'}!`,
           'Close',
