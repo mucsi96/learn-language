@@ -43,6 +43,8 @@ export async function createSource(params: {
   sourceType?: string;
   bookmarkedPage?: number | null;
   bookmarkedDocumentId?: number | null;
+  cardLimit?: number | null;
+  newCardLimit?: number | null;
 }): Promise<void> {
   const {
     id,
@@ -54,13 +56,15 @@ export async function createSource(params: {
     sourceType = 'PDF',
     bookmarkedPage = null,
     bookmarkedDocumentId = null,
+    cardLimit = null,
+    newCardLimit = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId]
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit]
     );
   });
 }
@@ -112,6 +116,8 @@ export async function getSource(id: string): Promise<{
   sourceType: string | null;
   bookmarkedPage: number | null;
   bookmarkedDocumentId: number | null;
+  cardLimit: number | null;
+  newCardLimit: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
@@ -119,7 +125,9 @@ export async function getSource(id: string): Promise<{
               language_level as "languageLevel", card_type as "cardType",
               format_type as "formatType", source_type as "sourceType",
               bookmarked_page as "bookmarkedPage",
-              bookmarked_document_id as "bookmarkedDocumentId"
+              bookmarked_document_id as "bookmarkedDocumentId",
+              card_limit as "cardLimit",
+              new_card_limit as "newCardLimit"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]
@@ -159,6 +167,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
+      cardLimit: 50
     });
     await createDocument({
       sourceId: 'goethe-a1',

@@ -101,6 +101,8 @@ public class SourceController {
           .readinessCounts(stats.getReadinessCounts())
           .languageLevel(source.getLanguageLevel())
           .formatType(source.getFormatType())
+          .cardLimit(source.getCardLimit())
+          .newCardLimit(source.getNewCardLimit())
           .build();
     }).collect(Collectors.toList());
   }
@@ -285,6 +287,8 @@ public class SourceController {
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())
+        .cardLimit(request.getCardLimit())
+        .newCardLimit(request.getNewCardLimit())
         .build();
 
     sourceService.saveSource(source);
@@ -316,6 +320,8 @@ public class SourceController {
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())
+        .cardLimit(request.getCardLimit())
+        .newCardLimit(request.getNewCardLimit())
         .build();
 
     BeanUtils.copyNonNullProperties(updates, existingSource);

@@ -48,4 +48,10 @@ public class Source {
   @Enumerated(EnumType.STRING)
   @Column(name = "format_type")
   private SourceFormatType formatType;
+
+  @Column(name = "card_limit")
+  private Integer cardLimit;
+
+  @Column(name = "new_card_limit")
+  private Integer newCardLimit;
 }

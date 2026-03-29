@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS learn_language.sources (
     format_type character varying(255),
     source_type character varying(255),
     bookmarked_document_id integer,
+    card_limit integer,
+    new_card_limit integer,
     CONSTRAINT sources_pkey PRIMARY KEY (id)
 );
 
@@ -46,6 +48,9 @@ CREATE TABLE IF NOT EXISTS learn_language.cards (
 ALTER TABLE learn_language.cards ADD COLUMN IF NOT EXISTS flagged BOOLEAN NOT NULL DEFAULT false;
 
 ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS bookmarked_document_id integer;
+
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS card_limit integer;
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS new_card_limit integer;
 
 ALTER TABLE learn_language.sources DROP CONSTRAINT IF EXISTS sources_bookmarked_document_fkey;
 ALTER TABLE learn_language.sources

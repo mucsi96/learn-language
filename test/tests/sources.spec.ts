@@ -504,3 +504,42 @@ test('can create a grammar source with image collection', async ({ page }) => {
   expect(createdSource?.sourceType).toBe('IMAGES');
 });
 
+test('edit dialog shows card limit and new card limit fields with defaults', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+
+  const cardLimitField = page.getByRole('spinbutton', { name: 'Card Limit', exact: true });
+  const newCardLimitField = page.getByRole('spinbutton', { name: 'New Card Limit', exact: true });
+
+  await expect(cardLimitField).toBeVisible();
+  await expect(newCardLimitField).toBeVisible();
+  await expect(cardLimitField).toHaveValue('50');
+  await expect(newCardLimitField).toHaveValue('50');
+});
+
+test('can edit card limit and new card limit', async ({ page }) => {
+  await page.goto('http://localhost:8180/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+
+  await page.getByRole('spinbutton', { name: 'Card Limit', exact: true }).fill('30');
+  await page.getByRole('spinbutton', { name: 'New Card Limit', exact: true }).fill('10');
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const updatedSource = await getSource('goethe-a1');
+    expect(updatedSource?.cardLimit).toBe(30);
+    expect(updatedSource?.newCardLimit).toBe(10);
+  }).toPass();
+
+});
+

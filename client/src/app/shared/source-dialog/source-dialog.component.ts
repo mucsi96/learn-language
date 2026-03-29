@@ -60,6 +60,8 @@ export class SourceDialogComponent {
     languageLevel: LanguageLevel | '';
     cardType: CardType | '';
     formatType: SourceFormatType | '';
+    cardLimit: number;
+    newCardLimit: number;
   }>({
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
@@ -69,6 +71,8 @@ export class SourceDialogComponent {
     languageLevel: this.data.source?.languageLevel ?? '',
     cardType: this.data.source?.cardType ?? '',
     formatType: this.data.source?.formatType ?? '',
+    cardLimit: this.data.source?.cardLimit ?? 50,
+    newCardLimit: this.data.source?.newCardLimit ?? 50,
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.id);
@@ -77,6 +81,8 @@ export class SourceDialogComponent {
     required(path.languageLevel);
     required(path.sourceType);
     min(path.startPage, 1);
+    min(path.cardLimit, 1);
+    min(path.newCardLimit, 1);
     validate(path.formatType, (ctx) => {
       const ct = ctx.valueOf(path.cardType);
       if (ct !== 'speech' && ct !== 'grammar' && !ctx.value()) {
@@ -125,6 +131,8 @@ export class SourceDialogComponent {
         formatType: result.cardType === 'speech' || result.cardType === 'grammar'
           ? 'flowingText'
           : result.formatType || undefined,
+        cardLimit: result.cardLimit,
+        newCardLimit: result.newCardLimit,
       };
       this.dialogRef.close(formData);
     }

@@ -5,6 +5,7 @@ import {
   createReviewLog,
   getStudySessionCards,
   getStudySessionCardsBySource,
+  withDbConnection,
 } from '../utils';
 
 test('smart assignment: equal distribution between user and partner', async ({ page }) => {
@@ -593,8 +594,11 @@ test('smart assignment: uses first grading of the day instead of last corrected 
   expect(correctedCard?.learningPartnerId).toBeNull();
 });
 
-test('smart assignment: session limited to 50 most complex cards', async ({ page }) => {
+test('smart assignment: session limited to configured card limit', async ({ page }) => {
   await page.reload();
+  await withDbConnection(async (client) => {
+    await client.query(`UPDATE learn_language.sources SET card_limit = 50 WHERE id = 'goethe-a1'`);
+  });
   const partnerId = await createLearningPartner({ name: 'Partner', isActive: true });
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000);
   const tenDaysAgo = new Date(Date.now() - 10 * 86400000);

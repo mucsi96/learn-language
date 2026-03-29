@@ -127,6 +127,24 @@
       />
     </mat-form-field>
     }
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Card Limit</mat-label>
+      <input
+        matInput
+        type="number"
+        [formField]="sourceForm.cardLimit"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>New Card Limit</mat-label>
+      <input
+        matInput
+        type="number"
+        [formField]="sourceForm.newCardLimit"
+      />
+    </mat-form-field>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
