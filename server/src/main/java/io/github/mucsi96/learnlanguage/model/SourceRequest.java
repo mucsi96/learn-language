@@ -18,4 +18,6 @@ public class SourceRequest {
     private LanguageLevel languageLevel;
     private CardType cardType;
     private SourceFormatType formatType;
+    private Integer cardLimit;
+    private Integer newCardLimit;
 }

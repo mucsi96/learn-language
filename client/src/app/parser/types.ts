@@ -231,6 +231,8 @@ export type Source = {
   languageLevel?: LanguageLevel;
   cardType?: CardType;
   formatType?: SourceFormatType;
+  cardLimit?: number;
+  newCardLimit?: number;
 };
 
 export type WordList = {

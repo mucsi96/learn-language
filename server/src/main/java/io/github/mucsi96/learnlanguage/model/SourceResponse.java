@@ -23,4 +23,6 @@ public class SourceResponse {
     private Map<String, Integer> readinessCounts;
     private LanguageLevel languageLevel;
     private SourceFormatType formatType;
+    private Integer cardLimit;
+    private Integer newCardLimit;
 }

@@ -50,7 +50,6 @@ import static io.github.mucsi96.learnlanguage.repository.specification.StudySess
 public class StudySessionService {
 
     private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
-    private static final int SESSION_CARD_LIMIT = 50;
 
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
@@ -82,8 +81,12 @@ public class StudySessionService {
                     .build();
         }
 
-        final List<Card> dueCards = cardRepository.findAll(
-                Specification.where(isDueForSource(sourceId)), PageRequest.of(0, SESSION_CARD_LIMIT, Sort.by("due"))).getContent();
+        final int cardLimit = source.getCardLimit();
+        final int newCardLimit = source.getNewCardLimit();
+
+        final List<Card> allDueCards = cardRepository.findAll(
+                Specification.where(isDueForSource(sourceId)), PageRequest.of(0, cardLimit, Sort.by("due"))).getContent();
+        final List<Card> dueCards = applyNewCardLimit(allDueCards, newCardLimit);
         final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
 
         final String sessionId = UUID.randomUUID().toString();
@@ -97,8 +100,8 @@ public class StudySessionService {
                 .build();
 
         final List<StudySessionCard> sessionCards = activePartner
-                .map(partner -> assignCardsSmartly(dueCards, session, partner, SESSION_CARD_LIMIT, 0))
-                .orElseGet(() -> assignCardsSolo(dueCards, session, SESSION_CARD_LIMIT, 0));
+                .map(partner -> assignCardsSmartly(dueCards, session, partner, cardLimit, 0))
+                .orElseGet(() -> assignCardsSolo(dueCards, session, cardLimit, 0));
 
         final StudySession sessionWithCards = session.toBuilder()
                 .cards(new ArrayList<>(sessionCards))
@@ -179,6 +182,19 @@ public class StudySessionService {
                 .toList();
     }
 
+    private List<Card> applyNewCardLimit(List<Card> cards, int newCardLimit) {
+        final List<Card> reviewCards = cards.stream()
+                .filter(c -> !"NEW".equals(c.getState()))
+                .toList();
+        final List<Card> newCards = cards.stream()
+                .filter(c -> "NEW".equals(c.getState()))
+                .limit(newCardLimit)
+                .toList();
+        return cards.stream()
+                .filter(c -> reviewCards.contains(c) || newCards.contains(c))
+                .toList();
+    }
+
     private Map<String, Double> toComplexityMap(List<Object[]> rows) {
         return rows.stream()
                 .collect(Collectors.toMap(
@@ -226,6 +242,7 @@ public class StudySessionService {
         studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> {
+                    final int cardLimit = session.getSource().getCardLimit();
                     final Set<String> existingCardIds = session.getCards().stream()
                             .map(sc -> sc.getCard().getId())
                             .collect(Collectors.toSet());
@@ -238,7 +255,7 @@ public class StudySessionService {
                         return;
                     }
 
-                    final int remainingSlots = SESSION_CARD_LIMIT - session.getCards().size();
+                    final int remainingSlots = cardLimit - session.getCards().size();
                     if (remainingSlots <= 0) {
                         return;
                     }
