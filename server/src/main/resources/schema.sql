@@ -211,6 +211,14 @@ CREATE TABLE IF NOT EXISTS learn_language.extraction_regions (
 
 ALTER TABLE learn_language.extraction_regions ADD COLUMN IF NOT EXISTS document_id integer;
 
+ALTER TABLE learn_language.sources ADD COLUMN IF NOT EXISTS learning_partner_id integer;
+ALTER TABLE learn_language.sources DROP CONSTRAINT IF EXISTS sources_learning_partner_fkey;
+ALTER TABLE learn_language.sources
+    ADD CONSTRAINT sources_learning_partner_fkey
+    FOREIGN KEY (learning_partner_id) REFERENCES learn_language.learning_partners(id) ON DELETE SET NULL;
+
+ALTER TABLE learn_language.learning_partners DROP COLUMN IF EXISTS is_active;
+
 CREATE INDEX IF NOT EXISTS extraction_regions_source_page_idx
     ON learn_language.extraction_regions (source_id, page_number);
 

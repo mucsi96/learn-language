@@ -17,6 +17,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
+import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 
 @Component({
   selector: 'app-source-dialog',
@@ -39,12 +40,14 @@ import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 export class SourceDialogComponent {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_CONFIG);
+  private readonly partnersService = inject(LearningPartnersService);
   data: { source?: Source; mode: 'create' | 'edit' } = inject(MAT_DIALOG_DATA);
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
   readonly languageLevels = this.environment.languageLevels;
   readonly formatTypes = this.environment.sourceFormatTypes;
   readonly sourceTypes = this.environment.sourceTypes;
+  readonly partners = this.partnersService.partners;
   readonly cardTypes = [
     { code: 'vocabulary', displayName: 'Vocabulary' },
     { code: 'speech', displayName: 'Speech' },
@@ -62,6 +65,7 @@ export class SourceDialogComponent {
     formatType: SourceFormatType | '';
     cardLimit: number;
     newCardLimit: number;
+    learningPartnerId: number | null;
   }>({
     id: this.data.source?.id || '',
     name: this.data.source?.name || '',
@@ -73,6 +77,7 @@ export class SourceDialogComponent {
     formatType: this.data.source?.formatType ?? '',
     cardLimit: this.data.source?.cardLimit ?? 50,
     newCardLimit: this.data.source?.newCardLimit ?? 50,
+    learningPartnerId: this.data.source?.learningPartnerId ?? null,
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.id);
@@ -133,6 +138,9 @@ export class SourceDialogComponent {
           : result.formatType || undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
+        learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
+          ? 0
+          : result.learningPartnerId,
       };
       this.dialogRef.close(formData);
     }

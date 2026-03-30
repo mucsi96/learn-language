@@ -17,6 +17,7 @@ import {
   createSource,
   createDocument,
   getStudySessionCardsBySource,
+  setSourceLearningPartner,
   setupTestRateLimits,
 } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -1522,7 +1523,8 @@ test('session stats appear on celebration page after completing all cards', asyn
 });
 
 test('session stats show per-person breakdown when studying with partner', async ({ page }) => {
-  await createLearningPartner({ name: 'Alice', isActive: true });
+  const aliceId = await createLearningPartner({ name: 'Alice' });
+  await setSourceLearningPartner('goethe-a1', aliceId);
 
   await createCard({
     cardId: 'partner-stats-card-1',

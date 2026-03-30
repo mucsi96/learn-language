@@ -1,10 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.model.LearningPartnerRequest;
@@ -24,32 +22,19 @@ public class LearningPartnerService {
                 .toList();
     }
 
-    public Optional<LearningPartner> getActivePartner() {
-        return learningPartnerRepository.findByIsActiveTrue();
-    }
-
     public LearningPartnerResponse createLearningPartner(LearningPartnerRequest request) {
-        LearningPartner partner = LearningPartner.builder()
+        final LearningPartner partner = LearningPartner.builder()
                 .name(request.getName())
-                .isActive(false)
                 .build();
 
         return toResponse(learningPartnerRepository.save(partner));
     }
 
-    @Transactional
     public LearningPartnerResponse updateLearningPartner(Integer id, LearningPartnerRequest request) {
-        LearningPartner partner = learningPartnerRepository.findById(id)
+        final LearningPartner partner = learningPartnerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Learning partner not found: " + id));
 
         partner.setName(request.getName());
-
-        if (request.getIsActive() != null && request.getIsActive()) {
-            learningPartnerRepository.deactivateAllExcept(id);
-            partner.setIsActive(true);
-        } else if (request.getIsActive() != null) {
-            partner.setIsActive(false);
-        }
 
         return toResponse(learningPartnerRepository.save(partner));
     }
@@ -66,7 +51,6 @@ public class LearningPartnerService {
         return LearningPartnerResponse.builder()
                 .id(partner.getId())
                 .name(partner.getName())
-                .isActive(partner.getIsActive())
                 .build();
     }
 }

@@ -233,6 +233,7 @@ export type Source = {
   formatType?: SourceFormatType;
   cardLimit?: number;
   newCardLimit?: number;
+  learningPartnerId?: number | null;
 };
 
 export type WordList = {

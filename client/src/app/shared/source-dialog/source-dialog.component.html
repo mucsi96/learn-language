@@ -145,6 +145,18 @@
         [formField]="sourceForm.newCardLimit"
       />
     </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Learning Partner</mat-label>
+      <mat-select
+        [formField]="sourceForm.learningPartnerId"
+      >
+        <mat-option [value]="null">None</mat-option>
+        @for (partner of partners.value() ?? []; track partner.id) {
+        <mat-option [value]="partner.id">{{ partner.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

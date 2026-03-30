@@ -28,8 +28,8 @@ import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.entity.StudySession;
 import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
-import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
+import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.SessionStatsResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
@@ -57,7 +57,6 @@ public class StudySessionService {
     private final StudySessionRepository studySessionRepository;
     private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
-    private final LearningPartnerService learningPartnerService;
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
@@ -91,7 +90,7 @@ public class StudySessionService {
         final List<Card> dueCards = source.getNewCardLimit() != null
                 ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
                 : allDueCards;
-        final Optional<LearningPartner> activePartner = learningPartnerService.getActivePartner();
+        final Optional<LearningPartner> activePartner = Optional.ofNullable(source.getLearningPartner());
 
         final String sessionId = UUID.randomUUID().toString();
         final String studyMode = activePartner.isPresent() ? "WITH_PARTNER" : "SOLO";
@@ -223,7 +222,7 @@ public class StudySessionService {
                                 if (sessionCard.getLearningPartner() != null) {
                                     sessionCard.setLearningPartner(null);
                                 } else {
-                                    learningPartnerService.getActivePartner()
+                                    Optional.ofNullable(session.getSource().getLearningPartner())
                                             .ifPresent(sessionCard::setLearningPartner);
                                 }
                             }
@@ -283,7 +282,7 @@ public class StudySessionService {
                             .orElse(-1) + 1;
 
                     final Optional<LearningPartner> activePartner = "WITH_PARTNER".equals(session.getStudyMode())
-                            ? learningPartnerService.getActivePartner()
+                            ? Optional.ofNullable(session.getSource().getLearningPartner())
                             : Optional.empty();
 
                     final List<StudySessionCard> newSessionCards = activePartner

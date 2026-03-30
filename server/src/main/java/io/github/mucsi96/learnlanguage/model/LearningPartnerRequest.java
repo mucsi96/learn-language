@@ -13,6 +13,4 @@ import lombok.NoArgsConstructor;
 public class LearningPartnerRequest {
     @NotBlank
     private String name;
-
-    private Boolean isActive;
 }

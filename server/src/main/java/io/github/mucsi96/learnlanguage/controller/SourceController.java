@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
+import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
@@ -43,8 +44,8 @@ import io.github.mucsi96.learnlanguage.service.CardService.SourceStats;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
+import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
-import io.github.mucsi96.learnlanguage.util.BeanUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
@@ -65,6 +66,7 @@ public class SourceController {
   private final DocumentRepository documentRepository;
   private final ExtractionRegionRepository extractionRegionRepository;
   private final KnownWordService knownWordService;
+  private final LearningPartnerService learningPartnerService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -103,6 +105,7 @@ public class SourceController {
           .formatType(source.getFormatType())
           .cardLimit(source.getCardLimit())
           .newCardLimit(source.getNewCardLimit())
+          .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
           .build();
     }).collect(Collectors.toList());
   }
@@ -289,6 +292,9 @@ public class SourceController {
         .formatType(request.getFormatType())
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
+        .learningPartner(request.getLearningPartnerId() != null
+            ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
+            : null)
         .build();
 
     sourceService.saveSource(source);
@@ -310,22 +316,22 @@ public class SourceController {
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
       @RequestBody SourceRequest request) {
-    Source existingSource = sourceService.getSourceById(sourceId)
+    final Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-    Source updates = Source.builder()
-        .name(request.getName())
-        .sourceType(request.getSourceType())
-        .startPage(request.getStartPage())
-        .languageLevel(request.getLanguageLevel())
-        .cardType(request.getCardType())
-        .formatType(request.getFormatType())
-        .cardLimit(request.getCardLimit())
-        .newCardLimit(request.getNewCardLimit())
+    final Source updatedSource = existingSource.toBuilder()
+        .name(request.getName() != null ? request.getName() : existingSource.getName())
+        .sourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType())
+        .startPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage())
+        .languageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel())
+        .cardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType())
+        .formatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType())
+        .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
+        .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
+        .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
         .build();
 
-    BeanUtils.copyNonNullProperties(updates, existingSource);
-    sourceService.saveSource(existingSource);
+    sourceService.saveSource(updatedSource);
 
     return ResponseEntity.ok(Map.of("detail", "Source updated successfully"));
   }
@@ -477,6 +483,16 @@ public class SourceController {
       return MediaType.parseMediaType("image/webp");
     }
     return MediaType.APPLICATION_OCTET_STREAM;
+  }
+
+  private LearningPartner resolveLearningPartner(Integer learningPartnerId, Source existingSource) {
+    if (learningPartnerId == null) {
+      return existingSource.getLearningPartner();
+    }
+    if (learningPartnerId == 0) {
+      return null;
+    }
+    return learningPartnerService.getLearningPartnerById(learningPartnerId);
   }
 
   private boolean isImageFile(String filename) {

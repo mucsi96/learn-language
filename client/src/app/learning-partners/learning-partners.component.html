@@ -8,8 +8,8 @@
       </mat-card-header>
       <mat-card-content>
         <p class="section-description">
-          Add learning partners who study with you. Activate a partner to study
-          together - cards will alternate between you and your partner.
+          Add learning partners who study with you. Assign a partner to a source
+          to study together - cards will alternate between you and your partner.
         </p>
 
         <div class="add-partner-form">
@@ -58,15 +58,6 @@
           <mat-list-item role="listitem">
             <span matListItemTitle>{{ partner.name }}</span>
             <div matListItemMeta class="partner-actions">
-              <mat-slide-toggle
-                [checked]="partner.isActive"
-                (change)="toggleActive(partner)"
-                [aria-label]="
-                  (partner.isActive ? 'Deactivate' : 'Activate') +
-                  ' ' +
-                  partner.name
-                "
-              ></mat-slide-toggle>
               <button
                 mat-icon-button
                 (click)="deletePartner(partner)"

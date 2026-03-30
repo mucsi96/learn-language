@@ -45,6 +45,7 @@ export async function createSource(params: {
   bookmarkedDocumentId?: number | null;
   cardLimit?: number | null;
   newCardLimit?: number | null;
+  learningPartnerId?: number | null;
 }): Promise<void> {
   const {
     id,
@@ -58,13 +59,14 @@ export async function createSource(params: {
     bookmarkedDocumentId = null,
     cardLimit = null,
     newCardLimit = null,
+    learningPartnerId = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit]
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
     );
   });
 }
@@ -118,6 +120,7 @@ export async function getSource(id: string): Promise<{
   bookmarkedDocumentId: number | null;
   cardLimit: number | null;
   newCardLimit: number | null;
+  learningPartnerId: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
@@ -127,7 +130,8 @@ export async function getSource(id: string): Promise<{
               bookmarked_page as "bookmarkedPage",
               bookmarked_document_id as "bookmarkedDocumentId",
               card_limit as "cardLimit",
-              new_card_limit as "newCardLimit"
+              new_card_limit as "newCardLimit",
+              learning_partner_id as "learningPartnerId"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]
@@ -1078,15 +1082,24 @@ export async function clearKnownWords(): Promise<void> {
   });
 }
 
-export async function createLearningPartner(params: { name: string; isActive?: boolean }): Promise<number> {
-  const { name, isActive = false } = params;
+export async function setSourceLearningPartner(sourceId: string, learningPartnerId: number | null): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query(
+      `UPDATE learn_language.sources SET learning_partner_id = $1 WHERE id = $2`,
+      [learningPartnerId, sourceId]
+    );
+  });
+}
+
+export async function createLearningPartner(params: { name: string }): Promise<number> {
+  const { name } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.learning_partners (name, is_active)
-       VALUES ($1, $2)
+      `INSERT INTO learn_language.learning_partners (name)
+       VALUES ($1)
        RETURNING id`,
-      [name, isActive]
+      [name]
     );
     return result.rows[0].id;
   });
@@ -1096,12 +1109,11 @@ export async function getLearningPartners(): Promise<
   Array<{
     id: number;
     name: string;
-    isActive: boolean;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, name, is_active as "isActive"
+      `SELECT id, name
        FROM learn_language.learning_partners
        ORDER BY id`
     );
