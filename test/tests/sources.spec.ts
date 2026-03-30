@@ -583,6 +583,8 @@ test('can remove a learning partner from a source', async ({ page }) => {
     expect(source?.learningPartnerId).toBe(aliceId);
   }).toPass();
 
+  await page.goto('http://localhost:8180/sources');
+
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
 
