@@ -90,10 +90,10 @@ npm run test:ui             # Run tests with Playwright UI
 npm run test:debug          # Run tests in debug mode
 ```
 
-### Docker Development
+### Podman Development
 ```bash
-docker-compose up           # Start all services
-docker-compose up -d        # Start in background
+podman-compose up           # Start all services
+podman-compose up -d        # Start in background
 ```
 
 ## Core Entities

@@ -52,6 +52,63 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "ffmpeg is already installed."
         fi
 
+        # Check and install podman
+        if ! command -v podman >/dev/null 2>&1; then
+            echo "Installing Podman..."
+            sudo apt-get install -y podman
+        else
+            echo "Podman is already installed."
+        fi
+
+        # Check and install podman-compose
+        if ! command -v podman-compose >/dev/null 2>&1; then
+            echo "Installing podman-compose..."
+            sudo apt-get install -y podman-compose
+        else
+            echo "podman-compose is already installed."
+        fi
+
+        # Configure Testcontainers for Podman
+        TESTCONTAINERS_CONFIG="$HOME/.testcontainers.properties"
+        USER_ID=$(id -u)
+        if [ ! -f "$TESTCONTAINERS_CONFIG" ]; then
+            echo "Creating Testcontainers configuration for Podman..."
+            cat > "$TESTCONTAINERS_CONFIG" <<EOF
+docker.host=unix:///run/user/$USER_ID/podman/podman.sock
+testcontainers.reuse.enable=true
+EOF
+            echo "Testcontainers configuration created at $TESTCONTAINERS_CONFIG"
+        else
+            echo "Testcontainers configuration already exists at $TESTCONTAINERS_CONFIG"
+        fi
+
+        # Configure Podman registries for short-name resolution
+        PODMAN_CONFIG_DIR="$HOME/.config/containers"
+        REGISTRIES_CONFIG="$PODMAN_CONFIG_DIR/registries.conf"
+        mkdir -p "$PODMAN_CONFIG_DIR"
+
+        if [ ! -f "$REGISTRIES_CONFIG" ]; then
+            echo "Configuring Podman registries for short-name resolution..."
+            cat > "$REGISTRIES_CONFIG" <<'EOF'
+unqualified-search-registries = ["docker.io"]
+
+[[registry]]
+location = "docker.io"
+EOF
+            echo "Podman registries configuration created at $REGISTRIES_CONFIG"
+        else
+            echo "Podman registries configuration already exists at $REGISTRIES_CONFIG"
+        fi
+
+        # Enable Podman socket for current user
+        if ! systemctl --user is-enabled podman.socket >/dev/null 2>&1; then
+            echo "Enabling Podman socket..."
+            systemctl --user enable --now podman.socket
+            echo "Podman socket enabled"
+        else
+            echo "Podman socket is already enabled"
+        fi
+
         # Check and install SDKMAN
         if [ ! -d "$HOME/.sdkman" ]; then
             echo "Installing SDKMAN..."

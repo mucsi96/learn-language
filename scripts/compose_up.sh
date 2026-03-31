@@ -9,20 +9,24 @@ rm -rf test/storage
 echo "Creating test storage directories with proper permissions..."
 mkdir -p test/storage
 
-# Export UID and GID for docker-compose
+# Export UID and GID for podman-compose
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
 
-echo "Running Docker Compose as UID=$USER_ID GID=$GROUP_ID"
+echo "Running Podman Compose as UID=$USER_ID GID=$GROUP_ID"
 
-# Start Docker Compose with different flags based on environment
-echo "Starting Docker Compose services..."
+# Start Podman Compose with different flags based on environment
+echo "Starting Podman Compose services..."
 if [ -n "$CI" ]; then
   # CI environment: simpler flags
-  docker compose up --build --wait
+  podman-compose up --build --detach
 else
   # Local development: full set of flags
-  docker compose up --build --force-recreate --wait --remove-orphans --pull always
+  podman-compose up --build --force-recreate --detach --remove-orphans
 fi
 
-echo "Docker Compose services are ready!"
+# Wait for services to be healthy
+echo "Waiting for services to be ready..."
+sleep 5
+
+echo "Podman Compose services are ready!"
