@@ -1,6 +1,6 @@
 .learn-card-container {
-  min-height: calc(100vh - 64px);
-  padding: 1rem;
+  min-height: calc(100dvh - 64px);
+  padding: 0.5rem;
   margin: 0 auto;
   box-sizing: border-box;
   max-width: 1200px;
@@ -127,8 +127,7 @@
 .grading-buttons-container {
   display: flex;
   justify-content: center;
-  padding: 0.75rem 0;
-  margin-top: -90px;
+  padding: 0.5rem 0;
 }
 
 @media (min-width: 768px) {
@@ -144,5 +143,6 @@
   .grading-buttons-container {
     width: 50%;
     margin-left: 50%;
+    margin-top: -90px;
   }
 }
