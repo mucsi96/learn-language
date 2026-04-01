@@ -18,6 +18,12 @@ spec:
         - name: traefik-routes
           mountPath: /etc/traefik/routes.yaml
           readOnly: true
+      livenessProbe:
+        exec:
+          command: ["traefik", "healthcheck", "--ping"]
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: db
       image: docker.io/library/postgres:17.5-bullseye
@@ -31,30 +37,64 @@ spec:
           value: postgres
         - name: POSTGRES_USER
           value: postgres
+      livenessProbe:
+        exec:
+          command: ["pg_isready", "-U", "postgres"]
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        failureThreshold: 5
 
     - name: mock-openai
       image: localhost/learn-language-mock-openai:test
       env:
         - name: PORT
           value: "3000"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3000
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: mock-google-ai
       image: localhost/learn-language-mock-google-ai:test
       env:
         - name: PORT
           value: "3001"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3001
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: mock-anthropic
       image: localhost/learn-language-mock-anthropic:test
       env:
         - name: PORT
           value: "3003"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3003
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: mock-elevenlabs
       image: localhost/learn-language-mock-elevenlabs:test
       env:
         - name: PORT
           value: "3002"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3002
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: server
       image: localhost/learn-language-server:test
@@ -93,6 +133,13 @@ spec:
       volumeMounts:
         - name: storage
           mountPath: /app/storage
+      livenessProbe:
+        httpGet:
+          path: /actuator/health/readiness
+          port: 8182
+        initialDelaySeconds: 16
+        periodSeconds: 2
+        failureThreshold: 10
 
     - name: client
       image: localhost/learn-language-client:test
@@ -100,6 +147,13 @@ spec:
         - name: nginx-config
           mountPath: /etc/nginx/conf.d/default.conf
           readOnly: true
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 8000
+        initialDelaySeconds: 5
+        periodSeconds: 2
+        failureThreshold: 10
 
   volumes:
     - name: traefik-config
