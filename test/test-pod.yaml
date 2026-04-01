@@ -110,8 +110,6 @@ spec:
 
     - name: server
       image: localhost/learn-language-server:test
-      ports:
-        - containerPort: 8080
       env:
         - name: SPRING_ACTUATOR_PORT
           value: "8182"
@@ -154,8 +152,6 @@ spec:
 
     - name: client
       image: localhost/learn-language-client:test
-      ports:
-        - containerPort: 8000
       volumeMounts:
         - name: nginx-config
           mountPath: /etc/nginx/conf.d/default.conf
