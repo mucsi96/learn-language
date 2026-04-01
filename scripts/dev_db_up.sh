@@ -2,20 +2,23 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-QUADLET_DIR="$PROJECT_DIR/quadlet/dev"
-SYSTEMD_DIR="$HOME/.config/containers/systemd"
 
-echo "Installing dev DB Quadlet definition..."
-mkdir -p "$SYSTEMD_DIR"
-
-sed "s|{{PROJECT_DIR}}|$PROJECT_DIR|g" \
-  "$QUADLET_DIR/learn-language-db.container" > "$SYSTEMD_DIR/learn-language-db.container"
-
-echo "Reloading systemd user daemon..."
-systemctl --user daemon-reload
+echo "Removing existing dev database if present..."
+podman rm -f learn-language-db 2>/dev/null || true
 
 echo "Starting development database..."
-systemctl --user start learn-language-db.service
+podman run -d --name learn-language-db \
+  -e POSTGRES_DB=learnlanguage \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5433:5432 \
+  -v learn-language-postgres-data:/var/lib/postgresql/data \
+  -v "$PROJECT_DIR/server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql" \
+  --health-cmd "pg_isready -U postgres" \
+  --health-interval 10s \
+  --health-timeout 5s \
+  --health-retries 5 \
+  docker.io/library/postgres:17.5-bullseye
 
 echo "Waiting for database to become healthy..."
 MAX_WAIT=60

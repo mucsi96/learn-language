@@ -31,9 +31,7 @@ jobs:
         working-directory: test
         run: npx playwright install chromium --with-deps
       - name: Setup test environment and start pod
-        run: |
-          loginctl enable-linger $(whoami)
-          scripts/pod_up.sh
+        run: scripts/pod_up.sh
       - name: Run Playwright tests
         working-directory: test
         run: npx playwright test --shard=${{ matrix.shard }}/5
