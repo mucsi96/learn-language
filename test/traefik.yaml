@@ -5,12 +5,12 @@ api:
 entryPoints:
   web:
     address: ":80"
-  dashboard:
-    address: ":8081"
 
 providers:
-  file:
-    filename: /etc/traefik/routes.yaml
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    exposedByDefault: false
+    network: learn-language-test
 
 ping: {}
 

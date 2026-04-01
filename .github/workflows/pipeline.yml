@@ -44,7 +44,7 @@ jobs:
       - name: Collect pod logs
         if: always()
         run: |
-          for container in traefik client server db mock-openai mock-google-ai mock-anthropic mock-elevenlabs; do
+          for container in traefik-traefik client-client server-server db-db mock-openai-mock-openai mock-google-ai-mock-google-ai mock-anthropic-mock-anthropic mock-elevenlabs-mock-elevenlabs; do
             echo "=== $container ==="
             podman logs "$container" 2>&1 || true
           done
