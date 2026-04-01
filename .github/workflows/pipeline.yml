@@ -19,6 +19,10 @@ jobs:
         shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v6
+      - name: Install Podman
+        uses: redhat-actions/podman-install@v1
+      - name: Install podman-compose
+        run: pip install podman-compose
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -30,7 +34,7 @@ jobs:
       - name: Install Playwright browsers
         working-directory: test
         run: npx playwright install chromium --with-deps
-      - name: Setup test environment and start Docker Compose
+      - name: Setup test environment and start Podman Compose
         run: scripts/compose_up.sh
       - name: Run Playwright tests
         working-directory: test
@@ -41,7 +45,7 @@ jobs:
         with:
           name: test-results-shard-${{ matrix.shard }}
           path: test/test-results
-      - run: docker compose logs
+      - run: podman-compose logs
         if: always()
 
   publish-server:
