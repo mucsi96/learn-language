@@ -240,6 +240,8 @@ SELECT
     c.readiness,
     c.due,
     c.reps,
+    c.lapses,
+    c.stability,
     c.state,
     c.last_review,
     c.flagged,

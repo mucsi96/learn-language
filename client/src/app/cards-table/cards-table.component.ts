@@ -306,10 +306,27 @@ export class CardsTableComponent {
       },
     },
     {
-      headerName: 'Reviews',
-      field: 'reps',
-      width: 100,
+      headerName: 'Stability',
+      field: 'stability',
+      width: 110,
       sortable: true,
+      headerTooltip: 'Memory stability in days — how long until the recall probability drops to 90%. Higher means stronger memory.',
+      valueFormatter: (params) =>
+        params.value != null ? `${Math.round(params.value)}d` : '',
+    },
+    {
+      headerName: 'Reps',
+      field: 'reps',
+      width: 80,
+      sortable: true,
+      headerTooltip: 'Total number of successful reviews for this card.',
+    },
+    {
+      headerName: 'Lapses',
+      field: 'lapses',
+      width: 90,
+      sortable: true,
+      headerTooltip: 'Number of times this card was forgotten after previously being learned. High lapses indicate a leech card.',
     },
     {
       headerName: 'Streak',
