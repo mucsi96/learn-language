@@ -36,6 +36,17 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "kubectl is already installed."
         fi
 
+        # Check and install podman
+        if ! command -v podman >/dev/null 2>&1; then
+            echo "Installing Podman..."
+            sudo apt-get install -y podman
+        else
+            echo "Podman is already installed."
+        fi
+
+        # Enable lingering for rootless podman with systemd
+        loginctl enable-linger "$(whoami)" 2>/dev/null || true
+
         # Check and install jq
         if ! command -v jq >/dev/null 2>&1; then
             echo "Installing jq..."

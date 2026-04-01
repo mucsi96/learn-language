@@ -30,8 +30,10 @@ jobs:
       - name: Install Playwright browsers
         working-directory: test
         run: npx playwright install chromium --with-deps
-      - name: Setup test environment and start Docker Compose
-        run: scripts/compose_up.sh
+      - name: Setup test environment and start pod
+        run: |
+          loginctl enable-linger $(whoami)
+          scripts/pod_up.sh
       - name: Run Playwright tests
         working-directory: test
         run: npx playwright test --shard=${{ matrix.shard }}/5
@@ -41,8 +43,13 @@ jobs:
         with:
           name: test-results-shard-${{ matrix.shard }}
           path: test/test-results
-      - run: docker compose logs
+      - name: Collect pod logs
         if: always()
+        run: |
+          for container in traefik client server db mock-openai mock-google-ai mock-anthropic mock-elevenlabs; do
+            echo "=== $container ==="
+            podman logs "$container" 2>&1 || true
+          done
 
   publish-server:
     runs-on: ubuntu-latest
@@ -62,15 +69,12 @@ jobs:
           src: server
       - name: Login to Docker Hub
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: podman login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
       - name: Build and push server image
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }} server
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }}
+          podman build -t docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }} server
+          podman push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }}
       - name: Create release
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: softprops/action-gh-release@v2
@@ -96,15 +100,12 @@ jobs:
           src: client
       - name: Login to Docker Hub
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: podman login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} docker.io
       - name: Build and push client image
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/learn-language-client:${{ steps.get_next_version.outputs.version }} client
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/learn-language-client:${{ steps.get_next_version.outputs.version }}
+          podman build -t docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-client:${{ steps.get_next_version.outputs.version }} client
+          podman push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-client:${{ steps.get_next_version.outputs.version }}
       - name: Create release
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: softprops/action-gh-release@v2

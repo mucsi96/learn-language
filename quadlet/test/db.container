@@ -1,0 +1,17 @@
+[Unit]
+Description=PostgreSQL test database
+
+[Container]
+ContainerName=db
+Image=docker.io/library/postgres:17.5-bullseye
+Pod=learn-language-test.pod
+Environment=POSTGRES_DB=test
+Environment=POSTGRES_PASSWORD=postgres
+Environment=POSTGRES_USER=postgres
+HealthCmd=pg_isready -U postgres
+HealthInterval=10s
+HealthTimeout=5s
+HealthRetries=5
+
+[Install]
+WantedBy=default.target

@@ -90,10 +90,12 @@ npm run test:ui             # Run tests with Playwright UI
 npm run test:debug          # Run tests in debug mode
 ```
 
-### Docker Development
+### Podman Development
 ```bash
-docker-compose up           # Start all services
-docker-compose up -d        # Start in background
+scripts/pod_up.sh           # Build images, install Quadlet definitions, and start test pod
+scripts/pod_down.sh         # Stop and clean up test pod
+scripts/dev_db_up.sh        # Start development PostgreSQL database
+scripts/dev_db_down.sh      # Stop development database
 ```
 
 ## Core Entities

@@ -54,7 +54,7 @@ jobs:
             2. Analyze each change and determine if it is relevant to this repository.
                Relevant changes include:
                - CI/CD pipeline patterns and improvements
-               - Docker and Docker Compose configuration patterns
+               - Podman and Quadlet container configuration patterns
                - Build tooling and configuration updates
                - Testing infrastructure patterns
                - Code style and linting configuration

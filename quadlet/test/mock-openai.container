@@ -1,0 +1,16 @@
+[Unit]
+Description=Mock OpenAI server
+
+[Container]
+ContainerName=mock-openai
+Image=localhost/learn-language-mock-openai:test
+Pod=learn-language-test.pod
+Environment=PORT=3000
+HealthCmd=curl --fail --silent localhost:3000/health || exit 1
+HealthInterval=2s
+HealthTimeout=3s
+HealthRetries=5
+HealthStartPeriod=2s
+
+[Install]
+WantedBy=default.target

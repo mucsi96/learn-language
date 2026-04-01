@@ -1,0 +1,31 @@
+[Unit]
+Description=Spring Boot backend server
+After=db.service mock-openai.service mock-google-ai.service mock-anthropic.service mock-elevenlabs.service
+
+[Container]
+ContainerName=server
+Image=localhost/learn-language-server:test
+Pod=learn-language-test.pod
+User={{USER_ID}}:{{GROUP_ID}}
+Environment=SPRING_ACTUATOR_PORT=8182
+Environment=SPRING_PROFILES_ACTIVE=test
+Environment=DB_URL=jdbc:postgresql://localhost:5432/test
+Environment=DB_USERNAME=postgres
+Environment=DB_PASSWORD=postgres
+Environment=STORAGE_DIRECTORY=/app/storage
+Environment=OPENAI_API_KEY=mock-key
+Environment=OPENAI_BASE_URL=http://localhost:3000
+Environment=ANTHROPIC_API_KEY=mock-anthropic-key
+Environment=ANTHROPIC_BASE_URL=http://localhost:3003
+Environment=GOOGLE_AI_API_KEY=mock-google-key
+Environment=GOOGLE_AI_BASE_URL=http://localhost:3001
+Environment=ELEVEN_LABS_API_KEY=mock-elevenlabs-key
+Environment=ELEVEN_LABS_BASE_URL=http://localhost:3002
+Volume={{PROJECT_DIR}}/test/storage:/app/storage
+HealthCmd=curl --fail --silent localhost:8182/actuator/health/readiness | grep UP || exit 1
+HealthInterval=2s
+HealthRetries=10
+HealthStartPeriod=16s
+
+[Install]
+WantedBy=default.target

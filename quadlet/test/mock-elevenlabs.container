@@ -1,0 +1,16 @@
+[Unit]
+Description=Mock ElevenLabs server
+
+[Container]
+ContainerName=mock-elevenlabs
+Image=localhost/learn-language-mock-elevenlabs:test
+Pod=learn-language-test.pod
+Environment=PORT=3002
+HealthCmd=curl --fail --silent localhost:3002/health || exit 1
+HealthInterval=2s
+HealthTimeout=3s
+HealthRetries=5
+HealthStartPeriod=2s
+
+[Install]
+WantedBy=default.target

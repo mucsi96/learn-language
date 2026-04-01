@@ -1,0 +1,16 @@
+[Unit]
+Description=Traefik reverse proxy
+
+[Container]
+ContainerName=traefik
+Image=docker.io/library/traefik:v3.6
+Pod=learn-language-test.pod
+Volume={{PROJECT_DIR}}/test/traefik.yaml:/etc/traefik/traefik.yaml:ro
+Volume={{PROJECT_DIR}}/test/traefik-routes.yaml:/etc/traefik/routes.yaml:ro
+HealthCmd=traefik healthcheck --ping
+HealthInterval=2s
+HealthRetries=5
+HealthStartPeriod=2s
+
+[Install]
+WantedBy=default.target
