@@ -2,7 +2,6 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-POD_YAML="$PROJECT_DIR/test/test-pod.yaml"
 POD_NAME="learn-language-test"
 MAX_WAIT=120
 
@@ -22,19 +21,10 @@ podman build -t localhost/learn-language-mock-elevenlabs:test "$PROJECT_DIR/mock
 wait
 
 echo "Cleaning up existing pod..."
-podman kube down "$POD_YAML" 2>/dev/null || true
-
-echo "Preparing pod definition..."
-PROCESSED_YAML=$(mktemp)
-sed \
-  -e "s|{{PROJECT_DIR}}|$PROJECT_DIR|g" \
-  -e "s|{{USER_ID}}|$(id -u)|g" \
-  -e "s|{{GROUP_ID}}|$(id -g)|g" \
-  "$POD_YAML" > "$PROCESSED_YAML"
+podman kube down "test/test-pod.yaml" 2>/dev/null || true
 
 echo "Starting pod..."
-podman kube play "$PROCESSED_YAML"
-rm -f "$PROCESSED_YAML"
+podman kube play test/test-pod.yaml
 
 echo "Waiting for all containers to become healthy..."
 CONTAINERS=$(podman pod inspect "$POD_NAME" --format '{{range .Containers}}{{.Name}} {{end}}')

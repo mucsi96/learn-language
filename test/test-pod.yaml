@@ -98,9 +98,6 @@ spec:
 
     - name: server
       image: localhost/learn-language-server:test
-      securityContext:
-        runAsUser: {{USER_ID}}
-        runAsGroup: {{GROUP_ID}}
       env:
         - name: SPRING_ACTUATOR_PORT
           value: "8182"
@@ -158,17 +155,17 @@ spec:
   volumes:
     - name: traefik-config
       hostPath:
-        path: {{PROJECT_DIR}}/test/traefik.yaml
+        path: test/traefik.yaml
         type: File
     - name: traefik-routes
       hostPath:
-        path: {{PROJECT_DIR}}/test/traefik-routes.yaml
+        path: test/traefik-routes.yaml
         type: File
     - name: storage
       hostPath:
-        path: {{PROJECT_DIR}}/test/storage
+        path: test/storage
         type: Directory
     - name: nginx-config
       hostPath:
-        path: {{PROJECT_DIR}}/test/nginx-pod.conf
+        path: test/nginx-pod.conf
         type: File
