@@ -19,10 +19,19 @@ jobs:
         shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v6
-      - name: Install Podman
-        uses: redhat-actions/podman-install@v1
-      - name: Install podman-compose
-        run: pip install podman-compose
+      - name: Install Podman and podman-compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+      - name: Configure Podman registries
+        run: |
+          mkdir -p ~/.config/containers
+          cat > ~/.config/containers/registries.conf <<'EOF'
+          unqualified-search-registries = ["docker.io"]
+
+          [[registry]]
+          location = "docker.io"
+          EOF
       - uses: actions/setup-node@v6
         with:
           node-version: 22
