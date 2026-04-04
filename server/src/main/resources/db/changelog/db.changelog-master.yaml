@@ -1,16 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: 1-create-schema
-      author: mucsi96
-      changes:
-        - sql:
-            sql: CREATE SCHEMA IF NOT EXISTS learn_language
-  - changeSet:
-      id: 2-create-sources-table
+      id: 1-create-sources-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: sources
             columns:
               - column:
@@ -53,11 +46,10 @@ databaseChangeLog:
                   name: learning_partner_id
                   type: int
   - changeSet:
-      id: 3-create-documents-table
+      id: 2-create-documents-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: documents
             columns:
               - column:
@@ -73,7 +65,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: document_source_id_fkey
-                    references: learn_language.sources(id)
+                    references: sources(id)
                     deleteCascade: true
               - column:
                   name: file_name
@@ -84,24 +76,21 @@ databaseChangeLog:
                   name: page_number
                   type: int
   - changeSet:
-      id: 4-add-sources-bookmarked-document-fkey
+      id: 3-add-sources-bookmarked-document-fkey
       author: mucsi96
       changes:
         - addForeignKeyConstraint:
             constraintName: sources_bookmarked_document_fkey
-            baseTableSchemaName: learn_language
             baseTableName: sources
             baseColumnNames: bookmarked_document_id
-            referencedTableSchemaName: learn_language
             referencedTableName: documents
             referencedColumnNames: id
             onDelete: SET NULL
   - changeSet:
-      id: 5-create-cards-table
+      id: 4-create-cards-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: cards
             columns:
               - column:
@@ -116,7 +105,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: card_source_id_fkey
-                    references: learn_language.sources(id)
+                    references: sources(id)
               - column:
                   name: source_page_number
                   type: int
@@ -187,11 +176,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 6-create-learning-partners-table
+      id: 5-create-learning-partners-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: learning_partners
             columns:
               - column:
@@ -207,24 +195,21 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 7-add-sources-learning-partner-fkey
+      id: 6-add-sources-learning-partner-fkey
       author: mucsi96
       changes:
         - addForeignKeyConstraint:
             constraintName: sources_learning_partner_fkey
-            baseTableSchemaName: learn_language
             baseTableName: sources
             baseColumnNames: learning_partner_id
-            referencedTableSchemaName: learn_language
             referencedTableName: learning_partners
             referencedColumnNames: id
             onDelete: SET NULL
   - changeSet:
-      id: 8-create-review-logs-table
+      id: 7-create-review-logs-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: review_logs
             columns:
               - column:
@@ -253,7 +238,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: review_log_card_id_fkey
-                    references: learn_language.cards(id)
+                    references: cards(id)
               - column:
                   name: state
                   type: varchar(255)
@@ -295,19 +280,16 @@ databaseChangeLog:
                   type: int
         - addForeignKeyConstraint:
             constraintName: review_log_learning_partner_fkey
-            baseTableSchemaName: learn_language
             baseTableName: review_logs
             baseColumnNames: learning_partner_id
-            referencedTableSchemaName: learn_language
             referencedTableName: learning_partners
             referencedColumnNames: id
             onDelete: SET NULL
   - changeSet:
-      id: 9-create-model-usage-logs-table
+      id: 8-create-model-usage-logs-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: model_usage_logs
             columns:
               - column:
@@ -365,11 +347,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 10-create-voice-configurations-table
+      id: 9-create-voice-configurations-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: voice_configurations
             columns:
               - column:
@@ -404,16 +385,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            schemaName: learn_language
             tableName: voice_configurations
             columnNames: voice_id, language, model
             constraintName: voice_configurations_unique
   - changeSet:
-      id: 11-create-chat-model-settings-table
+      id: 10-create-chat-model-settings-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: chat_model_settings
             columns:
               - column:
@@ -446,16 +425,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            schemaName: learn_language
             tableName: chat_model_settings
             columnNames: model_name, operation_type
             constraintName: chat_model_settings_unique
   - changeSet:
-      id: 12-create-image-model-settings-table
+      id: 11-create-image-model-settings-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: image_model_settings
             columns:
               - column:
@@ -476,16 +453,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            schemaName: learn_language
             tableName: image_model_settings
             columnNames: model_name
             constraintName: image_model_settings_unique
   - changeSet:
-      id: 13-create-rate-limit-settings-table
+      id: 12-create-rate-limit-settings-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -500,11 +475,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 14-seed-rate-limit-settings
+      id: 13-seed-rate-limit-settings
       author: mucsi96
       changes:
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -514,7 +488,6 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 6
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -524,7 +497,6 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 0
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -534,7 +506,6 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 0
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -544,7 +515,6 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 3
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -554,7 +524,6 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 0
         - insert:
-            schemaName: learn_language
             tableName: rate_limit_settings
             columns:
               - column:
@@ -564,11 +533,10 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 0
   - changeSet:
-      id: 15-create-audio-settings-table
+      id: 14-create-audio-settings-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: audio_settings
             columns:
               - column:
@@ -583,11 +551,10 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 16-seed-audio-settings
+      id: 15-seed-audio-settings
       author: mucsi96
       changes:
         - insert:
-            schemaName: learn_language
             tableName: audio_settings
             columns:
               - column:
@@ -597,11 +564,10 @@ databaseChangeLog:
                   name: value
                   valueNumeric: 1
   - changeSet:
-      id: 17-create-known-words-table
+      id: 16-create-known-words-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: known_words
             columns:
               - column:
@@ -620,16 +586,14 @@ databaseChangeLog:
                   name: hungarian_translation
                   type: varchar(255)
         - addUniqueConstraint:
-            schemaName: learn_language
             tableName: known_words
             columnNames: word
             constraintName: known_words_unique
   - changeSet:
-      id: 18-create-api-tokens-table
+      id: 17-create-api-tokens-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: api_tokens
             columns:
               - column:
@@ -655,16 +619,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addUniqueConstraint:
-            schemaName: learn_language
             tableName: api_tokens
             columnNames: token_hash
             constraintName: api_tokens_token_hash_unique
   - changeSet:
-      id: 19-create-study-sessions-table
+      id: 18-create-study-sessions-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: study_sessions
             columns:
               - column:
@@ -679,7 +641,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: study_session_source_fkey
-                    references: learn_language.sources(id)
+                    references: sources(id)
                     deleteCascade: true
               - column:
                   name: created_at
@@ -697,11 +659,10 @@ databaseChangeLog:
               CREATE UNIQUE INDEX IF NOT EXISTS study_sessions_source_date_idx
                   ON learn_language.study_sessions (source_id, ((created_at::date)))
   - changeSet:
-      id: 20-create-study-session-cards-table
+      id: 19-create-study-session-cards-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: study_session_cards
             columns:
               - column:
@@ -717,7 +678,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: study_session_cards_session_fkey
-                    references: learn_language.study_sessions(id)
+                    references: study_sessions(id)
                     deleteCascade: true
               - column:
                   name: card_id
@@ -725,7 +686,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: study_session_cards_card_fkey
-                    references: learn_language.cards(id)
+                    references: cards(id)
                     deleteCascade: true
               - column:
                   name: position
@@ -741,19 +702,16 @@ databaseChangeLog:
                   defaultValueNumeric: 0
         - addForeignKeyConstraint:
             constraintName: study_session_cards_partner_fkey
-            baseTableSchemaName: learn_language
             baseTableName: study_session_cards
             baseColumnNames: learning_partner_id
-            referencedTableSchemaName: learn_language
             referencedTableName: learning_partners
             referencedColumnNames: id
             onDelete: SET NULL
   - changeSet:
-      id: 21-create-extraction-regions-table
+      id: 20-create-extraction-regions-table
       author: mucsi96
       changes:
         - createTable:
-            schemaName: learn_language
             tableName: extraction_regions
             columns:
               - column:
@@ -769,7 +727,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: extraction_region_source_fkey
-                    references: learn_language.sources(id)
+                    references: sources(id)
                     deleteCascade: true
               - column:
                   name: page_number
@@ -800,11 +758,10 @@ databaseChangeLog:
                   name: document_id
                   type: int
   - changeSet:
-      id: 22-create-indexes
+      id: 21-create-indexes
       author: mucsi96
       changes:
         - createIndex:
-            schemaName: learn_language
             tableName: extraction_regions
             indexName: extraction_regions_source_page_idx
             columns:
@@ -813,14 +770,12 @@ databaseChangeLog:
               - column:
                   name: page_number
         - createIndex:
-            schemaName: learn_language
             tableName: cards
             indexName: cards_last_review_idx
             columns:
               - column:
                   name: last_review
         - createIndex:
-            schemaName: learn_language
             tableName: review_logs
             indexName: review_logs_card_review_idx
             columns:
@@ -830,7 +785,6 @@ databaseChangeLog:
                   name: review
                   descending: true
         - createIndex:
-            schemaName: learn_language
             tableName: cards
             indexName: idx_cards_source_readiness
             columns:
@@ -839,7 +793,6 @@ databaseChangeLog:
               - column:
                   name: readiness
         - createIndex:
-            schemaName: learn_language
             tableName: cards
             indexName: idx_cards_readiness_due
             columns:
@@ -848,7 +801,7 @@ databaseChangeLog:
               - column:
                   name: due
   - changeSet:
-      id: 23-create-card-view
+      id: 22-create-card-view
       author: mucsi96
       runOnChange: true
       changes:
