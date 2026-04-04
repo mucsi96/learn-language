@@ -158,10 +158,10 @@
   }
 
   .grading-row-actions {
-    display: none;
+    flex-shrink: 0;
   }
 
   .learn-card.revealed .card-bottom-controls {
-    display: flex;
+    display: none;
   }
 }
