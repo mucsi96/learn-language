@@ -44,15 +44,6 @@
       }
     },
     {
-      "label": "Start server",
-      "type": "shell",
-      "command": "uvicorn main:app --reload",
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}/server"
-      }
-    },
-    {
       "label": "Start client",
       "type": "shell",
       "command": "npm start",
@@ -111,23 +102,26 @@
     },
     {
       "type": "shell",
-      "label": "Compose up",
-      "command": "scripts/compose_up.sh",
+      "label": "Pod up",
+      "command": "scripts/pod_up.sh",
       "problemMatcher": []
     },
     {
       "type": "shell",
-      "label": "Compose down",
-      "command": "docker compose down",
+      "label": "Pod down",
+      "command": "scripts/pod_down.sh",
       "problemMatcher": []
     },
     {
       "type": "shell",
-      "command": "scripts/deploy.sh",
-      "label": "Deploy",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "label": "Dev DB up",
+      "command": "scripts/dev_db_up.sh",
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Dev DB down",
+      "command": "scripts/dev_db_down.sh",
       "problemMatcher": []
     },
     {
