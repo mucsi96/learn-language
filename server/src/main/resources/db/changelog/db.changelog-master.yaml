@@ -2,24 +2,12 @@ databaseChangeLog:
   - changeSet:
       id: 1-create-schema
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: sources
-                schemaName: learn_language
       changes:
         - sql:
             sql: CREATE SCHEMA IF NOT EXISTS learn_language
   - changeSet:
       id: 2-create-sources-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: sources
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -67,12 +55,6 @@ databaseChangeLog:
   - changeSet:
       id: 3-create-documents-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: documents
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -104,12 +86,6 @@ databaseChangeLog:
   - changeSet:
       id: 4-add-sources-bookmarked-document-fkey
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - foreignKeyConstraintExists:
-                foreignKeyName: sources_bookmarked_document_fkey
-                schemaName: learn_language
       changes:
         - addForeignKeyConstraint:
             constraintName: sources_bookmarked_document_fkey
@@ -123,12 +99,6 @@ databaseChangeLog:
   - changeSet:
       id: 5-create-cards-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: cards
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -219,12 +189,6 @@ databaseChangeLog:
   - changeSet:
       id: 6-create-learning-partners-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: learning_partners
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -245,12 +209,6 @@ databaseChangeLog:
   - changeSet:
       id: 7-add-sources-learning-partner-fkey
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - foreignKeyConstraintExists:
-                foreignKeyName: sources_learning_partner_fkey
-                schemaName: learn_language
       changes:
         - addForeignKeyConstraint:
             constraintName: sources_learning_partner_fkey
@@ -264,12 +222,6 @@ databaseChangeLog:
   - changeSet:
       id: 8-create-review-logs-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: review_logs
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -341,26 +293,18 @@ databaseChangeLog:
               - column:
                   name: learning_partner_id
                   type: int
-                  constraints:
-                    foreignKeyName: review_log_learning_partner_fkey
-                    references: learn_language.learning_partners(id)
-                    deleteCascade: false
-        - sql:
-            sql: |
-              ALTER TABLE learn_language.review_logs
-                  DROP CONSTRAINT IF EXISTS review_log_learning_partner_fkey;
-              ALTER TABLE learn_language.review_logs
-                  ADD CONSTRAINT review_log_learning_partner_fkey
-                  FOREIGN KEY (learning_partner_id) REFERENCES learn_language.learning_partners(id) ON DELETE SET NULL
+        - addForeignKeyConstraint:
+            constraintName: review_log_learning_partner_fkey
+            baseTableSchemaName: learn_language
+            baseTableName: review_logs
+            baseColumnNames: learning_partner_id
+            referencedTableSchemaName: learn_language
+            referencedTableName: learning_partners
+            referencedColumnNames: id
+            onDelete: SET NULL
   - changeSet:
       id: 9-create-model-usage-logs-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: model_usage_logs
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -423,12 +367,6 @@ databaseChangeLog:
   - changeSet:
       id: 10-create-voice-configurations-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: voice_configurations
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -473,12 +411,6 @@ databaseChangeLog:
   - changeSet:
       id: 11-create-chat-model-settings-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: chat_model_settings
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -521,12 +453,6 @@ databaseChangeLog:
   - changeSet:
       id: 12-create-image-model-settings-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: image_model_settings
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -557,12 +483,6 @@ databaseChangeLog:
   - changeSet:
       id: 13-create-rate-limit-settings-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: rate_limit_settings
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -582,11 +502,6 @@ databaseChangeLog:
   - changeSet:
       id: 14-seed-rate-limit-settings
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - sqlCheck:
-            expectedResult: 0
-            sql: SELECT COUNT(*) FROM learn_language.rate_limit_settings
       changes:
         - insert:
             schemaName: learn_language
@@ -651,12 +566,6 @@ databaseChangeLog:
   - changeSet:
       id: 15-create-audio-settings-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: audio_settings
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -676,11 +585,6 @@ databaseChangeLog:
   - changeSet:
       id: 16-seed-audio-settings
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - sqlCheck:
-            expectedResult: 0
-            sql: SELECT COUNT(*) FROM learn_language.audio_settings
       changes:
         - insert:
             schemaName: learn_language
@@ -695,12 +599,6 @@ databaseChangeLog:
   - changeSet:
       id: 17-create-known-words-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: known_words
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -729,12 +627,6 @@ databaseChangeLog:
   - changeSet:
       id: 18-create-api-tokens-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: api_tokens
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -782,12 +674,6 @@ databaseChangeLog:
   - changeSet:
       id: 20-create-study-sessions-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: study_sessions
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -825,12 +711,6 @@ databaseChangeLog:
   - changeSet:
       id: 21-create-study-session-cards-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: study_session_cards
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
@@ -883,12 +763,6 @@ databaseChangeLog:
   - changeSet:
       id: 22-create-extraction-regions-table
       author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            - tableExists:
-                tableName: extraction_regions
-                schemaName: learn_language
       changes:
         - createTable:
             schemaName: learn_language
