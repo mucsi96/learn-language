@@ -136,14 +136,15 @@ h2 {
 
   .image-section {
     flex: none;
-    width: 600px;
-    padding-top: 600px;
+    width: 55%;
+    padding-top: 55%;
   }
 
   .content-section {
     flex: 1;
-    max-width: 500px;
+    min-width: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     border-radius: 0 16px 16px 0;
     padding: 1.5rem;
     gap: 1.5rem;
@@ -161,5 +162,7 @@ h2 {
 
   h2 {
     font-size: 2.5rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
