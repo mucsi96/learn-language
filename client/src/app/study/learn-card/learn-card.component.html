@@ -108,6 +108,13 @@
         [reviewDuration]="reviewDuration()"
         (cardProcessed)="onCardProcessed()">
       </app-card-grading-buttons>
+      <div class="grading-row-actions">
+        <app-card-actions
+          [card]="cardResource"
+          [languageTexts]="languageTexts()"
+          (cardProcessed)="onCardProcessed()">
+        </app-card-actions>
+      </div>
     </div>
   }
 </div>

@@ -125,7 +125,18 @@
 }
 
 .grading-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem;
+}
+
+.grading-row-actions {
+  flex-shrink: 0;
+}
+
+.learn-card.revealed .card-bottom-controls {
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -139,11 +150,18 @@
   }
 
   .grading-buttons-container {
-    display: flex;
     justify-content: center;
     width: 45%;
     margin-left: 55%;
     margin-top: -90px;
     padding: 0;
+  }
+
+  .grading-row-actions {
+    display: none;
+  }
+
+  .learn-card.revealed .card-bottom-controls {
+    display: flex;
   }
 }
