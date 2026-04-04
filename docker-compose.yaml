@@ -7,7 +7,7 @@ services:
       - "8180:80"
       - "8181:8080"  # Traefik dashboard http://localhost:8181
     volumes:
-      - /run/user/${USER_ID}/podman/podman.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./test/traefik.yaml:/etc/traefik/traefik.yaml:ro
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]

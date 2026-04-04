@@ -118,7 +118,7 @@
     {
       "type": "shell",
       "label": "Compose down",
-      "command": "podman-compose down",
+      "command": "docker compose down",
       "problemMatcher": []
     },
     {
