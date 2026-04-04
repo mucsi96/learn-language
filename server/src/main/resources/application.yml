@@ -14,10 +14,9 @@ spring:
     properties:
       hibernate:
         show-sql: true
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: learn_language
   cloud:
     azure:
       keyvault:
