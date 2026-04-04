@@ -660,19 +660,7 @@ databaseChangeLog:
             columnNames: token_hash
             constraintName: api_tokens_token_hash_unique
   - changeSet:
-      id: 19-drop-highlights-table
-      author: mucsi96
-      preConditions:
-        - onFail: MARK_RAN
-        - tableExists:
-            tableName: highlights
-            schemaName: learn_language
-      changes:
-        - dropTable:
-            schemaName: learn_language
-            tableName: highlights
-  - changeSet:
-      id: 20-create-study-sessions-table
+      id: 19-create-study-sessions-table
       author: mucsi96
       changes:
         - createTable:
@@ -709,7 +697,7 @@ databaseChangeLog:
               CREATE UNIQUE INDEX IF NOT EXISTS study_sessions_source_date_idx
                   ON learn_language.study_sessions (source_id, ((created_at::date)))
   - changeSet:
-      id: 21-create-study-session-cards-table
+      id: 20-create-study-session-cards-table
       author: mucsi96
       changes:
         - createTable:
@@ -761,7 +749,7 @@ databaseChangeLog:
             referencedColumnNames: id
             onDelete: SET NULL
   - changeSet:
-      id: 22-create-extraction-regions-table
+      id: 21-create-extraction-regions-table
       author: mucsi96
       changes:
         - createTable:
@@ -812,7 +800,7 @@ databaseChangeLog:
                   name: document_id
                   type: int
   - changeSet:
-      id: 23-create-indexes
+      id: 22-create-indexes
       author: mucsi96
       changes:
         - createIndex:
@@ -860,7 +848,7 @@ databaseChangeLog:
               - column:
                   name: due
   - changeSet:
-      id: 24-create-card-view
+      id: 23-create-card-view
       author: mucsi96
       runOnChange: true
       changes:
