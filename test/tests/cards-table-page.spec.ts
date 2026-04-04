@@ -56,8 +56,8 @@ test('displays cards in table', async ({ page }) => {
     const rows = await getGridData(page.getByRole('grid'));
     expect(rows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ ID: 'test-card-1', State: 'NEW', Reviews: '0' }),
-        expect.objectContaining({ ID: 'test-card-2', State: 'REVIEW', Reviews: '5' }),
+        expect.objectContaining({ ID: 'test-card-1', State: 'NEW', Reps: '0' }),
+        expect.objectContaining({ ID: 'test-card-2', State: 'REVIEW', Reps: '5' }),
       ])
     );
   }).toPass();
@@ -181,7 +181,7 @@ test('displays review information in table', async ({ page }) => {
     expect(rows).toEqual([
       expect.objectContaining({
         ID: 'reviewed-card',
-        Reviews: '3',
+        Reps: '3',
         Streak: '1',
       }),
     ]);
@@ -361,14 +361,14 @@ test('sorts cards by reviews count', async ({ page }) => {
     expect(rows.map((r) => r.ID)).toEqual(expect.arrayContaining(['few-reviews', 'many-reviews']));
   }).toPass();
 
-  await page.getByRole('columnheader', { name: 'Reviews' }).click();
+  await page.getByRole('columnheader', { name: 'Reps' }).click();
   await expect(async () => {
     const asc = await getGridData(grid);
     expect(asc[0]).toEqual(expect.objectContaining({ ID: 'few-reviews' }));
     expect(asc[1]).toEqual(expect.objectContaining({ ID: 'many-reviews' }));
   }).toPass();
 
-  await page.getByRole('columnheader', { name: 'Reviews' }).click();
+  await page.getByRole('columnheader', { name: 'Reps' }).click();
   await expect(async () => {
     const desc = await getGridData(grid);
     expect(desc[0]).toEqual(expect.objectContaining({ ID: 'many-reviews' }));

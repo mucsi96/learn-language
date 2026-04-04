@@ -350,6 +350,8 @@ public class CardService {
 
     final String mappedField = switch (sortField) {
       case "reps" -> "reps";
+      case "lapses" -> "lapses";
+      case "stability" -> "stability";
       case "correctStreak" -> "correctStreak";
       case "lastReviewDaysAgo" -> "lastReview";
       case "state" -> "state";
@@ -371,6 +373,8 @@ public class CardService {
         .readiness(view.getReadiness())
         .state(view.getState())
         .reps(view.getReps())
+        .lapses(view.getLapses())
+        .stability(view.getStability())
         .lastReviewDaysAgo(reviewDaysAgo)
         .correctStreak(view.getCorrectStreak())
         .reviewScore(view.getReviewScore())

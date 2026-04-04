@@ -51,6 +51,12 @@ public class CardView {
     private Integer reps;
 
     @Column(nullable = false)
+    private Integer lapses;
+
+    @Column(nullable = false)
+    private Float stability;
+
+    @Column(nullable = false)
     private String state;
 
     @Column(name = "last_review")

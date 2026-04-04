@@ -1,162 +1,182 @@
 <h2 mat-dialog-title>{{ getTitle() }}</h2>
 <mat-dialog-content>
   <form>
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Source ID</mat-label>
-      <input
-        matInput
-        [formField]="sourceForm.id"
-      />
-    </mat-form-field>
+    <section class="form-section">
+      <h3 class="section-title">General</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Source ID</mat-label>
+          <input
+            matInput
+            [formField]="sourceForm.id"
+          />
+        </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Name</mat-label>
-      <input matInput [formField]="sourceForm.name" />
-    </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Name</mat-label>
+          <input matInput [formField]="sourceForm.name" />
+        </mat-form-field>
+      </div>
+    </section>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Card Type</mat-label>
-      <mat-select
-        [formField]="sourceForm.cardType"
-      >
-        @for (cardType of cardTypes; track cardType.code) {
-        <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
+    <section class="form-section">
+      <h3 class="section-title">Classification</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Card Type</mat-label>
+          <mat-select
+            [formField]="sourceForm.cardType"
+          >
+            @for (cardType of cardTypes; track cardType.code) {
+            <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Language Level</mat-label>
+          <mat-select
+            [formField]="sourceForm.languageLevel"
+          >
+            @for (level of languageLevels; track level.code) {
+            <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Source Type</mat-label>
+          <mat-select
+            [formField]="sourceForm.sourceType"
+          >
+            @for (sourceType of sourceTypes; track sourceType.code) {
+            <mat-option [value]="sourceType.code">{{ sourceType.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar') {
+        <mat-form-field appearance="fill">
+          <mat-label>Format Type</mat-label>
+          <mat-select
+            [formField]="sourceForm.formatType"
+          >
+            @for (formatType of formatTypes; track formatType.code) {
+            <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
         }
-      </mat-select>
-    </mat-form-field>
+      </div>
+    </section>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Language Level</mat-label>
-      <mat-select
-        [formField]="sourceForm.languageLevel"
+    <section class="form-section">
+      <h3 class="section-title">Content</h3>
+      @if (formModel().sourceType === 'pdf') {
+      <div
+        class="dropzone"
+        [class.dragging]="isDragging()"
+        [class.has-file]="hasFile()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
       >
-        @for (level of languageLevels; track level.code) {
-        <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
+        @if (!hasFile()) {
+        <div class="dropzone-content">
+          <mat-icon class="upload-icon">cloud_upload</mat-icon>
+          <p class="dropzone-text">
+            Drag and drop a PDF file here or
+            <label class="file-input-label">
+              browse
+              <input
+                type="file"
+                accept=".pdf"
+                (change)="onFileSelected($event)"
+                class="file-input"
+                aria-label="Upload PDF file"
+              />
+            </label>
+          </p>
+          <p class="dropzone-hint">PDF files only</p>
+        </div>
+        } @else {
+        <div class="file-info">
+          <mat-icon class="file-icon">description</mat-icon>
+          <div class="file-details">
+            <p class="file-name">{{ getFileName() }}</p>
+            @if (uploadedFile()) {
+            <p class="file-size">
+              {{ (uploadedFile()!.size / 1024 / 1024).toFixed(2) }} MB
+            </p>
+            }
+          </div>
+          <button
+            mat-icon-button
+            (click)="removeFile()"
+            type="button"
+            aria-label="Remove file"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+        } @if (uploading()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        } @if (uploadError()) {
+        <p class="error-message">{{ uploadError() }}</p>
         }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Source Type</mat-label>
-      <mat-select
-        [formField]="sourceForm.sourceType"
-      >
-        @for (sourceType of sourceTypes; track sourceType.code) {
-        <mat-option [value]="sourceType.code">{{ sourceType.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar') {
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Format Type</mat-label>
-      <mat-select
-        [formField]="sourceForm.formatType"
-      >
-        @for (formatType of formatTypes; track formatType.code) {
-        <mat-option [value]="formatType.code">{{ formatType.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-    }
-
-    @if (formModel().sourceType === 'pdf') {
-    <div
-      class="dropzone"
-      [class.dragging]="isDragging()"
-      [class.has-file]="hasFile()"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave($event)"
-      (drop)="onDrop($event)"
-    >
-      @if (!hasFile()) {
-      <div class="dropzone-content">
-        <mat-icon class="upload-icon">cloud_upload</mat-icon>
-        <p class="dropzone-text">
-          Drag and drop a PDF file here or
-          <label class="file-input-label">
-            browse
-            <input
-              type="file"
-              accept=".pdf"
-              (change)="onFileSelected($event)"
-              class="file-input"
-              aria-label="Upload PDF file"
-            />
-          </label>
-        </p>
-        <p class="dropzone-hint">PDF files only</p>
       </div>
       } @else {
-      <div class="file-info">
-        <mat-icon class="file-icon">description</mat-icon>
-        <div class="file-details">
-          <p class="file-name">{{ getFileName() }}</p>
-          @if (uploadedFile()) {
-          <p class="file-size">
-            {{ (uploadedFile()!.size / 1024 / 1024).toFixed(2) }} MB
-          </p>
-          }
-        </div>
-        <button
-          mat-icon-button
-          (click)="removeFile()"
-          type="button"
-          aria-label="Remove file"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
-      </div>
-      } @if (uploading()) {
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      } @if (uploadError()) {
-      <p class="error-message">{{ uploadError() }}</p>
+      <p class="hint-text">Images will be added from the page view after creating the source.</p>
       }
-    </div>
-    } @else {
-    <p class="hint-text">Images will be added from the page view after creating the source.</p>
-    }
 
-    @if (formModel().sourceType === 'pdf') {
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Start Page</mat-label>
-      <input
-        matInput
-        type="number"
-        [formField]="sourceForm.startPage"
-      />
-    </mat-form-field>
-    }
+      @if (formModel().sourceType === 'pdf') {
+      <div class="form-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Start Page</mat-label>
+          <input
+            matInput
+            type="number"
+            [formField]="sourceForm.startPage"
+          />
+        </mat-form-field>
+      </div>
+      }
+    </section>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Card Limit</mat-label>
-      <input
-        matInput
-        type="number"
-        [formField]="sourceForm.cardLimit"
-      />
-    </mat-form-field>
+    <section class="form-section">
+      <h3 class="section-title">Study Settings</h3>
+      <div class="form-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Card Limit</mat-label>
+          <input
+            matInput
+            type="number"
+            [formField]="sourceForm.cardLimit"
+          />
+        </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>New Card Limit</mat-label>
-      <input
-        matInput
-        type="number"
-        [formField]="sourceForm.newCardLimit"
-      />
-    </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>New Card Limit</mat-label>
+          <input
+            matInput
+            type="number"
+            [formField]="sourceForm.newCardLimit"
+          />
+        </mat-form-field>
 
-    <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Learning Partner</mat-label>
-      <mat-select
-        [formField]="sourceForm.learningPartnerId"
-      >
-        <mat-option [value]="null">None</mat-option>
-        @for (partner of partners.value() ?? []; track partner.id) {
-        <mat-option [value]="partner.id">{{ partner.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Learning Partner</mat-label>
+          <mat-select
+            [formField]="sourceForm.learningPartnerId"
+          >
+            <mat-option [value]="null">None</mat-option>
+            @for (partner of partners.value() ?? []; track partner.id) {
+            <mat-option [value]="partner.id">{{ partner.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </section>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

@@ -14,6 +14,8 @@ public class CardTableRow {
     private CardReadiness readiness;
     private String state;
     private Integer reps;
+    private Integer lapses;
+    private Float stability;
     private Integer lastReviewDaysAgo;
     private Integer correctStreak;
     private Integer reviewScore;
