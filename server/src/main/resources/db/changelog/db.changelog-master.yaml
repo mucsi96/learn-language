@@ -850,10 +850,15 @@ databaseChangeLog:
                   name: source_id
               - column:
                   name: readiness
-        - sql:
-            sql: |
-              CREATE INDEX IF NOT EXISTS idx_cards_readiness_due ON learn_language.cards (readiness, due)
-                  WHERE readiness = 'READY'
+        - createIndex:
+            schemaName: learn_language
+            tableName: cards
+            indexName: idx_cards_readiness_due
+            columns:
+              - column:
+                  name: readiness
+              - column:
+                  name: due
   - changeSet:
       id: 24-create-card-view
       author: mucsi96
