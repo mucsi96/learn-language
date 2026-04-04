@@ -8,6 +8,8 @@ export type CardTableRow = {
   readiness: CardReadiness;
   state: string;
   reps: number;
+  lapses: number;
+  stability: number;
   correctStreak: number | null;
   lastReviewDaysAgo: number | null;
   reviewScore: number | null;
