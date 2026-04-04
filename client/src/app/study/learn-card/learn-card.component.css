@@ -148,20 +148,14 @@
     flex-direction: row;
     max-height: calc(100vh - 200px);
   }
+}
 
+@media (min-width: 1200px) {
   .grading-buttons-container {
     justify-content: center;
     width: 45%;
     margin-left: 55%;
     margin-top: -90px;
     padding: 0;
-  }
-
-  .grading-row-actions {
-    flex-shrink: 0;
-  }
-
-  .learn-card.revealed .card-bottom-controls {
-    display: none;
   }
 }
