@@ -125,9 +125,7 @@
 }
 
 .grading-buttons-container {
-  display: flex;
-  justify-content: center;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
 }
 
 @media (min-width: 768px) {
@@ -141,8 +139,11 @@
   }
 
   .grading-buttons-container {
+    display: flex;
+    justify-content: center;
     width: 45%;
     margin-left: 55%;
     margin-top: -90px;
+    padding: 0;
   }
 }
