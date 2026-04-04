@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-// Storage directory path (matches docker-compose.yaml configuration)
+// Storage directory path
 export const STORAGE_DIR = path.join(__dirname, 'storage');
 
 // Database connection helper
