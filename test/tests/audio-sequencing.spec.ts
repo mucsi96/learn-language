@@ -111,7 +111,7 @@ test('voice selection dialog shows only enabled voice configurations', async ({ 
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
-  await expect(page.getByRole('heading', { name: 'ház' })).toBeVisible();
+  await page.getByRole('heading', { name: 'ház' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
@@ -151,7 +151,7 @@ test('voice selection dialog shows no voices when no configurations exist', asyn
   // Navigate to study page
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
-  await expect(page.getByRole('heading', { name: 'autó' })).toBeVisible();
+  await page.getByRole('heading', { name: 'autó' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Voice Selection' }).click();
@@ -195,7 +195,7 @@ test('voice selection dialog displays model for each voice configuration', async
 
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
-  await expect(page.getByRole('heading', { name: 'teszt' })).toBeVisible();
+  await page.getByRole('heading', { name: 'teszt' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Voice Selection' }).click();

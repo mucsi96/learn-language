@@ -387,6 +387,7 @@ test('flag card menu item visible in context menu', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'tesztelni' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await expect(page.getByRole('menuitem', { name: 'Flag Card' })).toBeVisible();
@@ -417,6 +418,7 @@ test('edit card menu item visible in context menu', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'szerkeszteni' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await expect(page.getByRole('menuitem', { name: 'Edit Card' })).toBeVisible();
@@ -446,6 +448,7 @@ test('flag card sets flagged in database', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'megjelölni' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Flag Card' }).click();
@@ -481,6 +484,7 @@ test('unflag card via context menu', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'első' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await expect(page.getByRole('menuitem', { name: 'Remove Flag' })).toBeVisible();
@@ -516,6 +520,7 @@ test('edit card button navigation', async ({ page }) => {
 
   await page.goto('http://localhost:8180/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'navigálni' }).click();
 
   await page.getByRole('button', { name: 'Card actions' }).click();
   await page.getByRole('menuitem', { name: 'Edit Card' }).click();

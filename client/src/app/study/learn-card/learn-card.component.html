@@ -61,18 +61,13 @@
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
+    @if (isStudyingWithPartner() && !isRevealed()) {
     <div class="card-bottom-controls">
-      @if (isStudyingWithPartner() && !isRevealed()) {
       <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
         {{ currentTurn().name }}
       </span>
-      }
-      <app-card-actions
-        [card]="cardResource"
-        [languageTexts]="languageTexts()"
-        (cardProcessed)="onCardProcessed()">
-      </app-card-actions>
     </div>
+    }
 
     @switch (currentCardType()) {
       @case ('vocabulary') {
@@ -99,16 +94,21 @@
     }
   </div>
 
-  @if (isRevealed()) {
-    <div class="grading-buttons-container">
-      <app-card-grading-buttons
+  <div class="grading-buttons-container" [class.hidden]="!isRevealed()">
+    <app-card-grading-buttons
+      [card]="cardResource"
+      [sourceId]="sourceId()"
+      [learningPartnerId]="currentTurn().partnerId"
+      [reviewDuration]="reviewDuration()"
+      (cardProcessed)="onCardProcessed()">
+    </app-card-grading-buttons>
+    <div class="grading-row-actions">
+      <app-card-actions
         [card]="cardResource"
-        [sourceId]="sourceId()"
-        [learningPartnerId]="currentTurn().partnerId"
-        [reviewDuration]="reviewDuration()"
+        [languageTexts]="languageTexts()"
         (cardProcessed)="onCardProcessed()">
-      </app-card-grading-buttons>
+      </app-card-actions>
     </div>
-  }
+  </div>
 </div>
 }
