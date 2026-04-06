@@ -699,12 +699,20 @@ test('changing filter resets selection', async ({ page }) => {
     reps: 2,
   });
 
+  await withDbConnection(async (client) => {
+    await client.query(
+      "REFRESH MATERIALIZED VIEW learn_language.cards_view"
+    );
+  });
+
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
     const rows = await getGridData(grid);
     expect(rows.length).toBe(2);
+    expect(page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
   await page
