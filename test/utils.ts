@@ -39,7 +39,7 @@ export async function cleanupDb(): Promise<void> {
     await client.query(`
       DO $$ BEGIN
         IF EXISTS (SELECT FROM pg_matviews WHERE schemaname = 'learn_language' AND matviewname = 'card_view') THEN
-          EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY learn_language.card_view';
+          EXECUTE 'REFRESH MATERIALIZED VIEW learn_language.card_view';
         END IF;
       END $$
     `);
