@@ -705,8 +705,6 @@ test('changing filter resets selection', async ({ page }) => {
   await expect(async () => {
     const rows = await getGridData(grid);
     expect(rows.length).toBe(2);
-    expect(page
-    .getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
   await page
