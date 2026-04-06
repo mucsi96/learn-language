@@ -149,23 +149,7 @@ export async function getSource(id: string): Promise<{
 }
 
 export async function cleanupDbRecords({ withSources }: { withSources?: boolean } = {}): Promise<void> {
-  await withDbConnection(async (client) => {
-    const tables = [
-      'study_session_cards', 'study_sessions', 'review_logs', 'cards',
-      'extraction_regions', 'model_usage_logs', 'voice_configurations',
-      'chat_model_settings', 'image_model_settings', 'rate_limit_settings',
-      'known_words', 'learning_partners', 'api_tokens', 'documents', 'sources',
-    ];
-    for (const table of tables) {
-      const { rows } = await client.query(
-        `SELECT 1 FROM information_schema.tables WHERE table_schema = 'learn_language' AND table_name = $1`,
-        [table]
-      );
-      if (rows.length > 0) {
-        await client.query(`DELETE FROM learn_language.${table}`);
-      }
-    }
-  });
+  await cleanupDb();
 
   if (!withSources) {
     // Create test sources and their PDF documents
