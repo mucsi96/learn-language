@@ -440,7 +440,6 @@ export class CardsTableComponent {
       verticalPosition: 'top',
     });
     this.selectedIds.set([]);
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.dueCardsService.refetchDueCounts();
@@ -466,7 +465,6 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.dueCardsService.refetchDueCounts();
@@ -493,7 +491,6 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -524,7 +521,6 @@ export class CardsTableComponent {
       });
     }
 
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.inReviewCardsService.refetchCards();

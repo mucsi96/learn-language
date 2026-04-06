@@ -138,10 +138,4 @@ export class CardsTableService {
       this.http.delete('/api/cards/audio', { body: cardIds })
     );
   }
-
-  async refreshCardView(): Promise<void> {
-    await firstValueFrom(
-      this.http.post('/api/cards/refresh-view', null)
-    );
-  }
 }

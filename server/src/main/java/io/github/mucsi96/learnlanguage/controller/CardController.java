@@ -105,13 +105,6 @@ public class CardController {
     return ResponseEntity.ok(ids);
   }
 
-  @PostMapping("/cards/refresh-view")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ResponseEntity<Map<String, String>> refreshCardView() {
-    cardService.refreshCardView();
-    return ResponseEntity.ok(Map.of("detail", "Card view refreshed"));
-  }
-
   @PutMapping("/cards/mark-known")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
