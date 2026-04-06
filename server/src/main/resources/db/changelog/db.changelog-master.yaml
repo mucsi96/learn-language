@@ -1,0 +1,876 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-create-sources-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: sources
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: sources_pkey
+              - column:
+                  name: bookmarked_page
+                  type: int
+              - column:
+                  name: start_page
+                  type: int
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: language_level
+                  type: varchar(255)
+              - column:
+                  name: card_type
+                  type: varchar(255)
+              - column:
+                  name: format_type
+                  type: varchar(255)
+              - column:
+                  name: source_type
+                  type: varchar(255)
+              - column:
+                  name: bookmarked_document_id
+                  type: int
+              - column:
+                  name: card_limit
+                  type: int
+              - column:
+                  name: new_card_limit
+                  type: int
+              - column:
+                  name: learning_partner_id
+                  type: int
+  - changeSet:
+      id: 2-create-documents-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: documents
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: documents_pkey
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: document_source_id_fkey
+                    references: sources(id)
+                    deleteCascade: true
+              - column:
+                  name: file_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: page_number
+                  type: int
+  - changeSet:
+      id: 3-add-sources-bookmarked-document-fkey
+      author: mucsi96
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: sources_bookmarked_document_fkey
+            baseTableName: sources
+            baseColumnNames: bookmarked_document_id
+            referencedTableName: documents
+            referencedColumnNames: id
+            onDelete: SET NULL
+  - changeSet:
+      id: 4-create-cards-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: cards_pkey
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: card_source_id_fkey
+                    references: sources(id)
+              - column:
+                  name: source_page_number
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: readiness
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stability
+                  type: real
+                  constraints:
+                    nullable: false
+              - column:
+                  name: difficulty
+                  type: real
+                  constraints:
+                    nullable: false
+              - column:
+                  name: elapsed_days
+                  type: real
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scheduled_days
+                  type: real
+                  constraints:
+                    nullable: false
+              - column:
+                  name: learning_steps
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reps
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: lapses
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: state
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_review
+                  type: timestamp(6)
+              - column:
+                  name: flagged
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 5-create-learning-partners-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: learning_partners
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: learning_partners_pkey
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 6-add-sources-learning-partner-fkey
+      author: mucsi96
+      changes:
+        - addForeignKeyConstraint:
+            constraintName: sources_learning_partner_fkey
+            baseTableName: sources
+            baseColumnNames: learning_partner_id
+            referencedTableName: learning_partners
+            referencedColumnNames: id
+            onDelete: SET NULL
+  - changeSet:
+      id: 7-create-review-logs-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: review_logs
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: review_logs_pkey
+              - column:
+                  name: rating
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: review_duration
+                  type: bigint
+              - column:
+                  name: review
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: card_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: review_log_card_id_fkey
+                    references: cards(id)
+              - column:
+                  name: state
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stability
+                  type: float8
+                  constraints:
+                    nullable: false
+              - column:
+                  name: difficulty
+                  type: float8
+                  constraints:
+                    nullable: false
+              - column:
+                  name: elapsed_days
+                  type: float8
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_elapsed_days
+                  type: float8
+              - column:
+                  name: scheduled_days
+                  type: float8
+                  constraints:
+                    nullable: false
+              - column:
+                  name: learning_steps
+                  type: int
+              - column:
+                  name: learning_partner_id
+                  type: int
+        - addForeignKeyConstraint:
+            constraintName: review_log_learning_partner_fkey
+            baseTableName: review_logs
+            baseColumnNames: learning_partner_id
+            referencedTableName: learning_partners
+            referencedColumnNames: id
+            onDelete: SET NULL
+  - changeSet:
+      id: 8-create-model-usage-logs-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: model_usage_logs
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: model_usage_logs_pkey
+              - column:
+                  name: model_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation_id
+                  type: varchar(255)
+              - column:
+                  name: input_tokens
+                  type: bigint
+              - column:
+                  name: output_tokens
+                  type: bigint
+              - column:
+                  name: input_characters
+                  type: bigint
+              - column:
+                  name: image_count
+                  type: int
+              - column:
+                  name: cost_usd
+                  type: numeric(10, 6)
+              - column:
+                  name: processing_time_ms
+                  type: bigint
+              - column:
+                  name: response_content
+                  type: text
+              - column:
+                  name: rating
+                  type: int
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 9-create-voice-configurations-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: voice_configurations
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: voice_configurations_pkey
+              - column:
+                  name: voice_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: language
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: varchar(255)
+              - column:
+                  name: is_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: voice_configurations
+            columnNames: voice_id, language, model
+            constraintName: voice_configurations_unique
+  - changeSet:
+      id: 10-create-chat-model-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: chat_model_settings
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: chat_model_settings_pkey
+              - column:
+                  name: model_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_primary
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: chat_model_settings
+            columnNames: model_name, operation_type
+            constraintName: chat_model_settings_unique
+  - changeSet:
+      id: 11-create-image-model-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: image_model_settings
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: image_model_settings_pkey
+              - column:
+                  name: model_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_count
+                  type: int
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: image_model_settings
+            columnNames: model_name
+            constraintName: image_model_settings_unique
+  - changeSet:
+      id: 12-create-rate-limit-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: rate_limit_settings_pkey
+              - column:
+                  name: value
+                  type: int
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 13-seed-rate-limit-settings
+      author: mucsi96
+      changes:
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: image-per-minute
+              - column:
+                  name: value
+                  valueNumeric: 6
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: audio-per-minute
+              - column:
+                  name: value
+                  valueNumeric: 0
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: image-max-concurrent
+              - column:
+                  name: value
+                  valueNumeric: 0
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: audio-max-concurrent
+              - column:
+                  name: value
+                  valueNumeric: 3
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: image-daily-limit
+              - column:
+                  name: value
+                  valueNumeric: 0
+        - insert:
+            tableName: rate_limit_settings
+            columns:
+              - column:
+                  name: key
+                  value: audio-daily-limit
+              - column:
+                  name: value
+                  valueNumeric: 0
+  - changeSet:
+      id: 14-create-audio-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: audio_settings
+            columns:
+              - column:
+                  name: key
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: audio_settings_pkey
+              - column:
+                  name: value
+                  type: int
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 15-seed-audio-settings
+      author: mucsi96
+      changes:
+        - insert:
+            tableName: audio_settings
+            columns:
+              - column:
+                  name: key
+                  value: front-enabled
+              - column:
+                  name: value
+                  valueNumeric: 1
+  - changeSet:
+      id: 16-create-known-words-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: known_words
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: known_words_pkey
+              - column:
+                  name: word
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hungarian_translation
+                  type: varchar(255)
+        - addUniqueConstraint:
+            tableName: known_words
+            columnNames: word
+            constraintName: known_words_unique
+  - changeSet:
+      id: 17-create-api-tokens-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: api_tokens
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: api_tokens_pkey
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: token_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: api_tokens
+            columnNames: token_hash
+            constraintName: api_tokens_token_hash_unique
+  - changeSet:
+      id: 18-create-study-sessions-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: study_sessions
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: study_sessions_pkey
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: study_session_source_fkey
+                    references: sources(id)
+                    deleteCascade: true
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: study_mode
+                  type: varchar(50)
+                  defaultValue: SOLO
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS study_sessions_source_date_idx
+                  ON study_sessions (source_id, ((created_at::date)))
+  - changeSet:
+      id: 19-create-study-session-cards-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: study_session_cards
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: study_session_cards_pkey
+              - column:
+                  name: session_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: study_session_cards_session_fkey
+                    references: study_sessions(id)
+                    deleteCascade: true
+              - column:
+                  name: card_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: study_session_cards_card_fkey
+                    references: cards(id)
+                    deleteCascade: true
+              - column:
+                  name: position
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: learning_partner_id
+                  type: int
+              - column:
+                  name: version
+                  type: int
+                  defaultValueNumeric: 0
+        - addForeignKeyConstraint:
+            constraintName: study_session_cards_partner_fkey
+            baseTableName: study_session_cards
+            baseColumnNames: learning_partner_id
+            referencedTableName: learning_partners
+            referencedColumnNames: id
+            onDelete: SET NULL
+  - changeSet:
+      id: 20-create-extraction-regions-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: extraction_regions
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: extraction_regions_pkey
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: extraction_region_source_fkey
+                    references: sources(id)
+                    deleteCascade: true
+              - column:
+                  name: page_number
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: x
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: y
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: width
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: height
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: int
+  - changeSet:
+      id: 21-create-indexes
+      author: mucsi96
+      changes:
+        - createIndex:
+            tableName: extraction_regions
+            indexName: extraction_regions_source_page_idx
+            columns:
+              - column:
+                  name: source_id
+              - column:
+                  name: page_number
+        - createIndex:
+            tableName: cards
+            indexName: cards_last_review_idx
+            columns:
+              - column:
+                  name: last_review
+        - createIndex:
+            tableName: review_logs
+            indexName: review_logs_card_review_idx
+            columns:
+              - column:
+                  name: card_id
+              - column:
+                  name: review
+                  descending: true
+        - createIndex:
+            tableName: cards
+            indexName: idx_cards_source_readiness
+            columns:
+              - column:
+                  name: source_id
+              - column:
+                  name: readiness
+        - createIndex:
+            tableName: cards
+            indexName: idx_cards_readiness_due
+            columns:
+              - column:
+                  name: readiness
+              - column:
+                  name: due
+  - changeSet:
+      id: 22-create-card-view
+      author: mucsi96
+      runOnChange: true
+      changes:
+        - sql:
+            sql: |
+              DROP MATERIALIZED VIEW IF EXISTS card_view;
+              CREATE MATERIALIZED VIEW card_view AS
+              SELECT
+                  c.id,
+                  c.source_id,
+                  c.source_page_number,
+                  c.data,
+                  c.readiness,
+                  c.due,
+                  c.reps,
+                  c.lapses,
+                  c.stability,
+                  c.state,
+                  c.last_review,
+                  c.flagged,
+                  s.card_type,
+                  rs.review_score,
+                  cs.correct_streak,
+                  CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
+                      (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '') OR
+                      (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '') OR
+                      (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '') OR
+                      (s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
+                      (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''))
+                  ) THEN true ELSE false END AS is_unhealthy,
+                  CASE WHEN c.readiness = 'READY'
+                      AND c.state = 'REVIEW'
+                      AND c.stability >= 30
+                      AND c.reps >= 5
+                      AND c.lapses <= 1
+                  THEN true ELSE false END AS is_suggested_known
+              FROM cards c
+              JOIN sources s ON c.source_id = s.id
+              LEFT JOIN LATERAL (
+                  SELECT COALESCE(MIN(rn) FILTER (WHERE rating < 3) - 1,
+                                  MAX(rn))::integer AS correct_streak
+                  FROM (
+                      SELECT rating, ROW_NUMBER() OVER (ORDER BY review DESC) AS rn
+                      FROM review_logs
+                      WHERE card_id = c.id
+                  ) ranked
+              ) cs ON true
+              LEFT JOIN LATERAL (
+                  SELECT
+                      CASE
+                          WHEN stats.total_count = 0 THEN NULL
+                          WHEN stats.total_count = 1 THEN (stats.last_review_success * 100)::integer
+                          ELSE ROUND(
+                              (0.5 * stats.last_review_success + 0.5 * stats.prev_success_rate) * 100
+                          )::integer
+                      END AS review_score
+                  FROM (
+                      SELECT
+                          COUNT(*) AS total_count,
+                          CASE WHEN (SELECT rating FROM review_logs WHERE card_id = c.id ORDER BY review DESC LIMIT 1) >= 3
+                              THEN 1.0 ELSE 0.0
+                          END AS last_review_success,
+                          COALESCE(
+                              (SELECT AVG(CASE WHEN rating >= 3 THEN 1.0 ELSE 0.0 END)
+                               FROM (SELECT rating FROM review_logs WHERE card_id = c.id ORDER BY review DESC OFFSET 1) prev),
+                              0.0
+                          ) AS prev_success_rate
+                      FROM review_logs
+                      WHERE card_id = c.id
+                  ) stats
+              ) rs ON true;
+              CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON card_view (id)

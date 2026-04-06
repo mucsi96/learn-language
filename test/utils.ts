@@ -28,8 +28,21 @@ export async function withDbConnection<T>(callback: (client: Client) => Promise<
 
 export async function cleanupDb(): Promise<void> {
   await withDbConnection(async (client) => {
-    await client.query('DROP SCHEMA IF EXISTS learn_language CASCADE');
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for a short moment to ensure cleanup
+    await client.query(`
+      DO $$ DECLARE r RECORD;
+      BEGIN
+        FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'learn_language' AND tablename NOT IN ('databasechangelog', 'databasechangeloglock'))
+        LOOP EXECUTE 'TRUNCATE TABLE learn_language.' || quote_ident(r.tablename) || ' CASCADE';
+        END LOOP;
+      END $$
+    `);
+    await client.query(`
+      DO $$ BEGIN
+        IF EXISTS (SELECT FROM pg_matviews WHERE schemaname = 'learn_language' AND matviewname = 'card_view') THEN
+          EXECUTE 'REFRESH MATERIALIZED VIEW learn_language.card_view';
+        END IF;
+      END $$
+    `);
   });
 }
 
@@ -142,24 +155,7 @@ export async function getSource(id: string): Promise<{
 }
 
 export async function cleanupDbRecords({ withSources }: { withSources?: boolean } = {}): Promise<void> {
-  await withDbConnection(async (client) => {
-    // Delete records in order to respect foreign key constraints
-    await client.query('DELETE FROM learn_language.study_session_cards');
-    await client.query('DELETE FROM learn_language.study_sessions');
-    await client.query('DELETE FROM learn_language.review_logs');
-    await client.query('DELETE FROM learn_language.cards');
-    await client.query('DELETE FROM learn_language.extraction_regions');
-    await client.query('DELETE FROM learn_language.model_usage_logs');
-    await client.query('DELETE FROM learn_language.voice_configurations');
-    await client.query('DELETE FROM learn_language.chat_model_settings');
-    await client.query('DELETE FROM learn_language.image_model_settings');
-    await client.query('DELETE FROM learn_language.rate_limit_settings');
-    await client.query('DELETE FROM learn_language.known_words');
-    await client.query('DELETE FROM learn_language.learning_partners');
-    await client.query('DELETE FROM learn_language.api_tokens');
-    await client.query('DELETE FROM learn_language.documents');
-    await client.query('DELETE FROM learn_language.sources');
-  });
+  await cleanupDb();
 
   if (!withSources) {
     // Create test sources and their PDF documents
@@ -225,14 +221,6 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       sourceType: 'IMAGES',
     });
   }
-}
-
-export async function populateDb(): Promise<void> {
-  await withDbConnection(async (client) => {
-    const initSqlPath = path.join(__dirname, '..', 'server', 'src', 'main', 'resources', 'schema.sql');
-    const initSql = fs.readFileSync(initSqlPath, 'utf-8');
-    await client.query(initSql);
-  });
 }
 
 export function cleanupStorage(): void {

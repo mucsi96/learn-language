@@ -141,6 +141,8 @@ public class CardService {
   }
 
   public Map<String, SourceStats> getSourceStats() {
+    refreshCardView();
+
     return cardRepository.getSourceCardStats().stream()
         .collect(Collectors.groupingBy(
             SourceCardStatsProjection::getSourceId,
@@ -217,6 +219,8 @@ public class CardService {
       String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
 
+    refreshCardView();
+
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo,
@@ -236,6 +240,8 @@ public class CardService {
       Integer minReviewScore, Integer maxReviewScore,
       String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
+
+    refreshCardView();
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,

@@ -32,6 +32,7 @@ import {
   DateFilterModule,
   ColumnAutoSizeModule,
   RowSelectionModule,
+  TooltipModule,
   themeMaterial,
   colorSchemeDarkBlue,
 } from 'ag-grid-community';
@@ -88,6 +89,7 @@ ModuleRegistry.registerModules([
   DateFilterModule,
   ColumnAutoSizeModule,
   RowSelectionModule,
+  TooltipModule,
 ]);
 
 @Component({
@@ -153,7 +155,7 @@ export class CardsTableComponent {
     effect(() => {
       this.sourceId();
       if (this.gridApi) {
-        this.cardsTableService.refreshCardView().then(() => this.refreshGrid());
+        this.refreshGrid();
       }
     });
     effect(() => {
@@ -358,10 +360,8 @@ export class CardsTableComponent {
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
-  async onGridReady(event: GridReadyEvent): Promise<void> {
+  onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-
-    await this.cardsTableService.refreshCardView();
 
     event.api.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
@@ -440,7 +440,6 @@ export class CardsTableComponent {
       verticalPosition: 'top',
     });
     this.selectedIds.set([]);
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.dueCardsService.refetchDueCounts();
@@ -466,7 +465,6 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.dueCardsService.refetchDueCounts();
@@ -493,7 +491,6 @@ export class CardsTableComponent {
       duration: 3000,
       verticalPosition: 'top',
     });
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
   }
 
@@ -524,7 +521,6 @@ export class CardsTableComponent {
       });
     }
 
-    await this.cardsTableService.refreshCardView();
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.inReviewCardsService.refetchCards();
