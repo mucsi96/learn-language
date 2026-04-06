@@ -187,6 +187,7 @@ test('card editing in db', async ({ page }) => {
   expect(await getImageColor(page, imageContent2)).toBe('red');
 
   await page.getByRole('radio').nth(1).click();
+  await expect(page.getByRole('radio').nth(1)).toBeChecked();
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
