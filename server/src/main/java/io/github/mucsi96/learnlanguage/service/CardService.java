@@ -141,6 +141,8 @@ public class CardService {
   }
 
   public Map<String, SourceStats> getSourceStats() {
+    refreshCardView();
+
     return cardRepository.getSourceCardStats().stream()
         .collect(Collectors.groupingBy(
             SourceCardStatsProjection::getSourceId,
