@@ -143,22 +143,21 @@ export async function getSource(id: string): Promise<{
 
 export async function cleanupDbRecords({ withSources }: { withSources?: boolean } = {}): Promise<void> {
   await withDbConnection(async (client) => {
-    // Delete records in order to respect foreign key constraints
-    await client.query('DELETE FROM learn_language.study_session_cards');
-    await client.query('DELETE FROM learn_language.study_sessions');
-    await client.query('DELETE FROM learn_language.review_logs');
-    await client.query('DELETE FROM learn_language.cards');
-    await client.query('DELETE FROM learn_language.extraction_regions');
-    await client.query('DELETE FROM learn_language.model_usage_logs');
-    await client.query('DELETE FROM learn_language.voice_configurations');
-    await client.query('DELETE FROM learn_language.chat_model_settings');
-    await client.query('DELETE FROM learn_language.image_model_settings');
-    await client.query('DELETE FROM learn_language.rate_limit_settings');
-    await client.query('DELETE FROM learn_language.known_words');
-    await client.query('DELETE FROM learn_language.learning_partners');
-    await client.query('DELETE FROM learn_language.api_tokens');
-    await client.query('DELETE FROM learn_language.documents');
-    await client.query('DELETE FROM learn_language.sources');
+    const tables = [
+      'study_session_cards', 'study_sessions', 'review_logs', 'cards',
+      'extraction_regions', 'model_usage_logs', 'voice_configurations',
+      'chat_model_settings', 'image_model_settings', 'rate_limit_settings',
+      'known_words', 'learning_partners', 'api_tokens', 'documents', 'sources',
+    ];
+    for (const table of tables) {
+      const { rows } = await client.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = 'learn_language' AND table_name = $1`,
+        [table]
+      );
+      if (rows.length > 0) {
+        await client.query(`DELETE FROM learn_language.${table}`);
+      }
+    }
   });
 
   if (!withSources) {
