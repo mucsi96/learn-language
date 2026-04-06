@@ -61,3 +61,6 @@ management:
       show-details: always
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,db,liquibase
