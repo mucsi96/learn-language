@@ -155,7 +155,7 @@ export class CardsTableComponent {
     effect(() => {
       this.sourceId();
       if (this.gridApi) {
-        this.cardsTableService.refreshCardView().then(() => this.refreshGrid());
+        this.refreshGrid();
       }
     });
     effect(() => {
@@ -360,10 +360,8 @@ export class CardsTableComponent {
 
   readonly getRowId = (params: GetRowIdParams) => params.data.id;
 
-  async onGridReady(event: GridReadyEvent): Promise<void> {
+  onGridReady(event: GridReadyEvent): void {
     this.gridApi = event.api;
-
-    await this.cardsTableService.refreshCardView();
 
     event.api.setGridOption('datasource', {
       getRows: (params: IGetRowsParams) => this.loadRows(params),
