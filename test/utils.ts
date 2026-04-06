@@ -233,9 +233,6 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
   }
 }
 
-export async function populateDb(): Promise<void> {
-}
-
 export function cleanupStorage(): void {
   const imagesDir = path.join(STORAGE_DIR, 'images');
   const audioDir = path.join(STORAGE_DIR, 'audio');
