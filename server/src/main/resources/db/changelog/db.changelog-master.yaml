@@ -801,6 +801,14 @@ databaseChangeLog:
               - column:
                   name: due
   - changeSet:
+      id: 23-remove-seed-data
+      author: mucsi96
+      changes:
+        - delete:
+            tableName: rate_limit_settings
+        - delete:
+            tableName: audio_settings
+  - changeSet:
       id: 22-create-card-view
       author: mucsi96
       runOnChange: true

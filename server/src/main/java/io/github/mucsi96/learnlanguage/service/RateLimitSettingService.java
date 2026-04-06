@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,15 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RateLimitSettingService {
+
+    private static final Map<String, Integer> DEFAULTS = Map.of(
+            "image-per-minute", 6,
+            "audio-per-minute", 0,
+            "image-max-concurrent", 0,
+            "audio-max-concurrent", 3,
+            "image-daily-limit", 0,
+            "audio-daily-limit", 0
+    );
 
     private final RateLimitSettingRepository rateLimitSettingRepository;
 
@@ -44,23 +54,23 @@ public class RateLimitSettingService {
     public void updateRateLimitSettings(RateLimitSettingRequest request) {
         final String type = request.getType();
         Optional.ofNullable(request.getMaxPerMinute())
-                .ifPresent(value -> updateRateLimit(type + "-per-minute", value));
+                .ifPresent(value -> upsertRateLimit(type + "-per-minute", value));
         Optional.ofNullable(request.getMaxConcurrent())
-                .ifPresent(value -> updateRateLimit(type + "-max-concurrent", value));
+                .ifPresent(value -> upsertRateLimit(type + "-max-concurrent", value));
         Optional.ofNullable(request.getDailyLimit())
-                .ifPresent(value -> updateRateLimit(type + "-daily-limit", value));
+                .ifPresent(value -> upsertRateLimit(type + "-daily-limit", value));
     }
 
     private int getRateLimit(String key) {
         return rateLimitSettingRepository.findById(key)
                 .map(RateLimitSetting::getValue)
-                .orElseThrow();
+                .orElse(DEFAULTS.getOrDefault(key, 0));
     }
 
-    private void updateRateLimit(String key, int value) {
+    private void upsertRateLimit(String key, int value) {
         final RateLimitSetting setting = rateLimitSettingRepository.findById(key)
                 .map(existing -> existing.toBuilder().value(value).build())
-                .orElseThrow();
+                .orElse(RateLimitSetting.builder().key(key).value(value).build());
         rateLimitSettingRepository.save(setting);
     }
 }
