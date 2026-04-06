@@ -699,12 +699,6 @@ test('changing filter resets selection', async ({ page }) => {
     reps: 2,
   });
 
-  await withDbConnection(async (client) => {
-    await client.query(
-      "REFRESH MATERIALIZED VIEW learn_language.cards_view"
-    );
-  });
-
   await page.goto('http://localhost:8180/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');

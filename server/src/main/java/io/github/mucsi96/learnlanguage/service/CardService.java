@@ -217,6 +217,8 @@ public class CardService {
       String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
 
+    refreshCardView();
+
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
         lastReviewDaysAgo,
@@ -236,6 +238,8 @@ public class CardService {
       Integer minReviewScore, Integer maxReviewScore,
       String cardFilter, Boolean flagged, Boolean unhealthy, Boolean suggestedKnown,
       LocalDateTime startOfDayUtc) {
+
+    refreshCardView();
 
     final PredicateSpecification<CardView> spec = buildCardTableSpec(
         sourceId, readiness, state, minReps, maxReps,
