@@ -28,8 +28,15 @@ export async function withDbConnection<T>(callback: (client: Client) => Promise<
 
 export async function cleanupDb(): Promise<void> {
   await withDbConnection(async (client) => {
-    await client.query('DROP SCHEMA IF EXISTS learn_language CASCADE');
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for a short moment to ensure cleanup
+    await client.query(`
+      DO $$ DECLARE r RECORD;
+      BEGIN
+        FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'learn_language' AND tablename NOT IN ('databasechangelog', 'databasechangeloglock'))
+        LOOP EXECUTE 'TRUNCATE TABLE learn_language.' || quote_ident(r.tablename) || ' CASCADE';
+        END LOOP;
+      END $$
+    `);
+    await client.query('DROP MATERIALIZED VIEW IF EXISTS learn_language.card_view');
   });
 }
 
@@ -227,9 +234,6 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
 }
 
 export async function populateDb(): Promise<void> {
-  await withDbConnection(async (client) => {
-    await client.query('CREATE SCHEMA IF NOT EXISTS learn_language');
-  });
 }
 
 export function cleanupStorage(): void {
