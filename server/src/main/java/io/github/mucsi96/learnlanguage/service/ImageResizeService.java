@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -22,11 +21,13 @@ public class ImageResizeService {
             "pipe:1"
         );
         final Process process = pb.start();
+        boolean success = false;
 
         try {
-            final CompletableFuture<byte[]> stderrFuture = CompletableFuture.supplyAsync(() -> {
+            final byte[][] stderr = {null};
+            final Thread stderrReader = Thread.ofVirtual().start(() -> {
                 try {
-                    return process.getErrorStream().readAllBytes();
+                    stderr[0] = process.getErrorStream().readAllBytes();
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to read ffmpeg stderr", e);
                 }
@@ -42,6 +43,7 @@ public class ImageResizeService {
 
             final byte[] result = process.getInputStream().readAllBytes();
             writer.join();
+            stderrReader.join();
 
             final boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (!finished) {
@@ -51,15 +53,18 @@ public class ImageResizeService {
             final int exitCode = process.exitValue();
             if (exitCode != 0) {
                 throw new IOException("ffmpeg exited with code %d: %s".formatted(
-                    exitCode, new String(stderrFuture.join(), StandardCharsets.UTF_8)));
+                    exitCode, new String(stderr[0], StandardCharsets.UTF_8)));
             }
 
+            success = true;
             return result;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("ffmpeg process interrupted", e);
         } finally {
-            process.destroyForcibly();
+            if (!success) {
+                process.destroyForcibly();
+            }
         }
     }
 }
