@@ -19,7 +19,7 @@ public class AudioSettingService {
         return audioSettingRepository.findById(FRONT_ENABLED_KEY)
                 .map(AudioSetting::getValue)
                 .map(value -> value != 0)
-                .orElse(true);
+                .orElse(false);
     }
 
     @Transactional
