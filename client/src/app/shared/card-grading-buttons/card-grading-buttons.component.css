@@ -30,20 +30,12 @@
   background-color: #dc3545 !important;
 }
 
-.grade-skip {
-  background-color: #6c757d !important;
-}
-
 .grade-correct {
   background-color: #28a745 !important;
 }
 
 .grade-incorrect:hover {
   background-color: #bb2d3b !important;
-}
-
-.grade-skip:hover {
-  background-color: #565e64 !important;
 }
 
 .grade-correct:hover {

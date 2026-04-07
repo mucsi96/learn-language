@@ -11,6 +11,7 @@ import { AudioData } from '../types/audio-generation.types';
 import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
 import { LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../types/card-resource.types';
+import { StudySessionService } from '../../study-session.service';
 
 @Component({
   selector: 'app-card-actions',
@@ -26,11 +27,13 @@ import { CardResourceLike } from '../types/card-resource.types';
 })
 export class CardActionsComponent {
   card = input<CardResourceLike>();
+  sourceId = input<string | null>(null);
   languageTexts = input<LanguageTexts[]>([]);
   cardProcessed = output<void>();
 
   private readonly http = inject(HttpClient);
   private readonly dialog = inject(MatDialog);
+  private readonly studySessionService = inject(StudySessionService);
 
   isFlagged(): boolean {
     return this.card()?.value()?.flagged ?? false;
@@ -51,6 +54,19 @@ export class CardActionsComponent {
       this.card()?.reload?.();
     } catch (error) {
       console.error('Error toggling card flag:', error);
+    }
+  }
+
+  async skipCard() {
+    const cardData = this.card()?.value();
+    const sourceId = this.sourceId();
+    if (!cardData || !sourceId) return;
+
+    try {
+      await this.studySessionService.skipCard(sourceId, cardData.id);
+      this.cardProcessed.emit();
+    } catch (error) {
+      console.error('Error skipping card:', error);
     }
   }
 

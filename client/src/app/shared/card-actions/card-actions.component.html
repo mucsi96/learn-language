@@ -9,6 +9,12 @@
   </button>
 
   <mat-menu #actionsMenu="matMenu">
+    @if (sourceId()) {
+      <button mat-menu-item (click)="skipCard()">
+        <mat-icon>skip_next</mat-icon>
+        <span>Skip Card</span>
+      </button>
+    }
     <button mat-menu-item (click)="openVoiceSelection()">
       <mat-icon>record_voice_over</mat-icon>
       <span>Voice Selection</span>

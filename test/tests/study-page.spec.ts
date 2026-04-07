@@ -182,7 +182,6 @@ test('study page revealed state', async ({ page }) => {
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Wann fährt der Zug ab?' }));
   expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 });
 
@@ -559,7 +558,6 @@ test('grading buttons visibility after reveal', async ({ page }) => {
 
   // Initially grading buttons should not be visible
   await expect(page.getByRole('button', { name: 'Incorrect' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Skip' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 
   // Click to reveal the card
@@ -567,7 +565,6 @@ test('grading buttons visibility after reveal', async ({ page }) => {
 
   // Now grading buttons should be visible
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
 });
 
@@ -754,7 +751,8 @@ test('skip button moves card to back without grading', async ({ page }) => {
 
   await flashcard.getByRole('heading', { name: 'átugrani' }).click();
 
-  await page.getByRole('button', { name: 'Skip' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Skip Card' }).click();
 
   await expect(flashcard.getByRole('heading', { name: 'várni' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { name: 'átugrani' })).not.toBeVisible();
