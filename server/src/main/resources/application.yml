@@ -63,4 +63,4 @@ management:
         enabled: true
       group:
         readiness:
-          include: readinessState,db,liquibase
+          include: readinessState,db
