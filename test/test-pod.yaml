@@ -142,13 +142,18 @@ spec:
       volumeMounts:
         - name: storage
           mountPath: /app/storage
-      livenessProbe:
+      startupProbe:
         httpGet:
           path: /actuator/health/readiness
           port: 8182
-        initialDelaySeconds: 16
         periodSeconds: 2
-        failureThreshold: 10
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /actuator/health/liveness
+          port: 8182
+        periodSeconds: 2
+        failureThreshold: 5
 
     - name: client
       image: localhost/learn-language-client:test
