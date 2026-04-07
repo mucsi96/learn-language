@@ -53,12 +53,12 @@ public class AudioController {
             "Daily audio generation limit of " + dailyLimit + " reached");
       }
     }
-    String uuid = UUID.randomUUID().toString();
-    String filePath = "audio/%s.mp3".formatted(uuid);
+    final String uuid = UUID.randomUUID().toString();
+    final String filePath = "audio/%s.mp3".formatted(uuid);
 
-    byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
-    fileStorageService.saveFile(BinaryData.fromBytes(data), filePath);
-    audioTrimService.trimSilence(filePath);
+    final byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
+    final byte[] trimmed = audioTrimService.trimSilence(data);
+    fileStorageService.saveFile(BinaryData.fromBytes(trimmed), filePath);
 
     return AudioData.builder()
         .id(uuid)
