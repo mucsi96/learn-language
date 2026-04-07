@@ -475,64 +475,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
   - changeSet:
-      id: 13-seed-rate-limit-settings
-      author: mucsi96
-      changes:
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: image-per-minute
-              - column:
-                  name: value
-                  valueNumeric: 6
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: audio-per-minute
-              - column:
-                  name: value
-                  valueNumeric: 0
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: image-max-concurrent
-              - column:
-                  name: value
-                  valueNumeric: 0
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: audio-max-concurrent
-              - column:
-                  name: value
-                  valueNumeric: 3
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: image-daily-limit
-              - column:
-                  name: value
-                  valueNumeric: 0
-        - insert:
-            tableName: rate_limit_settings
-            columns:
-              - column:
-                  name: key
-                  value: audio-daily-limit
-              - column:
-                  name: value
-                  valueNumeric: 0
-  - changeSet:
       id: 14-create-audio-settings-table
       author: mucsi96
       changes:
@@ -550,19 +492,6 @@ databaseChangeLog:
                   type: int
                   constraints:
                     nullable: false
-  - changeSet:
-      id: 15-seed-audio-settings
-      author: mucsi96
-      changes:
-        - insert:
-            tableName: audio_settings
-            columns:
-              - column:
-                  name: key
-                  value: front-enabled
-              - column:
-                  name: value
-                  valueNumeric: 1
   - changeSet:
       id: 16-create-known-words-table
       author: mucsi96
