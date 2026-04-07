@@ -34,10 +34,12 @@ public class GoogleImageService {
           + ". Avoid using text.";
 
       final byte[] image = googleAiClient.models.generateContent(MODEL_NAME, fullPrompt, config)
-          .candidates().orElseThrow().stream()
-          .flatMap(candidate -> candidate.content().orElseThrow().parts().orElseThrow().stream())
-          .filter(part -> part.inlineData().isPresent())
-          .map(part -> part.inlineData().get().data().orElseThrow())
+          .candidates().orElseThrow(() -> new RuntimeException("No candidates in Gemini response")).stream()
+          .flatMap(candidate -> candidate.content().stream()
+              .flatMap(content -> content.parts().stream())
+              .flatMap(java.util.List::stream))
+          .flatMap(part -> part.inlineData().stream())
+          .flatMap(data -> data.data().stream())
           .findFirst()
           .orElseThrow(() -> new RuntimeException("No image found in Gemini 3 Pro Image response"));
 

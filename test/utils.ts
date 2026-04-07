@@ -527,14 +527,18 @@ export async function getImageColor(page: Page, data: Buffer): Promise<string> {
   const base64 = data.toString('base64');
   const mimeType = data[0] === 0xff ? 'image/jpeg' : data[0] === 0x52 ? 'image/webp' : 'image/png';
 
-  const [r, g, b] = await page.evaluate(
+  const { r, g, b, width, height } = await page.evaluate(
     async ({ base64, mimeType }) => {
       const img = new Image();
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = reject;
+        img.onerror = () => reject(new Error('Image failed to decode — likely corrupt'));
         img.src = `data:${mimeType};base64,${base64}`;
       });
+
+      if (img.width === 0 || img.height === 0) {
+        throw new Error(`Image has zero dimensions: ${img.width}x${img.height}`);
+      }
 
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
@@ -542,22 +546,35 @@ export async function getImageColor(page: Page, data: Buffer): Promise<string> {
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0);
 
-      const pixel = ctx.getImageData(
-        Math.floor(img.width / 2),
-        Math.floor(img.height / 2),
-        1,
-        1
-      ).data;
-      return [pixel[0], pixel[1], pixel[2]];
+      const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
+      const totalPixels = img.width * img.height;
+      let rSum = 0, gSum = 0, bSum = 0;
+      for (let i = 0; i < imageData.length; i += 4) {
+        rSum += imageData[i];
+        gSum += imageData[i + 1];
+        bSum += imageData[i + 2];
+      }
+
+      return {
+        r: Math.round(rSum / totalPixels),
+        g: Math.round(gSum / totalPixels),
+        b: Math.round(bSum / totalPixels),
+        width: img.width,
+        height: img.height,
+      };
     },
     { base64, mimeType }
   );
 
-  if (r > 200 && g > 200 && b < 100) return 'yellow';
-  if (r > 200 && g < 100) return 'red';
-  if (g > 100 && r < 100 && b < 100) return 'green';
-  if (b > 100 && r < 100 && g < 100) return 'blue';
-  throw new Error(`Unknown color: rgb(${r}, ${g}, ${b})`);
+  if (width < 1 || height < 1) {
+    throw new Error(`Image has invalid dimensions: ${width}x${height}`);
+  }
+
+  if (r > 180 && g > 180 && b < 120) return 'yellow';
+  if (r > 180 && g < 120) return 'red';
+  if (g > 80 && r < 120 && b < 120) return 'green';
+  if (b > 80 && r < 120 && g < 120) return 'blue';
+  throw new Error(`Unknown average color: rgb(${r}, ${g}, ${b}) in ${width}x${height} image`);
 }
 
 export async function createColorJpeg(

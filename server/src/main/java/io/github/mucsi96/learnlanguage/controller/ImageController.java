@@ -61,7 +61,7 @@ public class ImageController {
     final String filePath = "images/%s.webp".formatted(uuid);
     try {
       final byte[] compressed = imageResizeService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, filePath);
+          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION);
       fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
     } catch (Exception e) {
       throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
@@ -80,7 +80,7 @@ public class ImageController {
       @RequestParam int height) throws Exception {
     final String filePath = "images/%s.webp".formatted(id);
     final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
-    final byte[] resized = imageResizeService.resizeImage(original, width, height, filePath);
+    final byte[] resized = imageResizeService.resizeImage(original, width, height);
     return ResponseEntity.ok()
         .contentType(IMAGE_WEBP)
         .header("Cache-Control", "public, max-age=31536000, immutable")
