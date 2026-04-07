@@ -53,14 +53,14 @@ export class BatchAudioCreationFabComponent {
   readonly hasCardsForAudioGeneration = computed(() => this.cardsForAudioCount() > 0);
 
   readonly totalAudioItemsNeeded = computed(() => {
-    const frontAudioEnabled = this.voiceConfigService.frontAudioEnabled();
+    const frontAudioDisabled = this.voiceConfigService.frontAudioDisabled();
     return this.cardsForAudio().reduce((sum, card) => {
       const cardType = card.source.cardType;
       if (!cardType) return sum;
       const strategy = this.cardTypeRegistry.getStrategy(cardType);
       const existingAudio = card.data.audio ?? [];
       const audioItems = strategy.getAudioItems(card)
-        .filter(item => frontAudioEnabled || !item.isFront);
+        .filter(item => !frontAudioDisabled || !item.isFront);
       const missingCount = audioItems.filter(
         item => !existingAudio.some(a => a.text === item.text)
       ).length;

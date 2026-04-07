@@ -128,11 +128,11 @@ public class CardService {
     return cardRepository.findByReadinessOrderByDueAsc(readiness);
   }
 
-  public List<Card> getCardsMissingAudio(boolean frontAudioEnabled) {
+  public List<Card> getCardsMissingAudio(boolean frontAudioDisabled) {
     return cardRepository.findByReadinessIn(List.of(CardReadiness.REVIEWED, CardReadiness.READY))
         .stream()
         .filter(card -> cardTypeStrategyFactory.getStrategy(card.getSource().getCardType())
-            .isMissingAudio(card.getData(), frontAudioEnabled))
+            .isMissingAudio(card.getData(), frontAudioDisabled))
         .toList();
   }
 

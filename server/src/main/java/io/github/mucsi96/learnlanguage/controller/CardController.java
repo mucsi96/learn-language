@@ -279,8 +279,8 @@ public class CardController {
   @GetMapping("/cards/missing-audio")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {
-    final boolean frontAudioEnabled = audioSettingService.isFrontAudioEnabled();
-    final List<CardResponse> cards = cardService.getCardsMissingAudio(frontAudioEnabled).stream()
+    final boolean frontAudioDisabled = audioSettingService.isFrontAudioDisabled();
+    final List<CardResponse> cards = cardService.getCardsMissingAudio(frontAudioDisabled).stream()
         .map(CardResponse::from)
         .toList();
     return ResponseEntity.ok(cards);

@@ -220,14 +220,14 @@ test('front audio toggle persists when disabled', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      "SELECT value FROM learn_language.audio_settings WHERE key = 'front-enabled'"
+      "SELECT value FROM learn_language.audio_settings WHERE key = 'front-disabled'"
     );
-    expect(result.rows[0].value).toBe(0);
+    expect(result.rows[0].value).toBe(1);
   });
 });
 
 test('front audio toggle reflects disabled state from server', async ({ page }) => {
-  await createAudioSetting({ key: 'front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-disabled', value: 1 });
   await page.goto('http://localhost:8180/settings/voices');
   const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeVisible();

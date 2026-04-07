@@ -1195,7 +1195,7 @@ test('bulk audio fab hides for cards with known readiness', async ({ page }) => 
 });
 
 test('bulk audio fab hides when front audio disabled and only front audio missing', async ({ page }) => {
-  await createAudioSetting({ key: 'front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-disabled', value: 1 });
   await createCard({
     cardId: 'verstehen-erteni',
     sourceId: 'goethe-a1',
@@ -1243,7 +1243,7 @@ test('bulk audio fab hides when front audio disabled and only front audio missin
 });
 
 test('bulk audio creation skips front audio when front audio disabled', async ({ page }) => {
-  await createAudioSetting({ key: 'front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-disabled', value: 1 });
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'verstehen-erteni',
@@ -1295,7 +1295,7 @@ test('bulk audio creation skips front audio when front audio disabled', async ({
 });
 
 test('bulk audio creation hides generate button when front audio disabled and card has all back audio', async ({ page }) => {
-  await createAudioSetting({ key: 'front-enabled', value: 0 });
+  await createAudioSetting({ key: 'front-disabled', value: 1 });
   await setupVoiceConfigurations();
   await createCard({
     cardId: 'verstehen-erteni',

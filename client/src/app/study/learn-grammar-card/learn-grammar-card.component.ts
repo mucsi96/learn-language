@@ -16,6 +16,7 @@ import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { createGrammarGapRegex } from '../../shared/constants/grammar.constants';
+import { VoiceConfigService } from '../../voice-config/voice-config.service';
 
 type ImageResource = ExampleImage & { url: string };
 
@@ -39,6 +40,7 @@ export class LearnGrammarCardComponent {
 
   private readonly http = inject(HttpClient);
   private readonly injector = inject(Injector);
+  private readonly voiceConfigService = inject(VoiceConfigService);
 
   readonly selectedExample = computed(() =>
     this.card()?.value()?.data.examples?.find((ex) => ex.isSelected)
@@ -85,6 +87,11 @@ export class LearnGrammarCardComponent {
     effect(() => {
       const currentSentence = this.audioSentence();
       const playAudioFn = this.onPlayAudio();
+      const isRevealed = this.isRevealed();
+
+      if (!isRevealed && this.voiceConfigService.frontAudioDisabled()) {
+        return;
+      }
 
       if (currentSentence && playAudioFn) {
         playAudioFn([currentSentence]);

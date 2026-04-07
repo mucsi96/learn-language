@@ -62,7 +62,7 @@ export interface EnvironmentConfig {
   audioMaxConcurrentRequests: number;
   imageDailyLimit: number;
   audioDailyLimit: number;
-  frontAudioEnabled: boolean;
+  frontAudioDisabled: boolean;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];
