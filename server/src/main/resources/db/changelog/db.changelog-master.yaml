@@ -874,3 +874,10 @@ databaseChangeLog:
                   ) stats
               ) rs ON true;
               CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON card_view (id)
+  - changeSet:
+      id: 23-drop-circular-fk-sources-bookmarked-document
+      author: mucsi96
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: sources
+            constraintName: sources_bookmarked_document_fkey
