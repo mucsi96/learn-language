@@ -68,7 +68,7 @@ public class VoiceConfigurationController {
     @PutMapping("/front-audio")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public void updateFrontAudioEnabled(@RequestBody FrontAudioRequest request) {
-        audioSettingService.setFrontAudioEnabled(request.isEnabled());
+    public void updateFrontAudioDisabled(@RequestBody FrontAudioRequest request) {
+        audioSettingService.setFrontAudioDisabled(request.isDisabled());
     }
 }

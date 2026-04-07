@@ -76,7 +76,7 @@ export class LearnSpeechCardComponent {
       const playAudioFn = this.onPlayAudio();
       const isRevealed = this.isRevealed();
 
-      if (!isRevealed && !this.voiceConfigService.frontAudioEnabled()) {
+      if (!isRevealed && this.voiceConfigService.frontAudioDisabled()) {
         return;
       }
 

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FrontAudioRequest {
-    private boolean enabled;
+    private boolean disabled;
 }

@@ -71,7 +71,7 @@ export class VoiceConfigComponent {
     min(path.dailyLimit, 0);
   });
 
-  readonly frontAudioEnabled = this.service.frontAudioEnabled;
+  readonly frontAudioDisabled = this.service.frontAudioDisabled;
 
   readonly selectedCardIndex = signal(0);
   readonly previewingConfigId = signal<number | null>(null);
@@ -301,7 +301,7 @@ export class VoiceConfigComponent {
   }
 
   toggleFrontAudio(): void {
-    this.service.updateFrontAudioEnabled(!this.frontAudioEnabled());
+    this.service.updateFrontAudioDisabled(!this.frontAudioDisabled());
   }
 
   refreshCards(): void {

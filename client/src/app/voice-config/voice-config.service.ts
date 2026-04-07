@@ -35,7 +35,7 @@ export class VoiceConfigService {
   readonly audioRateLimitPerMinute = signal(this.config.audioRateLimitPerMinute);
   readonly audioMaxConcurrentRequests = signal(this.config.audioMaxConcurrentRequests);
   readonly audioDailyLimit = signal(this.config.audioDailyLimit);
-  readonly frontAudioEnabled = signal(this.config.frontAudioEnabled);
+  readonly frontAudioDisabled = signal(this.config.frontAudioDisabled);
 
   readonly configurations = resource<VoiceConfiguration[], never>({
     injector: this.injector,
@@ -129,12 +129,12 @@ export class VoiceConfigService {
     });
   }
 
-  updateFrontAudioEnabled(enabled: boolean): void {
-    this.frontAudioEnabled.set(enabled);
+  updateFrontAudioDisabled(disabled: boolean): void {
+    this.frontAudioDisabled.set(disabled);
 
     fetchJson(this.http, '/api/voice-configurations/front-audio', {
       method: 'PUT',
-      body: { enabled },
+      body: { disabled },
     });
   }
 
