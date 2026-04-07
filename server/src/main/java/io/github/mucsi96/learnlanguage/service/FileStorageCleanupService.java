@@ -83,6 +83,11 @@ public class FileStorageCleanupService {
     final var allFiles = fileStorageService.listFiles("audio");
     final var cards = cardRepository.findAll();
 
+    if (!allFiles.isEmpty() && cards.isEmpty()) {
+      log.warn("Skipping audio cleanup: {} audio files exist but no cards found in database", allFiles.size());
+      return;
+    }
+
     final Set<String> referencedPaths = cards.stream()
         .map(Card::getData)
         .flatMap(data -> Optional.ofNullable(data.getAudio())
@@ -92,17 +97,24 @@ public class FileStorageCleanupService {
         .map(id -> "audio/%s.mp3".formatted(id))
         .collect(Collectors.toSet());
 
-    allFiles.stream()
+    final var unreferencedFiles = allFiles.stream()
         .filter(file -> !referencedPaths.contains(file))
-        .forEach(file -> {
-          log.info("Deleting unreferenced audio file: {}", file);
-          fileStorageService.deleteFile(file);
-        });
+        .toList();
+
+    unreferencedFiles.forEach(file -> {
+      log.info("Deleting unreferenced audio file: {}", file);
+      fileStorageService.deleteFile(file);
+    });
   }
 
   private void cleanupImageFiles() {
     final var allFiles = fileStorageService.listFiles("images");
     final var cards = cardRepository.findAll();
+
+    if (!allFiles.isEmpty() && cards.isEmpty()) {
+      log.warn("Skipping image cleanup: {} image files exist but no cards found in database", allFiles.size());
+      return;
+    }
 
     final Set<String> referencedPaths = cards.stream()
         .map(Card::getData)
@@ -116,17 +128,25 @@ public class FileStorageCleanupService {
         .map(id -> "images/%s.webp".formatted(id))
         .collect(Collectors.toSet());
 
-    allFiles.stream()
+    final var unreferencedFiles = allFiles.stream()
         .filter(file -> !referencedPaths.contains(file))
-        .forEach(file -> {
-          log.info("Deleting unreferenced image file: {}", file);
-          fileStorageService.deleteFile(file);
-        });
+        .toList();
+
+    unreferencedFiles.forEach(file -> {
+      log.info("Deleting unreferenced image file: {}", file);
+      fileStorageService.deleteFile(file);
+    });
   }
 
   private void cleanupSourceDocuments() {
     final var allFiles = fileStorageService.listFiles("sources");
     final var documents = documentRepository.findAllWithSource();
+
+    if (!allFiles.isEmpty() && documents.isEmpty()) {
+      log.warn("Skipping source document cleanup: {} source files exist but no documents found in database",
+          allFiles.size());
+      return;
+    }
 
     final Set<String> referencedPaths = documents.stream()
         .map(doc -> doc.getPageNumber() == null
@@ -134,11 +154,13 @@ public class FileStorageCleanupService {
             : "sources/%s/%s".formatted(doc.getSource().getId(), doc.getFileName()))
         .collect(Collectors.toSet());
 
-    allFiles.stream()
+    final var unreferencedFiles = allFiles.stream()
         .filter(file -> !referencedPaths.contains(file))
-        .forEach(file -> {
-          log.info("Deleting unreferenced source document: {}", file);
-          fileStorageService.deleteFile(file);
-        });
+        .toList();
+
+    unreferencedFiles.forEach(file -> {
+      log.info("Deleting unreferenced source document: {}", file);
+      fileStorageService.deleteFile(file);
+    });
   }
 }
