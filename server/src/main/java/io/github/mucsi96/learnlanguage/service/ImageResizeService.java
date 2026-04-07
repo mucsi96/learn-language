@@ -10,10 +10,11 @@ import java.io.IOException;
 public class ImageResizeService {
     public byte[] resizeImage(byte[] imageData, int width, int height, String id) throws IOException {
         final ProcessBuilder pb = new ProcessBuilder(
-            "ffmpeg", "-y",
+            "ffmpeg", "-y", "-loglevel", "error",
             "-i", "pipe:0",
-            "-vf", "scale='min(%d,iw)':'min(%d,ih)':force_original_aspect_ratio=decrease".formatted(width, height),
-            "-quality", "75",
+            "-vf", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
+            "-c:v", "libwebp", "-quality", "75",
+            "-frames:v", "1",
             "-f", "webp",
             "pipe:1"
         );
