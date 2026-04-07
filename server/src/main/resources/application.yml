@@ -45,7 +45,7 @@ spring:
       api-key: ${eleven-labs-api-key}
       tts:
         options:
-          output-format: mp3_44100_128
+          output-format: pcm_44100
 server:
   servlet:
     context-path: /api
