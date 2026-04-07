@@ -1,14 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Service
-@RequiredArgsConstructor
 public class ImageResizeService {
-    public byte[] resizeImage(byte[] imageData, int width, int height, String id) throws IOException {
+    public byte[] resizeImage(byte[] imageData, int width, int height) throws IOException {
         final ProcessBuilder pb = new ProcessBuilder(
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", "pipe:0",
@@ -18,8 +17,14 @@ public class ImageResizeService {
             "-f", "webp",
             "pipe:1"
         );
-        pb.redirectErrorStream(false);
         final Process process = pb.start();
+
+        final byte[][] stderr = {new byte[0]};
+        final Thread stderrReader = Thread.ofVirtual().start(() -> {
+            try {
+                stderr[0] = process.getErrorStream().readAllBytes();
+            } catch (IOException ignored) {}
+        });
 
         final Thread writer = Thread.ofVirtual().start(() -> {
             try (final var os = process.getOutputStream()) {
@@ -33,6 +38,7 @@ public class ImageResizeService {
         final int exitCode;
         try {
             writer.join();
+            stderrReader.join();
             exitCode = process.waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -40,8 +46,8 @@ public class ImageResizeService {
         }
 
         if (exitCode != 0) {
-            final String error = new String(process.getErrorStream().readAllBytes());
-            throw new IOException("ffmpeg exited with code %d: %s".formatted(exitCode, error));
+            throw new IOException("ffmpeg exited with code %d: %s".formatted(
+                exitCode, new String(stderr[0], StandardCharsets.UTF_8)));
         }
 
         return result;
