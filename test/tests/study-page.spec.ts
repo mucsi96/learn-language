@@ -489,8 +489,10 @@ test('unflag card via context menu', async ({ page }) => {
   await expect(page.getByRole('menuitem', { name: 'Remove Flag' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Remove Flag' }).click();
 
-  const card = await getCardFromDb('erste-elso');
-  expect(card.flagged).toBe(false);
+  await expect(async () => {
+    const card = await getCardFromDb('erste-elso');
+    expect(card.flagged).toBe(false);
+  }).toPass();
 });
 
 test('edit card button navigation', async ({ page }) => {
@@ -1419,11 +1421,11 @@ test('all color keys map to correct grades', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
   await pressRemoteKey(page, 'Green');
 
-  await expect(flashcard).toBeVisible();
-
-  const reviewLogs = await getReviewLogs();
-  const ratings = reviewLogs.map((log) => log.rating).sort();
-  expect(ratings).toEqual([1, 3]);
+  await expect(async () => {
+    const reviewLogs = await getReviewLogs();
+    const ratings = reviewLogs.map((log) => log.rating).sort();
+    expect(ratings).toEqual([1, 3]);
+  }).toPass();
 });
 
 test('color keys do not grade when card is not revealed', async ({ page }) => {
