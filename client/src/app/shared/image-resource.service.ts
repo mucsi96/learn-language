@@ -135,7 +135,7 @@ export class ImageResourceService {
   private async fetchImageUrl(imageId: string) {
     return await fetchAsset(
       this.http,
-      `/api/image/${imageId}?width=600&height=600`
+      `/api/image/${imageId}`
     );
   }
 }

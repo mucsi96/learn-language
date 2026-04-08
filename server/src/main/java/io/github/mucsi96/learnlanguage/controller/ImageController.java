@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -74,16 +73,12 @@ public class ImageController {
 
   @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
-  public ResponseEntity<byte[]> getCachedResizedImage(
-      @PathVariable String id,
-      @RequestParam int width,
-      @RequestParam int height) throws Exception {
+  public ResponseEntity<byte[]> getImage(@PathVariable String id) {
     final String filePath = "images/%s.webp".formatted(id);
-    final byte[] original = fileStorageService.fetchFile(filePath).toBytes();
-    final byte[] resized = imageResizeService.resizeImage(original, width, height);
+    final byte[] data = fileStorageService.fetchFile(filePath).toBytes();
     return ResponseEntity.ok()
         .contentType(IMAGE_WEBP)
         .header("Cache-Control", "public, max-age=31536000, immutable")
-        .body(resized);
+        .body(data);
   }
 }

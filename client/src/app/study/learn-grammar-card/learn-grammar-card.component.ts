@@ -74,7 +74,7 @@ export class LearnGrammarCardComponent {
                 ...image,
                 url: await fetchAsset(
                   this.http,
-                  `/api/image/${image.id}?width=1200&height=1200`
+                  `/api/image/${image.id}`
                 ),
               };
             },
