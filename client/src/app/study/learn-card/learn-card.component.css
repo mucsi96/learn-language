@@ -164,6 +164,7 @@
 @media (min-width: 1200px) {
   .grading-buttons-container {
     margin-top: -90px;
-    padding: 0;
+    padding: 0 .5rem;
+    box-sizing: border-box;
   }
 }
