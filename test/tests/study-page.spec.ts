@@ -1419,11 +1419,11 @@ test('all color keys map to correct grades', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
   await pressRemoteKey(page, 'Green');
 
-  await expect(flashcard).toBeVisible();
-
-  const reviewLogs = await getReviewLogs();
-  const ratings = reviewLogs.map((log) => log.rating).sort();
-  expect(ratings).toEqual([1, 3]);
+  await expect(async () => {
+    const reviewLogs = await getReviewLogs();
+    const ratings = reviewLogs.map((log) => log.rating).sort();
+    expect(ratings).toEqual([1, 3]);
+  }).toPass();
 });
 
 test('color keys do not grade when card is not revealed', async ({ page }) => {
