@@ -489,8 +489,10 @@ test('unflag card via context menu', async ({ page }) => {
   await expect(page.getByRole('menuitem', { name: 'Remove Flag' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Remove Flag' }).click();
 
-  const card = await getCardFromDb('erste-elso');
-  expect(card.flagged).toBe(false);
+  await expect(async () => {
+    const card = await getCardFromDb('erste-elso');
+    expect(card.flagged).toBe(false);
+  }).toPass();
 });
 
 test('edit card button navigation', async ({ page }) => {
