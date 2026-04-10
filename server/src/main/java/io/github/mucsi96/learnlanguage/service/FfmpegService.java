@@ -7,11 +7,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class FfmpegService {
     private static final int TIMEOUT_SECONDS = 30;
 
     public byte[] process(List<String> args, byte[] input) throws IOException {
+        log.info("Running ffmpeg command: {}", String.join(" ", args));
+        log.info("Input size: {} bytes", input.length);
+
         final ProcessBuilder pb = new ProcessBuilder(args);
         final Process process = pb.start();
         boolean success = false;
@@ -44,10 +50,21 @@ public class FfmpegService {
             }
 
             final int exitCode = process.exitValue();
+            final String stderrOutput = new String(stderr[0], StandardCharsets.UTF_8);
+
             if (exitCode != 0) {
-                throw new IOException("ffmpeg exited with code %d: %s".formatted(
-                    exitCode, new String(stderr[0], StandardCharsets.UTF_8)));
+                log.error("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
+                if (!stderrOutput.isBlank()) {
+                    log.error("ffmpeg stderr: {}", stderrOutput);
+                }
+                throw new IOException("ffmpeg exited with code %d: %s".formatted(exitCode, stderrOutput));
             }
+
+            if (!stderrOutput.isBlank()) {
+                log.info("ffmpeg stderr: {}", stderrOutput);
+            }
+
+            log.info("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
 
             success = true;
             return result;
