@@ -5,7 +5,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { InReviewCardsService } from '../in-review-cards.service';
 import { DueCardsService } from '../due-cards.service';
 import { SourcesService } from '../sources.service';
-import { BatchAudioCreationFabComponent } from '../batch-audio-creation-fab/batch-audio-creation-fab.component';
 import { ReviewCardItemComponent } from './review-card-item/review-card-item.component';
 
 @Component({
@@ -16,7 +15,6 @@ import { ReviewCardItemComponent } from './review-card-item/review-card-item.com
     MatCardModule,
     MatIconModule,
     ReviewCardItemComponent,
-    BatchAudioCreationFabComponent,
   ],
   templateUrl: './in-review-cards.component.html',
   styleUrl: './in-review-cards.component.css',
@@ -38,10 +36,6 @@ export class InReviewCardsComponent implements OnDestroy {
 
   readonly remainingCount = computed(
     () => this.totalCount() - this.reviewedCardIds().length
-  );
-
-  readonly allReviewed = computed(
-    () => (this.totalCount() > 0 && this.remainingCount() <= 0 ? 1 : 0)
   );
 
   constructor() {
