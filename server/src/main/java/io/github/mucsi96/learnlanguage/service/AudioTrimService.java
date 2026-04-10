@@ -18,8 +18,8 @@ public class AudioTrimService {
         "ffmpeg", "-y", "-loglevel", "error",
         "-f", "s16le", "-ar", "44100", "-ac", "1",
         "-i", "pipe:0",
-        "-af", "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
-        "-c:a", "libmp3lame", "-b:a", "128k",
+        "-filter:a", "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
+        "-codec:a", "libmp3lame", "-b:a", "128k",
         "-f", "mp3",
         "pipe:1"
     ), audioData);

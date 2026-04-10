@@ -18,8 +18,8 @@ public class ImageResizeService {
         return ffmpegService.process(List.of(
             "ffmpeg", "-y", "-loglevel", "error",
             "-f", inputFormat, "-i", "pipe:0",
-            "-vf", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
-            "-c:v", "libwebp", "-quality", "75",
+            "-filter:v", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
+            "-codec:v", "libwebp", "-quality", "75",
             "-frames:v", "1",
             "-f", "webp",
             "pipe:1"
