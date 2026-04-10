@@ -52,15 +52,19 @@ public class FfmpegService {
             final int exitCode = process.exitValue();
             final String stderrOutput = new String(stderr[0], StandardCharsets.UTF_8);
 
+            if (exitCode != 0) {
+                log.error("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
+                if (!stderrOutput.isBlank()) {
+                    log.error("ffmpeg stderr: {}", stderrOutput);
+                }
+                throw new IOException("ffmpeg exited with code %d: %s".formatted(exitCode, stderrOutput));
+            }
+
             if (!stderrOutput.isBlank()) {
                 log.info("ffmpeg stderr: {}", stderrOutput);
             }
 
             log.info("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
-
-            if (exitCode != 0) {
-                throw new IOException("ffmpeg exited with code %d: %s".formatted(exitCode, stderrOutput));
-            }
 
             success = true;
             return result;
