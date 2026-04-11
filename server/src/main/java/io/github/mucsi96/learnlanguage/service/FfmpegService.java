@@ -37,9 +37,9 @@ public class FfmpegService {
         pb.redirectErrorStream(true);
         final Process process = pb.start();
 
-        final var outputStream = process.getOutputStream();
-        outputStream.write(input);
-        outputStream.close();
+        try (final var outputStream = process.getOutputStream()) {
+            outputStream.write(input);
+        }
 
         final byte[] result = process.getInputStream().readAllBytes();
 
