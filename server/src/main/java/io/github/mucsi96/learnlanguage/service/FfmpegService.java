@@ -13,6 +13,7 @@ public class FfmpegService {
 
     public void resizeImage(byte[] imageData, int width, int height, Path outputFile) throws IOException {
         final String inputFormat = detectImageFormat(imageData);
+        Files.createDirectories(outputFile.getParent());
         run(imageData,
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-f", inputFormat, "-i", INPUT,
@@ -24,6 +25,7 @@ public class FfmpegService {
     }
 
     public void trimSilence(byte[] audioData, Path outputFile) throws IOException {
+        Files.createDirectories(outputFile.getParent());
         run(audioData,
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-f", "s16le", "-ar", "44100", "-ac", "1",
