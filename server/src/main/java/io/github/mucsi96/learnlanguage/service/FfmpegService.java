@@ -34,7 +34,6 @@ public class FfmpegService {
         Files.createDirectories(outputFile.getParent());
         run(audioData,
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-f", "s16le", "-ar", "44100", "-ac", "1",
                 "-i", INPUT,
                 "-filter:a",
                 "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
