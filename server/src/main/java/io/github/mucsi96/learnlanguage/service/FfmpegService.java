@@ -2,7 +2,9 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
@@ -12,69 +14,68 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class FfmpegService {
+
     private static final int TIMEOUT_SECONDS = 30;
+    private static final String INPUT = "__INPUT__";
 
-    public byte[] process(List<String> args, byte[] input) throws IOException {
-        log.info("Running ffmpeg command: {}", String.join(" ", args));
-        log.info("Input size: {} bytes", input.length);
+    public void resizeImage(byte[] imageData, int width, int height, Path outputFile) throws IOException {
+        Files.createDirectories(outputFile.getParent());
+        run(imageData,
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-i", INPUT,
+                "-filter:v", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
+                "-codec:v", "libwebp", "-quality", "75",
+                "-frames:v", "1",
+                "-f", "webp",
+                outputFile.toString());
+    }
 
-        final ProcessBuilder pb = new ProcessBuilder(args);
-        final Process process = pb.start();
-        boolean success = false;
+    public void trimSilence(byte[] audioData, Path outputFile) throws IOException {
+        Files.createDirectories(outputFile.getParent());
+        run(audioData,
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-f", "s16le", "-ar", "44100", "-ac", "1",
+                "-i", INPUT,
+                "-filter:a",
+                "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
+                "-codec:a", "libmp3lame", "-b:a", "128k",
+                "-f", "mp3",
+                outputFile.toString());
+    }
 
+    private void run(byte[] input, String... args) throws IOException {
+        final Path inputFile = Files.createTempFile("ffmpeg-in-", ".tmp");
         try {
-            final byte[][] stderr = {null};
-            final Thread stderrReader = Thread.ofVirtual().start(() -> {
-                try {
-                    stderr[0] = process.getErrorStream().readAllBytes();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to read ffmpeg stderr", e);
+            Files.write(inputFile, input);
+            final ProcessBuilder pb = new ProcessBuilder(
+                    Arrays.stream(args)
+                            .map(a -> a.equals(INPUT) ? inputFile.toString() : a)
+                            .toList());
+            pb.redirectErrorStream(true);
+            log.debug("Running ffmpeg: {}", String.join(" ", pb.command()));
+            final Process process = pb.start();
+
+            try {
+                final boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+                if (!finished) {
+                    process.destroyForcibly();
+                    throw new IOException("ffmpeg timed out after %d seconds".formatted(TIMEOUT_SECONDS));
                 }
-            });
 
-            final Thread writer = Thread.ofVirtual().start(() -> {
-                try (final var os = process.getOutputStream()) {
-                    os.write(input);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                final byte[] output = process.getInputStream().readAllBytes();
+
+                if (process.exitValue() != 0) {
+                    throw new IOException("ffmpeg exited with code %d: %s".formatted(
+                            process.exitValue(), new String(output, StandardCharsets.UTF_8)));
                 }
-            });
-
-            final byte[] result = process.getInputStream().readAllBytes();
-            writer.join();
-            stderrReader.join();
-
-            final boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            if (!finished) {
-                throw new IOException("ffmpeg timed out after %d seconds".formatted(TIMEOUT_SECONDS));
-            }
-
-            final int exitCode = process.exitValue();
-            final String stderrOutput = new String(stderr[0], StandardCharsets.UTF_8);
-
-            if (exitCode != 0) {
-                log.error("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
-                if (!stderrOutput.isBlank()) {
-                    log.error("ffmpeg stderr: {}", stderrOutput);
-                }
-                throw new IOException("ffmpeg exited with code %d: %s".formatted(exitCode, stderrOutput));
-            }
-
-            if (!stderrOutput.isBlank()) {
-                log.info("ffmpeg stderr: {}", stderrOutput);
-            }
-
-            log.info("ffmpeg exit code: {}, output size: {} bytes", exitCode, result.length);
-
-            success = true;
-            return result;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("ffmpeg process interrupted", e);
-        } finally {
-            if (!success) {
+            } catch (InterruptedException e) {
                 process.destroyForcibly();
+                Thread.currentThread().interrupt();
+                throw new IOException("ffmpeg process interrupted", e);
             }
+        } finally {
+            Files.deleteIfExists(inputFile);
         }
     }
 }

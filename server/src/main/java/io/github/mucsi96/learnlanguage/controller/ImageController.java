@@ -14,14 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.azure.core.util.BinaryData;
-
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
+import io.github.mucsi96.learnlanguage.service.FfmpegService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
-import io.github.mucsi96.learnlanguage.service.ImageResizeService;
 import io.github.mucsi96.learnlanguage.service.ImageService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,7 @@ public class ImageController {
 
   private final FileStorageService fileStorageService;
   private final ImageService imageService;
-  private final ImageResizeService imageResizeService;
+  private final FfmpegService ffmpegService;
   private final RateLimitSettingService rateLimitSettingService;
   private final ModelUsageLogRepository modelUsageLogRepository;
 
@@ -59,9 +57,8 @@ public class ImageController {
     final String uuid = UUID.randomUUID().toString();
     final String filePath = "images/%s.webp".formatted(uuid);
     try {
-      final byte[] compressed = imageResizeService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION);
-      fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
+      ffmpegService.resizeImage(
+          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, fileStorageService.resolveFilePath(filePath));
     } catch (Exception e) {
       throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
     }
