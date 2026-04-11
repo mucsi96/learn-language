@@ -20,7 +20,7 @@ public class FfmpegService {
                 "-codec:v", "libwebp", "-quality", "75",
                 "-frames:v", "1",
                 "-f", "webp",
-                "pipe:1");
+                OUTPUT);
     }
 
     public byte[] trimSilence(byte[] audioData) throws IOException {
@@ -32,22 +32,24 @@ public class FfmpegService {
                 "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
                 "-codec:a", "libmp3lame", "-b:a", "128k",
                 "-f", "mp3",
-                "pipe:1");
+                OUTPUT);
     }
 
     private static final String INPUT = "__INPUT__";
+    private static final String OUTPUT = "__OUTPUT__";
 
     private byte[] run(byte[] input, String... args) throws IOException {
         final Path inputFile = Files.createTempFile("ffmpeg-in-", ".tmp");
+        final Path outputFile = Files.createTempFile("ffmpeg-out-", ".tmp");
         try {
             Files.write(inputFile, input);
-            final ProcessBuilder pb = new ProcessBuilder(
-                    Arrays.stream(args)
-                            .map(a -> a.equals(INPUT) ? inputFile.toString() : a)
-                            .toList());
+            final String[] resolved = Arrays.stream(args)
+                    .map(a -> a.equals(INPUT) ? inputFile.toString() : a.equals(OUTPUT) ? outputFile.toString() : a)
+                    .toArray(String[]::new);
+            final ProcessBuilder pb = new ProcessBuilder(resolved);
             pb.redirectErrorStream(true);
             final Process process = pb.start();
-            final byte[] result = process.getInputStream().readAllBytes();
+            final byte[] output = process.getInputStream().readAllBytes();
 
             try {
                 process.waitFor();
@@ -58,12 +60,13 @@ public class FfmpegService {
 
             if (process.exitValue() != 0) {
                 throw new IOException("ffmpeg exited with code %d: %s".formatted(
-                        process.exitValue(), new String(result, StandardCharsets.UTF_8)));
+                        process.exitValue(), new String(output, StandardCharsets.UTF_8)));
             }
 
-            return result;
+            return Files.readAllBytes(outputFile);
         } finally {
             Files.deleteIfExists(inputFile);
+            Files.deleteIfExists(outputFile);
         }
     }
 
