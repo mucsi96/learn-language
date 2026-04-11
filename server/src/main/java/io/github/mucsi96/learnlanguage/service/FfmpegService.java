@@ -2,6 +2,9 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.springframework.stereotype.Service;
 
@@ -12,50 +15,59 @@ public class FfmpegService {
         final String inputFormat = detectImageFormat(imageData);
         return run(imageData,
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-f", inputFormat, "-i", "-",
+                "-f", inputFormat, "-i", INPUT,
                 "-filter:v", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
                 "-codec:v", "libwebp", "-quality", "75",
                 "-frames:v", "1",
                 "-f", "webp",
-                "pipe:1");
+                OUTPUT);
     }
 
     public byte[] trimSilence(byte[] audioData) throws IOException {
         return run(audioData,
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-f", "s16le", "-ar", "44100", "-ac", "1",
-                "-i", "-",
+                "-i", INPUT,
                 "-filter:a",
                 "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
                 "-codec:a", "libmp3lame", "-b:a", "128k",
                 "-f", "mp3",
-                "pipe:1");
+                OUTPUT);
     }
 
+    private static final String INPUT = "__INPUT__";
+    private static final String OUTPUT = "__OUTPUT__";
+
     private byte[] run(byte[] input, String... args) throws IOException {
-        final ProcessBuilder pb = new ProcessBuilder(args);
-        pb.redirectErrorStream(true);
-        final Process process = pb.start();
-
-        try (final var outputStream = process.getOutputStream()) {
-            outputStream.write(input);
-        }
-
-        final byte[] result = process.getInputStream().readAllBytes();
-
+        final Path inputFile = Files.createTempFile("ffmpeg-in-", ".tmp");
+        final Path outputFile = Files.createTempFile("ffmpeg-out-", ".tmp");
         try {
-            process.waitFor();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("ffmpeg process interrupted", e);
-        }
+            Files.write(inputFile, input);
+            final String[] resolved = Arrays.stream(args)
+                    .map(a -> a.equals(INPUT) ? inputFile.toString() : a.equals(OUTPUT) ? outputFile.toString() : a)
+                    .toArray(String[]::new);
+            final ProcessBuilder pb = new ProcessBuilder(resolved);
+            pb.redirectErrorStream(true);
+            final Process process = pb.start();
+            final byte[] output = process.getInputStream().readAllBytes();
 
-        if (process.exitValue() != 0) {
-            throw new IOException("ffmpeg exited with code %d: %s".formatted(
-                    process.exitValue(), new String(result, StandardCharsets.UTF_8)));
-        }
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("ffmpeg process interrupted", e);
+            }
 
-        return result;
+            if (process.exitValue() != 0) {
+                throw new IOException("ffmpeg exited with code %d: %s".formatted(
+                        process.exitValue(), new String(output, StandardCharsets.UTF_8)));
+            }
+
+            return Files.readAllBytes(outputFile);
+        } finally {
+            Files.deleteIfExists(inputFile);
+            Files.deleteIfExists(outputFile);
+        }
     }
 
     private static String detectImageFormat(byte[] data) {
