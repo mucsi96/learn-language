@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.azure.core.util.BinaryData;
-
 import io.github.mucsi96.learnlanguage.model.AudioSourceRequest;
 import io.github.mucsi96.learnlanguage.model.AudioData;
 import io.github.mucsi96.learnlanguage.model.ModelType;
@@ -57,8 +55,7 @@ public class AudioController {
     final String filePath = "audio/%s.mp3".formatted(uuid);
 
     final byte[] data = audioService.generateAudio(audioSource.getInput(), audioSource.getVoice(), audioSource.getModel(), audioSource.getLanguage(), audioSource.getContext(), Boolean.TRUE.equals(audioSource.getSingleWord()));
-    final byte[] trimmed = ffmpegService.trimSilence(data);
-    fileStorageService.saveFile(BinaryData.fromBytes(trimmed), filePath);
+    ffmpegService.trimSilence(data, fileStorageService.resolveFilePath(filePath));
 
     return AudioData.builder()
         .id(uuid)

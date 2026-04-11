@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.azure.core.util.BinaryData;
-
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.model.ModelType;
@@ -59,9 +57,8 @@ public class ImageController {
     final String uuid = UUID.randomUUID().toString();
     final String filePath = "images/%s.webp".formatted(uuid);
     try {
-      final byte[] compressed = ffmpegService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION);
-      fileStorageService.saveFile(BinaryData.fromBytes(compressed), filePath);
+      ffmpegService.resizeImage(
+          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, fileStorageService.resolveFilePath(filePath));
     } catch (Exception e) {
       throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
     }

@@ -11,20 +11,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class FfmpegService {
 
-    public byte[] resizeImage(byte[] imageData, int width, int height) throws IOException {
+    public void resizeImage(byte[] imageData, int width, int height, Path outputFile) throws IOException {
         final String inputFormat = detectImageFormat(imageData);
-        return run(imageData,
+        run(imageData,
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-f", inputFormat, "-i", INPUT,
                 "-filter:v", "scale=%d:%d:force_original_aspect_ratio=decrease".formatted(width, height),
                 "-codec:v", "libwebp", "-quality", "75",
                 "-frames:v", "1",
                 "-f", "webp",
-                OUTPUT);
+                outputFile.toString());
     }
 
-    public byte[] trimSilence(byte[] audioData) throws IOException {
-        return run(audioData,
+    public void trimSilence(byte[] audioData, Path outputFile) throws IOException {
+        run(audioData,
                 "ffmpeg", "-y", "-loglevel", "error",
                 "-f", "s16le", "-ar", "44100", "-ac", "1",
                 "-i", INPUT,
@@ -32,21 +32,19 @@ public class FfmpegService {
                 "silenceremove=start_periods=1:start_threshold=-50dB:stop_periods=-1:stop_threshold=-50dB",
                 "-codec:a", "libmp3lame", "-b:a", "128k",
                 "-f", "mp3",
-                OUTPUT);
+                outputFile.toString());
     }
 
     private static final String INPUT = "__INPUT__";
-    private static final String OUTPUT = "__OUTPUT__";
 
-    private byte[] run(byte[] input, String... args) throws IOException {
+    private void run(byte[] input, String... args) throws IOException {
         final Path inputFile = Files.createTempFile("ffmpeg-in-", ".tmp");
-        final Path outputFile = Files.createTempFile("ffmpeg-out-", ".tmp");
         try {
             Files.write(inputFile, input);
-            final String[] resolved = Arrays.stream(args)
-                    .map(a -> a.equals(INPUT) ? inputFile.toString() : a.equals(OUTPUT) ? outputFile.toString() : a)
-                    .toArray(String[]::new);
-            final ProcessBuilder pb = new ProcessBuilder(resolved);
+            final ProcessBuilder pb = new ProcessBuilder(
+                    Arrays.stream(args)
+                            .map(a -> a.equals(INPUT) ? inputFile.toString() : a)
+                            .toList());
             pb.redirectErrorStream(true);
             final Process process = pb.start();
             final byte[] output = process.getInputStream().readAllBytes();
@@ -62,11 +60,8 @@ public class FfmpegService {
                 throw new IOException("ffmpeg exited with code %d: %s".formatted(
                         process.exitValue(), new String(output, StandardCharsets.UTF_8)));
             }
-
-            return Files.readAllBytes(outputFile);
         } finally {
             Files.deleteIfExists(inputFile);
-            Files.deleteIfExists(outputFile);
         }
     }
 
