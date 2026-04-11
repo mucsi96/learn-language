@@ -57,7 +57,6 @@ public class FfmpegService {
             final Process process = pb.start();
 
             try {
-                final byte[] output = process.getInputStream().readAllBytes();
                 final boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
                 if (!finished) {
@@ -65,15 +64,16 @@ public class FfmpegService {
                     throw new IOException("ffmpeg timed out after %d seconds".formatted(TIMEOUT_SECONDS));
                 }
 
+                final byte[] output = process.getInputStream().readAllBytes();
+
                 if (process.exitValue() != 0) {
                     throw new IOException("ffmpeg exited with code %d: %s".formatted(
                             process.exitValue(), new String(output, StandardCharsets.UTF_8)));
                 }
             } catch (InterruptedException e) {
+                process.destroyForcibly();
                 Thread.currentThread().interrupt();
                 throw new IOException("ffmpeg process interrupted", e);
-            } finally {
-                process.destroyForcibly();
             }
         } finally {
             Files.deleteIfExists(inputFile);
