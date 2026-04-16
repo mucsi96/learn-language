@@ -124,7 +124,7 @@ spec:
           value: '{"sub":"test-user@example.com","name":"Test User","scp":"readDecks createDeck","roles":["DeckReader","DeckCreator"]}'
       livenessProbe:
         httpGet:
-          path: /default/.well-known/openid-configuration
+          path: /health
           port: 8090
         initialDelaySeconds: 2
         periodSeconds: 2
