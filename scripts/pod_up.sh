@@ -9,14 +9,18 @@ echo "Cleaning up test storage directories..."
 rm -rf "$PROJECT_DIR/test/storage"
 mkdir -p "$PROJECT_DIR/test/storage"
 
-echo "Building container images..."
-podman build -t localhost/learn-language-server:test "$PROJECT_DIR/server" &
-podman build -t localhost/learn-language-client:test "$PROJECT_DIR/client" &
-podman build -t localhost/learn-language-mock-openai:test "$PROJECT_DIR/mock_openai_server" &
-podman build -t localhost/learn-language-mock-google-ai:test "$PROJECT_DIR/mock_google_ai_server" &
-podman build -t localhost/learn-language-mock-elevenlabs:test "$PROJECT_DIR/mock_elevenlabs_server" &
-podman build -t localhost/learn-language-mock-anthropic:test "$PROJECT_DIR/mock_anthropic_server" &
-wait
+if [ "${SKIP_BUILD:-}" = "1" ]; then
+  echo "Skipping image build (SKIP_BUILD=1)..."
+else
+  echo "Building container images..."
+  podman build -t localhost/learn-language-server:test "$PROJECT_DIR/server" &
+  podman build -t localhost/learn-language-client:test "$PROJECT_DIR/client" &
+  podman build -t localhost/learn-language-mock-openai:test "$PROJECT_DIR/mock_openai_server" &
+  podman build -t localhost/learn-language-mock-google-ai:test "$PROJECT_DIR/mock_google_ai_server" &
+  podman build -t localhost/learn-language-mock-elevenlabs:test "$PROJECT_DIR/mock_elevenlabs_server" &
+  podman build -t localhost/learn-language-mock-anthropic:test "$PROJECT_DIR/mock_anthropic_server" &
+  wait
+fi
 
 echo "Cleaning up existing pod..."
 podman kube down "$PROJECT_DIR/test/test-pod.yaml" 2>/dev/null || true
