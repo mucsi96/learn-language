@@ -1,9 +1,9 @@
 <button class="avatar" [matMenuTriggerFor]="menu">
-  {{ profile.value()?.initials }}
+  {{ profile()?.initials }}
 </button>
 <mat-menu #menu="matMenu">
   <span class="profile-name">
-    {{ profile.value()?.name }}
+    {{ profile()?.name }}
   </span>
   <a mat-menu-item [routerLink]="['/sources']">Sources</a>
   <a mat-menu-item [routerLink]="['/in-review-cards']">Review cards</a>

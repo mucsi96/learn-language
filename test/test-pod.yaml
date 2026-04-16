@@ -108,6 +108,28 @@ spec:
         periodSeconds: 2
         failureThreshold: 5
 
+    - name: mock-oauth2
+      image: docker.io/mucsi96/mock-oidc-provider:latest
+      ports:
+        - containerPort: 8090
+          hostPort: 8090
+      env:
+        - name: PORT
+          value: "8090"
+        - name: CLIENT_ID
+          value: mock-client-id
+        - name: AUD
+          value: mock-api-client-id
+        - name: USER_CLAIMS
+          value: '{"sub":"test-user@example.com","name":"Test User","scp":"readDecks createDeck","roles":["DeckReader","DeckCreator"]}'
+      livenessProbe:
+        httpGet:
+          path: /default/.well-known/openid-configuration
+          port: 8090
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
+
     - name: server
       image: localhost/learn-language-server:test
       env:
@@ -121,6 +143,8 @@ spec:
           value: postgres
         - name: DB_PASSWORD
           value: postgres
+        - name: MOCK_OAUTH2_SERVER_URI
+          value: http://localhost:8090
         - name: STORAGE_DIRECTORY
           value: /app/storage
         - name: OPENAI_API_KEY
