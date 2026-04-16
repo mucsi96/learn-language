@@ -125,7 +125,7 @@ spec:
         - name: PREFERRED_USERNAME
           value: test-user@example.com
         - name: ROLES
-          value: DeckReader DeckCreator
+          value: DeckReader,DeckCreator
         - name: SCP
           value: readDecks createDeck
         - name: AUD
