@@ -43,7 +43,7 @@ public class EnvironmentController {
   @Value("${spa-client-id:}")
   private String uiClientId;
 
-  @Value("${mock-oauth2-server-uri:}")
+  @Value("${MOCK_OAUTH2_SERVER_URI:}")
   private String mockOAuth2ServerUri;
 
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
