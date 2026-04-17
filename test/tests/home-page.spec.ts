@@ -3,12 +3,12 @@ import { createCard, createCardsWithStates, createStudySession } from '../utils'
 import { v4 as uuidv4 } from 'uuid';
 
 test('displays welcome message', async ({ page }) => {
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await expect(page.getByRole('heading', { name: 'Welcome to Learn Language', exact: true })).toBeVisible();
 });
 
 test('displays source list', async ({ page }) => {
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await expect(page.getByRole('heading', { name: 'Goethe A1', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Goethe A2', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Goethe B1', exact: true })).toBeVisible();
@@ -28,7 +28,7 @@ test('due cards count by state', async ({ page }) => {
 
   await createCardsWithStates('goethe-a1', cardsToCreate);
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await expect(page.getByTitle('New', { exact: true })).toContainText('2');
   await expect(page.getByTitle('Learning', { exact: true })).not.toBeVisible();
   await expect(page.getByTitle('Review', { exact: true })).toContainText('2');
@@ -43,7 +43,7 @@ test('due cards limited to max 50', async ({ page }) => {
 
   await createCardsWithStates('goethe-a1', cardsToCreate);
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await expect(page.getByTitle('New', { exact: true })).toContainText('50');
 });
 
@@ -62,7 +62,7 @@ test('due cards limited to max 50 mixed states', async ({ page }) => {
 
   await createCardsWithStates('goethe-a1', cardsToCreate);
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
 
   const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
   await expect(goetheA1Card).toBeVisible();
@@ -89,7 +89,7 @@ test('due card counts are independent per source when study session exists', asy
   const a1CardIds = Array.from({ length: 3 }, (_, i) => `goethe-a1_new_${i}`);
   await createStudySession({ sourceId: 'goethe-a1', cardIds: a1CardIds });
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
 
   const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
   await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('3');
@@ -114,6 +114,6 @@ test('in review cards not on home page', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await expect(page.getByTitle('New', { exact: true })).toContainText('1');
 });

@@ -10,7 +10,7 @@ import {
 } from '../utils';
 
 test('can create an image source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -55,7 +55,7 @@ test('image source shows empty dropzone initially', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/empty-image-source/page/1');
+  await page.goto('http://localhost:8170/sources/empty-image-source/page/1');
 
   await expect(page.getByText('Drag and drop an image here')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Image upload dropzone' })).toBeVisible();
@@ -72,7 +72,7 @@ test('can upload image to image source from page view', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/upload-image-source/page/1');
+  await page.goto('http://localhost:8170/sources/upload-image-source/page/1');
 
   await expect(page.getByText('Drag and drop an image here')).toBeVisible();
 
@@ -101,7 +101,7 @@ test('can delete image from image source', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/delete-image-source/page/1');
+  await page.goto('http://localhost:8170/sources/delete-image-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'test-image.png',
@@ -133,7 +133,7 @@ test('image source shows source type in create dialog is disabled during edit', 
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Edit Image Source' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -157,7 +157,7 @@ test('Extracted items appear as chips for flowing text format after selection', 
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/chips-image-source/page/1');
+  await page.goto('http://localhost:8170/sources/chips-image-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',
@@ -200,7 +200,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/known-words-source/page/1');
+  await page.goto('http://localhost:8170/sources/known-words-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',
@@ -253,7 +253,7 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/ignore-word-source/page/1');
+  await page.goto('http://localhost:8170/sources/ignore-word-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'menschen-a1-1-9.png',

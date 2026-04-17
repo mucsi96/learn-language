@@ -8,14 +8,14 @@ import {
 } from '../utils';
 
 test('learning partners settings page displays empty state', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/learning-partners');
+  await page.goto('http://localhost:8170/settings/learning-partners');
 
   await expect(page.getByRole('heading', { name: 'Learning Partners' })).toBeVisible();
   await expect(page.getByText('No learning partners yet')).toBeVisible();
 });
 
 test('can add a learning partner', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/learning-partners');
+  await page.goto('http://localhost:8170/settings/learning-partners');
 
   await page.getByLabel('Partner name').fill('Alice');
   await page.getByRole('button', { name: 'Add' }).click();
@@ -28,7 +28,7 @@ test('can add a learning partner', async ({ page }) => {
 });
 
 test('can add multiple learning partners', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/learning-partners');
+  await page.goto('http://localhost:8170/settings/learning-partners');
 
   await page.getByLabel('Partner name').fill('Alice');
   await page.getByRole('button', { name: 'Add' }).click();
@@ -45,7 +45,7 @@ test('can add multiple learning partners', async ({ page }) => {
 test('can delete a learning partner', async ({ page }) => {
   await createLearningPartner({ name: 'Alice' });
 
-  await page.goto('http://localhost:8180/settings/learning-partners');
+  await page.goto('http://localhost:8170/settings/learning-partners');
 
   await expect(page.getByText('Alice')).toBeVisible();
 
@@ -73,7 +73,7 @@ test('study page shows turn indicator when source has learning partner', async (
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('status', { name: 'Current turn' })).toBeVisible();
@@ -93,7 +93,7 @@ test('study page hides turn indicator when card is revealed', async ({ page }) =
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const turnIndicator = page.getByRole('status', { name: 'Current turn' });
@@ -131,7 +131,7 @@ test('study page alternates between user and source partner', async ({ page }) =
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const turnIndicator = page.getByRole('status', { name: 'Current turn' });
@@ -154,7 +154,7 @@ test('study page does not show turn indicator when source has no partner', async
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('status', { name: 'Current turn' })).not.toBeVisible();
@@ -186,7 +186,7 @@ test('review log records learning partner when grading', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -216,7 +216,7 @@ test('review log has null learning partner when source has no partner', async ({
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });

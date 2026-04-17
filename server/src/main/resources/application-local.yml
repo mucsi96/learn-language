@@ -2,9 +2,9 @@ storage:
   directory: ./storage
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/learnlanguage
+    url: jdbc:postgresql://localhost:5471/learnlanguage
     username: postgres
     password: postgres
 management:
   server:
-    port: 8182
+    port: 8172
