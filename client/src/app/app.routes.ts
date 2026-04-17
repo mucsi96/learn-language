@@ -1,19 +1,5 @@
-import { Routes, CanActivateFn } from '@angular/router';
-import { inject } from '@angular/core';
-import { MsalGuard } from '@azure/msal-angular';
-import { ENVIRONMENT_CONFIG } from './environment/environment.config';
-
-// Guard factory that checks if auth is needed
-const conditionalAuthGuard: CanActivateFn = (route, state) => {
-  const { mockAuth } = inject(ENVIRONMENT_CONFIG);
-
-  if (mockAuth) {
-    return true;
-  }
-
-  const msalGuard = inject(MsalGuard);
-  return msalGuard.canActivate(route, state);
-};
+import { Routes } from '@angular/router';
+import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
 
 export const routes: Routes = [
   {
@@ -21,28 +7,28 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () =>
       import('./home/home.component').then((m) => m.HomeComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: '',
   },
   {
     path: 'in-review-cards',
     loadComponent: () =>
       import('./in-review-cards/in-review-cards.component').then((m) => m.InReviewCardsComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Cards In Review',
   },
   {
     path: 'model-usage',
     loadComponent: () =>
       import('./model-usage-logs/model-usage-logs.component').then((m) => m.ModelUsageLogsComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Model Usage',
   },
   {
     path: 'settings',
     loadComponent: () =>
       import('./settings/settings.component').then((m) => m.SettingsComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     children: [
       {
         path: '',
@@ -89,7 +75,7 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/study',
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Study',
     children: [
       {
@@ -114,12 +100,12 @@ export const routes: Routes = [
     path: 'sources',
     loadComponent: () =>
       import('./admin/admin.component').then((m) => m.AdminComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Sources',
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
       const pageNumber = route.params['pageNumber'];
@@ -144,7 +130,7 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/cards',
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Cards',
     children: [
       {
@@ -169,7 +155,7 @@ export const routes: Routes = [
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
-    canActivate: [conditionalAuthGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     title: 'Edit Card',
   },
 ];

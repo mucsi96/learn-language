@@ -34,7 +34,7 @@ async function pressRemoteKey(page: Page, key: string) {
 }
 
 test('study page shows start button initially', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
 
   await expect(page.getByRole('heading', { name: 'Ready to study?' })).toBeVisible();
   await expect(page.getByText('Click start to begin your study session.')).toBeVisible();
@@ -53,7 +53,7 @@ test('study session shows continue button when returning same day', async ({ pag
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -105,7 +105,7 @@ test('study page initial state', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -160,7 +160,7 @@ test('study page revealed state', async ({ page }) => {
   });
 
   // Navigate to study page
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -226,7 +226,7 @@ test('source selector routing works', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).toBeVisible();
@@ -234,7 +234,7 @@ test('source selector routing works', async ({ page }) => {
   await page.getByRole('button', { name: 'Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Goethe A2' }).click();
 
-  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/study');
+  await expect(page).toHaveURL('http://localhost:8170/sources/goethe-a2/study');
 
   await page.getByRole('button', { name: 'Start study session' }).click();
 
@@ -251,7 +251,7 @@ test('source selector shows proper stats', async ({ page }) => {
   ]);
 
   // Navigate to the study page
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
@@ -273,7 +273,7 @@ test('source selector stats update after changing source', async ({ page }) => {
   ]);
 
   // Navigate to the first source
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
@@ -306,7 +306,7 @@ test('source selector dropdown shows stats', async ({ page }) => {
   ]);
 
   // Navigate to the study page
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   // Open the source selector dropdown
@@ -353,7 +353,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   });
 
   // Navigate to the study page
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -384,7 +384,7 @@ test('flag card menu item visible in context menu', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await page.getByRole('heading', { name: 'tesztelni' }).click();
 
@@ -415,7 +415,7 @@ test('edit card menu item visible in context menu', async ({ page }) => {
     state: 'LEARNING',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await page.getByRole('heading', { name: 'szerkeszteni' }).click();
 
@@ -445,7 +445,7 @@ test('flag card sets flagged in database', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await page.getByRole('heading', { name: 'megjelölni' }).click();
 
@@ -481,7 +481,7 @@ test('unflag card via context menu', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await page.getByRole('heading', { name: 'első' }).click();
 
@@ -519,7 +519,7 @@ test('edit card button navigation', async ({ page }) => {
     learningSteps: 1,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await page.getByRole('heading', { name: 'navigálni' }).click();
 
@@ -553,7 +553,7 @@ test('grading buttons visibility after reveal', async ({ page }) => {
     state: 'LEARNING',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -613,7 +613,7 @@ test('incorrect button functionality', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -679,7 +679,7 @@ test('correct button functionality', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -744,7 +744,7 @@ test('skip button moves card to back without grading', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -795,7 +795,7 @@ test('grading card updates database', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -837,7 +837,7 @@ test('grading card creates review log', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -878,7 +878,7 @@ test('grading with no next card shows empty state', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -909,7 +909,7 @@ test('confetti celebration appears when all cards are caught up', async ({ page 
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -953,7 +953,7 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
     due: twoHoursFromNow,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1029,7 +1029,7 @@ test('most recently reviewed card moves to back of queue', async ({ page }) => {
     lastReview: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1080,7 +1080,7 @@ test('card graded with Incorrect reappears after other due cards', async ({ page
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1117,7 +1117,7 @@ test('speech card study page initial state shows Hungarian translation', async (
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.goto('http://localhost:8170/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1148,7 +1148,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.goto('http://localhost:8170/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1182,7 +1182,7 @@ test('speech card grading functionality', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/study');
+  await page.goto('http://localhost:8170/sources/speech-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1219,7 +1219,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
     },
   });
 
-  await page.goto('http://localhost:8180/sources/grammar-a1/study');
+  await page.goto('http://localhost:8170/sources/grammar-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1252,7 +1252,7 @@ test('grammar card grading functionality', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/grammar-a1/study');
+  await page.goto('http://localhost:8170/sources/grammar-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1290,7 +1290,7 @@ test('Enter key reveals and unreveals card', async ({ page }) => {
     state: 'LEARNING',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1349,7 +1349,7 @@ test('Green color key grades card as Correct when revealed', async ({ page }) =>
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1403,7 +1403,7 @@ test('all color keys map to correct grades', async ({ page }) => {
     due: new Date(now.getTime() - 2 * 3600000),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1449,7 +1449,7 @@ test('color keys do not grade when card is not revealed', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1501,7 +1501,7 @@ test('session stats appear on celebration page after completing all cards', asyn
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1569,7 +1569,7 @@ test('session stats show per-person breakdown when studying with partner', async
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -1631,7 +1631,7 @@ test('study session respects source card limit', async ({ page }) => {
     });
   }
 
-  await page.goto('http://localhost:8180/sources/limited-source/study');
+  await page.goto('http://localhost:8170/sources/limited-source/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
 
@@ -1677,7 +1677,7 @@ test('study session respects source new card limit', async ({ page }) => {
     });
   }
 
-  await page.goto('http://localhost:8180/sources/new-limited-source/study');
+  await page.goto('http://localhost:8170/sources/new-limited-source/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
 

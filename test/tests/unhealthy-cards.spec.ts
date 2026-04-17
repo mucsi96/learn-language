@@ -16,7 +16,7 @@ test('unhealthy filter shows cards with missing translations', async ({ page }) 
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -40,7 +40,7 @@ test('unhealthy filter shows cards with missing gender', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -64,7 +64,7 @@ test('unhealthy filter shows cards with missing word type', async ({ page }) => 
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -94,7 +94,7 @@ test('unhealthy filter does not show speech cards missing gender or word type', 
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/speech-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -117,7 +117,7 @@ test('unhealthy filter does not show non-noun vocabulary cards without gender', 
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -141,7 +141,7 @@ test('unhealthy filter does not show healthy cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=unhealthy');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=unhealthy');
 
   const grid = page.getByRole('grid');
   await expect(async () => {

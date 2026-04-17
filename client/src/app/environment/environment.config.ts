@@ -55,7 +55,7 @@ export interface EnvironmentConfig {
   tenantId: string;
   clientId: string;
   apiClientId: string;
-  mockAuth: boolean;
+  mockOAuth2ServerUri: string;
   imageRateLimitPerMinute: number;
   audioRateLimitPerMinute: number;
   imageMaxConcurrentRequests: number;

@@ -67,7 +67,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT ?? 3002;
+const PORT = process.env.PORT ?? 3072;
 app.listen(PORT, () => {
   console.log(`Mock Eleven Labs TTS server is running on port ${PORT}`);
 });

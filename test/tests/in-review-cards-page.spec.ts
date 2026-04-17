@@ -54,7 +54,7 @@ test('displays in review cards inline with edit forms', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('heading', { name: 'Cards In Review', exact: true })).toBeVisible();
 
@@ -77,13 +77,13 @@ test('displays empty state when no cards in review', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
 });
 
 test('page title', async ({ page }) => {
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await expect(page).toHaveTitle('Cards In Review');
 });
 
@@ -114,7 +114,7 @@ test('mark as reviewed button disabled when no favorite image', async ({ page })
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
   await expect(markAsReviewedBtn).toBeVisible();
@@ -147,7 +147,7 @@ test('mark as reviewed button enabled when conditions met', async ({ page }) => 
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
 
@@ -181,7 +181,7 @@ test('mark as reviewed updates readiness in database', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
@@ -221,7 +221,7 @@ test('mark as reviewed saves card data changes', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByLabel('Hungarian translation', { exact: true }).fill('megszervezni');
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
@@ -265,7 +265,7 @@ test('reviewed card is visually highlighted and stays on page', async ({ page })
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
@@ -302,7 +302,7 @@ test('mark as reviewed button enabled after toggling favorite', async ({ page })
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const markAsReviewedBtn = page.getByRole('button', { name: 'Mark as reviewed' });
   await expect(markAsReviewedBtn).toBeDisabled();
@@ -335,7 +335,7 @@ test('displays speech cards in review with inline form', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByLabel('German sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
@@ -388,7 +388,7 @@ test('progress indicator shows remaining count', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const progressFab = page.locator('.progress-fab');
   await expect(progressFab).toContainText('2');
@@ -423,7 +423,7 @@ test('progress indicator hidden when all reviewed', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Toggle favorite' }).click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).click();
@@ -457,7 +457,7 @@ test('audio fab appears after reviewing all cards', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(
     page.getByRole('button', { name: 'Generate audio for cards' })
@@ -497,7 +497,7 @@ test('delete card removes it from the page', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('löschen');
 

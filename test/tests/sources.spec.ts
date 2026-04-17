@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner } from '../utils';
 
 test('displays sources', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
   await expect(page.getByRole('article', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('article', { name: 'Goethe A2' })).toBeVisible();
@@ -10,14 +10,14 @@ test('displays sources', async ({ page }) => {
 });
 
 test('can select a source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await source.click();
   await expect(source).toHaveAttribute('aria-selected', 'true');
 });
 
 test('can deselect a source by clicking again', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await source.click();
   await expect(source).toHaveAttribute('aria-selected', 'true');
@@ -26,12 +26,12 @@ test('can deselect a source by clicking again', async ({ page }) => {
 });
 
 test('action buttons are hidden when no source is selected', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await expect(page.getByRole('button', { name: 'Pages' })).toBeHidden();
 });
 
 test('action buttons appear when a source is selected', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await expect(page.getByRole('button', { name: 'Pages' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cards' })).toBeVisible();
@@ -40,14 +40,14 @@ test('action buttons appear when a source is selected', async ({ page }) => {
 });
 
 test('pages button navigates to page viewer', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/page\/9/);
 });
 
 test('cards button navigates to cards table', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Cards' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/cards/);
@@ -85,7 +85,7 @@ test('displays card counts excluding drafts', async ({ page }) => {
     },
     readiness: 'DRAFT',
   });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
   await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 draft')).toBeVisible();
 });
@@ -122,7 +122,7 @@ test('displays card count for sources', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
   await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('Ready 1')).toBeVisible();
@@ -188,7 +188,7 @@ test('displays card state counts only for ready cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await expect(source.getByText('Ready 3')).toBeVisible();
   await expect(source.getByText('Known 1')).toBeVisible();
@@ -221,7 +221,7 @@ test('displays flagged and unhealthy card counts', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await expect(source.getByLabel('Flagged cards')).toContainText('2 flagged');
 });
@@ -250,14 +250,14 @@ test('displays readiness breakdown for sources', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   const source = page.getByRole('article', { name: 'Goethe A1' });
   await expect(source.getByLabel('READY: 1')).toBeVisible();
   await expect(source.getByLabel('KNOWN: 1')).toBeVisible();
 });
 
 test('can create a new source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -303,7 +303,7 @@ test('can create a new source', async ({ page }) => {
 });
 
 test('can edit an existing source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   const initialSource = await getSource('goethe-a1');
   expect(initialSource?.name).toBe('Goethe A1');
@@ -354,7 +354,7 @@ test('can delete a source and its cards', async ({ page }) => {
   expect(sourceBeforeDelete).not.toBeNull();
   expect(sourceBeforeDelete?.name).toBe('Goethe B1');
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('Ready 2')).toBeVisible();
 
@@ -374,7 +374,7 @@ test('can delete a source and its cards', async ({ page }) => {
 });
 
 test('can cancel source creation', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -393,7 +393,7 @@ test('can cancel source creation', async ({ page }) => {
 });
 
 test('validates required fields when creating source', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -431,7 +431,7 @@ test('displays empty state when no sources exist', async ({ page }) => {
   await cleanupDbRecords({ withSources: true });
   await setupTestRateLimits();
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await expect(page.getByRole('heading', { name: 'No sources yet', exact: true })).toBeVisible();
   await expect(page.getByText('Create your first source to start adding cards.')).toBeVisible();
@@ -441,7 +441,7 @@ test('displays empty state when no sources exist', async ({ page }) => {
 });
 
 test('can create a speech source with image collection', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -473,7 +473,7 @@ test('can create a speech source with image collection', async ({ page }) => {
 });
 
 test('can create a grammar source with image collection', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
@@ -505,7 +505,7 @@ test('can create a grammar source with image collection', async ({ page }) => {
 });
 
 test('edit dialog shows card limit and new card limit fields with defaults', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -522,7 +522,7 @@ test('edit dialog shows card limit and new card limit fields with defaults', asy
 });
 
 test('can edit card limit and new card limit', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -546,7 +546,7 @@ test('can edit card limit and new card limit', async ({ page }) => {
 test('can assign a learning partner to a source', async ({ page }) => {
   await createLearningPartner({ name: 'Alice' });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -568,7 +568,7 @@ test('can assign a learning partner to a source', async ({ page }) => {
 test('can remove a learning partner from a source', async ({ page }) => {
   const aliceId = await createLearningPartner({ name: 'Alice' });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -583,7 +583,7 @@ test('can remove a learning partner from a source', async ({ page }) => {
     expect(source?.learningPartnerId).toBe(aliceId);
   }).toPass();
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
 
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();

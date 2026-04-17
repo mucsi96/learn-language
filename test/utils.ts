@@ -11,7 +11,7 @@ export const STORAGE_DIR = path.join(__dirname, 'storage');
 export async function withDbConnection<T>(callback: (client: Client) => Promise<T>): Promise<T> {
   const client = new Client({
     host: 'localhost',
-    port: 5460,
+    port: 5470,
     database: 'test',
     user: 'postgres',
     password: 'postgres',
@@ -506,7 +506,7 @@ export async function navigateToCardEditing(
   endText: string = 'Vor der Abfahrt rufe ich an.',
   wordName: string = 'abfahren'
 ): Promise<void> {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: sourceName }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
   await selectTextRange(page, startText, endText);

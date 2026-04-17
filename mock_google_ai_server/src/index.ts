@@ -79,7 +79,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT ?? 3001;
+const PORT = process.env.PORT ?? 3071;
 app.listen(PORT, () => {
   console.log(`Mock Google AI server is running on port ${PORT}`);
 });

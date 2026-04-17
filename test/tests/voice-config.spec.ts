@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAudioSetting, withDbConnection } from '../utils';
 
 test('navigates to voice configuration from profile menu', async ({ page }) => {
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await page.getByRole('button', { name: 'TU' }).click();
   await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Settings' }).click();
@@ -10,7 +10,7 @@ test('navigates to voice configuration from profile menu', async ({ page }) => {
 });
 
 test('displays empty state when no configurations exist', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   await expect(page.getByText('No voice configurations yet')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add Voice' }).first()).toBeVisible();
 });
@@ -31,7 +31,7 @@ test('displays existing voice configurations grouped by language', async ({ page
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByRole('heading', { name: 'German' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Hungarian' })).toBeVisible();
@@ -40,7 +40,7 @@ test('displays existing voice configurations grouped by language', async ({ page
 });
 
 test('can add a new voice configuration', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await page.getByRole('button', { name: 'Add voice' }).first().click();
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
@@ -71,7 +71,7 @@ test('can toggle voice configuration enabled state', async ({ page }) => {
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   await expect(page.getByText('Test Voice')).toBeVisible();
 
   await page.getByRole('switch', { name: 'Disable voice' }).click();
@@ -91,7 +91,7 @@ test('can delete a voice configuration', async ({ page }) => {
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   await expect(page.getByText('Voice to Delete')).toBeVisible();
 
   await page.getByRole('button', { name: 'Delete voice' }).click();
@@ -118,7 +118,7 @@ test('displays card preview section', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible();
   await expect(page.getByText('1 / 1')).toBeVisible();
@@ -146,7 +146,7 @@ test('can navigate between preview cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByText('1 / 2')).toBeVisible();
 
@@ -171,7 +171,7 @@ test('displays voice category tags', async ({ page }) => {
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByText('default').first()).toBeVisible();
   await expect(page.getByText('cloned').first()).toBeVisible();
@@ -185,33 +185,33 @@ test('displays model name in configuration list', async ({ page }) => {
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByText('Eleven v3')).toBeVisible();
 });
 
 test('shows skeleton loader while loading configurations', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
 });
 
 test('settings page has left navigation with voices and data models links', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings');
+  await page.goto('http://localhost:8170/settings');
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Voices' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Data Models' })).toBeVisible();
 });
 
 test('displays front audio toggle in settings', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeVisible();
   await expect(toggle).toBeChecked();
 });
 
 test('front audio toggle persists when disabled', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeChecked();
 
@@ -228,7 +228,7 @@ test('front audio toggle persists when disabled', async ({ page }) => {
 
 test('front audio toggle reflects disabled state from server', async ({ page }) => {
   await createAudioSetting({ key: 'front-disabled', value: 1 });
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
   const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeVisible();
   await expect(toggle).not.toBeChecked();

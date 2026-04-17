@@ -15,7 +15,7 @@ import {
 } from '../utils';
 
 test('navigates to cards table from page view', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
   await page.getByRole('link', { name: 'View all cards' }).click();
@@ -50,7 +50,7 @@ test('displays cards in table', async ({ page }) => {
     lastReview: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -81,7 +81,7 @@ test('filters cards by state', async ({ page }) => {
     reps: 3,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -115,7 +115,7 @@ test('filters cards by readiness', async ({ page }) => {
     readiness: 'KNOWN',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -142,7 +142,7 @@ test('marks selected cards as known', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -174,7 +174,7 @@ test('displays review information in table', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -211,7 +211,7 @@ test('displays streak of 0 when last review is incorrect', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -259,7 +259,7 @@ test('displays correct streak count for multiple consecutive correct reviews', a
     review: new Date(Date.now() - 60000),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -284,7 +284,7 @@ test('navigates to card editing on row click', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -317,7 +317,7 @@ test('filters cards by last review time', async ({ page }) => {
     lastReview: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -353,7 +353,7 @@ test('sorts cards by reviews count', async ({ page }) => {
     reps: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -394,7 +394,7 @@ test('sorts cards by state', async ({ page }) => {
     reps: 3,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -438,7 +438,7 @@ test('sorts cards by last review', async ({ page }) => {
     lastReview: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -462,12 +462,12 @@ test('sorts cards by last review', async ({ page }) => {
 });
 
 test('page title shows Cards', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
   await expect(page).toHaveTitle('Cards');
 });
 
 test('delete image button shows as text button', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
   await expect(page.getByRole('link', { name: 'View all cards' })).toBeVisible();
@@ -495,7 +495,7 @@ test('deletes selected cards with confirmation', async ({ page }) => {
     data: { word: 'behalten', type: 'VERB', translation: { en: 'to keep' } },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -542,7 +542,7 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
     data: { word: 'abbrechen', type: 'VERB', translation: { en: 'to cancel' } },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -594,7 +594,7 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+    await page.goto('http://localhost:8170/sources/goethe-a1/cards');
     await expect(page.getByRole('columnheader', { name: /Select all 3 cards/ })).toBeVisible();
   }).toPass();
 
@@ -622,7 +622,7 @@ test('deselects all cards with header checkbox', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+    await page.goto('http://localhost:8170/sources/goethe-a1/cards');
     await expect(page.getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
@@ -657,7 +657,7 @@ test('select all respects current filter', async ({ page }) => {
     reps: 3,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -699,7 +699,7 @@ test('changing filter resets selection', async ({ page }) => {
     reps: 2,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -757,7 +757,7 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
   fs.writeFileSync(path.join(audioDir, `${audioId2}.mp3`), germanAudioSample);
   fs.writeFileSync(path.join(audioDir, `${audioId3}.mp3`), germanAudioSample);
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -825,7 +825,7 @@ test('displays review score in table', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -867,7 +867,7 @@ test('displays review score for mixed reviews', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -925,7 +925,7 @@ test('filters cards by review score', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -987,7 +987,7 @@ test('sorts cards by review score', async ({ page }) => {
     review: new Date(),
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1027,7 +1027,7 @@ test('filters cards by ID', async ({ page }) => {
     state: 'NEW',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1060,7 +1060,7 @@ test('draft cards are hidden by default', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1086,7 +1086,7 @@ test('draft query parameter shows only draft cards', async ({ page }) => {
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1099,7 +1099,7 @@ test('draft query parameter shows only draft cards', async ({ page }) => {
 test('dictionary lookup creates draft card visible on cards page', async ({ page }) => {
   await setupDefaultChatModelSettings();
 
-  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.goto('http://localhost:8170/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
 
   const downloadPromise = page.waitForEvent('download');
@@ -1109,7 +1109,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  const response = await fetch('http://localhost:8180/api/dictionary', {
+  const response = await fetch('http://localhost:8170/api/dictionary', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1127,7 +1127,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   expect(response.status).toBe(200);
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/mein-erstes-buch/cards?filter=draft');
+    await page.goto('http://localhost:8170/sources/mein-erstes-buch/cards?filter=draft');
     const grid = page.getByRole('grid');
     const rows = await getGridData(grid);
     expect(rows.length).toBe(1);
@@ -1147,7 +1147,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
 test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   await setupDefaultChatModelSettings();
 
-  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.goto('http://localhost:8170/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
 
   const downloadPromise = page.waitForEvent('download');
@@ -1157,7 +1157,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  await fetch('http://localhost:8180/api/dictionary', {
+  await fetch('http://localhost:8170/api/dictionary', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1179,7 +1179,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
     });
   }).toPass();
 
-  await fetch('http://localhost:8180/api/dictionary', {
+  await fetch('http://localhost:8170/api/dictionary', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1206,7 +1206,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
 
-  await page.goto('http://localhost:8180/settings/api-tokens');
+  await page.goto('http://localhost:8170/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
 
   const downloadPromise = page.waitForEvent('download');
@@ -1216,7 +1216,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  await fetch('http://localhost:8180/api/dictionary', {
+  await fetch('http://localhost:8170/api/dictionary', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1232,11 +1232,11 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/test-buch/cards?filter=draft');
+    await page.goto('http://localhost:8170/sources/test-buch/cards?filter=draft');
     await expect(page.getByRole('columnheader', { name: /Select all 1 cards/ })).toBeVisible();
   }).toPass();
 
-  await fetch('http://localhost:8180/api/dictionary', {
+  await fetch('http://localhost:8170/api/dictionary', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1252,7 +1252,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   });
 
   await expect(async () => {
-    await page.goto('http://localhost:8180/sources/test-buch/cards?filter=draft');
+    await page.goto('http://localhost:8170/sources/test-buch/cards?filter=draft');
     await expect(page.getByRole('columnheader', { name: /Select all 2 cards/ })).toBeVisible();
   }).toPass();
 
@@ -1286,7 +1286,7 @@ test('complete draft cards button only visible in draft mode', async ({ page }) 
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1311,7 +1311,7 @@ test('draft cards hide delete audio and mark as known actions', async ({ page })
     readiness: 'DRAFT',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1338,7 +1338,7 @@ test('draft cards do not navigate on row click', async ({ page }) => {
     readiness: 'DRAFT',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1368,7 +1368,7 @@ test('complete button visible for draft cards in non-draft mode', async ({ page 
     readiness: 'READY',
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1399,7 +1399,7 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -1411,7 +1411,7 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
 
   await page.getByRole('button', { name: 'Close' }).click();
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1435,7 +1435,7 @@ test('quick filter buttons toggle URL filter param', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await page.getByRole('button', { name: 'Filter flagged cards' }).click();
   await expect(page).toHaveURL(/filter=flagged/);
@@ -1470,7 +1470,7 @@ test('quick filter flagged shows only flagged cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=flagged');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=flagged');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1505,7 +1505,7 @@ test('quick filter draft shows only draft cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=draft');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=draft');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1530,7 +1530,7 @@ test('quick filter persists on page reload', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=flagged');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=flagged');
   await page.reload();
 
   await expect(page).toHaveURL(/filter=flagged/);
@@ -1543,7 +1543,7 @@ test('quick filter persists on page reload', async ({ page }) => {
 });
 
 test('quick filter buttons show count and hide when no matching cards', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   await expect(page.getByRole('button', { name: 'Filter flagged cards' })).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Filter unhealthy cards' })).not.toBeVisible();
@@ -1578,7 +1578,7 @@ test('quick filter buttons display card counts', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const flaggedButton = page.getByRole('button', { name: 'Filter flagged cards' });
   await expect(flaggedButton).toBeVisible();
@@ -1620,7 +1620,7 @@ test('quick filter suggested known shows only cards meeting criteria', async ({ 
     lapses: 0,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards?filter=suggestedKnown');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards?filter=suggestedKnown');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -1665,7 +1665,7 @@ test('quick filter suggested known button displays count', async ({ page }) => {
     lapses: 1,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/cards');
+  await page.goto('http://localhost:8170/sources/goethe-a1/cards');
 
   const suggestedKnownButton = page.getByRole('button', { name: 'Filter suggested known cards' });
   await expect(async () => {
