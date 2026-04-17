@@ -41,6 +41,7 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/environment").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/test/cleanup-storage").permitAll()
                 .anyRequest().authenticated());
 
         return http.build();
