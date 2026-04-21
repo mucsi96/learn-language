@@ -2,7 +2,7 @@ storage:
   directory: ./storage
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/learnlanguage
+    url: jdbc:postgresql://localhost:5450/learnlanguage
     username: postgres
     password: postgres
   cloud:
@@ -12,4 +12,4 @@ spring:
           client-secret: ${api-client-secret}
 management:
   server:
-    port: 8182
+    port: 8152

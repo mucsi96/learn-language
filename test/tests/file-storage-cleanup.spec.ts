@@ -22,7 +22,7 @@ function storageFileExists(relativePath: string): boolean {
 
 async function triggerCleanup(): Promise<void> {
   const response = await fetch(
-    'http://localhost:8180/api/test/cleanup-storage',
+    '/api/test/cleanup-storage',
     { method: 'POST' }
   );
 
