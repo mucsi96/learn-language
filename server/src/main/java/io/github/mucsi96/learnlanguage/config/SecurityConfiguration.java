@@ -25,7 +25,6 @@ public class SecurityConfiguration {
 
         http.securityMatcher("/dictionary");
         http.csrf(csrf -> csrf.disable());
-        http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
 
         return http.build();
     }
@@ -39,6 +38,7 @@ public class SecurityConfiguration {
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         http.authorizeHttpRequests(requests -> requests
+                .requestMatchers("/dictionary").permitAll()
                 .requestMatchers("/environment").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/test/cleanup-storage").permitAll()
