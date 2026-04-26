@@ -11,7 +11,7 @@ const PTF_BOLD_END = '\uFFF3';
 const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
 
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
-  await page.goto('http://localhost:8170/settings/api-tokens');
+  await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
 
   const downloadPromise = page.waitForEvent('download');
@@ -123,7 +123,7 @@ test('dictionary endpoint returns 401 after token is deleted', async ({
   const response = await lookupWord(token, 'hu');
   expect(response.status).toBe(200);
 
-  await page.goto('http://localhost:8170/settings/api-tokens');
+  await page.goto('/settings/api-tokens');
   await page.getByRole('button', { name: 'Delete Token To Delete' }).click();
   await page.getByRole('button', { name: 'Yes' }).click();
   await expect(

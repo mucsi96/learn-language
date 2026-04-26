@@ -18,46 +18,51 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
-    @Bean
-    @Order(1)
-    SecurityFilterChain dictionaryFilterChain(HttpSecurity http)
-            throws Exception {
+  @Bean
+  @Order(1)
+  SecurityFilterChain dictionaryFilterChain(HttpSecurity http)
+      throws Exception {
 
-        http.securityMatcher("/dictionary");
-        http.csrf(csrf -> csrf.disable());
-        http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
+    http.securityMatcher("/dictionary");
+    http.csrf(csrf -> csrf.disable());
+    http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    @Order(2)
-    SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+  @Bean
+  @Order(2)
+  SecurityFilterChain securityFilterChain(HttpSecurity http)
+      throws Exception {
 
-        http.oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+    http.oauth2ResourceServer(oauth2 -> oauth2
+        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
-        http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/environment").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/test/cleanup-storage").permitAll()
-                .anyRequest().authenticated());
+    http.csrf(csrf -> csrf
+        .ignoringRequestMatchers("/test/cleanup-storage"));
 
-        return http.build();
-    }
+    http.authorizeHttpRequests(requests -> requests
+        .requestMatchers(
+            "/test/cleanup-storage",
+            "/environment",
+            "/actuator/**")
+        .permitAll()
+        .anyRequest().authenticated());
 
-    private JwtAuthenticationConverter jwtAuthenticationConverter() {
-        final JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
+    return http.build();
+  }
 
-        final JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> Stream.concat(
-                scopeConverter.convert(jwt).stream(),
-                Optional.ofNullable(jwt.getClaimAsStringList("roles"))
-                        .stream()
-                        .flatMap(Collection::stream)
-                        .map(role -> new SimpleGrantedAuthority("APPROLE_" + role)))
-                .toList());
-        return converter;
-    }
+  private JwtAuthenticationConverter jwtAuthenticationConverter() {
+    final JwtGrantedAuthoritiesConverter scopeConverter = new JwtGrantedAuthoritiesConverter();
+
+    final JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(jwt -> Stream.concat(
+        scopeConverter.convert(jwt).stream(),
+        Optional.ofNullable(jwt.getClaimAsStringList("roles"))
+            .stream()
+            .flatMap(Collection::stream)
+            .map(role -> new SimpleGrantedAuthority("APPROLE_" + role)))
+        .toList());
+    return converter;
+  }
 }

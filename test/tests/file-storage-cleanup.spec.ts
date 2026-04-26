@@ -20,18 +20,7 @@ function storageFileExists(relativePath: string): boolean {
   return fs.existsSync(path.join(STORAGE_DIR, relativePath));
 }
 
-async function triggerCleanup(): Promise<void> {
-  const response = await fetch(
-    'http://localhost:8170/api/test/cleanup-storage',
-    { method: 'POST' }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Cleanup trigger failed: ${response.status}`);
-  }
-}
-
-test('deletes unreferenced audio files on cleanup', async ({ page }) => {
+test('deletes unreferenced audio files on cleanup', async ({ triggerCleanup }) => {
   const referencedAudioId = 'ref-audio-cleanup-1';
   const orphanAudioId = 'orphan-audio-cleanup-1';
 
@@ -65,7 +54,7 @@ test('deletes unreferenced audio files on cleanup', async ({ page }) => {
   expect(storageFileExists(`audio/${orphanAudioId}.mp3`)).toBe(false);
 });
 
-test('deletes unreferenced image files on cleanup', async ({ page }) => {
+test('deletes unreferenced image files on cleanup', async ({ triggerCleanup }) => {
   const referencedImageId = 'ref-image-cleanup-1';
   const orphanImageId = 'orphan-image-cleanup-1';
 
@@ -98,7 +87,7 @@ test('deletes unreferenced image files on cleanup', async ({ page }) => {
   expect(storageFileExists(`images/${orphanImageId}.webp`)).toBe(false);
 });
 
-test('deletes unreferenced source documents on cleanup', async ({ page }) => {
+test('deletes unreferenced source documents on cleanup', async ({ triggerCleanup }) => {
   writeStorageFile('sources/orphan-document.pdf', germanAudioSample);
 
   await triggerCleanup();
@@ -109,7 +98,7 @@ test('deletes unreferenced source documents on cleanup', async ({ page }) => {
   expect(storageFileExists('sources/orphan-document.pdf')).toBe(false);
 });
 
-test('strips non-favorite images from reviewed cards and deletes their files', async ({ page }) => {
+test('strips non-favorite images from reviewed cards and deletes their files', async ({ triggerCleanup }) => {
   const favoriteImageId = 'fav-image-1';
   const nonFavoriteImageId = 'non-fav-image-1';
 
@@ -156,7 +145,7 @@ test('strips non-favorite images from reviewed cards and deletes their files', a
   });
 });
 
-test('strips all images from known cards including favorites', async ({ page }) => {
+test('strips all images from known cards including favorites', async ({ triggerCleanup }) => {
   const favoriteImageId = 'fav-image-known-1';
   const nonFavoriteImageId = 'non-fav-image-known-1';
 
@@ -201,7 +190,7 @@ test('strips all images from known cards including favorites', async ({ page }) 
   });
 });
 
-test('preserves non-favorite images on in-review cards', async ({ page }) => {
+test('preserves non-favorite images on in-review cards', async ({ triggerCleanup }) => {
   const favoriteImageId = 'fav-image-2';
   const nonFavoriteImageId = 'non-fav-image-2';
 
