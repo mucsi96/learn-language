@@ -1096,7 +1096,7 @@ test('draft query parameter shows only draft cards', async ({ page }) => {
   }).toPass();
 });
 
-test('dictionary lookup creates draft card visible on cards page', async ({ page }) => {
+test('dictionary lookup creates draft card visible on cards page', async ({ page, baseURL }) => {
   await setupDefaultChatModelSettings();
 
   await page.goto('/settings/api-tokens');
@@ -1109,7 +1109,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  const response = await fetch('/api/dictionary', {
+  const response = await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1144,7 +1144,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   });
 });
 
-test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
+test('dictionary lookup does not duplicate draft cards', async ({ page, baseURL }) => {
   await setupDefaultChatModelSettings();
 
   await page.goto('/settings/api-tokens');
@@ -1157,7 +1157,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  await fetch('/api/dictionary', {
+  await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1179,7 +1179,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
     });
   }).toPass();
 
-  await fetch('/api/dictionary', {
+  await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1202,7 +1202,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page }) => {
   }).toPass();
 });
 
-test('completes selected draft cards from cards table', async ({ page }) => {
+test('completes selected draft cards from cards table', async ({ page, baseURL }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
 
@@ -1216,7 +1216,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
   const filePath = await download.path();
   const token = fs.readFileSync(filePath!, 'utf-8');
 
-  await fetch('/api/dictionary', {
+  await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1236,7 +1236,7 @@ test('completes selected draft cards from cards table', async ({ page }) => {
     await expect(page.getByRole('columnheader', { name: /Select all 1 cards/ })).toBeVisible();
   }).toPass();
 
-  await fetch('/api/dictionary', {
+  await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

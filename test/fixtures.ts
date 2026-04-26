@@ -3,7 +3,17 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { cleanupDbRecords, cleanupStorage, populateStorage, setupTestRateLimits } from './utils';
 
-export const test = base.extend({
+export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
+  triggerCleanup: async ({ baseURL }, use) => {
+    await use(async () => {
+      const response = await fetch(`${baseURL}/api/test/cleanup-storage`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`Cleanup trigger failed: ${response.status}`);
+      }
+    });
+  },
   page: async ({ page }, use, testInfo: TestInfo) => {
     await cleanupDbRecords();
     cleanupStorage();
