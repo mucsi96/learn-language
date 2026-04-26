@@ -1588,7 +1588,7 @@ test('session stats show per-person breakdown when studying with partner', async
   const statsRegion = page.getByRole('region', { name: 'Session statistics' });
   await expect(statsRegion).toBeVisible();
 
-  const meStats = statsRegion.getByRole('group', { name: 'Me statistics' });
+  const meStats = statsRegion.getByRole('group', { name: 'Test statistics' });
   await expect(meStats).toBeVisible();
   await expect(meStats.getByRole('group', { name: 'Total time' }).getByLabel('value')).toHaveText(/\d+s/);
   await expect(meStats.getByRole('group', { name: 'Average per card' }).getByLabel('value')).toHaveText(/\d+s/);

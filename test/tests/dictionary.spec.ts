@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { test, expect } from '../fixtures';
 import { setupDefaultChatModelSettings } from '../utils';
 
-const API_URL = 'http://localhost:8150/api/dictionary';
+const API_URL = 'http://localhost:8170/api/dictionary';
 
 const PTF_BOLD_START = '\uFFF2';
 const PTF_BOLD_END = '\uFFF3';

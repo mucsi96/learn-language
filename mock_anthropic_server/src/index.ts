@@ -38,7 +38,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT ?? 3003;
+const PORT = process.env.PORT ?? 3073;
 app.listen(PORT, () => {
   console.log(`Mock Anthropic server is running on port ${PORT}`);
 });
