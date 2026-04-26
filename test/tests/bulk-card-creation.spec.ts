@@ -33,7 +33,7 @@ test('bulk create fab appears when words without cards selected', async ({ page 
       examples: [],
     },
   });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -67,7 +67,7 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
       examples: [],
     },
   });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -105,7 +105,7 @@ test('selections persist across page navigation', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -146,7 +146,7 @@ test('regions from different pages are combined into single extraction', async (
     sourceType: 'IMAGES',
   });
 
-  await page.goto('http://localhost:8180/sources/cross-page-source/page/1');
+  await page.goto('http://localhost:8170/sources/cross-page-source/page/1');
 
   await page.getByLabel('Upload image file').setInputFiles({
     name: 'cross-page-1.png',
@@ -199,7 +199,7 @@ test('cancel selection clears all selections', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -264,7 +264,7 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -281,7 +281,7 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -299,7 +299,7 @@ test('bulk card creation shows individual progress', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -319,7 +319,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -351,7 +351,7 @@ test('bulk card creation includes word data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -422,7 +422,7 @@ test('bulk card creation skips image generation for models with zero image count
   await setupDefaultChatModelSettings();
   await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -450,7 +450,7 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -483,7 +483,7 @@ test('bulk card creation dialog shows review cards link', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -506,7 +506,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -545,7 +545,7 @@ test('bulk card creation source metadata', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -580,7 +580,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -629,7 +629,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Speech A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -693,13 +693,13 @@ test('hungarian translation failure shows error on word spans', async ({ page })
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
 
-  await fetch('http://localhost:3001/configure', {
+  await fetch('http://localhost:3071/configure', {
     method: 'POST',
     body: JSON.stringify({ failHungarianTranslation: true }),
     headers: { 'Content-Type': 'application/json' },
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -718,7 +718,7 @@ test('hungarian translation failure shows error on word spans', async ({ page })
 test('bulk card creation persists extraction regions', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -750,7 +750,7 @@ test('bulk card creation persists extraction regions', async ({ page }) => {
 test('persisted extraction regions are shown on page reload', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -767,7 +767,7 @@ test('persisted extraction regions are shown on page reload', async ({ page }) =
 test('persisted extraction regions are shown when navigating back to page', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -791,7 +791,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Grammar A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 

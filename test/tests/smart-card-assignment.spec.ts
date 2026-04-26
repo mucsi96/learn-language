@@ -39,7 +39,7 @@ test('smart assignment: equal distribution between user and partner', async ({ p
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -75,7 +75,7 @@ test('smart assignment: odd number of cards gives extra card to user', async ({ 
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -105,7 +105,7 @@ test('smart assignment: user gets first card, partner gets second', async ({ pag
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -161,7 +161,7 @@ test('smart assignment: card with higher user complexity assigned to user', asyn
     review: twoDaysAgo,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -206,7 +206,7 @@ test('smart assignment: card reviewed only by user assigned to partner', async (
     review: twoDaysAgo,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -264,7 +264,7 @@ test('smart assignment: elapsed days increases complexity', async ({ page }) => 
     review: fiveDaysAgo,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -324,7 +324,7 @@ test('smart assignment: primary rule (equal distribution) overrides secondary pr
     });
   }
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -352,7 +352,7 @@ test('smart assignment: no partner means no smart assignment', async ({ page }) 
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -376,7 +376,7 @@ test('smart assignment: new cards without reviews distributed evenly', async ({ 
     });
   }
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -408,7 +408,7 @@ test('smart assignment: single card goes to user', async ({ page }) => {
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -463,7 +463,7 @@ test('smart assignment: complexity combines rating and elapsed days', async ({ p
     review: tenDaysAgo,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -522,7 +522,7 @@ test('smart assignment: hardest cards for each person at front of their queue', 
   await createReviewLog({ cardId: 'mittel_p-kozepes_p', learningPartnerId: null, rating: 3, review: twoDaysAgo });
   await createReviewLog({ cardId: 'mittel_p-kozepes_p', learningPartnerId: partnerId, rating: 2, review: fiveDaysAgo });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -598,7 +598,7 @@ test('smart assignment: uses first grading of the day instead of last corrected 
     review: twoDaysAgoMorning,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -650,7 +650,7 @@ test('smart assignment: session limited to configured card limit', async ({ page
     }
   }
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const sessionCards = await getStudySessionCards(page);
@@ -681,7 +681,7 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(async () => {
@@ -715,7 +715,7 @@ test('smart assignment: learning card assignee does not swap after grading', asy
     due: yesterday,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();

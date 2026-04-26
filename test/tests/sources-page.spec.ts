@@ -16,7 +16,7 @@ import {
 import { Page } from '@playwright/test';
 
 async function navigateToSource(page: Page, sourceName: string) {
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: sourceName }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 }
@@ -40,7 +40,7 @@ test('previous page', async ({ page }) => {
 });
 
 test('disables previous page button on page 1', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/1');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/1');
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
 
   const prevButton = page.getByLabel('Previous page');
@@ -48,7 +48,7 @@ test('disables previous page button on page 1', async ({ page }) => {
 });
 
 test('disables next page button on last page', async ({ page }) => {
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/999');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/999');
 
   const nextButton = page.getByLabel('Next page');
   await expect(nextButton).toHaveClass(/disabled/);
@@ -198,7 +198,7 @@ test('removing a warning span via context menu excludes it from bulk creation', 
 
 test('source selector routing works', async ({ page }) => {
   // Navigate to first source page
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/9');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/9');
 
   // Check initial content is visible
   await expect(page.getByText('die Abfahrt')).toBeVisible();
@@ -210,7 +210,7 @@ test('source selector routing works', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'Goethe A2' }).click();
 
   // URL should change
-  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a2/page/8');
+  await expect(page).toHaveURL('http://localhost:8170/sources/goethe-a2/page/8');
 
   // Content should change to the page from the second source
   await expect(page.getByText('die Adresse')).toBeVisible();
@@ -218,7 +218,7 @@ test('source selector routing works', async ({ page }) => {
 
 test('source selector dropdown content', async ({ page }) => {
   // Navigate to sources page
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/9');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/9');
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -271,7 +271,7 @@ test('speech source selector routing works', async ({ page }) => {
   await page.getByRole('button', { name: 'Speech A1' }).click();
   await page.getByRole('menuitem', { name: 'Goethe A1' }).click();
 
-  await expect(page).toHaveURL('http://localhost:8180/sources/goethe-a1/page/9');
+  await expect(page).toHaveURL('http://localhost:8170/sources/goethe-a1/page/9');
   await expect(page.getByText('die Abfahrt')).toBeVisible();
 });
 
@@ -397,7 +397,7 @@ test('extraction regions are scoped to document', async ({ page }) => {
     );
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/1');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/1');
   await expect(page.getByRole('region', { name: 'Extracted region' })).toBeVisible();
 
   await page.getByLabel('Document', { exact: true }).click();

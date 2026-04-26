@@ -4,7 +4,7 @@ import { createRateLimitSetting, getRateLimitSettings, createModelUsageLog } fro
 test('displays image rate limit from database on image models settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-per-minute', value: 10 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Image rate limit per minute' });
   await expect(rateLimitInput).toBeVisible();
@@ -14,7 +14,7 @@ test('displays image rate limit from database on image models settings page', as
 test('can update image rate limit', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-per-minute', value: 6 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Image rate limit per minute' });
   await rateLimitInput.fill('15');
@@ -31,7 +31,7 @@ test('can update image rate limit', async ({ page }) => {
 test('displays audio rate limit from database on voices settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-per-minute', value: 20 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Audio rate limit per minute' });
   await expect(rateLimitInput).toBeVisible();
@@ -41,7 +41,7 @@ test('displays audio rate limit from database on voices settings page', async ({
 test('can update audio rate limit', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-per-minute', value: 12 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Audio rate limit per minute' });
   await rateLimitInput.fill('25');
@@ -58,7 +58,7 @@ test('can update audio rate limit', async ({ page }) => {
 test('displays image max concurrent requests from database on image models settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-max-concurrent', value: 5 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Image max concurrent requests' });
   await expect(maxConcurrentInput).toBeVisible();
@@ -68,7 +68,7 @@ test('displays image max concurrent requests from database on image models setti
 test('can update image max concurrent requests', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-max-concurrent', value: 0 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Image max concurrent requests' });
   await maxConcurrentInput.fill('4');
@@ -85,7 +85,7 @@ test('can update image max concurrent requests', async ({ page }) => {
 test('displays audio max concurrent requests from database on voices settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-max-concurrent', value: 3 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Audio max concurrent requests' });
   await expect(maxConcurrentInput).toBeVisible();
@@ -95,7 +95,7 @@ test('displays audio max concurrent requests from database on voices settings pa
 test('can update audio max concurrent requests', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-max-concurrent', value: 3 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Audio max concurrent requests' });
   await maxConcurrentInput.fill('6');
@@ -112,7 +112,7 @@ test('can update audio max concurrent requests', async ({ page }) => {
 test('displays image daily limit from database on image models settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-daily-limit', value: 50 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Image daily limit' });
   await expect(dailyLimitInput).toBeVisible();
@@ -122,7 +122,7 @@ test('displays image daily limit from database on image models settings page', a
 test('can update image daily limit', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-daily-limit', value: 0 });
 
-  await page.goto('http://localhost:8180/settings/image-models');
+  await page.goto('http://localhost:8170/settings/image-models');
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Image daily limit' });
   await dailyLimitInput.fill('30');
@@ -139,7 +139,7 @@ test('can update image daily limit', async ({ page }) => {
 test('displays audio daily limit from database on voices settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-daily-limit', value: 100 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Audio daily limit' });
   await expect(dailyLimitInput).toBeVisible();
@@ -149,7 +149,7 @@ test('displays audio daily limit from database on voices settings page', async (
 test('can update audio daily limit', async ({ page }) => {
   await createRateLimitSetting({ key: 'audio-daily-limit', value: 0 });
 
-  await page.goto('http://localhost:8180/settings/voices');
+  await page.goto('http://localhost:8170/settings/voices');
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Audio daily limit' });
   await dailyLimitInput.fill('75');
@@ -197,7 +197,7 @@ test('returns 429 when image daily limit is reached', async ({ request }) => {
   await createRateLimitSetting({ key: 'image-daily-limit', value: 2 });
   await seedImageUsageLogs(2);
 
-  const response = await request.post('http://localhost:8180/api/image', {
+  const response = await request.post('http://localhost:8170/api/image', {
     data: {
       input: 'test prompt',
       model: 'gemini-3-pro-image-preview',
@@ -211,7 +211,7 @@ test('returns 429 when audio daily limit is reached', async ({ request }) => {
   await createRateLimitSetting({ key: 'audio-daily-limit', value: 2 });
   await seedAudioUsageLogs(2);
 
-  const response = await request.post('http://localhost:8180/api/audio', {
+  const response = await request.post('http://localhost:8170/api/audio', {
     data: {
       input: 'test text',
       voice: 'test-voice',

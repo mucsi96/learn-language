@@ -2,14 +2,14 @@ import { test, expect } from '../fixtures';
 import { createKnownWords, getKnownWords, getTableData } from '../utils';
 
 test('navigates to known words settings from settings page', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings');
+  await page.goto('http://localhost:8170/settings');
   await expect(page.getByRole('link', { name: 'Known Words' })).toBeVisible();
   await page.getByRole('link', { name: 'Known Words' }).click();
   await expect(page.getByRole('heading', { name: 'Import Known Words' })).toBeVisible();
 });
 
 test('displays empty state when no known words exist', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   await expect(page.getByRole('heading', { name: /Known Words \(0\)/ })).toBeVisible();
   await expect(page.getByText('No known words yet')).toBeVisible();
@@ -17,7 +17,7 @@ test('displays empty state when no known words exist', async ({ page }) => {
 });
 
 test('can import CSV with German words and Hungarian translations', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const textarea = page.getByRole('textbox', { name: 'Words to import' });
   await expect(textarea).toBeVisible();
@@ -36,7 +36,7 @@ test('can import CSV with German words and Hungarian translations', async ({ pag
 });
 
 test('can import words without Hungarian translations', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const textarea = page.getByRole('textbox', { name: 'Words to import' });
   await textarea.fill('apple\nbanana\ncherry');
@@ -59,7 +59,7 @@ test('displays existing known words in table', async ({ page }) => {
     { word: 'test', hungarianTranslation: 'teszt' },
   ]);
 
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   await expect(page.getByRole('heading', { name: /Known Words \(3\)/ })).toBeVisible();
 
@@ -79,7 +79,7 @@ test('displays dash for missing Hungarian translation', async ({ page }) => {
     { word: 'apple', hungarianTranslation: null },
   ]);
 
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const table = page.getByRole('table');
   await expect(table).toBeVisible();
@@ -96,7 +96,7 @@ test('can delete individual words from table', async ({ page }) => {
     { word: 'keep', hungarianTranslation: 'tart' },
   ]);
 
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   await expect(page.getByRole('heading', { name: /Known Words \(2\)/ })).toBeVisible();
 
@@ -117,7 +117,7 @@ test('can clear all words', async ({ page }) => {
     { word: 'three', hungarianTranslation: 'három' },
   ]);
 
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   await expect(page.getByRole('heading', { name: /Known Words \(3\)/ })).toBeVisible();
 
@@ -139,7 +139,7 @@ test('can clear all words', async ({ page }) => {
 test('skips duplicate words during CSV import', async ({ page }) => {
   await createKnownWords([{ word: 'existing', hungarianTranslation: 'meglévő' }]);
 
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const textarea = page.getByRole('textbox', { name: 'Words to import' });
   await textarea.fill('existing, új\nnew1, új1\nnew2, új2');
@@ -156,7 +156,7 @@ test('skips duplicate words during CSV import', async ({ page }) => {
 });
 
 test('normalizes German words to lowercase', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const textarea = page.getByRole('textbox', { name: 'Words to import' });
   await textarea.fill('HAUS, ház\nBaum, fa\nwasser, víz');
@@ -173,7 +173,7 @@ test('normalizes German words to lowercase', async ({ page }) => {
 });
 
 test('import button is disabled when textarea is empty', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const importButton = page.getByRole('button', { name: 'Import' });
   await expect(importButton).toBeDisabled();
@@ -187,7 +187,7 @@ test('import button is disabled when textarea is empty', async ({ page }) => {
 });
 
 test('clears textarea after successful import', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/known-words');
+  await page.goto('http://localhost:8170/settings/known-words');
 
   const textarea = page.getByRole('textbox', { name: 'Words to import' });
   await textarea.fill('test, teszt');
@@ -198,7 +198,7 @@ test('clears textarea after successful import', async ({ page }) => {
 });
 
 test('settings navigation shows known words link', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings');
+  await page.goto('http://localhost:8170/settings');
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Known Words' })).toBeVisible();
 });

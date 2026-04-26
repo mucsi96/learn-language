@@ -49,12 +49,12 @@ async function setupVoiceConfigurations() {
 }
 
 test('page title', async ({ page }) => {
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
   await expect(page).toHaveTitle('Model Usage');
 });
 
 test('navigates to model usage from profile menu', async ({ page }) => {
-  await page.goto('http://localhost:8180');
+  await page.goto('http://localhost:8170');
   await page.getByRole('button', { name: 'TU' }).click();
   await expect(page.getByRole('menuitem', { name: 'Model usage' })).toHaveAttribute('href', '/model-usage');
   await page.getByRole('menuitem', { name: 'Model usage' }).click();
@@ -86,7 +86,7 @@ test('displays chat model usage logs', async ({ page }) => {
     responseContent: '{"classification": "test"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByRole('heading', { name: 'Model Usage Logs', exact: true })).toBeVisible();
 
@@ -128,7 +128,7 @@ test('displays image model usage logs', async ({ page }) => {
     responseContent: 'image generated',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -160,7 +160,7 @@ test('displays audio model usage logs', async ({ page }) => {
     responseContent: 'audio generated',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -193,7 +193,7 @@ test('expands chat log to show response', async ({ page }) => {
     responseContent: '{"translation": "dog"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByText('{"translation": "dog"}')).not.toBeVisible();
 
@@ -221,7 +221,7 @@ test('allows rating usage logs', async ({ page }) => {
     responseContent: '{"translation": "test"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const ratingButtons = page.getByRole('button', { name: /Rate \d stars/ });
   await expect(ratingButtons).toHaveCount(5);
@@ -288,7 +288,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
     responseContent: '{"translation": "different"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await page.getByRole('button', { name: 'Rate 4 stars' }).last().click();
 
@@ -327,7 +327,7 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
     responseContent: '{"translation": "test"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await page.getByRole('button', { name: 'Rate 4 stars' }).click();
 
@@ -364,7 +364,7 @@ test('does not show rating for image models', async ({ page }) => {
     responseContent: 'image generated',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByRole('button', { name: /Rate \d stars/ })).toHaveCount(0);
 });
@@ -381,7 +381,7 @@ test('does not show rating for audio models', async ({ page }) => {
     responseContent: 'audio generated',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByRole('button', { name: /Rate \d stars/ })).toHaveCount(0);
 });
@@ -426,7 +426,7 @@ test('displays model summary tab', async ({ page }) => {
     rating: 4,
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await page.getByRole('tab', { name: 'Model Summary' }).click();
 
@@ -460,7 +460,7 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -470,7 +470,7 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
 
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -489,7 +489,7 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -499,7 +499,7 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
 
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -540,13 +540,13 @@ test('creates audio model usage logs when using bulk audio creation', async ({ p
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -588,7 +588,7 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
     responseContent: 'line1\nmodified\nline3',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
 
@@ -628,7 +628,7 @@ test('shows primary badge on fastest model in group', async ({ page }) => {
     responseContent: 'response b',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByText('primary')).toBeVisible();
 });
@@ -660,7 +660,7 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
     responseContent: 'hello\nearth',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -689,7 +689,7 @@ test('shows copy to clipboard button in expanded state', async ({ page }) => {
     responseContent: '{"translation": "test"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -715,7 +715,7 @@ test('clears logs when clicking delete button', async ({ page }) => {
     responseContent: '{"translation": "test"}',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   const grid = page.getByRole('grid');
   await expect(async () => {
@@ -758,7 +758,7 @@ test('shows identical label when grouped logs have same response', async ({ page
     responseContent: 'same content',
   });
 
-  await page.goto('http://localhost:8180/model-usage');
+  await page.goto('http://localhost:8170/model-usage');
 
   await expect(page.getByText('identical')).toBeVisible();
 });

@@ -2,14 +2,14 @@ import { test, expect } from '../fixtures';
 import { createChatModelSetting, getChatModelSettings } from '../utils';
 
 test('navigates to data model settings from settings page', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings');
+  await page.goto('http://localhost:8170/settings');
   await expect(page.getByRole('link', { name: 'Data Models' })).toBeVisible();
   await page.getByRole('link', { name: 'Data Models' }).click();
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 });
 
 test('displays matrix with all chat models and operation types', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
@@ -35,7 +35,7 @@ test('can set primary model for operation type', async ({ page }) => {
     isPrimary: true,
   });
 
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const geminiRow = page.getByRole('row', { name: 'gemini-3.1-pro-preview' });
@@ -63,7 +63,7 @@ test('can set primary model for operation type', async ({ page }) => {
 });
 
 test('primary radio is disabled when model is not enabled', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
@@ -79,7 +79,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
     isPrimary: true,
   });
 
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
@@ -88,7 +88,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
 });
 
 test('can toggle model setting', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const toggleInGptRow = gptRow.getByRole('switch').first();
@@ -122,7 +122,7 @@ test('displays existing enabled settings from database', async ({ page }) => {
     isEnabled: true,
   });
 
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const gptToggles = gptRow.getByRole('switch');
@@ -136,7 +136,7 @@ test('displays existing enabled settings from database', async ({ page }) => {
 });
 
 test('can enable all models for an operation type', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const enableAllButton = page.getByRole('button', { name: 'Enable all models for Translation' });
   await expect(enableAllButton).toBeVisible();
@@ -153,7 +153,7 @@ test('can enable all models for an operation type', async ({ page }) => {
 });
 
 test('toggle performs optimistic update', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings/data-models');
+  await page.goto('http://localhost:8170/settings/data-models');
 
   const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
   const toggle = gptRow.getByRole('switch').first();
@@ -166,7 +166,7 @@ test('toggle performs optimistic update', async ({ page }) => {
 });
 
 test('settings page shows data models link in navigation', async ({ page }) => {
-  await page.goto('http://localhost:8180/settings');
+  await page.goto('http://localhost:8170/settings');
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Data Models' })).toBeVisible();
 });

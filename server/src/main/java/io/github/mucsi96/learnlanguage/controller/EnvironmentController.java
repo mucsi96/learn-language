@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class EnvironmentController {
-  private final Environment environment;
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
@@ -44,6 +42,9 @@ public class EnvironmentController {
 
   @Value("${spa-client-id:}")
   private String uiClientId;
+
+  @Value("${MOCK_OAUTH2_SERVER_URI:}")
+  private String mockOAuth2ServerUri;
 
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
       new SupportedLanguage("de", "German"),
@@ -76,7 +77,7 @@ public class EnvironmentController {
         tenantId,
         uiClientId,
         clientId,
-        environment.matchesProfiles("test"),
+        mockOAuth2ServerUri,
         rateLimitSettingService.getImageRateLimitPerMinute(),
         rateLimitSettingService.getAudioRateLimitPerMinute(),
         rateLimitSettingService.getImageMaxConcurrentRequests(),
@@ -121,7 +122,7 @@ public class EnvironmentController {
       String tenantId,
       String clientId,
       String apiClientId,
-      boolean mockAuth,
+      String mockOAuth2ServerUri,
       int imageRateLimitPerMinute,
       int audioRateLimitPerMinute,
       int imageMaxConcurrentRequests,

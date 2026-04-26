@@ -32,7 +32,7 @@ test('word extraction only uses enabled models for extraction operation', async 
     EXTRACTION: ['gpt-4o', 'gemini-3.1-pro-preview'],
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -59,7 +59,7 @@ test('bulk card creation only uses enabled models for classification operation',
     CLASSIFICATION: ['gpt-4o', 'gemini-3.1-pro-preview'],
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -88,7 +88,7 @@ test('bulk card creation only uses enabled models for translation operations', a
     TRANSLATION: ['gpt-4o', 'gemini-3.1-pro-preview'],
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 
@@ -118,7 +118,7 @@ test('different operation types can have different enabled models', async ({ pag
     TRANSLATION: ['gemini-3.1-pro-preview'],
   });
 
-  await page.goto('http://localhost:8180/sources');
+  await page.goto('http://localhost:8170/sources');
   await page.getByRole('article', { name: 'Goethe A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
 

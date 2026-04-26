@@ -58,7 +58,7 @@ test('export struggled cards button appears on celebration page when there are s
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -105,7 +105,7 @@ test('export struggled cards button does not appear when all cards answered corr
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -146,7 +146,7 @@ test('export struggled cards button triggers PDF download', async ({ page }) => 
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -195,7 +195,7 @@ test('export struggled cards button visible on study page when returning after s
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -208,7 +208,7 @@ test('export struggled cards button visible on study page when returning after s
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
 
   await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).toBeVisible();
@@ -242,7 +242,7 @@ test('export button not visible on study page return when no struggled cards', a
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
@@ -252,7 +252,7 @@ test('export button not visible on study page return when no struggled cards', a
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
 
   await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
@@ -316,7 +316,7 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
     scheduledDays: 10,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/study');
+  await page.goto('http://localhost:8170/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });

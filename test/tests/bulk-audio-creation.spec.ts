@@ -77,7 +77,7 @@ test('bulk audio fab appears when cards without audio exist', async ({ page }) =
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   const fab = page.getByRole('button', { name: 'Generate audio for cards' });
   await expect(fab).toBeVisible();
   await expect(fab).toContainText('Generate audio for 2 cards');
@@ -142,7 +142,7 @@ test('bulk audio fab hides when all cards have audio', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // FAB should not be visible since card has complete audio
   await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
@@ -255,7 +255,7 @@ test('bulk audio fab shows partial count for mixed cards', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // FAB should show count for only cards without complete audio
   const fab = page.getByRole('button', { name: 'Generate audio for cards' });
@@ -288,7 +288,7 @@ test('bulk audio creation opens progress dialog', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Click the FAB
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -346,7 +346,7 @@ test('bulk audio creation shows individual progress', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Click the FAB
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -381,7 +381,7 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Click the FAB
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -449,7 +449,7 @@ test('bulk audio creation updates card readiness to ready', async ({ page }) => 
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Click the FAB
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -493,7 +493,7 @@ test('bulk audio creation excludes draft cards', async ({ page }) => {
     readiness: 'DRAFT',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
@@ -546,7 +546,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Verify FAB is initially visible
   const fab = page.getByRole('button', { name: 'Generate audio for cards' });
@@ -601,7 +601,7 @@ test('bulk audio creation partial audio generation', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // FAB should still be visible since card needs additional audio
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -680,7 +680,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
@@ -726,7 +726,7 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
@@ -779,7 +779,7 @@ test('bulk audio creation for speech cards', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const fab = page.getByRole('button', { name: 'Generate audio for cards' });
   await expect(fab).toBeVisible();
@@ -854,7 +854,7 @@ test('bulk audio creation assigns same voice per language within a card', async 
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
   await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
 
@@ -934,7 +934,7 @@ test('bulk audio creation assigns voices in round-robin per card', async ({ page
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
   await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
 
@@ -1026,7 +1026,7 @@ test('bulk audio creation adds cards to existing study session', async ({ page }
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
@@ -1118,7 +1118,7 @@ test('bulk audio creation respects session card limit', async ({ page }) => {
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
@@ -1156,7 +1156,7 @@ test('bulk audio creation does not fail when no session exists', async ({ page }
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
   await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
@@ -1189,7 +1189,7 @@ test('bulk audio fab hides for cards with known readiness', async ({ page }) => 
     readiness: 'KNOWN',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
@@ -1237,7 +1237,7 @@ test('bulk audio fab hides when front audio disabled and only front audio missin
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });
@@ -1268,7 +1268,7 @@ test('bulk audio creation skips front audio when front audio disabled', async ({
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
 
@@ -1354,7 +1354,7 @@ test('bulk audio creation hides generate button when front audio disabled and ca
     readiness: 'REVIEWED',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByRole('button', { name: 'Generate audio for cards' })).not.toBeVisible();
 });

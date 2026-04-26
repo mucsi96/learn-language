@@ -538,7 +538,7 @@ test('card edits stored locally until save', async ({ page }) => {
   });
 
   // Navigate to card via in-review cards page (inline editing)
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   // Make an edit to the card inline
   await page.getByLabel('Hungarian translation', { exact: true }).fill('megtanulni');
@@ -616,7 +616,7 @@ test('speech card editing page displays sentence and translations', async ({ pag
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/page/10/cards/a1b2c3d4');
+  await page.goto('http://localhost:8170/sources/speech-a1/page/10/cards/a1b2c3d4');
 
   await expect(page.getByLabel('German Sentence')).toHaveValue('Guten Morgen, wie geht es Ihnen?');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('Jó reggelt, hogy van?');
@@ -645,7 +645,7 @@ test('speech card editing updates sentence in database', async ({ page }) => {
     },
   });
 
-  await page.goto('http://localhost:8180/sources/speech-a1/page/11/cards/e5f6g7h8');
+  await page.goto('http://localhost:8170/sources/speech-a1/page/11/cards/e5f6g7h8');
 
   await page.getByLabel('Hungarian translation', { exact: true }).fill('Busszal utazom.');
   await page.getByLabel('English translation', { exact: true }).fill('I ride the bus.');
@@ -683,7 +683,7 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
   await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('The dog runs fast.');
@@ -710,7 +710,7 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
@@ -743,7 +743,7 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   await expect(page.locator('.sentence-preview')).toContainText('Wir _____ ins Kino.');
 
@@ -772,7 +772,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     readiness: 'IN_REVIEW',
   });
 
-  await page.goto('http://localhost:8180/in-review-cards');
+  await page.goto('http://localhost:8170/in-review-cards');
 
   const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
@@ -816,7 +816,7 @@ test('remove flag button is visible for flagged card', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-visible');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/9/cards/flagged-card-visible');
 
   await expect(page.getByRole('button', { name: 'Remove flag' })).toBeVisible();
 });
@@ -850,7 +850,7 @@ test('remove flag unflags card in database', async ({ page }) => {
     flagged: true,
   });
 
-  await page.goto('http://localhost:8180/sources/goethe-a1/page/9/cards/flagged-card-unflag');
+  await page.goto('http://localhost:8170/sources/goethe-a1/page/9/cards/flagged-card-unflag');
 
   await page.getByRole('button', { name: 'Remove flag' }).click();
   await expect(page.getByText('Flag removed successfully')).toBeVisible();
