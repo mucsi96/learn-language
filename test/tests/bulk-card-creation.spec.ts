@@ -693,7 +693,7 @@ test('hungarian translation failure shows error on word spans', async ({ page })
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
 
-  await fetch('http://localhost:3051/configure', {
+  await fetch('http://localhost:3071/configure', {
     method: 'POST',
     body: JSON.stringify({ failHungarianTranslation: true }),
     headers: { 'Content-Type': 'application/json' },

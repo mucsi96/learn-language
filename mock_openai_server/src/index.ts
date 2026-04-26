@@ -61,7 +61,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3070;
 app.listen(PORT, () => {
   console.log(`Mock OpenAI server is running on port ${PORT}`);
 });

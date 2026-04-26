@@ -78,10 +78,6 @@
       <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.azure.spring</groupId>
-      <artifactId>spring-cloud-azure-starter-active-directory</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
       <scope>runtime</scope>
@@ -142,7 +138,7 @@
       <dependency>
         <groupId>com.azure.spring</groupId>
         <artifactId>spring-cloud-azure-dependencies</artifactId>
-        <version>7.1.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
+        <version>7.2.0</version> <!-- Spring Cloud Azure Support Status: https://github.com/Azure/azure-sdk-for-java/wiki/Spring-Versions-Mapping -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>

@@ -16,15 +16,15 @@ export const test = base.extend({
     // Reset mock AI servers
     try {
       await Promise.all([
-        fetch('http://localhost:3050/reset', {
+        fetch('http://localhost:3070/reset', {
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),
-        fetch('http://localhost:3051/reset', {
+        fetch('http://localhost:3071/reset', {
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),
-        fetch('http://localhost:3053/reset', {
+        fetch('http://localhost:3073/reset', {
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),

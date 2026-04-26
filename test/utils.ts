@@ -11,7 +11,7 @@ export const STORAGE_DIR = path.join(__dirname, 'storage');
 export async function withDbConnection<T>(callback: (client: Client) => Promise<T>): Promise<T> {
   const client = new Client({
     host: 'localhost',
-    port: 5451,
+    port: 5470,
     database: 'test',
     user: 'postgres',
     password: 'postgres',
