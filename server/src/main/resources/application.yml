@@ -47,6 +47,7 @@ spring:
         options:
           output-format: mp3_44100_128
 server:
+  forward-headers-strategy: framework
   servlet:
     context-path: /api
 management:
