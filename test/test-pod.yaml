@@ -109,7 +109,7 @@ spec:
         failureThreshold: 5
 
     - name: mock-oauth2
-      image: docker.io/mucsi96/mock-oidc-provider:latest
+      image: docker.io/mucsi96/mock-oidc-provider:1
       ports:
         - containerPort: 8079
           hostPort: 8079
@@ -141,6 +141,8 @@ spec:
     - name: server
       image: localhost/learn-language-server:test
       env:
+        - name: SERVER_PORT
+          value: "8074"
         - name: SPRING_ACTUATOR_PORT
           value: "8172"
         - name: SPRING_PROFILES_ACTIVE
