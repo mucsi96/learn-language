@@ -23,7 +23,7 @@
       "mainClass": "io.github.mucsi96.learnlanguage.LearnLanguageApplication",
       "args": "--spring.profiles.active=local",
       "env": {
-        "AZURE_KEYVAULT_ENDPOINT": "https://p06-learn-language.vault.azure.net"
+        "AZURE_KEYVAULT_ENDPOINT": "https://p07-learn-language.vault.azure.net"
       }
     }
   ]

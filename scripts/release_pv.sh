@@ -25,7 +25,7 @@ if ! command -v kubectl &> /dev/null; then
 fi
 
 echo "Getting Kubeconfig..."
-KUBE_CONTENT=$(az keyvault secret show --vault-name p06-learn-language --name k8s-config --query value -o tsv)
+KUBE_CONTENT=$(az keyvault secret show --vault-name p07-learn-language --name k8s-config --query value -o tsv)
 
 # Create a temporary file in /dev/shm (RAM) to avoid writing to disk
 KUBECONFIG_FILE=$(mktemp /dev/shm/kubeconfig.XXXXXX)
