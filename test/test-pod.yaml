@@ -109,7 +109,7 @@ spec:
         failureThreshold: 5
 
     - name: mock-oauth2
-      image: docker.io/mucsi96/mock-oidc-provider:1
+      image: docker.io/mucsi96/mock-oidc-provider:latest
       ports:
         - containerPort: 8079
           hostPort: 8079
