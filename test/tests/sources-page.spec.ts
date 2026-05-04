@@ -91,6 +91,28 @@ test('drag to select words highlights existing cards', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 
+test('drag to select words highlights existing cards with KNOWN readiness', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    readiness: 'KNOWN',
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
+});
+
 test('drag to select words highlights matching words', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
@@ -152,6 +174,29 @@ test('drag to select words highlights possible duplicates with warning', async (
     cardId: 'abfahren-tavozni',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'távozni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByRole('button', { name: 'abfahren' })).toHaveAccessibleDescription('Possible duplicate');
+});
+
+test('drag to select words highlights possible duplicates with warning for KNOWN readiness', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'abfahren-tavozni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    readiness: 'KNOWN',
     data: {
       word: 'abfahren',
       type: 'VERB',
