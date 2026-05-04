@@ -445,6 +445,32 @@ export class CardsTableComponent {
     this.dueCardsService.refetchDueCounts();
   }
 
+  async markSelectedAsDraft(): Promise<void> {
+    const ids = this.selectedIds();
+    if (ids.length === 0) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to move ${ids.length} card(s) back to draft?`,
+      },
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (!result) return;
+
+    await this.cardsTableService.markCardsAsDraft(ids);
+    this.snackBar.open(`${ids.length} card(s) moved to draft`, 'Close', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+    this.selectedIds.set([]);
+    this.refreshGrid();
+    this.sourcesService.refetchSources();
+    this.dueCardsService.refetchDueCounts();
+    this.inReviewCardsService.refetchCards();
+  }
+
   async deleteSelected(): Promise<void> {
     const ids = this.selectedIds();
     if (ids.length === 0) return;

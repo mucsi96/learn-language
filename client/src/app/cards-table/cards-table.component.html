@@ -163,6 +163,15 @@
           <mat-icon>check_circle</mat-icon>
           Mark {{ selectedCount() }} as known
         </button>
+        <button
+          mat-fab
+          extended
+          class="action-fab"
+          (click)="markSelectedAsDraft()"
+        >
+          <mat-icon>restore</mat-icon>
+          Move {{ selectedCount() }} to draft
+        </button>
       }
       @if (selectionContainsDrafts() && sourceCardType()) {
         <button
