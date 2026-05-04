@@ -252,15 +252,22 @@ export class ChatHandler {
       return null;
     }
 
-    let parsed: { existingIds?: string[]; newIds?: string[] };
-    try {
-      parsed = JSON.parse(userContent);
-    } catch {
-      return createGeminiResponse({ duplicates: [] });
-    }
+    const extractIds = (label: string): string[] => {
+      const re = new RegExp(`"${label}"\\s*:\\s*\\[([^\\]]*)\\]`);
+      const match = userContent.match(re);
+      if (!match) return [];
+      return [...match[1].matchAll(/"([^"\s]+)"/g)].map((m) => m[1]);
+    };
 
-    const existingIds = parsed.existingIds ?? [];
-    const newIds = parsed.newIds ?? [];
+    const existingIds = extractIds('existingIds');
+    const newIds = extractIds('newIds');
+
+    console.log('[mock duplicate detection]', {
+      systemSnippet: systemContent.substring(0, 80),
+      userSnippet: userContent.substring(0, 200),
+      existingIds,
+      newIds,
+    });
 
     const duplicates = newIds.flatMap((newId) => {
       const [newGerman] = newId.split('-');

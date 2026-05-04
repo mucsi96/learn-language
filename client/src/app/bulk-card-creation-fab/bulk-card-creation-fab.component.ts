@@ -111,6 +111,8 @@ export class BulkCardCreationFabComponent {
             this.candidatesService.ignoreItem(ignoredId);
           }
         }
+      } catch (error) {
+        console.error('Duplicate detection failed; continuing without it.', error);
       } finally {
         this.isDetectingDuplicates.set(false);
       }
