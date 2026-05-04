@@ -34,7 +34,7 @@ spring:
           issuer-uri: https://login.microsoftonline.com/${tenant-id:}/v2.0
           audiences: ${api-client-id:}
   ai:
-    openai-sdk:
+    openai:
       api-key: ${openai-api-key}
     anthropic:
       api-key: ${claude-api-key}
