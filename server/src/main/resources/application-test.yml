@@ -12,7 +12,7 @@ spring:
           issuer-uri: ${MOCK_OAUTH2_SERVER_URI}/default
           audiences: mock-api-client-id
   ai:
-    openai-sdk:
+    openai:
       api-key: ${OPENAI_API_KEY}
       base-url: ${OPENAI_BASE_URL}
     anthropic:
