@@ -127,6 +127,12 @@ export class CardsTableService {
     );
   }
 
+  async markCardsAsDraft(cardIds: readonly string[]): Promise<void> {
+    await firstValueFrom(
+      this.http.put('/api/cards/mark-draft', cardIds)
+    );
+  }
+
   async deleteCards(cardIds: readonly string[]): Promise<void> {
     await firstValueFrom(
       this.http.delete('/api/cards', { body: cardIds })

@@ -157,6 +157,40 @@ test('marks selected cards as known', async ({ page }) => {
   await expect(page.getByText('1 card(s) marked as known')).toBeVisible();
 });
 
+test('moves selected ready cards back to draft', async ({ page }) => {
+  await createCard({
+    cardId: 'move-draft-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'zurück', type: 'ADVERB', translation: { en: 'back' } },
+    readiness: 'READY',
+  });
+
+  await page.goto('/sources/goethe-a1/cards');
+
+  await expect(async () => {
+    const rows = await getGridData(page.getByRole('grid'));
+    expect(rows[0]).toEqual(expect.objectContaining({ ID: 'move-draft-card' }));
+  }).toPass();
+
+  await page
+    .getByRole('row', { name: /move-draft-card/ })
+    .getByRole('checkbox')
+    .click();
+
+  await page.getByRole('button', { name: /Move 1 to draft/ }).click();
+  await page.getByRole('button', { name: 'Yes' }).click();
+
+  await expect(page.getByText('1 card(s) moved to draft')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT readiness FROM learn_language.cards WHERE id = 'move-draft-card'`
+    );
+    expect(result.rows[0].readiness).toBe('DRAFT');
+  });
+});
+
 test('displays review information in table', async ({ page }) => {
   await createCard({
     cardId: 'reviewed-card',
@@ -1327,6 +1361,7 @@ test('draft cards hide delete audio and mark as known actions', async ({ page })
   await expect(page.getByRole('button', { name: /Delete 1/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Delete audio/ })).not.toBeVisible();
   await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Move .* to draft/ })).not.toBeVisible();
 });
 
 test('draft cards do not navigate on row click', async ({ page }) => {
