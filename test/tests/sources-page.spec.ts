@@ -4,6 +4,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createDocument,
+  createKnownWord,
   getDocuments,
   getSource,
   selectTextRange,
@@ -165,6 +166,18 @@ test('drag to select words highlights possible duplicates with warning', async (
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
   await expect(page.getByRole('button', { name: 'abfahren' })).toHaveAccessibleDescription('Possible duplicate');
+});
+
+test('drag to select words highlights known words as existing', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createKnownWord('abfahrt');
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByText('die Abfahrt').first()).toHaveAccessibleDescription('Card exists');
+  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
 });
 
 test('removing a warning span via context menu excludes it from bulk creation', async ({ page }) => {

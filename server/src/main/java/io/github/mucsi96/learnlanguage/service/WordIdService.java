@@ -25,7 +25,7 @@ public class WordIdService {
         return normalizeWord(stripGermanArticle(germanWord));
     }
 
-    private String stripGermanArticle(String word) {
+    public String stripGermanArticle(String word) {
         if (word == null || word.isBlank()) {
             return word;
         }
