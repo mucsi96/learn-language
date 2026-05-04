@@ -39,17 +39,22 @@ export class DuplicateReviewDialogComponent {
   readonly data = inject<DuplicateReviewDialogData>(MAT_DIALOG_DATA);
   private readonly skippedNewIds = signal<Set<string>>(new Set());
 
-  readonly groupedDuplicates = computed(() => {
-    const groups = new Map<string, PotentialDuplicate[]>();
-    for (const duplicate of this.data.duplicates) {
-      const existing = groups.get(duplicate.newId) ?? [];
-      groups.set(duplicate.newId, [...existing, duplicate]);
-    }
-    return [...groups.entries()].map(([newId, matches]) => ({
-      newId,
-      matches,
-    }));
-  });
+  readonly groupedDuplicates = computed(() =>
+    this.data.duplicates
+      .reduce<{ newId: string; matches: PotentialDuplicate[] }[]>(
+        (groups, duplicate) => {
+          const existing = groups.find((group) => group.newId === duplicate.newId);
+          return existing
+            ? groups.map((group) =>
+                group.newId === duplicate.newId
+                  ? { ...group, matches: [...group.matches, duplicate] }
+                  : group
+              )
+            : [...groups, { newId: duplicate.newId, matches: [duplicate] }];
+        },
+        []
+      )
+  );
 
   readonly skippedCount = computed(() => this.skippedNewIds().size);
 

@@ -107,9 +107,9 @@ export class BulkCardCreationFabComponent {
           if (!result?.proceed) {
             return;
           }
-          for (const ignoredId of result.ignoredIds) {
-            this.candidatesService.ignoreItem(ignoredId);
-          }
+          result.ignoredIds.forEach((ignoredId) =>
+            this.candidatesService.ignoreItem(ignoredId)
+          );
         }
       } catch (error) {
         console.error('Duplicate detection failed; continuing without it.', error);
