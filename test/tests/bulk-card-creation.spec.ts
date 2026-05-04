@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createChatModelSetting,
   createImageModelSetting,
   createSource,
   createRateLimitSetting,
@@ -16,6 +17,15 @@ import {
   setupDefaultImageModelSettings,
   menschenA1GrammarImage,
 } from '../utils';
+
+async function enableDuplicateDetection(): Promise<void> {
+  await createChatModelSetting({
+    modelName: 'gemini-3.1-pro-preview',
+    operationType: 'DUPLICATE_DETECTION',
+    isEnabled: true,
+    isPrimary: true,
+  });
+}
 
 test('bulk create fab appears when words without cards selected', async ({ page }) => {
   await setupDefaultChatModelSettings();
@@ -851,5 +861,127 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card2?.data.examples[0].de).toContain('[das]');
     expect(card2?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card2?.data.extractionModel).toBe('gemini-3.1-pro-preview');
+  });
+});
+
+test('ai duplicate detection dialog opens before bulk creation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await enableDuplicateDetection();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await createCard({
+    cardId: 'abfahren-elhagyni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to leave', hu: 'elhagyni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+
+  await page.goto('/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Potential Duplicates' })).toBeVisible();
+  await expect(page.getByLabel('New card ID').filter({ hasText: 'abfahren-elindulni' })).toBeVisible();
+  await expect(page.getByLabel('Existing card ID').filter({ hasText: 'abfahren-elhagyni' })).toBeVisible();
+});
+
+test('ai duplicate detection skip excludes card from creation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await enableDuplicateDetection();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await createCard({
+    cardId: 'abfahren-elhagyni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to leave', hu: 'elhagyni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+
+  await page.goto('/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await page
+    .getByRole('checkbox', { name: 'Skip new card abfahren-elindulni' })
+    .check();
+  await page
+    .getByRole('button', { name: 'Continue with bulk creation' })
+    .click();
+
+  await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
+  await expect(
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+  ).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id IN ('abfahren-elindulni', 'abfahrt-indulas', 'aber-de')"
+    );
+    const ids = result.rows.map((row) => row.id);
+    expect(ids).toContain('aber-de');
+    expect(ids).toContain('abfahrt-indulas');
+    expect(ids).not.toContain('abfahren-elindulni');
+  });
+});
+
+test('ai duplicate detection cancel aborts bulk creation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await enableDuplicateDetection();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await createCard({
+    cardId: 'abfahren-elhagyni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to leave', hu: 'elhagyni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+
+  await page.goto('/sources');
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Pages' }).click();
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await page.getByRole('button', { name: 'Create cards in bulk' }).click();
+
+  await page
+    .getByRole('button', { name: 'Cancel bulk creation' })
+    .click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Creating Cards' })
+  ).not.toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id IN ('abfahren-elindulni', 'abfahrt-indulas', 'aber-de')"
+    );
+    expect(result.rows.length).toBe(0);
   });
 });

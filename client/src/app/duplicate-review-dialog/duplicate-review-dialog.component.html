@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Potential Duplicates</h2>
+
+<mat-dialog-content class="dialog-content">
+  <p class="intro">
+    AI flagged {{ groupedDuplicates().length }} new card(s) as potential duplicates of
+    existing cards. Review each match and choose which new cards to skip.
+  </p>
+
+  <ul class="duplicate-list" role="list" aria-label="Potential duplicate matches">
+    @for (group of groupedDuplicates(); track group.newId) {
+      <li class="duplicate-entry" role="listitem" [attr.aria-label]="'Potential duplicate ' + group.newId">
+        <div class="duplicate-header">
+          <span class="new-id" aria-label="New card ID">{{ group.newId }}</span>
+          <mat-checkbox
+            [checked]="isSkipped(group.newId)"
+            (change)="toggleSkip(group.newId, $event.checked)"
+          >
+            Skip new card {{ group.newId }}
+          </mat-checkbox>
+        </div>
+        <ul class="match-list" role="list" aria-label="Matching existing cards">
+          @for (match of group.matches; track match.existingId) {
+            <li class="match-entry" role="listitem">
+              <mat-icon aria-hidden="true">compare_arrows</mat-icon>
+              <div class="match-info">
+                <span class="existing-id" aria-label="Existing card ID">{{ match.existingId }}</span>
+                <span class="reason">{{ match.reason }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" aria-label="Cancel bulk creation">
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="proceed()"
+    aria-label="Continue with bulk creation"
+  >
+    Continue ({{ groupedDuplicates().length - skippedCount() }} new, {{ skippedCount() }} skipped)
+  </button>
+</mat-dialog-actions>

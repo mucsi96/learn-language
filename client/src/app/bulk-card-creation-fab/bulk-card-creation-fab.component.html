@@ -5,11 +5,19 @@
     color="primary"
     class="bulk-create-fab"
     (click)="startBulkCreation()"
-    [disabled]="bulkCreationService.isProcessing() || isImageLimitExceeded()"
+    [disabled]="bulkCreationService.isProcessing() || isImageLimitExceeded() || isDetectingDuplicates()"
     [matTooltip]="imageLimitTooltip()"
     aria-label="Create cards in bulk"
   >
-    <mat-icon>add_circle</mat-icon>
-    Create {{ candidatesService.candidatesCount() }} Cards
+    @if (isDetectingDuplicates()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      <mat-icon>add_circle</mat-icon>
+    }
+    @if (isDetectingDuplicates()) {
+      Checking duplicates...
+    } @else {
+      Create {{ candidatesService.candidatesCount() }} Cards
+    }
   </button>
 }
