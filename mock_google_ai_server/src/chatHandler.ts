@@ -244,6 +244,42 @@ export class ChatHandler {
     return null;
   }
 
+  handleDuplicateDetection(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent.includes('duplicate detection assistant')) {
+      return null;
+    }
+
+    const extractIds = (label: string): string[] => {
+      const re = new RegExp(`"${label}"\\s*:\\s*\\[([^\\]]*)\\]`);
+      const match = userContent.match(re);
+      if (!match) return [];
+      return [...match[1].matchAll(/"([^"\s]+)"/g)].map((m) => m[1]);
+    };
+
+    const existingIds = extractIds('existingIds');
+    const newIds = extractIds('newIds');
+
+    const duplicates = newIds.flatMap((newId) => {
+      const [newGerman] = newId.split('-');
+      return existingIds
+        .filter((existingId) => {
+          if (existingId === newId) return false;
+          const [existingGerman] = existingId.split('-');
+          return newGerman === existingGerman;
+        })
+        .map((existingId) => ({
+          newId,
+          existingId,
+          reason: `Both cards share the German word "${newGerman}" but have different translations.`,
+        }));
+    });
+
+    return createGeminiResponse({ duplicates });
+  }
+
   handleSentenceTranslation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
     const userContent = getTextContent(request);
@@ -306,6 +342,9 @@ export class ChatHandler {
 
     const sentenceTranslationResponse = this.handleSentenceTranslation(request);
     if (sentenceTranslationResponse) return sentenceTranslationResponse;
+
+    const duplicateDetectionResponse = this.handleDuplicateDetection(request);
+    if (duplicateDetectionResponse) return duplicateDetectionResponse;
 
     console.log('Received unprocessed request:', JSON.stringify(request, null, 2));
 

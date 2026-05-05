@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,7 +6,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../card-candidates.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
 import { BulkCreationProgressDialogComponent } from '../bulk-creation-progress-dialog/bulk-creation-progress-dialog.component';
@@ -17,11 +19,17 @@ import { SourcesService } from '../sources.service';
 import { InReviewCardsService } from '../in-review-cards.service';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { fetchJson } from '../utils/fetchJson';
+import { DuplicateDetectionService } from '../duplicate-detection.service';
+import {
+  DuplicateReviewDialogComponent,
+  DuplicateReviewDialogData,
+  DuplicateReviewDialogResult,
+} from '../duplicate-review-dialog/duplicate-review-dialog.component';
 
 @Component({
   selector: 'app-bulk-card-creation-fab',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule, MatTooltipModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule, MatTooltipModule, MatProgressSpinnerModule],
   templateUrl: './bulk-card-creation-fab.component.html',
   styleUrl: './bulk-card-creation-fab.component.css',
 })
@@ -37,6 +45,8 @@ export class BulkCardCreationFabComponent {
   private readonly sourcesService = inject(SourcesService);
   private readonly inReviewCardsService = inject(InReviewCardsService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  readonly duplicateDetectionService = inject(DuplicateDetectionService);
+  readonly isDetectingDuplicates = signal(false);
 
   readonly totalImagesNeeded = computed(() => {
     const candidates = this.candidatesService.candidates();
@@ -76,6 +86,43 @@ export class BulkCardCreationFabComponent {
 
     const selections = this.pageService.getAllExtractionSelections();
 
+    if (this.duplicateDetectionService.isAvailable()) {
+      this.isDetectingDuplicates.set(true);
+      try {
+        const duplicates = await this.duplicateDetectionService.detectDuplicates(
+          candidates.map((candidate) => candidate.id)
+        );
+        if (duplicates.length > 0) {
+          const dialogRef = this.dialog.open<
+            DuplicateReviewDialogComponent,
+            DuplicateReviewDialogData,
+            DuplicateReviewDialogResult
+          >(DuplicateReviewDialogComponent, {
+            data: { duplicates },
+            disableClose: true,
+            maxWidth: '100vw',
+            maxHeight: '100vh',
+          });
+          const result = await firstValueFrom(dialogRef.afterClosed());
+          if (!result?.proceed) {
+            return;
+          }
+          result.ignoredIds.forEach((ignoredId) =>
+            this.candidatesService.ignoreItem(ignoredId)
+          );
+        }
+      } catch (error) {
+        console.error('Duplicate detection failed; continuing without it.', error);
+      } finally {
+        this.isDetectingDuplicates.set(false);
+      }
+    }
+
+    const finalCandidates = this.candidatesService.candidates();
+    if (finalCandidates.length === 0) {
+      return;
+    }
+
     this.bulkCreationService.clearProgress();
 
     this.dialog.open(BulkCreationProgressDialogComponent, {
@@ -87,7 +134,7 @@ export class BulkCardCreationFabComponent {
     const result = await this.bulkCreationService.createCardsInBulk(
       {
         kind: 'extractedItems',
-        items: candidates,
+        items: finalCandidates,
         sourceId: selectedSource.sourceId,
         pageNumber: selectedSource.pageNumber,
       },
