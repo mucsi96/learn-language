@@ -262,13 +262,6 @@ export class ChatHandler {
     const existingIds = extractIds('existingIds');
     const newIds = extractIds('newIds');
 
-    console.log('[mock duplicate detection]', {
-      systemSnippet: systemContent.substring(0, 80),
-      userSnippet: userContent.substring(0, 200),
-      existingIds,
-      newIds,
-    });
-
     const duplicates = newIds.flatMap((newId) => {
       const [newGerman] = newId.split('-');
       return existingIds
