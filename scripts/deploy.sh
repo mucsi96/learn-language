@@ -49,10 +49,10 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
     --set persistentVolumeClaims[0].storageClassName="" \
     --set persistentVolumeClaims[0].storage=5Gi \
-    --set resources.requests.memory=1Gi \
-    --set resources.requests.cpu=1 \
-    --set resources.limits.memory=2Gi \
-    --set resources.limits.cpu=2 \
+    --set resources.requests.memory=640Mi \
+    --set resources.requests.cpu=50m \
+    --set resources.limits.memory=1Gi \
+    --set resources.limits.cpu=1 \
     --wait
 
 echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag to $HOSTNAME using client-app chart $clientAppChartVersion"
@@ -64,4 +64,8 @@ helm upgrade learn-language-client mucsi96/client-app \
     --set image=$DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag \
     --set host=$HOSTNAME \
     --set entryPoint=web \
+    --set resources.requests.memory=32Mi \
+    --set resources.requests.cpu=10m \
+    --set resources.limits.memory=128Mi \
+    --set resources.limits.cpu=200m \
     --wait
