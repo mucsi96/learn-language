@@ -1,6 +1,8 @@
 storage:
   directory: ${STORAGE_DIRECTORY}
 spring:
+  application:
+    name: learn-language
   servlet:
     multipart:
       max-file-size: 10MB

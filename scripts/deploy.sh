@@ -29,7 +29,7 @@ helm repo add mucsi96 https://mucsi96.github.io/k8s-helm-charts --force-update
 springAppChartVersion=$(helm search repo mucsi96/spring-app --output json | jq -r '.[0].version')
 clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -r '.[0].version')
 
-echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag to $HOSTNAME using spring-app chart $springAppChartVersion"
+echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
 
 helm upgrade learn-language-server mucsi96/spring-app \
     --install \
@@ -55,7 +55,7 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set resources.limits.cpu=1 \
     --wait
 
-echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag to $HOSTNAME using client-app chart $clientAppChartVersion"
+echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag using client-app chart $clientAppChartVersion"
 
 helm upgrade learn-language-client mucsi96/client-app \
     --install \
