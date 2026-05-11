@@ -3,7 +3,7 @@ package io.github.mucsi96.learnlanguage.config;
 import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.ai.model.elevenlabs.autoconfigure.ElevenLabsConnectionProperties;
 import org.springframework.ai.model.google.genai.autoconfigure.chat.GoogleGenAiConnectionProperties;
-import org.springframework.ai.model.openai.autoconfigure.OpenAiConnectionProperties;
+import org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ public class AIConfiguration {
   }
 
   @Bean
-  OpenAIClient openAIClient(OpenAiConnectionProperties connectionProperties) {
+  OpenAIClient openAIClient(OpenAiCommonProperties connectionProperties) {
     var clientBuilder = OpenAIOkHttpClient.builder().apiKey(connectionProperties.getApiKey());
 
     if (connectionProperties.getBaseUrl() != null && !connectionProperties.getBaseUrl().isEmpty()) {
