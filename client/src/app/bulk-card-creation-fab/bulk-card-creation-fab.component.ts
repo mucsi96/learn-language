@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
@@ -39,7 +38,6 @@ export class BulkCardCreationFabComponent {
   readonly bulkCreationService = inject(BulkCardCreationService);
   readonly pageService = inject(PageService);
   readonly dialog = inject(MatDialog);
-  readonly snackBar = inject(MatSnackBar);
   readonly dailyUsageService = inject(DailyUsageService);
   private readonly dueCardsService = inject(DueCardsService);
   private readonly sourcesService = inject(SourcesService);

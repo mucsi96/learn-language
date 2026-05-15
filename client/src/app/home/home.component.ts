@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatBadgeModule } from '@angular/material/badge';
+import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { RouterLink } from '@angular/router';
 import { SourcesService } from '../sources.service';
 import { DueCardsService } from '../due-cards.service';
@@ -16,7 +16,7 @@ import { CardState } from '../shared/state/card-state';
   standalone: true,
   imports: [
     CommonModule,
-    MatProgressSpinnerModule,
+    BarLoaderComponent,
     MatCardModule,
     MatButtonModule,
     MatIconModule,

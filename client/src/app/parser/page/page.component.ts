@@ -24,6 +24,7 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
+import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { ScrollPositionService } from '../../scroll-position.service';
 import { BulkCardCreationFabComponent } from '../../bulk-card-creation-fab/bulk-card-creation-fab.component';
 import { uploadDocument } from '../../utils/uploadDocument';
@@ -52,6 +53,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     MatInputModule,
     MatChipsModule,
     MatSelectModule,
+    BarLoaderComponent,
     BulkCardCreationFabComponent,
     SelectionRectangleComponent,
     SelectionActionsComponent,

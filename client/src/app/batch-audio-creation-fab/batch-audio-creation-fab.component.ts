@@ -3,8 +3,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { NotificationsService } from '@mucsi96/angular-material-theme';
 import { CommonModule } from '@angular/common';
 import { BatchAudioCreationService } from '../batch-audio-creation.service';
 import { BatchAudioCreationDialogComponent } from '../batch-audio-creation-dialog/batch-audio-creation-dialog.component';
@@ -28,7 +28,7 @@ import { mapCardDatesFromISOStrings } from '../utils/date-mapping.util';
 export class BatchAudioCreationFabComponent {
   readonly batchAudioService = inject(BatchAudioCreationService);
   readonly dialog = inject(MatDialog);
-  readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationsService);
   private readonly http = inject(HttpClient);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly voiceConfigService = inject(VoiceConfigService);
@@ -131,37 +131,22 @@ export class BatchAudioCreationFabComponent {
         this.cards.reload();
         this.dueCardsService.refetchDueCounts();
         this.sourcesService.refetchSources();
-        this.snackBar.open(
+        this.notifications.success(
           `Audio generated successfully for ${results.successful} card${results.successful === 1 ? '' : 's'}!`,
-          'Close',
-          {
-            duration: 5000,
-            verticalPosition: 'top',
-            panelClass: ['success'],
-          }
+          { duration: 5000 }
         );
       }
 
       if (results.failed > 0) {
-        this.snackBar.open(
+        this.notifications.error(
           `Failed to generate audio for ${results.failed} card${results.failed === 1 ? '' : 's'}. Check the console for details.`,
-          'Close',
-          {
-            duration: 8000,
-            verticalPosition: 'top',
-            panelClass: ['error'],
-          }
+          { duration: 8000 }
         );
       }
     } catch (error) {
-      this.snackBar.open(
+      this.notifications.error(
         `Batch audio creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'Close',
-        {
-          duration: 8000,
-          verticalPosition: 'top',
-          panelClass: ['error'],
-        }
+        { duration: 8000 }
       );
     }
   }

@@ -7,8 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { NotificationsService } from '@mucsi96/angular-material-theme';
 import { firstValueFrom } from 'rxjs';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
@@ -111,7 +111,7 @@ ModuleRegistry.registerModules([
 export class CardsTableComponent {
   private readonly router = inject(Router);
   private readonly cardsTableService = inject(CardsTableService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationsService);
   private readonly dialog = inject(MatDialog);
   private readonly bulkCreationService = inject(BulkCardCreationService);
   private readonly sourcesService = inject(SourcesService);
@@ -435,10 +435,7 @@ export class CardsTableComponent {
     if (ids.length === 0) return;
 
     await this.cardsTableService.markCardsAsKnown(ids);
-    this.snackBar.open(`${ids.length} card(s) marked as known`, 'Close', {
-      duration: 3000,
-      verticalPosition: 'top',
-    });
+    this.notifications.success(`${ids.length} card(s) marked as known`);
     this.selectedIds.set([]);
     this.refreshGrid();
     this.sourcesService.refetchSources();
@@ -460,10 +457,7 @@ export class CardsTableComponent {
     if (!result) return;
 
     await this.cardsTableService.markCardsAsDraft(ids);
-    this.snackBar.open(`${ids.length} card(s) moved to draft`, 'Close', {
-      duration: 3000,
-      verticalPosition: 'top',
-    });
+    this.notifications.success(`${ids.length} card(s) moved to draft`);
     this.selectedIds.set([]);
     this.refreshGrid();
     this.sourcesService.refetchSources();
@@ -487,10 +481,7 @@ export class CardsTableComponent {
 
     await this.cardsTableService.deleteCards(ids);
     this.selectedIds.set([]);
-    this.snackBar.open(`${ids.length} card(s) deleted`, 'Close', {
-      duration: 3000,
-      verticalPosition: 'top',
-    });
+    this.notifications.success(`${ids.length} card(s) deleted`);
     this.refreshGrid();
     this.sourcesService.refetchSources();
     this.dueCardsService.refetchDueCounts();
@@ -513,10 +504,7 @@ export class CardsTableComponent {
 
     await this.cardsTableService.deleteCardsAudio(ids);
     this.selectedIds.set([]);
-    this.snackBar.open(`Audio deleted for ${ids.length} card(s)`, 'Close', {
-      duration: 3000,
-      verticalPosition: 'top',
-    });
+    this.notifications.success(`Audio deleted for ${ids.length} card(s)`);
     this.refreshGrid();
   }
 
@@ -541,10 +529,7 @@ export class CardsTableComponent {
     this.selectedIds.set([]);
 
     if (result.succeeded > 0) {
-      this.snackBar.open(`${result.succeeded} card(s) completed`, 'Close', {
-        duration: 3000,
-        verticalPosition: 'top',
-      });
+      this.notifications.success(`${result.succeeded} card(s) completed`);
     }
 
     this.refreshGrid();

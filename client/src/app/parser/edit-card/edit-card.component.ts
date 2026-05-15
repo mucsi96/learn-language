@@ -3,8 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { BarLoaderComponent, NotificationsService } from '@mucsi96/angular-material-theme';
 import { Location } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { resource } from '@angular/core';
@@ -28,7 +27,7 @@ import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
   imports: [
     MatButtonModule,
     MatCardModule,
-    MatProgressSpinnerModule,
+    BarLoaderComponent,
     MatIcon,
     EditVocabularyCardComponent,
     EditSpeechCardComponent,
@@ -48,7 +47,7 @@ export class EditCardComponent {
   private readonly dueCardsService = inject(DueCardsService);
   private readonly sourcesService = inject(SourcesService);
   readonly dialog = inject(MatDialog);
-  readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationsService);
 
   readonly selectedSourceId = signal<string | undefined>(undefined);
   readonly selectedPageNumber = signal<number | undefined>(undefined);
@@ -131,18 +130,10 @@ export class EditCardComponent {
       this.pendingCardEdits.set(undefined);
       this.card.reload();
       this.sourcesService.refetchSources();
-      this.showSnackBar('Flag removed successfully');
+      this.notifications.success('Flag removed successfully');
     } catch {
-      this.showSnackBar('Failed to remove flag', 'error');
+      this.notifications.error('Failed to remove flag');
     }
-  }
-
-  private showSnackBar(message: string, type: 'success' | 'error' = 'success') {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      verticalPosition: 'top',
-      panelClass: [type],
-    });
   }
 
   async saveCard() {
@@ -159,7 +150,7 @@ export class EditCardComponent {
     });
 
     this.pendingCardEdits.set(undefined);
-    this.showSnackBar('Card updated successfully');
+    this.notifications.success('Card updated successfully');
   }
 
   async markAsReviewed() {
@@ -183,7 +174,7 @@ export class EditCardComponent {
     this.inReviewCardsService.refetchCards();
     this.dueCardsService.refetchDueCounts();
     this.sourcesService.refetchSources();
-    this.showSnackBar('Card marked as reviewed successfully');
+    this.notifications.success('Card marked as reviewed successfully');
   }
 
   async confirmDeleteCard() {
@@ -195,7 +186,7 @@ export class EditCardComponent {
     const result = await firstValueFrom(dialogRef.afterClosed());
     if (result) {
       await this.deleteCard();
-      this.showSnackBar('Card deleted successfully');
+      this.notifications.success('Card deleted successfully');
       this.location.back();
     }
   }
