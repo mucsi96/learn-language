@@ -79,7 +79,7 @@ test('study page shows turn indicator when source has learning partner', async (
   await expect(page.getByRole('status', { name: 'Current turn' })).toBeVisible();
 });
 
-test('study page hides turn indicator when card is revealed', async ({ page }) => {
+test('study page keeps turn indicator visible when card is revealed', async ({ page }) => {
   const aliceId = await createLearningPartner({ name: 'Alice' });
   await setSourceLearningPartner('goethe-a1', aliceId);
   await createCard({
@@ -102,7 +102,7 @@ test('study page hides turn indicator when card is revealed', async ({ page }) =
 
   await page.getByRole('heading', { name: 'tanulni' }).click();
 
-  await expect(turnIndicator).not.toBeVisible();
+  await expect(turnIndicator).toBeVisible();
 });
 
 test('study page alternates between user and source partner', async ({ page }) => {
