@@ -10,7 +10,7 @@
     aria-label="Create cards in bulk"
   >
     @if (isDetectingDuplicates()) {
-      <bt-bar-loader label="Checking duplicates" />
+      <mat-spinner diameter="20"></mat-spinner>
     } @else {
       <mat-icon>add_circle</mat-icon>
     }
