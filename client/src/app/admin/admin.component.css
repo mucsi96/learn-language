@@ -212,14 +212,14 @@ p {
               0 10px 15px -5px rgba(0, 0, 0, 0.4);
 }
 
-.action-fab:not(.delete-fab) {
-  --mat-fab-container-color: var(--mat-sys-primary-container);
-  --mat-fab-foreground-color: var(--mat-sys-on-primary-container);
+.action-fab.edit-fab {
+  --mat-fab-container-color: var(--bt-warn);
+  --mat-fab-foreground-color: var(--bt-surface-0);
 }
 
-.delete-fab {
-  --mat-fab-container-color: var(--mat-sys-error-container);
-  --mat-fab-foreground-color: var(--mat-sys-on-error-container);
+.action-fab.delete-fab {
+  --mat-fab-container-color: var(--bt-error);
+  --mat-fab-foreground-color: var(--bt-text-on-brand);
 }
 
 .empty-state {
