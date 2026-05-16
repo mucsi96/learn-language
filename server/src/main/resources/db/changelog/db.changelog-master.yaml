@@ -810,3 +810,16 @@ databaseChangeLog:
         - dropForeignKeyConstraint:
             baseTableName: sources
             constraintName: sources_bookmarked_document_fkey
+  - changeSet:
+      id: 24-add-study-session-cards-swap-applies
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: study_session_cards
+            columns:
+              - column:
+                  name: swap_applies
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

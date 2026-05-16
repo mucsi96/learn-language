@@ -701,7 +701,7 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
   }).toPass();
 });
 
-test('smart assignment: learning card assignee does not swap after grading', async ({
+test('smart assignment: new card assignee does not swap after negative grading', async ({
   page,
 }) => {
   const partnerId = await createLearningPartner({ name: 'Partner' });
@@ -720,6 +720,33 @@ test('smart assignment: learning card assignee does not swap after grading', asy
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
+
+  await expect(async () => {
+    const updatedCards = await getStudySessionCardsBySource('goethe-a1');
+    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
+    expect(gradedCard?.learningPartnerId).toBeNull();
+  }).toPass();
+});
+
+test('smart assignment: learning card assignee does not swap after grading', async ({
+  page,
+}) => {
+  const partnerId = await createLearningPartner({ name: 'Partner' });
+  await setSourceLearningPartner('goethe-a1', partnerId);
+  const yesterday = new Date(Date.now() - 86400000);
+
+  await createCard({
+    cardId: 'wort1-szo1',
+    sourceId: 'goethe-a1',
+    data: { word: 'wort1', type: 'NOUN', translation: { hu: 'szó1' } },
+    due: yesterday,
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  await page.getByRole('article', { name: 'Flashcard' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(async () => {
     const updatedCards = await getStudySessionCardsBySource('goethe-a1');

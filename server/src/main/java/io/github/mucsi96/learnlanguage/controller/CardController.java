@@ -180,7 +180,6 @@ public class CardController {
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
 
     boolean isGrading = request.getRating() != null;
-    final String previousState = existingCard.getState();
 
     if (request.getData() != null) existingCard.setData(request.getData());
     if (request.getReadiness() != null) existingCard.setReadiness(request.getReadiness());
@@ -231,7 +230,7 @@ public class CardController {
           .build();
 
       reviewLogRepository.save(reviewLog);
-      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId(), startOfDayUtc(parseTimezone(timezone)), previousState);
+      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId(), startOfDayUtc(parseTimezone(timezone)), request.getRating());
     }
 
     Map<String, String> response = new HashMap<>();

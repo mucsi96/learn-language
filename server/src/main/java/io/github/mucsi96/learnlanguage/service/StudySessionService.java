@@ -174,12 +174,16 @@ public class StudySessionService {
                 .toList();
 
         return IntStream.range(0, sortedByPreference.size())
-                .mapToObj(i -> StudySessionCard.builder()
-                        .session(session)
-                        .card(i % 2 == 0 ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2))
-                        .position(positionOffset + i)
-                        .learningPartner(i % 2 == 0 ? null : partner)
-                        .build())
+                .mapToObj(i -> {
+                    final Card assignedCard = i % 2 == 0 ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2);
+                    return StudySessionCard.builder()
+                            .session(session)
+                            .card(assignedCard)
+                            .position(positionOffset + i)
+                            .learningPartner(i % 2 == 0 ? null : partner)
+                            .swapApplies("NEW".equals(assignedCard.getState()))
+                            .build();
+                })
                 .toList();
     }
 
@@ -202,7 +206,7 @@ public class StudySessionService {
     }
 
     @Transactional
-    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay, String previousCardState) {
+    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay, Integer rating) {
         studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> session.getCards().stream()
@@ -215,13 +219,15 @@ public class StudySessionService {
                                     .orElse(0);
                             sessionCard.setPosition(maxPosition + 1);
 
-                            if ("NEW".equals(previousCardState) && "WITH_PARTNER".equals(session.getStudyMode())) {
+                            final boolean positiveReview = rating != null && rating >= 3;
+                            if (sessionCard.isSwapApplies() && positiveReview) {
                                 if (sessionCard.getLearningPartner() != null) {
                                     sessionCard.setLearningPartner(null);
                                 } else {
                                     Optional.ofNullable(session.getSource().getLearningPartner())
                                             .ifPresent(sessionCard::setLearningPartner);
                                 }
+                                sessionCard.setSwapApplies(false);
                             }
                         }));
     }
