@@ -5,8 +5,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { firstValueFrom } from 'rxjs';
 import { CardCandidatesService } from '../card-candidates.service';
 import { BulkCardCreationService } from '../bulk-card-creation.service';
@@ -28,7 +28,7 @@ import {
 @Component({
   selector: 'app-bulk-card-creation-fab',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule, MatTooltipModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatBadgeModule, MatTooltipModule, BarLoaderComponent],
   templateUrl: './bulk-card-creation-fab.component.html',
   styleUrl: './bulk-card-creation-fab.component.css',
 })

@@ -54,7 +54,7 @@
     [disabled]="uploading()"
   >
     @if (uploading()) {
-    <mat-spinner diameter="18"></mat-spinner>
+    <bt-bar-loader label="Uploading PDF" />
     } @else {
     <mat-icon>add</mat-icon>
     }
@@ -89,7 +89,7 @@
   (drop)="onDrop($event)"
 >
   @if (uploading()) {
-  <mat-spinner></mat-spinner>
+  <bt-bar-loader label="Uploading image" />
   } @else {
   <mat-icon class="upload-icon">add_photo_alternate</mat-icon>
   <p class="dropzone-text">
@@ -125,7 +125,7 @@
 >
   @if (selectionRegionsLoading()) {
   <div class="area-loading">
-    <mat-spinner></mat-spinner>
+    <bt-bar-loader label="Loading selection regions" />
   </div>
   }
   @for (region of extractionRegions(); track $index) {
