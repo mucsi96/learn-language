@@ -29,7 +29,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -80,10 +79,9 @@ public class CardService {
     cardRepository.deleteById(id);
   }
 
-  public List<SourceDueCardCountResponse> getDueCardCountsBySource(LocalDateTime startOfDay) {
+  public List<SourceDueCardCountResponse> getDueCardCountsBySource(LocalDateTime startOfDay,
+      LocalDateTime startOfNextDay) {
     final List<StudySession> activeSessions = studySessionRepository.findAll(createdOnOrAfter(startOfDay));
-
-    final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
 
     final List<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
         .flatMap(session -> studySessionRepository.findWithCardsById(session.getId())
@@ -91,7 +89,7 @@ public class CardService {
             .flatMap(loaded -> loaded.getCards().stream()
                 .map(StudySessionCard::getCard)
                 .filter(Card::isReady)
-                .filter(card -> !card.getDue().isAfter(cutoff))
+                .filter(card -> card.getDue().isBefore(startOfNextDay))
                 .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
                 .entrySet().stream()
                 .map(entry -> SourceDueCardCountResponse.builder()

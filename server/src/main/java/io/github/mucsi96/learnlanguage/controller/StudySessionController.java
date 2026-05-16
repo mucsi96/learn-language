@@ -2,6 +2,9 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfNextDayUtc;
+
+import java.time.ZoneId;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +45,9 @@ public class StudySessionController {
     public ResponseEntity<StudySessionResponse> createSession(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
-        return ResponseEntity.ok(studySessionService.createSession(sourceId, startOfDayUtc(parseTimezone(timezone))));
+        final ZoneId zone = parseTimezone(timezone);
+        return ResponseEntity.ok(
+                studySessionService.createSession(sourceId, startOfDayUtc(zone), startOfNextDayUtc(zone)));
     }
 
     @GetMapping("/source/{sourceId}/study-session/current-card")
@@ -50,7 +55,8 @@ public class StudySessionController {
     public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
-        return studySessionService.getCurrentCardBySourceId(sourceId, startOfDayUtc(parseTimezone(timezone)))
+        final ZoneId zone = parseTimezone(timezone);
+        return studySessionService.getCurrentCardBySourceId(sourceId, startOfDayUtc(zone), startOfNextDayUtc(zone))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }

@@ -7,7 +7,6 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 public class CardSpecifications {
 
@@ -19,19 +18,16 @@ public class CardSpecifications {
     }
 
     public static PredicateSpecification<Card> isDueBefore(LocalDateTime cutoff) {
-        return (root, cb) -> cb.lessThanOrEqualTo(root.get(Card_.due), cutoff);
+        return (root, cb) -> cb.lessThan(root.get(Card_.due), cutoff);
     }
 
     public static PredicateSpecification<Card> hasSourceId(String sourceId) {
         return (root, cb) -> cb.equal(root.get(Card_.source).get(Source_.id), sourceId);
     }
 
-    public static PredicateSpecification<Card> isDue() {
-        final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
-        return hasReadiness(CardReadiness.READY).and(isDueBefore(cutoff));
-    }
-
-    public static PredicateSpecification<Card> isDueForSource(String sourceId) {
-        return isDue().and(hasSourceId(sourceId));
+    public static PredicateSpecification<Card> isDueForSource(String sourceId, LocalDateTime cutoff) {
+        return hasReadiness(CardReadiness.READY)
+                .and(isDueBefore(cutoff))
+                .and(hasSourceId(sourceId));
     }
 }

@@ -924,10 +924,12 @@ test('confetti celebration appears when all cards are caught up', async ({ page 
   await expect(page.locator('app-confetti canvas')).toBeVisible();
 });
 
-test('cards due more than 1 hour from now are removed from session', async ({ page }) => {
+test('cards due later today are included but cards due tomorrow are not', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
-  const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 0, 0);
+  const tomorrow = new Date(now.getTime() + 86400000);
 
   await createCard({
     cardId: 'jetzt-most',
@@ -950,7 +952,19 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
       type: 'ADVERB',
       translation: { en: 'later', hu: 'később', ch: 'spöter' },
     },
-    due: twoHoursFromNow,
+    due: endOfToday,
+  });
+
+  await createCard({
+    cardId: 'morgen-holnap',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 62,
+    data: {
+      word: 'morgen',
+      type: 'ADVERB',
+      translation: { en: 'tomorrow', hu: 'holnap', ch: 'morn' },
+    },
+    due: tomorrow,
   });
 
   await page.goto('/sources/goethe-a1/study');
@@ -959,17 +973,23 @@ test('cards due more than 1 hour from now are removed from session', async ({ pa
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
   await expect(flashcard.getByRole('heading', { name: 'most' })).toBeVisible();
-
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'most' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(flashcard.getByRole('heading', { name: 'később' })).toBeVisible();
+  await flashcard.getByRole('heading', { name: 'később' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'most' })).toBeVisible();
   await flashcard.getByRole('heading', { name: 'most' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'később' })).toBeVisible();
+  await flashcard.getByRole('heading', { name: 'később' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
-  await expect(flashcard.getByRole('heading', { name: 'később' })).not.toBeVisible();
+  await expect(flashcard.getByRole('heading', { name: 'holnap' })).not.toBeVisible();
 });
 
 test('most recently reviewed card moves to back of queue', async ({ page }) => {

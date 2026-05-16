@@ -29,4 +29,12 @@ public class TimezoneUtils {
                 .withZoneSameInstant(ZoneOffset.UTC)
                 .toLocalDateTime();
     }
+
+    public static LocalDateTime startOfNextDayUtc(ZoneId timezone) {
+        return LocalDate.now(timezone)
+                .plusDays(1)
+                .atStartOfDay(timezone)
+                .withZoneSameInstant(ZoneOffset.UTC)
+                .toLocalDateTime();
+    }
 }
