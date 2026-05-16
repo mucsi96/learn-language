@@ -212,19 +212,14 @@ p {
               0 10px 15px -5px rgba(0, 0, 0, 0.4);
 }
 
-.cards-fab {
-  --mat-fab-container-color: var(--mat-sys-secondary-container);
-  --mat-fab-foreground-color: var(--mat-sys-on-secondary-container);
+.action-fab.edit-fab {
+  --mat-fab-container-color: var(--bt-warn);
+  --mat-fab-foreground-color: var(--bt-surface-0);
 }
 
-.edit-fab {
-  --mat-fab-container-color: var(--mat-sys-tertiary-container);
-  --mat-fab-foreground-color: var(--mat-sys-on-tertiary-container);
-}
-
-.delete-fab {
-  --mat-fab-container-color: var(--mat-sys-error-container);
-  --mat-fab-foreground-color: var(--mat-sys-on-error-container);
+.action-fab.delete-fab {
+  --mat-fab-container-color: var(--bt-error);
+  --mat-fab-foreground-color: var(--bt-text-on-brand);
 }
 
 .empty-state {
