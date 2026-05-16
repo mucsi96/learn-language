@@ -104,14 +104,16 @@ public class CardService {
         .toList();
 
     final List<SourceDueCardCountResponse> nonSessionCounts = sessionSourceIds.isEmpty()
-        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId().stream()
+        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId(startOfNextDay).stream()
             .map(row -> SourceDueCardCountResponse.builder()
                 .sourceId(row.getSourceId())
                 .state(row.getState())
                 .count(row.getCount())
                 .build())
             .toList()
-        : cardRepository.findTop50MostDueGroupedByStateAndSourceIdExcludingSources(sessionSourceIds).stream()
+        : cardRepository
+            .findTop50MostDueGroupedByStateAndSourceIdExcludingSources(startOfNextDay, sessionSourceIds)
+            .stream()
             .map(row -> SourceDueCardCountResponse.builder()
                 .sourceId(row.getSourceId())
                 .state(row.getState())
