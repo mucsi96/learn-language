@@ -231,7 +231,7 @@ public class CardController {
           .build();
 
       reviewLogRepository.save(reviewLog);
-      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId(), startOfDayUtc(parseTimezone(timezone)), previousState);
+      studySessionService.moveCardToBack(cardId, existingCard.getSource().getId(), startOfDayUtc(parseTimezone(timezone)), previousState, request.getRating());
     }
 
     Map<String, String> response = new HashMap<>();

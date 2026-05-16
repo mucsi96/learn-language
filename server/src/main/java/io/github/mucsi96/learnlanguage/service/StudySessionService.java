@@ -205,7 +205,8 @@ public class StudySessionService {
     }
 
     @Transactional
-    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay, String previousCardState) {
+    public void moveCardToBack(String cardId, String sourceId, LocalDateTime startOfDay, String previousCardState,
+            Integer rating) {
         studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
                 .ifPresent(session -> session.getCards().stream()
@@ -218,7 +219,9 @@ public class StudySessionService {
                                     .orElse(0);
                             sessionCard.setPosition(maxPosition + 1);
 
-                            if ("NEW".equals(previousCardState) && "WITH_PARTNER".equals(session.getStudyMode())) {
+                            final boolean positiveReview = rating != null && rating >= 3;
+                            if ("NEW".equals(previousCardState) && "WITH_PARTNER".equals(session.getStudyMode())
+                                    && positiveReview) {
                                 if (sessionCard.getLearningPartner() != null) {
                                     sessionCard.setLearningPartner(null);
                                 } else {
