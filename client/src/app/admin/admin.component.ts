@@ -2,7 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
@@ -28,7 +28,7 @@ const READINESS_ORDER = ['READY', 'KNOWN', 'IN_REVIEW', 'REVIEWED'] as const;
   selector: 'app-admin',
   imports: [
     NgClass,
-    MatProgressSpinnerModule,
+    BarLoaderComponent,
     MatCardModule,
     MatButtonModule,
     MatIconModule,

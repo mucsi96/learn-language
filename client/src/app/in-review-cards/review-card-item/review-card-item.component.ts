@@ -14,8 +14,8 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { NotificationsService } from '@mucsi96/angular-material-theme';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Card, CardType } from '../../parser/types';
@@ -48,7 +48,7 @@ export class ReviewCardItemComponent implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly elementRef = inject(ElementRef);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationsService);
   private readonly dialog = inject(MatDialog);
 
   readonly markAsReviewedAvailable = signal(false);
@@ -133,11 +133,7 @@ export class ReviewCardItemComponent implements OnDestroy {
       this.pendingCardEdits.set(undefined);
       this.isReviewed.set(true);
       this.reviewed.emit(card.id);
-      this.snackBar.open('Card marked as reviewed', 'Close', {
-        duration: 2000,
-        verticalPosition: 'top',
-        panelClass: ['success'],
-      });
+      this.notifications.success('Card marked as reviewed');
     } finally {
       this.isSaving.set(false);
     }
@@ -163,11 +159,7 @@ export class ReviewCardItemComponent implements OnDestroy {
     });
 
     this.deleted.emit(card.id);
-    this.snackBar.open('Card deleted', 'Close', {
-      duration: 2000,
-      verticalPosition: 'top',
-      panelClass: ['success'],
-    });
+    this.notifications.success('Card deleted');
   }
 
   private setupIntersectionObserver() {

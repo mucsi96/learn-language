@@ -15,7 +15,6 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { Card, CardData } from '../../types';
@@ -36,7 +35,6 @@ import { createGrammarGapRegex } from '../../../shared/constants/grammar.constan
     MatInputModule,
     MatButtonModule,
     MatIcon,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
     ImageGridComponent,

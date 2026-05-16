@@ -10,6 +10,7 @@ import {
   RippleGlobalOptions,
 } from '@angular/material/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAngularMaterialTheme } from '@mucsi96/angular-material-theme';
 import { authInterceptor } from 'angular-auth-oidc-client';
 import { routes } from './app.routes';
 import { provideOidcAuth } from './auth.config';
@@ -34,6 +35,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
       ),
       { provide: MAT_RIPPLE_GLOBAL_OPTIONS, useValue: globalRippleConfig },
       provideAnimationsAsync(),
+      provideAngularMaterialTheme(),
       { provide: ENVIRONMENT_CONFIG, useValue: environment },
       provideOidcAuth(environment),
     ],

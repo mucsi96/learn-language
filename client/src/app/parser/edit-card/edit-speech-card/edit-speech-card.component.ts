@@ -13,7 +13,6 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Card, CardData } from '../../types';
 import {
@@ -32,7 +31,6 @@ import { DailyUsageService } from '../../../daily-usage.service';
     MatInputModule,
     MatButtonModule,
     MatIcon,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     ImageGridComponent,
   ],

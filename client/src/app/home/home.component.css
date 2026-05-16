@@ -121,10 +121,6 @@ p {
   margin-top: 1rem;
 }
 
-.page-loading {
-  margin: 150px auto;
-}
-
 .source-title {
   display: flex;
   flex-wrap: wrap;

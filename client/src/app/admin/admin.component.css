@@ -227,10 +227,6 @@ p {
   --mat-fab-foreground-color: var(--mat-sys-on-error-container);
 }
 
-.page-loading {
-  margin: 150px auto;
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;

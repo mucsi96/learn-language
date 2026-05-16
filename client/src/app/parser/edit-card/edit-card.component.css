@@ -32,10 +32,6 @@
   margin-bottom: 10px;
 }
 
-.page-loading {
-  margin: 150px auto;
-}
-
 .actions {
   grid-row: 1 / span 3;
   grid-column: 1;

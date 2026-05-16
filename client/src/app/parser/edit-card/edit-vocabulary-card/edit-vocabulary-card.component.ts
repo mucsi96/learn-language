@@ -16,7 +16,6 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
@@ -40,7 +39,6 @@ import { DailyUsageService } from '../../../daily-usage.service';
     MatSelectModule,
     MatButtonModule,
     MatIcon,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     ImageGridComponent,
   ],
