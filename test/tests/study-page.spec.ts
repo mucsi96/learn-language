@@ -975,12 +975,16 @@ test('cards due later today are included but cards due tomorrow are not', async 
   await expect(flashcard.getByRole('heading', { name: 'most' })).toBeVisible();
   await flashcard.getByRole('heading', { name: 'most' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
-  await flashcard.getByRole('heading', { name: 'most' }).click();
-  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByRole('heading', { name: 'később' })).toBeVisible();
   await flashcard.getByRole('heading', { name: 'később' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'most' })).toBeVisible();
+  await flashcard.getByRole('heading', { name: 'most' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(flashcard.getByRole('heading', { name: 'később' })).toBeVisible();
   await flashcard.getByRole('heading', { name: 'később' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
