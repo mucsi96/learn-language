@@ -84,7 +84,7 @@ public class StudySessionController {
             @PathVariable String sourceId,
             @PathVariable String cardId,
             @RequestHeader("X-Timezone") String timezone) {
-        studySessionService.moveCardToBack(cardId, sourceId, startOfDayUtc(parseTimezone(timezone)), null, null);
+        studySessionService.moveCardToBack(cardId, sourceId, startOfDayUtc(parseTimezone(timezone)), null);
         return ResponseEntity.noContent().build();
     }
 

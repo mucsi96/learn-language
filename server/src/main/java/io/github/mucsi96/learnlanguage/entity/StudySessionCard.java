@@ -41,6 +41,10 @@ public class StudySessionCard {
     @JoinColumn(name = "learning_partner_id")
     private LearningPartner learningPartner;
 
+    @Column(name = "swap_applies", nullable = false)
+    @Builder.Default
+    private boolean swapApplies = false;
+
     @Version
     private Integer version;
 }
