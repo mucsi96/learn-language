@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -50,8 +49,6 @@ import static io.github.mucsi96.learnlanguage.repository.specification.StudySess
 @RequiredArgsConstructor
 public class StudySessionService {
 
-    private static final Duration DUE_CARD_LOOKAHEAD = Duration.ofHours(1);
-
     private final CardRepository cardRepository;
     private final SourceRepository sourceRepository;
     private final StudySessionRepository studySessionRepository;
@@ -81,12 +78,13 @@ public class StudySessionService {
                     .build();
         }
 
+        final LocalDateTime startOfNextDay = startOfDay.plusDays(1);
         final List<Card> allDueCards = source.getCardLimit() != null
                 ? cardRepository.findAll(
-                        Specification.where(isDueForSource(sourceId)),
+                        Specification.where(isDueForSource(sourceId, startOfNextDay)),
                         PageRequest.of(0, source.getCardLimit(), Sort.by("due"))).getContent()
                 : cardRepository.findAll(
-                        Specification.where(isDueForSource(sourceId)), Sort.by("due"));
+                        Specification.where(isDueForSource(sourceId, startOfNextDay)), Sort.by("due"));
         final List<Card> dueCards = source.getNewCardLimit() != null
                 ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
                 : allDueCards;
@@ -306,16 +304,15 @@ public class StudySessionService {
     public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
-                .flatMap(this::findNextCard);
+                .flatMap(loaded -> findNextCard(loaded, startOfDay));
     }
 
-    private Optional<StudySessionCardResponse> findNextCard(StudySession session) {
-        final LocalDateTime now = LocalDateTime.now();
-        final LocalDateTime lookaheadCutoff = now.plus(DUE_CARD_LOOKAHEAD);
+    private Optional<StudySessionCardResponse> findNextCard(StudySession session, LocalDateTime startOfDay) {
+        final LocalDateTime startOfNextDay = startOfDay.plusDays(1);
 
         final List<StudySessionCard> eligibleCards = session.getCards().stream()
                 .filter(c -> c.getCard().isReady())
-                .filter(c -> !c.getCard().getDue().isAfter(lookaheadCutoff))
+                .filter(c -> c.getCard().getDue().isBefore(startOfNextDay))
                 .toList();
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
