@@ -92,11 +92,6 @@ export class LearnCardComponent implements OnDestroy {
     return strategy.getLanguageTexts(card);
   });
 
-  readonly isStudyingWithPartner = computed(() => {
-    const cardData = this.currentCardData.value();
-    return cardData?.studyMode === 'WITH_PARTNER';
-  });
-
   readonly currentTurn = this.studySessionService.currentTurn;
   private readonly cardShownAt = signal<number | null>(null);
   readonly reviewDuration = signal<number | null>(null);

@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 import { injectParams, injectRouteData } from '../../utils/inject-params';
 import { SourcesService } from '../../sources.service';
 import { DueCardsService } from '../../due-cards.service';
+import { StudySessionService } from '../../study-session.service';
 import { CardState } from '../state/card-state';
 import { StateComponent } from '../state/state.component';
 import { Source } from '../../parser/types';
@@ -44,9 +45,14 @@ export class SourceSelectorComponent {
 
   private readonly sourcesService = inject(SourcesService);
   private readonly dueCardsService = inject(DueCardsService);
+  private readonly studySessionService = inject(StudySessionService);
 
   readonly sources = this.sourcesService.sources.value;
   readonly dueCounts = this.dueCardsService.dueCounts.value;
+  readonly currentTurn = this.studySessionService.currentTurn;
+  readonly isStudyingWithPartner = computed(
+    () => this.studySessionService.currentCard.value()?.studyMode === 'WITH_PARTNER'
+  );
 
   readonly loading = computed(
     () =>

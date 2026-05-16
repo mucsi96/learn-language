@@ -61,14 +61,6 @@
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
-    @if (isStudyingWithPartner() && !isRevealed()) {
-    <div class="card-bottom-controls">
-      <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
-        {{ currentTurn().name }}
-      </span>
-    </div>
-    }
-
     @switch (currentCardType()) {
       @case ('vocabulary') {
         <app-learn-vocabulary-card
