@@ -129,7 +129,6 @@ public class StudySessionService {
                         .card(limitedCards.get(i))
                         .position(positionOffset + i)
                         .learningPartner(null)
-                        .swapApplies(false)
                         .build())
                 .toList();
     }
