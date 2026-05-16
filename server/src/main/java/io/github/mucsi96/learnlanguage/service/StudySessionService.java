@@ -64,7 +64,7 @@ public class StudySessionService {
     }
 
     @Transactional
-    public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay) {
+    public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay, LocalDateTime startOfNextDay) {
         final Source source = sourceRepository.findByIdWithLock(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
@@ -78,7 +78,6 @@ public class StudySessionService {
                     .build();
         }
 
-        final LocalDateTime startOfNextDay = startOfDay.plusDays(1);
         final List<Card> allDueCards = source.getCardLimit() != null
                 ? cardRepository.findAll(
                         Specification.where(isDueForSource(sourceId, startOfNextDay)),
@@ -301,15 +300,14 @@ public class StudySessionService {
     }
 
     @Transactional
-    public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay) {
+    public Optional<StudySessionCardResponse> getCurrentCardBySourceId(String sourceId, LocalDateTime startOfDay,
+            LocalDateTime startOfNextDay) {
         return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
                 .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
-                .flatMap(loaded -> findNextCard(loaded, startOfDay));
+                .flatMap(loaded -> findNextCard(loaded, startOfNextDay));
     }
 
-    private Optional<StudySessionCardResponse> findNextCard(StudySession session, LocalDateTime startOfDay) {
-        final LocalDateTime startOfNextDay = startOfDay.plusDays(1);
-
+    private Optional<StudySessionCardResponse> findNextCard(StudySession session, LocalDateTime startOfNextDay) {
         final List<StudySessionCard> eligibleCards = session.getCards().stream()
                 .filter(c -> c.getCard().isReady())
                 .filter(c -> c.getCard().getDue().isBefore(startOfNextDay))

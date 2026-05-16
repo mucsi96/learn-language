@@ -79,10 +79,9 @@ public class CardService {
     cardRepository.deleteById(id);
   }
 
-  public List<SourceDueCardCountResponse> getDueCardCountsBySource(LocalDateTime startOfDay) {
+  public List<SourceDueCardCountResponse> getDueCardCountsBySource(LocalDateTime startOfDay,
+      LocalDateTime startOfNextDay) {
     final List<StudySession> activeSessions = studySessionRepository.findAll(createdOnOrAfter(startOfDay));
-
-    final LocalDateTime startOfNextDay = startOfDay.plusDays(1);
 
     final List<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
         .flatMap(session -> studySessionRepository.findWithCardsById(session.getId())

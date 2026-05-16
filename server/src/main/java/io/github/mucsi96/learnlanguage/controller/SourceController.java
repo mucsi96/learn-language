@@ -2,8 +2,10 @@ package io.github.mucsi96.learnlanguage.controller;
 
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
+import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfNextDayUtc;
 
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -276,7 +278,8 @@ public class SourceController {
   @GetMapping("/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource(
       @RequestHeader("X-Timezone") String timezone) {
-    return cardService.getDueCardCountsBySource(startOfDayUtc(parseTimezone(timezone)));
+    final ZoneId zone = parseTimezone(timezone);
+    return cardService.getDueCardCountsBySource(startOfDayUtc(zone), startOfNextDayUtc(zone));
   }
 
   @PostMapping("/source")
