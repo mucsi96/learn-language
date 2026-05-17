@@ -6,7 +6,6 @@ import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 public class CardViewSpecifications {
@@ -56,10 +55,6 @@ public class CardViewSpecifications {
         };
     }
 
-    public static PredicateSpecification<CardView> isDueBefore(LocalDateTime cutoff) {
-        return (root, cb) -> cb.lessThanOrEqualTo(root.get(CardView_.due), cutoff);
-    }
-
     public static PredicateSpecification<CardView> isFlagged() {
         return (root, cb) -> cb.isTrue(root.get(CardView_.flagged));
     }
@@ -70,14 +65,5 @@ public class CardViewSpecifications {
 
     public static PredicateSpecification<CardView> isSuggestedKnown() {
         return (root, cb) -> cb.isTrue(root.get(CardView_.isSuggestedKnown));
-    }
-
-    public static PredicateSpecification<CardView> isDue() {
-        final LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).plusHours(1);
-        return hasReadinessIn(List.of(CardReadiness.READY)).and(isDueBefore(cutoff));
-    }
-
-    public static PredicateSpecification<CardView> isDueForSource(String sourceId) {
-        return isDue().and(hasSourceId(sourceId));
     }
 }

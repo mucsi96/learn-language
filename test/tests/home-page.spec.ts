@@ -99,6 +99,39 @@ test('due card counts are independent per source when study session exists', asy
   await expect(goetheA2Card.getByTitle('Review', { exact: true })).toContainText('1');
 });
 
+test('cards due later today are counted regardless of time of day', async ({ page }) => {
+  const now = new Date();
+  const endOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    0,
+    0,
+  );
+  const startOfTomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    0,
+    1,
+    0,
+    0,
+  );
+
+  await createCardsWithStates('goethe-a1', [
+    { state: 'NEW', count: 1, due_date: endOfToday },
+    { state: 'REVIEW', count: 1, due_date: startOfTomorrow },
+  ]);
+
+  await page.goto('/');
+
+  const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
+  await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('1');
+  await expect(goetheA1Card.getByTitle('Review', { exact: true })).not.toBeVisible();
+});
+
 test('in review cards not on home page', async ({ page }) => {
   await createCard({
     cardId: uuidv4(),
