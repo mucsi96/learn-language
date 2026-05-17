@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -35,12 +35,12 @@ public interface CardRepository
             SELECT source_id, state,
                    ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE readiness = 'READY' AND due < :startOfNextDayUtc
+            WHERE readiness = 'READY' AND due AT TIME ZONE 'UTC' < :startOfNextDayUtc
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state
         """, nativeQuery = true)
-    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId(@Param("startOfNextDayUtc") LocalDateTime startOfNextDayUtc);
+    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId(@Param("startOfNextDayUtc") Instant startOfNextDayUtc);
 
     @Query(value = """
         SELECT source_id AS sourceId, state AS state, COUNT(*) AS count
@@ -48,14 +48,14 @@ public interface CardRepository
             SELECT source_id, state,
                    ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE readiness = 'READY' AND due < :startOfNextDayUtc
+            WHERE readiness = 'READY' AND due AT TIME ZONE 'UTC' < :startOfNextDayUtc
                   AND source_id NOT IN (:excludedSourceIds)
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state
         """, nativeQuery = true)
     List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceIdExcludingSources(
-            @Param("startOfNextDayUtc") LocalDateTime startOfNextDayUtc,
+            @Param("startOfNextDayUtc") Instant startOfNextDayUtc,
             @Param("excludedSourceIds") List<String> excludedSourceIds);
 
     @Query(value = """

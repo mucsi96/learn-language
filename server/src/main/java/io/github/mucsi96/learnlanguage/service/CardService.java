@@ -27,8 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -103,8 +105,10 @@ public class CardService {
         .map(session -> session.getSource().getId())
         .toList();
 
+    final Instant startOfNextDayUtc = startOfNextDay.toInstant(ZoneOffset.UTC);
+
     final List<SourceDueCardCountResponse> nonSessionCounts = sessionSourceIds.isEmpty()
-        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId(startOfNextDay).stream()
+        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId(startOfNextDayUtc).stream()
             .map(row -> SourceDueCardCountResponse.builder()
                 .sourceId(row.getSourceId())
                 .state(row.getState())
@@ -112,7 +116,7 @@ public class CardService {
                 .build())
             .toList()
         : cardRepository
-            .findTop50MostDueGroupedByStateAndSourceIdExcludingSources(startOfNextDay, sessionSourceIds)
+            .findTop50MostDueGroupedByStateAndSourceIdExcludingSources(startOfNextDayUtc, sessionSourceIds)
             .stream()
             .map(row -> SourceDueCardCountResponse.builder()
                 .sourceId(row.getSourceId())
