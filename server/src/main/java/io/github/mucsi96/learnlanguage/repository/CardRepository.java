@@ -35,12 +35,12 @@ public interface CardRepository
             SELECT source_id, state,
                    ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE readiness = 'READY' AND due < :endOfDayUtc
+            WHERE readiness = 'READY' AND due < :startOfNextDayUtc
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state
         """, nativeQuery = true)
-    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId(@Param("endOfDayUtc") LocalDateTime endOfDayUtc);
+    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId(@Param("startOfNextDayUtc") LocalDateTime startOfNextDayUtc);
 
     @Query(value = """
         SELECT source_id AS sourceId, state AS state, COUNT(*) AS count
@@ -48,14 +48,14 @@ public interface CardRepository
             SELECT source_id, state,
                    ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
             FROM learn_language.cards
-            WHERE readiness = 'READY' AND due < :endOfDayUtc
+            WHERE readiness = 'READY' AND due < :startOfNextDayUtc
                   AND source_id NOT IN (:excludedSourceIds)
         ) AS ranked
         WHERE row_num <= 50
         GROUP BY source_id, state
         """, nativeQuery = true)
     List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceIdExcludingSources(
-            @Param("endOfDayUtc") LocalDateTime endOfDayUtc,
+            @Param("startOfNextDayUtc") LocalDateTime startOfNextDayUtc,
             @Param("excludedSourceIds") List<String> excludedSourceIds);
 
     @Query(value = """
