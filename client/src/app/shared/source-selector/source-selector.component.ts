@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatChipsModule } from '@angular/material/chips';
 import { RouterLink } from '@angular/router';
 import { injectParams, injectRouteData } from '../../utils/inject-params';
 import { SourcesService } from '../../sources.service';
@@ -15,7 +16,7 @@ import { Source } from '../../parser/types';
 @Component({
   selector: 'app-source-selector',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatMenuModule, RouterLink, StateComponent],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatMenuModule, MatChipsModule, RouterLink, StateComponent],
   templateUrl: './source-selector.component.html',
   styleUrl: './source-selector.component.css',
 })
