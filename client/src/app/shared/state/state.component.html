@@ -2,10 +2,6 @@
 <span [ngStyle]="stateStyle()" [attr.title]="stateName()" class="state-chip">
   {{ count() }}
 </span>
-} @else if (label() !== undefined) {
-<span [ngStyle]="stateStyle()" role="status" [attr.aria-label]="ariaLabel()" aria-live="polite" class="state-chip">
-  {{ label() }}
-</span>
 } @else {
 <span [ngStyle]="stateStyle()" [attr.aria-label]="'State: ' + stateName()" class="state-chip">
   {{ stateName() }}
