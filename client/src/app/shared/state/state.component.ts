@@ -13,6 +13,8 @@ import { CardState } from './card-state';
 export class StateComponent {
   state = input<CardState>();
   count = input<number | undefined>();
+  label = input<string>();
+  ariaLabel = input<string>();
 
   private readonly stateNames: Record<CardState, string> = {
     'NEW': 'New',
@@ -32,8 +34,8 @@ export class StateComponent {
     const state = this.state();
     if (state === undefined) {
       return {
-        backgroundColor: '#000000',
-        color: 'white',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        color: 'var(--mat-sys-on-surface-variant)',
       };
     }
 
