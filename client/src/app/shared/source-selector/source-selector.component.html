@@ -3,8 +3,8 @@
   <div class="loading-placeholder"></div>
   } @else { @if(selectedSourceId() && mode() === 'study') {
   @if (isStudyingWithPartner()) {
-  <span class="turn-indicator" role="status" aria-label="Current turn" aria-live="polite">
-    {{ currentTurn().name }}
+  <span role="status" aria-label="Current turn" aria-live="polite">
+    <mat-chip>{{ currentTurn().name }}</mat-chip>
   </span>
   }
   <div class="stats-container">
