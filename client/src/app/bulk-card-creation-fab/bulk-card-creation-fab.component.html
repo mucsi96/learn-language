@@ -9,15 +9,14 @@
     [matTooltip]="imageLimitTooltip()"
     aria-label="Create cards in bulk"
   >
-    @if (isDetectingDuplicates()) {
-      <mat-spinner diameter="20"></mat-spinner>
-    } @else {
-      <mat-icon>add_circle</mat-icon>
-    }
+    <mat-icon>add_circle</mat-icon>
     @if (isDetectingDuplicates()) {
       Checking duplicates...
     } @else {
       Create {{ candidatesService.candidatesCount() }} Cards
     }
   </button>
+  @if (isDetectingDuplicates()) {
+    <bt-bar-loader class="page-loader" label="Checking duplicates" />
+  }
 }

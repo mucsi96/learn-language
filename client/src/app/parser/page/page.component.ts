@@ -19,7 +19,6 @@ import { DraggableSelectionDirective } from '../../draggable-selection.directive
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatChipsModule } from '@angular/material/chips';
@@ -47,7 +46,6 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatProgressSpinnerModule,
     MatFormFieldModule,
     MatLabel,
     MatInputModule,
