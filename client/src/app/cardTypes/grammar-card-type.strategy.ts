@@ -9,6 +9,7 @@ import {
   ExtractedItem,
   SentenceList,
   AudioGenerationItem,
+  BulkCreationContext,
   Card,
   CardData,
   LanguageTexts,
@@ -91,11 +92,12 @@ export class GrammarCardType implements CardTypeStrategy {
     );
   }
 
-  createDraftCardData(item: ExtractedItem): CardData {
+  createDraftCardData(item: ExtractedItem, context?: BulkCreationContext): CardData {
     const sentence = item as ExtractedItem & { sentence: string };
     return {
       examples: [{ de: sentence.sentence }],
       extractionModel: sentence.extractionModel,
+      ...(context?.grammarTopic ? { grammarTopic: context.grammarTopic } : {}),
     };
   }
 
@@ -153,6 +155,7 @@ export class GrammarCardType implements CardTypeStrategy {
         ],
         translationModel: englishResult.model,
         extractionModel: cardData.extractionModel,
+        ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
       };
     } catch (error) {
       throw new Error(

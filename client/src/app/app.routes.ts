@@ -66,6 +66,12 @@ export const routes: Routes = [
         title: 'Learning Partners',
       },
       {
+        path: 'grammar-topics',
+        loadComponent: () =>
+          import('./grammar-topics/grammar-topics.component').then((m) => m.GrammarTopicsComponent),
+        title: 'Grammar Topics',
+      },
+      {
         path: 'api-tokens',
         loadComponent: () =>
           import('./api-tokens/api-tokens.component').then((m) => m.ApiTokensComponent),

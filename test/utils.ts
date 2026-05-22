@@ -1125,6 +1125,36 @@ export async function getLearningPartners(): Promise<
   });
 }
 
+export async function createGrammarTopic(params: { name: string }): Promise<number> {
+  const { name } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.grammar_topics (name)
+       VALUES ($1)
+       RETURNING id`,
+      [name]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getGrammarTopics(): Promise<
+  Array<{
+    id: number;
+    name: string;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, name
+       FROM learn_language.grammar_topics
+       ORDER BY name`
+    );
+    return result.rows;
+  });
+}
+
 export async function getReviewLogs(): Promise<
   Array<{
     id: number;

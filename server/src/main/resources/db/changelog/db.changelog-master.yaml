@@ -823,3 +823,24 @@ databaseChangeLog:
                   defaultValueBoolean: false
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 25-create-grammar-topics-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: grammar_topics
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: grammar_topics_pkey
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: grammar_topics_name_unique

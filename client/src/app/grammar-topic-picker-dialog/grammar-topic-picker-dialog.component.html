@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>Choose Grammar Topic</h2>
+
+<mat-dialog-content class="dialog-content">
+  @if (topics.isLoading()) {
+  <p>Loading topics...</p>
+  } @else if (!hasTopics()) {
+  <div class="empty-state" role="status">
+    <mat-icon aria-hidden="true">menu_book</mat-icon>
+    <p>No grammar topics defined yet.</p>
+    <p class="empty-state-hint">
+      Add at least one topic before creating grammar cards.
+    </p>
+    <a
+      mat-flat-button
+      color="primary"
+      routerLink="/settings/grammar-topics"
+      mat-dialog-close
+      aria-label="Go to grammar topics settings"
+    >
+      <mat-icon>settings</mat-icon>
+      Manage Topics
+    </a>
+  </div>
+  } @else {
+  <p class="intro">
+    Select the grammar topic for the cards you are about to create.
+  </p>
+  <mat-form-field appearance="outline" class="topic-field">
+    <mat-label>Grammar topic</mat-label>
+    <mat-select
+      [value]="selectedTopic()"
+      (selectionChange)="selectedTopic.set($event.value)"
+      aria-label="Grammar topic"
+    >
+      @for (topic of topicsList(); track topic.id) {
+      <mat-option [value]="topic.name">{{ topic.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" aria-label="Cancel bulk creation">
+    Cancel
+  </button>
+  @if (hasTopics()) {
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="confirm()"
+    [disabled]="!canConfirm()"
+    aria-label="Continue with selected topic"
+  >
+    Continue
+  </button>
+  }
+</mat-dialog-actions>

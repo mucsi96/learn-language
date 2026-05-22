@@ -1,0 +1,78 @@
+<div class="grammar-topics-container">
+  <div class="topics-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>Grammar Topics</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="section-description">
+          Maintain the list of grammar topics. When creating grammar cards in
+          bulk, you pick one of these topics so cards can later be grouped or
+          filtered by topic.
+        </p>
+
+        <div class="add-topic-form">
+          <mat-form-field appearance="outline" class="topic-name-field">
+            <mat-label>Topic name</mat-label>
+            <input
+              matInput
+              [formField]="topicForm.name"
+              placeholder="Enter topic name"
+              aria-label="Topic name"
+              (keydown.enter)="addTopic()"
+            />
+          </mat-form-field>
+          <button
+            mat-flat-button
+            (click)="addTopic()"
+            [disabled]="!formModel().name.trim() || isAdding()"
+            aria-label="Add topic"
+          >
+            @if (isAdding()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>add</mat-icon>
+            }
+            Add
+          </button>
+        </div>
+
+        @if (topics.isLoading()) {
+        <mat-list class="topics-list">
+          @for (row of skeletonRows; track $index) {
+          <mat-list-item>
+            <div class="skeleton skeleton-topic"></div>
+          </mat-list-item>
+          }
+        </mat-list>
+        } @else if (topicsList().length === 0) {
+        <div class="empty-state">
+          <mat-icon>menu_book</mat-icon>
+          <p>No grammar topics yet</p>
+          <p class="empty-state-hint">Add a topic to group your grammar cards</p>
+        </div>
+        } @else {
+        <mat-list class="topics-list" role="list" aria-label="Grammar topics">
+          @for (topic of topicsList(); track topic.id) {
+          <mat-list-item role="listitem">
+            <span matListItemTitle>{{ topic.name }}</span>
+            <div matListItemMeta class="topic-actions">
+              <button
+                mat-icon-button
+                (click)="deleteTopic(topic)"
+                matTooltip="Delete topic"
+                [attr.aria-label]="'Delete ' + topic.name"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+          }
+        </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
