@@ -5,6 +5,7 @@ import {
   createImageModelSetting,
   createSource,
   createRateLimitSetting,
+  createGrammarTopic,
   selectTextRange,
   selectRegion,
   scrollElementToTop,
@@ -801,6 +802,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await createGrammarTopic({ name: 'Verbs' });
   await page.goto('/sources');
   await page.getByRole('article', { name: 'Grammar A1' }).click();
   await page.getByRole('button', { name: 'Pages' }).click();
@@ -833,6 +835,12 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
+  const topicDialog = page.getByRole('dialog', { name: 'Choose Grammar Topic' });
+  await expect(topicDialog).toBeVisible();
+  await topicDialog.getByLabel('Grammar topic').click();
+  await page.getByRole('option', { name: 'Verbs' }).click();
+  await topicDialog.getByRole('button', { name: 'Continue' }).click();
+
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await withDbConnection(async (client) => {
@@ -852,6 +860,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card1?.readiness).toBe('IN_REVIEW');
     expect(card1?.data.examples[0].en).toBe('This is Paco.');
     expect(card1?.data.examples[0].de).toContain('[ist]');
+    expect(card1?.data.grammarTopic).toBe('Verbs');
 
     expect(card1?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card1?.data.extractionModel).toBe('gemini-3.1-pro-preview');
@@ -859,6 +868,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Und [das] ist Frau Wachter.');
     expect(card2).toBeDefined();
     expect(card2?.data.examples[0].de).toContain('[das]');
+    expect(card2?.data.grammarTopic).toBe('Verbs');
     expect(card2?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card2?.data.extractionModel).toBe('gemini-3.1-pro-preview');
   });

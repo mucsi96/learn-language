@@ -218,6 +218,7 @@ export class EditGrammarCardComponent {
       return;
     }
 
+    const existingGrammarTopic = this.card()?.data.grammarTopic;
     const data: CardData = {
       examples: [
         {
@@ -228,6 +229,7 @@ export class EditGrammarCardComponent {
         },
       ],
       audio: this.card()?.data.audio || [],
+      ...(existingGrammarTopic ? { grammarTopic: existingGrammarTopic } : {}),
     };
 
     return {

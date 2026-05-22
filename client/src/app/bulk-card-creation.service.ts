@@ -7,6 +7,7 @@ import { FsrsGradingService } from './fsrs-grading.service';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
+  BulkCreationContext,
   BulkCreationSource,
   CardType,
   CardTypeStrategy,
@@ -35,14 +36,15 @@ export class BulkCardCreationService {
 
   async createCardsInBulk(
     source: BulkCreationSource,
-    cardType: CardType
+    cardType: CardType,
+    context?: BulkCreationContext
   ): Promise<PipelineResult> {
     if (this.isProcessing()) {
       throw new Error('Bulk creation already in progress');
     }
 
     const strategy = this.strategyRegistry.getStrategy(cardType);
-    const tasks = this.buildTasks(source, strategy);
+    const tasks = this.buildTasks(source, strategy, context);
 
     if (tasks.length === 0) {
       return { total: 0, succeeded: 0, failed: 0, errors: [] };
@@ -63,7 +65,8 @@ export class BulkCardCreationService {
 
   private buildTasks(
     source: BulkCreationSource,
-    strategy: CardTypeStrategy
+    strategy: CardTypeStrategy,
+    context?: BulkCreationContext
   ): PipelineTask<void>[] {
     switch (source.kind) {
       case 'extractedItems': {
@@ -80,7 +83,8 @@ export class BulkCardCreationService {
               source.pageNumber,
               updateProgress,
               toolsRequested,
-              strategy
+              strategy,
+              context
             ),
         }));
       }
@@ -109,14 +113,15 @@ export class BulkCardCreationService {
     pageNumber: number,
     updateProgress: ProgressUpdater,
     toolsRequested: () => void,
-    strategy: CardTypeStrategy
+    strategy: CardTypeStrategy,
+    context?: BulkCreationContext
   ): Promise<void> {
     const label = strategy.getItemLabel(item);
 
     try {
       updateProgress('in-progress', `${label}: Creating draft...`);
 
-      const draftCardData = strategy.createDraftCardData(item);
+      const draftCardData = strategy.createDraftCardData(item, context);
       const emptyCard = createEmptyCard();
       const cardPayload = {
         id: item.id,

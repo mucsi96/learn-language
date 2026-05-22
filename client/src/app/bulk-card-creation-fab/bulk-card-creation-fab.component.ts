@@ -24,6 +24,11 @@ import {
   DuplicateReviewDialogData,
   DuplicateReviewDialogResult,
 } from '../duplicate-review-dialog/duplicate-review-dialog.component';
+import {
+  GrammarTopicPickerDialogComponent,
+  GrammarTopicPickerDialogResult,
+} from '../grammar-topic-picker-dialog/grammar-topic-picker-dialog.component';
+import { BulkCreationContext } from '../parser/types';
 
 @Component({
   selector: 'app-bulk-card-creation-fab',
@@ -82,6 +87,23 @@ export class BulkCardCreationFabComponent {
       return;
     }
 
+    const context: BulkCreationContext = {};
+
+    if (cardType === 'grammar') {
+      const topicDialogRef = this.dialog.open<
+        GrammarTopicPickerDialogComponent,
+        void,
+        GrammarTopicPickerDialogResult
+      >(GrammarTopicPickerDialogComponent, {
+        disableClose: false,
+      });
+      const topicResult = await firstValueFrom(topicDialogRef.afterClosed());
+      if (!topicResult?.topic) {
+        return;
+      }
+      context.grammarTopic = topicResult.topic;
+    }
+
     const selections = this.pageService.getAllExtractionSelections();
 
     if (this.duplicateDetectionService.isAvailable()) {
@@ -136,7 +158,8 @@ export class BulkCardCreationFabComponent {
         sourceId: selectedSource.sourceId,
         pageNumber: selectedSource.pageNumber,
       },
-      cardType
+      cardType,
+      context
     );
 
     this.dailyUsageService.reload();

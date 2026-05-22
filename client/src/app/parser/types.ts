@@ -56,6 +56,7 @@ export type CardData = {
   translationModel?: string;
   classificationModel?: string;
   extractionModel?: string;
+  grammarTopic?: string;
 };
 
 export type Card = {
@@ -174,6 +175,10 @@ export type BulkCreationSource =
   | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number; selections?: ExtractionRegionSelection[] }
   | { kind: 'draftCardIds'; cardIds: string[] };
 
+export type BulkCreationContext = {
+  grammarTopic?: string;
+};
+
 export type AudioGenerationItem = {
   text: string;
   language: string;
@@ -195,7 +200,7 @@ export type CardTypeStrategy = {
     items: ExtractedItem[],
     searchTerm: string
   ): ExtractedItem[];
-  createDraftCardData(item: ExtractedItem): CardData;
+  createDraftCardData(item: ExtractedItem, context?: BulkCreationContext): CardData;
   createCardData(
     cardData: CardData,
     progressCallback: (progress: number, step: string) => void,
