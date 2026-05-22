@@ -1,0 +1,62 @@
+<mat-card class="photo-banner" role="region" aria-label="Pending photo for grammar cards">
+  <mat-card-header>
+    <mat-icon mat-card-avatar>photo_camera</mat-icon>
+    <mat-card-title>Photo ready for grammar cards</mat-card-title>
+    <mat-card-subtitle>
+      A photo of a grammar lesson is waiting. Choose how many cards to generate.
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  @if (previewUrl(); as url) {
+    <img
+      class="photo-preview"
+      [src]="url"
+      alt="Pending grammar lesson photo"
+    />
+  }
+
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="card-count-field">
+      <mat-label>How many cards?</mat-label>
+      <mat-select
+        [ngModel]="cardCount()"
+        (ngModelChange)="cardCount.set($event)"
+        [disabled]="isCreating()"
+      >
+        @for (option of cardCountOptions; track option) {
+          <mat-option [value]="option">{{ option }} cards</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (errorMessage(); as message) {
+      <p class="error-message" role="alert">{{ message }}</p>
+    }
+
+    @if (isCreating()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Generating cards"></mat-progress-bar>
+    }
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="createCards()"
+      [disabled]="isCreating()"
+      aria-label="Create grammar cards from this photo"
+    >
+      <mat-icon>auto_awesome</mat-icon>
+      Create grammar cards
+    </button>
+    <button
+      mat-stroked-button
+      (click)="discard()"
+      [disabled]="isCreating()"
+      aria-label="Discard pending photo"
+    >
+      <mat-icon>delete_outline</mat-icon>
+      Discard photo
+    </button>
+  </mat-card-actions>
+</mat-card>

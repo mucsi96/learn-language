@@ -844,3 +844,59 @@ databaseChangeLog:
                     nullable: false
                     unique: true
                     uniqueConstraintName: grammar_topics_name_unique
+  - changeSet:
+      id: 26-create-pending-photos-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: pending_photos
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pending_photos_pkey
+              - column:
+                  name: user_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: pending_photo_source_fkey
+                    references: sources(id)
+                    deleteCascade: true
+              - column:
+                  name: image_data
+                  type: bytea
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: pending_photos
+            columnNames: user_id, source_id
+            constraintName: pending_photos_user_source_unique
+        - createIndex:
+            tableName: pending_photos
+            indexName: pending_photos_expires_at_idx
+            columns:
+              - column:
+                  name: expires_at

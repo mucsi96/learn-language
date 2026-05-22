@@ -188,6 +188,23 @@ export class ChatHandler {
     return null;
   }
 
+  async handlePhotoGrammarConceptExtraction(request: GeminiRequest): Promise<any | null> {
+    if (
+      await imageRequestMatch(
+        request,
+        'You are an expert German language teacher',
+        'photo of the grammar lesson page',
+        ['Paco', 'Frau Wachter']
+      )
+    ) {
+      return createGeminiResponse({
+        sentences: GRAMMAR_SENTENCE_LISTS['photo_grammar_concept_sentences'],
+      });
+    }
+
+    return null;
+  }
+
   handleDictionaryLookup(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
     const userContent = getTextContent(request);
@@ -339,6 +356,9 @@ export class ChatHandler {
 
     const grammarExtractionResponse = await this.handleGrammarExtraction(request);
     if (grammarExtractionResponse) return grammarExtractionResponse;
+
+    const photoGrammarResponse = await this.handlePhotoGrammarConceptExtraction(request);
+    if (photoGrammarResponse) return photoGrammarResponse;
 
     const sentenceTranslationResponse = this.handleSentenceTranslation(request);
     if (sentenceTranslationResponse) return sentenceTranslationResponse;

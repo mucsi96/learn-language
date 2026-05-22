@@ -168,18 +168,24 @@ export class BulkCardCreationFabComponent {
     this.inReviewCardsService.refetchCards();
 
     if (result.succeeded > 0) {
-      const regions = selections.map(sel => ({
-        pageNumber: sel.pageNumber,
-        x: sel.rectangle.x,
-        y: sel.rectangle.y,
-        width: sel.rectangle.width,
-        height: sel.rectangle.height,
-      }));
+      if (selections.length > 0) {
+        const regions = selections.map(sel => ({
+          pageNumber: sel.pageNumber,
+          x: sel.rectangle.x,
+          y: sel.rectangle.y,
+          width: sel.rectangle.width,
+          height: sel.rectangle.height,
+        }));
 
-      await fetchJson(this.http, `/api/source/${selectedSource.sourceId}/extraction-regions`, {
-        body: { documentId: page?.documentId, regions },
-        method: 'POST',
-      });
+        await fetchJson(this.http, `/api/source/${selectedSource.sourceId}/extraction-regions`, {
+          body: { documentId: page?.documentId, regions },
+          method: 'POST',
+        });
+      }
+
+      if (this.candidatesService.hasExternalItems()) {
+        this.candidatesService.clearExternalItems();
+      }
 
       this.pageService.reload();
     }

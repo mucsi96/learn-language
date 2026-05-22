@@ -10,24 +10,26 @@ export class CardCandidatesService {
   private readonly pageService = inject(PageService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly ignoredIds = signal<Set<string>>(new Set());
+  private readonly externalItems = signal<ExtractedItem[]>([]);
+
+  readonly hasExternalItems = computed(() => this.externalItems().length > 0);
 
   readonly allExtractedItems = computed(() => {
     const selectionRegions = this.pageService.selectionRegions();
 
-    if (!selectionRegions || selectionRegions.length === 0) {
-      return [];
-    }
-
-    const allItems: ExtractedItem[] = [];
-
-    for (const region of selectionRegions) {
-      const result = region.value();
-      if (result) {
-        allItems.push(...result.items);
+    const regionItems: ExtractedItem[] = [];
+    if (selectionRegions && selectionRegions.length > 0) {
+      for (const region of selectionRegions) {
+        const result = region.value();
+        if (result) {
+          regionItems.push(...result.items);
+        }
       }
     }
 
-    const uniqueItems = allItems.filter((item, index, array) =>
+    const merged = [...regionItems, ...this.externalItems()];
+
+    const uniqueItems = merged.filter((item, index, array) =>
       array.findIndex(i => i.id === item.id) === index
     );
 
@@ -65,5 +67,13 @@ export class CardCandidatesService {
 
   clearIgnoredItems(): void {
     this.ignoredIds.set(new Set());
+  }
+
+  setExternalItems(items: ExtractedItem[]): void {
+    this.externalItems.set(items);
+  }
+
+  clearExternalItems(): void {
+    this.externalItems.set([]);
   }
 }

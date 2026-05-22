@@ -260,6 +260,11 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
     'Das [ist] Paco.',
     'Und [das] ist Frau Wachter.',
   ],
+  photo_grammar_concept_sentences: [
+    'Heute [bin] ich müde.',
+    'Sie [ist] meine Lehrerin.',
+    'Wir [sind] in Berlin.',
+  ],
 };
 
 interface DictionaryLookup {
@@ -322,5 +327,8 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
     'Wie heißt das Lied?': 'What is the name of the song?',
     'Das [ist] Paco.': 'This is Paco.',
     'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
+    'Heute [bin] ich müde.': 'Today I am tired.',
+    'Sie [ist] meine Lehrerin.': 'She is my teacher.',
+    'Wir [sind] in Berlin.': 'We are in Berlin.',
   },
 };

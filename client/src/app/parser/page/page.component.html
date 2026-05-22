@@ -71,7 +71,30 @@
     Delete image
   </button>
   }
+  @if (isPhotoGrammarSource()) {
+  <button
+    mat-button
+    aria-label="Capture photo for grammar cards"
+    (click)="photoCaptureInput.click()"
+    [disabled]="photoCaptureUploading()"
+  >
+    <mat-icon>photo_camera</mat-icon>
+    Capture photo
+  </button>
+  <input
+    #photoCaptureInput
+    type="file"
+    accept="image/*"
+    capture="environment"
+    (change)="onPhotoCaptureFileSelected($event, photoCaptureInput)"
+    class="hidden-file-input"
+    aria-label="Capture or upload grammar lesson photo"
+  />
+  }
 </div>
+@if (isPhotoGrammarSource() && pendingPhotoService.hasPending() && selectedSourceId(); as sid) {
+<app-photo-grammar-banner [sourceId]="sid"></app-photo-grammar-banner>
+}
 } @if (uploading()) {
 <bt-bar-loader class="page-loader" label="Uploading" />
 } @if (pageLoading()) {
@@ -178,7 +201,8 @@
 
 @if (selectionStateService.hasSelections()) {
 <app-selection-actions></app-selection-actions>
-} @else if (hasExtractionStarted()) {
-<app-bulk-card-creation-fab></app-bulk-card-creation-fab>
 }
+}
+@if (!selectionStateService.hasSelections() && (hasExtractionStarted() || candidatesService.hasExternalItems())) {
+<app-bulk-card-creation-fab></app-bulk-card-creation-fab>
 }
