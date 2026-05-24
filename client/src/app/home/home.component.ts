@@ -30,7 +30,12 @@ import { CardState } from '../shared/state/card-state';
 export class HomeComponent {
   private readonly sourcesService = inject(SourcesService);
   private readonly dueCardsService = inject(DueCardsService);
-  readonly sources = this.sourcesService.sources.value;
+  readonly sources = computed(
+    () =>
+      this.sourcesService.sources
+        .value()
+        ?.filter((source) => source.pageCount !== null && source.pageCount !== undefined)
+  );
   readonly dueCounts = this.dueCardsService.dueCounts.value;
   readonly loading = computed(
     () =>

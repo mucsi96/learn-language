@@ -139,6 +139,16 @@
             [formField]="sourceForm.startPage"
           />
         </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Page Count</mat-label>
+          <input
+            matInput
+            type="number"
+            [formField]="sourceForm.pageCount"
+          />
+          <mat-hint>Leave empty if you don't have the book yet</mat-hint>
+        </mat-form-field>
       </div>
       }
     </section>

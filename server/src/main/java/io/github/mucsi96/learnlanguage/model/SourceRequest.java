@@ -15,6 +15,7 @@ public class SourceRequest {
     private SourceType sourceType;
     private String fileName;
     private Integer startPage;
+    private Integer pageCount;
     private LanguageLevel languageLevel;
     private CardType cardType;
     private SourceFormatType formatType;

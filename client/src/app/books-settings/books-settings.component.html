@@ -1,0 +1,79 @@
+@if (loading()) {
+<bt-bar-loader class="page-loader" label="Loading books" />
+} @else {
+<div class="header">
+  <div>
+    <h1>Books</h1>
+    <p>Manage the books in your library</p>
+  </div>
+  <button
+    mat-flat-button
+    (click)="openAddBookDialog()"
+    class="add-button"
+  >
+    <mat-icon>add</mat-icon>
+    Add Book
+  </button>
+</div>
+
+@for (category of categories; track category.key) {
+<section class="category" role="region" [attr.aria-label]="category.label">
+  <header class="category-header">
+    <mat-icon class="category-icon">{{ category.icon }}</mat-icon>
+    <h2>{{ category.label }}</h2>
+    <span class="category-count">{{ getBooks(category.key).length }}</span>
+  </header>
+
+  @if (getBooks(category.key).length) {
+  <div class="books">
+    @for (book of getBooks(category.key); track book.id) {
+    <article
+      class="book-card"
+      [attr.aria-label]="book.name"
+    >
+      <mat-card>
+        <mat-card-content>
+          <div class="book-header">
+            <h3 class="book-title">{{ book.name }}</h3>
+            @if (book.languageLevel) {
+            <span class="level-badge">{{ book.languageLevel }}</span>
+            }
+          </div>
+
+          @if (getProgressLabel(book); as progress) {
+          <p class="book-progress" [attr.aria-label]="'Progress: ' + progress">
+            <mat-icon>menu_book</mat-icon>
+            {{ progress }}
+          </p>
+          }
+
+          <div class="book-actions">
+            <button
+              mat-stroked-button
+              (click)="openEditBookDialog(book)"
+              [attr.aria-label]="'Edit ' + book.name"
+            >
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button
+              mat-stroked-button
+              class="delete-button"
+              (click)="openDeleteBookDialog(book)"
+              [attr.aria-label]="'Delete ' + book.name"
+            >
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </article>
+    }
+  </div>
+  } @else {
+  <p class="empty-category">No books in this category.</p>
+  }
+</section>
+}
+}

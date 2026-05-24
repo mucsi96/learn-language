@@ -13,6 +13,7 @@ public class SourceResponse {
     private SourceType sourceType;
     private CardType cardType;
     private Integer startPage;
+    private Integer bookmarkedPage;
     private Integer pageCount;
     private Integer cardCount;
     private Integer draftCardCount;

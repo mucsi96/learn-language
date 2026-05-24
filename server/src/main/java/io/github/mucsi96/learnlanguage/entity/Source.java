@@ -30,8 +30,10 @@ public class Source {
   @Column(name = "source_type")
   private SourceType sourceType;
 
-  @Nonnull
   private Integer startPage;
+
+  @Column(name = "page_count")
+  private Integer pageCount;
 
   private Integer bookmarkedPage;
 

@@ -60,6 +60,7 @@ export class SourceDialogComponent {
     sourceType: SourceType | '';
     fileName: string;
     startPage: number;
+    pageCount: number | null;
     languageLevel: LanguageLevel | '';
     cardType: CardType | '';
     formatType: SourceFormatType | '';
@@ -72,6 +73,7 @@ export class SourceDialogComponent {
     sourceType: this.data.source?.sourceType ?? '',
     fileName: '',
     startPage: this.data.source?.startPage || 1,
+    pageCount: this.data.source?.pageCount ?? null,
     languageLevel: this.data.source?.languageLevel ?? '',
     cardType: this.data.source?.cardType ?? '',
     formatType: this.data.source?.formatType ?? '',
@@ -109,6 +111,7 @@ export class SourceDialogComponent {
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
       this.data.mode === 'edit' ||
+      this.formModel().pageCount === null ||
       this.hasFile())
   );
 
@@ -125,12 +128,15 @@ export class SourceDialogComponent {
         }
       }
       const result = this.formModel();
-      const formData: Partial<Source> & { fileName?: string } = {
+      const formData: Partial<Source> & { fileName?: string; pageCount?: number } = {
         id: result.id,
         name: result.name,
         sourceType: result.sourceType || undefined,
-        fileName: result.fileName,
+        fileName: result.fileName || undefined,
         startPage: result.startPage,
+        pageCount: this.data.mode === 'edit' && result.pageCount === null
+          ? 0
+          : result.pageCount ?? undefined,
         languageLevel: result.languageLevel || undefined,
         cardType: result.cardType || undefined,
         formatType: result.cardType === 'speech' || result.cardType === 'grammar'

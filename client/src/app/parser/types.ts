@@ -225,6 +225,7 @@ export type Source = {
   name: string;
   sourceType?: SourceType;
   startPage: number;
+  bookmarkedPage?: number;
   pageCount?: number;
   cardCount?: number;
   draftCardCount?: number;

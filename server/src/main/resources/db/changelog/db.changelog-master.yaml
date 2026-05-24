@@ -844,3 +844,13 @@ databaseChangeLog:
                     nullable: false
                     unique: true
                     uniqueConstraintName: grammar_topics_name_unique
+  - changeSet:
+      id: 26-add-sources-page-count
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: page_count
+                  type: int

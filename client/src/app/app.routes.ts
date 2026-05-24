@@ -32,8 +32,14 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'voices',
+        redirectTo: 'books',
         pathMatch: 'full',
+      },
+      {
+        path: 'books',
+        loadComponent: () =>
+          import('./books-settings/books-settings.component').then((m) => m.BooksSettingsComponent),
+        title: 'Books',
       },
       {
         path: 'voices',

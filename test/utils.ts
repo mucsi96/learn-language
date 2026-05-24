@@ -50,6 +50,7 @@ export async function createSource(params: {
   id: string;
   name: string;
   startPage?: number;
+  pageCount?: number | null;
   languageLevel: string;
   cardType: string;
   formatType: string;
@@ -64,6 +65,7 @@ export async function createSource(params: {
     id,
     name,
     startPage,
+    pageCount = null,
     languageLevel,
     cardType,
     formatType,
@@ -77,9 +79,9 @@ export async function createSource(params: {
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
+      `INSERT INTO learn_language.sources (id, name, start_page, page_count, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+      [id, name, startPage, pageCount, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
     );
   });
 }
@@ -125,6 +127,7 @@ export async function getSource(id: string): Promise<{
   id: string;
   name: string;
   startPage: number;
+  pageCount: number | null;
   languageLevel: string;
   cardType: string;
   formatType: string;
@@ -138,6 +141,7 @@ export async function getSource(id: string): Promise<{
   return withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, name, start_page as "startPage",
+              page_count as "pageCount",
               language_level as "languageLevel", card_type as "cardType",
               format_type as "formatType", source_type as "sourceType",
               bookmarked_page as "bookmarkedPage",
@@ -163,6 +167,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       id: 'goethe-a1',
       name: 'Goethe A1',
       startPage: 9,
+      pageCount: 100,
       languageLevel: 'A1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
@@ -178,6 +183,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       id: 'goethe-a2',
       name: 'Goethe A2',
       startPage: 8,
+      pageCount: 100,
       languageLevel: 'A2',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
@@ -192,6 +198,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       id: 'goethe-b1',
       name: 'Goethe B1',
       startPage: 16,
+      pageCount: 100,
       languageLevel: 'B1',
       cardType: 'VOCABULARY',
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',

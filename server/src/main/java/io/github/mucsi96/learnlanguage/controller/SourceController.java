@@ -84,9 +84,11 @@ public class SourceController {
       final var sourceId = source.getId();
       final var stats = statsMap.getOrDefault(sourceId, emptyStats);
 
-      Integer pageCount = null;
+      Integer pageCount = source.getPageCount();
       if (source.getSourceType() == SourceType.IMAGES) {
-        pageCount = documentRepository.findFirstBySourceOrderByPageNumberDesc(source).map(Document::getPageNumber).orElse(0);
+        final Integer documentCount = documentRepository.findFirstBySourceOrderByPageNumberDesc(source)
+            .map(Document::getPageNumber).orElse(null);
+        pageCount = documentCount != null && documentCount > 0 ? documentCount : pageCount;
       }
 
       return SourceResponse.builder()
@@ -95,6 +97,7 @@ public class SourceController {
           .sourceType(source.getSourceType())
           .cardType(source.getCardType())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
+          .bookmarkedPage(source.getBookmarkedPage())
           .pageCount(pageCount)
           .cardCount(stats.getCardCount())
           .draftCardCount(stats.getDraftCardCount())
@@ -290,6 +293,7 @@ public class SourceController {
         .name(request.getName())
         .sourceType(request.getSourceType())
         .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
+        .pageCount(request.getPageCount())
         .languageLevel(request.getLanguageLevel())
         .cardType(request.getCardType())
         .formatType(request.getFormatType())
@@ -326,6 +330,7 @@ public class SourceController {
         .name(request.getName() != null ? request.getName() : existingSource.getName())
         .sourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType())
         .startPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage())
+        .pageCount(resolvePageCount(request.getPageCount(), existingSource))
         .languageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel())
         .cardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType())
         .formatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType())
@@ -486,6 +491,16 @@ public class SourceController {
       return MediaType.parseMediaType("image/webp");
     }
     return MediaType.APPLICATION_OCTET_STREAM;
+  }
+
+  private Integer resolvePageCount(Integer requestedPageCount, Source existingSource) {
+    if (requestedPageCount == null) {
+      return existingSource.getPageCount();
+    }
+    if (requestedPageCount == 0) {
+      return null;
+    }
+    return requestedPageCount;
   }
 
   private LearningPartner resolveLearningPartner(Integer learningPartnerId, Source existingSource) {
