@@ -1,6 +1,10 @@
 storage:
   directory: ${STORAGE_DIRECTORY}
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.google.genai.autoconfigure.embedding.GoogleGenAiEmbeddingConnectionAutoConfiguration
+      - org.springframework.ai.model.google.genai.autoconfigure.embedding.GoogleGenAiTextEmbeddingAutoConfiguration
   servlet:
     multipart:
       max-file-size: 10MB
