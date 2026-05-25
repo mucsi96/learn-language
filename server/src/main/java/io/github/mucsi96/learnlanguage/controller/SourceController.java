@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.Document;
@@ -67,6 +69,8 @@ import com.azure.core.util.BinaryData;
 @RestController
 @RequiredArgsConstructor
 public class SourceController {
+
+  private static final long MAX_PENDING_PHOTO_BYTES = 10L * 1024 * 1024;
 
   private final SourceService sourceService;
   private final CardService cardService;
@@ -500,6 +504,11 @@ public class SourceController {
           "Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed");
     }
 
+    if (file.getSize() > MAX_PENDING_PHOTO_BYTES) {
+      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+          "Photo must be under 10 MB");
+    }
+
     final String contentType = file.getContentType() != null
         ? file.getContentType()
         : getMediaTypeForFile(originalFilename).toString();
@@ -584,6 +593,12 @@ public class SourceController {
     final Source source = requirePhotoGrammarSource(sourceId);
     pendingPhotoService.discard(resolveUserId(jwt), source);
     return ResponseEntity.ok(Map.of("detail", "Pending photo discarded"));
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<Map<String, String>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        .body(Map.of("error", "Uploaded file exceeds the maximum allowed size"));
   }
 
   private Source requirePhotoGrammarSource(String sourceId) {

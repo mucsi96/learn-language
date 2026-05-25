@@ -183,10 +183,7 @@ export class BulkCardCreationFabComponent {
         });
       }
 
-      if (this.candidatesService.hasExternalItems()) {
-        this.candidatesService.clearExternalItems();
-      }
-
+      this.candidatesService.clearExternalItems();
       this.pageService.reload();
     }
   }

@@ -33,7 +33,7 @@ public class PhotoGrammarConceptService {
 
         Rules:
         - !IMPORTANT! Do NOT copy the printed exercise sentences from the photo verbatim. Produce fresh, original sentences that exercise the same concepts.
-        - Each sentence has exactly one blank, marked by wrapping the target word or form in square brackets. Example: "Ich gehe jeden [Tag] in die Schule.", "Der Hund [läuft] schnell durch [den] Park." - in the second example there are two brackets only if a single concept requires more than one blank to express; prefer ONE blank per sentence.
+        - Each sentence must have EXACTLY ONE blank, marked by wrapping the target word or form in square brackets. Example: "Ich gehe jeden [Tag] in die Schule."
         - Each sentence must be a complete standalone German sentence with proper capitalisation and punctuation.
         - Sentences must be appropriate for %s level learners.
         - Skip any handwritten text on the photo.
@@ -42,7 +42,7 @@ public class PhotoGrammarConceptService {
 
     final ConceptSentences example = new ConceptSentences(List.of(
         "Ich gehe jeden [Tag] in die Schule.",
-        "Der Hund läuft schnell durch [den] Park."));
+        "Der Hund läuft schnell durch den [Park]."));
 
     final String exampleJson = jsonMapper.writeValueAsString(example);
     return basePrompt + "\nExample JSON response shape:\n" + exampleJson;

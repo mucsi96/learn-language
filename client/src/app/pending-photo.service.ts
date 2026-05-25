@@ -7,7 +7,6 @@ import {
   resource,
   signal,
 } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import { SentenceList } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
@@ -91,9 +90,9 @@ export class PendingPhotoService {
   }
 
   async discard(sourceId: string): Promise<void> {
-    await firstValueFrom(
-      this.http.delete(`/api/source/${sourceId}/pending-photo`)
-    );
+    await fetchJson(this.http, `/api/source/${sourceId}/pending-photo`, {
+      method: 'DELETE',
+    });
     if (this.sourceId() === sourceId) {
       this.refresh();
     }

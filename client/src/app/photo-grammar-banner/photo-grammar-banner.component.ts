@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -43,7 +43,7 @@ export class PhotoGrammarBannerComponent {
   readonly isCreating = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
-  readonly previewUrl = computed(() => this.pendingPhotoService.previewUrl());
+  readonly previewUrl = this.pendingPhotoService.previewUrl;
 
   async createCards(): Promise<void> {
     const count = this.cardCount();

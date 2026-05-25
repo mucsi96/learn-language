@@ -15,7 +15,11 @@ import io.github.mucsi96.learnlanguage.entity.Source;
 public interface PendingPhotoRepository extends JpaRepository<PendingPhoto, UUID> {
   Optional<PendingPhoto> findByUserIdAndSource(String userId, Source source);
 
-  Optional<PendingPhotoMetaProjection> findMetaByUserIdAndSource(String userId, Source source);
+  @Query("select p.id as id, p.createdAt as createdAt, p.expiresAt as expiresAt "
+      + "from PendingPhoto p where p.userId = :userId and p.source = :source")
+  Optional<PendingPhotoMetaProjection> findMetaByUserIdAndSource(
+      @Param("userId") String userId,
+      @Param("source") Source source);
 
   @Modifying
   @Query("delete from PendingPhoto p where p.userId = :userId and p.source = :source")
@@ -25,7 +29,7 @@ public interface PendingPhotoRepository extends JpaRepository<PendingPhoto, UUID
   @Query("delete from PendingPhoto p where p.id = :id")
   void deleteByIdSkippingLoad(@Param("id") UUID id);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Query("delete from PendingPhoto p where p.expiresAt < :cutoff")
   int deleteByExpiresAtBefore(@Param("cutoff") Instant cutoff);
 }
