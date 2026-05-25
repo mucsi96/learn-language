@@ -35,6 +35,9 @@ import { injectParams } from '../../utils/inject-params';
 import { injectQueryParams } from '../../utils/inject-query-params';
 import { SelectionRectangleComponent } from '../selection-rectangle/selection-rectangle.component';
 import { SelectionActionsComponent } from '../../selection-actions/selection-actions.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { PendingPhotoService } from '../../pending-photo.service';
+import { PhotoGrammarBannerComponent } from '../../photo-grammar-banner/photo-grammar-banner.component';
 
 @Component({
   selector: 'app-page',
@@ -55,6 +58,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
     BulkCardCreationFabComponent,
     SelectionRectangleComponent,
     SelectionActionsComponent,
+    PhotoGrammarBannerComponent,
   ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.css',
@@ -71,6 +75,8 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly candidatesService = inject(CardCandidatesService);
   private readonly knownWordsService = inject(KnownWordsService);
   readonly selectionStateService = inject(SelectionStateService);
+  readonly pendingPhotoService = inject(PendingPhotoService);
+  private readonly snackBar = inject(MatSnackBar);
   readonly sources = this.sourcesService.sources.value;
   readonly extractedCandidates = this.candidatesService.candidates;
   readonly pageNumber = linkedSignal(
@@ -124,6 +130,10 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly isEmptyImageSource = computed(() =>
     this.sourceType() === 'images' && !this.hasImage()
   );
+  readonly isPhotoGrammarSource = computed(() =>
+    this.sourceType() === 'images' && this.cardType() === 'grammar'
+  );
+  readonly photoCaptureUploading = signal(false);
   readonly currentPageSelections = computed(() => {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.pageNumber();
@@ -159,6 +169,14 @@ export class PageComponent implements AfterViewInit, OnDestroy {
           Number(pageNumber),
           documentId ? Number(documentId) : undefined
         );
+      }
+    });
+
+    effect(() => {
+      if (this.isPhotoGrammarSource()) {
+        this.pendingPhotoService.setSource(this.selectedSourceId());
+      } else {
+        this.pendingPhotoService.setSource(undefined);
       }
     });
 
@@ -350,5 +368,50 @@ export class PageComponent implements AfterViewInit, OnDestroy {
 
   ignoreItem(itemId: string): void {
     this.candidatesService.ignoreItem(itemId);
+  }
+
+  onPhotoCaptureFileSelected(event: Event, fileInput: HTMLInputElement): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.uploadPhotoCapture(file).finally(() => {
+      fileInput.value = '';
+    });
+  }
+
+  private async uploadPhotoCapture(file: File): Promise<void> {
+    const sourceId = this.selectedSourceId();
+    if (!sourceId) {
+      return;
+    }
+
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+    const fileName = file.name.toLowerCase();
+    if (!validExtensions.some((ext) => fileName.endsWith(ext))) {
+      this.snackBar.open(
+        'Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed',
+        'Dismiss',
+        { duration: 5000 }
+      );
+      return;
+    }
+
+    this.photoCaptureUploading.set(true);
+
+    try {
+      await this.pendingPhotoService.upload(sourceId, file);
+      this.snackBar.open(
+        'Photo ready - open this source on your computer to create cards',
+        'OK',
+        { duration: 8000 }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Photo upload failed';
+      this.snackBar.open(message, 'Dismiss', { duration: 5000 });
+    } finally {
+      this.photoCaptureUploading.set(false);
+    }
   }
 }

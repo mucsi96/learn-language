@@ -1125,6 +1125,27 @@ export async function getLearningPartners(): Promise<
   });
 }
 
+export async function getPendingPhotos(sourceId: string): Promise<
+  Array<{
+    id: string;
+    userId: string;
+    sourceId: string;
+    contentType: string;
+    imageDataLength: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id::text as id, user_id as "userId", source_id as "sourceId",
+              content_type as "contentType", octet_length(image_data) as "imageDataLength"
+       FROM learn_language.pending_photos
+       WHERE source_id = $1`,
+      [sourceId]
+    );
+    return result.rows;
+  });
+}
+
 export async function createGrammarTopic(params: { name: string }): Promise<number> {
   const { name } = params;
 

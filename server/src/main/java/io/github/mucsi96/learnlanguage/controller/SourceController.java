@@ -10,9 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,14 +25,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
+import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
+import io.github.mucsi96.learnlanguage.model.PendingPhotoConsumeRequest;
+import io.github.mucsi96.learnlanguage.model.PendingPhotoStatusResponse;
 import io.github.mucsi96.learnlanguage.model.RegionExtractionRequest;
 import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
@@ -47,6 +57,8 @@ import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
+import io.github.mucsi96.learnlanguage.service.PendingPhotoService;
+import io.github.mucsi96.learnlanguage.service.PhotoGrammarConceptService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,6 +69,8 @@ import com.azure.core.util.BinaryData;
 @RestController
 @RequiredArgsConstructor
 public class SourceController {
+
+  private static final long MAX_PENDING_PHOTO_BYTES = 10L * 1024 * 1024;
 
   private final SourceService sourceService;
   private final CardService cardService;
@@ -69,6 +83,8 @@ public class SourceController {
   private final ExtractionRegionRepository extractionRegionRepository;
   private final KnownWordService knownWordService;
   private final LearningPartnerService learningPartnerService;
+  private final PendingPhotoService pendingPhotoService;
+  private final PhotoGrammarConceptService photoGrammarConceptService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -472,6 +488,136 @@ public class SourceController {
         .contentType(mediaType)
         .header("Cache-Control", "public, max-age=31536000, immutable")
         .body(imageData);
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/pending-photo")
+  public ResponseEntity<Map<String, Object>> uploadPendingPhoto(
+      @PathVariable String sourceId,
+      @RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal Jwt jwt) throws IOException {
+    final Source source = requirePhotoGrammarSource(sourceId);
+    final String originalFilename = file.getOriginalFilename();
+
+    if (originalFilename == null || !isImageFile(originalFilename)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Only image files (PNG, JPG, JPEG, GIF, WEBP) are allowed");
+    }
+
+    if (file.getSize() > MAX_PENDING_PHOTO_BYTES) {
+      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+          "Photo must be under 10 MB");
+    }
+
+    final String contentType = file.getContentType() != null
+        ? file.getContentType()
+        : getMediaTypeForFile(originalFilename).toString();
+
+    final PendingPhoto saved = pendingPhotoService.upsert(
+        resolveUserId(jwt), source, file.getBytes(), contentType);
+
+    return ResponseEntity.ok(Map.<String, Object>of(
+        "detail", "Pending photo stored",
+        "expiresAt", saved.getExpiresAt().toString()));
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @GetMapping("/source/{sourceId}/pending-photo")
+  public PendingPhotoStatusResponse getPendingPhotoStatus(
+      @PathVariable String sourceId,
+      @AuthenticationPrincipal Jwt jwt) {
+    final Source source = requirePhotoGrammarSource(sourceId);
+
+    return pendingPhotoService.getActiveMeta(resolveUserId(jwt), source)
+        .map(meta -> PendingPhotoStatusResponse.builder()
+            .hasPending(true)
+            .createdAt(meta.getCreatedAt())
+            .expiresAt(meta.getExpiresAt())
+            .build())
+        .orElseGet(() -> PendingPhotoStatusResponse.builder().hasPending(false).build());
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @GetMapping("/source/{sourceId}/pending-photo/image")
+  public ResponseEntity<byte[]> getPendingPhotoImage(
+      @PathVariable String sourceId,
+      @AuthenticationPrincipal Jwt jwt) {
+    final Source source = requirePhotoGrammarSource(sourceId);
+
+    final PendingPhoto photo = pendingPhotoService.getActive(resolveUserId(jwt), source)
+        .orElseThrow(() -> new ResourceNotFoundException("No pending photo for this source"));
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(photo.getContentType()))
+        .header("Cache-Control", "no-store")
+        .body(photo.getImageData());
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/pending-photo/consume")
+  public SentenceListResponse consumePendingPhoto(
+      @PathVariable String sourceId,
+      @RequestBody PendingPhotoConsumeRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    if (request.getModel() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "model is required");
+    }
+    final int cardCount = request.getCardCount() != null ? request.getCardCount() : 0;
+    if (cardCount < 1 || cardCount > 50) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cardCount must be between 1 and 50");
+    }
+
+    final Source source = requirePhotoGrammarSource(sourceId);
+    final String userId = resolveUserId(jwt);
+
+    final PendingPhoto photo = pendingPhotoService.getActive(userId, source)
+        .orElseThrow(() -> new ResourceNotFoundException("No pending photo for this source"));
+
+    final List<String> sentences = photoGrammarConceptService.generateConceptCards(
+        photo.getImageData(),
+        photo.getContentType(),
+        request.getModel(),
+        source.getLanguageLevel(),
+        cardCount);
+
+    pendingPhotoService.delete(photo);
+
+    return SentenceListResponse.builder().sentences(sentences).build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @DeleteMapping("/source/{sourceId}/pending-photo")
+  public ResponseEntity<Map<String, String>> discardPendingPhoto(
+      @PathVariable String sourceId,
+      @AuthenticationPrincipal Jwt jwt) {
+    final Source source = requirePhotoGrammarSource(sourceId);
+    pendingPhotoService.discard(resolveUserId(jwt), source);
+    return ResponseEntity.ok(Map.of("detail", "Pending photo discarded"));
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<Map<String, String>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        .body(Map.of("error", "Uploaded file exceeds the maximum allowed size"));
+  }
+
+  private Source requirePhotoGrammarSource(String sourceId) {
+    final Source source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    if (source.getSourceType() != SourceType.IMAGES || source.getCardType() != CardType.GRAMMAR) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Photo grammar cards are only supported on IMAGES sources with cardType=grammar");
+    }
+    return source;
+  }
+
+  private String resolveUserId(Jwt jwt) {
+    if (jwt == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing authenticated principal");
+    }
+    final String oid = jwt.getClaimAsString("oid");
+    return oid != null ? oid : jwt.getSubject();
   }
 
   private MediaType getMediaTypeForFile(String fileName) {
