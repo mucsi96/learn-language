@@ -77,7 +77,7 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
   ).toBeVisible();
 
   await page.getByRole('combobox', { name: 'How many cards?' }).click();
-  await page.getByRole('option', { name: '5 cards' }).click();
+  await page.getByRole('option', { name: '5 cards', exact: true }).click();
 
   await page
     .getByRole('button', { name: 'Create grammar cards from this photo' })
