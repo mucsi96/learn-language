@@ -83,10 +83,6 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
     .getByRole('button', { name: 'Create grammar cards from this photo' })
     .click();
 
-  await expect(
-    page.getByRole('button', { name: 'Create cards in bulk' })
-  ).toBeVisible();
-
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   const topicDialog = page.getByRole('dialog', { name: 'Choose Grammar Topic' });
