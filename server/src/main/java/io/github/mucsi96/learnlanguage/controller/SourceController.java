@@ -519,11 +519,11 @@ public class SourceController {
       @AuthenticationPrincipal Jwt jwt) {
     final Source source = requirePhotoGrammarSource(sourceId);
 
-    return pendingPhotoService.getActive(resolveUserId(jwt), source)
-        .map(photo -> PendingPhotoStatusResponse.builder()
+    return pendingPhotoService.getActiveMeta(resolveUserId(jwt), source)
+        .map(meta -> PendingPhotoStatusResponse.builder()
             .hasPending(true)
-            .createdAt(photo.getCreatedAt())
-            .expiresAt(photo.getExpiresAt())
+            .createdAt(meta.getCreatedAt())
+            .expiresAt(meta.getExpiresAt())
             .build())
         .orElseGet(() -> PendingPhotoStatusResponse.builder().hasPending(false).build());
   }

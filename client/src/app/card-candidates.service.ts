@@ -15,25 +15,14 @@ export class CardCandidatesService {
   readonly hasExternalItems = computed(() => this.externalItems().length > 0);
 
   readonly allExtractedItems = computed(() => {
-    const selectionRegions = this.pageService.selectionRegions();
-
-    const regionItems: ExtractedItem[] = [];
-    if (selectionRegions && selectionRegions.length > 0) {
-      for (const region of selectionRegions) {
-        const result = region.value();
-        if (result) {
-          regionItems.push(...result.items);
-        }
-      }
-    }
+    const regionItems = this.pageService.selectionRegions()
+      ?.flatMap((region) => region.value()?.items ?? []) ?? [];
 
     const merged = [...regionItems, ...this.externalItems()];
 
-    const uniqueItems = merged.filter((item, index, array) =>
-      array.findIndex(i => i.id === item.id) === index
+    return merged.filter((item, index, array) =>
+      array.findIndex((i) => i.id === item.id) === index
     );
-
-    return uniqueItems;
   });
 
   readonly candidates = computed(() => {

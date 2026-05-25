@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +20,6 @@ const CARD_COUNT_OPTIONS = [5, 10, 15, 20, 30] as const;
   selector: 'app-photo-grammar-banner',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatCardModule,
     MatButtonModule,
@@ -81,6 +79,7 @@ export class PhotoGrammarBannerComponent {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create cards';
       this.errorMessage.set(message);
+    } finally {
       this.isCreating.set(false);
     }
   }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.repository.PendingPhotoMetaProjection;
 import io.github.mucsi96.learnlanguage.repository.PendingPhotoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,16 +41,27 @@ public class PendingPhotoService {
   }
 
   @Transactional
-  public Optional<PendingPhoto> getActive(String userId, Source source) {
-    final Optional<PendingPhoto> existing = pendingPhotoRepository.findByUserIdAndSource(userId, source);
+  public Optional<PendingPhotoMetaProjection> getActiveMeta(String userId, Source source) {
+    return pendingPhotoRepository.findMetaByUserIdAndSource(userId, source)
+        .flatMap(meta -> {
+          if (meta.getExpiresAt().isBefore(Instant.now())) {
+            pendingPhotoRepository.deleteByIdSkippingLoad(meta.getId());
+            return Optional.empty();
+          }
+          return Optional.of(meta);
+        });
+  }
 
-    return existing.flatMap(photo -> {
-      if (photo.getExpiresAt().isBefore(Instant.now())) {
-        pendingPhotoRepository.delete(photo);
-        return Optional.empty();
-      }
-      return Optional.of(photo);
-    });
+  @Transactional
+  public Optional<PendingPhoto> getActive(String userId, Source source) {
+    return pendingPhotoRepository.findByUserIdAndSource(userId, source)
+        .flatMap(photo -> {
+          if (photo.getExpiresAt().isBefore(Instant.now())) {
+            pendingPhotoRepository.delete(photo);
+            return Optional.empty();
+          }
+          return Optional.of(photo);
+        });
   }
 
   @Transactional
