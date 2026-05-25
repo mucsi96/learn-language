@@ -14,7 +14,6 @@ test('can create an image source', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
-  await page.getByLabel('Source ID').fill('test-image-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Image Source');
 
   await page.getByLabel('Card Type').click();
