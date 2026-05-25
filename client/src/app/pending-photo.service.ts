@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import { SentenceList } from './parser/types';
+import { fetchAsset } from './utils/fetchAsset';
 import { fetchJson } from './utils/fetchJson';
 import { uploadDocument } from './utils/uploadDocument';
 
@@ -47,14 +48,26 @@ export class PendingPhotoService {
   readonly hasPending = computed(() => !!this.status.value()?.hasPending);
   readonly expiresAt = computed(() => this.status.value()?.expiresAt);
 
-  readonly previewUrl = computed(() => {
-    const sid = this.sourceId();
-    if (!sid || !this.hasPending()) {
-      return undefined;
-    }
-    const cacheBuster = this.status.value()?.createdAt ?? '';
-    return `/api/source/${sid}/pending-photo/image?t=${encodeURIComponent(cacheBuster)}`;
+  readonly previewImage = resource<string | undefined, {
+    sourceId: string | undefined;
+    createdAt: string | undefined;
+  }>({
+    params: () => ({
+      sourceId: this.hasPending() ? this.sourceId() : undefined,
+      createdAt: this.status.value()?.createdAt,
+    }),
+    loader: async ({ params }) => {
+      if (!params.sourceId) {
+        return undefined;
+      }
+      return fetchAsset(
+        this.http,
+        `/api/source/${params.sourceId}/pending-photo/image`
+      );
+    },
   });
+
+  readonly previewUrl = computed(() => this.previewImage.value());
 
   constructor() {
     const intervalId = setInterval(() => {
