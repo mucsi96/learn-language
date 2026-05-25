@@ -105,7 +105,7 @@ export class AdminComponent {
 
   async openAddSourceDialog(): Promise<void> {
     const dialogRef = this.dialog.open(SourceDialogComponent, {
-      width: '700px',
+      width: '900px',
       data: { mode: 'create' },
     });
 
@@ -126,7 +126,7 @@ export class AdminComponent {
     }
 
     const dialogRef = this.dialog.open(SourceDialogComponent, {
-      width: '700px',
+      width: '900px',
       data: { source, mode: 'edit' },
     });
 
