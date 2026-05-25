@@ -261,7 +261,6 @@ test('can create a new source', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
-  await page.getByLabel('Source ID').fill('test-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
 
   await page.getByLabel('Card Type').click();
@@ -312,7 +311,7 @@ test('can edit an existing source', async ({ page }) => {
   await page.getByRole('button', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
-  await expect(page.getByLabel('Source ID')).toBeDisabled();
+  await expect(page.getByLabel('Source ID')).not.toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue('Goethe A1');
 
   const nameField = page.getByRole('textbox', { name: 'Name', exact: true });
@@ -378,7 +377,6 @@ test('can cancel source creation', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
-  await page.getByLabel('Source ID').fill('test-cancelled');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Cancelled');
 
   await page.getByRole('button', { name: 'Cancel' }).click();
@@ -399,8 +397,6 @@ test('validates required fields when creating source', async ({ page }) => {
 
   const createButton = page.getByRole('button', { name: 'Create' });
   await expect(createButton).toBeDisabled();
-
-  await page.getByLabel('Source ID').fill('test-id');
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Vocabulary' }).click();
@@ -445,7 +441,6 @@ test('can create a speech source with image collection', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
-  await page.getByLabel('Source ID').fill('test-speech-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Speech Source');
 
   await page.getByLabel('Card Type').click();
@@ -477,7 +472,6 @@ test('can create a grammar source with image collection', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Add Source' }).click();
 
-  await page.getByLabel('Source ID').fill('test-grammar-source');
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Grammar Source');
 
   await page.getByLabel('Card Type').click();

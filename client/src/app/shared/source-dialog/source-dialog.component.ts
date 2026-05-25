@@ -19,6 +19,19 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 
+const SLUG_MAX_LENGTH = 50;
+
+const slugify = (input: string): string =>
+  input
+    .normalize('NFKD')
+    .replace(/ß/g, 'ss')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, SLUG_MAX_LENGTH)
+    .replace(/-+$/g, '');
+
 @Component({
   selector: 'app-source-dialog',
   templateUrl: './source-dialog.component.html',
@@ -55,7 +68,6 @@ export class SourceDialogComponent {
   ];
 
   readonly formModel = signal<{
-    id: string;
     name: string;
     sourceType: SourceType | '';
     fileName: string;
@@ -67,7 +79,6 @@ export class SourceDialogComponent {
     newCardLimit: number;
     learningPartnerId: number | null;
   }>({
-    id: this.data.source?.id || '',
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
     fileName: '',
@@ -80,7 +91,6 @@ export class SourceDialogComponent {
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
   });
   readonly sourceForm = form(this.formModel, (path) => {
-    required(path.id);
     required(path.name);
     required(path.cardType);
     required(path.languageLevel);
@@ -95,7 +105,6 @@ export class SourceDialogComponent {
       }
       return undefined;
     });
-    disabled(path.id, () => this.data.mode === 'edit');
     disabled(path.cardType, () => this.data.mode === 'edit');
     disabled(path.sourceType, () => this.data.mode === 'edit');
   });
@@ -125,8 +134,11 @@ export class SourceDialogComponent {
         }
       }
       const result = this.formModel();
+      const id = this.data.mode === 'edit'
+        ? this.data.source?.id
+        : slugify(result.name);
       const formData: Partial<Source> & { fileName?: string } = {
-        id: result.id,
+        id,
         name: result.name,
         sourceType: result.sourceType || undefined,
         fileName: result.fileName,
