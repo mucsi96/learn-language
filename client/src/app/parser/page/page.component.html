@@ -185,8 +185,8 @@
       {{ candidatesService.getItemLabel(item) }}
     </button>
     <mat-menu #itemMenu="matMenu">
-      <button mat-menu-item (click)="addToKnownWords(candidatesService.getItemLabel(item), item.id)">
-        <mat-icon>check_circle</mat-icon>
+      <button mat-menu-item (click)="addToKnownWords(candidatesService.getItemLabel(item), item.id)" style="color: var(--bt-success);">
+        <mat-icon style="color: var(--bt-success);">check_circle</mat-icon>
         <span>Add to known words</span>
       </button>
       <button mat-menu-item (click)="ignoreItem(item.id)">
