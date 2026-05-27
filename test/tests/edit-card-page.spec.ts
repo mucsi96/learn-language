@@ -793,6 +793,81 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 });
 
+test('grammar card editing displays existing hint and saves edits to database', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'grammar-hint-edit-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 7,
+    data: {
+      hint: 'sein',
+      examples: [
+        {
+          de: 'Heute [bin] ich müde.',
+          en: 'Today I am tired.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('/in-review-cards');
+
+  const hintInput = page.getByLabel('Hint in German', { exact: true });
+  await expect(hintInput).toHaveValue('sein');
+
+  await hintInput.fill('sein / der');
+  await page.getByRole('button', { name: 'Save card' }).click();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'grammar-hint-edit-card'"
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].data.hint).toBe('sein / der');
+  });
+});
+
+test('grammar card editing allows adding a hint to a card without one', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'grammar-no-hint-edit-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 8,
+    data: {
+      examples: [
+        {
+          de: 'Der Hund läuft durch den [Park].',
+          en: 'The dog runs through the park.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('/in-review-cards');
+
+  const hintInput = page.getByLabel('Hint in German', { exact: true });
+  await expect(hintInput).toHaveValue('');
+
+  await hintInput.fill('der Park');
+  await page.getByRole('button', { name: 'Save card' }).click();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'grammar-no-hint-edit-card'"
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].data.hint).toBe('der Park');
+  });
+});
+
 test('remove flag button is visible for flagged card', async ({ page }) => {
   await createCard({
     cardId: 'flagged-card-visible',

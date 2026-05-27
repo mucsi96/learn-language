@@ -7,6 +7,7 @@ import {
   SENTENCE_LISTS,
   SENTENCE_TRANSLATIONS,
   GRAMMAR_SENTENCE_LISTS,
+  PHOTO_GRAMMAR_CONCEPT_SENTENCES,
   DICTIONARY_LOOKUPS,
   NORMALIZATIONS,
 } from './data';
@@ -198,7 +199,7 @@ export class ChatHandler {
       )
     ) {
       return createGeminiResponse({
-        sentences: GRAMMAR_SENTENCE_LISTS['photo_grammar_concept_sentences'],
+        sentences: PHOTO_GRAMMAR_CONCEPT_SENTENCES,
       });
     }
 

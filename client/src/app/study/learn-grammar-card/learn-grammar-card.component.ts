@@ -48,6 +48,8 @@ export class LearnGrammarCardComponent {
 
   readonly sentence = computed(() => this.selectedExample()?.de ?? '');
 
+  readonly hint = computed(() => this.card()?.value()?.data.hint);
+
   readonly audioSentence = computed(() => {
     if (!this.isRevealed()) return undefined;
     return this.sentence().replace(createGrammarGapRegex(), '$1');

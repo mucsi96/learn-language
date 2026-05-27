@@ -44,7 +44,9 @@ import io.github.mucsi96.learnlanguage.model.SourceDueCardCountResponse;
 import io.github.mucsi96.learnlanguage.model.SourceRequest;
 import io.github.mucsi96.learnlanguage.model.SourceResponse;
 import io.github.mucsi96.learnlanguage.model.SourceType;
+import io.github.mucsi96.learnlanguage.model.PhotoGrammarSentencesResponse;
 import io.github.mucsi96.learnlanguage.model.SentenceListResponse;
+import io.github.mucsi96.learnlanguage.model.SentenceWithHint;
 import io.github.mucsi96.learnlanguage.model.WordListResponse;
 import io.github.mucsi96.learnlanguage.repository.DocumentRepository;
 import io.github.mucsi96.learnlanguage.repository.ExtractionRegionRepository;
@@ -555,7 +557,7 @@ public class SourceController {
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @PostMapping("/source/{sourceId}/pending-photo/consume")
-  public SentenceListResponse consumePendingPhoto(
+  public PhotoGrammarSentencesResponse consumePendingPhoto(
       @PathVariable String sourceId,
       @RequestBody PendingPhotoConsumeRequest request,
       @AuthenticationPrincipal Jwt jwt) {
@@ -573,7 +575,7 @@ public class SourceController {
     final PendingPhoto photo = pendingPhotoService.getActive(userId, source)
         .orElseThrow(() -> new ResourceNotFoundException("No pending photo for this source"));
 
-    final List<String> sentences = photoGrammarConceptService.generateConceptCards(
+    final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
         photo.getImageData(),
         photo.getContentType(),
         request.getModel(),
@@ -582,7 +584,7 @@ public class SourceController {
 
     pendingPhotoService.delete(photo);
 
-    return SentenceListResponse.builder().sentences(sentences).build();
+    return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

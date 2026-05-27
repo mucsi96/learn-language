@@ -106,12 +106,21 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
 
   expect(cards.length).toBe(3);
 
-  const sentences = cards
-    .map((row) => row.data.examples?.[0]?.de as string)
-    .sort();
-  expect(sentences).toEqual(
-    ['Heute [bin] ich müde.', 'Sie [ist] meine Lehrerin.', 'Wir [sind] in Berlin.'].sort()
+  const cardsBySentence = new Map<string, (typeof cards)[number]>(
+    cards.map((card) => [card.data.examples?.[0]?.de as string, card])
   );
+
+  expect([...cardsBySentence.keys()].sort()).toEqual(
+    [
+      'Heute [bin] ich müde.',
+      '[Der] Mann gibt [dem] Kind das Buch.',
+      'Der Hund läuft schnell durch den [Park].',
+    ].sort()
+  );
+
+  expect(cardsBySentence.get('Heute [bin] ich müde.')?.data.hint).toBe('sein');
+  expect(cardsBySentence.get('[Der] Mann gibt [dem] Kind das Buch.')?.data.hint).toBe('der / der');
+  expect(cardsBySentence.get('Der Hund läuft schnell durch den [Park].')?.data.hint).toBeUndefined();
 
   for (const card of cards) {
     expect(card.data.grammarTopic).toBe('Sein conjugation');

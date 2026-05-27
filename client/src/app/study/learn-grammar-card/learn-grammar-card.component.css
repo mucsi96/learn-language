@@ -66,6 +66,14 @@
   text-align: center;
 }
 
+.hint-text {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+  text-align: center;
+}
+
 .gap-word.masked {
   background: rgba(255, 255, 255, 0.1);
   color: transparent;

@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
-import { SentenceList } from './parser/types';
+import { PhotoGrammarSentenceList, SentenceWithHint } from './parser/types';
 import { fetchAsset } from './utils/fetchAsset';
 import { fetchJson } from './utils/fetchJson';
 import { uploadDocument } from './utils/uploadDocument';
@@ -114,13 +114,13 @@ export class PendingPhotoService {
   async consume(
     sourceId: string,
     cardCount: number
-  ): Promise<{ sentences: string[]; model: string }> {
+  ): Promise<{ sentences: SentenceWithHint[]; model: string }> {
     const model = this.environmentConfig.primaryModelByOperation['extraction'];
     if (!model) {
       throw new Error('No primary extraction model is configured');
     }
     const operationHeaders = { 'X-Operation-ID': crypto.randomUUID() };
-    const response = await fetchJson<SentenceList>(
+    const response = await fetchJson<PhotoGrammarSentenceList>(
       this.http,
       `/api/source/${sourceId}/pending-photo/consume`,
       {

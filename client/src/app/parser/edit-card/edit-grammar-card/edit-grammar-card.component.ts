@@ -58,6 +58,7 @@ export class EditGrammarCardComponent {
   readonly formModel = linkedSignal(() => ({
     sentence: this.card()?.data.examples?.[0]?.de ?? '',
     englishTranslation: this.card()?.data.examples?.[0]?.en ?? '',
+    hint: this.card()?.data.hint ?? '',
   }));
   readonly grammarForm = form(this.formModel);
 
@@ -212,13 +213,14 @@ export class EditGrammarCardComponent {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const cardId = this.selectedCardId();
-    const { sentence, englishTranslation } = this.formModel();
+    const { sentence, englishTranslation, hint } = this.formModel();
 
     if (!cardId || !sentence || !sourceId || !pageNumber) {
       return;
     }
 
     const existingGrammarTopic = this.card()?.data.grammarTopic;
+    const trimmedHint = hint.trim();
     const data: CardData = {
       examples: [
         {
@@ -230,6 +232,7 @@ export class EditGrammarCardComponent {
       ],
       audio: this.card()?.data.audio || [],
       ...(existingGrammarTopic ? { grammarTopic: existingGrammarTopic } : {}),
+      ...(trimmedHint ? { hint: trimmedHint } : {}),
     };
 
     return {

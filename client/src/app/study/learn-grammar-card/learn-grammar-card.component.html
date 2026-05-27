@@ -23,5 +23,8 @@
         [class.masked]="part.isGap && !isRevealed()"
         [class.highlighted]="part.isGap && isRevealed()"
       >{{ part.text }}</span>}</p>
+    @if (hint()) {
+      <p class="hint-text" aria-label="Hint">{{ hint() }}</p>
+    }
   </div>
 </div>

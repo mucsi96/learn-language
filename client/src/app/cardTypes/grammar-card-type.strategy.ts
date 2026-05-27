@@ -93,11 +93,12 @@ export class GrammarCardType implements CardTypeStrategy {
   }
 
   createDraftCardData(item: ExtractedItem, context?: BulkCreationContext): CardData {
-    const sentence = item as ExtractedItem & { sentence: string };
+    const sentence = item as ExtractedItem & { sentence: string; hint?: string };
     return {
       examples: [{ de: sentence.sentence }],
       extractionModel: sentence.extractionModel,
       ...(context?.grammarTopic ? { grammarTopic: context.grammarTopic } : {}),
+      ...(sentence.hint ? { hint: sentence.hint } : {}),
     };
   }
 
@@ -156,6 +157,7 @@ export class GrammarCardType implements CardTypeStrategy {
         translationModel: englishResult.model,
         extractionModel: cardData.extractionModel,
         ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
+        ...(cardData.hint ? { hint: cardData.hint } : {}),
       };
     } catch (error) {
       throw new Error(

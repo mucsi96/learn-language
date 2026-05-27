@@ -260,12 +260,18 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
     'Das [ist] Paco.',
     'Und [das] ist Frau Wachter.',
   ],
-  photo_grammar_concept_sentences: [
-    'Heute [bin] ich müde.',
-    'Sie [ist] meine Lehrerin.',
-    'Wir [sind] in Berlin.',
-  ],
 };
+
+export type PhotoGrammarSentence = {
+  sentence: string;
+  hint?: string;
+};
+
+export const PHOTO_GRAMMAR_CONCEPT_SENTENCES: PhotoGrammarSentence[] = [
+  { sentence: 'Heute [bin] ich müde.', hint: 'sein' },
+  { sentence: '[Der] Mann gibt [dem] Kind das Buch.', hint: 'der / der' },
+  { sentence: 'Der Hund läuft schnell durch den [Park].' },
+];
 
 interface DictionaryLookup {
   normalizedWord: string;
