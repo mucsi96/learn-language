@@ -16,9 +16,6 @@ import {
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
-import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
-import { generateExampleImages } from '../utils/image-generation.util';
-import { RateLimitTokenService } from '../rate-limit-token.service';
 
 interface SentenceIdResponse {
   id: string;
@@ -37,8 +34,6 @@ export class GrammarCardType implements CardTypeStrategy {
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
-  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
-  private readonly rateLimitTokenService = inject(RateLimitTokenService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
     const { sourceId, regions } = request;
@@ -111,6 +106,8 @@ export class GrammarCardType implements CardTypeStrategy {
       throw new Error('Card data is missing required sentence (examples[0].de)');
     }
 
+    onToolsRequested();
+
     try {
       progressCallback(30, 'Translating to English...');
       const englishResult =
@@ -128,20 +125,6 @@ export class GrammarCardType implements CardTypeStrategy {
             )
         );
 
-      progressCallback(60, 'Generating images...');
-
-      const imageInputs = englishResult.response.translation
-        ? [{ exampleIndex: 0, englishTranslation: englishResult.response.translation }]
-        : [];
-
-      const imagesMap = await generateExampleImages(
-        this.http,
-        this.environmentConfig.imageModels,
-        imageInputs,
-        this.rateLimitTokenService.imagePool,
-        onToolsRequested
-      );
-
       progressCallback(90, 'Preparing grammar card data...');
 
       return {
@@ -150,7 +133,6 @@ export class GrammarCardType implements CardTypeStrategy {
             de: sentence,
             en: englishResult.response.translation,
             isSelected: true,
-            images: imagesMap.get(0) ?? [],
           },
         ],
         translationModel: englishResult.model,

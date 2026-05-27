@@ -55,13 +55,3 @@
   line-height: 1.6;
   letter-spacing: 0.05em;
 }
-
-.images-section {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.images-section h2 {
-  margin: 0;
-}
