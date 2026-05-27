@@ -1252,6 +1252,68 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   await expect(flashcard.locator('.gap-word.highlighted')).toHaveText('jeden');
 });
 
+test('grammar card study shows German hint on front when present', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'grammar-hint-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 5,
+    data: {
+      hint: 'sein',
+      examples: [
+        {
+          de: 'Heute [bin] ich müde.',
+          en: 'Today I am tired.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+      audio: [{ id: 'hint-audio', text: 'Heute bin ich müde.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Hint')).toHaveText('sein');
+
+  await flashcard.getByText('Heute').click();
+
+  await expect(flashcard.getByLabel('Hint')).toHaveText('sein');
+});
+
+test('grammar card study omits hint element when card has no hint', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  const image1 = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'grammar-no-hint-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 6,
+    data: {
+      examples: [
+        {
+          de: 'Der Hund läuft durch den [Park].',
+          en: 'The dog runs through the park.',
+          isSelected: true,
+          images: [{ id: image1, isFavorite: true }],
+        },
+      ],
+      audio: [{ id: 'no-hint-audio', text: 'Der Hund läuft durch den Park.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.locator('.gap-word.masked')).toHaveText('Park');
+  await expect(flashcard.getByLabel('Hint')).toHaveCount(0);
+});
+
 test('grammar card grading functionality', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

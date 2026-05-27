@@ -60,7 +60,7 @@ export class PhotoGrammarBannerComponent {
       const { sentences, model } = await this.pendingPhotoService.consume(sid, count);
 
       const items = await Promise.all(
-        sentences.map(async (sentence): Promise<ExtractedItem & { sentence: string }> => {
+        sentences.map(async ({ sentence, hint }): Promise<ExtractedItem & { sentence: string; hint?: string }> => {
           const idResp = await fetchJson<SentenceIdResponse>(
             this.http,
             '/api/sentence-id',
@@ -71,6 +71,7 @@ export class PhotoGrammarBannerComponent {
             exists: idResp.exists,
             extractionModel: model,
             sentence,
+            ...(hint ? { hint } : {}),
           };
         })
       );

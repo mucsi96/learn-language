@@ -39,4 +39,7 @@ public class CardData implements Serializable {
 
     @JsonInclude(Include.NON_NULL)
     private String grammarTopic;
+
+    @JsonInclude(Include.NON_NULL)
+    private String hint;
 }

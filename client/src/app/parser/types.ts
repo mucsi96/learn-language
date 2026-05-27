@@ -57,6 +57,7 @@ export type CardData = {
   classificationModel?: string;
   extractionModel?: string;
   grammarTopic?: string;
+  hint?: string;
 };
 
 export type Card = {
@@ -147,6 +148,15 @@ export type Sentence = ExtractedItem & {
 
 export type SentenceList = {
   sentences: string[];
+};
+
+export type SentenceWithHint = {
+  sentence: string;
+  hint?: string;
+};
+
+export type PhotoGrammarSentenceList = {
+  sentences: SentenceWithHint[];
 };
 
 export type ExtractionRegionSelection = {
