@@ -334,7 +334,7 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
     'Das [ist] Paco.': 'This is Paco.',
     'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
     'Heute [bin] ich müde.': 'Today I am tired.',
-    'Sie [ist] meine Lehrerin.': 'She is my teacher.',
-    'Wir [sind] in Berlin.': 'We are in Berlin.',
+    '[Der] Mann gibt [dem] Kind das Buch.': 'The man gives the child the book.',
+    'Der Hund läuft schnell durch den [Park].': 'The dog runs quickly through the park.',
   },
 };
