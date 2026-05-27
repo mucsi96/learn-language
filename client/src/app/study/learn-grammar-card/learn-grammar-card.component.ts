@@ -3,22 +3,13 @@ import {
   computed,
   inject,
   input,
-  Injector,
-  resource,
-  linkedSignal,
-  untracked,
   effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { fetchAsset } from '../../utils/fetchAsset';
-import { ExampleImage } from '../../parser/types';
 import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { createGrammarGapRegex } from '../../shared/constants/grammar.constants';
 import { VoiceConfigService } from '../../voice-config/voice-config.service';
-
-type ImageResource = ExampleImage & { url: string };
 
 type SentencePart = {
   text: string;
@@ -38,8 +29,6 @@ export class LearnGrammarCardComponent {
   isRevealed = input<boolean>(false);
   onPlayAudio = input<((texts: string[]) => void) | null>(null);
 
-  private readonly http = inject(HttpClient);
-  private readonly injector = inject(Injector);
   private readonly voiceConfigService = inject(VoiceConfigService);
 
   readonly selectedExample = computed(() =>
@@ -56,31 +45,6 @@ export class LearnGrammarCardComponent {
   readonly sentenceParts = computed(() => {
     const sentence = this.sentence();
     return this.buildSentenceParts(sentence);
-  });
-
-  readonly exampleImages = linkedSignal(() => {
-    const example = this.selectedExample();
-
-    return untracked(() => {
-      if (!example?.images?.length) return [];
-
-      return example.images
-        .filter((img) => img.isFavorite)
-        .map((image) =>
-          resource<ImageResource, never>({
-            injector: this.injector,
-            loader: async () => {
-              return {
-                ...image,
-                url: await fetchAsset(
-                  this.http,
-                  `/api/image/${image.id}`
-                ),
-              };
-            },
-          })
-        );
-    });
   });
 
   constructor() {

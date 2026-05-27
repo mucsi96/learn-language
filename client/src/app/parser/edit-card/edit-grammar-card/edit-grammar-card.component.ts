@@ -3,9 +3,7 @@ import {
   input,
   output,
   computed,
-  inject,
   linkedSignal,
-  untracked,
   effect,
   viewChild,
   ElementRef,
@@ -18,12 +16,6 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { Card, CardData } from '../../types';
-import {
-  ImageGridComponent,
-  GridImageResource,
-} from '../../../shared/image-grid/image-grid.component';
-import { ImageResourceService } from '../../../shared/image-resource.service';
-import { DailyUsageService } from '../../../daily-usage.service';
 import { createGrammarGapRegex } from '../../../shared/constants/grammar.constants';
 
 @Component({
@@ -37,7 +29,6 @@ import { createGrammarGapRegex } from '../../../shared/constants/grammar.constan
     MatIcon,
     MatTooltipModule,
     MatChipsModule,
-    ImageGridComponent,
   ],
   templateUrl: './edit-grammar-card.component.html',
   styleUrl: './edit-grammar-card.component.css',
@@ -51,8 +42,6 @@ export class EditGrammarCardComponent {
   saveRequested = output<void>();
   markAsReviewedAvailable = output<boolean>();
 
-  private readonly imageResourceService = inject(ImageResourceService);
-  readonly dailyUsageService = inject(DailyUsageService);
   private readonly sentenceInput = viewChild<ElementRef<HTMLTextAreaElement>>('sentenceInput');
 
   readonly formModel = linkedSignal(() => ({
@@ -74,35 +63,12 @@ export class EditGrammarCardComponent {
     return sentence.replace(createGrammarGapRegex(), (_match, content) => '_'.repeat(content.length));
   });
 
-  readonly images = linkedSignal<GridImageResource[]>(() => {
-    return untracked(() => {
-      if (!this.selectedCardId()) {
-        return [];
-      }
-
-      const example = this.card()?.data.examples?.[0];
-      return (
-        example?.images?.map((image) =>
-          this.imageResourceService.createResource(image)
-        ) ?? []
-      );
-    });
-  });
-
   readonly canMarkAsReviewed = computed(() => {
     if (this.card()?.readiness !== 'IN_REVIEW') {
       return false;
     }
 
-    const currentImages = this.images();
-    if (!currentImages || currentImages.length === 0) {
-      return false;
-    }
-
-    return currentImages.some((imageResource) => {
-      const imageValue = imageResource.value();
-      return imageValue?.isFavorite === true;
-    });
+    return this.gapsDisplay().length > 0;
   });
 
   constructor() {
@@ -159,41 +125,6 @@ export class EditGrammarCardComponent {
     this.formModel.update((m) => ({ ...m, sentence: newSentence }));
   }
 
-  async addImage() {
-    const englishTranslation = this.formModel().englishTranslation;
-    if (!englishTranslation) return;
-
-    const { placeholders, done } =
-      this.imageResourceService.generateImages(englishTranslation);
-
-    this.images.update((imgs) => [...imgs, ...placeholders]);
-
-    await done;
-    this.dailyUsageService.reload();
-
-    const cardData = this.getCardData();
-    if (cardData) {
-      this.cardUpdate.emit(cardData);
-    }
-    this.saveRequested.emit();
-  }
-
-  areImagesLoading() {
-    const imgs = this.images() || [];
-    return imgs.some((image) => image.isLoading());
-  }
-
-  onFavoriteToggled(imageIdx: number) {
-    const imgs = this.images();
-    if (!imgs?.length) return;
-
-    const image = imgs[imageIdx];
-    if (!image || image.isLoading()) return;
-
-    this.imageResourceService.toggleFavorite(image);
-    this.images.update((currentImages) => [...currentImages]);
-  }
-
   private getCardData():
     | Omit<
         Card,
@@ -225,7 +156,6 @@ export class EditGrammarCardComponent {
           de: sentence,
           en: englishTranslation,
           isSelected: true,
-          images: this.imageResourceService.toExampleImages(this.images()),
         },
       ],
       audio: this.card()?.data.audio || [],

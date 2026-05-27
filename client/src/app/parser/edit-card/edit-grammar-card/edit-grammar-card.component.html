@@ -52,24 +52,3 @@
   <h3>Preview (with gaps)</h3>
   <p class="sentence-preview">{{ sentenceWithGaps() }}</p>
 </div>
-
-<div class="images-section">
-  <h2>Images</h2>
-  <button
-    mat-icon-button
-    (click)="addImage()"
-    aria-label="Add image"
-    [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
-    [matTooltip]="dailyUsageService.imageLimitTooltip()"
-  >
-    <mat-icon>add_photo_alternate</mat-icon>
-  </button>
-</div>
-@let imgs = images();
-@if (imgs && imgs.length) {
-  <app-image-grid
-    [images]="imgs"
-    [altText]="formModel().sentence"
-    (favoriteToggled)="onFavoriteToggled($event)"
-  />
-}
