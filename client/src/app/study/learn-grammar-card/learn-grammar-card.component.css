@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  aspect-ratio: 4 / 3;
 }
 
 .content-section {
@@ -14,11 +15,12 @@
 }
 
 .sentence-section {
-  margin-top: 1.5rem;
+  flex: 1;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
@@ -71,16 +73,15 @@
 }
 
 @media (min-width: 768px) {
+  :host {
+    aspect-ratio: 20 / 11;
+  }
+
   .content-section {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 1.5rem;
     gap: 1.5rem;
-  }
-
-  .sentence-section {
-    margin-top: 5rem;
-    gap: 1rem;
   }
 
   .sentence-text {

@@ -1340,6 +1340,66 @@ test('grammar card grading functionality', async ({ page }) => {
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
 
+test('grammar card without image keeps the same size as image cards', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-size-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 8,
+    data: {
+      examples: [
+        {
+          de: 'Ich [lese] ein Buch.',
+          hu: 'Könyvet olvasok.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'size-audio', text: 'Ich lese ein Buch.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
+
+  const box = await flashcard.boundingBox();
+  const ratio = box!.height / box!.width;
+  expect(ratio).toBeGreaterThan(0.5);
+  expect(ratio).toBeLessThan(0.6);
+});
+
+test('grammar card shows hint above the sentence', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-hint-order-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 7,
+    data: {
+      hint: 'Perfekt',
+      examples: [
+        {
+          de: 'Ich [habe] gegessen.',
+          hu: 'Ettem.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'hint-order-audio', text: 'Ich habe gegessen.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Hint')).toBeVisible();
+
+  const hintBox = await flashcard.getByLabel('Hint').boundingBox();
+  const sentenceBox = await flashcard.locator('.gap-word.masked').boundingBox();
+  expect(hintBox!.y).toBeLessThan(sentenceBox!.y);
+});
+
 test('Enter key reveals and unreveals card', async ({ page }) => {
   await createCard({
     cardId: 'keyboard-reveal-test',

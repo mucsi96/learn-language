@@ -424,6 +424,49 @@ test('bulk audio creation creates audio in database', async ({ page }) => {
   });
 });
 
+test('bulk audio creation strips grammar gap markers from audio text', async ({ page }) => {
+  await setupVoiceConfigurations();
+  await createCard({
+    cardId: 'grammar-audio-strip',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 3,
+    data: {
+      examples: [
+        {
+          de: 'Ich gehe [jeden] Tag in die Schule.',
+          hu: 'Minden nap iskolába megyek.',
+          isSelected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('/in-review-cards');
+
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'grammar-audio-strip'");
+
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    const audioList = cardData.audio;
+    expect(Array.isArray(audioList)).toBeTruthy();
+
+    const strippedAudio = audioList.find(
+      (audio: any) => audio.text === 'Ich gehe jeden Tag in die Schule.'
+    );
+    expect(strippedAudio).toBeDefined();
+    assertAudioExists(strippedAudio.id);
+
+    const bracketedAudio = audioList.find((audio: any) => audio.text?.includes('['));
+    expect(bracketedAudio).toBeUndefined();
+  });
+});
+
 test('bulk audio creation updates card readiness to ready', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({

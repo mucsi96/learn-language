@@ -16,6 +16,7 @@ import {
 } from '../parser/types';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
+import { createGrammarGapRegex } from '../shared/constants/grammar.constants';
 
 interface SentenceIdResponse {
   id: string;
@@ -168,7 +169,10 @@ export class GrammarCardType implements CardTypeStrategy {
     const example = card.data.examples?.[0];
     return [
       example?.de
-        ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
+        ? {
+            text: example.de.replace(createGrammarGapRegex(), '$1'),
+            language: LANGUAGE_CODES.GERMAN,
+          }
         : null,
     ].filter(nonNullable);
   }
