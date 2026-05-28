@@ -1,0 +1,24 @@
+<div class="daily-sessions-container">
+  <mat-card>
+    <mat-card-header>
+      <h2 mat-card-title>Daily Sessions</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        Remove every stored daily study session. Useful when you want to start
+        the day over from scratch.
+      </p>
+      <button
+        mat-flat-button
+        color="warn"
+        class="cleanup-button"
+        (click)="cleanupDailySessions()"
+        [disabled]="isDeleting()"
+        aria-label="Cleanup daily sessions"
+      >
+        <mat-icon>delete_forever</mat-icon>
+        Cleanup Daily Sessions
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>

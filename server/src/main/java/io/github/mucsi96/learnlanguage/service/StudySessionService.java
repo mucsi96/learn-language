@@ -233,6 +233,11 @@ public class StudySessionService {
     }
 
     @Transactional
+    public void deleteAllSessions() {
+        studySessionRepository.deleteAllInBatch();
+    }
+
+    @Transactional
     public void addCardsToSessions(List<String> cardIds, LocalDateTime startOfDay) {
         final List<Card> cards = cardRepository.findByIdInOrderByIdAsc(cardIds).stream()
                 .filter(Card::isReady)
