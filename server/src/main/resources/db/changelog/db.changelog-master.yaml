@@ -755,11 +755,12 @@ databaseChangeLog:
                   rs.review_score,
                   cs.correct_streak,
                   CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
-                      (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '') OR
-                      (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '') OR
-                      (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '') OR
+                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '')) OR
+                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '')) OR
+                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '')) OR
                       (s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
-                      (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = ''))
+                      (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = '')) OR
+                      (s.card_type = 'GRAMMAR' AND (c.data->'examples'->0->>'hu' IS NULL OR TRIM(c.data->'examples'->0->>'hu') = ''))
                   ) THEN true ELSE false END AS is_unhealthy,
                   CASE WHEN c.readiness = 'READY'
                       AND c.state = 'REVIEW'

@@ -665,7 +665,6 @@ test('speech card editing updates sentence in database', async ({ page }) => {
 
 test('grammar card editing shows complete sentence and gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-edit-card',
     sourceId: 'grammar-a1',
@@ -674,9 +673,8 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
       examples: [
         {
           de: 'Der Hund [läuft] schnell.',
-          en: 'The dog runs fast.',
+          hu: 'A kutya gyorsan fut.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },
@@ -686,13 +684,12 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   await page.goto('/in-review-cards');
 
   await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
-  await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('The dog runs fast.');
+  await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('A kutya gyorsan fut.');
   await expect(page.locator('.sentence-preview')).toContainText('Der Hund _____ schnell.');
 });
 
 test('grammar card editing allows adding gaps from selection', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-add-gap-card',
     sourceId: 'grammar-a1',
@@ -701,9 +698,8 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
       examples: [
         {
           de: 'Sie trinkt Kaffee.',
-          en: 'She drinks coffee.',
+          hu: 'Ő kávét iszik.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },
@@ -725,7 +721,6 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
 
 test('grammar card editing allows removing gaps', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-remove-gap-card',
     sourceId: 'grammar-a1',
@@ -734,9 +729,8 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
       examples: [
         {
           de: 'Wir [gehen] ins Kino.',
-          en: 'We go to the cinema.',
+          hu: 'Moziba megyünk.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },
@@ -754,7 +748,6 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
 
 test('grammar card editing saves gaps to database', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-save-card',
     sourceId: 'grammar-a1',
@@ -763,9 +756,8 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
       examples: [
         {
           de: 'Das Kind spielt im Garten.',
-          en: 'The child plays in the garden.',
+          hu: 'A gyerek a kertben játszik.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },
@@ -781,7 +773,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   });
 
   await page.getByRole('button', { name: 'Add Gap from Selection' }).click();
-  await page.getByLabel('English translation', { exact: true }).fill('The child is playing in the garden.');
+  await page.getByLabel('Hungarian translation', { exact: true }).fill('A gyerek éppen a kertben játszik.');
   await page.getByRole('button', { name: 'Save card' }).click();
 
   await withDbConnection(async (client) => {
@@ -789,13 +781,12 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
     expect(cardData.examples[0].de).toBe('Das Kind [spielt] im Garten.');
-    expect(cardData.examples[0].en).toBe('The child is playing in the garden.');
+    expect(cardData.examples[0].hu).toBe('A gyerek éppen a kertben játszik.');
   });
 });
 
 test('grammar card editing displays existing hint and saves edits to database', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-hint-edit-card',
     sourceId: 'grammar-a1',
@@ -805,9 +796,8 @@ test('grammar card editing displays existing hint and saves edits to database', 
       examples: [
         {
           de: 'Heute [bin] ich müde.',
-          en: 'Today I am tired.',
+          hu: 'Ma fáradt vagyok.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },
@@ -833,7 +823,6 @@ test('grammar card editing displays existing hint and saves edits to database', 
 
 test('grammar card editing allows adding a hint to a card without one', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-no-hint-edit-card',
     sourceId: 'grammar-a1',
@@ -842,9 +831,8 @@ test('grammar card editing allows adding a hint to a card without one', async ({
       examples: [
         {
           de: 'Der Hund läuft durch den [Park].',
-          en: 'The dog runs through the park.',
+          hu: 'A kutya átfut a parkon.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },

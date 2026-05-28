@@ -327,14 +327,14 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',
     'Wie heißt das Lied?': 'Hogy hívják a dalt?',
+    'Das [ist] Paco.': 'Ez Paco.',
+    'Und [das] ist Frau Wachter.': 'És ez Wachter asszony.',
+    'Heute [bin] ich müde.': 'Ma fáradt vagyok.',
+    '[Der] Mann gibt [dem] Kind das Buch.': 'A férfi a gyereknek adja a könyvet.',
+    'Der Hund läuft schnell durch den [Park].': 'A kutya gyorsan átfut a parkon.',
   },
   english: {
     'Hören Sie.': 'Listen.',
     'Wie heißt das Lied?': 'What is the name of the song?',
-    'Das [ist] Paco.': 'This is Paco.',
-    'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
-    'Heute [bin] ich müde.': 'Today I am tired.',
-    '[Der] Mann gibt [dem] Kind das Buch.': 'The man gives the child the book.',
-    'Der Hund läuft schnell durch den [Park].': 'The dog runs quickly through the park.',
   },
 };

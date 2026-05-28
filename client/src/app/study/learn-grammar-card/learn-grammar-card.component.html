@@ -14,5 +14,8 @@
     @if (hint()) {
       <p class="hint-text" aria-label="Hint">{{ hint() }}</p>
     }
+    @if (isRevealed() && hungarianTranslation()) {
+      <p class="translation-text" aria-label="Hungarian translation">{{ hungarianTranslation() }}</p>
+    }
   </div>
 </div>

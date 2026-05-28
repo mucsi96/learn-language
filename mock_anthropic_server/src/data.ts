@@ -248,11 +248,11 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
   hungarian: {
     'Hören Sie.': 'Hallgasson.',
     'Wie heißt das Lied?': 'Hogy hívják a dalt?',
+    'Das [ist] Paco.': 'Ez Paco.',
+    'Und [das] ist Frau Wachter.': 'És ez Wachter asszony.',
   },
   english: {
     'Hören Sie.': 'Listen.',
     'Wie heißt das Lied?': 'What is the name of the song?',
-    'Das [ist] Paco.': 'This is Paco.',
-    'Und [das] ist Frau Wachter.': 'And this is Frau Wachter.',
   },
 };

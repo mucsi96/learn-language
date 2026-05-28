@@ -110,14 +110,14 @@ export class GrammarCardType implements CardTypeStrategy {
     onToolsRequested();
 
     try {
-      progressCallback(30, 'Translating to English...');
-      const englishResult =
+      progressCallback(30, 'Translating to Hungarian...');
+      const hungarianResult =
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
             fetchJson<SentenceTranslationResponse>(
               this.http,
-              `/api/translate-sentence/en?model=${model}`,
+              `/api/translate-sentence/hu?model=${model}`,
               {
                 body: { sentence },
                 method: 'POST',
@@ -132,11 +132,11 @@ export class GrammarCardType implements CardTypeStrategy {
         examples: [
           {
             de: sentence,
-            en: englishResult.response.translation,
+            hu: hungarianResult.response.translation,
             isSelected: true,
           },
         ],
-        translationModel: englishResult.model,
+        translationModel: hungarianResult.model,
         extractionModel: cardData.extractionModel,
         ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
         ...(cardData.hint ? { hint: cardData.hint } : {}),

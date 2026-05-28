@@ -37,6 +37,8 @@ export class LearnGrammarCardComponent {
 
   readonly sentence = computed(() => this.selectedExample()?.de ?? '');
 
+  readonly hungarianTranslation = computed(() => this.selectedExample()?.hu);
+
   readonly hint = computed(() => this.card()?.value()?.data.hint);
 
   readonly audioSentence = computed(() => {
