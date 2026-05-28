@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import {
   GrammarTopicsService,
@@ -38,6 +39,7 @@ import { EditGrammarTopicDialogComponent } from './edit-grammar-topic-dialog/edi
 export class GrammarTopicsComponent {
   private readonly service = inject(GrammarTopicsService);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly topics = this.service.topics;
   readonly formModel = signal({ name: '' });
@@ -75,6 +77,10 @@ export class GrammarTopicsComponent {
     this.editingTopicId.set(topic.id);
     try {
       await this.service.updateTopic(topic.id, { name: result.name });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to update topic';
+      this.snackBar.open(message, 'Dismiss', { duration: 5000 });
     } finally {
       this.editingTopicId.set(null);
     }

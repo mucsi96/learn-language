@@ -1,5 +1,4 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { form, FormField } from '@angular/forms/signals';
 import {
   MAT_DIALOG_DATA,
@@ -19,7 +18,6 @@ interface DialogData {
   selector: 'app-edit-grammar-topic-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormField,
     MatDialogModule,
     MatButtonModule,
