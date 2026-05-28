@@ -1220,8 +1220,6 @@ test('speech card grading functionality', async ({ page }) => {
 
 test('grammar card study shows sentence with gaps on front, full sentence on reveal', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-test-card',
     sourceId: 'grammar-a1',
@@ -1230,9 +1228,8 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
       examples: [
         {
           de: 'Ich gehe [jeden] Tag in die Schule.',
-          en: 'I go to school every day.',
+          hu: 'Minden nap iskolába megyek.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
       audio: [{ id: 'test-audio', text: 'Ich gehe jeden Tag in die Schule.', language: 'de' }],
@@ -1245,17 +1242,17 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
   await expect(flashcard.locator('.gap-word.masked')).toHaveText('jeden');
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveCount(0);
 
   await flashcard.getByText('Ich gehe').click();
 
   await expect(flashcard.locator('.gap-word.highlighted')).toBeVisible();
   await expect(flashcard.locator('.gap-word.highlighted')).toHaveText('jeden');
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Minden nap iskolába megyek.');
 });
 
 test('grammar card study shows German hint on front when present', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-hint-card',
     sourceId: 'grammar-a1',
@@ -1265,9 +1262,8 @@ test('grammar card study shows German hint on front when present', async ({ page
       examples: [
         {
           de: 'Heute [bin] ich müde.',
-          en: 'Today I am tired.',
+          hu: 'Ma fáradt vagyok.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
       audio: [{ id: 'hint-audio', text: 'Heute bin ich müde.', language: 'de' }],
@@ -1287,8 +1283,6 @@ test('grammar card study shows German hint on front when present', async ({ page
 
 test('grammar card study omits hint element when card has no hint', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  const image1 = uploadMockImage(yellowImage);
   await createCard({
     cardId: 'grammar-no-hint-card',
     sourceId: 'grammar-a1',
@@ -1297,9 +1291,8 @@ test('grammar card study omits hint element when card has no hint', async ({ pag
       examples: [
         {
           de: 'Der Hund läuft durch den [Park].',
-          en: 'The dog runs through the park.',
+          hu: 'A kutya átfut a parkon.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
       audio: [{ id: 'no-hint-audio', text: 'Der Hund läuft durch den Park.', language: 'de' }],
@@ -1316,8 +1309,6 @@ test('grammar card study omits hint element when card has no hint', async ({ pag
 
 test('grammar card grading functionality', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  const image1 = uploadMockImage(greenImage);
   await createCard({
     cardId: 'grammar-grade-card',
     sourceId: 'grammar-a1',
@@ -1326,9 +1317,8 @@ test('grammar card grading functionality', async ({ page }) => {
       examples: [
         {
           de: 'Er [trinkt] jeden Morgen Kaffee.',
-          en: 'He drinks coffee every morning.',
+          hu: 'Minden reggel kávét iszik.',
           isSelected: true,
-          images: [{ id: image1, isFavorite: true }],
         },
       ],
     },

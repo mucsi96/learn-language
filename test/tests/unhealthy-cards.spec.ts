@@ -149,3 +149,53 @@ test('unhealthy filter does not show healthy cards', async ({ page }) => {
     expect(rows).toHaveLength(0);
   }).toPass();
 });
+
+test('unhealthy filter shows grammar cards missing hungarian translation', async ({ page }) => {
+  await createCard({
+    cardId: 'grammar-missing-hu',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 1,
+    data: {
+      examples: [
+        {
+          de: 'Das [ist] ein Test.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/cards?filter=unhealthy');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]['ID']).toBe('grammar-missing-hu');
+  }).toPass();
+});
+
+test('unhealthy filter does not show grammar cards with hungarian translation', async ({ page }) => {
+  await createCard({
+    cardId: 'grammar-healthy',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 1,
+    data: {
+      examples: [
+        {
+          de: 'Das [ist] ein Test.',
+          hu: 'Ez egy teszt.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/cards?filter=unhealthy');
+
+  const grid = page.getByRole('grid');
+  await expect(async () => {
+    const rows = await getGridData(grid);
+    expect(rows).toHaveLength(0);
+  }).toPass();
+});

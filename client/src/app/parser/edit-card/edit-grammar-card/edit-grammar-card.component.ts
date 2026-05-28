@@ -46,7 +46,7 @@ export class EditGrammarCardComponent {
 
   readonly formModel = linkedSignal(() => ({
     sentence: this.card()?.data.examples?.[0]?.de ?? '',
-    englishTranslation: this.card()?.data.examples?.[0]?.en ?? '',
+    hungarianTranslation: this.card()?.data.examples?.[0]?.hu ?? '',
     hint: this.card()?.data.hint ?? '',
   }));
   readonly grammarForm = form(this.formModel);
@@ -144,7 +144,7 @@ export class EditGrammarCardComponent {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const cardId = this.selectedCardId();
-    const { sentence, englishTranslation, hint } = this.formModel();
+    const { sentence, hungarianTranslation, hint } = this.formModel();
 
     if (!cardId || !sentence || !sourceId || !pageNumber) {
       return;
@@ -156,7 +156,7 @@ export class EditGrammarCardComponent {
       examples: [
         {
           de: sentence,
-          en: englishTranslation,
+          hu: hungarianTranslation,
           isSelected: true,
         },
       ],

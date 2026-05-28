@@ -858,7 +858,8 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     expect(card1?.source_page_number).toBe(1);
     expect(card1?.state).toBe('NEW');
     expect(card1?.readiness).toBe('IN_REVIEW');
-    expect(card1?.data.examples[0].en).toBe('This is Paco.');
+    expect(card1?.data.examples[0].hu).toBe('Ez Paco.');
+    expect(card1?.data.examples[0].en).toBeUndefined();
     expect(card1?.data.examples[0].de).toContain('[ist]');
     expect(card1?.data.grammarTopic).toBe('Verbs');
 
@@ -868,6 +869,8 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
     const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Und [das] ist Frau Wachter.');
     expect(card2).toBeDefined();
     expect(card2?.data.examples[0].de).toContain('[das]');
+    expect(card2?.data.examples[0].hu).toBe('És ez Wachter asszony.');
+    expect(card2?.data.examples[0].en).toBeUndefined();
     expect(card2?.data.grammarTopic).toBe('Verbs');
     expect(card2?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card2?.data.extractionModel).toBe('gemini-3.1-pro-preview');
