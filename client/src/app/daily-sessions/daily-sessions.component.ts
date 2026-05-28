@@ -3,7 +3,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { StudySessionService } from '../study-session.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 
@@ -32,7 +31,9 @@ export class DailySessionsComponent {
       },
     });
 
-    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    const confirmed = await new Promise<boolean>((resolve) => {
+      dialogRef.afterClosed().subscribe((result) => resolve(!!result));
+    });
     if (!confirmed) {
       return;
     }

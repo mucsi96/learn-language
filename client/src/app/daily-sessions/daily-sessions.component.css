@@ -5,7 +5,5 @@
 }
 
 .cleanup-button {
-  background-color: var(--mat-sys-error);
-  color: var(--mat-sys-on-error);
   margin-top: 16px;
 }
