@@ -62,6 +62,7 @@
               <button
                 mat-icon-button
                 (click)="editTopic(topic)"
+                [disabled]="editingTopicId() === topic.id"
                 matTooltip="Edit topic"
                 [attr.aria-label]="'Edit ' + topic.name"
               >

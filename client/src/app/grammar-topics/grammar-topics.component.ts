@@ -43,6 +43,7 @@ export class GrammarTopicsComponent {
   readonly formModel = signal({ name: '' });
   readonly topicForm = form(this.formModel);
   readonly isAdding = signal(false);
+  readonly editingTopicId = signal<number | null>(null);
 
   readonly topicsList = computed(() => this.topics.value() ?? []);
 
@@ -62,13 +63,20 @@ export class GrammarTopicsComponent {
   }
 
   async editTopic(topic: GrammarTopic): Promise<void> {
+    if (this.editingTopicId() !== null) return;
+
     const dialogRef = this.dialog.open(EditGrammarTopicDialogComponent, {
       data: { topic },
     });
 
     const result = await firstValueFrom(dialogRef.afterClosed());
-    if (result?.name) {
+    if (!result?.name) return;
+
+    this.editingTopicId.set(topic.id);
+    try {
       await this.service.updateTopic(topic.id, { name: result.name });
+    } finally {
+      this.editingTopicId.set(null);
     }
   }
 

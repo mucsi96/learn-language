@@ -40,7 +40,7 @@ export class EditGrammarTopicDialogComponent {
 
   readonly isValid = computed(() => {
     const name = this.formModel().name.trim();
-    return name.length > 0 && name !== this.data.topic.name;
+    return name.length > 0 && name !== this.data.topic.name.trim();
   });
 
   save(): void {
