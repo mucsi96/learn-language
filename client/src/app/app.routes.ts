@@ -77,6 +77,12 @@ export const routes: Routes = [
           import('./api-tokens/api-tokens.component').then((m) => m.ApiTokensComponent),
         title: 'API Tokens',
       },
+      {
+        path: 'daily-sessions',
+        loadComponent: () =>
+          import('./daily-sessions/daily-sessions.component').then((m) => m.DailySessionsComponent),
+        title: 'Daily Sessions',
+      },
     ],
   },
   {

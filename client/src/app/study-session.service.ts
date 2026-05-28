@@ -122,4 +122,11 @@ export class StudySessionService {
     this.hasSession.set(false);
     this.hasExistingSession.set(false);
   }
+
+  async deleteAllSessions(): Promise<void> {
+    await fetchJson(this.http, '/api/study-sessions', { method: 'DELETE' });
+    this.clearSession();
+    this.dueCardsService.refetchDueCounts();
+    this.sourcesService.refetchSources();
+  }
 }

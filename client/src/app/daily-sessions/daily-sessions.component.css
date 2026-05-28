@@ -1,0 +1,11 @@
+.daily-sessions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cleanup-button {
+  background-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+  margin-top: 16px;
+}
