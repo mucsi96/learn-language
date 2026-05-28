@@ -15,6 +15,7 @@ import {
   GrammarTopic,
 } from './grammar-topics.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
+import { EditGrammarTopicDialogComponent } from './edit-grammar-topic-dialog/edit-grammar-topic-dialog.component';
 
 @Component({
   selector: 'app-grammar-topics',
@@ -57,6 +58,17 @@ export class GrammarTopicsComponent {
       this.formModel.set({ name: '' });
     } finally {
       this.isAdding.set(false);
+    }
+  }
+
+  async editTopic(topic: GrammarTopic): Promise<void> {
+    const dialogRef = this.dialog.open(EditGrammarTopicDialogComponent, {
+      data: { topic },
+    });
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result?.name) {
+      await this.service.updateTopic(topic.id, { name: result.name });
     }
   }
 

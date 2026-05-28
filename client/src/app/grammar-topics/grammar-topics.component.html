@@ -61,6 +61,14 @@
             <div matListItemMeta class="topic-actions">
               <button
                 mat-icon-button
+                (click)="editTopic(topic)"
+                matTooltip="Edit topic"
+                [attr.aria-label]="'Edit ' + topic.name"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
                 (click)="deleteTopic(topic)"
                 matTooltip="Delete topic"
                 [attr.aria-label]="'Delete ' + topic.name"
