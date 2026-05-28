@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Edit Grammar Topic</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="topic-name-field">
+    <mat-label>Topic name</mat-label>
+    <input
+      matInput
+      [formField]="topicForm.name"
+      (keydown.enter)="save()"
+    />
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="save()"
+    [disabled]="!isValid()"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

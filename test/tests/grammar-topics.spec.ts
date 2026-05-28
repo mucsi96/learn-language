@@ -36,6 +36,27 @@ test('can add multiple grammar topics', async ({ page }) => {
   expect(topics.length).toBe(2);
 });
 
+test('can edit a grammar topic', async ({ page }) => {
+  await createGrammarTopic({ name: 'Akkusativ' });
+
+  await page.goto('/settings/grammar-topics');
+
+  await expect(page.getByText('Akkusativ')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Edit Akkusativ' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Edit Grammar Topic' });
+  await dialog.getByRole('textbox', { name: 'Topic name' }).fill('Dativ');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+
+  await expect(page.getByText('Dativ')).toBeVisible();
+  await expect(page.getByText('Akkusativ')).not.toBeVisible();
+
+  const topics = await getGrammarTopics();
+  expect(topics.length).toBe(1);
+  expect(topics[0].name).toBe('Dativ');
+});
+
 test('can delete a grammar topic', async ({ page }) => {
   await createGrammarTopic({ name: 'Akkusativ' });
 
