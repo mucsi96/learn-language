@@ -15,6 +15,7 @@ import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceCardStatsProjection;
+import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
@@ -27,15 +28,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +65,8 @@ public class CardService {
   private final CardViewRepository cardViewRepository;
   private final ReviewLogRepository reviewLogRepository;
   private final StudySessionRepository studySessionRepository;
+  private final SourceRepository sourceRepository;
+  private final StudySessionService studySessionService;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
   private final FileStorageService fileStorageService;
 
@@ -85,47 +87,36 @@ public class CardService {
       LocalDateTime startOfNextDay) {
     final List<StudySession> activeSessions = studySessionRepository.findAll(createdOnOrAfter(startOfDay));
 
-    final List<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
-        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId())
-            .stream()
-            .flatMap(loaded -> loaded.getCards().stream()
+    final Stream<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
+        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()).stream())
+        .flatMap(loaded -> groupCountsByState(
+            loaded.getSource().getId(),
+            loaded.getCards().stream()
                 .map(StudySessionCard::getCard)
                 .filter(Card::isReady)
-                .filter(card -> card.getDue().isBefore(startOfNextDay))
-                .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
-                .entrySet().stream()
-                .map(entry -> SourceDueCardCountResponse.builder()
-                    .sourceId(loaded.getSource().getId())
-                    .state(entry.getKey())
-                    .count(entry.getValue())
-                    .build())))
-        .toList();
+                .filter(card -> card.getDue().isBefore(startOfNextDay))));
 
-    final List<String> sessionSourceIds = activeSessions.stream()
+    final Set<String> sessionSourceIds = activeSessions.stream()
         .map(session -> session.getSource().getId())
-        .toList();
+        .collect(Collectors.toSet());
 
-    final Instant startOfNextDayUtc = startOfNextDay.toInstant(ZoneOffset.UTC);
+    final Stream<SourceDueCardCountResponse> nonSessionCounts = sourceRepository.findAll().stream()
+        .filter(source -> !sessionSourceIds.contains(source.getId()))
+        .flatMap(source -> groupCountsByState(
+            source.getId(),
+            studySessionService.resolveSessionDueCards(source, startOfNextDay).stream()));
 
-    final List<SourceDueCardCountResponse> nonSessionCounts = sessionSourceIds.isEmpty()
-        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId(startOfNextDayUtc).stream()
-            .map(row -> SourceDueCardCountResponse.builder()
-                .sourceId(row.getSourceId())
-                .state(row.getState())
-                .count(row.getCount())
-                .build())
-            .toList()
-        : cardRepository
-            .findTop50MostDueGroupedByStateAndSourceIdExcludingSources(startOfNextDayUtc, sessionSourceIds)
-            .stream()
-            .map(row -> SourceDueCardCountResponse.builder()
-                .sourceId(row.getSourceId())
-                .state(row.getState())
-                .count(row.getCount())
-                .build())
-            .toList();
+    return Stream.concat(sessionCounts, nonSessionCounts).toList();
+  }
 
-    return Stream.concat(sessionCounts.stream(), nonSessionCounts.stream()).toList();
+  private Stream<SourceDueCardCountResponse> groupCountsByState(String sourceId, Stream<Card> cards) {
+    return cards.collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
+        .entrySet().stream()
+        .map(entry -> SourceDueCardCountResponse.builder()
+            .sourceId(sourceId)
+            .state(entry.getKey())
+            .count(entry.getValue())
+            .build());
   }
 
   public List<Card> getCardsByReadiness(CardReadiness readiness) {

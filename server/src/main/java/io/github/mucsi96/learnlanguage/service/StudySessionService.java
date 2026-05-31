@@ -78,15 +78,7 @@ public class StudySessionService {
                     .build();
         }
 
-        final List<Card> allDueCards = source.getCardLimit() != null
-                ? cardRepository.findAll(
-                        Specification.where(isDueForSource(sourceId, startOfNextDay)),
-                        PageRequest.of(0, source.getCardLimit(), Sort.by("due"))).getContent()
-                : cardRepository.findAll(
-                        Specification.where(isDueForSource(sourceId, startOfNextDay)), Sort.by("due"));
-        final List<Card> dueCards = source.getNewCardLimit() != null
-                ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
-                : allDueCards;
+        final List<Card> dueCards = resolveSessionDueCards(source, startOfNextDay);
         final Optional<LearningPartner> activePartner = Optional.ofNullable(source.getLearningPartner());
 
         final String sessionId = UUID.randomUUID().toString();
@@ -185,6 +177,19 @@ public class StudySessionService {
                             .build();
                 })
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Card> resolveSessionDueCards(Source source, LocalDateTime startOfNextDay) {
+        final List<Card> allDueCards = source.getCardLimit() != null
+                ? cardRepository.findAll(
+                        Specification.where(isDueForSource(source.getId(), startOfNextDay)),
+                        PageRequest.of(0, source.getCardLimit(), Sort.by("due"))).getContent()
+                : cardRepository.findAll(
+                        Specification.where(isDueForSource(source.getId(), startOfNextDay)), Sort.by("due"));
+        return source.getNewCardLimit() != null
+                ? applyNewCardLimit(allDueCards, source.getNewCardLimit())
+                : allDueCards;
     }
 
     private List<Card> applyNewCardLimit(List<Card> cards, int newCardLimit) {
