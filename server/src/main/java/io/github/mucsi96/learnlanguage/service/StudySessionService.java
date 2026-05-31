@@ -179,8 +179,7 @@ public class StudySessionService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<Card> resolveSessionDueCards(Source source, LocalDateTime startOfNextDay) {
+    private List<Card> resolveSessionDueCards(Source source, LocalDateTime startOfNextDay) {
         final List<Card> allDueCards = source.getCardLimit() != null
                 ? cardRepository.findAll(
                         Specification.where(isDueForSource(source.getId(), startOfNextDay)),

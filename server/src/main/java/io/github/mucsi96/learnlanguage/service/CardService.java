@@ -15,7 +15,6 @@ import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.CardViewRepository;
 import io.github.mucsi96.learnlanguage.repository.ReviewLogRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceCardStatsProjection;
-import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import io.github.mucsi96.learnlanguage.repository.StudySessionRepository;
 import io.github.mucsi96.learnlanguage.service.cardtype.CardTypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
@@ -65,8 +64,6 @@ public class CardService {
   private final CardViewRepository cardViewRepository;
   private final ReviewLogRepository reviewLogRepository;
   private final StudySessionRepository studySessionRepository;
-  private final SourceRepository sourceRepository;
-  private final StudySessionService studySessionService;
   private final CardTypeStrategyFactory cardTypeStrategyFactory;
   private final FileStorageService fileStorageService;
 
@@ -87,31 +84,34 @@ public class CardService {
       LocalDateTime startOfNextDay) {
     final List<StudySession> activeSessions = studySessionRepository.findAll(createdOnOrAfter(startOfDay));
 
-    final Stream<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
-        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()).stream())
-        .flatMap(loaded -> groupCountsByState(
-            loaded.getSource().getId(),
-            loaded.getCards().stream()
-                .map(StudySessionCard::getCard)
-                .filter(Card::isReady)
-                .filter(card -> card.getDue().isBefore(startOfNextDay))));
-
     final Set<String> sessionSourceIds = activeSessions.stream()
         .map(session -> session.getSource().getId())
         .collect(Collectors.toSet());
 
-    final Stream<SourceDueCardCountResponse> nonSessionCounts = sourceRepository.findAll().stream()
-        .filter(source -> !sessionSourceIds.contains(source.getId()))
-        .flatMap(source -> groupCountsByState(
-            source.getId(),
-            studySessionService.resolveSessionDueCards(source, startOfNextDay).stream()));
+    final Stream<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
+        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()).stream())
+        .flatMap(loaded -> buildCountResponses(
+            loaded.getSource().getId(),
+            loaded.getCards().stream()
+                .map(StudySessionCard::getCard)
+                .filter(Card::isReady)
+                .filter(card -> card.getDue().isBefore(startOfNextDay))
+                .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))));
+
+    final Stream<SourceDueCardCountResponse> nonSessionCounts = cardRepository
+        .findDueCardCountsGroupedByStateAndSource(startOfNextDay).stream()
+        .filter(row -> !sessionSourceIds.contains(row.getSourceId()))
+        .map(row -> SourceDueCardCountResponse.builder()
+            .sourceId(row.getSourceId())
+            .state(row.getState())
+            .count(row.getCount())
+            .build());
 
     return Stream.concat(sessionCounts, nonSessionCounts).toList();
   }
 
-  private Stream<SourceDueCardCountResponse> groupCountsByState(String sourceId, Stream<Card> cards) {
-    return cards.collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
-        .entrySet().stream()
+  private Stream<SourceDueCardCountResponse> buildCountResponses(String sourceId, Map<String, Long> countsByState) {
+    return countsByState.entrySet().stream()
         .map(entry -> SourceDueCardCountResponse.builder()
             .sourceId(sourceId)
             .state(entry.getKey())
