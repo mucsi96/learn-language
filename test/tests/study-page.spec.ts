@@ -1400,6 +1400,61 @@ test('grammar card shows hint above the sentence', async ({ page }) => {
   expect(hintBox!.y).toBeLessThan(sentenceBox!.y);
 });
 
+test('grammar card shows grammar topic name on both sides', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-topic-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 9,
+    data: {
+      grammarTopic: 'Präsens',
+      examples: [
+        {
+          de: 'Ich [gehe] nach Hause.',
+          hu: 'Hazamegyek.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'topic-audio', text: 'Ich gehe nach Hause.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Präsens');
+
+  await flashcard.getByText('Ich').click();
+
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Präsens');
+});
+
+test('grammar card without grammar topic hides the topic chip', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'no-topic-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 10,
+    data: {
+      examples: [
+        {
+          de: 'Wir [lernen] Deutsch.',
+          hu: 'Németül tanulunk.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'no-topic-audio', text: 'Wir lernen Deutsch.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveCount(0);
+});
+
 test('Enter key reveals and unreveals card', async ({ page }) => {
   await createCard({
     cardId: 'keyboard-reveal-test',

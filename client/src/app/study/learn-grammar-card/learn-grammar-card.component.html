@@ -1,4 +1,7 @@
 <div class="content-section">
+  @if (grammarTopic(); as topic) {
+    <div class="grammar-topic-chip" aria-label="Grammar topic">{{ topic }}</div>
+  }
   <div class="chips-corner">
     @let state = card()?.value()?.state; @if (state !== undefined) {
     <app-state [state]="state" />
