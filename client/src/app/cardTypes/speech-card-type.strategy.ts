@@ -194,6 +194,10 @@ export class SpeechCardType implements CardTypeStrategy {
     return undefined;
   }
 
+  getGrammarTopic(card: Card): string | undefined {
+    return card.data.grammarTopic;
+  }
+
   getAudioItems(card: Card): AudioGenerationItem[] {
     const example = card.data.examples?.[0];
     return [

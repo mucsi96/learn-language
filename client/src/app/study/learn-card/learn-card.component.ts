@@ -92,6 +92,14 @@ export class LearnCardComponent implements OnDestroy {
     return strategy.getLanguageTexts(card);
   });
 
+  readonly grammarTopic = computed<string | undefined>(() => {
+    const card = this.card();
+    const cardType = this.currentCardType();
+    if (!card || !cardType) return undefined;
+    const strategy = this.cardTypeRegistry.getStrategy(cardType);
+    return strategy.getGrammarTopic(card);
+  });
+
   readonly currentTurn = this.studySessionService.currentTurn;
   private readonly cardShownAt = signal<number | null>(null);
   readonly reviewDuration = signal<number | null>(null);

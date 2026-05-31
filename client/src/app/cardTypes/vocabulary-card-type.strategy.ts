@@ -292,6 +292,10 @@ export class VocabularyCardType implements CardTypeStrategy {
     return genderInfo?.translation;
   }
 
+  getGrammarTopic(card: Card): string | undefined {
+    return card.data.grammarTopic;
+  }
+
   getAudioItems(card: Card): AudioGenerationItem[] {
     const selectedExample = card.data.examples?.find(example => example.isSelected);
 

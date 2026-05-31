@@ -1400,6 +1400,122 @@ test('grammar card shows hint above the sentence', async ({ page }) => {
   expect(hintBox!.y).toBeLessThan(sentenceBox!.y);
 });
 
+test('grammar card shows grammar topic name on both sides', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-topic-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 9,
+    data: {
+      grammarTopic: 'Präsens',
+      examples: [
+        {
+          de: 'Ich [gehe] nach Hause.',
+          hu: 'Hazamegyek.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'topic-audio', text: 'Ich gehe nach Hause.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Präsens');
+
+  await flashcard.getByText('Ich').click();
+
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Präsens');
+});
+
+test('vocabulary card shows grammar topic name on both sides', async ({ page }) => {
+  await createCard({
+    cardId: 'vocab-topic-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 80,
+    data: {
+      word: 'gehen',
+      type: 'VERB',
+      grammarTopic: 'Verbs',
+      translation: { en: 'to go', hu: 'menni', ch: 'gah' },
+      examples: [
+        {
+          de: 'Ich gehe.',
+          hu: 'Megyek.',
+          en: 'I go.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Verbs');
+
+  await flashcard.getByRole('heading', { name: 'menni' }).click();
+
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Verbs');
+});
+
+test('speech card shows grammar topic name on both sides', async ({ page }) => {
+  await createCard({
+    cardId: 'speech-topic-card',
+    sourceId: 'speech-a1',
+    sourcePageNumber: 4,
+    data: {
+      grammarTopic: 'Wetter',
+      examples: [
+        {
+          de: 'Heute ist es sonnig.',
+          hu: 'Ma napos az idő.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'speech-topic-audio', text: 'Heute ist es sonnig.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Wetter');
+
+  await flashcard.getByText('Ma napos az idő.').click();
+
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveText('Wetter');
+});
+
+test('card without grammar topic hides the topic chip', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'no-topic-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 10,
+    data: {
+      examples: [
+        {
+          de: 'Wir [lernen] Deutsch.',
+          hu: 'Németül tanulunk.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'no-topic-audio', text: 'Wir lernen Deutsch.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Grammar topic')).toHaveCount(0);
+});
+
 test('Enter key reveals and unreveals card', async ({ page }) => {
   await createCard({
     cardId: 'keyboard-reveal-test',
