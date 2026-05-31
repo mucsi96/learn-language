@@ -22,24 +22,6 @@
   transform: scale(0.98);
 }
 
-.grammar-topic-chip {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 10;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  background-color: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.2;
-  max-width: calc(100% - 1.5rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .start-state {
   display: flex;
   flex-direction: column;

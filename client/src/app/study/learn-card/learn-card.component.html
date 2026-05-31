@@ -61,9 +61,6 @@
     [class.revealed]="isRevealed()"
     (click)="toggleReveal()"
   >
-    @if (grammarTopic(); as topic) {
-      <div class="grammar-topic-chip" aria-label="Grammar topic">{{ topic }}</div>
-    }
     @switch (currentCardType()) {
       @case ('vocabulary') {
         <app-learn-vocabulary-card

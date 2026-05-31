@@ -220,7 +220,6 @@ export type CardTypeStrategy = {
   getCardDisplayLabel(card: Card): string;
   getCardTypeLabel(card: Card): string;
   getCardAdditionalInfo(card: Card): string | undefined;
-  getGrammarTopic(card: Card): string | undefined;
   getAudioItems(card: Card): AudioGenerationItem[];
   getLanguageTexts(card: Card): LanguageTexts[];
 };
