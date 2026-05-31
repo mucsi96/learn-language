@@ -27,15 +27,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,47 +84,39 @@ public class CardService {
       LocalDateTime startOfNextDay) {
     final List<StudySession> activeSessions = studySessionRepository.findAll(createdOnOrAfter(startOfDay));
 
-    final List<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
-        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId())
-            .stream()
-            .flatMap(loaded -> loaded.getCards().stream()
+    final Set<String> sessionSourceIds = activeSessions.stream()
+        .map(session -> session.getSource().getId())
+        .collect(Collectors.toSet());
+
+    final Stream<SourceDueCardCountResponse> sessionCounts = activeSessions.stream()
+        .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()).stream())
+        .flatMap(loaded -> buildCountResponses(
+            loaded.getSource().getId(),
+            loaded.getCards().stream()
                 .map(StudySessionCard::getCard)
                 .filter(Card::isReady)
                 .filter(card -> card.getDue().isBefore(startOfNextDay))
-                .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))
-                .entrySet().stream()
-                .map(entry -> SourceDueCardCountResponse.builder()
-                    .sourceId(loaded.getSource().getId())
-                    .state(entry.getKey())
-                    .count(entry.getValue())
-                    .build())))
-        .toList();
+                .collect(Collectors.groupingBy(Card::getState, Collectors.counting()))));
 
-    final List<String> sessionSourceIds = activeSessions.stream()
-        .map(session -> session.getSource().getId())
-        .toList();
+    final Stream<SourceDueCardCountResponse> nonSessionCounts = cardRepository
+        .findDueCardCountsGroupedByStateAndSource(startOfNextDay).stream()
+        .filter(row -> !sessionSourceIds.contains(row.getSourceId()))
+        .map(row -> SourceDueCardCountResponse.builder()
+            .sourceId(row.getSourceId())
+            .state(row.getState())
+            .count(row.getCount())
+            .build());
 
-    final Instant startOfNextDayUtc = startOfNextDay.toInstant(ZoneOffset.UTC);
+    return Stream.concat(sessionCounts, nonSessionCounts).toList();
+  }
 
-    final List<SourceDueCardCountResponse> nonSessionCounts = sessionSourceIds.isEmpty()
-        ? cardRepository.findTop50MostDueGroupedByStateAndSourceId(startOfNextDayUtc).stream()
-            .map(row -> SourceDueCardCountResponse.builder()
-                .sourceId(row.getSourceId())
-                .state(row.getState())
-                .count(row.getCount())
-                .build())
-            .toList()
-        : cardRepository
-            .findTop50MostDueGroupedByStateAndSourceIdExcludingSources(startOfNextDayUtc, sessionSourceIds)
-            .stream()
-            .map(row -> SourceDueCardCountResponse.builder()
-                .sourceId(row.getSourceId())
-                .state(row.getState())
-                .count(row.getCount())
-                .build())
-            .toList();
-
-    return Stream.concat(sessionCounts.stream(), nonSessionCounts.stream()).toList();
+  private Stream<SourceDueCardCountResponse> buildCountResponses(String sourceId, Map<String, Long> countsByState) {
+    return countsByState.entrySet().stream()
+        .map(entry -> SourceDueCardCountResponse.builder()
+            .sourceId(sourceId)
+            .state(entry.getKey())
+            .count(entry.getValue())
+            .build());
   }
 
   public List<Card> getCardsByReadiness(CardReadiness readiness) {

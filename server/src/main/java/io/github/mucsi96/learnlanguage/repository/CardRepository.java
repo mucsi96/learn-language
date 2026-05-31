@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -30,33 +30,34 @@ public interface CardRepository
     List<Card> findByFlaggedTrueOrderByDueAsc();
 
     @Query(value = """
+        WITH ranked_cards AS (
+            SELECT c.source_id, c.state, c.due,
+                   ROW_NUMBER() OVER (PARTITION BY c.source_id ORDER BY c.due ASC) AS due_row_num,
+                   s.card_limit,
+                   s.new_card_limit
+            FROM learn_language.cards c
+            JOIN learn_language.sources s ON c.source_id = s.id
+            WHERE c.readiness = 'READY' AND c.due < :startOfNextDay
+        ),
+        within_card_limit AS (
+            SELECT source_id, state, due, new_card_limit
+            FROM ranked_cards
+            WHERE card_limit IS NULL OR due_row_num <= card_limit
+        ),
+        state_ranked AS (
+            SELECT source_id, state, new_card_limit,
+                   ROW_NUMBER() OVER (PARTITION BY source_id, state ORDER BY due ASC) AS state_row_num
+            FROM within_card_limit
+        )
         SELECT source_id AS sourceId, state AS state, COUNT(*) AS count
-        FROM (
-            SELECT source_id, state,
-                   ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
-            FROM learn_language.cards
-            WHERE readiness = 'READY' AND due AT TIME ZONE 'UTC' < :startOfNextDayUtc
-        ) AS ranked
-        WHERE row_num <= 50
+        FROM state_ranked
+        WHERE new_card_limit IS NULL
+           OR state <> 'NEW'
+           OR state_row_num <= new_card_limit
         GROUP BY source_id, state
         """, nativeQuery = true)
-    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceId(@Param("startOfNextDayUtc") Instant startOfNextDayUtc);
-
-    @Query(value = """
-        SELECT source_id AS sourceId, state AS state, COUNT(*) AS count
-        FROM (
-            SELECT source_id, state,
-                   ROW_NUMBER() OVER (PARTITION BY source_id ORDER BY due ASC) AS row_num
-            FROM learn_language.cards
-            WHERE readiness = 'READY' AND due AT TIME ZONE 'UTC' < :startOfNextDayUtc
-                  AND source_id NOT IN (:excludedSourceIds)
-        ) AS ranked
-        WHERE row_num <= 50
-        GROUP BY source_id, state
-        """, nativeQuery = true)
-    List<SourceStateCountProjection> findTop50MostDueGroupedByStateAndSourceIdExcludingSources(
-            @Param("startOfNextDayUtc") Instant startOfNextDayUtc,
-            @Param("excludedSourceIds") List<String> excludedSourceIds);
+    List<SourceStateCountProjection> findDueCardCountsGroupedByStateAndSource(
+            @Param("startOfNextDay") LocalDateTime startOfNextDay);
 
     @Query(value = """
         SELECT c.source_id AS sourceId, c.readiness AS readiness, c.state AS state,
