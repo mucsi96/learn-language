@@ -1307,6 +1307,35 @@ test('grammar card study omits hint element when card has no hint', async ({ pag
   await expect(flashcard.getByLabel('Hint')).toHaveCount(0);
 });
 
+test('grammar card shows an instruction explaining the exercise', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-instruction-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 8,
+    data: {
+      examples: [
+        {
+          de: 'Ich [bin] müde.',
+          hu: 'Fáradt vagyok.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'instruction-audio', text: 'Ich bin müde.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Instruction')).toHaveText('Fill in the missing words.');
+
+  const instructionBox = await flashcard.getByLabel('Instruction').boundingBox();
+  const sentenceBox = await flashcard.locator('.gap-word.masked').boundingBox();
+  expect(instructionBox!.y).toBeLessThan(sentenceBox!.y);
+});
+
 test('grammar card grading functionality', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createCard({
