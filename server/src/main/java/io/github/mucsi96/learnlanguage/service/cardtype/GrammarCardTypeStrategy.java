@@ -6,10 +6,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Component
 public class GrammarCardTypeStrategy implements CardTypeStrategy {
+
+    private static final Pattern GRAMMAR_GAP_PATTERN = Pattern.compile("\\[([^\\]]+)\\]");
 
     @Override
     public String getPrimaryText(CardData cardData) {
@@ -27,8 +30,13 @@ public class GrammarCardTypeStrategy implements CardTypeStrategy {
         return Stream.of(
                 example.map(ExampleData::getDe)
                         .filter(this::hasText)
+                        .map(this::stripGapBrackets)
                         .map(de -> new AudioTextItem(de, "de", false))
         ).flatMap(Optional::stream).toList();
+    }
+
+    private String stripGapBrackets(String sentence) {
+        return GRAMMAR_GAP_PATTERN.matcher(sentence).replaceAll("$1");
     }
 
     private Optional<ExampleData> getFirstExample(CardData cardData) {
