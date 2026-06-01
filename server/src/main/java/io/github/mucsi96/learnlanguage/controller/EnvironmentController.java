@@ -46,6 +46,12 @@ public class EnvironmentController {
   @Value("${MOCK_OAUTH2_SERVER_URI:}")
   private String mockOAuth2ServerUri;
 
+  @Value("${client-log-url:}")
+  private String clientLogUrl;
+
+  @Value("${client-app-name:}")
+  private String clientAppName;
+
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
       new SupportedLanguage("de", "German"),
       new SupportedLanguage("hu", "Hungarian")
@@ -78,6 +84,8 @@ public class EnvironmentController {
         uiClientId,
         clientId,
         mockOAuth2ServerUri,
+        clientLogUrl,
+        clientAppName,
         rateLimitSettingService.getImageRateLimitPerMinute(),
         rateLimitSettingService.getAudioRateLimitPerMinute(),
         rateLimitSettingService.getImageMaxConcurrentRequests(),
@@ -123,6 +131,8 @@ public class EnvironmentController {
       String clientId,
       String apiClientId,
       String mockOAuth2ServerUri,
+      String clientLogUrl,
+      String clientAppName,
       int imageRateLimitPerMinute,
       int audioRateLimitPerMinute,
       int imageMaxConcurrentRequests,
