@@ -6,6 +6,8 @@ set -e  # Exit immediately if a command exits with a non-zero status
 : "${DOCKERHUB_USERNAME:?Environment variable DOCKERHUB_USERNAME is required}"
 
 AZURE_KEYVAULT_ENDPOINT="https://${AZURE_KEYVAULT_NAME}.vault.azure.net/"
+SERVER_RELEASE_NAME=learn-language-server
+CLIENT_RELEASE_NAME=learn-language-client
 
 # Create a temporary file in /dev/shm (RAM) to avoid writing to disk
 KUBECONFIG=$(mktemp /dev/shm/kubeconfig.XXXXXX)
@@ -31,7 +33,7 @@ clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -
 
 echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
 
-helm upgrade learn-language-server mucsi96/spring-app \
+helm upgrade $SERVER_RELEASE_NAME mucsi96/spring-app \
     --install \
     --version $springAppChartVersion \
     --set image=$DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag \
@@ -41,6 +43,7 @@ helm upgrade learn-language-server mucsi96/spring-app \
     --set clientId=$API_CLIENT_ID \
     --set serviceAccountName=learn-language-api-workload-identity \
     --set env.AZURE_KEYVAULT_ENDPOINT=$AZURE_KEYVAULT_ENDPOINT \
+    --set env.CLIENT_APP_NAME=$CLIENT_RELEASE_NAME \
     --set env.STORAGE_DIRECTORY=/app/storage \
     --set persistentVolumeClaims[0].name=learn-language-pvc \
     --set persistentVolumeClaims[0].accessMode=ReadWriteOnce \
@@ -56,7 +59,7 @@ helm upgrade learn-language-server mucsi96/spring-app \
 
 echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag using client-app chart $clientAppChartVersion"
 
-helm upgrade learn-language-client mucsi96/client-app \
+helm upgrade $CLIENT_RELEASE_NAME mucsi96/client-app \
     --install \
     --version $clientAppChartVersion \
     --set image=$DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag \
