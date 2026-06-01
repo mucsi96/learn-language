@@ -16,4 +16,6 @@ public class ImageSourceRequest {
 
   @NotNull
   private ImageGenerationModel model;
+
+  private String context;
 }

@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Image generation context</h2>
+<mat-dialog-content>
+  <mat-form-field class="context-field">
+    <mat-label>Additional context</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="context"
+      aria-label="Image generation context"
+      rows="4"
+    ></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button (click)="onGenerate()">Generate</button>
+</mat-dialog-actions>

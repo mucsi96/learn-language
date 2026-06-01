@@ -88,6 +88,15 @@
       >
         <mat-icon>add_photo_alternate</mat-icon>
       </button>
+      <button
+        mat-icon-button
+        (click)="addImageWithContext($index)"
+        aria-label="Add example image with context"
+        [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
+        [matTooltip]="dailyUsageService.imageLimitTooltip() || 'Add image with context'"
+      >
+        <mat-icon>edit_note</mat-icon>
+      </button>
     </div>
     <div class="example-fields">
       <mat-form-field class="field">

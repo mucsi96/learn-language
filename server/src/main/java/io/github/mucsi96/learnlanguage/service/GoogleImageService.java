@@ -19,7 +19,7 @@ public class GoogleImageService {
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateImage(String prompt) {
+  public byte[] generateImage(String input, String context) {
     final long startTime = System.currentTimeMillis();
     try {
       final GenerateContentConfig config = GenerateContentConfig.builder()
@@ -30,8 +30,7 @@ public class GoogleImageService {
               .build())
           .build();
 
-      final String fullPrompt = "Create a photorealistic image for the following context: " + prompt
-          + ". Avoid using text.";
+      final String fullPrompt = ImagePromptBuilder.build(input, context);
 
       final byte[] image = googleAiClient.models.generateContent(MODEL_NAME, fullPrompt, config)
           .candidates().orElseThrow(() -> new RuntimeException("No candidates in Gemini response")).stream()

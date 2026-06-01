@@ -1,6 +1,7 @@
 export interface ImageSourceRequest {
   input: string;
   model: string;
+  context?: string;
 }
 
 export interface ImageResponse {
