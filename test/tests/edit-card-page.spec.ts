@@ -355,6 +355,58 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   });
 });
 
+test('add image with context dialog', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          images: [{ id: image1 }],
+          isSelected: true,
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+  await expect(page.getByRole('img')).toHaveCount(1);
+
+  // Open dialog and cancel -> no images added
+  await page.getByRole('button', { name: 'Add image with context' }).first().click();
+  await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
+  await expect(page.getByRole('img')).toHaveCount(1);
+
+  // Open dialog, enter context, generate -> 4 images added (1 OpenAI + 3 Gemini)
+  await page.getByRole('button', { name: 'Add image with context' }).first().click();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await page
+    .getByRole('textbox', { name: 'Image generation context' })
+    .fill('A vintage steam train at sunset');
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
+  await expect(page.getByRole('img')).toHaveCount(5);
+});
+
 test('word type editing', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const image1 = uploadMockImage(yellowImage);

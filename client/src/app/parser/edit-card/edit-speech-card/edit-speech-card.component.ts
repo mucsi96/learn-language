@@ -15,7 +15,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { Card, CardData } from '../../types';
 import {
   ImageGridComponent,
@@ -24,6 +23,7 @@ import {
 import { ImageResourceService } from '../../../shared/image-resource.service';
 import { ImageContextDialogComponent } from '../../../shared/image-context-dialog/image-context-dialog.component';
 import { DailyUsageService } from '../../../daily-usage.service';
+import { dialogResult } from '../../../utils/dialog-result';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -104,20 +104,7 @@ export class EditSpeechCardComponent {
     });
   }
 
-  async addImage() {
-    await this.generateImages();
-  }
-
-  async addImageWithContext() {
-    const dialogRef = this.dialog.open(ImageContextDialogComponent, {
-      width: '400px',
-    });
-    const context = await firstValueFrom(dialogRef.afterClosed());
-    if (context === undefined) return;
-    await this.generateImages(context);
-  }
-
-  private async generateImages(context?: string) {
+  async addImage(context?: string) {
     const englishTranslation = this.formModel().englishTranslation;
     if (!englishTranslation) return;
 
@@ -134,6 +121,15 @@ export class EditSpeechCardComponent {
       this.cardUpdate.emit(cardData);
     }
     this.saveRequested.emit();
+  }
+
+  async addImageWithContext() {
+    const dialogRef = this.dialog.open(ImageContextDialogComponent, {
+      width: '400px',
+    });
+    const context = await dialogResult(dialogRef);
+    if (context === undefined) return;
+    await this.addImage(context);
   }
 
   areImagesLoading() {

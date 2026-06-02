@@ -18,7 +18,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { WORD_TYPE_TRANSLATIONS } from '../../../shared/word-type-translations';
 import { GENDER_TRANSLATIONS } from '../../../shared/gender-translations';
 import { Card, CardData } from '../../types';
@@ -30,6 +29,7 @@ import {
 import { ImageResourceService } from '../../../shared/image-resource.service';
 import { ImageContextDialogComponent } from '../../../shared/image-context-dialog/image-context-dialog.component';
 import { DailyUsageService } from '../../../daily-usage.service';
+import { dialogResult } from '../../../utils/dialog-result';
 
 @Component({
   selector: 'app-edit-vocabulary-card',
@@ -158,20 +158,7 @@ export class EditVocabularyCardComponent {
     });
   }
 
-  async addImage(exampleIdx: number) {
-    await this.generateImagesForExample(exampleIdx);
-  }
-
-  async addImageWithContext(exampleIdx: number) {
-    const dialogRef = this.dialog.open(ImageContextDialogComponent, {
-      width: '400px',
-    });
-    const context = await firstValueFrom(dialogRef.afterClosed());
-    if (context === undefined) return;
-    await this.generateImagesForExample(exampleIdx, context);
-  }
-
-  private async generateImagesForExample(exampleIdx: number, context?: string) {
+  async addImage(exampleIdx: number, context?: string) {
     const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
     if (!englishTranslation) return;
 
@@ -191,6 +178,15 @@ export class EditVocabularyCardComponent {
       this.cardUpdate.emit(cardData);
     }
     this.saveRequested.emit();
+  }
+
+  async addImageWithContext(exampleIdx: number) {
+    const dialogRef = this.dialog.open(ImageContextDialogComponent, {
+      width: '400px',
+    });
+    const context = await dialogResult(dialogRef);
+    if (context === undefined) return;
+    await this.addImage(exampleIdx, context);
   }
 
   areImagesLoading(exampleIdx: number) {

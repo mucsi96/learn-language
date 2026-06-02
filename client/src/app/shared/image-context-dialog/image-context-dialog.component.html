@@ -12,5 +12,5 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-button (click)="onGenerate()">Generate</button>
+  <button mat-button (click)="onGenerate()" [disabled]="!canGenerate()">Generate</button>
 </mat-dialog-actions>

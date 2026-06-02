@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -7,7 +7,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
@@ -20,21 +20,23 @@ import { MatInputModule } from '@angular/material/input';
     MatDialogActions,
     MatDialogTitle,
     MatFormFieldModule,
-    MatLabel,
     MatInputModule,
   ],
 })
 export class ImageContextDialogComponent {
-  readonly context = signal('');
+  private readonly dialogRef =
+    inject<MatDialogRef<ImageContextDialogComponent, string>>(MatDialogRef);
 
-  constructor(private readonly dialogRef: MatDialogRef<ImageContextDialogComponent, string | undefined>) {}
+  readonly context = signal('');
+  readonly canGenerate = computed(() => this.context().trim().length > 0);
 
   onCancel(): void {
-    this.dialogRef.close(undefined);
+    this.dialogRef.close();
   }
 
   onGenerate(): void {
     const value = this.context().trim();
-    this.dialogRef.close(value === '' ? undefined : value);
+    if (value === '') return;
+    this.dialogRef.close(value);
   }
 }
