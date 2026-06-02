@@ -69,7 +69,7 @@ export class ImageModelSettingsService {
   updateUseEnglishForImageGeneration(useEnglish: boolean): void {
     this.useEnglishForImageGeneration.set(useEnglish);
 
-    fetchJson(this.http, '/api/image-model-settings/use-english', {
+    fetchJson(this.http, '/api/image-settings/use-english', {
       method: 'PUT',
       body: { useEnglish },
     });

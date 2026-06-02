@@ -26,5 +26,5 @@ public class ImageSetting {
     private Integer id;
 
     @Column(name = "use_english_for_image_generation", nullable = false)
-    private Boolean useEnglishForImageGeneration;
+    private boolean useEnglishForImageGeneration;
 }

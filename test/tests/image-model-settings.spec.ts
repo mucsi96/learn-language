@@ -1,9 +1,9 @@
 import { test, expect } from '../fixtures';
 import {
   createImageModelSetting,
+  createImageSetting,
   getImageModelSettings,
   getImageSettings,
-  setUseEnglishForImageGeneration,
 } from '../utils';
 
 test('navigates to image model settings from settings page', async ({ page }) => {
@@ -75,7 +75,7 @@ test('image generation language toggle defaults to German', async ({ page }) => 
 
 test('image generation language toggle reflects stored setting', async ({ page }) => {
   await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 1 });
-  await setUseEnglishForImageGeneration(true);
+  await createImageSetting({ useEnglishForImageGeneration: true });
 
   await page.goto('/settings/image-models');
 

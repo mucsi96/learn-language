@@ -17,7 +17,7 @@ public class ImageSettingService {
 
     public boolean isUseEnglishForImageGeneration() {
         return imageSettingRepository.findById(SINGLETON_ID)
-                .map(ImageSetting::getUseEnglishForImageGeneration)
+                .map(ImageSetting::isUseEnglishForImageGeneration)
                 .orElse(false);
     }
 

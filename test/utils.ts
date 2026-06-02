@@ -942,13 +942,17 @@ export async function createAudioSetting(params: {
   });
 }
 
-export async function setUseEnglishForImageGeneration(useEnglish: boolean): Promise<void> {
+export async function createImageSetting(params: {
+  useEnglishForImageGeneration: boolean;
+}): Promise<void> {
+  const { useEnglishForImageGeneration } = params;
+
   await withDbConnection(async (client) => {
     await client.query(
       `INSERT INTO learn_language.image_settings (id, use_english_for_image_generation)
        VALUES (1, $1)
        ON CONFLICT (id) DO UPDATE SET use_english_for_image_generation = $1`,
-      [useEnglish]
+      [useEnglishForImageGeneration]
     );
   });
 }
