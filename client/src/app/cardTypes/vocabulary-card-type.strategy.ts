@@ -20,6 +20,7 @@ import { getWordTypeInfo } from '../shared/word-type-translations';
 import { getGenderInfo } from '../shared/gender-translations';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { generateExampleImages } from '../utils/image-generation.util';
+import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
 
 interface WordTypeResponse {
@@ -50,6 +51,7 @@ export class VocabularyCardType implements CardTypeStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageModelSettingsService = inject(ImageModelSettingsService);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
@@ -227,10 +229,13 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       progressCallback(70, 'Generating images...');
 
+      const useEnglish = this.imageModelSettingsService.useEnglishForImageGeneration();
       const imageInputs = germanExamples
-        .map((_, exampleIndex) => {
-          const englishTranslation = exampleTranslations['en']?.[exampleIndex];
-          return englishTranslation ? { exampleIndex, englishTranslation } : null;
+        .map((germanExample, exampleIndex) => {
+          const input = useEnglish
+            ? exampleTranslations['en']?.[exampleIndex]
+            : germanExample;
+          return input ? { exampleIndex, input } : null;
         })
         .filter(nonNullable);
 

@@ -6,7 +6,7 @@ import { ToolPool } from './tool-pool';
 
 export type ImageGenerationInput = {
   exampleIndex: number;
-  englishTranslation: string;
+  input: string;
 };
 
 export type ImagesByIndex = Map<number, ExampleImage[]>;
@@ -45,7 +45,7 @@ export const generateExampleImages = async (
           '/api/image',
           {
             body: {
-              input: input.englishTranslation,
+              input: input.input,
               model: model.id,
             } satisfies ImageSourceRequest,
             method: 'POST',

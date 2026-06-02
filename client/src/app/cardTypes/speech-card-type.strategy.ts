@@ -17,6 +17,7 @@ import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 import { generateExampleImages } from '../utils/image-generation.util';
+import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
 
 interface SentenceIdResponse {
@@ -37,6 +38,7 @@ export class SpeechCardType implements CardTypeStrategy {
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  private readonly imageModelSettingsService = inject(ImageModelSettingsService);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
 
   async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
@@ -144,8 +146,10 @@ export class SpeechCardType implements CardTypeStrategy {
 
       progressCallback(60, 'Generating images...');
 
-      const imageInputs = englishResult.response.translation
-        ? [{ exampleIndex: 0, englishTranslation: englishResult.response.translation }]
+      const useEnglish = this.imageModelSettingsService.useEnglishForImageGeneration();
+      const imageInput = useEnglish ? englishResult.response.translation : sentence;
+      const imageInputs = imageInput
+        ? [{ exampleIndex: 0, input: imageInput }]
         : [];
 
       const imagesMap = await generateExampleImages(
