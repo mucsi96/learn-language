@@ -32,7 +32,7 @@ export class ImageResourceService {
   }
 
   generateImages(
-    englishTranslation: string,
+    input: string,
     context?: string
   ): {
     placeholders: GridImageResource[];
@@ -62,7 +62,7 @@ export class ImageResourceService {
                 `/api/image`,
                 {
                   body: {
-                    input: englishTranslation,
+                    input,
                     model: model.id,
                     ...(context ? { context } : {}),
                   } satisfies ImageSourceRequest,

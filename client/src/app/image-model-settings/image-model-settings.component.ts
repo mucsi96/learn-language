@@ -2,6 +2,7 @@ import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { form, FormField, required, min } from '@angular/forms/signals';
 import { ImageModelSettingsService } from './image-model-settings.service';
 
@@ -12,6 +13,7 @@ import { ImageModelSettingsService } from './image-model-settings.service';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
     FormField,
   ],
   templateUrl: './image-model-settings.component.html',
@@ -21,6 +23,7 @@ export class ImageModelSettingsComponent {
   private readonly service = inject(ImageModelSettingsService);
 
   readonly imageModels = this.service.imageModels;
+  readonly useEnglishForImageGeneration = this.service.useEnglishForImageGeneration;
 
   readonly rateLimitModel = signal({
     rateLimitPerMinute: this.service.imageRateLimitPerMinute(),
@@ -67,5 +70,11 @@ export class ImageModelSettingsComponent {
     if (!isNaN(value) && value >= 0) {
       this.service.updateImageCount(modelId, value);
     }
+  }
+
+  toggleUseEnglishForImageGeneration(): void {
+    this.service.updateUseEnglishForImageGeneration(
+      !this.useEnglishForImageGeneration()
+    );
   }
 }

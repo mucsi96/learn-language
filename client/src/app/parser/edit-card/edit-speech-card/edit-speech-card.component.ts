@@ -22,6 +22,7 @@ import {
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
 import { ImageContextDialogComponent } from '../../../shared/image-context-dialog/image-context-dialog.component';
+import { ImageModelSettingsService } from '../../../image-model-settings/image-model-settings.service';
 import { DailyUsageService } from '../../../daily-usage.service';
 import { dialogResult } from '../../../utils/dialog-result';
 
@@ -50,6 +51,7 @@ export class EditSpeechCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  private readonly imageModelSettingsService = inject(ImageModelSettingsService);
   private readonly dialog = inject(MatDialog);
   readonly dailyUsageService = inject(DailyUsageService);
 
@@ -105,11 +107,13 @@ export class EditSpeechCardComponent {
   }
 
   async addImage(context?: string) {
-    const englishTranslation = this.formModel().englishTranslation;
-    if (!englishTranslation) return;
+    const { sentence, englishTranslation } = this.formModel();
+    const useEnglish = this.imageModelSettingsService.useEnglishForImageGeneration();
+    const input = useEnglish ? englishTranslation : sentence;
+    if (!input) return;
 
     const { placeholders, done } =
-      this.imageResourceService.generateImages(englishTranslation, context);
+      this.imageResourceService.generateImages(input, context);
 
     this.images.update((imgs) => [...imgs, ...placeholders]);
 

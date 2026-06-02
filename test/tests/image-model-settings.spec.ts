@@ -1,5 +1,10 @@
 import { test, expect } from '../fixtures';
-import { createImageModelSetting, getImageModelSettings } from '../utils';
+import {
+  createImageModelSetting,
+  createImageSetting,
+  getImageModelSettings,
+  getImageSettings,
+} from '../utils';
 
 test('navigates to image model settings from settings page', async ({ page }) => {
   await page.goto('/settings');
@@ -55,4 +60,53 @@ test('settings page shows image models link in navigation', async ({ page }) => 
   await page.goto('/settings');
   await expect(page.getByRole('navigation', { name: 'Settings navigation' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Image Models' })).toBeVisible();
+});
+
+test('image generation language toggle defaults to German', async ({ page }) => {
+  await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 1 });
+  await page.goto('/settings/image-models');
+
+  const toggle = page.getByRole('switch', {
+    name: 'Use English translation for image generation',
+  });
+  await expect(toggle).toBeVisible();
+  await expect(toggle).not.toBeChecked();
+});
+
+test('image generation language toggle reflects stored setting', async ({ page }) => {
+  await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 1 });
+  await createImageSetting({ key: 'use-english-for-image-generation', value: 1 });
+
+  await page.goto('/settings/image-models');
+
+  const toggle = page.getByRole('switch', {
+    name: 'Use English translation for image generation',
+  });
+  await expect(toggle).toBeChecked();
+});
+
+test('toggling image generation language persists the setting', async ({ page }) => {
+  await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 1 });
+  await page.goto('/settings/image-models');
+
+  const toggle = page.getByRole('switch', {
+    name: 'Use English translation for image generation',
+  });
+  await toggle.click();
+
+  await expect(async () => {
+    const settings = await getImageSettings();
+    const setting = settings.find((s) => s.key === 'use-english-for-image-generation');
+    expect(setting).toBeDefined();
+    expect(setting!.value).toBe(1);
+  }).toPass();
+
+  await toggle.click();
+
+  await expect(async () => {
+    const settings = await getImageSettings();
+    const setting = settings.find((s) => s.key === 'use-english-for-image-generation');
+    expect(setting).toBeDefined();
+    expect(setting!.value).toBe(0);
+  }).toPass();
 });

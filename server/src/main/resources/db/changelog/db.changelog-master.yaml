@@ -846,6 +846,24 @@ databaseChangeLog:
                     unique: true
                     uniqueConstraintName: grammar_topics_name_unique
   - changeSet:
+      id: 27-create-image-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: image_settings
+            columns:
+              - column:
+                  name: key
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: image_settings_pkey
+              - column:
+                  name: value
+                  type: int
+                  constraints:
+                    nullable: false
+  - changeSet:
       id: 26-create-pending-photos-table
       author: mucsi96
       changes:

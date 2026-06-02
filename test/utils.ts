@@ -942,6 +942,36 @@ export async function createAudioSetting(params: {
   });
 }
 
+export async function createImageSetting(params: {
+  key: string;
+  value: number;
+}): Promise<void> {
+  const { key, value } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.image_settings (key, value)
+       VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [key, value]
+    );
+  });
+}
+
+export async function getImageSettings(): Promise<
+  Array<{
+    key: string;
+    value: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT key, value FROM learn_language.image_settings ORDER BY key`
+    );
+    return result.rows;
+  });
+}
+
 export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
   await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
   await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });

@@ -28,6 +28,7 @@ import {
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
 import { ImageContextDialogComponent } from '../../../shared/image-context-dialog/image-context-dialog.component';
+import { ImageModelSettingsService } from '../../../image-model-settings/image-model-settings.service';
 import { DailyUsageService } from '../../../daily-usage.service';
 import { dialogResult } from '../../../utils/dialog-result';
 
@@ -58,6 +59,7 @@ export class EditVocabularyCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  private readonly imageModelSettingsService = inject(ImageModelSettingsService);
   private readonly dialog = inject(MatDialog);
   readonly dailyUsageService = inject(DailyUsageService);
   readonly wordTypeOptions = WORD_TYPE_TRANSLATIONS;
@@ -159,11 +161,14 @@ export class EditVocabularyCardComponent {
   }
 
   async addImage(exampleIdx: number, context?: string) {
-    const englishTranslation = this.examplesTranslations()?.['en'][exampleIdx]();
-    if (!englishTranslation) return;
+    const useEnglish = this.imageModelSettingsService.useEnglishForImageGeneration();
+    const input = useEnglish
+      ? this.examplesTranslations()?.['en'][exampleIdx]()
+      : this.examples()?.[exampleIdx]();
+    if (!input) return;
 
     const { placeholders, done } =
-      this.imageResourceService.generateImages(englishTranslation, context);
+      this.imageResourceService.generateImages(input, context);
 
     this.exampleImages.update((images) => {
       images[exampleIdx] = [...images[exampleIdx], ...placeholders];
