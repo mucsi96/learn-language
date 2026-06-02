@@ -9,6 +9,15 @@
           <p>No image models available</p>
         </div>
       } @else {
+        <div class="image-source-toggle">
+          <mat-slide-toggle
+            [checked]="useEnglishForImageGeneration()"
+            (change)="toggleUseEnglishForImageGeneration()"
+            aria-label="Use English translation for image generation"
+          >
+            Use English translation for image generation
+          </mat-slide-toggle>
+        </div>
         <div class="models-list">
           <table class="models-table" aria-label="Image model settings">
             <thead>

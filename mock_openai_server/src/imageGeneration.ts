@@ -16,12 +16,12 @@ type PromptConfig = {
 
 const PROMPT_CONFIGS: PromptConfig[] = [
   {
-    pattern: "We are departing at twelve o'clock.",
+    pattern: 'Wir fahren um zwölf Uhr ab.',
     firstImage: IMAGES.yellow,
     secondImage: IMAGES.blue,
   },
   {
-    pattern: 'When does the train leave?',
+    pattern: 'Wann fährt der Zug ab?',
     firstImage: IMAGES.red,
     secondImage: IMAGES.green,
   },

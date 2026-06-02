@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createImageSetting,
   downloadImage,
   getCardFromDb,
   getImageColor,
@@ -405,6 +406,87 @@ test('add image with context dialog', async ({ page }) => {
   await page.getByRole('button', { name: 'Generate' }).click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(5);
+});
+
+test('image generation sends German example by default', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wann fährt der Zug ab?',
+          hu: 'Mikor indul a vonat?',
+          en: 'When does the train leave?',
+          ch: 'Wänn fahrt dr',
+          images: [{ id: image1 }],
+          isSelected: true,
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  const requestPromise = page.waitForRequest(
+    (req) => req.url().includes('/api/image') && req.method() === 'POST'
+  );
+  await page.getByRole('button', { name: 'Add example image' }).first().click();
+  const request = await requestPromise;
+
+  expect(request.postDataJSON().input).toBe('Wann fährt der Zug ab?');
+});
+
+test('image generation sends English translation when setting is enabled', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createImageSetting({ useEnglishForImageGeneration: true });
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wann fährt der Zug ab?',
+          hu: 'Mikor indul a vonat?',
+          en: 'When does the train leave?',
+          ch: 'Wänn fahrt dr',
+          images: [{ id: image1 }],
+          isSelected: true,
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  const requestPromise = page.waitForRequest(
+    (req) => req.url().includes('/api/image') && req.method() === 'POST'
+  );
+  await page.getByRole('button', { name: 'Add example image' }).first().click();
+  const request = await requestPromise;
+
+  expect(request.postDataJSON().input).toBe('When does the train leave?');
 });
 
 test('word type editing', async ({ page }) => {

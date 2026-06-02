@@ -21,6 +21,7 @@ import io.github.mucsi96.learnlanguage.service.AudioSettingService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
 import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
+import io.github.mucsi96.learnlanguage.service.ImageSettingService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,7 @@ public class EnvironmentController {
   private final ElevenLabsAudioService elevenLabsAudioService;
   private final ChatModelSettingService chatModelSettingService;
   private final ImageModelSettingService imageModelSettingService;
+  private final ImageSettingService imageSettingService;
   private final RateLimitSettingService rateLimitSettingService;
   private final AudioSettingService audioSettingService;
 
@@ -93,6 +95,7 @@ public class EnvironmentController {
         rateLimitSettingService.getImageDailyLimit(),
         rateLimitSettingService.getAudioDailyLimit(),
         audioSettingService.isFrontAudioDisabled(),
+        imageSettingService.isUseEnglishForImageGeneration(),
         Arrays.stream(ChatModel.values())
             .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
             .toList(),
@@ -140,6 +143,7 @@ public class EnvironmentController {
       int imageDailyLimit,
       int audioDailyLimit,
       boolean frontAudioDisabled,
+      boolean useEnglishForImageGeneration,
       List<ChatModelInfo> chatModels,
       List<ImageModelResponse> imageModels,
       List<AudioModelResponse> audioModels,

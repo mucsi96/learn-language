@@ -21,6 +21,9 @@ export class ImageModelSettingsService {
   readonly imageRateLimitPerMinute = signal(this.environmentConfig.imageRateLimitPerMinute);
   readonly imageMaxConcurrentRequests = signal(this.environmentConfig.imageMaxConcurrentRequests);
   readonly imageDailyLimit = signal(this.environmentConfig.imageDailyLimit);
+  readonly useEnglishForImageGeneration = signal(
+    this.environmentConfig.useEnglishForImageGeneration
+  );
 
   updateImageCount(modelId: string, imageCount: number): void {
     this.imageModels.update((models) =>
@@ -60,6 +63,15 @@ export class ImageModelSettingsService {
     fetchJson(this.http, '/api/rate-limit-settings', {
       method: 'PUT',
       body: { type: 'image', dailyLimit: value },
+    });
+  }
+
+  updateUseEnglishForImageGeneration(useEnglish: boolean): void {
+    this.useEnglishForImageGeneration.set(useEnglish);
+
+    fetchJson(this.http, '/api/image-settings/use-english', {
+      method: 'PUT',
+      body: { useEnglish },
     });
   }
 }
