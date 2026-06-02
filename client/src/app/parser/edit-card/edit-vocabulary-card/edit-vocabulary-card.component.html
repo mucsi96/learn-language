@@ -91,7 +91,7 @@
       <button
         mat-icon-button
         (click)="addImageWithContext($index)"
-        aria-label="Add example image with context"
+        aria-label="Add image with context"
         [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
         [matTooltip]="dailyUsageService.imageLimitTooltip() || 'Add image with context'"
       >
