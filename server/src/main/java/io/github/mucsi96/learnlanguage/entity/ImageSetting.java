@@ -15,16 +15,16 @@ import lombok.Setter;
 @Table(name = "image_settings", schema = "learn_language")
 @Getter
 @Setter
-@EqualsAndHashCode(of = "key")
+@EqualsAndHashCode(of = "id")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageSetting {
 
     @Id
-    @Column(name = "key", nullable = false)
-    private String key;
+    @Column(name = "id", nullable = false)
+    private Integer id;
 
-    @Column(name = "value", nullable = false)
-    private Integer value;
+    @Column(name = "use_english_for_image_generation", nullable = false)
+    private Boolean useEnglishForImageGeneration;
 }

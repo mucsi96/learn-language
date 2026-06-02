@@ -42,7 +42,7 @@ public class ImageModelSettingController {
     @PutMapping("/use-english")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public void updateUseEnglishForImageGeneration(@RequestBody UseEnglishForImageGenerationRequest request) {
+    public void updateUseEnglishForImageGeneration(@Valid @RequestBody UseEnglishForImageGenerationRequest request) {
         imageSettingService.setUseEnglishForImageGeneration(request.isUseEnglish());
     }
 }

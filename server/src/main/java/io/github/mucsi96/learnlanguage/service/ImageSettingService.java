@@ -11,21 +11,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ImageSettingService {
 
-    private static final String USE_ENGLISH_KEY = "use-english-for-image-generation";
+    private static final int SINGLETON_ID = 1;
 
     private final ImageSettingRepository imageSettingRepository;
 
     public boolean isUseEnglishForImageGeneration() {
-        return imageSettingRepository.findById(USE_ENGLISH_KEY)
-                .map(ImageSetting::getValue)
-                .map(value -> value != 0)
+        return imageSettingRepository.findById(SINGLETON_ID)
+                .map(ImageSetting::getUseEnglishForImageGeneration)
                 .orElse(false);
     }
 
     @Transactional
     public void setUseEnglishForImageGeneration(boolean useEnglish) {
         imageSettingRepository.save(
-                ImageSetting.builder().key(USE_ENGLISH_KEY).value(useEnglish ? 1 : 0).build()
+                ImageSetting.builder()
+                        .id(SINGLETON_ID)
+                        .useEnglishForImageGeneration(useEnglish)
+                        .build()
         );
     }
 }

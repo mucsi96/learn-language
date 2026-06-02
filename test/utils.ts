@@ -942,31 +942,27 @@ export async function createAudioSetting(params: {
   });
 }
 
-export async function createImageSetting(params: {
-  key: string;
-  value: number;
-}): Promise<void> {
-  const { key, value } = params;
-
+export async function setUseEnglishForImageGeneration(useEnglish: boolean): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.image_settings (key, value)
-       VALUES ($1, $2)
-       ON CONFLICT (key) DO UPDATE SET value = $2`,
-      [key, value]
+      `INSERT INTO learn_language.image_settings (id, use_english_for_image_generation)
+       VALUES (1, $1)
+       ON CONFLICT (id) DO UPDATE SET use_english_for_image_generation = $1`,
+      [useEnglish]
     );
   });
 }
 
 export async function getImageSettings(): Promise<
   Array<{
-    key: string;
-    value: number;
+    id: number;
+    useEnglishForImageGeneration: boolean;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT key, value FROM learn_language.image_settings ORDER BY key`
+      `SELECT id, use_english_for_image_generation as "useEnglishForImageGeneration"
+       FROM learn_language.image_settings ORDER BY id`
     );
     return result.rows;
   });

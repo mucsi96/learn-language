@@ -1,9 +1,9 @@
 import { test, expect } from '../fixtures';
 import {
   createImageModelSetting,
-  createImageSetting,
   getImageModelSettings,
   getImageSettings,
+  setUseEnglishForImageGeneration,
 } from '../utils';
 
 test('navigates to image model settings from settings page', async ({ page }) => {
@@ -75,7 +75,7 @@ test('image generation language toggle defaults to German', async ({ page }) => 
 
 test('image generation language toggle reflects stored setting', async ({ page }) => {
   await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 1 });
-  await createImageSetting({ key: 'use-english-for-image-generation', value: 1 });
+  await setUseEnglishForImageGeneration(true);
 
   await page.goto('/settings/image-models');
 
@@ -96,17 +96,15 @@ test('toggling image generation language persists the setting', async ({ page })
 
   await expect(async () => {
     const settings = await getImageSettings();
-    const setting = settings.find((s) => s.key === 'use-english-for-image-generation');
-    expect(setting).toBeDefined();
-    expect(setting!.value).toBe(1);
+    expect(settings).toHaveLength(1);
+    expect(settings[0].useEnglishForImageGeneration).toBe(true);
   }).toPass();
 
   await toggle.click();
 
   await expect(async () => {
     const settings = await getImageSettings();
-    const setting = settings.find((s) => s.key === 'use-english-for-image-generation');
-    expect(setting).toBeDefined();
-    expect(setting!.value).toBe(0);
+    expect(settings).toHaveLength(1);
+    expect(settings[0].useEnglishForImageGeneration).toBe(false);
   }).toPass();
 });
