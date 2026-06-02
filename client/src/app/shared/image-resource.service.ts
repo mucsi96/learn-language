@@ -31,7 +31,10 @@ export class ImageResourceService {
     });
   }
 
-  generateImages(englishTranslation: string): {
+  generateImages(
+    englishTranslation: string,
+    context?: string
+  ): {
     placeholders: GridImageResource[];
     done: Promise<void>;
   } {
@@ -61,6 +64,7 @@ export class ImageResourceService {
                   body: {
                     input: englishTranslation,
                     model: model.id,
+                    ...(context ? { context } : {}),
                   } satisfies ImageSourceRequest,
                   method: 'POST',
                 }

@@ -39,6 +39,15 @@
   >
     <mat-icon>add_photo_alternate</mat-icon>
   </button>
+  <button
+    mat-icon-button
+    (click)="addImageWithContext()"
+    aria-label="Add image with context"
+    [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
+    [matTooltip]="dailyUsageService.imageLimitTooltip() || 'Add image with context'"
+  >
+    <mat-icon>edit_note</mat-icon>
+  </button>
 </div>
 @let imgs = images();
 @if (imgs && imgs.length) {

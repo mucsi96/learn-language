@@ -20,11 +20,11 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public byte[] generateImage(String prompt) {
+    public byte[] generateImage(String input, String context) {
         final long startTime = System.currentTimeMillis();
         try {
             final ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
-                .prompt("Create a photorealistic image for the following context: " + prompt + ". Avoid using text.")
+                .prompt(ImagePromptBuilder.build(input, context))
                 .model(MODEL_NAME)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)

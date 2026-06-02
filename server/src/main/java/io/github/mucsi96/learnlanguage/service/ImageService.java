@@ -13,10 +13,10 @@ public class ImageService {
   private final OpenAIImageService openAIImageService;
   private final GoogleImageService googleImageService;
 
-  public byte[] generateImage(String input, ImageGenerationModel model) {
+  public byte[] generateImage(String input, String context, ImageGenerationModel model) {
     return switch (model) {
-      case GPT_IMAGE_1_5 -> openAIImageService.generateImage(input);
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImage(input);
+      case GPT_IMAGE_1_5 -> openAIImageService.generateImage(input, context);
+      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImage(input, context);
     };
   }
 }

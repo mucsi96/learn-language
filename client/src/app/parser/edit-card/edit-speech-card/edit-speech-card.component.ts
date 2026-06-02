@@ -14,13 +14,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { Card, CardData } from '../../types';
 import {
   ImageGridComponent,
   GridImageResource,
 } from '../../../shared/image-grid/image-grid.component';
 import { ImageResourceService } from '../../../shared/image-resource.service';
+import { ImageContextDialogComponent } from '../../../shared/image-context-dialog/image-context-dialog.component';
 import { DailyUsageService } from '../../../daily-usage.service';
+import { dialogResult } from '../../../utils/dialog-result';
 
 @Component({
   selector: 'app-edit-speech-card',
@@ -47,6 +50,7 @@ export class EditSpeechCardComponent {
   markAsReviewedAvailable = output<boolean>();
 
   private readonly imageResourceService = inject(ImageResourceService);
+  private readonly dialog = inject(MatDialog);
   readonly dailyUsageService = inject(DailyUsageService);
 
   readonly formModel = linkedSignal(() => ({
@@ -100,12 +104,12 @@ export class EditSpeechCardComponent {
     });
   }
 
-  async addImage() {
+  async addImage(context?: string) {
     const englishTranslation = this.formModel().englishTranslation;
     if (!englishTranslation) return;
 
     const { placeholders, done } =
-      this.imageResourceService.generateImages(englishTranslation);
+      this.imageResourceService.generateImages(englishTranslation, context);
 
     this.images.update((imgs) => [...imgs, ...placeholders]);
 
@@ -117,6 +121,15 @@ export class EditSpeechCardComponent {
       this.cardUpdate.emit(cardData);
     }
     this.saveRequested.emit();
+  }
+
+  async addImageWithContext() {
+    const dialogRef = this.dialog.open(ImageContextDialogComponent, {
+      width: '400px',
+    });
+    const context = await dialogResult(dialogRef);
+    if (context === undefined) return;
+    await this.addImage(context);
   }
 
   areImagesLoading() {
