@@ -332,6 +332,7 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
     'Und [das] ist Frau Wachter.': 'És ez Wachter asszony.',
     'Heute [bin] ich müde.': 'Ma fáradt vagyok.',
     '[Der] Mann gibt [dem] Kind das Buch.': 'A férfi a gyereknek adja a könyvet.',
+    'Im Sommer [machte] sie oft Sport im Park.': 'Nyáron gyakran sportolt a parkban.',
     'Der Hund läuft schnell durch den [Park].': 'A kutya gyorsan átfut a parkon.',
   },
   english: {
