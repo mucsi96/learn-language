@@ -18,8 +18,8 @@ import { Page } from '@playwright/test';
 
 async function navigateToSource(page: Page, sourceName: string) {
   await page.goto('/sources');
-  await page.getByRole('article', { name: sourceName }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: `Actions for ${sourceName}` }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 }
 
 test('displays current page', async ({ page }) => {

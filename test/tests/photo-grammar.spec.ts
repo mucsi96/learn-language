@@ -15,8 +15,8 @@ test('capture photo button is hidden on non-grammar sources', async ({ page }) =
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await expect(
     page.getByRole('button', { name: 'Capture photo for grammar cards' })
@@ -28,8 +28,8 @@ test('capture photo button is visible on grammar IMAGES source and uploading pro
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Grammar A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Grammar A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   const captureButton = page.getByRole('button', {
     name: 'Capture photo for grammar cards',
@@ -59,8 +59,8 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
   await createGrammarTopic({ name: 'Sein conjugation' });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Grammar A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Grammar A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByLabel('Capture or upload grammar lesson photo').setInputFiles({
     name: PHOTO_FILENAME,
@@ -142,8 +142,8 @@ test('discarding the pending photo banner removes the photo and no cards are cre
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Grammar A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Grammar A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByLabel('Capture or upload grammar lesson photo').setInputFiles({
     name: PHOTO_FILENAME,

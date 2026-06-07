@@ -4,53 +4,82 @@ import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLim
 test('displays sources', async ({ page }) => {
   await page.goto('/sources');
   await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A1' })).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A2' })).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe B1' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A2' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe B1' })).toBeVisible();
 });
 
-test('can select a source', async ({ page }) => {
+test('actions menu lists source actions', async ({ page }) => {
   await page.goto('/sources');
-  const source = page.getByRole('article', { name: 'Goethe A1' });
-  await source.click();
-  await expect(source).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Pages' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Cards' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeVisible();
 });
 
-test('can deselect a source by clicking again', async ({ page }) => {
+test('pages action navigates to page viewer', async ({ page }) => {
   await page.goto('/sources');
-  const source = page.getByRole('article', { name: 'Goethe A1' });
-  await source.click();
-  await expect(source).toHaveAttribute('aria-selected', 'true');
-  await source.click();
-  await expect(source).toHaveAttribute('aria-selected', 'false');
-});
-
-test('action buttons are hidden when no source is selected', async ({ page }) => {
-  await page.goto('/sources');
-  await expect(page.getByRole('button', { name: 'Pages' })).toBeHidden();
-});
-
-test('action buttons appear when a source is selected', async ({ page }) => {
-  await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await expect(page.getByRole('button', { name: 'Pages' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Cards' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
-});
-
-test('pages button navigates to page viewer', async ({ page }) => {
-  await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/page\/9/);
 });
 
-test('cards button navigates to cards table', async ({ page }) => {
+test('cards action navigates to cards table', async ({ page }) => {
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Cards' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Cards' }).click();
   await expect(page).toHaveURL(/\/sources\/goethe-a1\/cards/);
+});
+
+test('attention badge links to prefiltered cards page', async ({ page }) => {
+  await createCard({
+    cardId: 'flagged-link-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    flagged: true,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      translation: { en: 'dog' },
+    },
+  });
+
+  await page.goto('/sources');
+  await page
+    .getByRole('row', { name: 'Goethe A1' })
+    .getByRole('link', { name: /flagged/ })
+    .click();
+  await expect(page).toHaveURL(/\/sources\/goethe-a1\/cards\?filter=flagged/);
+});
+
+test('shows all clear when a source needs no attention', async ({ page }) => {
+  await page.goto('/sources');
+  await expect(
+    page.getByRole('row', { name: 'Goethe A1' }).getByText('All clear')
+  ).toBeVisible();
+});
+
+test('needs attention only filter hides clear sources', async ({ page }) => {
+  await createCard({
+    cardId: 'attention-only-card',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    flagged: true,
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      translation: { en: 'dog' },
+    },
+  });
+
+  await page.goto('/sources');
+  await expect(page.getByRole('row', { name: 'Goethe A2' })).toBeVisible();
+
+  await page.getByRole('switch', { name: 'Needs attention only' }).click();
+
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A2' })).not.toBeVisible();
 });
 
 test('displays card counts excluding drafts', async ({ page }) => {
@@ -86,8 +115,8 @@ test('displays card counts excluding drafts', async ({ page }) => {
     readiness: 'DRAFT',
   });
   await page.goto('/sources');
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('1 draft')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' }).getByText('1 draft')).toBeVisible();
 });
 
 test('displays card count for sources', async ({ page }) => {
@@ -124,9 +153,9 @@ test('displays card count for sources', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe A2' }).getByText('Ready 1')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('0')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A2' }).getByText('Ready 1')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe B1' }).getByText('0')).toBeVisible();
 });
 
 test('displays card state counts only for ready cards', async ({ page }) => {
@@ -189,7 +218,7 @@ test('displays card state counts only for ready cards', async ({ page }) => {
   });
 
   await page.goto('/sources');
-  const source = page.getByRole('article', { name: 'Goethe A1' });
+  const source = page.getByRole('row', { name: 'Goethe A1' });
   await expect(source.getByText('Ready 3')).toBeVisible();
   await expect(source.getByText('Known 1')).toBeVisible();
   await expect(source.getByLabel('IN_REVIEW: 1')).toBeVisible();
@@ -222,7 +251,7 @@ test('displays flagged and unhealthy card counts', async ({ page }) => {
   });
 
   await page.goto('/sources');
-  const source = page.getByRole('article', { name: 'Goethe A1' });
+  const source = page.getByRole('row', { name: 'Goethe A1' });
   await expect(source.getByLabel('Flagged cards')).toContainText('2 flagged');
 });
 
@@ -251,7 +280,7 @@ test('displays readiness breakdown for sources', async ({ page }) => {
   });
 
   await page.goto('/sources');
-  const source = page.getByRole('article', { name: 'Goethe A1' });
+  const source = page.getByRole('row', { name: 'Goethe A1' });
   await expect(source.getByLabel('READY: 1')).toBeVisible();
   await expect(source.getByLabel('KNOWN: 1')).toBeVisible();
 });
@@ -307,8 +336,8 @@ test('can edit an existing source', async ({ page }) => {
   const initialSource = await getSource('goethe-a1');
   expect(initialSource?.name).toBe('Goethe A1');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
   await expect(page.getByLabel('Source ID')).not.toBeVisible();
@@ -330,8 +359,8 @@ test('can edit an existing source', async ({ page }) => {
 test('can configure existing card detection sources', async ({ page }) => {
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
@@ -354,8 +383,8 @@ test('can remove existing card detection sources', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await page.getByLabel('Existing card detection sources').click();
   await page.getByRole('option', { name: 'Goethe A2' }).click();
@@ -398,10 +427,10 @@ test('can delete a source and its cards', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await expect(page.getByRole('article', { name: 'Goethe B1' }).getByText('Ready 2')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe B1' }).getByText('Ready 2')).toBeVisible();
 
-  await page.getByRole('article', { name: 'Goethe B1' }).click();
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe B1' }).click();
+  await page.getByRole('menuitem', { name: 'Delete' }).click();
 
   await expect(page.getByRole('heading', { name: 'Confirmation' })).toBeVisible();
   await expect(page.getByText(/All associated cards will also be deleted/)).toBeVisible();
@@ -409,7 +438,7 @@ test('can delete a source and its cards', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Confirmation' })).not.toBeVisible();
 
-  await expect(page.getByRole('article', { name: 'Goethe B1' })).not.toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe B1' })).not.toBeVisible();
 
   const sourceAfterDelete = await getSource('goethe-b1');
   expect(sourceAfterDelete).toBeNull();
@@ -476,7 +505,7 @@ test('displays empty state when no sources exist', async ({ page }) => {
   await expect(page.getByText('Create your first source to start adding cards.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add Source' })).toBeVisible();
 
-  await expect(page.getByRole('region', { name: 'Sources list' })).not.toBeVisible();
+  await expect(page.getByRole('table', { name: 'Sources' })).not.toBeVisible();
 });
 
 test('can create a speech source with image collection', async ({ page }) => {
@@ -544,8 +573,8 @@ test('can create a grammar source with image collection', async ({ page }) => {
 test('edit dialog shows card limit and new card limit fields with defaults', async ({ page }) => {
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
@@ -561,8 +590,8 @@ test('edit dialog shows card limit and new card limit fields with defaults', asy
 test('can edit card limit and new card limit', async ({ page }) => {
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
@@ -585,8 +614,8 @@ test('can assign a learning partner to a source', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
@@ -607,8 +636,8 @@ test('can remove a learning partner from a source', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await page.getByLabel('Learning Partner').click();
   await page.getByRole('option', { name: 'Alice' }).click();
@@ -622,8 +651,8 @@ test('can remove a learning partner from a source', async ({ page }) => {
 
   await page.goto('/sources');
 
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
 
   await page.getByLabel('Learning Partner').click();
   await page.getByRole('option', { name: 'None' }).click();

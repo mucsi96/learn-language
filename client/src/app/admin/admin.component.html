@@ -6,130 +6,143 @@
     <h1>Sources</h1>
     <p>Manage your learning sources</p>
   </div>
-  <button
-    mat-flat-button
-    (click)="openAddSourceDialog()"
-    class="add-button"
-  >
-    <mat-icon>add</mat-icon>
-    Add Source
-  </button>
+  <div class="header-actions">
+    @if (sources()?.length) {
+    <mat-slide-toggle
+      [checked]="needsAttentionOnly()"
+      (change)="needsAttentionOnly.set($event.checked)"
+    >
+      Needs attention only
+    </mat-slide-toggle>
+    }
+    <button mat-flat-button (click)="openAddSourceDialog()" class="add-button">
+      <mat-icon>add</mat-icon>
+      Add Source
+    </button>
+  </div>
 </div>
+
 @if (sources()?.length) {
-<section class="sources" aria-label="Sources list">
-  @for (source of sources(); track source.id) {
-  <article
-    class="card-wrapper"
-    [class.selected]="selectedSourceId() === source.id"
-    [attr.aria-label]="source.name"
-    [attr.aria-selected]="selectedSourceId() === source.id"
-    (click)="selectSource(source)"
-  >
-    <mat-card>
-      <mat-card-content>
-        <div class="source-header">
-          <h2 class="source-title">{{ source.name }}</h2>
-          @if (source.languageLevel) {
-          <span class="level-badge">{{ source.languageLevel }}</span>
-          }
-        </div>
+<table mat-table [dataSource]="visibleSources()" class="sources-table" aria-label="Sources">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let source">
+      <span class="source-name">{{ source.name }}</span>
+    </td>
+  </ng-container>
 
-        <div class="total-cards">
-          <span class="total-count">{{ source.cardCount || 0 }}</span>
-          <span class="total-label">cards</span>
-        </div>
+  <ng-container matColumnDef="level">
+    <th mat-header-cell *matHeaderCellDef>Level</th>
+    <td mat-cell *matCellDef="let source">
+      @if (source.languageLevel) {
+      <span class="level-badge">{{ source.languageLevel }}</span>
+      }
+    </td>
+  </ng-container>
 
-        @if (hasStateCounts(source)) {
-        <div class="state-row" aria-label="Card states">
-          @for (entry of getStateCounts(source); track entry.state) {
-          <app-state [state]="entry.state" [count]="entry.count" />
-          }
-        </div>
+  <ng-container matColumnDef="cards">
+    <th mat-header-cell *matHeaderCellDef>Cards</th>
+    <td mat-cell *matCellDef="let source">
+      <span class="total-count">{{ source.cardCount || 0 }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="states">
+    <th mat-header-cell *matHeaderCellDef>States</th>
+    <td mat-cell *matCellDef="let source">
+      @if (hasStateCounts(source)) {
+      <div class="chip-row" aria-label="Card states">
+        @for (entry of getStateCounts(source); track entry.state) {
+        <app-state [state]="entry.state" [count]="entry.count" />
         }
+      </div>
+      }
+    </td>
+  </ng-container>
 
-        @if (hasReadinessCounts(source)) {
-        <div class="readiness-row" aria-label="Card readiness">
-          @for (entry of getReadinessCounts(source); track entry.readiness) {
-          <span
-            class="readiness-chip"
-            [ngClass]="'readiness-' + entry.readiness.toLowerCase()"
-            [attr.aria-label]="entry.readiness + ': ' + entry.count"
-          >
-            {{ getReadinessLabel(entry.readiness) }} {{ entry.count }}
-          </span>
-          }
-        </div>
+  <ng-container matColumnDef="readiness">
+    <th mat-header-cell *matHeaderCellDef>Readiness</th>
+    <td mat-cell *matCellDef="let source">
+      @if (hasReadinessCounts(source)) {
+      <div class="chip-row" aria-label="Card readiness">
+        @for (entry of getReadinessCounts(source); track entry.readiness) {
+        <span
+          class="readiness-chip"
+          [ngClass]="'readiness-' + entry.readiness.toLowerCase()"
+          [attr.aria-label]="entry.readiness + ': ' + entry.count"
+        >
+          {{ getReadinessLabel(entry.readiness) }} {{ entry.count }}
+        </span>
         }
+      </div>
+      }
+    </td>
+  </ng-container>
 
-        @if (source.draftCardCount || source.flaggedCardCount || source.unhealthyCardCount) {
-        <div class="alert-row" aria-label="Card alerts">
-          @if (source.draftCardCount) {
-          <span class="alert-chip draft" aria-label="Draft cards">
-            <mat-icon>edit_note</mat-icon>
-            {{ source.draftCardCount }} draft
-          </span>
-          }
-          @if (source.flaggedCardCount) {
-          <span class="alert-chip flagged" aria-label="Flagged cards">
-            <mat-icon>flag</mat-icon>
-            {{ source.flaggedCardCount }} flagged
-          </span>
-          }
-          @if (source.unhealthyCardCount) {
-          <span class="alert-chip unhealthy" aria-label="Unhealthy cards">
-            <mat-icon>warning</mat-icon>
-            {{ source.unhealthyCardCount }} unhealthy
-          </span>
-          }
-        </div>
+  <ng-container matColumnDef="attention">
+    <th mat-header-cell *matHeaderCellDef>Attention</th>
+    <td mat-cell *matCellDef="let source">
+      @if (getAttentionItems(source).length) {
+      <div class="attention-row">
+        @for (item of getAttentionItems(source); track item.filter) {
+        <a
+          class="attention-chip"
+          [ngClass]="item.cssClass"
+          [routerLink]="['/sources', source.id, 'cards']"
+          [queryParams]="{ filter: item.filter }"
+          [attr.aria-label]="source.name + ': ' + item.count + ' ' + item.label + ' cards'"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          {{ item.count }} {{ item.label }}
+        </a>
         }
-      </mat-card-content>
-    </mat-card>
-  </article>
-  }
-</section>
-@if (selectedSource()) {
-<nav class="source-actions" aria-label="Source actions">
-  <button
-    mat-fab
-    extended
-    class="action-fab delete-fab"
-    (click)="openDeleteConfirmDialog()"
-  >
-    <mat-icon>delete</mat-icon>
-    Delete
-  </button>
-  <button
-    mat-fab
-    extended
-    class="action-fab edit-fab"
-    (click)="openEditSourceDialog()"
-  >
-    <mat-icon>edit</mat-icon>
-    Edit
-  </button>
-  <button
-    mat-fab
-    extended
-    class="action-fab"
-    (click)="navigateToCards()"
-  >
-    <mat-icon>style</mat-icon>
-    Cards
-  </button>
-  @if (!isEbookDictionary()) {
-  <button
-    mat-fab
-    extended
-    class="action-fab"
-    (click)="navigateToPages()"
-  >
-    <mat-icon>menu_book</mat-icon>
-    Pages
-  </button>
-  }
-</nav>
-}
+      </div>
+      } @else {
+      <span class="all-clear">All clear</span>
+      }
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let source">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="actionsMenu"
+        [matMenuTriggerData]="{ source: source }"
+        [attr.aria-label]="'Actions for ' + source.name"
+      >
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+<mat-menu #actionsMenu>
+  <ng-template matMenuContent let-source="source">
+    <button mat-menu-item (click)="navigateToCards(source)">
+      <mat-icon>style</mat-icon>
+      <span>Cards</span>
+    </button>
+    @if (source.sourceType !== 'ebookDictionary') {
+    <button mat-menu-item (click)="navigateToPages(source)">
+      <mat-icon>menu_book</mat-icon>
+      <span>Pages</span>
+    </button>
+    }
+    <button mat-menu-item (click)="openEditSourceDialog(source)">
+      <mat-icon>edit</mat-icon>
+      <span>Edit</span>
+    </button>
+    <button mat-menu-item (click)="openDeleteConfirmDialog(source)">
+      <mat-icon>delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </ng-template>
+</mat-menu>
 } @else {
 <div class="empty-state">
   <mat-icon class="empty-icon">library_books</mat-icon>

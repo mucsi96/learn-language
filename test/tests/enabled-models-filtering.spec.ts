@@ -33,8 +33,8 @@ test('word extraction only uses enabled models for extraction operation', async 
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -60,8 +60,8 @@ test('bulk card creation only uses enabled models for classification operation',
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -89,8 +89,8 @@ test('bulk card creation only uses enabled models for translation operations', a
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -119,8 +119,8 @@ test('different operation types can have different enabled models', async ({ pag
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 

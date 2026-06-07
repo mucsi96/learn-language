@@ -461,8 +461,8 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -490,8 +490,8 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
