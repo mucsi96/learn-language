@@ -329,10 +329,27 @@ export class ChatHandler {
     return null;
   }
 
+  handleExplanation(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+
+    if (!systemContent.includes('German language teacher assisting a Hungarian learner')) {
+      return null;
+    }
+
+    return createGeminiResponse(
+      'Ez azért helyes, mert a **der Zug** szó hímnemű főnév, ezért a **der** ' +
+        'névelőt használjuk. A példamondatban az **abfahren** ige elváló igekötős, ' +
+        'így a **ab** a mondat végére kerül.'
+    );
+  }
+
   async processRequest(request: GeminiRequest): Promise<any> {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
     }
+
+    const explanationResponse = this.handleExplanation(request);
+    if (explanationResponse) return explanationResponse;
 
     const dictionaryResponse = this.handleDictionaryLookup(request);
     if (dictionaryResponse) return dictionaryResponse;

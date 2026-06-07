@@ -46,6 +46,10 @@ app.post('/audio/speech', (req, res) => {
   }
 });
 
+app.post('/audio/transcriptions', (req, res) => {
+  res.status(200).json({ text: 'Miért ez a helyes nyelvtani megoldás?' });
+});
+
 app.post('/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;

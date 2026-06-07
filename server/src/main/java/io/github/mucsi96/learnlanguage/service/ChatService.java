@@ -3,10 +3,12 @@ package io.github.mucsi96.learnlanguage.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -105,6 +107,32 @@ public class ChatService {
                 .prompt()
                 .system(systemPrompt)
                 .user(u -> u.text(userMessage))
+                .call();
+
+        final ChatResponse response = callResponse.chatResponse();
+        final String text = response.getResult().getOutput().getText();
+
+        long processingTime = System.currentTimeMillis() - startTime;
+
+        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+
+        return text;
+    }
+
+    public String callForTextWithHistory(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            List<Message> messages) {
+
+        long startTime = System.currentTimeMillis();
+
+        ChatClient chatClient = chatClientService.getChatClient(model);
+
+        ChatClient.CallResponseSpec callResponse = chatClient
+                .prompt()
+                .system(systemPrompt)
+                .messages(messages)
                 .call();
 
         final ChatResponse response = callResponse.chatResponse();
