@@ -167,6 +167,18 @@
             }
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Existing card detection sources</mat-label>
+          <mat-select
+            multiple
+            [formField]="sourceForm.detectionSourceIds"
+          >
+            @for (source of otherSources(); track source.id) {
+            <mat-option [value]="source.id">{{ source.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
       </div>
     </section>
   </form>

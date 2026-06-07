@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DuplicateDetectionRequest {
     private List<String> newIds;
+    private String sourceId;
 }

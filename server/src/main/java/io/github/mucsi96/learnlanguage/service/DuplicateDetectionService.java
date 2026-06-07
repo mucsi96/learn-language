@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +56,8 @@ public class DuplicateDetectionService {
     private final CardRepository cardRepository;
     private final JsonMapper jsonMapper;
 
-    public DuplicateDetectionResponse detectDuplicates(List<String> newIds, ChatModel model) {
+    public DuplicateDetectionResponse detectDuplicates(List<String> newIds, Collection<String> detectionSourceIds,
+            ChatModel model) {
         if (newIds == null || newIds.isEmpty()) {
             return DuplicateDetectionResponse.builder().duplicates(List.of()).build();
         }
@@ -69,7 +71,7 @@ public class DuplicateDetectionService {
             return DuplicateDetectionResponse.builder().duplicates(List.of()).build();
         }
 
-        final List<String> existingIds = cardRepository.findAll().stream()
+        final List<String> existingIds = cardRepository.findBySource_IdIn(detectionSourceIds).stream()
                 .map(Card::getId)
                 .filter(id -> newIdPrefixes.contains(prefixOf(id)))
                 .toList();

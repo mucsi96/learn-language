@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
+import { SourcesService } from '../../sources.service';
 
 const SLUG_MAX_LENGTH = 50;
 
@@ -54,6 +55,7 @@ export class SourceDialogComponent {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_CONFIG);
   private readonly partnersService = inject(LearningPartnersService);
+  private readonly sourcesService = inject(SourcesService);
   data: { source?: Source; mode: 'create' | 'edit' } = inject(MAT_DIALOG_DATA);
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
@@ -61,6 +63,11 @@ export class SourceDialogComponent {
   readonly formatTypes = this.environment.sourceFormatTypes;
   readonly sourceTypes = this.environment.sourceTypes;
   readonly partners = this.partnersService.partners;
+  readonly otherSources = computed(() =>
+    (this.sourcesService.sources.value() ?? []).filter(
+      (source) => source.id !== this.data.source?.id
+    )
+  );
   readonly cardTypes = [
     { code: 'vocabulary', displayName: 'Vocabulary' },
     { code: 'speech', displayName: 'Speech' },
@@ -78,6 +85,7 @@ export class SourceDialogComponent {
     cardLimit: number;
     newCardLimit: number;
     learningPartnerId: number | null;
+    detectionSourceIds: string[];
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
@@ -89,6 +97,7 @@ export class SourceDialogComponent {
     cardLimit: this.data.source?.cardLimit ?? 50,
     newCardLimit: this.data.source?.newCardLimit ?? 50,
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
+    detectionSourceIds: this.data.source?.detectionSourceIds ?? [],
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.name);
@@ -153,6 +162,7 @@ export class SourceDialogComponent {
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
           ? 0
           : result.learningPartnerId,
+        detectionSourceIds: result.detectionSourceIds,
       };
       this.dialogRef.close(formData);
     }

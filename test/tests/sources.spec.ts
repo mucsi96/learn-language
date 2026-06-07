@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner, setDetectionSources, getDetectionSources } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('/sources');
@@ -325,6 +325,49 @@ test('can edit an existing source', async ({ page }) => {
 
   const updatedSource = await getSource('goethe-a1');
   expect(updatedSource?.name).toBe('Goethe A1 Updated');
+});
+
+test('can configure existing card detection sources', async ({ page }) => {
+  await page.goto('/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+
+  await page.getByLabel('Existing card detection sources').click();
+  await page.getByRole('option', { name: 'Goethe A2' }).click();
+  await page.getByRole('option', { name: 'Goethe B1' }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const detectionSourceIds = await getDetectionSources('goethe-a1');
+    expect(detectionSourceIds).toEqual(['goethe-a2', 'goethe-b1']);
+  }).toPass();
+});
+
+test('can remove existing card detection sources', async ({ page }) => {
+  await setDetectionSources('goethe-a1', ['goethe-a2']);
+
+  await page.goto('/sources');
+
+  await page.getByRole('article', { name: 'Goethe A1' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
+
+  await page.getByLabel('Existing card detection sources').click();
+  await page.getByRole('option', { name: 'Goethe A2' }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const detectionSourceIds = await getDetectionSources('goethe-a1');
+    expect(detectionSourceIds).toEqual([]);
+  }).toPass();
 });
 
 test('can delete a source and its cards', async ({ page }) => {

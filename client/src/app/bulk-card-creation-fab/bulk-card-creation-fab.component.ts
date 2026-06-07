@@ -110,7 +110,8 @@ export class BulkCardCreationFabComponent {
       this.isDetectingDuplicates.set(true);
       try {
         const duplicates = await this.duplicateDetectionService.detectDuplicates(
-          candidates.map((candidate) => candidate.id)
+          candidates.map((candidate) => candidate.id),
+          selectedSource.sourceId
         );
         if (duplicates.length > 0) {
           const dialogRef = this.dialog.open<

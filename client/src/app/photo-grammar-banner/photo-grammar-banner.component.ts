@@ -64,7 +64,7 @@ export class PhotoGrammarBannerComponent {
           const idResp = await fetchJson<SentenceIdResponse>(
             this.http,
             '/api/sentence-id',
-            { body: { germanSentence: sentence }, method: 'POST' }
+            { body: { germanSentence: sentence, sourceId: sid }, method: 'POST' }
           );
           return {
             id: idResp.id,

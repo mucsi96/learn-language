@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +23,5 @@ public class SourceRequest {
     private Integer cardLimit;
     private Integer newCardLimit;
     private Integer learningPartnerId;
+    private List<String> detectionSourceIds;
 }

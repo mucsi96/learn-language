@@ -19,7 +19,7 @@ public interface SourceRepository extends JpaRepository<Source, String> {
     @EntityGraph(attributePaths = "learningPartner")
     List<Source> findAllByOrderByIdAsc();
 
-    @EntityGraph(attributePaths = "learningPartner")
+    @EntityGraph(attributePaths = { "learningPartner", "detectionSources" })
     Optional<Source> findById(String id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -2,6 +2,9 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,16 @@ public class SourceService {
 
     public Optional<Source> getSourceById(String id) {
         return sourceRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Set<String> getDetectionSourceIds(String sourceId) {
+        return sourceRepository.findById(sourceId)
+                .map(source -> Stream.concat(
+                        Stream.of(sourceId),
+                        source.getDetectionSources().stream().map(Source::getId))
+                        .collect(Collectors.toUnmodifiableSet()))
+                .orElseGet(() -> Set.of(sourceId));
     }
 
     public Source saveSource(Source source) {

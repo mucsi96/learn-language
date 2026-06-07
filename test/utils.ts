@@ -59,6 +59,7 @@ export async function createSource(params: {
   cardLimit?: number | null;
   newCardLimit?: number | null;
   learningPartnerId?: number | null;
+  detectionSourceIds?: string[];
 }): Promise<void> {
   const {
     id,
@@ -73,6 +74,7 @@ export async function createSource(params: {
     cardLimit = null,
     newCardLimit = null,
     learningPartnerId = null,
+    detectionSourceIds = [],
   } = params;
 
   await withDbConnection(async (client) => {
@@ -81,6 +83,47 @@ export async function createSource(params: {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
     );
+
+    await Promise.all(
+      detectionSourceIds.map((targetSourceId) =>
+        client.query(
+          `INSERT INTO learn_language.source_detection_sources (source_id, target_source_id)
+           VALUES ($1, $2)`,
+          [id, targetSourceId]
+        )
+      )
+    );
+  });
+}
+
+export async function setDetectionSources(sourceId: string, targetSourceIds: string[]): Promise<void> {
+  await withDbConnection(async (client) => {
+    await client.query(
+      `DELETE FROM learn_language.source_detection_sources WHERE source_id = $1`,
+      [sourceId]
+    );
+    await Promise.all(
+      targetSourceIds.map((targetSourceId) =>
+        client.query(
+          `INSERT INTO learn_language.source_detection_sources (source_id, target_source_id)
+           VALUES ($1, $2)`,
+          [sourceId, targetSourceId]
+        )
+      )
+    );
+  });
+}
+
+export async function getDetectionSources(sourceId: string): Promise<string[]> {
+  return withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT target_source_id as "targetSourceId"
+       FROM learn_language.source_detection_sources
+       WHERE source_id = $1
+       ORDER BY target_source_id ASC`,
+      [sourceId]
+    );
+    return result.rows.map((row) => row.targetSourceId);
   });
 }
 

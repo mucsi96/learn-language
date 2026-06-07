@@ -920,3 +920,38 @@ databaseChangeLog:
                   defaultValueBoolean: false
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 28-create-source-detection-sources-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: source_detection_sources
+            columns:
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: source_detection_sources
+            columnNames: source_id, target_source_id
+            constraintName: source_detection_sources_pkey
+        - addForeignKeyConstraint:
+            constraintName: source_detection_sources_source_fkey
+            baseTableName: source_detection_sources
+            baseColumnNames: source_id
+            referencedTableName: sources
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: source_detection_sources_target_fkey
+            baseTableName: source_detection_sources
+            baseColumnNames: target_source_id
+            referencedTableName: sources
+            referencedColumnNames: id
+            onDelete: CASCADE

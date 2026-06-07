@@ -249,6 +249,7 @@ export type Source = {
   cardLimit?: number;
   newCardLimit?: number;
   learningPartnerId?: number | null;
+  detectionSourceIds?: string[];
 };
 
 export type WordList = {

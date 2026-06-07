@@ -30,7 +30,7 @@ export class DuplicateDetectionService {
     return Boolean(primary && enabledModels.includes(primary));
   }
 
-  async detectDuplicates(newIds: string[]): Promise<PotentialDuplicate[]> {
+  async detectDuplicates(newIds: string[], sourceId: string): Promise<PotentialDuplicate[]> {
     if (newIds.length === 0 || !this.isAvailable()) {
       return [];
     }
@@ -42,7 +42,7 @@ export class DuplicateDetectionService {
           this.http,
           `/api/duplicate-detection?model=${model}`,
           {
-            body: { newIds },
+            body: { newIds, sourceId },
             method: 'POST',
             headers,
           }

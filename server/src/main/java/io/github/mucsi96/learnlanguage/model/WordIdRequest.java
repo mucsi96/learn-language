@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class WordIdRequest {
     private String germanWord;
     private String hungarianTranslation;
+    private String sourceId;
 }
