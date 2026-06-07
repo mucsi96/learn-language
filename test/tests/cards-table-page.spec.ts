@@ -16,8 +16,8 @@ import {
 
 test('navigates to cards table from page view', async ({ page }) => {
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
   await page.getByRole('link', { name: 'View all cards' }).click();
   await expect(page).toHaveTitle('Cards');
 });
@@ -502,8 +502,8 @@ test('page title shows Cards', async ({ page }) => {
 
 test('delete image button shows as text button', async ({ page }) => {
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
   await expect(page.getByRole('link', { name: 'View all cards' })).toBeVisible();
 });
 
@@ -1435,8 +1435,8 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -1454,29 +1454,6 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
     expect(rows.length).toBe(3);
     rows.forEach((row) => expect(row.Readiness).toBe('IN_REVIEW'));
   }).toPass();
-});
-
-test('quick filter buttons toggle URL filter param', async ({ page }) => {
-  await createCard({
-    cardId: 'qf-card-1',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: {
-      word: 'Hund',
-      type: 'NOUN',
-      gender: 'M',
-      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
-    },
-    flagged: true,
-  });
-
-  await page.goto('/sources/goethe-a1/cards');
-
-  await page.getByRole('button', { name: 'Filter flagged cards' }).click();
-  await expect(page).toHaveURL(/filter=flagged/);
-
-  await page.getByRole('button', { name: 'Filter flagged cards' }).click();
-  await expect(page).not.toHaveURL(/filter=/);
 });
 
 test('quick filter flagged shows only flagged cards', async ({ page }) => {
@@ -1577,49 +1554,6 @@ test('quick filter persists on page reload', async ({ page }) => {
   }).toPass();
 });
 
-test('quick filter buttons show count and hide when no matching cards', async ({ page }) => {
-  await page.goto('/sources/goethe-a1/cards');
-
-  await expect(page.getByRole('button', { name: 'Filter flagged cards' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Filter unhealthy cards' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Filter draft cards' })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Filter suggested known cards' })).not.toBeVisible();
-});
-
-test('quick filter buttons display card counts', async ({ page }) => {
-  await createCard({
-    cardId: 'flagged-count-1',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: {
-      word: 'Hund',
-      type: 'NOUN',
-      gender: 'M',
-      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
-    },
-    flagged: true,
-  });
-
-  await createCard({
-    cardId: 'flagged-count-2',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    data: {
-      word: 'Katze',
-      type: 'NOUN',
-      gender: 'F',
-      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
-    },
-    flagged: true,
-  });
-
-  await page.goto('/sources/goethe-a1/cards');
-
-  const flaggedButton = page.getByRole('button', { name: 'Filter flagged cards' });
-  await expect(flaggedButton).toBeVisible();
-  await expect(flaggedButton).toContainText('Flagged (2)');
-});
-
 test('quick filter suggested known shows only cards meeting criteria', async ({ page }) => {
   await createCard({
     cardId: 'suggested-known-card',
@@ -1662,49 +1596,5 @@ test('quick filter suggested known shows only cards meeting criteria', async ({ 
     const rows = await getGridData(grid);
     expect(rows).toHaveLength(1);
     expect(rows[0]['ID']).toBe('suggested-known-card');
-  }).toPass();
-});
-
-test('quick filter suggested known button displays count', async ({ page }) => {
-  await createCard({
-    cardId: 'sk-count-1',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    readiness: 'READY',
-    data: {
-      word: 'Hund',
-      type: 'NOUN',
-      gender: 'M',
-      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
-    },
-    state: 'REVIEW',
-    stability: 40,
-    reps: 6,
-    lapses: 0,
-  });
-
-  await createCard({
-    cardId: 'sk-count-2',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 9,
-    readiness: 'READY',
-    data: {
-      word: 'Katze',
-      type: 'NOUN',
-      gender: 'F',
-      translation: { en: 'cat', hu: 'macska', ch: 'Chatz' },
-    },
-    state: 'REVIEW',
-    stability: 35,
-    reps: 5,
-    lapses: 1,
-  });
-
-  await page.goto('/sources/goethe-a1/cards');
-
-  const suggestedKnownButton = page.getByRole('button', { name: 'Filter suggested known cards' });
-  await expect(async () => {
-    await expect(suggestedKnownButton).toBeVisible();
-    await expect(suggestedKnownButton).toContainText('Suggested known (2)');
   }).toPass();
 });

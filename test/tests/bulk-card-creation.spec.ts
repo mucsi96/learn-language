@@ -45,8 +45,8 @@ test('bulk create fab appears when words without cards selected', async ({ page 
     },
   });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Initially no FAB should be visible
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).not.toBeVisible();
@@ -79,8 +79,8 @@ test('multiple regions can be selected before confirmation', async ({ page }) =>
     },
   });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -117,8 +117,8 @@ test('selections persist across page navigation', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -211,8 +211,8 @@ test('cancel selection clears all selections', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
@@ -276,8 +276,8 @@ test('bulk create fab hides when all words have cards', async ({ page }) => {
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select region with words that now have cards
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -293,8 +293,8 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -311,8 +311,8 @@ test('bulk card creation shows individual progress', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -331,8 +331,8 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -363,8 +363,8 @@ test('bulk card creation includes word data', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -434,8 +434,8 @@ test('bulk card creation skips image generation for models with zero image count
   await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -462,8 +462,8 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -495,8 +495,8 @@ test('bulk card creation dialog shows review cards link', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -518,8 +518,8 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -557,8 +557,8 @@ test('bulk card creation source metadata', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -592,8 +592,8 @@ test('bulk card creation learning parameters and review state', async ({ page })
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   // Select a region
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -641,8 +641,8 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Speech A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Speech A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
@@ -711,8 +711,8 @@ test('hungarian translation failure shows error on word spans', async ({ page })
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -730,8 +730,8 @@ test('bulk card creation persists extraction regions', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -762,8 +762,8 @@ test('persisted extraction regions are shown on page reload', async ({ page }) =
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -779,8 +779,8 @@ test('persisted extraction regions are shown when navigating back to page', asyn
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -804,8 +804,8 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await createGrammarTopic({ name: 'Verbs' });
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Grammar A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Grammar A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await page.getByLabel('Upload image').setInputFiles({
     name: 'test-grammar-image.png',
@@ -896,8 +896,8 @@ test('ai duplicate detection dialog opens before bulk creation', async ({ page }
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -927,8 +927,8 @@ test('ai duplicate detection skip excludes card from creation', async ({ page })
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 
@@ -976,8 +976,8 @@ test('ai duplicate detection cancel aborts bulk creation', async ({ page }) => {
   });
 
   await page.goto('/sources');
-  await page.getByRole('article', { name: 'Goethe A1' }).click();
-  await page.getByRole('button', { name: 'Pages' }).click();
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 

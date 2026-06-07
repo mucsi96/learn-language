@@ -129,10 +129,6 @@ export class CardsTableComponent {
     return sources?.find(s => s.id === id);
   });
   readonly sourceCardType = computed(() => this.currentSource()?.cardType);
-  readonly unhealthyCount = computed(() => this.currentSource()?.unhealthyCardCount ?? 0);
-  readonly flaggedCount = computed(() => this.currentSource()?.flaggedCardCount ?? 0);
-  readonly draftCount = computed(() => this.currentSource()?.draftCardCount ?? 0);
-  readonly suggestedKnownCount = computed(() => this.currentSource()?.suggestedKnownCardCount ?? 0);
   readonly isCompletingDrafts = this.bulkCreationService.isProcessing;
   private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
 
@@ -389,15 +385,6 @@ export class CardsTableComponent {
       'cards',
       row.id,
     ]);
-  }
-
-  onQuickFilterChange(filter: QuickFilter): void {
-    const current = this.activeQuickFilter();
-    const queryParams = current === filter ? { filter: null } : { filter };
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'merge',
-    });
   }
 
   onCardFilterChange(value: string): void {
