@@ -8,6 +8,7 @@ import {
   getSource,
   selectTextRange,
   scrollElementToTop,
+  setDetectionSources,
   setupDefaultChatModelSettings,
   setupDefaultImageModelSettings,
   menschenA1Image,
@@ -88,6 +89,51 @@ test('drag to select words highlights existing cards', async ({ page }) => {
   await navigateToSource(page, 'Goethe A1');
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+  await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
+});
+
+test('cards from other sources are not marked existing without detection config', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a2',
+    sourcePageNumber: 8,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
+});
+
+test('cards from configured detection sources are marked existing', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a2',
+    sourcePageNumber: 8,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      translation: { en: 'to depart', hu: 'elindulni', ch: 'abfahren' },
+      forms: [],
+      examples: [],
+    },
+  });
+  await setDetectionSources('goethe-a1', ['goethe-a2']);
+  await navigateToSource(page, 'Goethe A1');
+
+  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
   await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 

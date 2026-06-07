@@ -10,6 +10,8 @@ import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.DuplicateDetectionRequest;
 import io.github.mucsi96.learnlanguage.model.DuplicateDetectionResponse;
 import io.github.mucsi96.learnlanguage.service.DuplicateDetectionService;
+import io.github.mucsi96.learnlanguage.service.SourceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -17,12 +19,16 @@ import lombok.RequiredArgsConstructor;
 public class DuplicateDetectionController {
 
     private final DuplicateDetectionService duplicateDetectionService;
+    private final SourceService sourceService;
 
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PostMapping("/duplicate-detection")
     public DuplicateDetectionResponse detect(
-            @RequestBody DuplicateDetectionRequest request,
+            @Valid @RequestBody DuplicateDetectionRequest request,
             @RequestParam ChatModel model) {
-        return duplicateDetectionService.detectDuplicates(request.getNewIds(), model);
+        return duplicateDetectionService.detectDuplicates(
+                request.getNewIds(),
+                sourceService.getDetectionSourceIds(request.getSourceId()),
+                model);
     }
 }

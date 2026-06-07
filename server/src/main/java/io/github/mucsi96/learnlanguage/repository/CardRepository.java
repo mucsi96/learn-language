@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -71,6 +72,12 @@ public interface CardRepository
     List<SourceCardStatsProjection> getSourceCardStats();
 
     boolean existsByIdStartingWithAndIdNot(String prefix, String id);
+
+    boolean existsByIdAndSource_IdIn(String id, Collection<String> sourceIds);
+
+    boolean existsByIdStartingWithAndIdNotAndSource_IdIn(String prefix, String id, Collection<String> sourceIds);
+
+    List<Card> findBySource_IdIn(Collection<String> sourceIds);
 
     @Modifying
     void deleteBySource(Source source);

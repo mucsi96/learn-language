@@ -96,7 +96,8 @@ export class VocabularyCardType implements CardTypeStrategy {
             {
               body: {
                 germanWord: word.word,
-                hungarianTranslation: hungarianTranslation.translation
+                hungarianTranslation: hungarianTranslation.translation,
+                sourceId,
               },
               method: 'POST',
             }

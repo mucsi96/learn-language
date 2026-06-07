@@ -59,7 +59,7 @@ export class GrammarCardType implements CardTypeStrategy {
           this.http,
           '/api/sentence-id',
           {
-            body: { germanSentence: sentence },
+            body: { germanSentence: sentence, sourceId },
             method: 'POST',
           }
         );

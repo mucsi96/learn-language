@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -126,6 +127,7 @@ public class SourceController {
           .cardLimit(source.getCardLimit())
           .newCardLimit(source.getNewCardLimit())
           .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
+          .detectionSourceIds(source.getDetectionSources().stream().map(Source::getId).sorted().toList())
           .build();
     }).collect(Collectors.toList());
   }
@@ -316,6 +318,7 @@ public class SourceController {
         .learningPartner(request.getLearningPartnerId() != null
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
             : null)
+        .detectionSources(resolveDetectionSources(request.getDetectionSourceIds(), request.getId()))
         .build();
 
     sourceService.saveSource(source);
@@ -350,6 +353,9 @@ public class SourceController {
         .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
         .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
         .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
+        .detectionSources(request.getDetectionSourceIds() != null
+            ? resolveDetectionSources(request.getDetectionSourceIds(), sourceId)
+            : existingSource.getDetectionSources())
         .build();
 
     sourceService.saveSource(updatedSource);
@@ -644,6 +650,20 @@ public class SourceController {
       return null;
     }
     return learningPartnerService.getLearningPartnerById(learningPartnerId);
+  }
+
+  private Set<Source> resolveDetectionSources(List<String> detectionSourceIds, String selfId) {
+    if (detectionSourceIds == null) {
+      return Set.of();
+    }
+    if (detectionSourceIds.contains(selfId)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "A source cannot reference itself as a detection source");
+    }
+    return detectionSourceIds.stream()
+        .map(id -> sourceService.getSourceById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + id)))
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   private boolean isImageFile(String filename) {
