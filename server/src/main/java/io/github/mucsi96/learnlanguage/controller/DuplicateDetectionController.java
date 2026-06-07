@@ -11,6 +11,7 @@ import io.github.mucsi96.learnlanguage.model.DuplicateDetectionRequest;
 import io.github.mucsi96.learnlanguage.model.DuplicateDetectionResponse;
 import io.github.mucsi96.learnlanguage.service.DuplicateDetectionService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,7 +24,7 @@ public class DuplicateDetectionController {
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     @PostMapping("/duplicate-detection")
     public DuplicateDetectionResponse detect(
-            @RequestBody DuplicateDetectionRequest request,
+            @Valid @RequestBody DuplicateDetectionRequest request,
             @RequestParam ChatModel model) {
         return duplicateDetectionService.detectDuplicates(
                 request.getNewIds(),

@@ -656,9 +656,11 @@ public class SourceController {
     if (detectionSourceIds == null) {
       return Set.of();
     }
+    if (detectionSourceIds.contains(selfId)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "A source cannot reference itself as a detection source");
+    }
     return detectionSourceIds.stream()
-        .distinct()
-        .filter(id -> !id.equals(selfId))
         .map(id -> sourceService.getSourceById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + id)))
         .collect(Collectors.toUnmodifiableSet());

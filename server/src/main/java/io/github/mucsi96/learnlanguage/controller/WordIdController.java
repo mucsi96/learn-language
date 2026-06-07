@@ -5,6 +5,7 @@ import io.github.mucsi96.learnlanguage.model.WordIdResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import io.github.mucsi96.learnlanguage.service.WordIdService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ public class WordIdController {
 
     @PostMapping("/word-id")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<WordIdResponse> generateWordId(@RequestBody WordIdRequest request) {
+    public ResponseEntity<WordIdResponse> generateWordId(@Valid @RequestBody WordIdRequest request) {
         final String id = wordIdService.generateWordId(request.getGermanWord(), request.getHungarianTranslation());
         final Set<String> detectionSourceIds = sourceService.getDetectionSourceIds(request.getSourceId());
         final boolean exists = cardRepository.existsByIdAndSource_IdIn(id, detectionSourceIds);

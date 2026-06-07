@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +32,12 @@ public class SourceService {
 
     @Transactional(readOnly = true)
     public Set<String> getDetectionSourceIds(String sourceId) {
-        return sourceRepository.findById(sourceId)
-                .map(source -> Stream.concat(
-                        Stream.of(sourceId),
-                        source.getDetectionSources().stream().map(Source::getId))
-                        .collect(Collectors.toUnmodifiableSet()))
-                .orElseGet(() -> Set.of(sourceId));
+        final Source source = sourceRepository.findById(sourceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+        return Stream.concat(
+                Stream.of(sourceId),
+                source.getDetectionSources().stream().map(Source::getId))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public Source saveSource(Source source) {

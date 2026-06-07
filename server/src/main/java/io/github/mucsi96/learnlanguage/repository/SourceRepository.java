@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Repository
 public interface SourceRepository extends JpaRepository<Source, String> {
-    @EntityGraph(attributePaths = "learningPartner")
+    @EntityGraph(attributePaths = { "learningPartner", "detectionSources" })
     List<Source> findAllByOrderByIdAsc();
 
     @EntityGraph(attributePaths = { "learningPartner", "detectionSources" })

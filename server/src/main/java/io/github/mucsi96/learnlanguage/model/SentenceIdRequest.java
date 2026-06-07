@@ -15,5 +15,6 @@ public class SentenceIdRequest {
     @NotBlank
     @Size(max = 1000)
     private String germanSentence;
+    @NotBlank
     private String sourceId;
 }
