@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
+import { authGuard } from './utils/auth.guard';
 
 export const routes: Routes = [
   {
@@ -7,28 +7,28 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () =>
       import('./home/home.component').then((m) => m.HomeComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: '',
   },
   {
     path: 'in-review-cards',
     loadComponent: () =>
       import('./in-review-cards/in-review-cards.component').then((m) => m.InReviewCardsComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Cards In Review',
   },
   {
     path: 'model-usage',
     loadComponent: () =>
       import('./model-usage-logs/model-usage-logs.component').then((m) => m.ModelUsageLogsComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Model Usage',
   },
   {
     path: 'settings',
     loadComponent: () =>
       import('./settings/settings.component').then((m) => m.SettingsComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -87,7 +87,7 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/study',
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Study',
     children: [
       {
@@ -112,12 +112,12 @@ export const routes: Routes = [
     path: 'sources',
     loadComponent: () =>
       import('./admin/admin.component').then((m) => m.AdminComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Sources',
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
       const pageNumber = route.params['pageNumber'];
@@ -142,7 +142,7 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/cards',
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Cards',
     children: [
       {
@@ -167,7 +167,7 @@ export const routes: Routes = [
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
-    canActivate: [autoLoginPartialRoutesGuard],
+    canActivate: [authGuard],
     title: 'Edit Card',
   },
 ];
