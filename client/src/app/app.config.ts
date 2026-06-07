@@ -16,13 +16,13 @@ import {
 } from '@angular/material/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideAngularMaterialTheme } from '@mucsi96/angular-material-theme';
-import { authInterceptor } from 'angular-auth-oidc-client';
 import { routes } from './app.routes';
 import { provideOidcAuth } from './auth.config';
+import { AuthService } from './auth.service';
 import { authRetryInterceptor } from './utils/auth-retry.interceptor';
 import { errorInterceptor } from './utils/error.interceptor';
 import { timezoneInterceptor } from './utils/timezone.interceptor';
-import { TokenRenewalService } from './utils/token-renewal.service';
+import { tokenInterceptor } from './utils/token.interceptor';
 import {
   EnvironmentConfig,
   ENVIRONMENT_CONFIG,
@@ -41,7 +41,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
         withInterceptors([
           errorInterceptor,
           authRetryInterceptor,
-          authInterceptor(),
+          tokenInterceptor,
           timezoneInterceptor,
         ])
       ),
@@ -50,7 +50,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
       provideAngularMaterialTheme(),
       { provide: ENVIRONMENT_CONFIG, useValue: environment },
       provideOidcAuth(environment),
-      provideAppInitializer(() => inject(TokenRenewalService).init()),
+      provideAppInitializer(() => inject(AuthService).init()),
     ],
   };
 }
