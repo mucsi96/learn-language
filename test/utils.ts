@@ -848,6 +848,7 @@ const ALL_OPERATION_TYPES = [
   'TRANSLATION',
   'EXTRACTION',
   'CLASSIFICATION',
+  'EXPLANATION',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3.1-pro-preview';

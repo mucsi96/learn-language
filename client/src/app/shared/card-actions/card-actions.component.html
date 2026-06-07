@@ -23,6 +23,10 @@
       <mat-icon>{{ isFlagged() ? 'flag' : 'outlined_flag' }}</mat-icon>
       <span>{{ isFlagged() ? 'Remove Flag' : 'Flag Card' }}</span>
     </button>
+    <button mat-menu-item (click)="openAiChat()">
+      <mat-icon>psychology</mat-icon>
+      <span>Ask AI</span>
+    </button>
     <a
       mat-menu-item
       [routerLink]="['/sources', card()?.value()?.source?.id, 'page', card()?.value()?.sourcePageNumber, 'cards', card()?.value()?.id]">

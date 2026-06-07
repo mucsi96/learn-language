@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../../utils/fetchJson';
 import { AudioData } from '../types/audio-generation.types';
 import { VoiceSelectionDialogComponent } from '../voice-selection-dialog/voice-selection-dialog.component';
+import { AiChatDialogComponent } from '../ai-chat-dialog/ai-chat-dialog.component';
 import { LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../types/card-resource.types';
 import { StudySessionService } from '../../study-session.service';
@@ -68,6 +69,22 @@ export class CardActionsComponent {
     } catch (error) {
       console.error('Error skipping card:', error);
     }
+  }
+
+  openAiChat(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const card = this.card()?.value();
+    if (!card) return;
+
+    this.dialog.open(AiChatDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      data: { card },
+    });
   }
 
   async openVoiceSelection(event?: Event) {
