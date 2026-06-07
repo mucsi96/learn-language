@@ -104,7 +104,7 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
     return result.rows;
   });
 
-  expect(cards.length).toBe(3);
+  expect(cards.length).toBe(4);
 
   const cardsBySentence = new Map<string, (typeof cards)[number]>(
     cards.map((card) => [card.data.examples?.[0]?.de as string, card])
@@ -114,12 +114,14 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
     [
       'Heute [bin] ich müde.',
       '[Der] Mann gibt [dem] Kind das Buch.',
+      'Im Sommer [machte] sie oft Sport im Park.',
       'Der Hund läuft schnell durch den [Park].',
     ].sort()
   );
 
   expect(cardsBySentence.get('Heute [bin] ich müde.')?.data.hint).toBe('sein');
   expect(cardsBySentence.get('[Der] Mann gibt [dem] Kind das Buch.')?.data.hint).toBe('der / der');
+  expect(cardsBySentence.get('Im Sommer [machte] sie oft Sport im Park.')?.data.hint).toBe('machen (3. Person Singular)');
   expect(cardsBySentence.get('Der Hund läuft schnell durch den [Park].')?.data.hint).toBeUndefined();
 
   for (const card of cards) {

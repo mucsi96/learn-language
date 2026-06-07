@@ -270,6 +270,7 @@ export type PhotoGrammarSentence = {
 export const PHOTO_GRAMMAR_CONCEPT_SENTENCES: PhotoGrammarSentence[] = [
   { sentence: 'Heute [bin] ich müde.', hint: 'sein' },
   { sentence: '[Der] Mann gibt [dem] Kind das Buch.', hint: 'der / der' },
+  { sentence: 'Im Sommer [machte] sie oft Sport im Park.', hint: 'machen (3. Person Singular)' },
   { sentence: 'Der Hund läuft schnell durch den [Park].' },
 ];
 
@@ -331,6 +332,7 @@ export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
     'Und [das] ist Frau Wachter.': 'És ez Wachter asszony.',
     'Heute [bin] ich müde.': 'Ma fáradt vagyok.',
     '[Der] Mann gibt [dem] Kind das Buch.': 'A férfi a gyereknek adja a könyvet.',
+    'Im Sommer [machte] sie oft Sport im Park.': 'Nyáron gyakran sportolt a parkban.',
     'Der Hund läuft schnell durch den [Park].': 'A kutya gyorsan átfut a parkon.',
   },
   english: {
