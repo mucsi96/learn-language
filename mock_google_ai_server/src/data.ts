@@ -270,6 +270,7 @@ export type PhotoGrammarSentence = {
 export const PHOTO_GRAMMAR_CONCEPT_SENTENCES: PhotoGrammarSentence[] = [
   { sentence: 'Heute [bin] ich müde.', hint: 'sein' },
   { sentence: '[Der] Mann gibt [dem] Kind das Buch.', hint: 'der / der' },
+  { sentence: 'Im Sommer [machte] sie oft Sport im Park.', hint: 'machen (3. Person Singular)' },
   { sentence: 'Der Hund läuft schnell durch den [Park].' },
 ];
 

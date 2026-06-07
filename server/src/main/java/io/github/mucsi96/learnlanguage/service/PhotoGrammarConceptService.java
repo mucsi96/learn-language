@@ -42,7 +42,9 @@ public class PhotoGrammarConceptService {
         - Sentences must be appropriate for %s level learners.
         - Skip any handwritten text on the photo.
         - After producing each sentence, judge whether ANY blank is ambiguous - i.e. multiple valid German words or forms could plausibly fit the blank purely from the surrounding context (without seeing the textbook lesson).
+        - Also judge a second kind of ambiguity: even after the base hint (e.g. the infinitive) is known, the required INFLECTED form may still be ambiguous because a grammatical feature (person, number, gender, case or tense) is not uniquely fixed by the sentence. The most common trigger is an ambiguous subject pronoun: "sie" can be 3rd person singular ("she") or 3rd person plural ("they"), and "Sie" is the formal "you" - so several conjugations fit the same blank (e.g. "machte" vs. "machten"). Treat such a blank as ambiguous.
         - If at least one blank is ambiguous, include a "hint" field. The hint is a single German string covering ALL blanks in the sentence. When more than one blank needs disambiguation, separate the per-blank hints with " / " in the same order the blanks appear. Examples: verb conjugation blank -> infinitive (e.g. "gehen"); noun gender/case blank -> nominative with article (e.g. "der Tag"); adjective ending blank -> base adjective; combined article + verb blanks -> "der / gehen".
+        - When the inflected form stays ambiguous after the base hint (e.g. the ambiguous subject "sie"/"Sie" above), ENHANCE the hint so it pins down the exact form: append the distinguishing grammatical feature in German, in parentheses, after the base hint. Example: verb conjugation with an ambiguous subject -> "machen (3. Person Singular)".
         - The "hint" MUST always be in German. Never English, Hungarian or Swiss German.
         - If no blank is ambiguous, OMIT the "hint" field entirely. Do not emit it as null or an empty string.
         - !IMPORTANT! Respond ONLY with JSON in the form {"sentences": [...]} matching the example below.
@@ -51,6 +53,7 @@ public class PhotoGrammarConceptService {
     final ConceptSentences example = new ConceptSentences(List.of(
         new ConceptSentence("Heute [bin] ich müde.", "sein"),
         new ConceptSentence("[Der] Mann gibt [dem] Kind das Buch.", "der / der"),
+        new ConceptSentence("Im Sommer [machte] sie oft Sport im Park.", "machen (3. Person Singular)"),
         new ConceptSentence("Der Hund läuft schnell durch den [Park].", null)));
 
     final String exampleJson = jsonMapper.writeValueAsString(example);
