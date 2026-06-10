@@ -1,11 +1,13 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createImageModelSetting,
   createImageSetting,
   downloadImage,
   getCardFromDb,
   getImageColor,
   getImageContent,
+  getModelUsageLogs,
   withDbConnection,
   yellowImage,
   redImage,
@@ -354,6 +356,59 @@ test('favorite toggle on newly generated image', async ({ page }) => {
     expect(cardData.examples[0].images[0].isFavorite).toBeUndefined();
     expect(cardData.examples[0].images[1].isFavorite).toBe(true);
   });
+});
+
+test('generates image with virtual two-stage model', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createImageModelSetting({ modelName: 'imagen-4.0-ultra-generate-001', imageCount: 1 });
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wann fährt der Zug ab?',
+          hu: 'Mikor indul a vonat?',
+          en: 'When does the train leave?',
+          ch: 'Wänn fahrt dr Zug ab?',
+          images: [{ id: image1 }],
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  await page.getByRole('button', { name: 'Add example image' }).first().click();
+  await expect(page.getByRole('img')).toHaveCount(2);
+
+  await expect(page.getByText('Imagen 4 Ultra')).toHaveCount(1);
+
+  const generatedImageContent = await getImageContent(
+    page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
+  );
+  expect(await getImageColor(page, generatedImageContent)).toBe('red');
+
+  const logs = await getModelUsageLogs();
+  const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLog).toBeDefined();
+  expect(descriptionLog!.modelType).toBe('CHAT');
+  expect(descriptionLog!.modelName).toBe('gemini-3.1-pro-preview');
+  expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
+
+  const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');
+  expect(generationLog).toBeDefined();
+  expect(generationLog!.modelType).toBe('IMAGE');
+  expect(generationLog!.modelName).toBe('imagen-4.0-ultra-generate-001');
 });
 
 test('add image with context dialog', async ({ page }) => {

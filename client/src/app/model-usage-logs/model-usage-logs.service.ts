@@ -127,7 +127,7 @@ export class ModelUsageLogsService {
   readonly availableModelTypes: ModelType[] = ['CHAT', 'IMAGE', 'AUDIO'];
 
   readonly availableOperationTypes: string[] = [
-    'translation', 'extraction', 'classification', 'image_generation', 'audio_generation',
+    'translation', 'extraction', 'classification', 'image_generation', 'image_description', 'audio_generation',
   ];
 
   async fetchLogs(params: ModelUsageLogFetchParams): Promise<ModelUsageLogTableResponse> {

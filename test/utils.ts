@@ -770,13 +770,15 @@ export async function getModelUsageLogs(): Promise<
     inputTokens: number | null;
     outputTokens: number | null;
     rating: number | null;
+    responseContent: string | null;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, model_name as "modelName", model_type as "modelType",
               operation_type as "operationType", input_tokens as "inputTokens",
-              output_tokens as "outputTokens", rating
+              output_tokens as "outputTokens", rating,
+              response_content as "responseContent"
        FROM learn_language.model_usage_logs
        ORDER BY created_at DESC`
     );
