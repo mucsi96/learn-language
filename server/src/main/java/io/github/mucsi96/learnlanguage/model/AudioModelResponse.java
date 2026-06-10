@@ -13,4 +13,5 @@ public class AudioModelResponse {
     private String id;
     private String displayName;
     private boolean isDefault;
+    private ModelProvider provider;
 }

@@ -16,4 +16,5 @@ public class VoiceResponse {
     private String displayName;
     private List<LanguageResponse> languages;
     private String category;
+    private ModelProvider provider;
 }
