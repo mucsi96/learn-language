@@ -19,7 +19,7 @@ public class GoogleImageService {
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateImage(String input, String context, String modelName) {
+  public byte[] generateGeminiImage(String input, String context, String modelName) {
     final long startTime = System.currentTimeMillis();
     try {
       final GenerateContentConfig config = GenerateContentConfig.builder()

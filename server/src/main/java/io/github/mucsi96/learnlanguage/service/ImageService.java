@@ -29,7 +29,7 @@ public class ImageService {
   public byte[] generateImage(String input, String context, ImageGenerationModel model) {
     return switch (model) {
       case GPT_IMAGE_1_5 -> openAIImageService.generateImage(input, context, model.getModelName());
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateImage(input, context, model.getModelName());
+      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateGeminiImage(input, context, model.getModelName());
       case GPT_IMAGE_2 ->
         openAIImageService.generateImage(describeScene(input, context, model.getDescriptionModel()), null,
             model.getModelName());
