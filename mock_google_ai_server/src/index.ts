@@ -23,7 +23,7 @@ app.post('/reset', (req, res) => {
   imageHandler.reset();
   chatHandler.reset();
   audioHandler.reset();
-  res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
+  res.status(200).json({ status: 'ok', message: 'Mock state reset' });
 });
 
 app.get('/stats', (req, res) => {

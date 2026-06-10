@@ -31,7 +31,7 @@ public class AudioService {
       AudioModelResponse.builder()
           .id(GeminiAudioService.MODEL_NAME)
           .displayName("Gemini 3.1 Flash TTS")
-          .isDefault(true)
+          .isDefault(false)
           .provider(ModelProvider.GOOGLE)
           .build()
   );

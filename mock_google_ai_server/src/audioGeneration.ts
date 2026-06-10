@@ -1,7 +1,19 @@
-// Mock audio data - base64 encoded PCM payloads (reused WAV beep samples)
+const SAMPLE_RATE = 24000;
+const BEEP_DURATION_SECONDS = 0.3;
+const BEEP_AMPLITUDE = 12000;
+
+// Raw 16-bit PCM mono sine beeps, matching the format Gemini TTS returns
+const generatePcmBeep = (frequency: number): string => {
+  const sampleCount = Math.floor(SAMPLE_RATE * BEEP_DURATION_SECONDS);
+  const samples = Int16Array.from({ length: sampleCount }, (_, i) =>
+    Math.round(Math.sin((2 * Math.PI * frequency * i) / SAMPLE_RATE) * BEEP_AMPLITUDE)
+  );
+  return Buffer.from(samples.buffer).toString('base64');
+};
+
 export const AUDIO_SAMPLES = {
-  german: 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaBC+Ezm4',
-  hungarian: 'UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaBCmEzmo',
+  german: generatePcmBeep(440),
+  hungarian: generatePcmBeep(660),
 };
 
 export class AudioGenerationHandler {
