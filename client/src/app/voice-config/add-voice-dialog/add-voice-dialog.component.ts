@@ -53,11 +53,18 @@ export class AddVoiceDialogComponent {
   });
   readonly voiceForm = form(this.formModel);
 
-  readonly models = this.data.audioModels;
+  readonly availableModels = computed(() => {
+    const voice = this.formModel().voice;
+    if (!voice) return this.data.audioModels;
 
-  private getDefaultModelId(): string {
-    const defaultModel = this.data.audioModels.find((m) => m.isDefault);
-    return defaultModel?.id ?? this.data.audioModels[0]?.id ?? '';
+    return this.data.audioModels.filter(
+      (model) => model.provider === voice.provider
+    );
+  });
+
+  private getDefaultModelId(models = this.data.audioModels): string {
+    const defaultModel = models.find((m) => m.isDefault);
+    return defaultModel?.id ?? models[0]?.id ?? '';
   }
 
   readonly filteredVoices = computed(() => this.data.availableVoices);
@@ -81,6 +88,7 @@ export class AddVoiceDialogComponent {
     this.formModel.update((m) => ({
       ...m,
       language: langs.length === 1 ? langs[0] : '',
+      model: this.getDefaultModelId(this.availableModels()),
       displayName: m.voice?.displayName ?? '',
     }));
   }

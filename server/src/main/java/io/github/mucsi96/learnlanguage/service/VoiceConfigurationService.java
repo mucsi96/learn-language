@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class VoiceConfigurationService {
 
   private final VoiceConfigurationRepository voiceConfigurationRepository;
   private final ElevenLabsAudioService elevenLabsAudioService;
+  private final GeminiAudioService geminiAudioService;
 
   public List<VoiceConfigurationResponse> getAllVoiceConfigurations() {
     Map<String, VoiceResponse> voicesMap = getVoicesMap();
@@ -42,7 +44,9 @@ public class VoiceConfigurationService {
   }
 
   private Map<String, VoiceResponse> getVoicesMap() {
-    return elevenLabsAudioService.getVoices().stream()
+    return Stream.concat(
+            elevenLabsAudioService.getVoices().stream(),
+            geminiAudioService.getVoices().stream())
         .collect(Collectors.toMap(VoiceResponse::getId, v -> v, (v1, v2) -> v1));
   }
 

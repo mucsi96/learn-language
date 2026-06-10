@@ -62,6 +62,36 @@ test('can add a new voice configuration', async ({ page }) => {
   expect(configs[0].language).toBe('de');
 });
 
+test('can add a Gemini TTS voice configuration', async ({ page }) => {
+  await page.goto('/settings/voices');
+
+  await page.getByRole('button', { name: 'Add voice' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
+
+  await page.getByRole('combobox', { name: 'Voice' }).click();
+  await page.getByRole('option', { name: /Kore/ }).click();
+
+  await page.getByLabel('Language').click();
+  await page.getByRole('option', { name: 'German' }).click();
+
+  await page.getByLabel('Model').click();
+  await expect(page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ })).toBeVisible();
+  await expect(page.getByRole('option', { name: /Eleven v3/ })).not.toBeVisible();
+  await page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ }).click();
+
+  await page.getByRole('button', { name: 'Add' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).not.toBeVisible();
+  await expect(page.getByText('Kore (Firm)')).toBeVisible();
+  await expect(page.getByText('Gemini 3.1 Flash TTS')).toBeVisible();
+
+  const configs = await getVoiceConfigurations();
+  expect(configs).toHaveLength(1);
+  expect(configs[0].voiceId).toBe('Kore');
+  expect(configs[0].model).toBe('gemini-3.1-flash-tts-preview');
+  expect(configs[0].language).toBe('de');
+});
+
 test('can toggle voice configuration enabled state', async ({ page }) => {
   await createVoiceConfiguration({
     voiceId: 'test-voice-de',

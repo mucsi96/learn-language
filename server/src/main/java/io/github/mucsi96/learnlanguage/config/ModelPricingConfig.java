@@ -48,7 +48,9 @@ public class ModelPricingConfig {
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
         // ElevenLabs (approximately $0.20 per 1000 characters)
         "eleven_turbo_v2_5", new AudioModelPricing(new BigDecimal("0.20")),
-        "eleven_v3", new AudioModelPricing(new BigDecimal("0.20"))
+        "eleven_v3", new AudioModelPricing(new BigDecimal("0.20")),
+        // Gemini TTS is token-priced; approximated per 1000 characters
+        "gemini-3.1-flash-tts-preview", new AudioModelPricing(new BigDecimal("0.02"))
     );
 
     public ChatModelPricing getChatModelPricing(String modelName) {

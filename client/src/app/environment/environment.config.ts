@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 
-export type ModelProvider = 'openai' | 'anthropic' | 'google';
+export type ModelProvider = 'openai' | 'anthropic' | 'google' | 'elevenlabs';
 
 export interface ChatModelInfo {
   modelName: string;
@@ -17,6 +17,7 @@ export interface AudioModel {
   id: string;
   displayName: string;
   isDefault: boolean;
+  provider: ModelProvider;
 }
 
 export interface Voice {
@@ -24,6 +25,7 @@ export interface Voice {
   displayName: string;
   languages: { name: string }[];
   category: 'premade' | 'cloned' | 'generated' | 'professional' | null;
+  provider: ModelProvider;
 }
 
 export interface SupportedLanguage {

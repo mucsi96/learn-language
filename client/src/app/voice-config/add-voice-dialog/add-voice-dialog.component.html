@@ -43,7 +43,7 @@
       <mat-select
         [formField]="voiceForm.model"
       >
-        @for (model of models; track model.id) {
+        @for (model of availableModels(); track model.id) {
           <mat-option [value]="model.id">
             {{ model.displayName }}
             @if (model.isDefault) {
