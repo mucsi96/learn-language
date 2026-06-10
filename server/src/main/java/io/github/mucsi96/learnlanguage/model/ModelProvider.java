@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 public enum ModelProvider {
     OPENAI("openai"),
     ANTHROPIC("anthropic"),
-    GOOGLE("google");
+    GOOGLE("google"),
+    ELEVENLABS("elevenlabs");
 
     private final String code;
 

@@ -802,6 +802,73 @@ test('bulk audio creation succeeds with all enabled voice configurations', async
   });
 });
 
+test('bulk audio creation succeeds with Gemini TTS voice configurations', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
+  await createVoiceConfiguration({
+    voiceId: 'Kore',
+    model: 'gemini-3.1-flash-tts-preview',
+    language: 'de',
+    displayName: 'Kore (Firm)',
+    isEnabled: true,
+  });
+  await createVoiceConfiguration({
+    voiceId: 'Puck',
+    model: 'gemini-3.1-flash-tts-preview',
+    language: 'hu',
+    displayName: 'Puck (Upbeat)',
+    isEnabled: true,
+  });
+
+  await createCard({
+    cardId: 'verstehen-erteni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 15,
+    data: {
+      word: 'verstehen',
+      type: 'VERB',
+      translation: { en: 'to understand', hu: 'érteni' },
+      examples: [
+        {
+          de: 'Ich verstehe.',
+          hu: 'Értem.',
+          isSelected: true,
+        },
+      ],
+    },
+    readiness: 'REVIEWED',
+  });
+
+  await page.goto('/in-review-cards');
+
+  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+
+  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
+
+    const audioList = result.rows[0].data.audio;
+
+    const germanAudios = audioList.filter((a: any) => a.language === 'de');
+    const hungarianAudios = audioList.filter((a: any) => a.language === 'hu');
+
+    expect(germanAudios.length).toBeGreaterThan(0);
+    expect(hungarianAudios.length).toBeGreaterThan(0);
+
+    germanAudios.forEach((audio: any) => {
+      expect(audio.voice).toBe('Kore');
+      expect(audio.model).toBe('gemini-3.1-flash-tts-preview');
+      assertAudioExists(audio.id);
+    });
+
+    hungarianAudios.forEach((audio: any) => {
+      expect(audio.voice).toBe('Puck');
+      expect(audio.model).toBe('gemini-3.1-flash-tts-preview');
+      assertAudioExists(audio.id);
+    });
+  });
+});
+
 test('bulk audio creation for speech cards', async ({ page }) => {
   await setupVoiceConfigurations();
   await createCard({

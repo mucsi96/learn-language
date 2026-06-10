@@ -7,6 +7,7 @@ import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.LanguageResponse;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +106,7 @@ public class ElevenLabsAudioService {
                   .displayName(voice.name())
                   .languages(supportedLanguages)
                   .category(voice.category() != null ? voice.category().getValue() : null)
+                  .provider(ModelProvider.ELEVENLABS)
                   .build();
           })
           .filter(voice -> !voice.getLanguages().isEmpty())

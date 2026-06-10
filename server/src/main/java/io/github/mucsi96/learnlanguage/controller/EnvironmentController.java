@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import io.github.mucsi96.learnlanguage.service.AudioService;
 import io.github.mucsi96.learnlanguage.service.AudioSettingService;
 import io.github.mucsi96.learnlanguage.service.ChatModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ElevenLabsAudioService;
+import io.github.mucsi96.learnlanguage.service.GeminiAudioService;
 import io.github.mucsi96.learnlanguage.service.ImageModelSettingService;
 import io.github.mucsi96.learnlanguage.service.ImageSettingService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
@@ -30,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class EnvironmentController {
   private final AudioService audioService;
   private final ElevenLabsAudioService elevenLabsAudioService;
+  private final GeminiAudioService geminiAudioService;
   private final ChatModelSettingService chatModelSettingService;
   private final ImageModelSettingService imageModelSettingService;
   private final ImageSettingService imageSettingService;
@@ -101,7 +104,9 @@ public class EnvironmentController {
             .toList(),
         imageModelSettingService.getImageModelsWithSettings(),
         audioService.getAvailableModels(),
-        elevenLabsAudioService.getVoices(),
+        Stream.concat(
+            elevenLabsAudioService.getVoices().stream(),
+            geminiAudioService.getVoices().stream()).toList(),
         SUPPORTED_LANGUAGES,
         enabledModelsByOperation,
         primaryModelByOperation,

@@ -59,7 +59,7 @@ This is a language learning application that uses spaced repetition to help user
 
 ### Key Technologies
 - **Spaced Repetition**: Uses FSRS (Free Spaced Repetition Scheduler) algorithm via ts-fsrs library
-- **AI Integration**: OpenAI GPT-4.1 for translations, ElevenLabs Voices for audio, Google Gemini API for example images
+- **AI Integration**: OpenAI GPT-4.1 for translations, ElevenLabs Voices and Google Gemini TTS for audio, Google Gemini API for example images
 - **Cloud Services**: Local file system for PDFs/assets storage, Azure AD for authentication
 - **PDF Processing**: Apache PDFBox for text extraction and document processing
 
