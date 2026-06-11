@@ -197,6 +197,23 @@ export class ChatHandler {
     return null;
   }
 
+  handleImageDescription(messages: ChatMessage[]): any | null {
+    const systemMessage = messages[0]?.content;
+    const userMessage = messages[1]?.content;
+
+    if (
+      typeof systemMessage !== 'string' ||
+      !systemMessage.includes('detailed visual description') ||
+      typeof userMessage !== 'string'
+    ) {
+      return null;
+    }
+
+    return createAssistantResponse(
+      `Detailed scene: ${userMessage} A train platform with a large clock, no visible text.`
+    );
+  }
+
   handleSentenceTranslation(messages: ChatMessage[]): any | null {
     const systemMessage = messages[0]?.content;
     const userMessage = messages[1]?.content;
@@ -274,6 +291,9 @@ export class ChatHandler {
 
     const grammarExtractionResponse = await this.handleGrammarExtraction(messages);
     if (grammarExtractionResponse) return grammarExtractionResponse;
+
+    const imageDescriptionResponse = this.handleImageDescription(messages);
+    if (imageDescriptionResponse) return imageDescriptionResponse;
 
     // Try sentence translation
     const sentenceTranslationResponse = this.handleSentenceTranslation(messages);

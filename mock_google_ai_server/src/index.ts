@@ -68,6 +68,27 @@ app.post(
 );
 
 app.post(
+  '/v1beta/models/imagen-4.0-ultra-generate-001:predict',
+  (req, res) => {
+    try {
+      const prompt = req.body.instances[0].prompt;
+      console.log({ prompt });
+      const images = imageHandler.generateImages(prompt);
+      res.status(200).json({
+        predictions: images.map(imageBytes => ({
+          mimeType: 'image/png',
+          bytesBase64Encoded: imageBytes,
+        })),
+      });
+      console.log({ imageCount: images.length });
+    } catch (error) {
+      console.error('Imagen generation error:', error);
+      res.status(500).json({ error: { message: 'Image generation failed' } });
+    }
+  }
+);
+
+app.post(
   '/v1beta/models/gemini-3.1-flash-tts-preview:generateContent',
   (req, res) => {
     try {

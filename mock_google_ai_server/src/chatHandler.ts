@@ -329,6 +329,19 @@ export class ChatHandler {
     return null;
   }
 
+  handleImageDescription(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (!systemContent.includes('detailed visual description') || !userContent) {
+      return null;
+    }
+
+    return createGeminiResponse(
+      `Detailed scene: ${userContent} A train platform with a large clock, no visible text.`
+    );
+  }
+
   handleExplanation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
 
@@ -377,6 +390,9 @@ export class ChatHandler {
 
     const photoGrammarResponse = await this.handlePhotoGrammarConceptExtraction(request);
     if (photoGrammarResponse) return photoGrammarResponse;
+
+    const imageDescriptionResponse = this.handleImageDescription(request);
+    if (imageDescriptionResponse) return imageDescriptionResponse;
 
     const sentenceTranslationResponse = this.handleSentenceTranslation(request);
     if (sentenceTranslationResponse) return sentenceTranslationResponse;

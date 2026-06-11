@@ -16,6 +16,7 @@ public enum OperationType {
     CLASSIFICATION("classification", "Classification", true),
     DUPLICATE_DETECTION("duplicate_detection", "Duplicate Detection", true),
     IMAGE_GENERATION("image_generation", "Image Generation", false),
+    IMAGE_DESCRIPTION("image_description", "Image Description", false),
     AUDIO_GENERATION("audio_generation", "Audio Generation", false),
     EXPLANATION("explanation", "Explanation", true),
     TRANSCRIPTION("transcription", "Transcription", false);
