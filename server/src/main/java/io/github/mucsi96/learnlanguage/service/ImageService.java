@@ -1,6 +1,10 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
@@ -25,30 +29,41 @@ public class ImageService {
   private final OpenAIImageService openAIImageService;
   private final GoogleImageService googleImageService;
   private final ChatService chatService;
+  private final ChatModelSettingService chatModelSettingService;
 
   public byte[] generateImage(String input, String context, ImageGenerationModel model) {
     return switch (model) {
       case GPT_IMAGE_1_5 -> openAIImageService.generateImage(input, context, model.getModelName());
       case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateGeminiImage(input, context, model.getModelName());
       case GPT_IMAGE_2 ->
-        openAIImageService.generateImage(describeScene(input, context, model.getDescriptionModel()), null,
-            model.getModelName());
+        openAIImageService.generateImage(describeScene(input, context), null, model.getModelName());
       case IMAGEN_4_ULTRA ->
-        googleImageService.generateImagenImage(describeScene(input, context, model.getDescriptionModel()), null,
-            model.getModelName());
+        googleImageService.generateImagenImage(describeScene(input, context), null, model.getModelName());
     };
   }
 
-  private String describeScene(String input, String context, ChatModel descriptionModel) {
+  private String describeScene(String input, String context) {
     final String contextSegment = context == null || context.isBlank()
         ? ""
         : " Additional context: " + context + ".";
     final String description = chatService.callForTextWithLogging(
-        descriptionModel,
+        resolveDescriptionModel(),
         OperationType.IMAGE_DESCRIPTION,
         DESCRIPTION_SYSTEM_PROMPT,
         input + contextSegment);
     log.info("Generated image description for input \"{}\": {}", input, description);
     return description;
+  }
+
+  private ChatModel resolveDescriptionModel() {
+    final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
+    final String modelName = primaryModels.get(OperationType.EXTRACTION);
+
+    if (modelName == null) {
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+          "No primary model configured for extraction");
+    }
+
+    return ChatModel.fromString(modelName);
   }
 }
