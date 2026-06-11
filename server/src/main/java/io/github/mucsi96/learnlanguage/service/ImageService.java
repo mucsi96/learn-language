@@ -61,7 +61,7 @@ public class ImageService {
 
     if (modelName == null) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-          "No primary model configured for extraction");
+          "Image description requires a primary chat model configured for the extraction operation");
     }
 
     return ChatModel.fromString(modelName);
