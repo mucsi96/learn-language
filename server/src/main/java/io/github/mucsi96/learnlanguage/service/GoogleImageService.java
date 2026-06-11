@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.util.concurrent.Callable;
+
 import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
@@ -15,11 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class GoogleImageService {
-
-  @FunctionalInterface
-  private interface ImageCall {
-    byte[] call() throws Exception;
-  }
 
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
@@ -66,7 +63,7 @@ public class GoogleImageService {
     });
   }
 
-  private byte[] generateWithUsageLogging(String modelName, ImageCall imageCall) {
+  private byte[] generateWithUsageLogging(String modelName, Callable<byte[]> imageCall) {
     final long startTime = System.currentTimeMillis();
     try {
       final byte[] image = imageCall.call();
