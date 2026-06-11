@@ -16,12 +16,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GoogleImageService {
 
+  @FunctionalInterface
+  private interface ImageCall {
+    byte[] call() throws Exception;
+  }
+
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
   public byte[] generateGeminiImage(String input, String context, String modelName) {
-    final long startTime = System.currentTimeMillis();
-    try {
+    return generateWithUsageLogging(modelName, () -> {
       final GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
@@ -32,7 +36,7 @@ public class GoogleImageService {
 
       final String fullPrompt = ImagePromptBuilder.build(input, context);
 
-      final byte[] image = googleAiClient.models.generateContent(modelName, fullPrompt, config)
+      return googleAiClient.models.generateContent(modelName, fullPrompt, config)
           .candidates().orElseThrow(() -> new RuntimeException("No candidates in Gemini response")).stream()
           .flatMap(candidate -> candidate.content().stream()
               .flatMap(content -> content.parts().stream())
@@ -41,21 +45,11 @@ public class GoogleImageService {
           .flatMap(data -> data.data().stream())
           .findFirst()
           .orElseThrow(() -> new RuntimeException("No image found in " + modelName + " response"));
-
-      final long processingTime = System.currentTimeMillis() - startTime;
-      usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, 1, processingTime);
-
-      return image;
-
-    } catch (Exception e) {
-      log.error("Failed to generate image with {}", modelName, e);
-      throw new RuntimeException("Failed to generate image with " + modelName + ": " + e.getMessage(), e);
-    }
+    });
   }
 
   public byte[] generateImagenImage(String input, String context, String modelName) {
-    final long startTime = System.currentTimeMillis();
-    try {
+    return generateWithUsageLogging(modelName, () -> {
       final GenerateImagesConfig config = GenerateImagesConfig.builder()
           .numberOfImages(1)
           .aspectRatio("1:1")
@@ -63,12 +57,19 @@ public class GoogleImageService {
 
       final String fullPrompt = ImagePromptBuilder.build(input, context);
 
-      final byte[] image = googleAiClient.models.generateImages(modelName, fullPrompt, config)
+      return googleAiClient.models.generateImages(modelName, fullPrompt, config)
           .generatedImages().orElseThrow(() -> new RuntimeException("No images in Imagen response")).stream()
           .flatMap(generatedImage -> generatedImage.image().stream())
           .flatMap(img -> img.imageBytes().stream())
           .findFirst()
           .orElseThrow(() -> new RuntimeException("No image found in " + modelName + " response"));
+    });
+  }
+
+  private byte[] generateWithUsageLogging(String modelName, ImageCall imageCall) {
+    final long startTime = System.currentTimeMillis();
+    try {
+      final byte[] image = imageCall.call();
 
       final long processingTime = System.currentTimeMillis() - startTime;
       usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, 1, processingTime);
