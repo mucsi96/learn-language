@@ -3,6 +3,7 @@ import { ExampleImage } from '../parser/types';
 import { ImageResponse, ImageSourceRequest } from '../shared/types/image-generation.types';
 import { fetchJson } from './fetchJson';
 import { ToolPool } from './tool-pool';
+import { waitForImageReady } from './wait-for-image-ready';
 
 export type ImageGenerationInput = {
   exampleIndex: number;
@@ -64,9 +65,10 @@ export const generateExampleImages = async (
             method: 'POST',
           }
         );
+        const { description } = await waitForImageReady(http, response.id);
         return {
           exampleIndex: input.exampleIndex,
-          image: { id: response.id, model: response.model } as ExampleImage,
+          image: { id: response.id, model: response.model, description } as ExampleImage,
         };
       } catch {
         return undefined;
