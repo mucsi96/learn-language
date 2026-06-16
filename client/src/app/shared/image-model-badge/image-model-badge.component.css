@@ -9,5 +9,8 @@
 .generation-method {
   font-style: italic;
   opacity: 0.8;
+}
+
+.generation-method.has-tooltip {
   cursor: help;
 }

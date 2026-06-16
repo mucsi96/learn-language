@@ -3,6 +3,7 @@
     {{ model() }}
     <span
       class="generation-method"
+      [class.has-tooltip]="description()"
       [matTooltip]="description() ?? ''"
       [matTooltipDisabled]="!description()"
       >{{ description() ? "described" : "direct" }}</span
