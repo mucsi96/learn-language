@@ -33,8 +33,8 @@ public class ImageService {
   private final ChatModelSettingService chatModelSettingService;
 
   public GeneratedImage generateImage(String input, String context, ImageGenerationModel model, boolean describe) {
-    final String description = describe ? describeScene(input, context) : null;
-    final String prompt = describe ? description : input;
+    final String sceneDescription = describe ? describeScene(input, context) : null;
+    final String prompt = sceneDescription != null ? sceneDescription : input;
     final String imageContext = describe ? null : context;
 
     final byte[] data = switch (model) {
@@ -46,7 +46,7 @@ public class ImageService {
 
     return GeneratedImage.builder()
         .data(data)
-        .description(description)
+        .description(sceneDescription)
         .build();
   }
 

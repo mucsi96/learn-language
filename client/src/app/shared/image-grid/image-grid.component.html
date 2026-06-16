@@ -24,16 +24,9 @@
     } @else {
       <mat-icon class="no-image-icon">image_not_supported</mat-icon>
     }
-    @if (imageResource.value()?.model) {
-      <span class="model-name">
-        {{ imageResource.value()?.model }}
-        <span
-          class="generation-method"
-          [matTooltip]="imageResource.value()?.description ?? ''"
-          [matTooltipDisabled]="!imageResource.value()?.description"
-          >{{ imageResource.value()?.description ? "described" : "direct" }}</span
-        >
-      </span>
-    }
+    <app-image-model-badge
+      [model]="imageResource.value()?.model"
+      [description]="imageResource.value()?.description"
+    />
   </div>
 }

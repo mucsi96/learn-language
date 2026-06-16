@@ -1,0 +1,11 @@
+@if (model()) {
+  <span class="model-name">
+    {{ model() }}
+    <span
+      class="generation-method"
+      [matTooltip]="description() ?? ''"
+      [matTooltipDisabled]="!description()"
+      >{{ description() ? "described" : "direct" }}</span
+    >
+  </span>
+}

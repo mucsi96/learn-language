@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { ImageModelBadgeComponent } from '../image-model-badge/image-model-badge.component';
 
 export type GridImageValue = {
   id: string;
@@ -19,7 +19,7 @@ export type GridImageResource = {
 
 @Component({
   selector: 'app-image-grid',
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [MatButtonModule, MatIconModule, ImageModelBadgeComponent],
   templateUrl: './image-grid.component.html',
   styleUrl: './image-grid.component.css',
 })

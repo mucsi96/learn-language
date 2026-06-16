@@ -1,7 +1,7 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { ImageModelBadgeComponent } from '../image-model-badge/image-model-badge.component';
 
 export type CarouselImage = {
   url?: string;
@@ -18,7 +18,7 @@ export type CarouselImageResource = {
 @Component({
   selector: 'app-image-carousel',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [MatButtonModule, MatIconModule, ImageModelBadgeComponent],
   templateUrl: './image-carousel.component.html',
   styleUrl: './image-carousel.component.css',
 })

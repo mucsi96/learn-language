@@ -483,10 +483,24 @@ test('generates described image with OpenAI models', async ({ page }) => {
   await expect(page.getByText('GPT Image 2')).toHaveCount(1);
   await expect(page.getByText('described')).toHaveCount(1);
 
+  await page.getByText('described').hover();
+  await expect(page.getByRole('tooltip')).toContainText('Wann fährt der Zug ab?');
+
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
   );
   expect(await getImageColor(page, generatedImageContent)).toBe('red');
+
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images[0].description).toBeUndefined();
+    expect(cardData.examples[0].images[1].description).toContain('Wann fährt der Zug ab?');
+  });
 
   const logs = await getModelUsageLogs();
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
