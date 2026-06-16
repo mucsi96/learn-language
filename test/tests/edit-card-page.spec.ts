@@ -183,6 +183,9 @@ test('card editing in db', async ({ page }) => {
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
   await expect(page.getByText('direct', { exact: true })).toHaveCount(4);
 
+  await page.getByText('direct', { exact: true }).first().hover();
+  await expect(page.getByRole('tooltip')).toHaveCount(0);
+
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
   });
