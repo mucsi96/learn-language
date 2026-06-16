@@ -22,24 +22,22 @@ public class ImageModelSettingService {
     private final ImageModelSettingRepository imageModelSettingRepository;
 
     public List<ImageModelResponse> getImageModelsWithSettings() {
-        final Map<String, Integer> overrides = imageModelSettingRepository.findAll().stream()
+        final Map<String, ImageModelSetting> overrides = imageModelSettingRepository.findAll().stream()
                 .collect(Collectors.toMap(
                         ImageModelSetting::getModelName,
-                        ImageModelSetting::getImageCount));
+                        setting -> setting));
 
         return Arrays.stream(ImageGenerationModel.values())
-                .map(model -> ImageModelResponse.builder()
-                        .id(model.getModelName())
-                        .displayName(model.getDisplayName())
-                        .imageCount(overrides.getOrDefault(model.getModelName(), 0))
-                        .build())
+                .map(model -> {
+                    final ImageModelSetting setting = overrides.get(model.getModelName());
+                    return ImageModelResponse.builder()
+                            .id(model.getModelName())
+                            .displayName(model.getDisplayName())
+                            .imageCount(setting == null ? 0 : setting.getImageCount())
+                            .describedImageCount(setting == null ? 0 : setting.getDescribedImageCount())
+                            .build();
+                })
                 .toList();
-    }
-
-    public int getImageCount(ImageGenerationModel model) {
-        return imageModelSettingRepository.findByModelName(model.getModelName())
-                .map(ImageModelSetting::getImageCount)
-                .orElse(0);
     }
 
     @Transactional
@@ -50,10 +48,12 @@ public class ImageModelSettingService {
                 .findByModelName(request.getModelName())
                 .map(existing -> existing.toBuilder()
                         .imageCount(request.getImageCount())
+                        .describedImageCount(request.getDescribedImageCount())
                         .build())
                 .orElseGet(() -> ImageModelSetting.builder()
                         .modelName(request.getModelName())
                         .imageCount(request.getImageCount())
+                        .describedImageCount(request.getDescribedImageCount())
                         .build());
 
         final ImageModelSetting saved = imageModelSettingRepository.save(setting);
@@ -62,6 +62,7 @@ public class ImageModelSettingService {
                 .id(saved.getModelName())
                 .displayName(model.getDisplayName())
                 .imageCount(saved.getImageCount())
+                .describedImageCount(saved.getDescribedImageCount())
                 .build();
     }
 }

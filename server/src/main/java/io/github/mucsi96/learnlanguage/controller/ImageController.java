@@ -54,7 +54,7 @@ public class ImageController {
     }
     final String displayName = imageSource.getModel().getDisplayName();
     final byte[] data = imageService.generateImage(
-        imageSource.getInput(), imageSource.getContext(), imageSource.getModel());
+        imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
     final String uuid = UUID.randomUUID().toString();
     final String filePath = "images/%s.webp".formatted(uuid);
     try {

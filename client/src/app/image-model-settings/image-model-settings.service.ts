@@ -9,6 +9,7 @@ import {
 export interface ImageModelSettingRequest {
   modelName: string;
   imageCount: number;
+  describedImageCount: number;
 }
 
 @Injectable({
@@ -29,12 +30,28 @@ export class ImageModelSettingsService {
     this.imageModels.update((models) =>
       models.map((m) => (m.id === modelId ? { ...m, imageCount } : m))
     );
+    this.persistCounts(modelId);
+  }
+
+  updateDescribedImageCount(modelId: string, describedImageCount: number): void {
+    this.imageModels.update((models) =>
+      models.map((m) =>
+        m.id === modelId ? { ...m, describedImageCount } : m
+      )
+    );
+    this.persistCounts(modelId);
+  }
+
+  private persistCounts(modelId: string): void {
+    const model = this.imageModels().find((m) => m.id === modelId);
+    if (!model) return;
 
     fetchJson<ImageModel>(this.http, '/api/image-model-settings', {
       method: 'PUT',
       body: {
         modelName: modelId,
-        imageCount,
+        imageCount: model.imageCount,
+        describedImageCount: model.describedImageCount,
       } satisfies ImageModelSettingRequest,
     });
   }

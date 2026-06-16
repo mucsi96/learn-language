@@ -20,4 +20,6 @@ public class ImageSourceRequest {
 
   @Size(max = 500)
   private String context;
+
+  private boolean describe;
 }
