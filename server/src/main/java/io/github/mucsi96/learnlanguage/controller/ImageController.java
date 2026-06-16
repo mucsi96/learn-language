@@ -14,13 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.mucsi96.learnlanguage.model.ExampleImageData;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationJobStatus;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationResponse;
+import io.github.mucsi96.learnlanguage.model.ImageJobStatusResponse;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
-import io.github.mucsi96.learnlanguage.service.FfmpegService;
+import io.github.mucsi96.learnlanguage.service.AsyncImageGenerationService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
-import io.github.mucsi96.learnlanguage.service.ImageService;
+import io.github.mucsi96.learnlanguage.service.ImageGenerationJobService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -31,18 +33,17 @@ import org.springframework.http.ResponseEntity;
 public class ImageController {
 
   private final FileStorageService fileStorageService;
-  private final ImageService imageService;
-  private final FfmpegService ffmpegService;
+  private final AsyncImageGenerationService asyncImageGenerationService;
+  private final ImageGenerationJobService imageGenerationJobService;
   private final RateLimitSettingService rateLimitSettingService;
   private final ModelUsageLogRepository modelUsageLogRepository;
 
-  private static final int MAX_IMAGE_DIMENSION = 1200;
   private static final String IMAGE_WEBP_VALUE = "image/webp";
   private static final MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
+  public ImageGenerationResponse createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     final int dailyLimit = rateLimitSettingService.getImageDailyLimit();
     if (dailyLimit > 0) {
       final long todayUsage = modelUsageLogRepository.countByModelTypeSince(
@@ -53,19 +54,24 @@ public class ImageController {
       }
     }
     final String displayName = imageSource.getModel().getDisplayName();
-    final byte[] data = imageService.generateImage(
-        imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
-    final String uuid = UUID.randomUUID().toString();
-    final String filePath = "images/%s.webp".formatted(uuid);
-    try {
-      ffmpegService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, fileStorageService.resolveFilePath(filePath));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
-    }
-    return ExampleImageData.builder()
-        .id(uuid)
+    final UUID id = UUID.randomUUID();
+    imageGenerationJobService.createPending(id, displayName);
+    asyncImageGenerationService.generate(
+        id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
+    return ImageGenerationResponse.builder()
+        .id(id.toString())
         .model(displayName)
+        .status(ImageGenerationJobStatus.PENDING.name().toLowerCase())
+        .build();
+  }
+
+  @GetMapping("/image/{id}/status")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ImageJobStatusResponse getImageStatus(@PathVariable String id) {
+    final var job = imageGenerationJobService.getJob(UUID.fromString(id));
+    return ImageJobStatusResponse.builder()
+        .status(job.getStatus().name().toLowerCase())
+        .error(job.getError())
         .build();
   }
 
