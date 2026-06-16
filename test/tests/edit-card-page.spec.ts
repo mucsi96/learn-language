@@ -181,6 +181,7 @@ test('card editing in db', async ({ page }) => {
 
   await expect(page.getByText('GPT Image 1.5')).toHaveCount(1);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
+  await expect(page.getByText('direct')).toHaveCount(4);
 
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -225,6 +226,8 @@ test('card editing in db', async ({ page }) => {
     expect(cardData.examples[1].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[1].images[1].description).toBeUndefined();
+    expect(cardData.examples[1].images[2].description).toBeUndefined();
   });
 });
 
@@ -397,11 +400,26 @@ test('generates described image with Gemini model', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(2);
 
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(1);
+  await expect(page.getByText('described')).toHaveCount(1);
+
+  await page.getByText('described').hover();
+  await expect(page.getByRole('tooltip')).toContainText('Wann fährt der Zug ab?');
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
   );
   expect(await getImageColor(page, generatedImageContent)).toBe('red');
+
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images[0].description).toBeUndefined();
+    expect(cardData.examples[0].images[1].description).toContain('Wann fährt der Zug ab?');
+  });
 
   const logs = await getModelUsageLogs();
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
@@ -463,6 +481,7 @@ test('generates described image with OpenAI models', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(2);
 
   await expect(page.getByText('GPT Image 2')).toHaveCount(1);
+  await expect(page.getByText('described')).toHaveCount(1);
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)

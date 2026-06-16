@@ -33,6 +33,7 @@ export type ExampleImage = {
   id: string;
   isFavorite?: boolean;
   model?: string;
+  description?: string;
 };
 
 export type Example = {

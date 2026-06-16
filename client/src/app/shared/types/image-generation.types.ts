@@ -8,4 +8,5 @@ export interface ImageSourceRequest {
 export interface ImageResponse {
   id: string;
   model: string;
+  description?: string;
 }

@@ -71,6 +71,12 @@
   margin-top: 4px;
 }
 
+.generation-method {
+  font-style: italic;
+  opacity: 0.8;
+  cursor: help;
+}
+
 .carousel-controls {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

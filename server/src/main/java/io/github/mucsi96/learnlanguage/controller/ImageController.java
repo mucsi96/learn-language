@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.model.ExampleImageData;
+import io.github.mucsi96.learnlanguage.model.GeneratedImage;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
@@ -53,19 +54,21 @@ public class ImageController {
       }
     }
     final String displayName = imageSource.getModel().getDisplayName();
-    final byte[] data = imageService.generateImage(
+    final GeneratedImage generatedImage = imageService.generateImage(
         imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
     final String uuid = UUID.randomUUID().toString();
     final String filePath = "images/%s.webp".formatted(uuid);
     try {
       ffmpegService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, fileStorageService.resolveFilePath(filePath));
+          generatedImage.getData(), MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION,
+          fileStorageService.resolveFilePath(filePath));
     } catch (Exception e) {
       throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
     }
     return ExampleImageData.builder()
         .id(uuid)
         .model(displayName)
+        .description(generatedImage.getDescription())
         .build();
   }
 

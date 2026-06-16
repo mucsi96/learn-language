@@ -78,6 +78,7 @@ export class ImageResourceService {
             await pending[idx].resolve({
               id: response.id,
               model: response.model,
+              description: response.description,
             });
           } finally {
             imagePool.release();
@@ -104,6 +105,7 @@ export class ImageResourceService {
             id: v.id,
             model: v.model,
             isFavorite: v.isFavorite,
+            description: v.description,
           }) satisfies ExampleImage
       );
   }
