@@ -5,6 +5,7 @@ import { ExampleImage } from '../parser/types';
 import { fetchAsset } from '../utils/fetchAsset';
 import { fetchJson } from '../utils/fetchJson';
 import { ImageResponse, ImageSourceRequest } from './types/image-generation.types';
+import { waitForImageReady } from '../utils/wait-for-image-ready';
 import { GridImageResource, GridImageValue } from './image-grid/image-grid.component';
 import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
@@ -75,6 +76,7 @@ export class ImageResourceService {
                 method: 'POST',
               }
             );
+            await waitForImageReady(this.http, response.id);
             await pending[idx].resolve({
               id: response.id,
               model: response.model,
