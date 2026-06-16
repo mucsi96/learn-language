@@ -184,7 +184,7 @@ test('card editing in db', async ({ page }) => {
   await expect(page.getByText('direct', { exact: true })).toHaveCount(4);
 
   await page.getByText('direct', { exact: true }).first().hover();
-  await expect(page.getByRole('tooltip')).toHaveCount(0);
+  await expect(page.getByText('Detailed scene:')).toHaveCount(0);
 
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -407,7 +407,9 @@ test('generates described image with Gemini model', async ({ page }) => {
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   await page.getByText('described', { exact: true }).hover();
-  await expect(page.getByRole('tooltip')).toContainText('Wann fährt der Zug ab?');
+  await expect(
+    page.getByText('A train platform with a large clock')
+  ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
@@ -487,7 +489,9 @@ test('generates described image with OpenAI models', async ({ page }) => {
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   await page.getByText('described', { exact: true }).hover();
-  await expect(page.getByRole('tooltip')).toContainText('Wann fährt der Zug ab?');
+  await expect(
+    page.getByText('A train platform with a large clock')
+  ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
