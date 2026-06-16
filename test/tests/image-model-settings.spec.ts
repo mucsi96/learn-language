@@ -27,11 +27,15 @@ test('displays all image models with default image counts', async ({ page }) => 
   const geminiInput = page.getByRole('spinbutton', { name: 'Direct image count for Gemini 3 Pro' });
   const gptImage2Input = page.getByRole('spinbutton', { name: 'Direct image count for GPT Image 2' });
   const gptDescribedInput = page.getByRole('spinbutton', { name: 'Described image count for GPT Image 1.5' });
+  const geminiDescribedInput = page.getByRole('spinbutton', { name: 'Described image count for Gemini 3 Pro' });
+  const gptImage2DescribedInput = page.getByRole('spinbutton', { name: 'Described image count for GPT Image 2' });
 
   await expect(gptInput).toHaveValue('0');
   await expect(geminiInput).toHaveValue('0');
   await expect(gptImage2Input).toHaveValue('0');
   await expect(gptDescribedInput).toHaveValue('0');
+  await expect(geminiDescribedInput).toHaveValue('0');
+  await expect(gptImage2DescribedInput).toHaveValue('0');
 });
 
 test('displays image counts from database settings', async ({ page }) => {

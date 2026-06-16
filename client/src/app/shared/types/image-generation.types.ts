@@ -2,7 +2,7 @@ export interface ImageSourceRequest {
   input: string;
   model: string;
   context?: string;
-  describe?: boolean;
+  describe: boolean;
 }
 
 export interface ImageResponse {

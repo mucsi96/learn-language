@@ -3,6 +3,8 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -23,18 +25,17 @@ public class ImageModelSettingService {
 
     public List<ImageModelResponse> getImageModelsWithSettings() {
         final Map<String, ImageModelSetting> overrides = imageModelSettingRepository.findAll().stream()
-                .collect(Collectors.toMap(
-                        ImageModelSetting::getModelName,
-                        setting -> setting));
+                .collect(Collectors.toMap(ImageModelSetting::getModelName, Function.identity()));
 
         return Arrays.stream(ImageGenerationModel.values())
                 .map(model -> {
-                    final ImageModelSetting setting = overrides.get(model.getModelName());
+                    final Optional<ImageModelSetting> setting = Optional
+                            .ofNullable(overrides.get(model.getModelName()));
                     return ImageModelResponse.builder()
                             .id(model.getModelName())
                             .displayName(model.getDisplayName())
-                            .imageCount(setting == null ? 0 : setting.getImageCount())
-                            .describedImageCount(setting == null ? 0 : setting.getDescribedImageCount())
+                            .imageCount(setting.map(ImageModelSetting::getImageCount).orElse(0))
+                            .describedImageCount(setting.map(ImageModelSetting::getDescribedImageCount).orElse(0))
                             .build();
                 })
                 .toList();

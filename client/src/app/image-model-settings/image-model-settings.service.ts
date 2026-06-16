@@ -44,7 +44,9 @@ export class ImageModelSettingsService {
 
   private persistCounts(modelId: string): void {
     const model = this.imageModels().find((m) => m.id === modelId);
-    if (!model) return;
+    if (!model) {
+      throw new Error(`Image model not found: ${modelId}`);
+    }
 
     fetchJson<ImageModel>(this.http, '/api/image-model-settings', {
       method: 'PUT',
