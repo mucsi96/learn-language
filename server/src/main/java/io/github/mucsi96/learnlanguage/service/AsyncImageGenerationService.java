@@ -31,7 +31,7 @@ public class AsyncImageGenerationService {
       imageGenerationJobService.markCompleted(id);
     } catch (Exception e) {
       log.error("Image generation job {} failed", id, e);
-      imageGenerationJobService.markFailed(id, e.getMessage());
+      imageGenerationJobService.markFailed(id, "Image generation failed");
     }
   }
 }
