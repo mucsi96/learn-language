@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ImageJobStatusResponse {
-  private String status;
+  private ImageGenerationJobStatus status;
 
   @JsonInclude(Include.NON_NULL)
   private String error;

@@ -8,5 +8,5 @@ import lombok.Data;
 public class ImageGenerationResponse {
   private String id;
   private String model;
-  private String status;
+  private ImageGenerationJobStatus status;
 }

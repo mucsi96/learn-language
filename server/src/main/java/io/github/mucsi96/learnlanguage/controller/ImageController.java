@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,23 +57,37 @@ public class ImageController {
     final String displayName = imageSource.getModel().getDisplayName();
     final UUID id = UUID.randomUUID();
     imageGenerationJobService.createPending(id, displayName);
-    asyncImageGenerationService.generate(
-        id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
+    try {
+      asyncImageGenerationService.generate(
+          id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
+    } catch (TaskRejectedException e) {
+      imageGenerationJobService.markFailed(id, "Image generation queue is full");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+          "Image generation is busy, please retry");
+    }
     return ImageGenerationResponse.builder()
         .id(id.toString())
         .model(displayName)
-        .status(ImageGenerationJobStatus.PENDING.name().toLowerCase())
+        .status(ImageGenerationJobStatus.PENDING)
         .build();
   }
 
   @GetMapping("/image/{id}/status")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ImageJobStatusResponse getImageStatus(@PathVariable String id) {
-    final var job = imageGenerationJobService.getJob(UUID.fromString(id));
+    final var job = imageGenerationJobService.getJob(parseId(id));
     return ImageJobStatusResponse.builder()
-        .status(job.getStatus().name().toLowerCase())
+        .status(job.getStatus())
         .error(job.getError())
         .build();
+  }
+
+  private UUID parseId(String id) {
+    try {
+      return UUID.fromString(id);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid image id");
+    }
   }
 
   @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)
