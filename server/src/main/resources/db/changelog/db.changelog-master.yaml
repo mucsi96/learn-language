@@ -955,3 +955,16 @@ databaseChangeLog:
             referencedTableName: sources
             referencedColumnNames: id
             onDelete: CASCADE
+  - changeSet:
+      id: 29-add-described-image-count
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: image_model_settings
+            columns:
+              - column:
+                  name: described_image_count
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

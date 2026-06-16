@@ -65,11 +65,23 @@ export class ImageModelSettingsComponent {
   }
 
   onImageCountChange(modelId: string, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const value = parseInt(input.value, 10);
-    if (!isNaN(value) && value >= 0) {
+    const value = this.parseCount(event);
+    if (value !== undefined) {
       this.service.updateImageCount(modelId, value);
     }
+  }
+
+  onDescribedImageCountChange(modelId: string, event: Event): void {
+    const value = this.parseCount(event);
+    if (value !== undefined) {
+      this.service.updateDescribedImageCount(modelId, value);
+    }
+  }
+
+  private parseCount(event: Event): number | undefined {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    return !isNaN(value) && value >= 0 ? value : undefined;
   }
 
   toggleUseEnglishForImageGeneration(): void {
