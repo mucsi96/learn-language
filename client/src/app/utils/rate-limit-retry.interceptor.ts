@@ -1,7 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { retry, throwError, timer } from 'rxjs';
-
-const isApiRequest = (url: string): boolean => /\/api(\/|$)/.test(url);
+import { isApiRequest } from './http.util';
 
 const MAX_RETRIES = 6;
 const BASE_DELAY_MS = 1000;
