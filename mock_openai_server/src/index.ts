@@ -57,7 +57,7 @@ app.post('/chat/completions', async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error('Chat completion error:', error);
-    res.status(400).json({ error: { message: error.message || 'Invalid request format' } });
+    res.status(400).json({ error: { message: error instanceof Error ? error.message : 'Invalid request format' } });
   }
 });
 
