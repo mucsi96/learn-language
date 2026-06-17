@@ -83,6 +83,12 @@
           [onPlayAudio]="playAudioForContent.bind(this)">
         </app-learn-grammar-card>
       }
+      @case ('simple') {
+        <app-learn-simple-card
+          [card]="cardResource"
+          [isRevealed]="isRevealed()">
+        </app-learn-simple-card>
+      }
     }
   </div>
 

@@ -141,6 +141,29 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'sources/:sourceId/prompt',
+    canActivate: [authGuard],
+    title: (route) => `Prompt / ${route.params['sourceId']}`,
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: { mode: 'admin' },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./parser/prompt-page/prompt-page.component').then(
+            (m) => m.PromptPageComponent
+          ),
+      },
+    ],
+  },
+  {
     path: 'sources/:sourceId/cards',
     canActivate: [authGuard],
     title: 'Cards',

@@ -1,0 +1,140 @@
+<div class="prompt-page">
+  <header class="page-header">
+    <a mat-icon-button routerLink="/sources" aria-label="Back to sources">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <h1>{{ source()?.name ?? sourceId() }}</h1>
+  </header>
+
+  <section class="panel">
+    <h2 class="panel-title">Base prompt</h2>
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Topic description for all cards</mat-label>
+      <textarea
+        matInput
+        rows="3"
+        [ngModel]="basePrompt()"
+        (ngModelChange)="basePrompt.set($event)"
+        aria-label="Base prompt"
+      ></textarea>
+    </mat-form-field>
+    <div class="actions">
+      <button mat-stroked-button (click)="savePrompt()" [disabled]="savingPrompt()">
+        <mat-icon>save</mat-icon>
+        Save prompt
+      </button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Coverage overview</h2>
+      <button mat-icon-button (click)="refreshCoverage()" aria-label="Refresh coverage">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+    @if (coverage.isLoading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Loading coverage"></mat-progress-bar>
+    } @else if (coverage.error()) {
+      <p class="error">Could not load coverage.</p>
+    } @else {
+      <app-coverage-overview [topics]="coverage.value()?.topics ?? []"></app-coverage-overview>
+    }
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">Generate cards</h2>
+    @if (models.length === 0) {
+      <p class="error">No card-generation models are enabled. Enable one in Settings → Data Model Settings.</p>
+    } @else {
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Generation prompt (optional)</mat-label>
+        <textarea
+          matInput
+          rows="2"
+          [ngModel]="generationPrompt()"
+          (ngModelChange)="generationPrompt.set($event)"
+          placeholder="e.g. focus on multi-container pods and probes"
+          aria-label="Generation prompt"
+        ></textarea>
+      </mat-form-field>
+      <div class="generate-controls">
+        <mat-form-field appearance="fill" class="count-field">
+          <mat-label>Count</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            max="50"
+            [ngModel]="count()"
+            (ngModelChange)="count.set($event)"
+            aria-label="Card count"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="model-field">
+          <mat-label>Model</mat-label>
+          <mat-select
+            [ngModel]="selectedModel()"
+            (ngModelChange)="selectedModel.set($event)"
+            aria-label="Model"
+          >
+            @for (model of models; track model) {
+              <mat-option [value]="model">{{ model }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="generate()"
+          [disabled]="generating()"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+          Generate
+        </button>
+      </div>
+      @if (generating()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Generating cards"></mat-progress-bar>
+      }
+    }
+  </section>
+
+  @if (suggestions().length > 0) {
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Preview ({{ selectedCount() }} selected)</h2>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="createSelected()"
+          [disabled]="creating() || selectedCount() === 0"
+        >
+          <mat-icon>add</mat-icon>
+          Create {{ selectedCount() }} cards
+        </button>
+      </div>
+      @if (creating()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Creating cards"></mat-progress-bar>
+      }
+      <ul class="preview-list">
+        @for (item of suggestions(); track $index) {
+          <li class="preview-item">
+            <mat-checkbox
+              [checked]="item.include"
+              (change)="toggleInclude($index, $event.checked)"
+              [attr.aria-label]="'Include card ' + ($index + 1)"
+            ></mat-checkbox>
+            <div class="preview-card">
+              @if (item.suggestion.topic) {
+                <div class="topic-chip">{{ item.suggestion.topic }}</div>
+              }
+              <div class="preview-front markdown-body" [innerHTML]="item.suggestion.frontText | markdown"></div>
+              <hr class="divider" />
+              <div class="preview-back markdown-body" [innerHTML]="item.suggestion.backText | markdown"></div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

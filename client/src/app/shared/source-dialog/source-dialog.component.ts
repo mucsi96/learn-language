@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { form, FormField, disabled, required, min, validate, requiredError } from '@angular/forms/signals';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
@@ -68,11 +68,17 @@ export class SourceDialogComponent {
       (source) => source.id !== this.data.source?.id
     )
   );
-  readonly cardTypes = [
+  private readonly baseCardTypes = [
     { code: 'vocabulary', displayName: 'Vocabulary' },
     { code: 'speech', displayName: 'Speech' },
     { code: 'grammar', displayName: 'Grammar' },
   ];
+
+  readonly isAiPrompt = computed(() => this.formModel().sourceType === 'aiPrompt');
+
+  readonly cardTypes = computed(() =>
+    this.isAiPrompt() ? [{ code: 'simple', displayName: 'Simple' }] : this.baseCardTypes
+  );
 
   readonly formModel = signal<{
     name: string;
@@ -86,6 +92,7 @@ export class SourceDialogComponent {
     newCardLimit: number;
     learningPartnerId: number | null;
     detectionSourceIds: string[];
+    prompt: string;
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
@@ -98,6 +105,13 @@ export class SourceDialogComponent {
     newCardLimit: this.data.source?.newCardLimit ?? 50,
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
     detectionSourceIds: this.data.source?.detectionSourceIds ?? [],
+    prompt: this.data.source?.prompt ?? '',
+  });
+
+  private readonly forceSimpleCardType = effect(() => {
+    if (this.isAiPrompt() && this.formModel().cardType !== 'simple') {
+      this.formModel.update((m) => ({ ...m, cardType: 'simple' }));
+    }
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.name);
@@ -109,12 +123,12 @@ export class SourceDialogComponent {
     min(path.newCardLimit, 1);
     validate(path.formatType, (ctx) => {
       const ct = ctx.valueOf(path.cardType);
-      if (ct !== 'speech' && ct !== 'grammar' && !ctx.value()) {
+      if (ct !== 'speech' && ct !== 'grammar' && ct !== 'simple' && !ctx.value()) {
         return requiredError();
       }
       return undefined;
     });
-    disabled(path.cardType, () => this.data.mode === 'edit');
+    disabled(path.cardType, () => this.data.mode === 'edit' || this.isAiPrompt());
     disabled(path.sourceType, () => this.data.mode === 'edit');
   });
 
@@ -126,6 +140,7 @@ export class SourceDialogComponent {
   readonly isValid = computed(() =>
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
+      this.formModel().sourceType === 'aiPrompt' ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );
@@ -156,13 +171,16 @@ export class SourceDialogComponent {
         cardType: result.cardType || undefined,
         formatType: result.cardType === 'speech' || result.cardType === 'grammar'
           ? 'flowingText'
-          : result.formatType || undefined,
+          : result.cardType === 'simple'
+            ? undefined
+            : result.formatType || undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
           ? 0
           : result.learningPartnerId,
         detectionSourceIds: result.detectionSourceIds,
+        prompt: result.cardType === 'simple' ? result.prompt || undefined : undefined,
       };
       this.dialogRef.close(formData);
     }

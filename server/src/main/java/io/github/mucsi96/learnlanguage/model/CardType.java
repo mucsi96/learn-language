@@ -11,7 +11,8 @@ import lombok.RequiredArgsConstructor;
 public enum CardType {
     VOCABULARY("vocabulary"),
     SPEECH("speech"),
-    GRAMMAR("grammar");
+    GRAMMAR("grammar"),
+    SIMPLE("simple");
 
     private final String typeName;
 

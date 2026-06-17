@@ -11,6 +11,7 @@ public class CardTypeStrategyFactory {
     private final VocabularyCardTypeStrategy vocabularyCardTypeStrategy;
     private final SpeechCardTypeStrategy speechCardTypeStrategy;
     private final GrammarCardTypeStrategy grammarCardTypeStrategy;
+    private final SimpleCardTypeStrategy simpleCardTypeStrategy;
 
     public CardTypeStrategy getStrategy(CardType cardType) {
         if (cardType == null) {
@@ -21,6 +22,7 @@ public class CardTypeStrategyFactory {
             case VOCABULARY -> vocabularyCardTypeStrategy;
             case SPEECH -> speechCardTypeStrategy;
             case GRAMMAR -> grammarCardTypeStrategy;
+            case SIMPLE -> simpleCardTypeStrategy;
         };
     }
 }

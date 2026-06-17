@@ -19,7 +19,7 @@
           <mat-select
             [formField]="sourceForm.cardType"
           >
-            @for (cardType of cardTypes; track cardType.code) {
+            @for (cardType of cardTypes(); track cardType.code) {
             <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
             }
           </mat-select>
@@ -47,7 +47,7 @@
           </mat-select>
         </mat-form-field>
 
-        @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar') {
+        @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar' && formModel().cardType !== 'simple') {
         <mat-form-field appearance="fill">
           <mat-label>Format Type</mat-label>
           <mat-select
@@ -64,7 +64,17 @@
 
     <section class="form-section">
       <h3 class="section-title">Content</h3>
-      @if (formModel().sourceType === 'pdf') {
+      @if (isAiPrompt()) {
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Base prompt</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          [formField]="sourceForm.prompt"
+          placeholder="Describe the topic for all cards, e.g. 'Kubernetes Application Developer (CKAD) certification exam preparation'"
+        ></textarea>
+      </mat-form-field>
+      } @else if (formModel().sourceType === 'pdf') {
       <div
         class="dropzone"
         [class.dragging]="isDragging()"
