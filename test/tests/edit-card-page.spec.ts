@@ -408,7 +408,7 @@ test('generates described image with Gemini model', async ({ page }) => {
 
   await page.getByText('described', { exact: true }).hover();
   await expect(
-    page.getByText('A train platform with a large clock')
+    page.getByText('Detailed scene: Wann fährt der Zug ab? A train platform with a large clock, no visible text.').first()
   ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
@@ -490,7 +490,7 @@ test('generates described image with OpenAI models', async ({ page }) => {
 
   await page.getByText('described', { exact: true }).hover();
   await expect(
-    page.getByText('A train platform with a large clock')
+    page.getByText('Detailed scene: Wann fährt der Zug ab? A train platform with a large clock, no visible text.').first()
   ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
