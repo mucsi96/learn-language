@@ -992,36 +992,6 @@ export async function createAudioSetting(params: {
   });
 }
 
-export async function createImageSetting(params: {
-  useEnglishForImageGeneration: boolean;
-}): Promise<void> {
-  const { useEnglishForImageGeneration } = params;
-
-  await withDbConnection(async (client) => {
-    await client.query(
-      `INSERT INTO learn_language.image_settings (id, use_english_for_image_generation)
-       VALUES (1, $1)
-       ON CONFLICT (id) DO UPDATE SET use_english_for_image_generation = $1`,
-      [useEnglishForImageGeneration]
-    );
-  });
-}
-
-export async function getImageSettings(): Promise<
-  Array<{
-    id: number;
-    useEnglishForImageGeneration: boolean;
-  }>
-> {
-  return await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT id, use_english_for_image_generation as "useEnglishForImageGeneration"
-       FROM learn_language.image_settings ORDER BY id`
-    );
-    return result.rows;
-  });
-}
-
 export async function setupTestRateLimits(audioLimit: number = 100, imageLimit: number = 100): Promise<void> {
   await createRateLimitSetting({ key: 'audio-per-minute', value: audioLimit });
   await createRateLimitSetting({ key: 'image-per-minute', value: imageLimit });
