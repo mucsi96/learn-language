@@ -79,6 +79,7 @@ public class ImageController {
     return ImageJobStatusResponse.builder()
         .status(job.getStatus())
         .error(job.getError())
+        .description(job.getDescription())
         .build();
   }
 

@@ -11,15 +11,15 @@ const delay = (ms: number): Promise<void> =>
 export const waitForImageReady = async (
   http: HttpClient,
   id: string
-): Promise<void> => {
-  const poll = async (attempt: number): Promise<void> => {
-    const { status, error } = await fetchJson<ImageJobStatusResponse>(
+): Promise<{ description?: string }> => {
+  const poll = async (attempt: number): Promise<{ description?: string }> => {
+    const { status, error, description } = await fetchJson<ImageJobStatusResponse>(
       http,
       `/api/image/${id}/status`
     );
 
     if (status === 'completed') {
-      return;
+      return { description };
     }
 
     if (status === 'failed') {

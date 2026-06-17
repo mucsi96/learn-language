@@ -65,10 +65,10 @@ export const generateExampleImages = async (
             method: 'POST',
           }
         );
-        await waitForImageReady(http, response.id);
+        const { description } = await waitForImageReady(http, response.id);
         return {
           exampleIndex: input.exampleIndex,
-          image: { id: response.id, model: response.model } as ExampleImage,
+          image: { id: response.id, model: response.model, description } as ExampleImage,
         };
       } catch {
         return undefined;

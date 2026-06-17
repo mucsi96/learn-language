@@ -36,13 +36,13 @@ public class ImageGenerationJobService {
   }
 
   @Transactional
-  public void markCompleted(UUID id) {
-    imageGenerationJobRepository.updateStatus(id, ImageGenerationJobStatus.COMPLETED, null);
+  public void markCompleted(UUID id, String description) {
+    imageGenerationJobRepository.updateStatus(id, ImageGenerationJobStatus.COMPLETED, null, description);
   }
 
   @Transactional
   public void markFailed(UUID id, String error) {
-    imageGenerationJobRepository.updateStatus(id, ImageGenerationJobStatus.FAILED, error);
+    imageGenerationJobRepository.updateStatus(id, ImageGenerationJobStatus.FAILED, error, null);
   }
 
   @Transactional(readOnly = true)

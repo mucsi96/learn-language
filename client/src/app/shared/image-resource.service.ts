@@ -76,10 +76,11 @@ export class ImageResourceService {
                 method: 'POST',
               }
             );
-            await waitForImageReady(this.http, response.id);
+            const { description } = await waitForImageReady(this.http, response.id);
             await pending[idx].resolve({
               id: response.id,
               model: response.model,
+              description,
             });
           } finally {
             imagePool.release();
@@ -106,6 +107,7 @@ export class ImageResourceService {
             id: v.id,
             model: v.model,
             isFavorite: v.isFavorite,
+            description: v.description,
           }) satisfies ExampleImage
       );
   }

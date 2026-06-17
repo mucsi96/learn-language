@@ -16,4 +16,5 @@ export interface ImageResponse {
 export interface ImageJobStatusResponse {
   status: ImageJobStatus;
   error?: string;
+  description?: string;
 }

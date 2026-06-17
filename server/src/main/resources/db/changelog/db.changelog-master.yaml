@@ -1005,3 +1005,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: created_at
+  - changeSet:
+      id: 31-add-description-to-image-generation-jobs
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: image_generation_jobs
+            columns:
+              - column:
+                  name: description
+                  type: text

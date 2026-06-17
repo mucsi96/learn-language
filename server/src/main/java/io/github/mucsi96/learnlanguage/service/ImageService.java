@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.GeneratedImage;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
@@ -31,16 +32,22 @@ public class ImageService {
   private final ChatService chatService;
   private final ChatModelSettingService chatModelSettingService;
 
-  public byte[] generateImage(String input, String context, ImageGenerationModel model, boolean describe) {
-    final String prompt = describe ? describeScene(input, context) : input;
+  public GeneratedImage generateImage(String input, String context, ImageGenerationModel model, boolean describe) {
+    final String sceneDescription = describe ? describeScene(input, context) : null;
+    final String prompt = describe ? sceneDescription : input;
     final String imageContext = describe ? null : context;
 
-    return switch (model) {
+    final byte[] data = switch (model) {
       case GPT_IMAGE_1_5, GPT_IMAGE_2 ->
         openAIImageService.generateImage(prompt, imageContext, model.getModelName());
       case GEMINI_3_PRO_IMAGE_PREVIEW ->
         googleImageService.generateGeminiImage(prompt, imageContext, model.getModelName());
     };
+
+    return GeneratedImage.builder()
+        .data(data)
+        .description(sceneDescription)
+        .build();
   }
 
   private String describeScene(String input, String context) {

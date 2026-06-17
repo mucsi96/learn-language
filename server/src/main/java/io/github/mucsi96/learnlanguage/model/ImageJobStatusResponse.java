@@ -13,4 +13,7 @@ public class ImageJobStatusResponse {
 
   @JsonInclude(Include.NON_NULL)
   private String error;
+
+  @JsonInclude(Include.NON_NULL)
+  private String description;
 }

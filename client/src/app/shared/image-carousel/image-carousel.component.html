@@ -28,9 +28,10 @@
     } @else {
       <mat-icon>image_not_supported</mat-icon>
     }
-    @if (imageResource?.value()?.model) {
-      <span class="model-name">{{ imageResource.value()?.model }}</span>
-    }
+    <app-image-model-badge
+      [model]="imageResource?.value()?.model"
+      [description]="imageResource?.value()?.description"
+    />
     <div class="carousel-controls">
       <button
         mat-icon-button

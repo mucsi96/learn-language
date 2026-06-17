@@ -36,6 +36,9 @@ public class ImageGenerationJob {
   @Column(columnDefinition = "text")
   private String error;
 
+  @Column(columnDefinition = "text")
+  private String description;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 }

@@ -22,4 +22,7 @@ public class ExampleImageData implements Serializable {
 
   @JsonInclude(Include.NON_NULL)
   private String model;
+
+  @JsonInclude(Include.NON_NULL)
+  private String description;
 }

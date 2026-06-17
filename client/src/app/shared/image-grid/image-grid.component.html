@@ -24,8 +24,9 @@
     } @else {
       <mat-icon class="no-image-icon">image_not_supported</mat-icon>
     }
-    @if (imageResource.value()?.model) {
-      <span class="model-name">{{ imageResource.value()?.model }}</span>
-    }
+    <app-image-model-badge
+      [model]="imageResource.value()?.model"
+      [description]="imageResource.value()?.description"
+    />
   </div>
 }
