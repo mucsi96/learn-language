@@ -31,14 +31,15 @@ public class ImageService {
   private final ChatService chatService;
   private final ChatModelSettingService chatModelSettingService;
 
-  public byte[] generateImage(String input, String context, ImageGenerationModel model) {
+  public byte[] generateImage(String input, String context, ImageGenerationModel model, boolean describe) {
+    final String prompt = describe ? describeScene(input, context) : input;
+    final String imageContext = describe ? null : context;
+
     return switch (model) {
-      case GPT_IMAGE_1_5 -> openAIImageService.generateImage(input, context, model.getModelName());
-      case GEMINI_3_PRO_IMAGE_PREVIEW -> googleImageService.generateGeminiImage(input, context, model.getModelName());
-      case GPT_IMAGE_2 ->
-        openAIImageService.generateImage(describeScene(input, context), null, model.getModelName());
-      case IMAGEN_4_ULTRA ->
-        googleImageService.generateImagenImage(describeScene(input, context), null, model.getModelName());
+      case GPT_IMAGE_1_5, GPT_IMAGE_2 ->
+        openAIImageService.generateImage(prompt, imageContext, model.getModelName());
+      case GEMINI_3_PRO_IMAGE_PREVIEW ->
+        googleImageService.generateGeminiImage(prompt, imageContext, model.getModelName());
     };
   }
 
@@ -57,11 +58,11 @@ public class ImageService {
 
   private ChatModel resolveDescriptionModel() {
     final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
-    final String modelName = primaryModels.get(OperationType.EXTRACTION);
+    final String modelName = primaryModels.get(OperationType.IMAGE_DESCRIPTION);
 
     if (modelName == null) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-          "Image description requires a primary chat model configured for the extraction operation");
+          "Image description requires a primary chat model configured for the image description operation");
     }
 
     return ChatModel.fromString(modelName);

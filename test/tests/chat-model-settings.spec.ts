@@ -19,7 +19,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByText('Translation')).toBeVisible();
   await expect(page.getByText('Extraction')).toBeVisible();
   await expect(page.getByText('Classification')).toBeVisible();
-  await expect(page.getByText('Image Description')).not.toBeAttached();
+  await expect(page.getByText('Image Description')).toBeVisible();
 });
 
 test('can set primary model for operation type', async ({ page }) => {

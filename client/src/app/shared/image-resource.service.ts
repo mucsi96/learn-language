@@ -5,6 +5,7 @@ import { ExampleImage } from '../parser/types';
 import { fetchAsset } from '../utils/fetchAsset';
 import { fetchJson } from '../utils/fetchJson';
 import { ImageResponse, ImageSourceRequest } from './types/image-generation.types';
+import { waitForImageReady } from '../utils/wait-for-image-ready';
 import { GridImageResource, GridImageValue } from './image-grid/image-grid.component';
 import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
@@ -38,51 +39,57 @@ export class ImageResourceService {
     placeholders: GridImageResource[];
     done: Promise<void>;
   } {
-    const imageModels = this.imageModelSettingsService.imageModels().filter(
-      (m) => m.imageCount > 0
-    );
+    const subtasks = this.imageModelSettingsService
+      .imageModels()
+      .filter((m) => m.imageCount > 0 || m.describedImageCount > 0)
+      .flatMap((model) => [
+        ...Array.from({ length: model.imageCount }, () => ({
+          model,
+          describe: false,
+        })),
+        ...Array.from({ length: model.describedImageCount }, () => ({
+          model,
+          describe: true,
+        })),
+      ]);
 
-    const allPending = imageModels.flatMap((model) =>
-      Array.from({ length: model.imageCount }, () =>
-        this.createPendingResource(model.displayName)
-      )
+    const pending = subtasks.map(({ model }) =>
+      this.createPendingResource(model.displayName)
     );
 
     const { imagePool } = this.rateLimitTokenService;
-    let pendingIdx = 0;
     const done = Promise.all(
-      imageModels.flatMap((model) =>
-        Array.from({ length: model.imageCount }, () => {
-          const idx = pendingIdx++;
-          return (async () => {
-            await imagePool.acquire();
-            try {
-              const response = await fetchJson<ImageResponse>(
-                this.http,
-                `/api/image`,
-                {
-                  body: {
-                    input,
-                    model: model.id,
-                    ...(context ? { context } : {}),
-                  } satisfies ImageSourceRequest,
-                  method: 'POST',
-                }
-              );
-              await allPending[idx].resolve({
-                id: response.id,
-                model: response.model,
-              });
-            } finally {
-              imagePool.release();
-            }
-          })();
-        })
+      subtasks.map(({ model, describe }, idx) =>
+        (async () => {
+          await imagePool.acquire();
+          try {
+            const response = await fetchJson<ImageResponse>(
+              this.http,
+              `/api/image`,
+              {
+                body: {
+                  input,
+                  model: model.id,
+                  describe,
+                  ...(context ? { context } : {}),
+                } satisfies ImageSourceRequest,
+                method: 'POST',
+              }
+            );
+            await waitForImageReady(this.http, response.id);
+            await pending[idx].resolve({
+              id: response.id,
+              model: response.model,
+            });
+          } finally {
+            imagePool.release();
+          }
+        })()
       )
     ).then(() => undefined);
 
     return {
-      placeholders: allPending.map((p) => p.gridResource),
+      placeholders: pending.map((p) => p.gridResource),
       done,
     };
   }

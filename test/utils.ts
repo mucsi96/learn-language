@@ -851,6 +851,7 @@ const ALL_OPERATION_TYPES = [
   'EXTRACTION',
   'CLASSIFICATION',
   'EXPLANATION',
+  'IMAGE_DESCRIPTION',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3.1-pro-preview';
@@ -895,16 +896,17 @@ export async function getChatModelSettings(): Promise<
 export async function createImageModelSetting(params: {
   modelName: string;
   imageCount: number;
+  describedImageCount?: number;
 }): Promise<number> {
-  const { modelName, imageCount } = params;
+  const { modelName, imageCount, describedImageCount = 0 } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.image_model_settings (model_name, image_count)
-       VALUES ($1, $2)
-       ON CONFLICT (model_name) DO UPDATE SET image_count = $2
+      `INSERT INTO learn_language.image_model_settings (model_name, image_count, described_image_count)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (model_name) DO UPDATE SET image_count = $2, described_image_count = $3
        RETURNING id`,
-      [modelName, imageCount]
+      [modelName, imageCount, describedImageCount]
     );
     return result.rows[0].id;
   });
@@ -930,11 +932,13 @@ export async function getImageModelSettings(): Promise<
     id: number;
     modelName: string;
     imageCount: number;
+    describedImageCount: number;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, model_name as "modelName", image_count as "imageCount"
+      `SELECT id, model_name as "modelName", image_count as "imageCount",
+              described_image_count as "describedImageCount"
        FROM learn_language.image_model_settings
        ORDER BY id`
     );

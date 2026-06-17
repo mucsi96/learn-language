@@ -359,9 +359,13 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   });
 });
 
-test('generates image with virtual two-stage model', async ({ page }) => {
+test('generates described image with Gemini model', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await createImageModelSetting({ modelName: 'imagen-4.0-ultra-generate-001', imageCount: 1 });
+  await createImageModelSetting({
+    modelName: 'gemini-3-pro-image-preview',
+    imageCount: 0,
+    describedImageCount: 1,
+  });
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren-elindulni',
@@ -392,7 +396,7 @@ test('generates image with virtual two-stage model', async ({ page }) => {
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(page.getByRole('img')).toHaveCount(2);
 
-  await expect(page.getByText('Imagen 4 Ultra')).toHaveCount(1);
+  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(1);
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
@@ -409,12 +413,12 @@ test('generates image with virtual two-stage model', async ({ page }) => {
   const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');
   expect(generationLog).toBeDefined();
   expect(generationLog!.modelType).toBe('IMAGE');
-  expect(generationLog!.modelName).toBe('imagen-4.0-ultra-generate-001');
+  expect(generationLog!.modelName).toBe('gemini-3-pro-image-preview');
 });
 
-test('generates image with virtual two-stage model using OpenAI models', async ({ page }) => {
+test('generates described image with OpenAI models', async ({ page }) => {
   await Promise.all(
-    ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION'].map((operationType) =>
+    ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION', 'IMAGE_DESCRIPTION'].map((operationType) =>
       createChatModelSetting({
         modelName: 'gpt-5.2',
         operationType,
@@ -423,7 +427,11 @@ test('generates image with virtual two-stage model using OpenAI models', async (
       })
     )
   );
-  await createImageModelSetting({ modelName: 'gpt-image-2', imageCount: 1 });
+  await createImageModelSetting({
+    modelName: 'gpt-image-2',
+    imageCount: 0,
+    describedImageCount: 1,
+  });
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren-elindulni',
@@ -835,7 +843,7 @@ test('image model name displayed below image', async ({ page }) => {
           ch: 'Mir fahred am zwöufi ab.',
           images: [
             { id: image1, model: 'GPT Image 1' },
-            { id: image2, model: 'Imagen 4 Ultra' },
+            { id: image2, model: 'Gemini 3 Pro' },
           ],
         },
       ],
@@ -845,7 +853,7 @@ test('image model name displayed below image', async ({ page }) => {
   await navigateToCardEditing(page);
 
   await expect(page.getByText('GPT Image 1')).toBeVisible();
-  await expect(page.getByText('Imagen 4 Ultra')).toBeVisible();
+  await expect(page.getByText('Gemini 3 Pro')).toBeVisible();
 });
 
 test('speech card editing page displays sentence and translations', async ({ page }) => {

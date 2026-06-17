@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,13 +15,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.github.mucsi96.learnlanguage.model.ExampleImageData;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationJobStatus;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationResponse;
+import io.github.mucsi96.learnlanguage.model.ImageJobStatusResponse;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
-import io.github.mucsi96.learnlanguage.service.FfmpegService;
+import io.github.mucsi96.learnlanguage.service.AsyncImageGenerationService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
-import io.github.mucsi96.learnlanguage.service.ImageService;
+import io.github.mucsi96.learnlanguage.service.ImageGenerationJobService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -31,18 +34,17 @@ import org.springframework.http.ResponseEntity;
 public class ImageController {
 
   private final FileStorageService fileStorageService;
-  private final ImageService imageService;
-  private final FfmpegService ffmpegService;
+  private final AsyncImageGenerationService asyncImageGenerationService;
+  private final ImageGenerationJobService imageGenerationJobService;
   private final RateLimitSettingService rateLimitSettingService;
   private final ModelUsageLogRepository modelUsageLogRepository;
 
-  private static final int MAX_IMAGE_DIMENSION = 1200;
   private static final String IMAGE_WEBP_VALUE = "image/webp";
   private static final MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-  public ExampleImageData createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
+  public ImageGenerationResponse createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     final int dailyLimit = rateLimitSettingService.getImageDailyLimit();
     if (dailyLimit > 0) {
       final long todayUsage = modelUsageLogRepository.countByModelTypeSince(
@@ -53,20 +55,39 @@ public class ImageController {
       }
     }
     final String displayName = imageSource.getModel().getDisplayName();
-    final byte[] data = imageService.generateImage(
-        imageSource.getInput(), imageSource.getContext(), imageSource.getModel());
-    final String uuid = UUID.randomUUID().toString();
-    final String filePath = "images/%s.webp".formatted(uuid);
+    final UUID id = UUID.randomUUID();
+    imageGenerationJobService.createPending(id, displayName);
     try {
-      ffmpegService.resizeImage(
-          data, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, fileStorageService.resolveFilePath(filePath));
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to compress image: " + e.getMessage(), e);
+      asyncImageGenerationService.generate(
+          id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
+    } catch (TaskRejectedException e) {
+      imageGenerationJobService.markFailed(id, "Image generation queue is full");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+          "Image generation is busy, please retry");
     }
-    return ExampleImageData.builder()
-        .id(uuid)
+    return ImageGenerationResponse.builder()
+        .id(id.toString())
         .model(displayName)
+        .status(ImageGenerationJobStatus.PENDING)
         .build();
+  }
+
+  @GetMapping("/image/{id}/status")
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  public ImageJobStatusResponse getImageStatus(@PathVariable String id) {
+    final var job = imageGenerationJobService.getJob(parseId(id));
+    return ImageJobStatusResponse.builder()
+        .status(job.getStatus())
+        .error(job.getError())
+        .build();
+  }
+
+  private UUID parseId(String id) {
+    try {
+      return UUID.fromString(id);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid image id");
+    }
   }
 
   @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)

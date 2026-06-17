@@ -13,4 +13,5 @@ public class ImageModelResponse {
     private String id;
     private String displayName;
     private int imageCount;
+    private int describedImageCount;
 }
