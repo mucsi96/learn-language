@@ -68,7 +68,6 @@ export interface EnvironmentConfig {
   imageDailyLimit: number;
   audioDailyLimit: number;
   frontAudioDisabled: boolean;
-  useEnglishForImageGeneration: boolean;
   chatModels: ChatModelInfo[];
   imageModels: ImageModel[];
   audioModels: AudioModel[];

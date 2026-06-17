@@ -71,7 +71,3 @@ mat-card-header {
 tbody tr:hover {
   background: var(--mat-sys-surface-container-low);
 }
-
-.image-source-toggle {
-  margin-bottom: 16px;
-}
