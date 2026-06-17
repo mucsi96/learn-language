@@ -1,0 +1,52 @@
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { retry, throwError, timer } from 'rxjs';
+
+const isApiRequest = (url: string): boolean => /\/api(\/|$)/.test(url);
+
+const MAX_RETRIES = 6;
+const BASE_DELAY_MS = 1000;
+const MAX_DELAY_MS = 30_000;
+
+const backoffDelayMs = (retryCount: number): number => {
+  const exponential = Math.min(
+    BASE_DELAY_MS * 2 ** (retryCount - 1),
+    MAX_DELAY_MS
+  );
+  return exponential / 2 + Math.random() * (exponential / 2);
+};
+
+/**
+ * Survives upstream rate limiting (Cloudflare returns 429 and blocks the
+ * client IP for a fixed window) without corrupting in-flight work.
+ *
+ * During bulk operations the app fans out many concurrent polls and fetches.
+ * A burst can trip the rate limiter, after which every request comes back 429
+ * for the duration of the block. Treat that as "keep waiting": retry the
+ * request with exponential backoff and equal jitter so a transient block never
+ * surfaces as a failed image job or card fetch, and so parallel callers
+ * de-synchronize instead of hammering the limiter in lockstep.
+ *
+ * Sits inside the error interceptor so a successful retry never raises a
+ * spurious error notification; only an exhausted retry budget propagates.
+ */
+export const rateLimitRetryInterceptor: HttpInterceptorFn = (req, next) =>
+  next(req).pipe(
+    retry({
+      count: MAX_RETRIES,
+      delay: (error: unknown, retryCount: number) => {
+        const is429 =
+          error instanceof HttpErrorResponse && error.status === 429;
+
+        if (!is429 || !isApiRequest(req.url)) {
+          return throwError(() => error);
+        }
+
+        const waitMs = backoffDelayMs(retryCount);
+        console.warn(
+          '[rate-limit] API request returned 429 - backing off and retrying',
+          JSON.stringify({ url: req.url, retryCount, waitMs: Math.round(waitMs) })
+        );
+        return timer(waitMs);
+      },
+    })
+  );
