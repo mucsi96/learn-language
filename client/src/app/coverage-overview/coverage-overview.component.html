@@ -1,0 +1,13 @@
+@if (topics().length === 0) {
+  <p class="empty">No topics analysed yet.</p>
+} @else {
+  <ul class="coverage-list" aria-label="Topic coverage">
+    @for (topic of topics(); track topic.topic) {
+      <li class="coverage-item" [class]="'status-' + topic.status">
+        <mat-icon class="status-icon" [attr.aria-label]="topic.status">{{ iconFor(topic.status) }}</mat-icon>
+        <span class="topic-name">{{ topic.topic }}</span>
+        <span class="topic-count" aria-label="Card count">{{ topic.cardCount }}</span>
+      </li>
+    }
+  </ul>
+}

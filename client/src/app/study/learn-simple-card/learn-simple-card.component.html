@@ -1,0 +1,17 @@
+<div class="content-section">
+  @if (topic(); as topic) {
+    <div class="topic-chip" aria-label="Topic">{{ topic }}</div>
+  }
+  <div class="chips-corner">
+    @let state = card()?.value()?.state; @if (state !== undefined) {
+    <app-state [state]="state" />
+    }
+  </div>
+
+  <div class="front-section markdown-body" aria-label="Front" [innerHTML]="frontText() | markdown"></div>
+
+  @if (isRevealed()) {
+    <hr class="divider" />
+    <div class="back-section markdown-body" aria-label="Back" [innerHTML]="backText() | markdown"></div>
+  }
+</div>

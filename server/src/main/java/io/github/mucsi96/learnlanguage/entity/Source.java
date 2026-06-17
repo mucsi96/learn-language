@@ -59,6 +59,9 @@ public class Source {
   @Column(name = "new_card_limit")
   private Integer newCardLimit;
 
+  @Column(name = "prompt", columnDefinition = "text")
+  private String prompt;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "learning_partner_id")
   @ToString.Exclude

@@ -59,6 +59,9 @@ export type CardData = {
   extractionModel?: string;
   grammarTopic?: string;
   hint?: string;
+  frontText?: string;
+  backText?: string;
+  topic?: string;
 };
 
 export type Card = {
@@ -133,7 +136,7 @@ export type Page = {
 };
 
 export type LanguageLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-export type CardType = 'vocabulary' | 'speech' | 'grammar';
+export type CardType = 'vocabulary' | 'speech' | 'grammar' | 'simple';
 
 export type ExtractedItem = {
   id: string;
@@ -229,7 +232,27 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
-export type SourceType = 'pdf' | 'images' | 'ebookDictionary';
+export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'aiPrompt';
+
+export type SimpleCardSuggestion = {
+  frontText: string;
+  backText: string;
+  topic?: string;
+};
+
+export type GenerateCardsResponse = {
+  cards: SimpleCardSuggestion[];
+};
+
+export type TopicCoverage = {
+  topic: string;
+  cardCount: number;
+  status: 'none' | 'low' | 'good';
+};
+
+export type CoverageResponse = {
+  topics: TopicCoverage[];
+};
 
 export type Source = {
   id: string;
@@ -251,6 +274,7 @@ export type Source = {
   newCardLimit?: number;
   learningPartnerId?: number | null;
   detectionSourceIds?: string[];
+  prompt?: string;
 };
 
 export type WordList = {

@@ -42,4 +42,13 @@ public class CardData implements Serializable {
 
     @JsonInclude(Include.NON_NULL)
     private String hint;
+
+    @JsonInclude(Include.NON_NULL)
+    private String frontText;
+
+    @JsonInclude(Include.NON_NULL)
+    private String backText;
+
+    @JsonInclude(Include.NON_NULL)
+    private String topic;
 }

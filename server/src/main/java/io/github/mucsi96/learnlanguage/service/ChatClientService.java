@@ -49,11 +49,17 @@ public class ChatClientService {
       case GPT_5_NANO -> ChatClient.builder(openAiChatModel)
           .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_5_NANO.toString()))
           .build();
+      case GPT_5_5 -> ChatClient.builder(openAiChatModel)
+          .defaultOptions(OpenAiChatOptions.builder().model("gpt-5.5"))
+          .build();
       case CLAUDE_SONNET_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_SONNET_4_5))
           .build();
       case CLAUDE_HAIKU_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_HAIKU_4_5))
+          .build();
+      case CLAUDE_OPUS_4_8 -> ChatClient.builder(anthropicChatModel)
+          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-opus-4-8")))
           .build();
       case GEMINI_3_1_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
           .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3.1-pro-preview"))

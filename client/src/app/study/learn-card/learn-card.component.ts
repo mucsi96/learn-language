@@ -21,6 +21,7 @@ import { CardActionsComponent } from '../../shared/card-actions/card-actions.com
 import { LearnVocabularyCardComponent } from '../learn-vocabulary-card/learn-vocabulary-card.component';
 import { LearnSpeechCardComponent } from '../learn-speech-card/learn-speech-card.component';
 import { LearnGrammarCardComponent } from '../learn-grammar-card/learn-grammar-card.component';
+import { LearnSimpleCardComponent } from '../learn-simple-card/learn-simple-card.component';
 import { LearnCardSkeletonComponent } from '../learn-card-skeleton/learn-card-skeleton.component';
 import { ConfettiComponent } from '../confetti/confetti.component';
 import { AudioPlaybackService } from '../../shared/services/audio-playback.service';
@@ -41,6 +42,7 @@ import { SessionStatsComponent } from '../session-stats/session-stats.component'
     LearnVocabularyCardComponent,
     LearnSpeechCardComponent,
     LearnGrammarCardComponent,
+    LearnSimpleCardComponent,
     LearnCardSkeletonComponent,
     ConfettiComponent,
     SessionStatsComponent,

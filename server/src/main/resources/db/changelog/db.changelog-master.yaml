@@ -755,12 +755,13 @@ databaseChangeLog:
                   rs.review_score,
                   cs.correct_streak,
                   CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
-                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '')) OR
-                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '')) OR
-                      (s.card_type <> 'GRAMMAR' AND (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '')) OR
+                      (s.card_type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '')) OR
+                      (s.card_type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '')) OR
+                      (s.card_type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '')) OR
                       (s.card_type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
                       (s.card_type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = '')) OR
-                      (s.card_type = 'GRAMMAR' AND (c.data->'examples'->0->>'hu' IS NULL OR TRIM(c.data->'examples'->0->>'hu') = ''))
+                      (s.card_type = 'GRAMMAR' AND (c.data->'examples'->0->>'hu' IS NULL OR TRIM(c.data->'examples'->0->>'hu') = '')) OR
+                      (s.card_type = 'SIMPLE' AND (c.data->>'frontText' IS NULL OR TRIM(c.data->>'frontText') = '' OR c.data->>'backText' IS NULL OR TRIM(c.data->>'backText') = ''))
                   ) THEN true ELSE false END AS is_unhealthy,
                   CASE WHEN c.readiness = 'READY'
                       AND c.state = 'REVIEW'
@@ -1015,3 +1016,47 @@ databaseChangeLog:
               - column:
                   name: description
                   type: text
+  - changeSet:
+      id: 32-add-prompt-to-sources
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: prompt
+                  type: text
+  - changeSet:
+      id: 33-seed-card-generation-model-settings
+      author: mucsi96
+      changes:
+        - insert:
+            tableName: chat_model_settings
+            columns:
+              - column:
+                  name: model_name
+                  value: claude-opus-4-8
+              - column:
+                  name: operation_type
+                  value: CARD_GENERATION
+              - column:
+                  name: is_enabled
+                  valueBoolean: true
+              - column:
+                  name: is_primary
+                  valueBoolean: true
+        - insert:
+            tableName: chat_model_settings
+            columns:
+              - column:
+                  name: model_name
+                  value: gpt-5.5
+              - column:
+                  name: operation_type
+                  value: CARD_GENERATION
+              - column:
+                  name: is_enabled
+                  valueBoolean: true
+              - column:
+                  name: is_primary
+                  valueBoolean: false

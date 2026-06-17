@@ -356,10 +356,56 @@ export class ChatHandler {
     );
   }
 
+  handleCardGeneration(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+
+    if (!systemContent.includes('expert tutor building a spaced-repetition flashcard deck')) {
+      return null;
+    }
+
+    return createGeminiResponse({
+      cards: [
+        {
+          frontText: 'What command creates a pod named `nginx` using the `nginx` image?',
+          backText: '```sh\nkubectl run nginx --image=nginx\n```',
+          topic: 'Pods',
+        },
+        {
+          frontText: 'List the resources a Pod can request.\n\n- CPU\n- Memory',
+          backText: 'A Pod can request **CPU** and **memory** via `resources.requests`.',
+          topic: 'Pods',
+        },
+      ],
+    });
+  }
+
+  handleCoverageAnalysis(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+
+    if (!systemContent.includes('analysing how well a spaced-repetition flashcard deck covers')) {
+      return null;
+    }
+
+    const hasPods = systemContent.includes('-> Pods');
+
+    return createGeminiResponse({
+      topics: [
+        { topic: 'Services & Networking', cardCount: 0, status: 'none' },
+        { topic: 'Pods', cardCount: hasPods ? 2 : 0, status: hasPods ? 'good' : 'none' },
+      ],
+    });
+  }
+
   async processRequest(request: GeminiRequest): Promise<any> {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
     }
+
+    const cardGenerationResponse = this.handleCardGeneration(request);
+    if (cardGenerationResponse) return cardGenerationResponse;
+
+    const coverageResponse = this.handleCoverageAnalysis(request);
+    if (coverageResponse) return coverageResponse;
 
     const explanationResponse = this.handleExplanation(request);
     if (explanationResponse) return explanationResponse;

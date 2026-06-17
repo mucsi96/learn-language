@@ -36,7 +36,11 @@ import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardType;
+import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.CoverageResponse;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
+import io.github.mucsi96.learnlanguage.model.GenerateCardsRequest;
+import io.github.mucsi96.learnlanguage.model.GenerateCardsResponse;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.PendingPhotoConsumeRequest;
 import io.github.mucsi96.learnlanguage.model.PendingPhotoStatusResponse;
@@ -56,7 +60,9 @@ import io.github.mucsi96.learnlanguage.service.AreaSentenceService;
 import io.github.mucsi96.learnlanguage.service.AreaWordsService;
 import io.github.mucsi96.learnlanguage.service.CardService;
 import io.github.mucsi96.learnlanguage.service.CardService.SourceStats;
+import io.github.mucsi96.learnlanguage.service.CoverageService;
 import io.github.mucsi96.learnlanguage.service.DocumentProcessorService;
+import io.github.mucsi96.learnlanguage.service.PromptCardGenerationService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
@@ -88,6 +94,8 @@ public class SourceController {
   private final LearningPartnerService learningPartnerService;
   private final PendingPhotoService pendingPhotoService;
   private final PhotoGrammarConceptService photoGrammarConceptService;
+  private final PromptCardGenerationService promptCardGenerationService;
+  private final CoverageService coverageService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
@@ -128,6 +136,7 @@ public class SourceController {
           .newCardLimit(source.getNewCardLimit())
           .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
           .detectionSourceIds(source.getDetectionSources().stream().map(Source::getId).sorted().toList())
+          .prompt(source.getPrompt())
           .build();
     }).collect(Collectors.toList());
   }
@@ -270,6 +279,35 @@ public class SourceController {
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PostMapping("/source/{sourceId}/generate-cards")
+  public GenerateCardsResponse generateCards(
+      @PathVariable String sourceId,
+      @RequestBody GenerateCardsRequest request) {
+    if (request.getModel() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "model is required");
+    }
+    final int count = request.getCount() != null ? request.getCount() : 0;
+    if (count < 1 || count > 50) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "count must be between 1 and 50");
+    }
+
+    final Source source = requireAiPromptSource(sourceId);
+
+    return GenerateCardsResponse.builder()
+        .cards(promptCardGenerationService.generateCards(source, request.getPrompt(), count, request.getModel()))
+        .build();
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @GetMapping("/source/{sourceId}/coverage")
+  public CoverageResponse getCoverage(
+      @PathVariable String sourceId,
+      @RequestParam ChatModel model) {
+    final Source source = requireAiPromptSource(sourceId);
+    return coverageService.analyzeCoverage(source, model);
+  }
+
+  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @PostMapping("/source/{sourceId}/extraction-regions")
   public ResponseEntity<Map<String, String>> saveExtractionRegions(
       @PathVariable String sourceId,
@@ -319,6 +357,7 @@ public class SourceController {
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
             : null)
         .detectionSources(resolveDetectionSources(request.getDetectionSourceIds(), request.getId()))
+        .prompt(request.getPrompt())
         .build();
 
     sourceService.saveSource(source);
@@ -356,6 +395,7 @@ public class SourceController {
         .detectionSources(request.getDetectionSourceIds() != null
             ? resolveDetectionSources(request.getDetectionSourceIds(), sourceId)
             : existingSource.getDetectionSources())
+        .prompt(request.getPrompt() != null ? request.getPrompt() : existingSource.getPrompt())
         .build();
 
     sourceService.saveSource(updatedSource);
@@ -607,6 +647,17 @@ public class SourceController {
   public ResponseEntity<Map<String, String>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
         .body(Map.of("error", "Uploaded file exceeds the maximum allowed size"));
+  }
+
+  private Source requireAiPromptSource(String sourceId) {
+    final Source source = sourceService.getSourceById(sourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    if (source.getSourceType() != SourceType.AI_PROMPT) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Card generation is only supported on AI prompt sources");
+    }
+    return source;
   }
 
   private Source requirePhotoGrammarSource(String sourceId) {

@@ -1,0 +1,55 @@
+.content-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.topic-chip {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: var(--mat-sys-secondary-container, #e0e0e0);
+  color: var(--mat-sys-on-secondary-container, #1d1d1d);
+  font-size: 0.85rem;
+}
+
+.chips-corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--mat-sys-outline-variant, #ccc);
+  margin: 0;
+}
+
+.markdown-body {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.markdown-body pre {
+  background: var(--mat-sys-surface-container-high, #f0f0f0);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.markdown-body code {
+  font-family: monospace;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.5rem;
+}

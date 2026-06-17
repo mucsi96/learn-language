@@ -19,7 +19,8 @@ public enum OperationType {
     IMAGE_DESCRIPTION("image_description", "Image Description", true),
     AUDIO_GENERATION("audio_generation", "Audio Generation", false),
     EXPLANATION("explanation", "Explanation", true),
-    TRANSCRIPTION("transcription", "Transcription", false);
+    TRANSCRIPTION("transcription", "Transcription", false),
+    CARD_GENERATION("card_generation", "Card Generation", true);
 
     private final String code;
     private final String displayName;

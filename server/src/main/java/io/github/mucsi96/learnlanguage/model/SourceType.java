@@ -11,7 +11,8 @@ import lombok.RequiredArgsConstructor;
 public enum SourceType {
     PDF("pdf", "PDF Document"),
     IMAGES("images", "Image Collection"),
-    EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary");
+    EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary"),
+    AI_PROMPT("aiPrompt", "AI Prompt");
 
     private final String code;
     private final String displayName;
