@@ -13,13 +13,13 @@
   }
 
   <div class="sentence-section">
+    @if (hungarianTranslation()) {
+      <p class="translation-text" aria-label="Hungarian translation">{{ hungarianTranslation() }}</p>
+    }
     <p class="sentence-text">@for (part of sentenceParts(); track $index) {<span
         [class.gap-word]="part.isGap"
         [class.masked]="part.isGap && !isRevealed()"
         [class.highlighted]="part.isGap && isRevealed()"
       >{{ part.text }}</span>}</p>
-    @if (isRevealed() && hungarianTranslation()) {
-      <p class="translation-text" aria-label="Hungarian translation">{{ hungarianTranslation() }}</p>
-    }
   </div>
 </div>
