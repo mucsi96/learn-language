@@ -15,6 +15,25 @@ const backoffDelayMs = (retryCount: number): number => {
   return exponential / 2 + Math.random() * (exponential / 2);
 };
 
+const retryAfterMs = (error: HttpErrorResponse): number | undefined => {
+  const header = error.headers.get('Retry-After');
+  if (!header) {
+    return undefined;
+  }
+
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) {
+    return Math.min(Math.max(seconds, 0) * 1000, MAX_DELAY_MS);
+  }
+
+  const dateMs = Date.parse(header);
+  if (Number.isFinite(dateMs)) {
+    return Math.min(Math.max(dateMs - Date.now(), 0), MAX_DELAY_MS);
+  }
+
+  return undefined;
+};
+
 /**
  * Survives upstream rate limiting (Cloudflare returns 429 and blocks the
  * client IP for a fixed window) without corrupting in-flight work.
@@ -24,7 +43,9 @@ const backoffDelayMs = (retryCount: number): number => {
  * for the duration of the block. Treat that as "keep waiting": retry the
  * request with exponential backoff and equal jitter so a transient block never
  * surfaces as a failed image job or card fetch, and so parallel callers
- * de-synchronize instead of hammering the limiter in lockstep.
+ * de-synchronize instead of hammering the limiter in lockstep. When the 429
+ * carries a Retry-After header it is honored (capped) in preference to the
+ * computed backoff.
  *
  * Sits inside the error interceptor so a successful retry never raises a
  * spurious error notification; only an exhausted retry budget propagates.
@@ -41,7 +62,8 @@ export const rateLimitRetryInterceptor: HttpInterceptorFn = (req, next) =>
           return throwError(() => error);
         }
 
-        const waitMs = backoffDelayMs(retryCount);
+        const waitMs =
+          retryAfterMs(error as HttpErrorResponse) ?? backoffDelayMs(retryCount);
         console.warn(
           '[rate-limit] API request returned 429 - backing off and retrying',
           JSON.stringify({ url: req.url, retryCount, waitMs: Math.round(waitMs) })
