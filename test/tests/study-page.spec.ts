@@ -1242,13 +1242,49 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
   await expect(flashcard.locator('.gap-word.masked')).toHaveText('jeden');
-  await expect(flashcard.getByLabel('Hungarian translation')).toHaveCount(0);
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Minden nap iskolába megyek.');
 
   await flashcard.getByText('Ich gehe').click();
 
   await expect(flashcard.locator('.gap-word.highlighted')).toBeVisible();
   await expect(flashcard.locator('.gap-word.highlighted')).toHaveText('jeden');
   await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Minden nap iskolába megyek.');
+});
+
+test('grammar card shows Hungarian translation above the sentence on both sides', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'grammar-translation-order-card',
+    sourceId: 'grammar-a1',
+    sourcePageNumber: 9,
+    data: {
+      examples: [
+        {
+          de: 'Wir [fahren] nach Hause.',
+          hu: 'Hazamegyünk.',
+          isSelected: true,
+        },
+      ],
+      audio: [{ id: 'translation-order-audio', text: 'Wir fahren nach Hause.', language: 'de' }],
+    },
+  });
+
+  await page.goto('/sources/grammar-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Hazamegyünk.');
+
+  const frontTranslationBox = await flashcard.getByLabel('Hungarian translation').boundingBox();
+  const frontSentenceBox = await flashcard.locator('.gap-word.masked').boundingBox();
+  expect(frontTranslationBox!.y).toBeLessThan(frontSentenceBox!.y);
+
+  await flashcard.getByText('Wir').click();
+
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Hazamegyünk.');
+  const backTranslationBox = await flashcard.getByLabel('Hungarian translation').boundingBox();
+  const backSentenceBox = await flashcard.locator('.gap-word.highlighted').boundingBox();
+  expect(backTranslationBox!.y).toBeLessThan(backSentenceBox!.y);
 });
 
 test('grammar card study shows German hint on front when present', async ({ page }) => {
