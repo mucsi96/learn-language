@@ -11,6 +11,7 @@ export interface ImageModel {
   id: string;
   displayName: string;
   imageCount: number;
+  describedImageCount: number;
 }
 
 export interface AudioModel {

@@ -955,3 +955,53 @@ databaseChangeLog:
             referencedTableName: sources
             referencedColumnNames: id
             onDelete: CASCADE
+  - changeSet:
+      id: 29-add-described-image-count
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: image_model_settings
+            columns:
+              - column:
+                  name: described_image_count
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 30-create-image-generation-jobs-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: image_generation_jobs
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: image_generation_jobs_pkey
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: image_generation_jobs
+            indexName: image_generation_jobs_created_at_idx
+            columns:
+              - column:
+                  name: created_at

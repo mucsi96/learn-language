@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.GenerateImagesConfig;
 import com.google.genai.types.ImageConfig;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -40,24 +39,6 @@ public class GoogleImageService {
               .flatMap(java.util.List::stream))
           .flatMap(part -> part.inlineData().stream())
           .flatMap(data -> data.data().stream())
-          .findFirst()
-          .orElseThrow(() -> new RuntimeException("No image found in " + modelName + " response"));
-    });
-  }
-
-  public byte[] generateImagenImage(String input, String context, String modelName) {
-    return generateWithUsageLogging(modelName, () -> {
-      final GenerateImagesConfig config = GenerateImagesConfig.builder()
-          .numberOfImages(1)
-          .aspectRatio("1:1")
-          .build();
-
-      final String fullPrompt = ImagePromptBuilder.build(input, context);
-
-      return googleAiClient.models.generateImages(modelName, fullPrompt, config)
-          .generatedImages().orElseThrow(() -> new RuntimeException("No images in Imagen response")).stream()
-          .flatMap(generatedImage -> generatedImage.image().stream())
-          .flatMap(img -> img.imageBytes().stream())
           .findFirst()
           .orElseThrow(() -> new RuntimeException("No image found in " + modelName + " response"));
     });

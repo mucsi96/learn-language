@@ -28,4 +28,7 @@ public class ImageModelSetting {
 
     @Column(name = "image_count", nullable = false)
     private Integer imageCount;
+
+    @Column(name = "described_image_count", nullable = false)
+    private Integer describedImageCount;
 }
