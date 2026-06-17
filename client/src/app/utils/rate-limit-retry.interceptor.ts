@@ -55,15 +55,15 @@ export const rateLimitRetryInterceptor: HttpInterceptorFn = (req, next) =>
     retry({
       count: MAX_RETRIES,
       delay: (error: unknown, retryCount: number) => {
-        const is429 =
-          error instanceof HttpErrorResponse && error.status === 429;
-
-        if (!is429 || !isApiRequest(req.url)) {
+        if (
+          !(error instanceof HttpErrorResponse) ||
+          error.status !== 429 ||
+          !isApiRequest(req.url)
+        ) {
           return throwError(() => error);
         }
 
-        const waitMs =
-          retryAfterMs(error as HttpErrorResponse) ?? backoffDelayMs(retryCount);
+        const waitMs = retryAfterMs(error) ?? backoffDelayMs(retryCount);
         console.warn(
           '[rate-limit] API request returned 429 - backing off and retrying',
           JSON.stringify({ url: req.url, retryCount, waitMs: Math.round(waitMs) })
