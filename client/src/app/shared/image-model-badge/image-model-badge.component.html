@@ -1,14 +1,3 @@
 @if (model()) {
-  <span class="model-name">
-    {{ model() }}
-    @if (!loading()) {
-      <span
-        class="generation-method"
-        [class.has-tooltip]="description()"
-        [matTooltip]="description() ?? ''"
-        [matTooltipDisabled]="!description()"
-        >{{ description() ? "described" : "direct" }}</span
-      >
-    }
-  </span>
+  <span class="model-name">{{ model() }}</span>
 }

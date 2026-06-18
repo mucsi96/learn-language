@@ -8,7 +8,6 @@ export type GridImageValue = {
   url: string;
   model?: string;
   isFavorite?: boolean;
-  description?: string;
 };
 
 export type GridImageResource = {

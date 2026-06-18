@@ -17,40 +17,28 @@ export const generateExampleImages = async (
   imageModels: ReadonlyArray<{
     id: string;
     imageCount: number;
-    describedImageCount: number;
   }>,
   inputs: ReadonlyArray<ImageGenerationInput>,
   imageTokenPool: ToolPool,
   onToolsRequested?: () => void
 ): Promise<ImagesByIndex> => {
-  const activeModels = imageModels.filter(
-    (model) => model.imageCount > 0 || model.describedImageCount > 0
-  );
+  const activeModels = imageModels.filter((model) => model.imageCount > 0);
   if (inputs.length === 0 || activeModels.length === 0) {
     onToolsRequested?.();
     return new Map();
   }
 
   const subtasks = inputs.flatMap((input) =>
-    activeModels.flatMap((model) => [
-      ...Array.from({ length: model.imageCount }, () => ({
-        input,
-        model,
-        describe: false,
-      })),
-      ...Array.from({ length: model.describedImageCount }, () => ({
-        input,
-        model,
-        describe: true,
-      })),
-    ])
+    activeModels.flatMap((model) =>
+      Array.from({ length: model.imageCount }, () => ({ input, model }))
+    )
   );
 
   const acquirePromises = subtasks.map(() => imageTokenPool.acquire());
   onToolsRequested?.();
 
   const results = await Promise.all(
-    subtasks.map(async ({ input, model, describe }, i) => {
+    subtasks.map(async ({ input, model }, i) => {
       await acquirePromises[i];
       try {
         const response = await fetchJson<ImageResponse>(
@@ -60,15 +48,14 @@ export const generateExampleImages = async (
             body: {
               input: input.input,
               model: model.id,
-              describe,
             } satisfies ImageSourceRequest,
             method: 'POST',
           }
         );
-        const { description } = await waitForImageReady(http, response.id);
+        await waitForImageReady(http, response.id);
         return {
           exampleIndex: input.exampleIndex,
-          image: { id: response.id, model: response.model, description } as ExampleImage,
+          image: { id: response.id, model: response.model } as ExampleImage,
         };
       } catch {
         return undefined;

@@ -68,13 +68,6 @@ export class ImageModelSettingsComponent {
     }
   }
 
-  onDescribedImageCountChange(modelId: string, event: Event): void {
-    const value = this.parseCount(event);
-    if (value !== undefined) {
-      this.service.updateDescribedImageCount(modelId, value);
-    }
-  }
-
   private parseCount(event: Event): number | undefined {
     const input = event.target as HTMLInputElement;
     const value = parseInt(input.value, 10);

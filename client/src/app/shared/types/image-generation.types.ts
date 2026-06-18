@@ -2,7 +2,6 @@ export interface ImageSourceRequest {
   input: string;
   model: string;
   context?: string;
-  describe: boolean;
 }
 
 export type ImageJobStatus = 'pending' | 'completed' | 'failed';
@@ -16,5 +15,4 @@ export interface ImageResponse {
 export interface ImageJobStatusResponse {
   status: ImageJobStatus;
   error?: string;
-  description?: string;
 }

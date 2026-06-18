@@ -24,10 +24,6 @@
     } @else {
       <mat-icon class="no-image-icon">image_not_supported</mat-icon>
     }
-    <app-image-model-badge
-      [model]="imageResource.value()?.model"
-      [description]="imageResource.value()?.description"
-      [loading]="imageResource.isLoading()"
-    />
+    <app-image-model-badge [model]="imageResource.value()?.model" />
   </div>
 }

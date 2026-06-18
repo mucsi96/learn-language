@@ -41,17 +41,10 @@ export class ImageResourceService {
   } {
     const subtasks = this.imageModelSettingsService
       .imageModels()
-      .filter((m) => m.imageCount > 0 || m.describedImageCount > 0)
-      .flatMap((model) => [
-        ...Array.from({ length: model.imageCount }, () => ({
-          model,
-          describe: false,
-        })),
-        ...Array.from({ length: model.describedImageCount }, () => ({
-          model,
-          describe: true,
-        })),
-      ]);
+      .filter((m) => m.imageCount > 0)
+      .flatMap((model) =>
+        Array.from({ length: model.imageCount }, () => ({ model }))
+      );
 
     const pending = subtasks.map(({ model }) =>
       this.createPendingResource(model.displayName)
@@ -59,7 +52,7 @@ export class ImageResourceService {
 
     const { imagePool } = this.rateLimitTokenService;
     const done = Promise.all(
-      subtasks.map(({ model, describe }, idx) =>
+      subtasks.map(({ model }, idx) =>
         (async () => {
           await imagePool.acquire();
           try {
@@ -70,17 +63,15 @@ export class ImageResourceService {
                 body: {
                   input,
                   model: model.id,
-                  describe,
                   ...(context ? { context } : {}),
                 } satisfies ImageSourceRequest,
                 method: 'POST',
               }
             );
-            const { description } = await waitForImageReady(this.http, response.id);
+            await waitForImageReady(this.http, response.id);
             await pending[idx].resolve({
               id: response.id,
               model: response.model,
-              description,
             });
           } finally {
             imagePool.release();
@@ -107,7 +98,6 @@ export class ImageResourceService {
             id: v.id,
             model: v.model,
             isFavorite: v.isFavorite,
-            description: v.description,
           }) satisfies ExampleImage
       );
   }
