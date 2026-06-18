@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.mucsi96.learnlanguage.config.OperationIdContext;
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
@@ -622,9 +623,13 @@ public class SourceController {
     final List<PreparedPage> pages = photoPreprocessingService.prepare(
         photo.getImageData(), photo.getContentType());
 
+    final String baseOperationId = OperationIdContext.get();
+
+    OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "lesson-description"));
     final LessonDescription lessonDescription = lessonDescriptionService.describe(
         pages, source.getLanguageLevel());
 
+    OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "card-generation"));
     final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
         lessonDescription,
         source.getLanguageLevel(),
