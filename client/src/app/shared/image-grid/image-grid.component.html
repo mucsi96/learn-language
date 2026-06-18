@@ -27,6 +27,7 @@
     <app-image-model-badge
       [model]="imageResource.value()?.model"
       [description]="imageResource.value()?.description"
+      [loading]="imageResource.isLoading()"
     />
   </div>
 }

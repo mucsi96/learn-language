@@ -10,4 +10,5 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class ImageModelBadgeComponent {
   model = input<string>();
   description = input<string>();
+  loading = input<boolean>();
 }
