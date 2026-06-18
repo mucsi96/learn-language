@@ -640,7 +640,11 @@ public class SourceController {
 
       return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
     } finally {
-      OperationIdContext.set(baseOperationId);
+      if (baseOperationId != null) {
+        OperationIdContext.set(baseOperationId);
+      } else {
+        OperationIdContext.clear();
+      }
     }
   }
 
