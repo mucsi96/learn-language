@@ -23,14 +23,14 @@ public class AsyncImageGenerationService {
   private final ImageGenerationJobService imageGenerationJobService;
 
   @Async("imageGenerationExecutor")
-  public void generate(UUID id, String input, String context, ImageGenerationModel model, boolean describe) {
+  public void generate(UUID id, String input, String context, ImageGenerationModel model) {
     try {
-      final GeneratedImage generatedImage = imageService.generateImage(input, context, model, describe);
+      final GeneratedImage generatedImage = imageService.generateImage(input, context, model);
       final String filePath = "images/%s.webp".formatted(id);
       ffmpegService.resizeImage(
           generatedImage.getData(), MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION,
           fileStorageService.resolveFilePath(filePath));
-      imageGenerationJobService.markCompleted(id, generatedImage.getDescription());
+      imageGenerationJobService.markCompleted(id);
     } catch (Exception e) {
       log.error("Image generation job {} failed", id, e);
       imageGenerationJobService.markFailed(id, "Image generation failed");

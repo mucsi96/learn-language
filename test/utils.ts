@@ -896,17 +896,16 @@ export async function getChatModelSettings(): Promise<
 export async function createImageModelSetting(params: {
   modelName: string;
   imageCount: number;
-  describedImageCount?: number;
 }): Promise<number> {
-  const { modelName, imageCount, describedImageCount = 0 } = params;
+  const { modelName, imageCount } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.image_model_settings (model_name, image_count, described_image_count)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (model_name) DO UPDATE SET image_count = $2, described_image_count = $3
+      `INSERT INTO learn_language.image_model_settings (model_name, image_count)
+       VALUES ($1, $2)
+       ON CONFLICT (model_name) DO UPDATE SET image_count = $2
        RETURNING id`,
-      [modelName, imageCount, describedImageCount]
+      [modelName, imageCount]
     );
     return result.rows[0].id;
   });
@@ -932,13 +931,11 @@ export async function getImageModelSettings(): Promise<
     id: number;
     modelName: string;
     imageCount: number;
-    describedImageCount: number;
   }>
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, model_name as "modelName", image_count as "imageCount",
-              described_image_count as "describedImageCount"
+      `SELECT id, model_name as "modelName", image_count as "imageCount"
        FROM learn_language.image_model_settings
        ORDER BY id`
     );

@@ -20,7 +20,7 @@ public class GoogleImageService {
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateGeminiImage(String input, String context, String modelName) {
+  public byte[] generateGeminiImage(String input, String modelName) {
     return generateWithUsageLogging(modelName, () -> {
       final GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
@@ -30,7 +30,7 @@ public class GoogleImageService {
               .build())
           .build();
 
-      final String fullPrompt = ImagePromptBuilder.build(input, context);
+      final String fullPrompt = ImagePromptBuilder.build(input);
 
       return googleAiClient.models.generateContent(modelName, fullPrompt, config)
           .candidates().orElseThrow(() -> new RuntimeException("No candidates in Gemini response")).stream()

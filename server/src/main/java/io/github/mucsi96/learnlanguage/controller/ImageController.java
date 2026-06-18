@@ -59,7 +59,7 @@ public class ImageController {
     imageGenerationJobService.createPending(id, displayName);
     try {
       asyncImageGenerationService.generate(
-          id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel(), imageSource.isDescribe());
+          id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel());
     } catch (TaskRejectedException e) {
       imageGenerationJobService.markFailed(id, "Image generation queue is full");
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
@@ -79,7 +79,6 @@ public class ImageController {
     return ImageJobStatusResponse.builder()
         .status(job.getStatus())
         .error(job.getError())
-        .description(job.getDescription())
         .build();
   }
 

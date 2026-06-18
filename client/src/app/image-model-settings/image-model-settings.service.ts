@@ -9,7 +9,6 @@ import {
 export interface ImageModelSettingRequest {
   modelName: string;
   imageCount: number;
-  describedImageCount: number;
 }
 
 @Injectable({
@@ -30,15 +29,6 @@ export class ImageModelSettingsService {
     this.persistCounts(modelId);
   }
 
-  updateDescribedImageCount(modelId: string, describedImageCount: number): void {
-    this.imageModels.update((models) =>
-      models.map((m) =>
-        m.id === modelId ? { ...m, describedImageCount } : m
-      )
-    );
-    this.persistCounts(modelId);
-  }
-
   private persistCounts(modelId: string): void {
     const model = this.imageModels().find((m) => m.id === modelId);
     if (!model) {
@@ -50,7 +40,6 @@ export class ImageModelSettingsService {
       body: {
         modelName: modelId,
         imageCount: model.imageCount,
-        describedImageCount: model.describedImageCount,
       } satisfies ImageModelSettingRequest,
     });
   }

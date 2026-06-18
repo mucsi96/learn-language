@@ -35,7 +35,6 @@ public class ImageModelSettingService {
                             .id(model.getModelName())
                             .displayName(model.getDisplayName())
                             .imageCount(setting.map(ImageModelSetting::getImageCount).orElse(0))
-                            .describedImageCount(setting.map(ImageModelSetting::getDescribedImageCount).orElse(0))
                             .build();
                 })
                 .toList();
@@ -49,12 +48,10 @@ public class ImageModelSettingService {
                 .findByModelName(request.getModelName())
                 .map(existing -> existing.toBuilder()
                         .imageCount(request.getImageCount())
-                        .describedImageCount(request.getDescribedImageCount())
                         .build())
                 .orElseGet(() -> ImageModelSetting.builder()
                         .modelName(request.getModelName())
                         .imageCount(request.getImageCount())
-                        .describedImageCount(request.getDescribedImageCount())
                         .build());
 
         final ImageModelSetting saved = imageModelSettingRepository.save(setting);
@@ -63,7 +60,6 @@ public class ImageModelSettingService {
                 .id(saved.getModelName())
                 .displayName(model.getDisplayName())
                 .imageCount(saved.getImageCount())
-                .describedImageCount(saved.getDescribedImageCount())
                 .build();
     }
 }

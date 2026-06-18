@@ -14,8 +14,7 @@
             <thead>
               <tr>
                 <th class="model-header">Model</th>
-                <th class="count-header">Direct images per card</th>
-                <th class="count-header">Described images per card</th>
+                <th class="count-header">Images per card</th>
               </tr>
             </thead>
             <tbody>
@@ -30,19 +29,7 @@
                         [value]="model.imageCount"
                         (change)="onImageCountChange(model.id, $event)"
                         min="0"
-                        [attr.aria-label]="'Direct image count for ' + model.displayName"
-                      />
-                    </mat-form-field>
-                  </td>
-                  <td class="count-cell">
-                    <mat-form-field class="count-field">
-                      <input
-                        matInput
-                        type="number"
-                        [value]="model.describedImageCount"
-                        (change)="onDescribedImageCountChange(model.id, $event)"
-                        min="0"
-                        [attr.aria-label]="'Described image count for ' + model.displayName"
+                        [attr.aria-label]="'Image count for ' + model.displayName"
                       />
                     </mat-form-field>
                   </td>

@@ -16,12 +16,11 @@ import io.github.mucsi96.learnlanguage.model.ImageGenerationJobStatus;
 public interface ImageGenerationJobRepository extends JpaRepository<ImageGenerationJob, UUID> {
 
   @Modifying
-  @Query("UPDATE ImageGenerationJob j SET j.status = :status, j.error = :error, j.description = :description WHERE j.id = :id")
+  @Query("UPDATE ImageGenerationJob j SET j.status = :status, j.error = :error WHERE j.id = :id")
   void updateStatus(
       @Param("id") UUID id,
       @Param("status") ImageGenerationJobStatus status,
-      @Param("error") String error,
-      @Param("description") String description);
+      @Param("error") String error);
 
   int deleteByCreatedAtBefore(Instant cutoff);
 }

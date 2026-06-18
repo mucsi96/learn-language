@@ -180,10 +180,6 @@ test('card editing in db', async ({ page }) => {
 
   await expect(page.getByText('GPT Image 1.5')).toHaveCount(1);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
-  await expect(page.getByText('direct', { exact: true })).toHaveCount(4);
-
-  await page.getByText('direct', { exact: true }).first().hover();
-  await expect(page.getByText('Detailed scene:')).toHaveCount(0);
 
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -228,8 +224,6 @@ test('card editing in db', async ({ page }) => {
     expect(cardData.examples[1].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[1].description).toBeUndefined();
-    expect(cardData.examples[1].images[2].description).toBeUndefined();
   });
 });
 
@@ -364,12 +358,11 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   });
 });
 
-test('generates described image with Gemini model', async ({ page }) => {
+test('generates image with Gemini model', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createImageModelSetting({
     modelName: 'gemini-3-pro-image-preview',
-    imageCount: 0,
-    describedImageCount: 1,
+    imageCount: 1,
   });
   const image1 = uploadMockImage(blueImage);
   await createCard({
@@ -402,27 +395,12 @@ test('generates described image with Gemini model', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(2);
 
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(1);
-  await expect(page.getByText('described', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
-
-  await page.getByText('described', { exact: true }).hover();
-  await expect(
-    page.getByText('Detailed scene: Wann fährt der Zug ab? A train platform with a large clock, no visible text.').first()
-  ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
   );
   expect(await getImageColor(page, generatedImageContent)).toBe('red');
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
-    );
-    const cardData = result.rows[0].data;
-    expect(cardData.examples[0].images[0].description).toBeUndefined();
-    expect(cardData.examples[0].images[1].description).toContain('Wann fährt der Zug ab?');
-  });
 
   const logs = await getModelUsageLogs();
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
@@ -437,7 +415,7 @@ test('generates described image with Gemini model', async ({ page }) => {
   expect(generationLog!.modelName).toBe('gemini-3-pro-image-preview');
 });
 
-test('generates described image with OpenAI models', async ({ page }) => {
+test('generates image with OpenAI models', async ({ page }) => {
   await Promise.all(
     ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION', 'IMAGE_DESCRIPTION'].map((operationType) =>
       createChatModelSetting({
@@ -450,8 +428,7 @@ test('generates described image with OpenAI models', async ({ page }) => {
   );
   await createImageModelSetting({
     modelName: 'gpt-image-2',
-    imageCount: 0,
-    describedImageCount: 1,
+    imageCount: 1,
   });
   const image1 = uploadMockImage(blueImage);
   await createCard({
@@ -484,27 +461,12 @@ test('generates described image with OpenAI models', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(2);
 
   await expect(page.getByText('GPT Image 2')).toHaveCount(1);
-  await expect(page.getByText('described', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
-
-  await page.getByText('described', { exact: true }).hover();
-  await expect(
-    page.getByText('Detailed scene: Wann fährt der Zug ab? A train platform with a large clock, no visible text.').first()
-  ).toBeVisible();
 
   const generatedImageContent = await getImageContent(
     page.getByRole('img', { name: 'Wann fährt der Zug ab?' }).nth(1)
   );
   expect(await getImageColor(page, generatedImageContent)).toBe('red');
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
-    );
-    const cardData = result.rows[0].data;
-    expect(cardData.examples[0].images[0].description).toBeUndefined();
-    expect(cardData.examples[0].images[1].description).toContain('Wann fährt der Zug ab?');
-  });
 
   const logs = await getModelUsageLogs();
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
@@ -571,12 +533,11 @@ test('add image with context dialog', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(5);
 });
 
-test('described image uses context instead of German sentence', async ({ page }) => {
+test('image generation uses context instead of German sentence', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createImageModelSetting({
     modelName: 'gemini-3-pro-image-preview',
-    imageCount: 0,
-    describedImageCount: 1,
+    imageCount: 1,
   });
   const image1 = uploadMockImage(blueImage);
   await createCard({
@@ -615,17 +576,7 @@ test('described image uses context instead of German sentence', async ({ page })
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(2);
 
-  await expect(page.getByText('described', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
-    );
-    const cardData = result.rows[0].data;
-    expect(cardData.examples[0].images[1].description).toContain('A vintage steam train at sunset');
-    expect(cardData.examples[0].images[1].description).not.toContain('Wann fährt der Zug ab?');
-  });
 
   const logs = await getModelUsageLogs();
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');

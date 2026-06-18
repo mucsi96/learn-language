@@ -19,8 +19,4 @@ public class ImageModelSettingRequest {
     @NotNull
     @Min(0)
     private Integer imageCount;
-
-    @NotNull
-    @Min(0)
-    private Integer describedImageCount;
 }

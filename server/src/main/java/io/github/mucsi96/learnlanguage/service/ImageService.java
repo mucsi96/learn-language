@@ -33,21 +33,18 @@ public class ImageService {
   private final ChatService chatService;
   private final ChatModelSettingService chatModelSettingService;
 
-  public GeneratedImage generateImage(String input, String context, ImageGenerationModel model, boolean describe) {
-    final String sceneDescription = describe ? describeScene(input, context) : null;
-    final String prompt = describe ? sceneDescription : input;
-    final String imageContext = describe ? null : context;
+  public GeneratedImage generateImage(String input, String context, ImageGenerationModel model) {
+    final String prompt = describeScene(input, context);
 
     final byte[] data = switch (model) {
       case GPT_IMAGE_1_5, GPT_IMAGE_2 ->
-        openAIImageService.generateImage(prompt, imageContext, model.getModelName());
+        openAIImageService.generateImage(prompt, model.getModelName());
       case GEMINI_3_PRO_IMAGE_PREVIEW ->
-        googleImageService.generateGeminiImage(prompt, imageContext, model.getModelName());
+        googleImageService.generateGeminiImage(prompt, model.getModelName());
     };
 
     return GeneratedImage.builder()
         .data(data)
-        .description(sceneDescription)
         .build();
   }
 

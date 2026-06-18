@@ -19,11 +19,11 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public byte[] generateImage(String input, String context, String modelName) {
+    public byte[] generateImage(String input, String modelName) {
         final long startTime = System.currentTimeMillis();
         try {
             final ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
-                .prompt(ImagePromptBuilder.build(input, context))
+                .prompt(ImagePromptBuilder.build(input))
                 .model(modelName)
                 .size(ImageGenerateParams.Size._1024X1024)
                 .quality(ImageGenerateParams.Quality.HIGH)

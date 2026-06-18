@@ -1066,3 +1066,17 @@ databaseChangeLog:
       changes:
         - dropTable:
             tableName: image_settings
+  - changeSet:
+      id: 35-drop-direct-image-generation
+      author: mucsi96
+      changes:
+        - dropColumn:
+            tableName: image_model_settings
+            columnName: image_count
+        - renameColumn:
+            tableName: image_model_settings
+            oldColumnName: described_image_count
+            newColumnName: image_count
+        - dropColumn:
+            tableName: image_generation_jobs
+            columnName: description
