@@ -52,15 +52,13 @@ public class ImageService {
   }
 
   private String describeScene(String input, String context) {
-    final String contextSegment = context == null || context.isBlank()
-        ? ""
-        : " Additional context: " + context + ".";
+    final String descriptionInput = context == null || context.isBlank() ? input : context;
     final String description = chatService.callForTextWithLogging(
         resolveDescriptionModel(),
         OperationType.IMAGE_DESCRIPTION,
         DESCRIPTION_SYSTEM_PROMPT,
-        input + contextSegment);
-    log.info("Generated image description for input \"{}\": {}", input, description);
+        descriptionInput);
+    log.info("Generated image description for input \"{}\": {}", descriptionInput, description);
     return description;
   }
 
