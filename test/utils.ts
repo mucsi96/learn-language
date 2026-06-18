@@ -912,7 +912,7 @@ export async function createImageModelSetting(params: {
 }
 
 const DEFAULT_IMAGE_MODEL_SETTINGS = [
-  { modelName: 'gpt-image-1.5', imageCount: 1 },
+  { modelName: 'gpt-image-1.5-high', imageCount: 1 },
   { modelName: 'gemini-3-pro-image-preview', imageCount: 3 },
 ];
 

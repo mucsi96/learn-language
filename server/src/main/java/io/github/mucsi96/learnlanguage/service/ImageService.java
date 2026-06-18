@@ -37,10 +37,11 @@ public class ImageService {
     final String prompt = describeScene(input, context);
 
     final byte[] data = switch (model) {
-      case GPT_IMAGE_1_5, GPT_IMAGE_2 ->
-        openAIImageService.generateImage(prompt, model.getModelName());
+      case GPT_IMAGE_1_5_LOW, GPT_IMAGE_1_5_MEDIUM, GPT_IMAGE_1_5_HIGH,
+          GPT_IMAGE_2_LOW, GPT_IMAGE_2_MEDIUM, GPT_IMAGE_2_HIGH ->
+        openAIImageService.generateImage(prompt, model);
       case GEMINI_3_PRO_IMAGE_PREVIEW ->
-        googleImageService.generateGeminiImage(prompt, model.getModelName());
+        googleImageService.generateGeminiImage(prompt, model);
     };
 
     return GeneratedImage.builder()

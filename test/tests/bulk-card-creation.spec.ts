@@ -404,11 +404,11 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(await getImageColor(page, image1)).toBe('yellow');
     expect(await getImageColor(page, image2)).toBe('red');
 
-    expect(cardData.examples[0].images[0].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[0].images[0].model).toBe('GPT Image 1.5 (High)');
     expect(cardData.examples[0].images[1].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[0].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[0].model).toBe('GPT Image 1.5');
+    expect(cardData.examples[1].images[0].model).toBe('GPT Image 1.5 (High)');
 
     expect(cardData.translationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData.classificationModel).toBe('gemini-3.1-pro-preview');
@@ -431,7 +431,7 @@ test('bulk card creation includes word data', async ({ page }) => {
 
 test('bulk card creation skips image generation for models with zero image count', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await createImageModelSetting({ modelName: 'gpt-image-1.5', imageCount: 2 });
+  await createImageModelSetting({ modelName: 'gpt-image-1.5-high', imageCount: 2 });
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
@@ -451,9 +451,9 @@ test('bulk card creation skips image generation for models with zero image count
 
     expect(cardData.word).toBe('abfahren');
     expect(cardData.examples[0].images.length).toBe(2);
-    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
+    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'GPT Image 1.5 (High)')).toBe(true);
     expect(cardData.examples[1].images.length).toBe(2);
-    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'GPT Image 1.5')).toBe(true);
+    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'GPT Image 1.5 (High)')).toBe(true);
   });
 });
 
