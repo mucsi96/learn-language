@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.openai.client.OpenAIClient;
 import com.openai.models.images.ImageGenerateParams;
 
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel.ImageQuality;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +21,14 @@ public class OpenAIImageService {
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
 
-    public byte[] generateImage(String input, String modelName) {
+    public byte[] generateImage(String input, ImageGenerationModel model) {
         final long startTime = System.currentTimeMillis();
         try {
             final ImageGenerateParams imageGenerateParams = ImageGenerateParams.builder()
                 .prompt(ImagePromptBuilder.build(input))
-                .model(modelName)
+                .model(model.getApiModelName())
                 .size(ImageGenerateParams.Size._1024X1024)
-                .quality(ImageGenerateParams.Quality.HIGH)
+                .quality(toQuality(model.getQuality()))
                 .n(1)
                 .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
                 .outputCompression(75)
@@ -39,7 +41,7 @@ public class OpenAIImageService {
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
 
             final long processingTime = System.currentTimeMillis() - startTime;
-            usageLoggingService.logImageUsage(modelName, OperationType.IMAGE_GENERATION, 1, processingTime);
+            usageLoggingService.logImageUsage(model.getModelName(), OperationType.IMAGE_GENERATION, 1, processingTime);
 
             return image;
 
@@ -47,5 +49,13 @@ public class OpenAIImageService {
             log.error("Failed to generate image with OpenAI", e);
             throw new RuntimeException("Failed to generate image with OpenAI: " + e.getMessage(), e);
         }
+    }
+
+    private ImageGenerateParams.Quality toQuality(ImageQuality quality) {
+        return switch (quality) {
+            case LOW -> ImageGenerateParams.Quality.LOW;
+            case MEDIUM -> ImageGenerateParams.Quality.MEDIUM;
+            case HIGH -> ImageGenerateParams.Quality.HIGH;
+        };
     }
 }

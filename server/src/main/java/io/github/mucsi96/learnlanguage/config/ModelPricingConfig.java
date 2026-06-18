@@ -40,12 +40,18 @@ public class ModelPricingConfig {
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00")))
     );
 
-    private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.of(
-        // OpenAI image models (1024x1024 high quality)
-        "gpt-image-1.5", new ImageModelPricing(new BigDecimal("0.133")),
-        "gpt-image-2", new ImageModelPricing(new BigDecimal("0.211")),
+    // OpenAI image models priced per quality variant at 1024x1024. The High prices are the
+    // published values; Low/Medium are estimates scaled by gpt-image-1's quality ratios
+    // (low ~0.066x high, medium ~0.25x high) and should be verified against OpenAI's live pricing.
+    private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
+        Map.entry("gpt-image-1.5-low", new ImageModelPricing(new BigDecimal("0.009"))),
+        Map.entry("gpt-image-1.5-medium", new ImageModelPricing(new BigDecimal("0.033"))),
+        Map.entry("gpt-image-1.5-high", new ImageModelPricing(new BigDecimal("0.133"))),
+        Map.entry("gpt-image-2-low", new ImageModelPricing(new BigDecimal("0.014"))),
+        Map.entry("gpt-image-2-medium", new ImageModelPricing(new BigDecimal("0.053"))),
+        Map.entry("gpt-image-2-high", new ImageModelPricing(new BigDecimal("0.211"))),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
-        "gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))
+        Map.entry("gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134")))
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(

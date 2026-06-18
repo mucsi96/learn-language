@@ -8,6 +8,7 @@ import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.ImageConfig;
 
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,8 @@ public class GoogleImageService {
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
 
-  public byte[] generateGeminiImage(String input, String modelName) {
-    return generateWithUsageLogging(modelName, () -> {
+  public byte[] generateGeminiImage(String input, ImageGenerationModel model) {
+    return generateWithUsageLogging(model.getModelName(), () -> {
       final GenerateContentConfig config = GenerateContentConfig.builder()
           .responseModalities("TEXT", "IMAGE")
           .imageConfig(ImageConfig.builder()
@@ -32,7 +33,7 @@ public class GoogleImageService {
 
       final String fullPrompt = ImagePromptBuilder.build(input);
 
-      return googleAiClient.models.generateContent(modelName, fullPrompt, config)
+      return googleAiClient.models.generateContent(model.getApiModelName(), fullPrompt, config)
           .candidates().orElseThrow(() -> new RuntimeException("No candidates in Gemini response")).stream()
           .flatMap(candidate -> candidate.content().stream()
               .flatMap(content -> content.parts().stream())
@@ -40,7 +41,7 @@ public class GoogleImageService {
           .flatMap(part -> part.inlineData().stream())
           .flatMap(data -> data.data().stream())
           .findFirst()
-          .orElseThrow(() -> new RuntimeException("No image found in " + modelName + " response"));
+          .orElseThrow(() -> new RuntimeException("No image found in " + model.getApiModelName() + " response"));
     });
   }
 
