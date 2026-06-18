@@ -2,8 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, from, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../auth.service';
-
-const isApiRequest = (url: string): boolean => /\/api(\/|$)/.test(url);
+import { isApiRequest } from './http.util';
 
 /**
  * Recovers from an expired access token without forcing a full re-login.

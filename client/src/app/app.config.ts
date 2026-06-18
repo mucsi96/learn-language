@@ -21,6 +21,7 @@ import { provideOidcAuth } from './auth.config';
 import { AuthService } from './auth.service';
 import { authRetryInterceptor } from './utils/auth-retry.interceptor';
 import { errorInterceptor } from './utils/error.interceptor';
+import { rateLimitRetryInterceptor } from './utils/rate-limit-retry.interceptor';
 import { timezoneInterceptor } from './utils/timezone.interceptor';
 import { tokenInterceptor } from './utils/token.interceptor';
 import {
@@ -41,6 +42,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
         withInterceptors([
           errorInterceptor,
           authRetryInterceptor,
+          rateLimitRetryInterceptor,
           tokenInterceptor,
           timezoneInterceptor,
         ])
