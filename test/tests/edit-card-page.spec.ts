@@ -571,6 +571,69 @@ test('add image with context dialog', async ({ page }) => {
   await expect(page.getByRole('img')).toHaveCount(5);
 });
 
+test('described image uses context instead of German sentence', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createImageModelSetting({
+    modelName: 'gemini-3-pro-image-preview',
+    imageCount: 0,
+    describedImageCount: 1,
+  });
+  const image1 = uploadMockImage(blueImage);
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wann fährt der Zug ab?',
+          hu: 'Mikor indul a vonat?',
+          en: 'When does the train leave?',
+          ch: 'Wänn fahrt dr Zug ab?',
+          images: [{ id: image1 }],
+          isSelected: true,
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+  await expect(page.getByRole('img')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Add image with context' }).first().click();
+  await page
+    .getByRole('textbox', { name: 'Image generation context' })
+    .fill('A vintage steam train at sunset');
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
+  await expect(page.getByRole('img')).toHaveCount(2);
+
+  await expect(page.getByText('described', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'"
+    );
+    const cardData = result.rows[0].data;
+    expect(cardData.examples[0].images[1].description).toContain('A vintage steam train at sunset');
+    expect(cardData.examples[0].images[1].description).not.toContain('Wann fährt der Zug ab?');
+  });
+
+  const logs = await getModelUsageLogs();
+  const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLog).toBeDefined();
+  expect(descriptionLog!.responseContent).toContain('A vintage steam train at sunset');
+  expect(descriptionLog!.responseContent).not.toContain('Wann fährt der Zug ab?');
+});
+
 test('image generation sends German example by default', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
