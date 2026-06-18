@@ -64,7 +64,7 @@ export class PromptSourceService {
           ...(suggestion.topic ? { topic: suggestion.topic } : {}),
         },
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'IN_REVIEW',
+        readiness: 'READY',
       } satisfies CardCreatePayload;
 
       await fetchJson(this.http, `/api/card`, {
