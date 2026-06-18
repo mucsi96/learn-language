@@ -29,10 +29,7 @@ public class PhotoPreprocessingService {
   private static final double CENTER_BAND_START = 0.35;
   private static final double CENTER_BAND_END = 0.65;
   private static final double GUTTER_VALLEY_RATIO = 0.8;
-  private static final int TARGET_DPI = 200;
-  private static final double A4_LONG_EDGE_MM = 297.0;
-  private static final double MM_PER_INCH = 25.4;
-  private static final int A4_LONG_EDGE_PX = (int) Math.round(A4_LONG_EDGE_MM / MM_PER_INCH * TARGET_DPI);
+  private static final int MAX_LONG_EDGE = 1024;
   private static final int LUMINANCE_LEVELS = 256;
 
   public List<PreparedPage> prepare(byte[] imageData, String contentType) {
@@ -95,7 +92,7 @@ public class PhotoPreprocessingService {
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int longerEdge = Math.max(width, height);
-    final double scale = Math.min(1.0, (double) A4_LONG_EDGE_PX / longerEdge);
+    final double scale = Math.min(1.0, (double) MAX_LONG_EDGE / longerEdge);
 
     if (scale >= 1.0) {
       return image;
