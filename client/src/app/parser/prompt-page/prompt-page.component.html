@@ -44,8 +44,8 @@
 
   <section class="panel">
     <h2 class="panel-title">Generate cards</h2>
-    @if (models.length === 0) {
-      <p class="error">No card-generation models are enabled. Enable one in Settings → Data Model Settings.</p>
+    @if (!primaryModel) {
+      <p class="error">No primary card-generation model is configured. Set one in Settings → Data Model Settings.</p>
     } @else {
       <mat-form-field appearance="fill" class="full-width">
         <mat-label>Generation prompt (optional)</mat-label>
@@ -70,18 +70,6 @@
             (ngModelChange)="count.set($event)"
             aria-label="Card count"
           />
-        </mat-form-field>
-        <mat-form-field appearance="fill" class="model-field">
-          <mat-label>Model</mat-label>
-          <mat-select
-            [ngModel]="selectedModel()"
-            (ngModelChange)="selectedModel.set($event)"
-            aria-label="Model"
-          >
-            @for (model of models; track model) {
-              <mat-option [value]="model">{{ model }}</mat-option>
-            }
-          </mat-select>
         </mat-form-field>
         <button
           mat-flat-button

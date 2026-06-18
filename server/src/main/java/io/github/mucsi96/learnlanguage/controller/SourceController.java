@@ -36,7 +36,6 @@ import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardType;
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.CoverageResponse;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
 import io.github.mucsi96.learnlanguage.model.GenerateCardsRequest;
@@ -289,9 +288,6 @@ public class SourceController {
   public GenerateCardsResponse generateCards(
       @PathVariable String sourceId,
       @RequestBody GenerateCardsRequest request) {
-    if (request.getModel() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "model is required");
-    }
     final int count = request.getCount() != null ? request.getCount() : 0;
     if (count < 1 || count > 50) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "count must be between 1 and 50");
@@ -300,17 +296,16 @@ public class SourceController {
     final Source source = requireAiPromptSource(sourceId);
 
     return GenerateCardsResponse.builder()
-        .cards(promptCardGenerationService.generateCards(source, request.getPrompt(), count, request.getModel()))
+        .cards(promptCardGenerationService.generateCards(source, request.getPrompt(), count))
         .build();
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   @GetMapping("/source/{sourceId}/coverage")
   public CoverageResponse getCoverage(
-      @PathVariable String sourceId,
-      @RequestParam ChatModel model) {
+      @PathVariable String sourceId) {
     final Source source = requireAiPromptSource(sourceId);
-    return coverageService.analyzeCoverage(source, model);
+    return coverageService.analyzeCoverage(source);
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
@@ -613,9 +608,6 @@ public class SourceController {
       @PathVariable String sourceId,
       @RequestBody PendingPhotoConsumeRequest request,
       @AuthenticationPrincipal Jwt jwt) {
-    if (request.getModel() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "model is required");
-    }
     final int cardCount = request.getCardCount() != null ? request.getCardCount() : 0;
     if (cardCount < 1 || cardCount > 50) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cardCount must be between 1 and 50");
@@ -631,11 +623,10 @@ public class SourceController {
         photo.getImageData(), photo.getContentType());
 
     final LessonDescription lessonDescription = lessonDescriptionService.describe(
-        pages, request.getModel(), source.getLanguageLevel());
+        pages, source.getLanguageLevel());
 
     final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
         lessonDescription,
-        request.getModel(),
         source.getLanguageLevel(),
         cardCount);
 

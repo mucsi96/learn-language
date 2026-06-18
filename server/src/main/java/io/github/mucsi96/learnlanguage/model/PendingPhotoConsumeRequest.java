@@ -4,6 +4,5 @@ import lombok.Data;
 
 @Data
 public class PendingPhotoConsumeRequest {
-  private ChatModel model;
   private Integer cardCount;
 }

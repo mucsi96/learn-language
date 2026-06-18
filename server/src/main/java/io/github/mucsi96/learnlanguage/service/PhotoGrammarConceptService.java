@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.LessonDescription;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -24,6 +23,7 @@ public class PhotoGrammarConceptService {
 
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
+  private final ChatModelSettingService chatModelSettingService;
 
   private String buildSystemPrompt(LanguageLevel languageLevel, int cardCount) {
     final String basePrompt = """
@@ -59,7 +59,6 @@ public class PhotoGrammarConceptService {
 
   public List<SentenceWithHint> generateConceptCards(
       LessonDescription lessonDescription,
-      ChatModel model,
       LanguageLevel languageLevel,
       int cardCount) {
     final String userMessage = """
@@ -69,7 +68,7 @@ public class PhotoGrammarConceptService {
         """.formatted(cardCount, jsonMapper.writeValueAsString(lessonDescription));
 
     final var result = chatService.callWithLogging(
-        model,
+        chatModelSettingService.getPrimaryModel(OperationType.CARD_GENERATION),
         OperationType.CARD_GENERATION,
         buildSystemPrompt(languageLevel, cardCount),
         userMessage,

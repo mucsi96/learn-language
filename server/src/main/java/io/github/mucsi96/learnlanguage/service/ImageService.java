@@ -1,12 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.GeneratedImage;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -52,23 +47,11 @@ public class ImageService {
   private String describeScene(String input, String context) {
     final String descriptionInput = context == null || context.isBlank() ? input : context;
     final String description = chatService.callForTextWithLogging(
-        resolveDescriptionModel(),
+        chatModelSettingService.getPrimaryModel(OperationType.IMAGE_DESCRIPTION),
         OperationType.IMAGE_DESCRIPTION,
         DESCRIPTION_SYSTEM_PROMPT,
         descriptionInput);
     log.info("Generated image description for input \"{}\": {}", descriptionInput, description);
     return description;
-  }
-
-  private ChatModel resolveDescriptionModel() {
-    final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
-    final String modelName = primaryModels.get(OperationType.IMAGE_DESCRIPTION);
-
-    if (modelName == null) {
-      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-          "Image description requires a primary chat model configured for the image description operation");
-    }
-
-    return ChatModel.fromString(modelName);
   }
 }

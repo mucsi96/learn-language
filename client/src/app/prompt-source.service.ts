@@ -22,33 +22,29 @@ export class PromptSourceService {
   private readonly environment = inject(ENVIRONMENT_CONFIG);
   private readonly fsrsGradingService = inject(FsrsGradingService);
 
-  readonly enabledModels =
-    this.environment.enabledModelsByOperation[CARD_GENERATION_OPERATION] ?? [];
-
   readonly primaryModel =
     this.environment.primaryModelByOperation[CARD_GENERATION_OPERATION];
 
   async generateCards(
     sourceId: string,
     prompt: string,
-    count: number,
-    model: string
+    count: number
   ): Promise<SimpleCardSuggestion[]> {
     const response = await fetchJson<GenerateCardsResponse>(
       this.http,
       `/api/source/${sourceId}/generate-cards`,
       {
         method: 'POST',
-        body: { prompt, count, model },
+        body: { prompt, count },
       }
     );
     return response.cards;
   }
 
-  async getCoverage(sourceId: string, model: string): Promise<CoverageResponse> {
+  async getCoverage(sourceId: string): Promise<CoverageResponse> {
     return fetchJson<CoverageResponse>(
       this.http,
-      `/api/source/${sourceId}/coverage?model=${encodeURIComponent(model)}`
+      `/api/source/${sourceId}/coverage`
     );
   }
 

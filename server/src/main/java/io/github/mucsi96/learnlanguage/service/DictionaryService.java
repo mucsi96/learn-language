@@ -45,7 +45,7 @@ public class DictionaryService {
                     "Unsupported target language: " + targetLanguage);
         }
 
-        final ChatModel model = resolveModel();
+        final ChatModel model = chatModelSettingService.getPrimaryModel(OperationType.TRANSLATION);
 
         final String systemPrompt = buildSystemPrompt(languageName);
 
@@ -85,18 +85,6 @@ public class DictionaryService {
         }
 
         return sb.toString();
-    }
-
-    private ChatModel resolveModel() {
-        final Map<OperationType, String> primaryModels = chatModelSettingService.getPrimaryModelByOperation();
-        final String modelName = primaryModels.get(OperationType.TRANSLATION);
-
-        if (modelName == null) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "No primary model configured for translation");
-        }
-
-        return ChatModel.fromString(modelName);
     }
 
     private String buildSystemPrompt(String languageName) {
