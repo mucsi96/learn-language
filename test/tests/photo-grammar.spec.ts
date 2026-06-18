@@ -149,9 +149,11 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
   const cardLog = usageLogs.find(
     (log) => log.operationType === 'CARD_GENERATION'
   );
-  expect(lessonLog?.operationId).toBeTruthy();
-  expect(cardLog?.operationId).toBeTruthy();
-  expect(lessonLog?.operationId).not.toBe(cardLog?.operationId);
+  expect(lessonLog).toBeDefined();
+  expect(cardLog).toBeDefined();
+  expect(lessonLog!.operationId).toMatch(/:lesson-description$/);
+  expect(cardLog!.operationId).toMatch(/:card-generation$/);
+  expect(lessonLog!.operationId).not.toBe(cardLog!.operationId);
 });
 
 test('discarding the pending photo banner removes the photo and no cards are created', async ({ page }) => {

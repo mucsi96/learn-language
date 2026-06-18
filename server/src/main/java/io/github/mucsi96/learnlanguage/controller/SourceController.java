@@ -625,19 +625,23 @@ public class SourceController {
 
     final String baseOperationId = OperationIdContext.get();
 
-    OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "lesson-description"));
-    final LessonDescription lessonDescription = lessonDescriptionService.describe(
-        pages, source.getLanguageLevel());
+    try {
+      OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "lesson-description"));
+      final LessonDescription lessonDescription = lessonDescriptionService.describe(
+          pages, source.getLanguageLevel());
 
-    OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "card-generation"));
-    final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
-        lessonDescription,
-        source.getLanguageLevel(),
-        cardCount);
+      OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "card-generation"));
+      final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
+          lessonDescription,
+          source.getLanguageLevel(),
+          cardCount);
 
-    pendingPhotoService.delete(photo);
+      pendingPhotoService.delete(photo);
 
-    return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
+      return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
+    } finally {
+      OperationIdContext.set(baseOperationId);
+    }
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

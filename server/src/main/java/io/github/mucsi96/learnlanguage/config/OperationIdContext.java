@@ -1,7 +1,5 @@
 package io.github.mucsi96.learnlanguage.config;
 
-import java.util.UUID;
-
 public class OperationIdContext {
 
     private static final ThreadLocal<String> OPERATION_ID = new ThreadLocal<>();
@@ -19,9 +17,8 @@ public class OperationIdContext {
     }
 
     public static String subOperationId(String baseOperationId, String suffix) {
-        final String base = baseOperationId != null && !baseOperationId.isBlank()
-                ? baseOperationId
-                : UUID.randomUUID().toString();
-        return base + ":" + suffix;
+        return baseOperationId != null && !baseOperationId.isBlank()
+                ? baseOperationId + ":" + suffix
+                : null;
     }
 }
