@@ -12,7 +12,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { injectParams } from '../../utils/inject-params';
@@ -37,7 +36,6 @@ type PreviewItem = {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatCheckboxModule,
     MatProgressBarModule,
     MarkdownPipe,
@@ -62,13 +60,11 @@ export class PromptPageComponent {
     )
   );
 
-  readonly models = this.promptSourceService.enabledModels;
   readonly primaryModel = this.promptSourceService.primaryModel;
 
   readonly basePrompt = linkedSignal(() => this.source()?.prompt ?? '');
   readonly generationPrompt = signal('');
   readonly count = signal(10);
-  readonly selectedModel = signal(this.primaryModel ?? this.models[0] ?? '');
 
   readonly savingPrompt = signal(false);
   readonly generating = signal(false);
@@ -84,12 +80,11 @@ export class PromptPageComponent {
   readonly coverage = resource({
     params: () => {
       const sourceId = this.sourceId();
-      const model = this.primaryModel;
       const version = this.coverageVersion();
-      return sourceId && model ? { sourceId, model, version } : undefined;
+      return sourceId ? { sourceId, version } : undefined;
     },
     loader: async ({ params }) =>
-      this.promptSourceService.getCoverage(params.sourceId, params.model),
+      this.promptSourceService.getCoverage(params.sourceId),
   });
 
   async savePrompt(): Promise<void> {
@@ -109,8 +104,7 @@ export class PromptPageComponent {
 
   async generate(): Promise<void> {
     const sourceId = this.sourceId();
-    const model = this.selectedModel();
-    if (!sourceId || !model) {
+    if (!sourceId) {
       return;
     }
     this.generating.set(true);
@@ -118,8 +112,7 @@ export class PromptPageComponent {
       const cards = await this.promptSourceService.generateCards(
         sourceId,
         this.generationPrompt(),
-        this.count(),
-        model
+        this.count()
       );
       this.suggestions.set(cards.map((suggestion) => ({ suggestion, include: true })));
     } finally {

@@ -124,7 +124,7 @@ export class PendingPhotoService {
       this.http,
       `/api/source/${sourceId}/pending-photo/consume`,
       {
-        body: { model, cardCount },
+        body: { cardCount },
         method: 'POST',
         headers: operationHeaders,
       }

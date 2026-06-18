@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.model.CardData;
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.CoverageResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.TopicCoverage;
@@ -29,12 +28,13 @@ public class CoverageService {
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
   private final CardRepository cardRepository;
+  private final ChatModelSettingService chatModelSettingService;
 
-  public CoverageResponse analyzeCoverage(Source source, ChatModel model) {
+  public CoverageResponse analyzeCoverage(Source source) {
     final List<Card> existingCards = cardRepository.findBySource_IdIn(List.of(source.getId()));
 
     final Coverage result = chatService.callWithLogging(
-        model,
+        chatModelSettingService.getPrimaryModel(OperationType.CARD_GENERATION),
         OperationType.CARD_GENERATION,
         buildSystemPrompt(source, existingCards),
         "Produce the coverage report for this deck.",

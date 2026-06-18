@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.LessonDescription;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -21,6 +20,7 @@ public class LessonDescriptionService {
 
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
+  private final ChatModelSettingService chatModelSettingService;
 
   private String buildSystemPrompt(LanguageLevel languageLevel) {
     final String basePrompt = """
@@ -49,13 +49,13 @@ public class LessonDescriptionService {
     return basePrompt + "\nExample JSON response shape:\n" + exampleJson;
   }
 
-  public LessonDescription describe(List<PreparedPage> pages, ChatModel model, LanguageLevel languageLevel) {
+  public LessonDescription describe(List<PreparedPage> pages, LanguageLevel languageLevel) {
     final String userText = pages.size() > 1
         ? "Here are the photos of the grammar lesson pages. Describe the lesson."
         : "Here is the photo of the grammar lesson page. Describe the lesson.";
 
     return chatService.callWithLoggingAndMedia(
-        model,
+        chatModelSettingService.getPrimaryModel(OperationType.LESSON_DESCRIPTION),
         OperationType.LESSON_DESCRIPTION,
         buildSystemPrompt(languageLevel),
         pages.get(0).imageData(),

@@ -2,7 +2,7 @@ import { Injectable, inject, resource, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../utils/fetchJson';
-import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
+import { ENVIRONMENT_CONFIG, OperationTypeInfo } from '../environment/environment.config';
 
 export interface ModelUsageLog {
   id: number;
@@ -126,9 +126,7 @@ export class ModelUsageLogsService {
 
   readonly availableModelTypes: ModelType[] = ['CHAT', 'IMAGE', 'AUDIO'];
 
-  readonly availableOperationTypes: string[] = [
-    'translation', 'extraction', 'classification', 'image_generation', 'image_description', 'audio_generation',
-  ];
+  readonly availableOperationTypes: OperationTypeInfo[] = this.environmentConfig.allOperationTypes;
 
   async fetchLogs(params: ModelUsageLogFetchParams): Promise<ModelUsageLogTableResponse> {
     const httpParams = Object.entries({

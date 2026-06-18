@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.model.CardData;
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SimpleCardSuggestion;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
@@ -28,17 +27,17 @@ public class PromptCardGenerationService {
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
   private final CardRepository cardRepository;
+  private final ChatModelSettingService chatModelSettingService;
 
   public List<SimpleCardSuggestion> generateCards(
       Source source,
       String generationPrompt,
-      int count,
-      ChatModel model) {
+      int count) {
 
     final List<Card> existingCards = cardRepository.findBySource_IdIn(List.of(source.getId()));
 
     final GeneratedCards result = chatService.callWithLogging(
-        model,
+        chatModelSettingService.getPrimaryModel(OperationType.CARD_GENERATION),
         OperationType.CARD_GENERATION,
         buildSystemPrompt(source, existingCards, count),
         buildUserMessage(generationPrompt, count),

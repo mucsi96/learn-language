@@ -2,7 +2,6 @@ import { test, expect } from '../fixtures';
 import { Page } from '@playwright/test';
 import {
   createCard,
-  createChatModelSetting,
   createSource,
   getSource,
   setupDefaultChatModelSettings,
@@ -19,18 +18,8 @@ async function pressRemoteKey(page: Page, key: string) {
   );
 }
 
-async function enableCardGenerationModel() {
-  await setupDefaultChatModelSettings();
-  await createChatModelSetting({
-    modelName: 'gemini-3.1-pro-preview',
-    operationType: 'CARD_GENERATION',
-    isEnabled: true,
-    isPrimary: true,
-  });
-}
-
 test('create AI prompt source, generate, preview and create simple cards', async ({ page }) => {
-  await enableCardGenerationModel();
+  await setupDefaultChatModelSettings();
 
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source' }).click();

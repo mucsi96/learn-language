@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class GenerateCardsRequest {
     private String prompt;
     private Integer count;
-    private ChatModel model;
 }

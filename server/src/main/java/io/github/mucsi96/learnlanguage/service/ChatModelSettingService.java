@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.ChatModelSetting;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -60,6 +62,17 @@ public class ChatModelSettingService {
                         ChatModelSetting::getModelName,
                         (existing, replacement) -> existing
                 ));
+    }
+
+    public ChatModel getPrimaryModel(OperationType operationType) {
+        final String modelName = getPrimaryModelByOperation().get(operationType);
+
+        if (modelName == null) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "No primary chat model configured for " + operationType.getDisplayName());
+        }
+
+        return ChatModel.fromString(modelName);
     }
 
     @Transactional
