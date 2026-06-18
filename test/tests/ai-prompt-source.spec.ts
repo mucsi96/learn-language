@@ -83,7 +83,7 @@ test('create AI prompt source, generate, preview and create simple cards', async
       expect(row.data.frontText).toBeTruthy();
       expect(row.data.backText).toBeTruthy();
       expect(row.data.topic).toBe('Pods');
-      expect(row.readiness).toBe('IN_REVIEW');
+      expect(row.readiness).toBe('READY');
     }
   });
 
