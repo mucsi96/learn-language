@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.github.mucsi96.learnlanguage.config.OperationIdContext;
 import io.github.mucsi96.learnlanguage.entity.Document;
 import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
@@ -622,17 +623,29 @@ public class SourceController {
     final List<PreparedPage> pages = photoPreprocessingService.prepare(
         photo.getImageData(), photo.getContentType());
 
-    final LessonDescription lessonDescription = lessonDescriptionService.describe(
-        pages, source.getLanguageLevel());
+    final String baseOperationId = OperationIdContext.get();
 
-    final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
-        lessonDescription,
-        source.getLanguageLevel(),
-        cardCount);
+    try {
+      OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "lesson-description"));
+      final LessonDescription lessonDescription = lessonDescriptionService.describe(
+          pages, source.getLanguageLevel());
 
-    pendingPhotoService.delete(photo);
+      OperationIdContext.set(OperationIdContext.subOperationId(baseOperationId, "card-generation"));
+      final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
+          lessonDescription,
+          source.getLanguageLevel(),
+          cardCount);
 
-    return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
+      pendingPhotoService.delete(photo);
+
+      return PhotoGrammarSentencesResponse.builder().sentences(sentences).build();
+    } finally {
+      if (baseOperationId != null) {
+        OperationIdContext.set(baseOperationId);
+      } else {
+        OperationIdContext.clear();
+      }
+    }
   }
 
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")

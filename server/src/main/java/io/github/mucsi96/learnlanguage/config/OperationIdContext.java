@@ -15,4 +15,10 @@ public class OperationIdContext {
     public static void clear() {
         OPERATION_ID.remove();
     }
+
+    public static String subOperationId(String baseOperationId, String suffix) {
+        return baseOperationId != null && !baseOperationId.isBlank()
+                ? baseOperationId + ":" + suffix
+                : null;
+    }
 }
