@@ -41,6 +41,7 @@ import io.github.mucsi96.learnlanguage.model.CoverageResponse;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
 import io.github.mucsi96.learnlanguage.model.GenerateCardsRequest;
 import io.github.mucsi96.learnlanguage.model.GenerateCardsResponse;
+import io.github.mucsi96.learnlanguage.model.LessonDescription;
 import io.github.mucsi96.learnlanguage.model.PageResponse;
 import io.github.mucsi96.learnlanguage.model.PendingPhotoConsumeRequest;
 import io.github.mucsi96.learnlanguage.model.PendingPhotoStatusResponse;
@@ -66,8 +67,11 @@ import io.github.mucsi96.learnlanguage.service.PromptCardGenerationService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.KnownWordService;
 import io.github.mucsi96.learnlanguage.service.LearningPartnerService;
+import io.github.mucsi96.learnlanguage.service.LessonDescriptionService;
 import io.github.mucsi96.learnlanguage.service.PendingPhotoService;
 import io.github.mucsi96.learnlanguage.service.PhotoGrammarConceptService;
+import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService;
+import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService.PreparedPage;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -93,6 +97,8 @@ public class SourceController {
   private final KnownWordService knownWordService;
   private final LearningPartnerService learningPartnerService;
   private final PendingPhotoService pendingPhotoService;
+  private final PhotoPreprocessingService photoPreprocessingService;
+  private final LessonDescriptionService lessonDescriptionService;
   private final PhotoGrammarConceptService photoGrammarConceptService;
   private final PromptCardGenerationService promptCardGenerationService;
   private final CoverageService coverageService;
@@ -621,9 +627,14 @@ public class SourceController {
     final PendingPhoto photo = pendingPhotoService.getActive(userId, source)
         .orElseThrow(() -> new ResourceNotFoundException("No pending photo for this source"));
 
+    final List<PreparedPage> pages = photoPreprocessingService.prepare(
+        photo.getImageData(), photo.getContentType());
+
+    final LessonDescription lessonDescription = lessonDescriptionService.describe(
+        pages, request.getModel(), source.getLanguageLevel());
+
     final List<SentenceWithHint> sentences = photoGrammarConceptService.generateConceptCards(
-        photo.getImageData(),
-        photo.getContentType(),
+        lessonDescription,
         request.getModel(),
         source.getLanguageLevel(),
         cardCount);

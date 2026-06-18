@@ -2,13 +2,11 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
 
-import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.LessonDescription;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SentenceWithHint;
 import lombok.RequiredArgsConstructor;
@@ -29,18 +27,17 @@ public class PhotoGrammarConceptService {
 
   private String buildSystemPrompt(LanguageLevel languageLevel, int cardCount) {
     final String basePrompt = """
-        You are an expert German language teacher. You are looking at a photo of a page from a German grammar textbook lesson.
+        You are an expert German language teacher. You are given a structured description of a German grammar textbook lesson (title, level, summary and example items).
 
         Your task:
         1. Identify the grammatical concepts the lesson is teaching (rules, paradigms, exceptions, vocabulary in scope, sentence patterns). Examples: dative prepositions, modal verb conjugation, separable verbs in Perfekt, adjective endings, two-way prepositions, relative clauses, reflexive verbs, etc.
         2. Generate exactly %d original German practice sentences at language level %s. The sentences together must cover the breadth of the concepts you identified - distribute coverage across all concepts and avoid repeating the same pattern.
 
         Rules:
-        - !IMPORTANT! Do NOT copy the printed exercise sentences from the photo verbatim. Produce fresh, original sentences that exercise the same concepts.
+        - !IMPORTANT! Do NOT copy the example items from the lesson description verbatim. Produce fresh, original sentences that exercise the same concepts.
         - Each sentence has ONE OR MORE blanks, depending on what the exercise teaches. Wrap each target word or form in square brackets. Example single blank: "Ich gehe jeden [Tag] in die Schule." Example multiple blanks: "[Der] Mann gibt [dem] Kind das Buch." Use multiple blanks only when the underlying exercise naturally requires it (e.g. article + adjective ending together, two-way preposition + article, paired conjugation patterns).
         - Each sentence must be a complete standalone German sentence with proper capitalisation and punctuation.
         - Sentences must be appropriate for %s level learners.
-        - Skip any handwritten text on the photo.
         - After producing each sentence, judge whether ANY blank is ambiguous - i.e. multiple valid German words or forms could plausibly fit the blank purely from the surrounding context (without seeing the textbook lesson).
         - Also judge a second kind of ambiguity: even after the base hint (e.g. the infinitive) is known, the required INFLECTED form may still be ambiguous because a grammatical feature (person, number, gender, case or tense) is not uniquely fixed by the sentence. The most common trigger is an ambiguous subject pronoun: "sie" can be 3rd person singular ("she") or 3rd person plural ("they"), and "Sie" is the formal "you" - so several conjugations fit the same blank (e.g. "machte" vs. "machten"). Treat such a blank as ambiguous.
         - If at least one blank is ambiguous, include a "hint" field. The hint is a single German string covering ALL blanks in the sentence. When more than one blank needs disambiguation, separate the per-blank hints with " / " in the same order the blanks appear. Examples: verb conjugation blank -> infinitive (e.g. "gehen"); noun gender/case blank -> nominative with article (e.g. "der Tag"); adjective ending blank -> base adjective; combined article + verb blanks -> "der / gehen".
@@ -61,26 +58,21 @@ public class PhotoGrammarConceptService {
   }
 
   public List<SentenceWithHint> generateConceptCards(
-      byte[] imageData,
-      String contentType,
+      LessonDescription lessonDescription,
       ChatModel model,
       LanguageLevel languageLevel,
       int cardCount) {
-    final MimeType mimeType = contentType != null && !contentType.isBlank()
-        ? MimeTypeUtils.parseMimeType(contentType)
-        : MimeTypeUtils.IMAGE_PNG;
+    final String userMessage = """
+        Here is the structured description of the grammar lesson. Generate exactly %d sentences.
 
-    final var result = chatService.callWithLoggingAndMedia(
+        %s
+        """.formatted(cardCount, jsonMapper.writeValueAsString(lessonDescription));
+
+    final var result = chatService.callWithLogging(
         model,
-        OperationType.EXTRACTION,
+        OperationType.CARD_GENERATION,
         buildSystemPrompt(languageLevel, cardCount),
-        imageData,
-        u -> u
-            .text("Here is the photo of the grammar lesson page. Generate exactly %d sentences.".formatted(cardCount))
-            .media(Media.builder()
-                .data(imageData)
-                .mimeType(mimeType)
-                .build()),
+        userMessage,
         ConceptSentences.class);
 
     return result.sentences().stream()

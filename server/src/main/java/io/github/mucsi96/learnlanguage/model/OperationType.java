@@ -20,6 +20,7 @@ public enum OperationType {
     AUDIO_GENERATION("audio_generation", "Audio Generation", false),
     EXPLANATION("explanation", "Explanation", true),
     TRANSCRIPTION("transcription", "Transcription", false),
+    LESSON_DESCRIPTION("lesson_description", "Lesson Description", true),
     CARD_GENERATION("card_generation", "Card Generation", true);
 
     private final String code;
