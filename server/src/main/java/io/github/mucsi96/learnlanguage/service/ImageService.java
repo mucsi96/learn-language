@@ -25,6 +25,7 @@ public class ImageService {
       their positions and spatial relationships, the setting, lighting and mood. \
       Use simple, unambiguous language an image model can follow. \
       The scene must not contain any text, letters, numbers, signs with writing or captions. \
+      Always write the description in English, regardless of the language of the input. \
       Respond with the description only.""";
 
   private final OpenAIImageService openAIImageService;
