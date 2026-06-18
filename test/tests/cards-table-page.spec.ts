@@ -157,13 +157,25 @@ test('marks selected cards as known', async ({ page }) => {
   await expect(page.getByText('1 card(s) marked as known')).toBeVisible();
 });
 
-test('moves selected ready cards back to draft', async ({ page }) => {
+test('moves selected ready cards back to draft and resets FSRS state', async ({ page }) => {
   await createCard({
     cardId: 'move-draft-card',
     sourceId: 'goethe-a1',
     sourcePageNumber: 9,
     data: { word: 'zurück', type: 'ADVERB', translation: { en: 'back' } },
     readiness: 'READY',
+    state: 'REVIEW',
+    stability: 30.5,
+    difficulty: 4.2,
+    reps: 5,
+    lapses: 1,
+    lastReview: new Date(),
+  });
+
+  await createReviewLog({
+    cardId: 'move-draft-card',
+    rating: 3,
+    review: new Date(),
   });
 
   await page.goto('/sources/goethe-a1/cards');
@@ -185,9 +197,21 @@ test('moves selected ready cards back to draft', async ({ page }) => {
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT readiness FROM learn_language.cards WHERE id = 'move-draft-card'`
+      `SELECT readiness, state, reps, lapses, stability, difficulty, last_review
+       FROM learn_language.cards WHERE id = 'move-draft-card'`
     );
     expect(result.rows[0].readiness).toBe('DRAFT');
+    expect(result.rows[0].state).toBe('NEW');
+    expect(result.rows[0].reps).toBe(0);
+    expect(result.rows[0].lapses).toBe(0);
+    expect(result.rows[0].stability).toBe(0);
+    expect(result.rows[0].difficulty).toBe(0);
+    expect(result.rows[0].last_review).toBeNull();
+
+    const logs = await client.query(
+      `SELECT count(*) FROM learn_language.review_logs WHERE card_id = 'move-draft-card'`
+    );
+    expect(Number(logs.rows[0].count)).toBe(0);
   });
 });
 

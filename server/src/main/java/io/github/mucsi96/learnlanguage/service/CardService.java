@@ -202,7 +202,8 @@ public class CardService {
 
   @Transactional
   public void markCardsAsDraft(List<String> cardIds) {
-    cardRepository.updateReadinessByIds(cardIds, CardReadiness.DRAFT);
+    reviewLogRepository.deleteByCardIdIn(cardIds);
+    cardRepository.resetFsrsAndMarkDraftByIds(cardIds);
   }
 
   public List<String> getFilteredCardIds(

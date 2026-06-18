@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CardRepositoryCustom {
     void updateReadinessByIds(List<String> ids, CardReadiness readiness);
+
+    void resetFsrsAndMarkDraftByIds(List<String> ids);
 }
