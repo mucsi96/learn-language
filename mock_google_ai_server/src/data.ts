@@ -274,6 +274,21 @@ export const PHOTO_GRAMMAR_CONCEPT_SENTENCES: PhotoGrammarSentence[] = [
   { sentence: 'Der Hund läuft schnell durch den [Park].' },
 ];
 
+export type PhotoGrammarLessonDescription = {
+  title: string;
+  level: string;
+  summary: string;
+  examples: string[];
+};
+
+export const PHOTO_GRAMMAR_LESSON_DESCRIPTION: PhotoGrammarLessonDescription = {
+  title: 'Konjugation von "sein" im Präsens',
+  level: 'A1',
+  summary:
+    'Die Lektion behandelt die Konjugation des Verbs "sein" im Präsens und die Verwendung der Personalpronomen als Subjekt.',
+  examples: ['Das ist Paco.', 'Das ist Frau Wachter.', 'ich bin', 'du bist'],
+};
+
 interface DictionaryLookup {
   normalizedWord: string;
   translation: string;

@@ -8,6 +8,7 @@ import {
   SENTENCE_TRANSLATIONS,
   GRAMMAR_SENTENCE_LISTS,
   PHOTO_GRAMMAR_CONCEPT_SENTENCES,
+  PHOTO_GRAMMAR_LESSON_DESCRIPTION,
   DICTIONARY_LOOKUPS,
   NORMALIZATIONS,
 } from './data';
@@ -189,14 +190,29 @@ export class ChatHandler {
     return null;
   }
 
-  async handlePhotoGrammarConceptExtraction(request: GeminiRequest): Promise<any | null> {
+  async handleLessonDescription(request: GeminiRequest): Promise<any | null> {
     if (
       await imageRequestMatch(
         request,
-        'You are an expert German language teacher',
-        'photo of the grammar lesson page',
+        'structured lesson description',
+        'Describe the lesson.',
         ['Paco', 'Frau Wachter']
       )
+    ) {
+      return createGeminiResponse(PHOTO_GRAMMAR_LESSON_DESCRIPTION);
+    }
+
+    return null;
+  }
+
+  handlePhotoGrammarConceptCards(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (
+      systemContent.includes('You are an expert German language teacher') &&
+      systemContent.includes('structured description of a German grammar textbook lesson') &&
+      userContent.includes('structured description of the grammar lesson')
     ) {
       return createGeminiResponse({
         sentences: PHOTO_GRAMMAR_CONCEPT_SENTENCES,
@@ -434,8 +450,11 @@ export class ChatHandler {
     const grammarExtractionResponse = await this.handleGrammarExtraction(request);
     if (grammarExtractionResponse) return grammarExtractionResponse;
 
-    const photoGrammarResponse = await this.handlePhotoGrammarConceptExtraction(request);
-    if (photoGrammarResponse) return photoGrammarResponse;
+    const lessonDescriptionResponse = await this.handleLessonDescription(request);
+    if (lessonDescriptionResponse) return lessonDescriptionResponse;
+
+    const photoGrammarCardsResponse = this.handlePhotoGrammarConceptCards(request);
+    if (photoGrammarCardsResponse) return photoGrammarCardsResponse;
 
     const imageDescriptionResponse = this.handleImageDescription(request);
     if (imageDescriptionResponse) return imageDescriptionResponse;

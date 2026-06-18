@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createGrammarTopic,
   createRateLimitSetting,
+  getModelUsageLogs,
   getPendingPhotos,
   menschenA1GrammarImage,
   setupDefaultChatModelSettings,
@@ -136,6 +137,11 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
   await expect(
     page.getByRole('region', { name: 'Pending photo for grammar cards' })
   ).not.toBeVisible();
+
+  const usageLogs = await getModelUsageLogs();
+  const operationTypes = usageLogs.map((log) => log.operationType);
+  expect(operationTypes).toContain('LESSON_DESCRIPTION');
+  expect(operationTypes).toContain('CARD_GENERATION');
 });
 
 test('discarding the pending photo banner removes the photo and no cards are created', async ({ page }) => {
