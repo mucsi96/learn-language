@@ -34,8 +34,8 @@
             <mat-label>Operation</mat-label>
             <mat-select [value]="operationTypeFilter()" (selectionChange)="onOperationTypeFilterChange($event.value)" aria-label="Filter by operation">
               <mat-option value="ALL">All operations</mat-option>
-              @for (op of operationTypes; track op) {
-                <mat-option [value]="op">{{ op }}</mat-option>
+              @for (op of operationTypes; track op.code) {
+                <mat-option [value]="op.code">{{ op.displayName }}</mat-option>
               }
             </mat-select>
           </mat-form-field>

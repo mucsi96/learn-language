@@ -70,6 +70,10 @@ public class EnvironmentController {
         .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
         .toList();
 
+    List<OperationTypeInfo> allOperationTypes = Arrays.stream(OperationType.values())
+        .map(op -> new OperationTypeInfo(op.getCode(), op.getDisplayName()))
+        .toList();
+
     List<LanguageLevelInfo> languageLevels = Arrays.stream(LanguageLevel.values())
         .map(level -> new LanguageLevelInfo(level.getCode(), level.getDisplayName()))
         .toList();
@@ -108,6 +112,7 @@ public class EnvironmentController {
         enabledModelsByOperation,
         primaryModelByOperation,
         operationTypes,
+        allOperationTypes,
         languageLevels,
         sourceFormatTypes,
         sourceTypes);
@@ -153,6 +158,7 @@ public class EnvironmentController {
       Map<OperationType, List<String>> enabledModelsByOperation,
       Map<OperationType, String> primaryModelByOperation,
       List<OperationTypeInfo> operationTypes,
+      List<OperationTypeInfo> allOperationTypes,
       List<LanguageLevelInfo> languageLevels,
       List<SourceFormatTypeInfo> sourceFormatTypes,
       List<SourceTypeInfo> sourceTypes) {

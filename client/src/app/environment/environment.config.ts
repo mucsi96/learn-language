@@ -75,6 +75,7 @@ export interface EnvironmentConfig {
   enabledModelsByOperation: Record<string, string[]>;
   primaryModelByOperation: Record<string, string>;
   operationTypes: OperationTypeInfo[];
+  allOperationTypes: OperationTypeInfo[];
   languageLevels: LanguageLevelInfo[];
   sourceFormatTypes: SourceFormatTypeInfo[];
   sourceTypes: SourceTypeInfo[];
