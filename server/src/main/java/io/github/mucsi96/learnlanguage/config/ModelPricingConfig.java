@@ -44,12 +44,13 @@ public class ModelPricingConfig {
     // published values; Low/Medium are estimates scaled by gpt-image-1's quality ratios
     // (low ~0.066x high, medium ~0.25x high) and should be verified against OpenAI's live pricing.
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
-        Map.entry("gpt-image-1.5-low", new ImageModelPricing(new BigDecimal("0.009"))),
-        Map.entry("gpt-image-1.5-medium", new ImageModelPricing(new BigDecimal("0.033"))),
-        Map.entry("gpt-image-1.5-high", new ImageModelPricing(new BigDecimal("0.133"))),
         Map.entry("gpt-image-2-low", new ImageModelPricing(new BigDecimal("0.014"))),
         Map.entry("gpt-image-2-medium", new ImageModelPricing(new BigDecimal("0.053"))),
         Map.entry("gpt-image-2-high", new ImageModelPricing(new BigDecimal("0.211"))),
+        // Ideogram 4.0 per-image pricing by rendering speed (Turbo / Default / Quality)
+        Map.entry("ideogram-4-turbo", new ImageModelPricing(new BigDecimal("0.03"))),
+        Map.entry("ideogram-4-default", new ImageModelPricing(new BigDecimal("0.06"))),
+        Map.entry("ideogram-4-quality", new ImageModelPricing(new BigDecimal("0.10"))),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
         Map.entry("gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134")))
     );

@@ -108,6 +108,22 @@ spec:
         periodSeconds: 2
         failureThreshold: 5
 
+    - name: mock-ideogram
+      image: localhost/learn-language-mock-ideogram:test
+      ports:
+        - containerPort: 3074
+          hostPort: 3074
+      env:
+        - name: PORT
+          value: "3074"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3074
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
+
     - name: mock-oauth2
       image: docker.io/mucsi96/mock-oidc-provider:latest
       ports:
@@ -171,6 +187,10 @@ spec:
           value: mock-google-key
         - name: GOOGLE_AI_BASE_URL
           value: http://localhost:3071
+        - name: IDEOGRAM_API_KEY
+          value: mock-ideogram-key
+        - name: IDEOGRAM_BASE_URL
+          value: http://localhost:3074
         - name: ELEVEN_LABS_API_KEY
           value: mock-elevenlabs-key
         - name: ELEVEN_LABS_BASE_URL
