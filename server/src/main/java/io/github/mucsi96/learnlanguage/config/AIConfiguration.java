@@ -7,6 +7,7 @@ import org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestClient;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
 import com.openai.client.OpenAIClient;
@@ -40,6 +41,16 @@ public class AIConfiguration {
     }
 
     return clientBuilder.build();
+  }
+
+  @Bean
+  RestClient ideogramRestClient(
+      @Value("${spring.ai.ideogram.api-key}") String apiKey,
+      @Value("${spring.ai.ideogram.base-url:https://api.ideogram.ai}") String baseUrl) {
+    return RestClient.builder()
+        .baseUrl(baseUrl)
+        .defaultHeader("Api-Key", apiKey)
+        .build();
   }
 
   @Bean

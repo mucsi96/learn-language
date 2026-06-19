@@ -79,6 +79,14 @@ jobs:
           tags: localhost/learn-language-mock-anthropic:test
           cache-from: type=gha,scope=mock-anthropic
           cache-to: type=gha,mode=max,scope=mock-anthropic
+      - name: Build mock Ideogram image
+        uses: docker/build-push-action@v6
+        with:
+          context: mock_ideogram_server
+          load: true
+          tags: localhost/learn-language-mock-ideogram:test
+          cache-from: type=gha,scope=mock-ideogram
+          cache-to: type=gha,mode=max,scope=mock-ideogram
       - name: Load images into Podman
         run: |
           docker save localhost/learn-language-server:test | podman load
@@ -87,6 +95,7 @@ jobs:
           docker save localhost/learn-language-mock-google-ai:test | podman load
           docker save localhost/learn-language-mock-elevenlabs:test | podman load
           docker save localhost/learn-language-mock-anthropic:test | podman load
+          docker save localhost/learn-language-mock-ideogram:test | podman load
       - name: Setup test environment and start pod
         env:
           SKIP_BUILD: "1"

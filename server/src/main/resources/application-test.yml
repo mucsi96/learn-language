@@ -22,6 +22,9 @@ spring:
       genai:
         api-key: ${GOOGLE_AI_API_KEY}
         base-url: ${GOOGLE_AI_BASE_URL}
+    ideogram:
+      api-key: ${IDEOGRAM_API_KEY}
+      base-url: ${IDEOGRAM_BASE_URL}
     elevenlabs:
       base-url: ${ELEVEN_LABS_BASE_URL}
       api-key: ${ELEVEN_LABS_API_KEY}

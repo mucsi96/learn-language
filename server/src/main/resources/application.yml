@@ -49,6 +49,8 @@ spring:
     google:
       genai:
         api-key: ${google-ai-api-key}
+    ideogram:
+      api-key: ${ideogram-api-key}
     elevenlabs:
       api-key: ${eleven-labs-api-key}
       tts:

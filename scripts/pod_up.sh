@@ -19,6 +19,7 @@ else
   podman build -t localhost/learn-language-mock-google-ai:test "$PROJECT_DIR/mock_google_ai_server" &
   podman build -t localhost/learn-language-mock-elevenlabs:test "$PROJECT_DIR/mock_elevenlabs_server" &
   podman build -t localhost/learn-language-mock-anthropic:test "$PROJECT_DIR/mock_anthropic_server" &
+  podman build -t localhost/learn-language-mock-ideogram:test "$PROJECT_DIR/mock_ideogram_server" &
   wait
 fi
 

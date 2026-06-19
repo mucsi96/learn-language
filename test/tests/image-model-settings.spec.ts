@@ -17,12 +17,12 @@ test('displays all image model quality variants with default image counts', asyn
   await expect(page.getByRole('heading', { name: 'Image Models' })).toBeVisible();
 
   const variantLabels = [
-    'GPT Image 1.5 (Low)',
-    'GPT Image 1.5 (Medium)',
-    'GPT Image 1.5 (High)',
     'GPT Image 2 (Low)',
     'GPT Image 2 (Medium)',
     'GPT Image 2 (High)',
+    'Ideogram 4 (Turbo)',
+    'Ideogram 4 (Default)',
+    'Ideogram 4 (Quality)',
     'Gemini 3 Pro',
   ];
 

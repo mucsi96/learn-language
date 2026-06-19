@@ -237,7 +237,7 @@ test('card editing in db', async ({ page }) => {
 
   await expect(page.getByRole('img')).toHaveCount(6);
 
-  await expect(page.getByText('GPT Image 1.5 (High)')).toHaveCount(1);
+  await expect(page.getByText('Ideogram 4 (Quality)')).toHaveCount(1);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
 
   await page.evaluate(() => {
@@ -279,7 +279,7 @@ test('card editing in db', async ({ page }) => {
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
-    expect(cardData.examples[1].images[1].model).toBe('GPT Image 1.5 (High)');
+    expect(cardData.examples[1].images[1].model).toBe('Ideogram 4 (Quality)');
     expect(cardData.examples[1].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
@@ -783,7 +783,7 @@ test('example image addition', async ({ page }) => {
 
   await expect(page.getByRole('img')).toHaveCount(5);
 
-  await expect(page.getByText('GPT Image 1.5 (High)')).toHaveCount(1);
+  await expect(page.getByText('Ideogram 4 (Quality)')).toHaveCount(1);
   await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
