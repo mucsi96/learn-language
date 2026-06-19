@@ -123,6 +123,65 @@ test('card editing page', async ({ page }) => {
   expect(await getImageColor(page, imageContent2)).toBe('red');
 });
 
+test('forms list editing - add, insert and remove', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createCard({
+    cardId: 'abfahren-elindulni',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: {
+        en: 'to leave',
+        hu: 'elindulni, elhagyni',
+        ch: 'abfahra, verlah',
+      },
+      examples: [
+        {
+          de: 'Wir fahren um zwölf Uhr ab.',
+          hu: 'Tizenkét órakor indulunk.',
+          en: "We leave at twelve o'clock.",
+          ch: 'Mir fahred am zwöufi ab.',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+  await navigateToCardEditing(page);
+
+  const formInputs = page.getByLabel('Form', { exact: true });
+  await expect(formInputs).toHaveCount(3);
+
+  // Add a form at the end
+  await page.getByRole('button', { name: 'Add form' }).click();
+  await expect(formInputs).toHaveCount(4);
+  await formInputs.nth(3).fill('partizip');
+
+  // Insert a form between the first and second existing forms
+  await page.getByRole('button', { name: 'Insert form below' }).nth(0).click();
+  await expect(formInputs).toHaveCount(5);
+  await expect(formInputs.nth(0)).toHaveValue('fährt ab');
+  await expect(formInputs.nth(1)).toHaveValue('');
+  await expect(formInputs.nth(2)).toHaveValue('fuhr ab');
+  await formInputs.nth(1).fill('inserted');
+
+  // Remove the 'abgefahren' form (now at index 3)
+  await page.getByRole('button', { name: 'Remove form' }).nth(3).click();
+  await expect(formInputs).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
+    expect(result.rows.length).toBe(1);
+    const cardData = result.rows[0].data;
+    expect(cardData.forms).toEqual(['fährt ab', 'inserted', 'fuhr ab', 'partizip']);
+  });
+});
+
 test('card editing in db', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();

@@ -18,11 +18,28 @@
   margin-bottom: 1rem;
 }
 
-.word,
-.forms {
+.word {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: 1rem;
+}
+
+.forms {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.form-row .field {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .example {

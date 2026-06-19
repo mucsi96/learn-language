@@ -67,10 +67,29 @@
 <h2>Forms</h2>
 <div class="forms">
   @for (form of forms(); track $index) {
-  <mat-form-field class="field">
-    <input matInput type="text" [(ngModel)]="form" aria-label="Form" />
-  </mat-form-field>
+  <div class="form-row">
+    <mat-form-field class="field">
+      <input matInput type="text" [(ngModel)]="form" aria-label="Form" />
+    </mat-form-field>
+    <button
+      mat-icon-button
+      (click)="removeForm($index)"
+      aria-label="Remove form"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      (click)="insertFormAfter($index)"
+      aria-label="Insert form below"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
   }
+  <button mat-stroked-button (click)="addForm()" aria-label="Add form">
+    <mat-icon>add</mat-icon> Add form
+  </button>
 </div>
 <h2>Examples</h2>
 <mat-radio-group [(ngModel)]="selectedExampleIndex">

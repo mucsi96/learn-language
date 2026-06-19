@@ -75,6 +75,22 @@ export class EditVocabularyCardComponent {
   readonly forms = linkedSignal(() =>
     this.card()?.data.forms?.map((form: string) => signal(form))
   );
+
+  addForm() {
+    this.forms.update((forms) => [...(forms ?? []), signal('')]);
+  }
+
+  insertFormAfter(index: number) {
+    this.forms.update((forms) => [
+      ...(forms ?? []).slice(0, index + 1),
+      signal(''),
+      ...(forms ?? []).slice(index + 1),
+    ]);
+  }
+
+  removeForm(index: number) {
+    this.forms.update((forms) => (forms ?? []).filter((_, i) => i !== index));
+  }
   readonly examples = linkedSignal(() =>
     this.card()?.data.examples?.map((example) => signal(example['de']))
   );
