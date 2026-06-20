@@ -20,7 +20,11 @@ app.post('/reset', (req, res) => {
 
 app.post('/v1/:model/generate', upload.none(), (req, res) => {
   try {
-    const prompt: string = req.body.prompt ?? '';
+    const prompt: string | undefined = req.body.text_prompt;
+    if (!prompt) {
+      res.status(400).json({ error: 'Supply one of `text_prompt` or `json_prompt`.' });
+      return;
+    }
     const renderingSpeed: string = req.body.rendering_speed ?? 'DEFAULT';
     console.log('Received image generation request', { prompt, renderingSpeed });
 
