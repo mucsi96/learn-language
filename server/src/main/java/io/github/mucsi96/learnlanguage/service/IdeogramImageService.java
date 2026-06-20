@@ -37,7 +37,7 @@ public class IdeogramImageService {
         final long startTime = System.currentTimeMillis();
         try {
             final MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
-            form.add("prompt", ImagePromptBuilder.build(input));
+            form.add("text_prompt", ImagePromptBuilder.build(input));
             form.add("rendering_speed", toRenderingSpeed(model.getQuality()));
             form.add("aspect_ratio", "1x1");
             form.add("num_images", "1");
