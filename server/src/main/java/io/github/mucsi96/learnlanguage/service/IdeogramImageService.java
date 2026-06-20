@@ -39,7 +39,7 @@ public class IdeogramImageService {
             final MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
             form.add("text_prompt", ImagePromptBuilder.build(input));
             form.add("rendering_speed", toRenderingSpeed(model.getQuality()));
-            form.add("resolution", "2048x2048");
+            form.add("resolution", model.getResolution());
             form.add("num_images", "1");
 
             final IdeogramResponse response = ideogramRestClient.post()

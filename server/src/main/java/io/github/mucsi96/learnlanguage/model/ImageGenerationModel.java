@@ -11,13 +11,13 @@ import lombok.RequiredArgsConstructor;
 //          https://ai.google.dev/gemini-api/docs/pricing
 @RequiredArgsConstructor
 public enum ImageGenerationModel {
-    GPT_IMAGE_2_LOW("gpt-image-2-low", "gpt-image-2", "GPT Image 2 (Low)", ImageQuality.LOW),
-    GPT_IMAGE_2_MEDIUM("gpt-image-2-medium", "gpt-image-2", "GPT Image 2 (Medium)", ImageQuality.MEDIUM),
-    GPT_IMAGE_2_HIGH("gpt-image-2-high", "gpt-image-2", "GPT Image 2 (High)", ImageQuality.HIGH),
-    IDEOGRAM_4_TURBO("ideogram-4-turbo", "ideogram-v4", "Ideogram 4 (Turbo)", ImageQuality.LOW),
-    IDEOGRAM_4_DEFAULT("ideogram-4-default", "ideogram-v4", "Ideogram 4 (Default)", ImageQuality.MEDIUM),
-    IDEOGRAM_4_QUALITY("ideogram-4-quality", "ideogram-v4", "Ideogram 4 (Quality)", ImageQuality.HIGH),
-    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "gemini-3-pro-image-preview", "Gemini 3 Pro", null);
+    GPT_IMAGE_2_LOW("gpt-image-2-low", "gpt-image-2", "GPT Image 2 (Low)", ImageQuality.LOW, null),
+    GPT_IMAGE_2_MEDIUM("gpt-image-2-medium", "gpt-image-2", "GPT Image 2 (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_HIGH("gpt-image-2-high", "gpt-image-2", "GPT Image 2 (High)", ImageQuality.HIGH, null),
+    IDEOGRAM_4_TURBO("ideogram-4-turbo", "ideogram-v4", "Ideogram 4 (Turbo)", ImageQuality.LOW, "2048x2048"),
+    IDEOGRAM_4_DEFAULT("ideogram-4-default", "ideogram-v4", "Ideogram 4 (Default)", ImageQuality.MEDIUM, "2048x2048"),
+    IDEOGRAM_4_QUALITY("ideogram-4-quality", "ideogram-v4", "Ideogram 4 (Quality)", ImageQuality.HIGH, "2048x2048"),
+    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "gemini-3-pro-image-preview", "Gemini 3 Pro", null, null);
 
     public enum ImageQuality {
         LOW, MEDIUM, HIGH
@@ -27,6 +27,7 @@ public enum ImageGenerationModel {
     private final String apiModelName;
     private final String displayName;
     private final ImageQuality quality;
+    private final String resolution;
 
     @JsonValue
     public String getModelName() {
@@ -43,6 +44,10 @@ public enum ImageGenerationModel {
 
     public ImageQuality getQuality() {
         return quality;
+    }
+
+    public String getResolution() {
+        return resolution;
     }
 
     @JsonCreator
