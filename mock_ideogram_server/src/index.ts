@@ -26,7 +26,8 @@ app.post('/v1/:model/generate', upload.none(), (req, res) => {
       return;
     }
     const renderingSpeed: string = req.body.rendering_speed ?? 'DEFAULT';
-    console.log('Received image generation request', { prompt, renderingSpeed });
+    const resolution: string = req.body.resolution ?? '1024x1024';
+    console.log('Received image generation request', { prompt, renderingSpeed, resolution });
 
     const color = imageHandler.resolveColor(prompt);
     const url = `${req.protocol}://${req.get('host')}/images/${color}.png`;
@@ -37,7 +38,7 @@ app.post('/v1/:model/generate', upload.none(), (req, res) => {
         {
           url,
           prompt,
-          resolution: '1024x1024',
+          resolution,
           is_image_safe: true,
           seed: 0,
           style_type: 'GENERAL',
