@@ -723,3 +723,38 @@ test('can remove a learning partner from a source', async ({ page }) => {
   }).toPass();
 });
 
+
+test('source creation and update reject empty card types', async ({ page, baseURL }) => {
+  const sourcesRequest = page.waitForRequest((request) => request.url().includes('/api/sources'));
+  await page.goto('/sources');
+  const authorization = (await sourcesRequest).headers()['authorization'];
+  expect(authorization).toBeTruthy();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: authorization,
+  };
+
+  const createResponse = await fetch(`${baseURL}/api/source`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: 'no-card-types',
+      name: 'No Card Types',
+      sourceType: 'images',
+      startPage: 1,
+      languageLevel: 'A1',
+      cardTypes: [],
+    }),
+  });
+  expect(createResponse.status).toBe(400);
+  expect(await getSource('no-card-types')).toBeNull();
+
+  const updateResponse = await fetch(`${baseURL}/api/source/goethe-a1`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ cardTypes: [] }),
+  });
+  expect(updateResponse.status).toBe(400);
+  expect((await getSource('goethe-a1'))?.cardTypes).toEqual(['VOCABULARY']);
+});

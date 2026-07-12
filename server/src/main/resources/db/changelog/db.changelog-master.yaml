@@ -745,6 +745,10 @@ databaseChangeLog:
               SET card_type = COALESCE(s.card_type, 'VOCABULARY')
               FROM sources s
               WHERE c.source_id = s.id
+        - addNotNullConstraint:
+            tableName: cards
+            columnName: card_type
+            columnDataType: varchar(255)
   - changeSet:
       id: 22-create-card-view
       author: mucsi96
@@ -1107,7 +1111,11 @@ databaseChangeLog:
                   type: varchar(255)
         - sql:
             sql: |
-              UPDATE sources SET card_types = card_type WHERE card_type IS NOT NULL
+              UPDATE sources SET card_types = COALESCE(card_type, 'VOCABULARY')
+        - addNotNullConstraint:
+            tableName: sources
+            columnName: card_types
+            columnDataType: varchar(255)
         - dropColumn:
             tableName: sources
             columnName: card_type

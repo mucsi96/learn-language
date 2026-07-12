@@ -47,7 +47,7 @@ public class Source {
   private LanguageLevel languageLevel;
 
   @Convert(converter = CardTypeListConverter.class)
-  @Column(name = "card_types")
+  @Column(name = "card_types", nullable = false)
   @Builder.Default
   private List<CardType> cardTypes = List.of();
 
