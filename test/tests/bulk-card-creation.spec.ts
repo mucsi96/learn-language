@@ -1034,6 +1034,9 @@ test('sources with multiple card types require selecting a card type before draf
   await page.getByRole('option', { name: 'Vocabulary' }).click();
 
   await expect(confirmButton).toBeEnabled();
+  await confirmButton.click();
+
+  await expect(cardTypeSelect).toHaveAttribute('aria-disabled', 'true');
 });
 
 test('sources with a single card type do not show a card type selector', async ({ page }) => {

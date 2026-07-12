@@ -19,6 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 import { SourcesService } from '../../sources.service';
+import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
 
 const SLUG_MAX_LENGTH = 50;
 
@@ -68,16 +69,12 @@ export class SourceDialogComponent {
       (source) => source.id !== this.data.source?.id
     )
   );
-  private readonly baseCardTypes = [
-    { code: 'vocabulary', displayName: 'Vocabulary' },
-    { code: 'speech', displayName: 'Speech' },
-    { code: 'grammar', displayName: 'Grammar' },
-  ];
-
   readonly isAiPrompt = computed(() => this.formModel().sourceType === 'aiPrompt');
 
   readonly cardTypes = computed(() =>
-    this.isAiPrompt() ? [{ code: 'simple', displayName: 'Simple' }] : this.baseCardTypes
+    CARD_TYPE_OPTIONS.filter((option) =>
+      this.isAiPrompt() ? option.code === 'simple' : option.code !== 'simple'
+    )
   );
 
   readonly formModel = signal<{

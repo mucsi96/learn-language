@@ -142,7 +142,7 @@ public class CardController {
       throw new IllegalArgumentException("cardType is required");
     }
 
-    if (!source.getCardTypes().isEmpty() && !source.getCardTypes().contains(request.getCardType())) {
+    if (!source.getCardTypes().contains(request.getCardType())) {
       throw new IllegalArgumentException(
           "Card type %s is not allowed for source %s".formatted(
               request.getCardType().getTypeName(), source.getId()));

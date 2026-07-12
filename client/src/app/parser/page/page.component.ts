@@ -39,6 +39,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PendingPhotoService } from '../../pending-photo.service';
 import { PhotoGrammarBannerComponent } from '../../photo-grammar-banner/photo-grammar-banner.component';
 import { CardType } from '../types';
+import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
 
 @Component({
   selector: 'app-page',
@@ -137,15 +138,12 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.sourceType() === 'images' && this.cardTypes().includes('grammar')
   );
 
-  readonly cardTypeOptions: { code: CardType; displayName: string }[] = [
-    { code: 'vocabulary', displayName: 'Vocabulary' },
-    { code: 'speech', displayName: 'Speech' },
-    { code: 'grammar', displayName: 'Grammar' },
-    { code: 'simple', displayName: 'Simple' },
-  ];
-
   readonly availableCardTypeOptions = computed(() =>
-    this.cardTypeOptions.filter((option) => this.cardTypes().includes(option.code))
+    CARD_TYPE_OPTIONS.filter((option) => this.cardTypes().includes(option.code))
+  );
+
+  readonly cardTypeSelectionLocked = computed(() =>
+    this.pageService.hasExtractions() || this.candidatesService.hasExternalItems()
   );
 
   onCardTypeChange(cardType: CardType) {

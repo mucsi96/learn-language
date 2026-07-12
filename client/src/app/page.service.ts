@@ -1,4 +1,5 @@
 import {
+  computed,
   inject,
   Injectable,
   resource,
@@ -34,6 +35,8 @@ export class PageService {
   private readonly selectionStateService = inject(SelectionStateService);
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly extractionGroups = signal<ExtractionGroup[]>([]);
+
+  readonly hasExtractions = computed(() => this.extractionGroups().length > 0);
 
   readonly page = resource({
     params: () => ({

@@ -5,6 +5,7 @@
     <mat-label>Card Type</mat-label>
     <mat-select
       [value]="selectedCardType()"
+      [disabled]="cardTypeSelectionLocked()"
       (selectionChange)="onCardTypeChange($event.value)"
       aria-label="Card type"
     >
