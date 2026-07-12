@@ -13,6 +13,8 @@
     color="primary"
     [matBadge]="selectionStateService.selectionCount()"
     matBadgeColor="accent"
+    [disabled]="!hasCardType()"
+    [matTooltip]="hasCardType() ? '' : 'Select a card type first'"
     (click)="confirmSelection()"
     aria-label="Confirm selection"
   >

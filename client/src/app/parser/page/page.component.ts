@@ -38,6 +38,7 @@ import { SelectionActionsComponent } from '../../selection-actions/selection-act
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PendingPhotoService } from '../../pending-photo.service';
 import { PhotoGrammarBannerComponent } from '../../photo-grammar-banner/photo-grammar-banner.component';
+import { CardType } from '../types';
 
 @Component({
   selector: 'app-page',
@@ -91,9 +92,11 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly sourceType = computed(
     () => this.pageService.page.value()?.sourceType
   );
-  readonly cardType = computed(
-    () => this.pageService.page.value()?.cardType
+  readonly cardTypes = computed(
+    () => this.pageService.page.value()?.cardTypes ?? []
   );
+  readonly hasMultipleCardTypes = computed(() => this.cardTypes().length > 1);
+  readonly selectedCardType = this.pageService.selectedCardType;
   readonly formatType = computed(
     () => this.pageService.page.value()?.formatType
   );
@@ -131,8 +134,23 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.sourceType() === 'images' && !this.hasImage()
   );
   readonly isPhotoGrammarSource = computed(() =>
-    this.sourceType() === 'images' && this.cardType() === 'grammar'
+    this.sourceType() === 'images' && this.cardTypes().includes('grammar')
   );
+
+  readonly cardTypeOptions: { code: CardType; displayName: string }[] = [
+    { code: 'vocabulary', displayName: 'Vocabulary' },
+    { code: 'speech', displayName: 'Speech' },
+    { code: 'grammar', displayName: 'Grammar' },
+    { code: 'simple', displayName: 'Simple' },
+  ];
+
+  readonly availableCardTypeOptions = computed(() =>
+    this.cardTypeOptions.filter((option) => this.cardTypes().includes(option.code))
+  );
+
+  onCardTypeChange(cardType: CardType) {
+    this.pageService.selectedCardType.set(cardType);
+  }
   readonly photoCaptureUploading = signal(false);
   readonly currentPageSelections = computed(() => {
     const sourceId = this.selectedSourceId();

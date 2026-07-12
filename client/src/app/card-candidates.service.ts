@@ -37,8 +37,7 @@ export class CardCandidatesService {
   readonly candidatesCount = computed(() => this.candidates().length);
 
   getItemLabel(item: ExtractedItem): string {
-    const page = this.pageService.page.value();
-    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    const strategy = this.strategyRegistry.getStrategy(this.pageService.selectedCardType());
     return strategy.getItemLabel(item);
   }
 

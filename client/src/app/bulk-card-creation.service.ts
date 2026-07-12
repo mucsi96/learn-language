@@ -36,15 +36,13 @@ export class BulkCardCreationService {
 
   async createCardsInBulk(
     source: BulkCreationSource,
-    cardType: CardType,
     context?: BulkCreationContext
   ): Promise<PipelineResult> {
     if (this.isProcessing()) {
       throw new Error('Bulk creation already in progress');
     }
 
-    const strategy = this.strategyRegistry.getStrategy(cardType);
-    const tasks = this.buildTasks(source, strategy, context);
+    const tasks = this.buildTasks(source, context);
 
     if (tasks.length === 0) {
       return { total: 0, succeeded: 0, failed: 0, errors: [] };
@@ -65,11 +63,11 @@ export class BulkCardCreationService {
 
   private buildTasks(
     source: BulkCreationSource,
-    strategy: CardTypeStrategy,
     context?: BulkCreationContext
   ): PipelineTask<void>[] {
     switch (source.kind) {
       case 'extractedItems': {
+        const strategy = this.strategyRegistry.getStrategy(source.cardType);
         const itemsToCreate = source.items.filter((item) => !item.exists);
         return itemsToCreate.map((item) => ({
           label: strategy.getItemLabel(item),
@@ -81,6 +79,7 @@ export class BulkCardCreationService {
               item,
               source.sourceId,
               source.pageNumber,
+              source.cardType,
               updateProgress,
               toolsRequested,
               strategy,
@@ -99,8 +98,7 @@ export class BulkCardCreationService {
             this.processFromDraftCardId(
               cardId,
               updateProgress,
-              toolsRequested,
-              strategy
+              toolsRequested
             ),
         }));
       }
@@ -111,6 +109,7 @@ export class BulkCardCreationService {
     item: ExtractedItem,
     sourceId: string,
     pageNumber: number,
+    cardType: CardType,
     updateProgress: ProgressUpdater,
     toolsRequested: () => void,
     strategy: CardTypeStrategy,
@@ -127,6 +126,7 @@ export class BulkCardCreationService {
         id: item.id,
         sourceId,
         sourcePageNumber: pageNumber,
+        cardType,
         data: draftCardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
         readiness: 'DRAFT',
@@ -156,8 +156,7 @@ export class BulkCardCreationService {
   private async processFromDraftCardId(
     cardId: string,
     updateProgress: ProgressUpdater,
-    toolsRequested: () => void,
-    strategy: CardTypeStrategy
+    toolsRequested: () => void
   ): Promise<void> {
     let label = cardId;
 
@@ -165,6 +164,7 @@ export class BulkCardCreationService {
       updateProgress('in-progress', `${label}: Fetching card...`);
 
       const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
+      const strategy = this.strategyRegistry.getStrategy(card.cardType);
       label = strategy.getCardDisplayLabel(card);
       updateProgress('in-progress', `${label}: Processing...`);
 

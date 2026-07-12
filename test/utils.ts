@@ -51,7 +51,7 @@ export async function createSource(params: {
   name: string;
   startPage?: number;
   languageLevel: string;
-  cardType: string;
+  cardTypes: string[];
   formatType: string;
   sourceType?: string;
   bookmarkedPage?: number | null;
@@ -66,7 +66,7 @@ export async function createSource(params: {
     name,
     startPage,
     languageLevel,
-    cardType,
+    cardTypes,
     formatType,
     sourceType = 'PDF',
     bookmarkedPage = null,
@@ -79,9 +79,9 @@ export async function createSource(params: {
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_type, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_types, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-      [id, name, startPage, languageLevel, cardType, formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
+      [id, name, startPage, languageLevel, cardTypes.join(','), formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
     );
 
     await Promise.all(
@@ -169,7 +169,7 @@ export async function getSource(id: string): Promise<{
   name: string;
   startPage: number;
   languageLevel: string;
-  cardType: string;
+  cardTypes: string[];
   formatType: string;
   sourceType: string | null;
   bookmarkedPage: number | null;
@@ -181,7 +181,7 @@ export async function getSource(id: string): Promise<{
   return withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT id, name, start_page as "startPage",
-              language_level as "languageLevel", card_type as "cardType",
+              language_level as "languageLevel", card_types as "cardTypes",
               format_type as "formatType", source_type as "sourceType",
               bookmarked_page as "bookmarkedPage",
               bookmarked_document_id as "bookmarkedDocumentId",
@@ -193,7 +193,15 @@ export async function getSource(id: string): Promise<{
       [id]
     );
 
-    return result.rows.length > 0 ? result.rows[0] : null;
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      ...row,
+      cardTypes: row.cardTypes ? row.cardTypes.split(',') : [],
+    };
   });
 }
 
@@ -207,7 +215,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       name: 'Goethe A1',
       startPage: 9,
       languageLevel: 'A1',
-      cardType: 'VOCABULARY',
+      cardTypes: ['VOCABULARY'],
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 9,
       cardLimit: 50
@@ -222,7 +230,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       name: 'Goethe A2',
       startPage: 8,
       languageLevel: 'A2',
-      cardType: 'VOCABULARY',
+      cardTypes: ['VOCABULARY'],
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: 8,
     });
@@ -236,7 +244,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       name: 'Goethe B1',
       startPage: 16,
       languageLevel: 'B1',
-      cardType: 'VOCABULARY',
+      cardTypes: ['VOCABULARY'],
       formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
       bookmarkedPage: null,
     });
@@ -249,7 +257,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       name: 'Speech A1',
       startPage: 1,
       languageLevel: 'A1',
-      cardType: 'SPEECH',
+      cardTypes: ['SPEECH'],
       formatType: 'FLOWING_TEXT',
       sourceType: 'IMAGES',
     });
@@ -259,7 +267,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
       name: 'Grammar A1',
       startPage: 1,
       languageLevel: 'A1',
-      cardType: 'GRAMMAR',
+      cardTypes: ['GRAMMAR'],
       formatType: 'FLOWING_TEXT',
       sourceType: 'IMAGES',
     });
@@ -317,6 +325,7 @@ export async function createCard(params: {
   cardId: string;
   sourceId: string;
   data: CardData;
+  cardType?: string;
   state?: string;
   learningSteps?: number;
   due?: Date;
@@ -335,6 +344,7 @@ export async function createCard(params: {
     cardId,
     sourceId,
     data,
+    cardType = 'VOCABULARY',
     state = 'NEW',
     learningSteps = 0,
     due = new Date(Date.now() - 86400000), // 1 day ago
@@ -353,17 +363,18 @@ export async function createCard(params: {
   await withDbConnection(async (client) => {
     await client.query(
       `INSERT INTO learn_language.cards (
-        id, source_id, source_page_number, data, state, learning_steps,
+        id, source_id, source_page_number, data, card_type, state, learning_steps,
         stability, difficulty, due, last_review, elapsed_days, scheduled_days,
         reps, lapses, readiness, flagged
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
       )`,
       [
         cardId,
         sourceId,
         sourcePageNumber,
         JSON.stringify(data),
+        cardType,
         state,
         learningSteps,
         stability,

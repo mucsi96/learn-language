@@ -15,9 +15,10 @@
       <h3 class="section-title">Classification</h3>
       <div class="form-grid">
         <mat-form-field appearance="fill">
-          <mat-label>Card Type</mat-label>
+          <mat-label>Card Types</mat-label>
           <mat-select
-            [formField]="sourceForm.cardType"
+            multiple
+            [formField]="sourceForm.cardTypes"
           >
             @for (cardType of cardTypes(); track cardType.code) {
             <mat-option [value]="cardType.code">{{ cardType.displayName }}</mat-option>
@@ -47,7 +48,7 @@
           </mat-select>
         </mat-form-field>
 
-        @if (formModel().cardType !== 'speech' && formModel().cardType !== 'grammar' && formModel().cardType !== 'simple') {
+        @if (formModel().cardTypes.includes('vocabulary')) {
         <mat-form-field appearance="fill">
           <mat-label>Format Type</mat-label>
           <mat-select

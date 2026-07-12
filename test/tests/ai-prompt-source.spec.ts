@@ -39,7 +39,7 @@ test('create AI prompt source, generate, preview and create simple cards', async
 
   const source = await getSource('ckad-prep');
   expect(source?.sourceType).toBe('AI_PROMPT');
-  expect(source?.cardType).toBe('SIMPLE');
+  expect(source?.cardTypes).toEqual(['SIMPLE']);
 
   await withDbConnection(async (client) => {
     const result = await client.query(
@@ -97,7 +97,7 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
     name: 'CKAD Study',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'SIMPLE',
+    cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'AI_PROMPT',
   });
@@ -105,6 +105,7 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
   await createCard({
     cardId: 'ckad-pods-1',
     sourceId: 'ckad-study',
+    cardType: 'SIMPLE',
     sourcePageNumber: 1,
     data: {
       frontText: 'What is a **Pod**?',

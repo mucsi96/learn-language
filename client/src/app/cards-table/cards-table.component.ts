@@ -123,12 +123,6 @@ export class CardsTableComponent {
   readonly sourceId = computed(() => String(this.routeSourceId() ?? ''));
   readonly activeQuickFilter = computed(() => parseQuickFilter(this.filterParam() as string | null));
   readonly isDraftMode = computed(() => this.activeQuickFilter() === 'draft');
-  private readonly currentSource = computed(() => {
-    const sources = this.sourcesService.sources.value();
-    const id = this.sourceId();
-    return sources?.find(s => s.id === id);
-  });
-  readonly sourceCardType = computed(() => this.currentSource()?.cardType);
   readonly isCompletingDrafts = this.bulkCreationService.isProcessing;
   private readonly loadedRowReadiness = signal<ReadonlyMap<string, CardReadiness>>(new Map());
 
@@ -497,8 +491,7 @@ export class CardsTableComponent {
 
   async completeDraftCards(): Promise<void> {
     const ids = this.selectedIds();
-    const cardType = this.sourceCardType();
-    if (ids.length === 0 || !cardType) return;
+    if (ids.length === 0) return;
 
     this.bulkCreationService.clearProgress();
 
@@ -509,8 +502,7 @@ export class CardsTableComponent {
     });
 
     const result = await this.bulkCreationService.createCardsInBulk(
-      { kind: 'draftCardIds', cardIds: [...ids] },
-      cardType
+      { kind: 'draftCardIds', cardIds: [...ids] }
     );
 
     this.selectedIds.set([]);

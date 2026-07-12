@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { CardCandidatesService } from '../card-candidates.service';
+import { PageService } from '../page.service';
 import { ExtractedItem } from '../parser/types';
 import { PendingPhotoService } from '../pending-photo.service';
 import { fetchJson } from '../utils/fetchJson';
@@ -35,6 +36,7 @@ export class PhotoGrammarBannerComponent {
   private readonly http = inject(HttpClient);
   private readonly pendingPhotoService = inject(PendingPhotoService);
   private readonly candidatesService = inject(CardCandidatesService);
+  private readonly pageService = inject(PageService);
 
   readonly sourceId = input.required<string>();
 
@@ -77,6 +79,7 @@ export class PhotoGrammarBannerComponent {
       );
 
       this.candidatesService.setExternalItems(items);
+      this.pageService.selectedCardType.set('grammar');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create cards';
       this.errorMessage.set(message);

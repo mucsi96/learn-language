@@ -15,6 +15,7 @@ public class CardCreateRequest {
     private String id;
     private String sourceId;
     private Integer sourcePageNumber;
+    private CardType cardType;
     private CardData data;
     private CardReadiness readiness;
     private LocalDateTime due;

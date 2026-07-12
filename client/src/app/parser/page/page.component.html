@@ -1,5 +1,19 @@
 @if(pageNumber()) {
 <div class="page-nav">
+  @if (hasMultipleCardTypes()) {
+  <mat-form-field class="card-type-selector">
+    <mat-label>Card Type</mat-label>
+    <mat-select
+      [value]="selectedCardType()"
+      (selectionChange)="onCardTypeChange($event.value)"
+      aria-label="Card type"
+    >
+      @for (option of availableCardTypeOptions(); track option.code) {
+      <mat-option [value]="option.code">{{ option.displayName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
   @if (sourceType() === 'pdf' && hasMultipleDocuments()) {
   <mat-form-field class="document-selector">
     <mat-label>Document</mat-label>

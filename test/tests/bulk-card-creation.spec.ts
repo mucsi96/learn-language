@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import {
   createCard,
   createChatModelSetting,
+  createDocument,
   createImageModelSetting,
   createSource,
   createRateLimitSetting,
@@ -152,7 +153,7 @@ test('regions from different pages are combined into single extraction', async (
     name: 'Cross Page Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -997,4 +998,54 @@ test('ai duplicate detection cancel aborts bulk creation', async ({ page }) => {
     );
     expect(result.rows.length).toBe(0);
   });
+});
+
+test('sources with multiple card types require selecting a card type before drafting', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await setupDefaultImageModelSettings();
+  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
+  await createSource({
+    id: 'multi-a1',
+    name: 'Multi A1',
+    startPage: 9,
+    languageLevel: 'A1',
+    cardTypes: ['VOCABULARY', 'GRAMMAR'],
+    formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
+    bookmarkedPage: 9,
+  });
+  await createDocument({
+    sourceId: 'multi-a1',
+    fileName: 'A1_SD1_Wortliste_02.pdf',
+  });
+
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Actions for Multi A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
+
+  const cardTypeSelect = page.getByRole('combobox', { name: 'Card type' });
+  await expect(cardTypeSelect).toBeVisible();
+
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  const confirmButton = page.getByRole('button', { name: 'Confirm selection' });
+  await expect(confirmButton).toBeDisabled();
+
+  await cardTypeSelect.click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+
+  await expect(confirmButton).toBeEnabled();
+});
+
+test('sources with a single card type do not show a card type selector', async ({ page }) => {
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Pages' }).click();
+
+  await page.getByRole('region', { name: 'Page content' }).waitFor();
+
+  await expect(page.getByRole('combobox', { name: 'Card type' })).not.toBeVisible();
+
+  await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
+
+  await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeEnabled();
 });

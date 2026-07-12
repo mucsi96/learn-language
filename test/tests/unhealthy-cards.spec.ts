@@ -78,6 +78,7 @@ test('unhealthy filter does not show speech cards missing gender or word type', 
   await createCard({
     cardId: 'speech-card',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 1,
     data: {
       word: 'Guten Morgen',
@@ -154,6 +155,7 @@ test('unhealthy filter shows grammar cards missing hungarian translation', async
   await createCard({
     cardId: 'grammar-missing-hu',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 1,
     data: {
       examples: [
@@ -179,6 +181,7 @@ test('unhealthy filter does not show grammar cards with hungarian translation', 
   await createCard({
     cardId: 'grammar-healthy',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 1,
     data: {
       examples: [

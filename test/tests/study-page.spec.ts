@@ -1123,6 +1123,7 @@ test('speech card study page initial state shows Hungarian translation', async (
   await createCard({
     cardId: 'a1b2c3d4',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 5,
     data: {
       examples: [
@@ -1153,6 +1154,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
   await createCard({
     cardId: 'e5f6g7h8',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 6,
     state: 'LEARNING',
     data: {
@@ -1188,6 +1190,7 @@ test('speech card grading functionality', async ({ page }) => {
   await createCard({
     cardId: 'i9j0k1l2',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 7,
     data: {
       examples: [
@@ -1223,6 +1226,7 @@ test('grammar card study shows sentence with gaps on front, full sentence on rev
   await createCard({
     cardId: 'grammar-test-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 1,
     data: {
       examples: [
@@ -1256,6 +1260,7 @@ test('grammar card shows Hungarian translation above the sentence on both sides'
   await createCard({
     cardId: 'grammar-translation-order-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 9,
     data: {
       examples: [
@@ -1292,6 +1297,7 @@ test('grammar card study shows German hint on front when present', async ({ page
   await createCard({
     cardId: 'grammar-hint-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 5,
     data: {
       hint: 'sein',
@@ -1322,6 +1328,7 @@ test('grammar card study omits hint element when card has no hint', async ({ pag
   await createCard({
     cardId: 'grammar-no-hint-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 6,
     data: {
       examples: [
@@ -1348,6 +1355,7 @@ test('grammar card grading functionality', async ({ page }) => {
   await createCard({
     cardId: 'grammar-grade-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 2,
     data: {
       examples: [
@@ -1381,6 +1389,7 @@ test('grammar card without image keeps the same size as image cards', async ({ p
   await createCard({
     cardId: 'grammar-size-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 8,
     data: {
       examples: [
@@ -1411,6 +1420,7 @@ test('grammar card shows hint above the sentence', async ({ page }) => {
   await createCard({
     cardId: 'grammar-hint-order-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 7,
     data: {
       hint: 'Perfekt',
@@ -1441,6 +1451,7 @@ test('grammar card shows grammar topic name on both sides', async ({ page }) => 
   await createCard({
     cardId: 'grammar-topic-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 9,
     data: {
       grammarTopic: 'Präsens',
@@ -1471,6 +1482,7 @@ test('grammar card without grammar topic hides the topic chip', async ({ page })
   await createCard({
     cardId: 'no-topic-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 10,
     data: {
       examples: [
@@ -1836,7 +1848,7 @@ test('study session respects source card limit', async ({ page }) => {
     name: 'Limited Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
     cardLimit: 3,
   });
@@ -1870,7 +1882,7 @@ test('study session respects source new card limit', async ({ page }) => {
     name: 'New Limited Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
     newCardLimit: 2,
   });

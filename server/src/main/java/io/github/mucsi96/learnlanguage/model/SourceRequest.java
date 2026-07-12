@@ -18,7 +18,7 @@ public class SourceRequest {
     private String fileName;
     private Integer startPage;
     private LanguageLevel languageLevel;
-    private CardType cardType;
+    private List<CardType> cardTypes;
     private SourceFormatType formatType;
     private Integer cardLimit;
     private Integer newCardLimit;

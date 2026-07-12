@@ -12,7 +12,7 @@ public class SourceResponse {
     private String id;
     private String name;
     private SourceType sourceType;
-    private CardType cardType;
+    private List<CardType> cardTypes;
     private Integer startPage;
     private Integer pageCount;
     private Integer cardCount;
