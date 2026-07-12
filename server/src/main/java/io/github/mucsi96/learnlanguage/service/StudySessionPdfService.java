@@ -160,7 +160,7 @@ public class StudySessionPdfService {
         final String title = sourceName + " - " + dateStr;
 
         final Map<CardType, List<Card>> cardsByType = cards.stream()
-                .collect(Collectors.groupingBy(this::resolveCardType, LinkedHashMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(Card::getCardType, LinkedHashMap::new, Collectors.toList()));
 
         cardsByType.forEach((cardType, typeCards) -> {
             final List<String> headers = getHeaders(cardType);
@@ -171,11 +171,6 @@ public class StudySessionPdfService {
 
             renderPages(document, title, headers, colWidths, rows, personName, regularFont, boldFont);
         });
-    }
-
-    private CardType resolveCardType(Card card) {
-        // Cards created before the card_type column was introduced may lack a type
-        return card.getCardType() != null ? card.getCardType() : CardType.VOCABULARY;
     }
 
     private void renderPages(PDDocument document, String title, List<String> headers,
