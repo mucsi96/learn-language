@@ -1052,3 +1052,44 @@ test('sources with a single card type do not show a card type selector', async (
 
   await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeEnabled();
 });
+
+test('card creation rejects a card type not allowed by the source', async ({ page, baseURL }) => {
+  const sourcesRequest = page.waitForRequest((request) => request.url().includes('/api/sources'));
+  await page.goto('/sources');
+  const authorization = (await sourcesRequest).headers()['authorization'];
+  expect(authorization).toBeTruthy();
+
+  const response = await fetch(`${baseURL}/api/card`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: authorization,
+    },
+    body: JSON.stringify({
+      id: 'rejected-grammar-card',
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 9,
+      cardType: 'grammar',
+      data: { word: 'aber' },
+      readiness: 'DRAFT',
+      due: new Date().toISOString(),
+      stability: 0,
+      difficulty: 0,
+      elapsedDays: 0,
+      scheduledDays: 0,
+      learningSteps: 0,
+      reps: 0,
+      lapses: 0,
+      state: 'NEW',
+    }),
+  });
+
+  expect(response.status).toBe(400);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      "SELECT id FROM learn_language.cards WHERE id = 'rejected-grammar-card'"
+    );
+    expect(result.rows.length).toBe(0);
+  });
+});

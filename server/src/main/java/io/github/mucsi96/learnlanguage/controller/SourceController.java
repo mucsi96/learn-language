@@ -345,13 +345,17 @@ public class SourceController {
   @PostMapping("/source")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createSource(@RequestBody SourceRequest request) {
+    if (request.getCardTypes() == null || request.getCardTypes().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
+    }
+
     Source source = Source.builder()
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
         .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
         .languageLevel(request.getLanguageLevel())
-        .cardTypes(request.getCardTypes() != null ? request.getCardTypes() : List.of())
+        .cardTypes(request.getCardTypes())
         .formatType(request.getFormatType())
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
@@ -381,6 +385,10 @@ public class SourceController {
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
       @RequestBody SourceRequest request) {
+    if (request.getCardTypes() != null && request.getCardTypes().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
+    }
+
     final Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 

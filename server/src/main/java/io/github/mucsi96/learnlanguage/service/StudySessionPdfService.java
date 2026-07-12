@@ -174,6 +174,7 @@ public class StudySessionPdfService {
     }
 
     private CardType resolveCardType(Card card) {
+        // Cards created before the card_type column was introduced may lack a type
         return card.getCardType() != null ? card.getCardType() : CardType.VOCABULARY;
     }
 
