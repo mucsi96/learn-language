@@ -89,11 +89,10 @@ public class StudySessionPdfService {
         }
 
         final String sourceName = session.getSource().getName();
-        final CardType cardType = session.getSource().getCardType();
         final String dateStr = startOfDay.toLocalDate().format(DATE_FORMAT);
 
         if ("WITH_PARTNER".equals(session.getStudyMode())) {
-            return buildPartnerModePdf(struggledReviews, sourceName, cardType, dateStr);
+            return buildPartnerModePdf(struggledReviews, sourceName, dateStr);
         }
 
         final List<Card> struggledCards = struggledReviews.stream()
@@ -101,11 +100,11 @@ public class StudySessionPdfService {
                 .distinct()
                 .toList();
 
-        return buildSinglePagePdf(struggledCards, sourceName, cardType, dateStr, null);
+        return buildSinglePagePdf(struggledCards, sourceName, dateStr, null);
     }
 
     private byte[] buildPartnerModePdf(List<ReviewLog> struggledReviews, String sourceName,
-            CardType cardType, String dateStr) {
+            String dateStr) {
         final String userName = getCurrentUserFirstName();
 
         final Map<String, List<ReviewLog>> byPerson = struggledReviews.stream()
@@ -121,7 +120,7 @@ public class StudySessionPdfService {
                         .map(ReviewLog::getCard)
                         .distinct()
                         .toList();
-                addCardsPages(document, cards, sourceName, cardType, dateStr, personName, regularFont, boldFont);
+                addCardsPages(document, cards, sourceName, dateStr, personName, regularFont, boldFont);
             });
 
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -132,12 +131,12 @@ public class StudySessionPdfService {
         }
     }
 
-    private byte[] buildSinglePagePdf(List<Card> cards, String sourceName, CardType cardType,
+    private byte[] buildSinglePagePdf(List<Card> cards, String sourceName,
             String dateStr, String personName) {
         try (final PDDocument document = new PDDocument()) {
             final PDFont regularFont = loadFont(document, "fonts/DejaVuSans.ttf");
             final PDFont boldFont = loadFont(document, "fonts/DejaVuSans-Bold.ttf");
-            addCardsPages(document, cards, sourceName, cardType, dateStr, personName, regularFont, boldFont);
+            addCardsPages(document, cards, sourceName, dateStr, personName, regularFont, boldFont);
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.save(out);
             return out.toByteArray();
@@ -157,16 +156,21 @@ public class StudySessionPdfService {
     }
 
     private void addCardsPages(PDDocument document, List<Card> cards, String sourceName,
-            CardType cardType, String dateStr, String personName, PDFont regularFont, PDFont boldFont) {
+            String dateStr, String personName, PDFont regularFont, PDFont boldFont) {
         final String title = sourceName + " - " + dateStr;
 
-        final List<String> headers = getHeaders(cardType);
-        final List<Float> colWidths = getColumnWidths(cardType);
-        final List<List<String>> rows = cards.stream()
-                .map(card -> getCardRow(card, cardType))
-                .toList();
+        final Map<CardType, List<Card>> cardsByType = cards.stream()
+                .collect(Collectors.groupingBy(Card::getCardType, LinkedHashMap::new, Collectors.toList()));
 
-        renderPages(document, title, headers, colWidths, rows, personName, regularFont, boldFont);
+        cardsByType.forEach((cardType, typeCards) -> {
+            final List<String> headers = getHeaders(cardType);
+            final List<Float> colWidths = getColumnWidths(cardType);
+            final List<List<String>> rows = typeCards.stream()
+                    .map(card -> getCardRow(card, cardType))
+                    .toList();
+
+            renderPages(document, title, headers, colWidths, rows, personName, regularFont, boldFont);
+        });
     }
 
     private void renderPages(PDDocument document, String title, List<String> headers,

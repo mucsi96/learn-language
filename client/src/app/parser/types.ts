@@ -69,9 +69,10 @@ export type Card = {
     id: string;
     name?: string;
     startPage?: number;
-    cardType?: CardType;
+    cardTypes?: CardType[];
   };
   sourcePageNumber: number;
+  cardType?: CardType;
   data: CardData;
   readiness: CardReadiness;
   due: Date;
@@ -91,6 +92,7 @@ export type CardCreatePayload = {
   id: string;
   sourceId: string;
   sourcePageNumber: number;
+  cardType: CardType;
   data: CardData;
   readiness: CardReadiness;
   due: Date;
@@ -123,7 +125,7 @@ export type Page = {
   sourceId: string;
   sourceName: string;
   sourceType?: SourceType;
-  cardType?: CardType;
+  cardTypes?: CardType[];
   formatType?: SourceFormatType;
   hasImage?: boolean;
   documentId?: number;
@@ -185,7 +187,7 @@ export type ExtractionRegion = {
 };
 
 export type BulkCreationSource =
-  | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number; selections?: ExtractionRegionSelection[] }
+  | { kind: 'extractedItems'; items: ExtractedItem[]; sourceId: string; pageNumber: number; cardType: CardType; selections?: ExtractionRegionSelection[] }
   | { kind: 'draftCardIds'; cardIds: string[] };
 
 export type BulkCreationContext = {
@@ -267,7 +269,7 @@ export type Source = {
   stateCounts?: Record<string, number>;
   readinessCounts?: Record<string, number>;
   languageLevel?: LanguageLevel;
-  cardType?: CardType;
+  cardTypes?: CardType[];
   formatType?: SourceFormatType;
   cardLimit?: number;
   newCardLimit?: number;

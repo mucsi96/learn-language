@@ -18,6 +18,7 @@ test('can create an image source', async ({ page }) => {
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'Image Collection' }).click();
@@ -49,7 +50,7 @@ test('image source shows empty dropzone initially', async ({ page }) => {
     name: 'Empty Image Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -66,7 +67,7 @@ test('can upload image to image source from page view', async ({ page }) => {
     name: 'Upload Image Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -95,7 +96,7 @@ test('can delete image from image source', async ({ page }) => {
     name: 'Delete Image Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -127,7 +128,7 @@ test('image source shows source type in create dialog is disabled during edit', 
     name: 'Edit Image Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -151,7 +152,7 @@ test('Extracted items appear as chips for flowing text format after selection', 
     name: 'Chips Image Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -194,7 +195,7 @@ test('can add word to known words from chip context menu', async ({ page }) => {
     name: 'Known Words Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });
@@ -247,7 +248,7 @@ test('can ignore word once from chip context menu', async ({ page }) => {
     name: 'Ignore Word Source',
     startPage: 1,
     languageLevel: 'A1',
-    cardType: 'VOCABULARY',
+    cardTypes: ['VOCABULARY'],
     formatType: 'FLOWING_TEXT',
     sourceType: 'IMAGES',
   });

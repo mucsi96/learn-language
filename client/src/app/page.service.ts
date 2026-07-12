@@ -1,4 +1,5 @@
 import {
+  computed,
   inject,
   Injectable,
   resource,
@@ -12,7 +13,7 @@ import { fetchJson } from './utils/fetchJson';
 import { fetchAsset } from './utils/fetchAsset';
 import { HttpClient } from '@angular/common/http';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
-import { ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
+import { CardType, ExtractionRegion, ExtractionRegionSelection, Page } from './parser/types';
 import { PagedSelection, SelectionStateService } from './selection-state.service';
 
 type SelectedSource = { sourceId: string; pageNumber: number; documentId?: number } | undefined;
@@ -35,6 +36,8 @@ export class PageService {
   private readonly selectedSource = signal<SelectedSource>(undefined);
   private readonly extractionGroups = signal<ExtractionGroup[]>([]);
 
+  readonly hasExtractions = computed(() => this.extractionGroups().length > 0);
+
   readonly page = resource({
     params: () => ({
       selectedSource: this.selectedSource(),
@@ -51,6 +54,24 @@ export class PageService {
           ? { params: { documentId: String(selectedSource.documentId) } }
           : undefined
       );
+    },
+  });
+
+  readonly selectedCardType = linkedSignal<Page | undefined, CardType | undefined>({
+    source: this.page.value,
+    computation: (page, previous) => {
+      const cardTypes = page?.cardTypes ?? [];
+      if (cardTypes.length === 1) {
+        return cardTypes[0];
+      }
+      if (
+        previous?.value &&
+        previous.source?.sourceId === page?.sourceId &&
+        cardTypes.includes(previous.value)
+      ) {
+        return previous.value;
+      }
+      return undefined;
     },
   });
 
@@ -77,14 +98,13 @@ export class PageService {
     source: this.extractionGroups,
     computation: (groups, previous) => untracked(() =>{
       const selectedSource = this.selectedSource();
-      const page = this.page.value();
       if (!selectedSource || groups.length === 0) {
         return [];
       }
 
       const previousResources = previous?.value || [];
       const previousGroups = previous?.source || [];
-      const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+      const strategy = this.strategyRegistry.getStrategy(this.selectedCardType());
 
       return groups.map((group) => {
         const existingIndex = previousGroups.findIndex(
@@ -164,7 +184,7 @@ export class PageService {
 
   confirmSelection() {
     const allSelections = this.selectionStateService.allSelections();
-    if (allSelections.length === 0) {
+    if (allSelections.length === 0 || !this.selectedCardType()) {
       return;
     }
 

@@ -294,6 +294,7 @@ test('can create a new source', async ({ page }) => {
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
@@ -321,7 +322,7 @@ test('can create a new source', async ({ page }) => {
   expect(createdSource?.name).toBe('Test Source');
   expect(createdSource?.startPage).toBe(1);
   expect(createdSource?.languageLevel).toBe('B2');
-  expect(createdSource?.cardType).toBe('VOCABULARY');
+  expect(createdSource?.cardTypes).toEqual(['VOCABULARY']);
   expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
 
   const documents = await getDocuments('test-source');
@@ -354,6 +355,27 @@ test('can edit an existing source', async ({ page }) => {
 
   const updatedSource = await getSource('goethe-a1');
   expect(updatedSource?.name).toBe('Goethe A1 Updated');
+});
+
+test('can add a card type to an existing source', async ({ page }) => {
+  await page.goto('/sources');
+
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect(async () => {
+    const updatedSource = await getSource('goethe-a1');
+    expect(updatedSource?.cardTypes).toEqual(['VOCABULARY', 'GRAMMAR']);
+  }).toPass();
 });
 
 test('can configure existing card detection sources', async ({ page }) => {
@@ -472,6 +494,7 @@ test('validates required fields when creating source', async ({ page }) => {
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
@@ -517,6 +540,7 @@ test('can create a speech source with image collection', async ({ page }) => {
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Speech' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -534,7 +558,7 @@ test('can create a speech source with image collection', async ({ page }) => {
   const createdSource = await getSource('test-speech-source');
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Speech Source');
-  expect(createdSource?.cardType).toBe('SPEECH');
+  expect(createdSource?.cardTypes).toEqual(['SPEECH']);
   expect(createdSource?.formatType).toBe('FLOWING_TEXT');
   expect(createdSource?.sourceType).toBe('IMAGES');
 });
@@ -548,6 +572,7 @@ test('can create a grammar source with image collection', async ({ page }) => {
 
   await page.getByLabel('Card Type').click();
   await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -565,9 +590,41 @@ test('can create a grammar source with image collection', async ({ page }) => {
   const createdSource = await getSource('test-grammar-source');
   expect(createdSource).not.toBeNull();
   expect(createdSource?.name).toBe('Test Grammar Source');
-  expect(createdSource?.cardType).toBe('GRAMMAR');
+  expect(createdSource?.cardTypes).toEqual(['GRAMMAR']);
   expect(createdSource?.formatType).toBe('FLOWING_TEXT');
   expect(createdSource?.sourceType).toBe('IMAGES');
+});
+
+test('can create a source with multiple card types', async ({ page }) => {
+  await page.goto('/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Multi Type Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await page.getByLabel('Format Type').click();
+  await page.getByRole('option', { name: 'Word list with examples' }).click();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Multi Type Source')).toBeVisible();
+
+  const createdSource = await getSource('test-multi-type-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.cardTypes).toEqual(['VOCABULARY', 'GRAMMAR']);
+  expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
 });
 
 test('edit dialog shows card limit and new card limit fields with defaults', async ({ page }) => {
@@ -666,3 +723,38 @@ test('can remove a learning partner from a source', async ({ page }) => {
   }).toPass();
 });
 
+
+test('source creation and update reject empty card types', async ({ page, baseURL }) => {
+  const sourcesRequest = page.waitForRequest((request) => request.url().includes('/api/sources'));
+  await page.goto('/sources');
+  const authorization = (await sourcesRequest).headers()['authorization'];
+  expect(authorization).toBeTruthy();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: authorization,
+  };
+
+  const createResponse = await fetch(`${baseURL}/api/source`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      id: 'no-card-types',
+      name: 'No Card Types',
+      sourceType: 'images',
+      startPage: 1,
+      languageLevel: 'A1',
+      cardTypes: [],
+    }),
+  });
+  expect(createResponse.status).toBe(400);
+  expect(await getSource('no-card-types')).toBeNull();
+
+  const updateResponse = await fetch(`${baseURL}/api/source/goethe-a1`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ cardTypes: [] }),
+  });
+  expect(updateResponse.status).toBe(400);
+  expect((await getSource('goethe-a1'))?.cardTypes).toEqual(['VOCABULARY']);
+});

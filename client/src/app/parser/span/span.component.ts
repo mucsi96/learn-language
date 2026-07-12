@@ -74,8 +74,7 @@ export class SpanComponent {
       return [];
     }
 
-    const page = this.pageService.page.value();
-    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    const strategy = this.strategyRegistry.getStrategy(this.pageService.selectedCardType());
     return strategy.filterItemsBySearchTerm(items, searchTerm)
       .filter(item => !this.candidatesService.isIgnored(item.id));
   });
@@ -119,8 +118,7 @@ export class SpanComponent {
   }
 
   getItemLabel(item: ExtractedItem): string {
-    const page = this.pageService.page.value();
-    const strategy = this.strategyRegistry.getStrategy(page?.cardType);
+    const strategy = this.strategyRegistry.getStrategy(this.pageService.selectedCardType());
     return strategy.getItemLabel(item);
   }
 

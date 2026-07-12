@@ -81,7 +81,7 @@ export class BulkCardCreationFabComponent {
     const candidates = this.candidatesService.candidates();
     const selectedSource = this.pageService['selectedSource']();
     const page = this.pageService.page.value();
-    const cardType = page?.cardType;
+    const cardType = this.pageService.selectedCardType();
 
     if (!selectedSource || candidates.length === 0 || !cardType) {
       return;
@@ -158,8 +158,8 @@ export class BulkCardCreationFabComponent {
         items: finalCandidates,
         sourceId: selectedSource.sourceId,
         pageNumber: selectedSource.pageNumber,
+        cardType,
       },
-      cardType,
       context
     );
 

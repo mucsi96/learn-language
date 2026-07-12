@@ -931,6 +931,7 @@ test('speech card editing page displays sentence and translations', async ({ pag
   await createCard({
     cardId: 'a1b2c3d4',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 10,
     data: {
       examples: [
@@ -960,6 +961,7 @@ test('speech card editing updates sentence in database', async ({ page }) => {
   await createCard({
     cardId: 'e5f6g7h8',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 11,
     data: {
       examples: [
@@ -997,6 +999,7 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
   await createCard({
     cardId: 'grammar-edit-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 1,
     data: {
       examples: [
@@ -1022,6 +1025,7 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
   await createCard({
     cardId: 'grammar-add-gap-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 2,
     data: {
       examples: [
@@ -1053,6 +1057,7 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
   await createCard({
     cardId: 'grammar-remove-gap-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 3,
     data: {
       examples: [
@@ -1080,6 +1085,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
   await createCard({
     cardId: 'grammar-save-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 4,
     data: {
       examples: [
@@ -1119,6 +1125,7 @@ test('grammar card editing displays existing hint and saves edits to database', 
   await createCard({
     cardId: 'grammar-hint-edit-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 7,
     data: {
       hint: 'sein',
@@ -1155,6 +1162,7 @@ test('grammar card editing allows adding a hint to a card without one', async ({
   await createCard({
     cardId: 'grammar-no-hint-edit-card',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 8,
     data: {
       examples: [

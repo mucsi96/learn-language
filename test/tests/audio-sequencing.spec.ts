@@ -212,6 +212,7 @@ test('speech card audio plays on study page', async ({ page }) => {
   await createCard({
     cardId: 'speech-audio-test',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     data: {
       examples: [
         {

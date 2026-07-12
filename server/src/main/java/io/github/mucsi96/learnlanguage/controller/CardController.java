@@ -25,9 +25,11 @@ import io.github.mucsi96.learnlanguage.model.CardResponse;
 import io.github.mucsi96.learnlanguage.model.CardTableResponse;
 import io.github.mucsi96.learnlanguage.model.CardUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -138,10 +140,21 @@ public class CardController {
     final Source source = sourceRepository.findById(request.getSourceId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
 
+    if (request.getCardType() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cardType is required");
+    }
+
+    if (!source.getCardTypes().contains(request.getCardType())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Card type %s is not allowed for source %s".formatted(
+              request.getCardType().getTypeName(), source.getId()));
+    }
+
     final Card card = Card.builder()
         .id(request.getId())
         .source(source)
         .sourcePageNumber(request.getSourcePageNumber())
+        .cardType(request.getCardType())
         .data(request.getData())
         .readiness(request.getReadiness())
         .due(request.getDue())

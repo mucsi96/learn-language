@@ -5,6 +5,7 @@ import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.annotation.Nonnull;
@@ -45,9 +46,10 @@ public class Source {
   @Column(name = "language_level")
   private LanguageLevel languageLevel;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "card_type")
-  private CardType cardType;
+  @Convert(converter = CardTypeListConverter.class)
+  @Column(name = "card_types", nullable = false)
+  @Builder.Default
+  private List<CardType> cardTypes = List.of();
 
   @Enumerated(EnumType.STRING)
   @Column(name = "format_type")

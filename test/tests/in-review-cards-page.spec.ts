@@ -320,6 +320,7 @@ test('displays speech cards in review with inline form', async ({ page }) => {
   await createCard({
     cardId: 'a1b2c3d4',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 20,
     data: {
       examples: [

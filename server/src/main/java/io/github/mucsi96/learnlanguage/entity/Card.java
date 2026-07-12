@@ -6,6 +6,7 @@ import org.hibernate.annotations.Type;
 
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.CardReadiness;
+import io.github.mucsi96.learnlanguage.model.CardType;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,6 +38,10 @@ public class Card {
 
     @Column(name = "source_page_number", nullable = false)
     private Integer sourcePageNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "card_type", nullable = false)
+    private CardType cardType;
 
     @Column(nullable = false, columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)

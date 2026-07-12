@@ -14,7 +14,7 @@ public class PageResponse {
     private String sourceId;
     private String sourceName;
     private SourceType sourceType;
-    private CardType cardType;
+    private List<CardType> cardTypes;
     private SourceFormatType formatType;
     private Boolean hasImage;
     private Integer documentId;

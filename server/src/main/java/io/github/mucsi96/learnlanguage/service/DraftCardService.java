@@ -49,6 +49,7 @@ public class DraftCardService {
                     .id(cardId)
                     .source(source)
                     .sourcePageNumber(1)
+                    .cardType(CardType.VOCABULARY)
                     .data(CardData.builder()
                             .word(lookupResult.normalizedWord())
                             .translation(Map.of(targetLanguage, lookupResult.translation()))
@@ -84,7 +85,7 @@ public class DraftCardService {
                             .sourceType(SourceType.EBOOK_DICTIONARY)
                             .startPage(1)
                             .languageLevel(LanguageLevel.B1)
-                            .cardType(CardType.VOCABULARY)
+                            .cardTypes(List.of(CardType.VOCABULARY))
                             .formatType(SourceFormatType.WORD_LIST_WITH_EXAMPLES)
                             .build();
                     return sourceService.saveSource(newSource);

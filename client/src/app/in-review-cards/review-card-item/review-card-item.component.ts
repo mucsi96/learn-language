@@ -58,17 +58,17 @@ export class ReviewCardItemComponent implements OnDestroy {
   private observer: IntersectionObserver | undefined;
   private wasVisible = false;
 
-  readonly cardType = computed(() => this.card().source.cardType);
+  readonly cardType = computed(() => this.card().cardType);
 
   readonly displayLabel = computed(() => {
     const card = this.card();
-    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
+    const strategy = this.cardTypeRegistry.getStrategy(card.cardType);
     return strategy.getCardDisplayLabel(card);
   });
 
   readonly typeLabel = computed(() => {
     const card = this.card();
-    const strategy = this.cardTypeRegistry.getStrategy(card.source.cardType);
+    const strategy = this.cardTypeRegistry.getStrategy(card.cardType);
     return strategy.getCardTypeLabel(card);
   });
 

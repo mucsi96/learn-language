@@ -19,6 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 import { SourcesService } from '../../sources.service';
+import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
 
 const SLUG_MAX_LENGTH = 50;
 
@@ -68,16 +69,12 @@ export class SourceDialogComponent {
       (source) => source.id !== this.data.source?.id
     )
   );
-  private readonly baseCardTypes = [
-    { code: 'vocabulary', displayName: 'Vocabulary' },
-    { code: 'speech', displayName: 'Speech' },
-    { code: 'grammar', displayName: 'Grammar' },
-  ];
-
   readonly isAiPrompt = computed(() => this.formModel().sourceType === 'aiPrompt');
 
   readonly cardTypes = computed(() =>
-    this.isAiPrompt() ? [{ code: 'simple', displayName: 'Simple' }] : this.baseCardTypes
+    CARD_TYPE_OPTIONS.filter((option) =>
+      this.isAiPrompt() ? option.code === 'simple' : option.code !== 'simple'
+    )
   );
 
   readonly formModel = signal<{
@@ -86,7 +83,7 @@ export class SourceDialogComponent {
     fileName: string;
     startPage: number;
     languageLevel: LanguageLevel | '';
-    cardType: CardType | '';
+    cardTypes: CardType[];
     formatType: SourceFormatType | '';
     cardLimit: number;
     newCardLimit: number;
@@ -99,7 +96,7 @@ export class SourceDialogComponent {
     fileName: '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel ?? '',
-    cardType: this.data.source?.cardType ?? '',
+    cardTypes: this.data.source?.cardTypes ?? [],
     formatType: this.data.source?.formatType ?? '',
     cardLimit: this.data.source?.cardLimit ?? 50,
     newCardLimit: this.data.source?.newCardLimit ?? 50,
@@ -109,26 +106,29 @@ export class SourceDialogComponent {
   });
 
   private readonly forceSimpleCardType = effect(() => {
-    if (this.isAiPrompt() && this.formModel().cardType !== 'simple') {
-      this.formModel.update((m) => ({ ...m, cardType: 'simple' }));
+    const cardTypes = this.formModel().cardTypes;
+    if (this.isAiPrompt() && (cardTypes.length !== 1 || cardTypes[0] !== 'simple')) {
+      this.formModel.update((m) => ({ ...m, cardTypes: ['simple'] }));
     }
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.name);
-    required(path.cardType);
     required(path.languageLevel);
     required(path.sourceType);
     min(path.startPage, 1);
     min(path.cardLimit, 1);
     min(path.newCardLimit, 1);
+    validate(path.cardTypes, (ctx) =>
+      ctx.value().length === 0 ? requiredError() : undefined
+    );
     validate(path.formatType, (ctx) => {
-      const ct = ctx.valueOf(path.cardType);
-      if (ct !== 'speech' && ct !== 'grammar' && ct !== 'simple' && !ctx.value()) {
+      const cardTypes = ctx.valueOf(path.cardTypes);
+      if (cardTypes.includes('vocabulary') && !ctx.value()) {
         return requiredError();
       }
       return undefined;
     });
-    disabled(path.cardType, () => this.data.mode === 'edit' || this.isAiPrompt());
+    disabled(path.cardTypes, () => this.isAiPrompt());
     disabled(path.sourceType, () => this.data.mode === 'edit');
   });
 
@@ -161,6 +161,7 @@ export class SourceDialogComponent {
       const id = this.data.mode === 'edit'
         ? this.data.source?.id
         : slugify(result.name);
+      const cardTypes = result.cardTypes;
       const formData: Partial<Source> & { fileName?: string } = {
         id,
         name: result.name,
@@ -168,19 +169,19 @@ export class SourceDialogComponent {
         fileName: result.fileName,
         startPage: result.startPage,
         languageLevel: result.languageLevel || undefined,
-        cardType: result.cardType || undefined,
-        formatType: result.cardType === 'speech' || result.cardType === 'grammar'
-          ? 'flowingText'
-          : result.cardType === 'simple'
-            ? undefined
-            : result.formatType || undefined,
+        cardTypes: cardTypes.length > 0 ? cardTypes : undefined,
+        formatType: cardTypes.includes('vocabulary')
+          ? result.formatType || undefined
+          : cardTypes.includes('speech') || cardTypes.includes('grammar')
+            ? 'flowingText'
+            : undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
           ? 0
           : result.learningPartnerId,
         detectionSourceIds: result.detectionSourceIds,
-        prompt: result.cardType === 'simple' ? result.prompt || undefined : undefined,
+        prompt: cardTypes.includes('simple') ? result.prompt || undefined : undefined,
       };
       this.dialogRef.close(formData);
     }

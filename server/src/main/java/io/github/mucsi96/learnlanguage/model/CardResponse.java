@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -14,6 +15,7 @@ public class CardResponse {
     private String id;
     private CardSourceResponse source;
     private Integer sourcePageNumber;
+    private CardType cardType;
     private CardData data;
     private CardReadiness readiness;
     private LocalDateTime due;
@@ -39,10 +41,11 @@ public class CardResponse {
                         .startPage(source.getStartPage())
                         .bookmarkedPage(source.getBookmarkedPage())
                         .languageLevel(source.getLanguageLevel())
-                        .cardType(source.getCardType())
+                        .cardTypes(source.getCardTypes())
                         .formatType(source.getFormatType())
                         .build())
                 .sourcePageNumber(card.getSourcePageNumber())
+                .cardType(card.getCardType())
                 .data(card.getData())
                 .readiness(card.getReadiness())
                 .due(card.getDue())
@@ -68,7 +71,7 @@ public class CardResponse {
         private Integer startPage;
         private Integer bookmarkedPage;
         private LanguageLevel languageLevel;
-        private CardType cardType;
+        private List<CardType> cardTypes;
         private SourceFormatType formatType;
     }
 }

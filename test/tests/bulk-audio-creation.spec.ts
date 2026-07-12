@@ -429,6 +429,7 @@ test('bulk audio creation strips grammar gap markers from audio text', async ({ 
   await createCard({
     cardId: 'grammar-audio-strip',
     sourceId: 'grammar-a1',
+    cardType: 'GRAMMAR',
     sourcePageNumber: 3,
     data: {
       examples: [
@@ -874,6 +875,7 @@ test('bulk audio creation for speech cards', async ({ page }) => {
   await createCard({
     cardId: 'a1b2c3d4',
     sourceId: 'speech-a1',
+    cardType: 'SPEECH',
     sourcePageNumber: 20,
     data: {
       examples: [

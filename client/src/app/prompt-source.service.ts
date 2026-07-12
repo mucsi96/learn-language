@@ -58,6 +58,7 @@ export class PromptSourceService {
         id: `${sourceId}-${crypto.randomUUID()}`,
         sourceId,
         sourcePageNumber: 1,
+        cardType: 'simple' as const,
         data: {
           frontText: suggestion.frontText,
           backText: suggestion.backText,

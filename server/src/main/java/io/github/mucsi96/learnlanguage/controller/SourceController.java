@@ -126,7 +126,7 @@ public class SourceController {
           .id(sourceId)
           .name(source.getName())
           .sourceType(source.getSourceType())
-          .cardType(source.getCardType())
+          .cardTypes(source.getCardTypes())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
           .cardCount(stats.getCardCount())
@@ -345,13 +345,17 @@ public class SourceController {
   @PostMapping("/source")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
   public ResponseEntity<Map<String, String>> createSource(@RequestBody SourceRequest request) {
+    if (request.getCardTypes() == null || request.getCardTypes().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
+    }
+
     Source source = Source.builder()
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
         .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
         .languageLevel(request.getLanguageLevel())
-        .cardType(request.getCardType())
+        .cardTypes(request.getCardTypes())
         .formatType(request.getFormatType())
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
@@ -381,6 +385,10 @@ public class SourceController {
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
       @RequestBody SourceRequest request) {
+    if (request.getCardTypes() != null && request.getCardTypes().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
+    }
+
     final Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
@@ -389,7 +397,7 @@ public class SourceController {
         .sourceType(request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType())
         .startPage(request.getStartPage() != null ? request.getStartPage() : existingSource.getStartPage())
         .languageLevel(request.getLanguageLevel() != null ? request.getLanguageLevel() : existingSource.getLanguageLevel())
-        .cardType(request.getCardType() != null ? request.getCardType() : existingSource.getCardType())
+        .cardTypes(request.getCardTypes() != null ? request.getCardTypes() : existingSource.getCardTypes())
         .formatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType())
         .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
         .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
@@ -679,9 +687,9 @@ public class SourceController {
     final Source source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-    if (source.getSourceType() != SourceType.IMAGES || source.getCardType() != CardType.GRAMMAR) {
+    if (source.getSourceType() != SourceType.IMAGES || !source.getCardTypes().contains(CardType.GRAMMAR)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Photo grammar cards are only supported on IMAGES sources with cardType=grammar");
+          "Photo grammar cards are only supported on IMAGES sources allowing the grammar card type");
     }
     return source;
   }
