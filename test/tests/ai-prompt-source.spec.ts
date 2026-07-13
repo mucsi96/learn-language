@@ -260,9 +260,12 @@ test('study mode syntax-highlights code blocks in simple cards', async ({ page }
 
   await page.goto('/sources/ckad-code/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
-  await pressRemoteKey(page, 'Enter');
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText(/read a pod name/)).toBeVisible();
+
+  await pressRemoteKey(page, 'Enter');
+
   const codeBlock = flashcard.getByRole('code');
   await expect(codeBlock).toContainText('pod.metadata.name');
   await expect(codeBlock).toHaveClass(/language-typescript/);
