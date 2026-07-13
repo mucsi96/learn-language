@@ -91,6 +91,113 @@ test('create AI prompt source, generate, preview and create simple cards', async
   await expect(podsRow).toContainText('2');
 });
 
+test('simple card can be edited on the card editing page', async ({ page }) => {
+  await createSource({
+    id: 'ckad-edit',
+    name: 'CKAD Edit',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await createCard({
+    cardId: 'ckad-pods-edit',
+    sourceId: 'ckad-edit',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+      topic: 'Pods',
+    },
+  });
+
+  await page.goto('/sources/ckad-edit/page/1/cards/ckad-pods-edit');
+
+  await expect(page.getByRole('heading', { name: 'Simple' })).toBeVisible();
+  await expect(page.getByLabel('Front text')).toHaveValue('What is a **Pod**?');
+  await expect(page.getByLabel('Back text')).toHaveValue('The smallest deployable unit.');
+  await expect(page.getByLabel('Topic')).toHaveValue('Pods');
+  await expect(page.getByLabel('Front preview')).toContainText('What is a Pod?');
+
+  await page.getByLabel('Back text').fill('A Pod is the smallest deployable unit in Kubernetes.');
+  await page.getByLabel('Topic').fill('Core Concepts');
+  await page.getByRole('button', { name: 'Update' }).click();
+
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT data FROM learn_language.cards WHERE id = $1`,
+      ['ckad-pods-edit']
+    );
+    expect(result.rows[0].data.frontText).toBe('What is a **Pod**?');
+    expect(result.rows[0].data.backText).toBe(
+      'A Pod is the smallest deployable unit in Kubernetes.'
+    );
+    expect(result.rows[0].data.topic).toBe('Core Concepts');
+  });
+
+  await page.getByLabel('Topic').clear();
+  await page.getByRole('button', { name: 'Update' }).click();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-pods-edit']
+      );
+      return result.rows[0].data.topic;
+    })
+  ).toBeUndefined();
+});
+
+test('simple card in review shows edit form and can be marked as reviewed', async ({ page }) => {
+  await createSource({
+    id: 'ckad-review',
+    name: 'CKAD Review',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await createCard({
+    cardId: 'ckad-pods-review',
+    sourceId: 'ckad-review',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What does `kubectl get pods` do?',
+      backText: 'Lists pods in the current namespace.',
+      topic: 'Pods',
+    },
+    readiness: 'IN_REVIEW',
+  });
+
+  await page.goto('/in-review-cards');
+
+  await expect(page.getByLabel('Front text')).toHaveValue('What does `kubectl get pods` do?');
+  await expect(page.getByLabel('Back text')).toHaveValue('Lists pods in the current namespace.');
+
+  const markAsReviewedButton = page.getByRole('button', { name: 'Mark as reviewed' });
+  await expect(markAsReviewedButton).toBeEnabled();
+  await markAsReviewedButton.click();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT readiness FROM learn_language.cards WHERE id = $1`,
+        ['ckad-pods-review']
+      );
+      return result.rows[0].readiness;
+    })
+  ).toBe('REVIEWED');
+});
+
 test('study mode renders a simple card front and back as markdown', async ({ page }) => {
   await createSource({
     id: 'ckad-study',
