@@ -233,3 +233,40 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
   await expect(flashcard.getByText('holds containers')).toBeVisible();
   await expect(flashcard.getByText('shares network')).toBeVisible();
 });
+
+test('study mode syntax-highlights code blocks in simple cards', async ({ page }) => {
+  await createSource({
+    id: 'ckad-code',
+    name: 'CKAD Code',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await createCard({
+    cardId: 'ckad-code-1',
+    sourceId: 'ckad-code',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'How do you read a pod name in TypeScript?',
+      backText:
+        'Like this:\n\n```typescript\nconst podName: string = pod.metadata.name;\n```',
+      topic: 'Pods',
+    },
+  });
+
+  await page.goto('/sources/ckad-code/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await pressRemoteKey(page, 'Enter');
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const codeBlock = flashcard.getByRole('code');
+  await expect(codeBlock).toContainText('pod.metadata.name');
+  await expect(codeBlock).toHaveClass(/language-typescript/);
+  await expect(codeBlock.getByText('const', { exact: true })).toHaveClass(
+    /hljs-keyword/
+  );
+});
