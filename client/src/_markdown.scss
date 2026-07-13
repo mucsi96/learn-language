@@ -1,5 +1,8 @@
 /* Shared styles for markdown rendered via [innerHTML] and the `markdown` pipe.
-   Must be global: emulated view encapsulation never matches injected elements. */
+   Must be global: emulated view encapsulation never matches injected elements.
+   Code blocks intentionally keep the GitHub Dark look in both themes
+   (angular.json loads highlight.js/styles/github-dark.css); inline code
+   follows the Material theme via --mat-sys tokens. */
 
 .markdown-body {
   code {
