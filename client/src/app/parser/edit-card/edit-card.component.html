@@ -74,5 +74,16 @@
         (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
       />
     }
+    @case ('simple') {
+      <app-edit-simple-card
+        [selectedCardId]="selectedCardId()"
+        [selectedSourceId]="selectedSourceId()"
+        [selectedPageNumber]="selectedPageNumber()"
+        [card]="card.value()"
+        (cardUpdate)="handleCardUpdate($event)"
+        (saveRequested)="saveCard()"
+        (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+      />
+    }
   }
 }

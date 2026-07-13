@@ -25,6 +25,7 @@ import { ConfirmDialogComponent } from '../../parser/edit-card/confirm-dialog/co
 import { EditVocabularyCardComponent } from '../../parser/edit-card/edit-vocabulary-card/edit-vocabulary-card.component';
 import { EditSpeechCardComponent } from '../../parser/edit-card/edit-speech-card/edit-speech-card.component';
 import { EditGrammarCardComponent } from '../../parser/edit-card/edit-grammar-card/edit-grammar-card.component';
+import { EditSimpleCardComponent } from '../../parser/edit-card/edit-simple-card/edit-simple-card.component';
 
 @Component({
   selector: 'app-review-card-item',
@@ -35,6 +36,7 @@ import { EditGrammarCardComponent } from '../../parser/edit-card/edit-grammar-ca
     EditVocabularyCardComponent,
     EditSpeechCardComponent,
     EditGrammarCardComponent,
+    EditSimpleCardComponent,
   ],
   templateUrl: './review-card-item.component.html',
   styleUrl: './review-card-item.component.css',

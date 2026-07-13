@@ -66,6 +66,16 @@
           (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
         />
       }
+      @case ('simple') {
+        <app-edit-simple-card
+          [selectedCardId]="card().id"
+          [selectedSourceId]="card().source.id"
+          [selectedPageNumber]="card().sourcePageNumber"
+          [card]="card()"
+          (cardUpdate)="handleCardUpdate($event)"
+          (markAsReviewedAvailable)="markAsReviewedAvailable.set($event)"
+        />
+      }
     }
   </mat-card-content>
 </mat-card>

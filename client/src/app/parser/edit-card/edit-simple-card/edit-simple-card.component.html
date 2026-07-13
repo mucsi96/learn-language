@@ -1,0 +1,39 @@
+<div class="text-section">
+  <mat-form-field class="field">
+    <mat-label>Topic</mat-label>
+    <input matInput [formField]="simpleForm.topic" aria-label="Topic" />
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Front (Markdown)</mat-label>
+    <textarea
+      matInput
+      [formField]="simpleForm.frontText"
+      aria-label="Front text"
+      rows="4"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Back (Markdown)</mat-label>
+    <textarea
+      matInput
+      [formField]="simpleForm.backText"
+      aria-label="Back text"
+      rows="6"
+    ></textarea>
+  </mat-form-field>
+</div>
+
+<div class="preview-section">
+  <h3>Preview</h3>
+  <div
+    class="markdown-body"
+    aria-label="Front preview"
+    [innerHTML]="formModel().frontText | markdown"
+  ></div>
+  <hr class="divider" />
+  <div
+    class="markdown-body"
+    aria-label="Back preview"
+    [innerHTML]="formModel().backText | markdown"
+  ></div>
+</div>
