@@ -139,6 +139,19 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
     );
     expect(result.rows[0].data.topic).toBe('Core Concepts');
   });
+
+  await page.getByLabel('Topic').clear();
+  await page.getByRole('button', { name: 'Update' }).click();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-pods-edit']
+      );
+      return result.rows[0].data.topic;
+    })
+  ).toBeUndefined();
 });
 
 test('simple card in review shows edit form and can be marked as reviewed', async ({ page }) => {
