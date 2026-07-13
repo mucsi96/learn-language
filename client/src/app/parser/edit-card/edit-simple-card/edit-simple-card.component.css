@@ -38,19 +38,3 @@
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-
-.markdown-body pre {
-  background: var(--mat-sys-surface-container-high);
-  padding: 12px;
-  border-radius: 8px;
-  overflow-x: auto;
-}
-
-.markdown-body code {
-  font-family: monospace;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-  padding-left: 1.5rem;
-}

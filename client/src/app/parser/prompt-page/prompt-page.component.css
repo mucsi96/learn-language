@@ -111,15 +111,3 @@
   text-align: left;
   overflow-wrap: anywhere;
 }
-
-.markdown-body pre {
-  background: var(--mat-sys-surface-container-high, #f0f0f0);
-  padding: 10px;
-  border-radius: 8px;
-  overflow-x: auto;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-  padding-left: 1.5rem;
-}
