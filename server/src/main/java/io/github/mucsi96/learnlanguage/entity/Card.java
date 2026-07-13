@@ -40,8 +40,8 @@ public class Card {
     private Integer sourcePageNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "card_type", nullable = false)
-    private CardType cardType;
+    @Column(nullable = false)
+    private CardType type;
 
     @Column(nullable = false, columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)

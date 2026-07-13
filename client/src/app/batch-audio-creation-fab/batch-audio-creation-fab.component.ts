@@ -55,7 +55,7 @@ export class BatchAudioCreationFabComponent {
   readonly totalAudioItemsNeeded = computed(() => {
     const frontAudioDisabled = this.voiceConfigService.frontAudioDisabled();
     return this.cardsForAudio().reduce((sum, card) => {
-      const cardType = card.cardType;
+      const cardType = card.type;
       if (!cardType) return sum;
       const strategy = this.cardTypeRegistry.getStrategy(cardType);
       const existingAudio = card.data.audio ?? [];
@@ -154,7 +154,7 @@ export class BatchAudioCreationFabComponent {
   private groupCardsByCardType(cards: Card[]): Partial<Record<CardType, Card[]>> {
     return cards.reduce<Partial<Record<CardType, Card[]>>>(
       (acc, card) => {
-        const cardType = card.cardType;
+        const cardType = card.type;
         if (!cardType) return acc;
         return {
           ...acc,

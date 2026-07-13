@@ -140,21 +140,21 @@ public class CardController {
     final Source source = sourceRepository.findById(request.getSourceId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
 
-    if (request.getCardType() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cardType is required");
+    if (request.getType() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
     }
 
-    if (!source.getCardTypes().contains(request.getCardType())) {
+    if (!source.getCardTypes().contains(request.getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Card type %s is not allowed for source %s".formatted(
-              request.getCardType().getTypeName(), source.getId()));
+              request.getType().getTypeName(), source.getId()));
     }
 
     final Card card = Card.builder()
         .id(request.getId())
         .source(source)
         .sourcePageNumber(request.getSourcePageNumber())
-        .cardType(request.getCardType())
+        .type(request.getType())
         .data(request.getData())
         .readiness(request.getReadiness())
         .due(request.getDue())

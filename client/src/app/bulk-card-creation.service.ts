@@ -126,7 +126,7 @@ export class BulkCardCreationService {
         id: item.id,
         sourceId,
         sourcePageNumber: pageNumber,
-        cardType,
+        type: cardType,
         data: draftCardData,
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
         readiness: 'DRAFT',
@@ -164,7 +164,7 @@ export class BulkCardCreationService {
       updateProgress('in-progress', `${label}: Fetching card...`);
 
       const card = await fetchJson<Card>(this.http, `/api/card/${cardId}`);
-      const strategy = this.strategyRegistry.getStrategy(card.cardType);
+      const strategy = this.strategyRegistry.getStrategy(card.type);
       label = strategy.getCardDisplayLabel(card);
       updateProgress('in-progress', `${label}: Processing...`);
 

@@ -94,12 +94,12 @@ export class EditCardComponent {
   }
 
   getCardType(): CardType | undefined {
-    return this.card.value()?.cardType;
+    return this.card.value()?.type;
   }
 
   getCardTypeTitle(): string {
     const card = this.card.value();
-    const cardType = card?.cardType;
+    const cardType = card?.type;
     if (!card || !cardType) {
       return '';
     }

@@ -15,7 +15,7 @@ public class CardResponse {
     private String id;
     private CardSourceResponse source;
     private Integer sourcePageNumber;
-    private CardType cardType;
+    private CardType type;
     private CardData data;
     private CardReadiness readiness;
     private LocalDateTime due;
@@ -45,7 +45,7 @@ public class CardResponse {
                         .formatType(source.getFormatType())
                         .build())
                 .sourcePageNumber(card.getSourcePageNumber())
-                .cardType(card.getCardType())
+                .type(card.getType())
                 .data(card.getData())
                 .readiness(card.getReadiness())
                 .due(card.getDue())

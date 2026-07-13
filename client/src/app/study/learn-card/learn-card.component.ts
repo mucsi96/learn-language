@@ -84,7 +84,7 @@ export class LearnCardComponent implements OnDestroy {
     return id ? String(id) : null;
   });
 
-  readonly currentCardType = computed(() => this.card()?.cardType);
+  readonly currentCardType = computed(() => this.card()?.type);
 
   readonly languageTexts = computed<LanguageTexts[]>(() => {
     const card = this.card();

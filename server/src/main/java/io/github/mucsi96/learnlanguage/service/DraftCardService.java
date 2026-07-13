@@ -49,7 +49,7 @@ public class DraftCardService {
                     .id(cardId)
                     .source(source)
                     .sourcePageNumber(1)
-                    .cardType(CardType.VOCABULARY)
+                    .type(CardType.VOCABULARY)
                     .data(CardData.builder()
                             .word(lookupResult.normalizedWord())
                             .translation(Map.of(targetLanguage, lookupResult.translation()))
