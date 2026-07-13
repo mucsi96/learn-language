@@ -66,8 +66,7 @@ public class CardView {
     private Boolean flagged;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "card_type")
-    private CardType cardType;
+    private CardType type;
 
     @Column(name = "review_score")
     private Integer reviewScore;

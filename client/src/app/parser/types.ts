@@ -72,7 +72,7 @@ export type Card = {
     cardTypes?: CardType[];
   };
   sourcePageNumber: number;
-  cardType?: CardType;
+  type?: CardType;
   data: CardData;
   readiness: CardReadiness;
   due: Date;
@@ -92,7 +92,7 @@ export type CardCreatePayload = {
   id: string;
   sourceId: string;
   sourcePageNumber: number;
-  cardType: CardType;
+  type: CardType;
   data: CardData;
   readiness: CardReadiness;
   due: Date;

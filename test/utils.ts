@@ -363,7 +363,7 @@ export async function createCard(params: {
   await withDbConnection(async (client) => {
     await client.query(
       `INSERT INTO learn_language.cards (
-        id, source_id, source_page_number, data, card_type, state, learning_steps,
+        id, source_id, source_page_number, data, type, state, learning_steps,
         stability, difficulty, due, last_review, elapsed_days, scheduled_days,
         reps, lapses, readiness, flagged
       ) VALUES (

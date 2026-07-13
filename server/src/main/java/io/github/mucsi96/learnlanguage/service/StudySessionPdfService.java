@@ -160,7 +160,7 @@ public class StudySessionPdfService {
         final String title = sourceName + " - " + dateStr;
 
         final Map<CardType, List<Card>> cardsByType = cards.stream()
-                .collect(Collectors.groupingBy(Card::getCardType, LinkedHashMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(Card::getType, LinkedHashMap::new, Collectors.toList()));
 
         cardsByType.forEach((cardType, typeCards) -> {
             final List<String> headers = getHeaders(cardType);

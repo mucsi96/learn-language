@@ -1119,3 +1119,81 @@ databaseChangeLog:
         - dropColumn:
             tableName: sources
             columnName: card_type
+  - changeSet:
+      id: 37-rename-cards-card-type-to-type
+      author: mucsi96
+      changes:
+        - renameColumn:
+            tableName: cards
+            oldColumnName: card_type
+            newColumnName: type
+        - sql:
+            sql: |
+              DROP MATERIALIZED VIEW IF EXISTS card_view;
+              CREATE MATERIALIZED VIEW card_view AS
+              SELECT
+                  c.id,
+                  c.source_id,
+                  c.source_page_number,
+                  c.data,
+                  c.readiness,
+                  c.due,
+                  c.reps,
+                  c.lapses,
+                  c.stability,
+                  c.state,
+                  c.last_review,
+                  c.flagged,
+                  c.type,
+                  rs.review_score,
+                  cs.correct_streak,
+                  CASE WHEN c.readiness IN ('READY', 'REVIEWED', 'KNOWN') AND (
+                      (c.type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'en' IS NULL OR TRIM(c.data->'translation'->>'en') = '')) OR
+                      (c.type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'hu' IS NULL OR TRIM(c.data->'translation'->>'hu') = '')) OR
+                      (c.type NOT IN ('GRAMMAR', 'SIMPLE') AND (c.data->'translation'->>'ch' IS NULL OR TRIM(c.data->'translation'->>'ch') = '')) OR
+                      (c.type = 'VOCABULARY' AND c.data->>'type' = 'NOUN' AND (c.data->>'gender' IS NULL OR TRIM(c.data->>'gender') = '')) OR
+                      (c.type = 'VOCABULARY' AND (c.data->>'type' IS NULL OR TRIM(c.data->>'type') = '')) OR
+                      (c.type = 'GRAMMAR' AND (c.data->'examples'->0->>'hu' IS NULL OR TRIM(c.data->'examples'->0->>'hu') = '')) OR
+                      (c.type = 'SIMPLE' AND (c.data->>'frontText' IS NULL OR TRIM(c.data->>'frontText') = '' OR c.data->>'backText' IS NULL OR TRIM(c.data->>'backText') = ''))
+                  ) THEN true ELSE false END AS is_unhealthy,
+                  CASE WHEN c.readiness = 'READY'
+                      AND c.state = 'REVIEW'
+                      AND c.stability >= 30
+                      AND c.reps >= 5
+                      AND c.lapses <= 1
+                  THEN true ELSE false END AS is_suggested_known
+              FROM cards c
+              LEFT JOIN LATERAL (
+                  SELECT COALESCE(MIN(rn) FILTER (WHERE rating < 3) - 1,
+                                  MAX(rn))::integer AS correct_streak
+                  FROM (
+                      SELECT rating, ROW_NUMBER() OVER (ORDER BY review DESC) AS rn
+                      FROM review_logs
+                      WHERE card_id = c.id
+                  ) ranked
+              ) cs ON true
+              LEFT JOIN LATERAL (
+                  SELECT
+                      CASE
+                          WHEN stats.total_count = 0 THEN NULL
+                          WHEN stats.total_count = 1 THEN (stats.last_review_success * 100)::integer
+                          ELSE ROUND(
+                              (0.5 * stats.last_review_success + 0.5 * stats.prev_success_rate) * 100
+                          )::integer
+                      END AS review_score
+                  FROM (
+                      SELECT
+                          COUNT(*) AS total_count,
+                          CASE WHEN (SELECT rating FROM review_logs WHERE card_id = c.id ORDER BY review DESC LIMIT 1) >= 3
+                              THEN 1.0 ELSE 0.0
+                          END AS last_review_success,
+                          COALESCE(
+                              (SELECT AVG(CASE WHEN rating >= 3 THEN 1.0 ELSE 0.0 END)
+                               FROM (SELECT rating FROM review_logs WHERE card_id = c.id ORDER BY review DESC OFFSET 1) prev),
+                              0.0
+                          ) AS prev_success_rate
+                      FROM review_logs
+                      WHERE card_id = c.id
+                  ) stats
+              ) rs ON true;
+              CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON card_view (id)

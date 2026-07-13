@@ -1069,7 +1069,7 @@ test('card creation rejects a card type not allowed by the source', async ({ pag
       id: 'rejected-grammar-card',
       sourceId: 'goethe-a1',
       sourcePageNumber: 9,
-      cardType: 'grammar',
+      type: 'grammar',
       data: { word: 'aber' },
       readiness: 'DRAFT',
       due: new Date().toISOString(),
