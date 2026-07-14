@@ -210,6 +210,7 @@ export type LanguageTexts = {
 
 export type CardTypeStrategy = {
   cardType: CardType;
+  completionReadiness: CardReadiness;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
   getItemLabel(item: ExtractedItem): string;
   filterItemsBySearchTerm(

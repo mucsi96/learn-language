@@ -10,12 +10,14 @@ import {
   CardData,
   LanguageTexts,
 } from '../parser/types';
+import { CardReadiness } from '../shared/state/card-readiness';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SimpleCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'simple';
+  readonly completionReadiness: CardReadiness = 'READY';
 
   async extractItems(_request: ExtractionRequest): Promise<ExtractedItem[]> {
     return [];
@@ -50,7 +52,12 @@ export class SimpleCardType implements CardTypeStrategy {
     };
   }
 
-  async createCardData(cardData: CardData): Promise<CardData> {
+  async createCardData(
+    cardData: CardData,
+    _progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
+  ): Promise<CardData> {
+    onToolsRequested();
     return cardData;
   }
 

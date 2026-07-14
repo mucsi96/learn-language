@@ -205,7 +205,7 @@ export class BulkCardCreationService {
     updateProgress('in-progress', `${label}: Updating card...`);
 
     await fetchJson(this.http, `/api/card/${cardId}`, {
-      body: { data: enrichedData, readiness: 'IN_REVIEW' },
+      body: { data: enrichedData, readiness: strategy.completionReadiness },
       method: 'PUT',
     });
 

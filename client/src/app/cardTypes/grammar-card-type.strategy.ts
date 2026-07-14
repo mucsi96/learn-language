@@ -14,6 +14,7 @@ import {
   CardData,
   LanguageTexts,
 } from '../parser/types';
+import { CardReadiness } from '../shared/state/card-readiness';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 import { createGrammarGapRegex } from '../shared/constants/grammar.constants';
@@ -32,6 +33,7 @@ interface SentenceTranslationResponse {
 })
 export class GrammarCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'grammar';
+  readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
