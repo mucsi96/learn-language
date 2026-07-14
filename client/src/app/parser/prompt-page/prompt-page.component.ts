@@ -157,6 +157,8 @@ export class PromptPageComponent {
       if (failed.length === 0) {
         this.suggestions.set([]);
       } else {
+        // Matches by reference: createCards returns entries of the same
+        // suggestion objects it was given, so don't clone them upstream.
         const failedSuggestions = new Set(failed);
         this.suggestions.update((items) =>
           items.filter(

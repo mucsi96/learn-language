@@ -205,6 +205,13 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
   await expect(dialog.getByText('The array contains no cards.')).toBeVisible();
 
   await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([{ frontText: 'Question', backText: 'Answer', category: 123 }])
+  );
+  await expect(
+    dialog.getByText('Card 1: "category" must be a string.')
+  ).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill(
     JSON.stringify([
       { frontText: 'Question without an answer' },
       { backText: 'Answer without a question' },
