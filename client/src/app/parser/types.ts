@@ -237,6 +237,7 @@ export type SourceFormatType =
 export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'aiPrompt';
 
 export type SimpleCardSuggestion = {
+  id?: string;
   frontText: string;
   backText: string;
   topic?: string;

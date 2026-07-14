@@ -87,7 +87,7 @@ export class PromptSourceService {
   ): Promise<unknown> {
     const emptyCard = createEmptyCard();
     const cardPayload = {
-      id: `${sourceId}-${crypto.randomUUID()}`,
+      id: suggestion.id ?? `${sourceId}-${crypto.randomUUID()}`,
       sourceId,
       sourcePageNumber: 1,
       type: 'simple' as const,

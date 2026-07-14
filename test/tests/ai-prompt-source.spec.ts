@@ -114,6 +114,7 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
   const jsonStructure = dialog.getByLabel('Expected JSON structure');
+  await expect(jsonStructure).toContainText('id');
   await expect(jsonStructure).toContainText('frontText');
   await expect(jsonStructure).toContainText('backText');
   await expect(jsonStructure).toContainText('topic');
@@ -129,6 +130,7 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
   await dialog.getByLabel('Cards JSON').fill(
     JSON.stringify([
       {
+        id: 'ckad-import-pod',
         frontText: 'What is a **Pod**?',
         backText: 'The smallest deployable unit.',
         topic: 'Pods',
@@ -158,7 +160,7 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
 
   await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT data, readiness, type FROM learn_language.cards WHERE source_id = $1`,
+      `SELECT id, data, readiness, type FROM learn_language.cards WHERE source_id = $1`,
       ['ckad-import']
     );
     const podCard = result.rows.find(
@@ -168,12 +170,14 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
       (row) => row.data.frontText === 'What is a Service?'
     );
 
+    expect(podCard.id).toBe('ckad-import-pod');
     expect(podCard.readiness).toBe('DRAFT');
     expect(podCard.type).toBe('SIMPLE');
     expect(podCard.data.backText).toBe('The smallest deployable unit.');
     expect(podCard.data.topic).toBe('Pods');
     expect(podCard.data.category).toBe('Workloads');
 
+    expect(serviceCard.id).toMatch(/^ckad-import-/);
     expect(serviceCard.readiness).toBe('DRAFT');
     expect(serviceCard.type).toBe('SIMPLE');
     expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
@@ -209,6 +213,13 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
   );
   await expect(
     dialog.getByText('Card 1: "category" must be a string.')
+  ).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([{ id: '  ', frontText: 'Question', backText: 'Answer' }])
+  );
+  await expect(
+    dialog.getByText('Card 1: "id" must be a non-empty string.')
   ).toBeVisible();
 
   await dialog.getByLabel('Cards JSON').fill(
