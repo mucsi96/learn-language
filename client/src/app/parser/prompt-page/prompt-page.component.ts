@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { injectParams } from '../../utils/inject-params';
+import { dialogResult } from '../../utils/dialog-result';
 import { SourcesService } from '../../sources.service';
 import { PromptSourceService } from '../../prompt-source.service';
 import { MarkdownPipe } from '../../shared/markdown.pipe';
@@ -166,7 +166,7 @@ export class PromptPageComponent {
       void,
       SimpleCardImportDialogResult
     >(SimpleCardImportDialogComponent, { width: '640px' });
-    const result = await firstValueFrom(ref.afterClosed());
+    const result = await dialogResult(ref);
     if (!result || result.cards.length === 0) {
       return;
     }

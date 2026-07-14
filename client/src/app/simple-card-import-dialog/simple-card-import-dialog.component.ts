@@ -38,8 +38,8 @@ function toSuggestion(item: Record<string, unknown>): SimpleCardSuggestion {
   const category =
     typeof item['category'] === 'string' ? item['category'].trim() : '';
   return {
-    frontText: item['frontText'] as string,
-    backText: item['backText'] as string,
+    frontText: (item['frontText'] as string).trim(),
+    backText: (item['backText'] as string).trim(),
     ...(topic ? { topic } : {}),
     ...(category ? { category } : {}),
   };
@@ -59,7 +59,7 @@ function parseCardsJson(text: string): ParseResult {
     }
     const errors = parsed.flatMap(validateCard);
     if (errors.length > 0) {
-      return { status: 'invalid', error: errors[0] };
+      return { status: 'invalid', error: errors.join('\n') };
     }
     return {
       status: 'valid',

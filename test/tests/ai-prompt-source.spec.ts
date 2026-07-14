@@ -189,12 +189,19 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
   await dialog.getByLabel('Cards JSON').fill(
-    JSON.stringify([{ frontText: 'Question without an answer' }])
+    JSON.stringify([
+      { frontText: 'Question without an answer' },
+      { backText: 'Answer without a question' },
+    ])
   );
 
-  await expect(
-    dialog.getByText('Card 1: "backText" must be a non-empty string.')
-  ).toBeVisible();
+  const errorMessage = dialog.getByRole('alert');
+  await expect(errorMessage).toContainText(
+    'Card 1: "backText" must be a non-empty string.'
+  );
+  await expect(errorMessage).toContainText(
+    'Card 2: "frontText" must be a non-empty string.'
+  );
   await expect(dialog.getByRole('button', { name: 'Import' })).toBeDisabled();
 });
 
