@@ -1,57 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { createEmptyCard } from 'ts-fsrs';
-import { ENVIRONMENT_CONFIG } from './environment/environment.config';
 import { FsrsGradingService } from './fsrs-grading.service';
 import { fetchJson } from './utils/fetchJson';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import {
-  CardCreatePayload,
-  CoverageResponse,
-  GenerateCardsResponse,
-  SimpleCardSuggestion,
-} from './parser/types';
+import { CardCreatePayload, SimpleCardSuggestion } from './parser/types';
 import { CardReadiness } from './shared/state/card-readiness';
 
-const CARD_GENERATION_OPERATION = 'card_generation';
 const CARD_CREATION_CHUNK_SIZE = 10;
 
 @Injectable({
   providedIn: 'root',
 })
-export class PromptSourceService {
+export class JsonSourceService {
   private readonly http = inject(HttpClient);
-  private readonly environment = inject(ENVIRONMENT_CONFIG);
   private readonly fsrsGradingService = inject(FsrsGradingService);
-
-  readonly primaryModel =
-    this.environment.primaryModelByOperation[CARD_GENERATION_OPERATION];
-
-  async generateCards(
-    sourceId: string,
-    prompt: string,
-    count: number
-  ): Promise<SimpleCardSuggestion[]> {
-    const response = await fetchJson<GenerateCardsResponse>(
-      this.http,
-      `/api/source/${sourceId}/generate-cards`,
-      {
-        method: 'POST',
-        body: { prompt, count },
-      }
-    );
-    return response.cards.map((card) => ({
-      ...card,
-      id: `${sourceId}-${crypto.randomUUID()}`,
-    }));
-  }
-
-  async getCoverage(sourceId: string): Promise<CoverageResponse> {
-    return fetchJson<CoverageResponse>(
-      this.http,
-      `/api/source/${sourceId}/coverage`
-    );
-  }
 
   async createCards(
     sourceId: string,

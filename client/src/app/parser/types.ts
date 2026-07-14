@@ -234,7 +234,7 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
-export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'aiPrompt';
+export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json';
 
 export type SimpleCardSuggestion = {
   id: string;
@@ -242,22 +242,6 @@ export type SimpleCardSuggestion = {
   backText: string;
   topic?: string;
   category?: string;
-};
-
-export type GeneratedCard = Omit<SimpleCardSuggestion, 'id'>;
-
-export type GenerateCardsResponse = {
-  cards: GeneratedCard[];
-};
-
-export type TopicCoverage = {
-  topic: string;
-  cardCount: number;
-  status: 'none' | 'low' | 'good';
-};
-
-export type CoverageResponse = {
-  topics: TopicCoverage[];
 };
 
 export type Source = {
@@ -280,7 +264,6 @@ export type Source = {
   newCardLimit?: number;
   learningPartnerId?: number | null;
   detectionSourceIds?: string[];
-  prompt?: string;
 };
 
 export type WordList = {

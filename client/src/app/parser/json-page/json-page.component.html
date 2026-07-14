@@ -1,0 +1,26 @@
+<div class="json-page">
+  <header class="page-header">
+    <a mat-icon-button routerLink="/sources" aria-label="Back to sources">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <h1>{{ source()?.name ?? sourceId() }}</h1>
+    <span class="spacer"></span>
+    <button mat-flat-button color="primary" (click)="importJson()" [disabled]="importing()">
+      <mat-icon>upload_file</mat-icon>
+      Import JSON
+    </button>
+  </header>
+
+  @if (importing()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Importing cards"></mat-progress-bar>
+  }
+
+  <section class="panel">
+    <h2 class="panel-title">Cards</h2>
+    <p class="hint">
+      Cards are added to this source by importing a JSON array of simple cards.
+      Imported cards are created as drafts.
+    </p>
+    <p class="card-count">{{ source()?.cardCount ?? 0 }} cards in this source</p>
+  </section>
+</div>
