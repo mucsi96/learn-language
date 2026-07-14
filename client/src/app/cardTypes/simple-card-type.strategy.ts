@@ -52,7 +52,12 @@ export class SimpleCardType implements CardTypeStrategy {
     };
   }
 
-  async createCardData(cardData: CardData): Promise<CardData> {
+  async createCardData(
+    cardData: CardData,
+    _progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
+  ): Promise<CardData> {
+    onToolsRequested();
     return cardData;
   }
 

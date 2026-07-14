@@ -60,12 +60,10 @@ export const runPipeline = async <T>(
       launched.push(
         task
           .execute(updater, resolve)
-          .then(
-            (value): PromiseSettledResult<T> => ({
-              status: 'fulfilled',
-              value,
-            })
-          )
+          .then((value): PromiseSettledResult<T> => {
+            resolve();
+            return { status: 'fulfilled', value };
+          })
           .catch((reason): PromiseSettledResult<T> => {
             const msg =
               reason instanceof Error ? reason.message : 'Unknown error';
