@@ -1,6 +1,13 @@
 <div class="content-section">
-  @if (topic(); as topic) {
-    <div class="topic-chip" aria-label="Topic">{{ topic }}</div>
+  @if (topic() || category()) {
+    <div class="chips-row">
+      @if (category(); as category) {
+        <div class="category-chip" aria-label="Category">{{ category }}</div>
+      }
+      @if (topic(); as topic) {
+        <div class="topic-chip" aria-label="Topic">{{ topic }}</div>
+      }
+    </div>
   }
   <div class="chips-corner">
     @let state = card()?.value()?.state; @if (state !== undefined) {

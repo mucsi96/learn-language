@@ -37,6 +37,7 @@ export class EditSimpleCardComponent {
     frontText: this.card()?.data.frontText ?? '',
     backText: this.card()?.data.backText ?? '',
     topic: this.card()?.data.topic ?? '',
+    category: this.card()?.data.category ?? '',
   }));
   readonly simpleForm = form(this.formModel);
 
@@ -80,17 +81,19 @@ export class EditSimpleCardComponent {
     const sourceId = this.selectedSourceId();
     const pageNumber = this.selectedPageNumber();
     const cardId = this.selectedCardId();
-    const { frontText, backText, topic } = this.formModel();
+    const { frontText, backText, topic, category } = this.formModel();
 
     if (!cardId || !frontText || !backText || !sourceId || !pageNumber) {
       return;
     }
 
     const trimmedTopic = topic.trim();
+    const trimmedCategory = category.trim();
     const data: CardData = {
       frontText,
       backText,
       ...(trimmedTopic ? { topic: trimmedTopic } : {}),
+      ...(trimmedCategory ? { category: trimmedCategory } : {}),
     };
 
     return {

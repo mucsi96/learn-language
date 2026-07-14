@@ -91,6 +91,291 @@ test('create AI prompt source, generate, preview and create simple cards', async
   await expect(podsRow).toContainText('2');
 });
 
+test('bulk JSON import creates simple cards in draft state', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import',
+    name: 'CKAD Import',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.route('**/api/source/ckad-import/coverage', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ topics: [] }),
+    })
+  );
+
+  await page.goto('/sources/ckad-import/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  const jsonStructure = dialog.getByLabel('Expected JSON structure');
+  await expect(jsonStructure).toContainText('frontText');
+  await expect(jsonStructure).toContainText('backText');
+  await expect(jsonStructure).toContainText('topic');
+  await expect(jsonStructure).toContainText('category');
+
+  const importButton = dialog.getByRole('button', { name: 'Import' });
+  await expect(importButton).toBeDisabled();
+
+  await dialog.getByLabel('Cards JSON').fill('not valid json');
+  await expect(dialog.getByText(/Invalid JSON/)).toBeVisible();
+  await expect(importButton).toBeDisabled();
+
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        frontText: 'What is a **Pod**?',
+        backText: 'The smallest deployable unit.',
+        topic: 'Pods',
+        category: 'Workloads',
+      },
+      {
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+  await expect(dialog).not.toBeVisible();
+
+  await expect(page.getByText('Imported 2 cards as drafts')).toBeVisible();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT id FROM learn_language.cards WHERE source_id = $1`,
+        ['ckad-import']
+      );
+      return result.rows.length;
+    })
+  ).toBe(2);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT data, readiness, type FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-import']
+    );
+    const podCard = result.rows.find(
+      (row) => row.data.frontText === 'What is a **Pod**?'
+    );
+    const serviceCard = result.rows.find(
+      (row) => row.data.frontText === 'What is a Service?'
+    );
+
+    expect(podCard.readiness).toBe('DRAFT');
+    expect(podCard.type).toBe('SIMPLE');
+    expect(podCard.data.backText).toBe('The smallest deployable unit.');
+    expect(podCard.data.topic).toBe('Pods');
+    expect(podCard.data.category).toBe('Workloads');
+
+    expect(serviceCard.readiness).toBe('DRAFT');
+    expect(serviceCard.type).toBe('SIMPLE');
+    expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
+    expect(serviceCard.data.topic).toBeUndefined();
+    expect(serviceCard.data.category).toBeUndefined();
+  });
+});
+
+test('bulk JSON import rejects cards with missing required fields', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import-invalid',
+    name: 'CKAD Import Invalid',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.goto('/sources/ckad-import-invalid/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+
+  await dialog.getByLabel('Cards JSON').fill('{"frontText": "not an array"}');
+  await expect(dialog.getByText('Expected a JSON array of cards.')).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill('[]');
+  await expect(dialog.getByText('The array contains no cards.')).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([{ frontText: 'Question', backText: 'Answer', category: 123 }])
+  );
+  await expect(
+    dialog.getByText('Card 1: "category" must be a string.')
+  ).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      { frontText: 'Question without an answer' },
+      { backText: 'Answer without a question' },
+    ])
+  );
+
+  const errorMessage = dialog.getByRole('alert');
+  await expect(errorMessage).toContainText(
+    'Card 1: "backText" must be a non-empty string.'
+  );
+  await expect(errorMessage).toContainText(
+    'Card 2: "frontText" must be a non-empty string.'
+  );
+  await expect(dialog.getByRole('button', { name: 'Import' })).toBeDisabled();
+});
+
+test('bulk JSON import reports cards that failed to create', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import-fail',
+    name: 'CKAD Import Fail',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.route('**/api/source/ckad-import-fail/coverage', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ topics: [] }),
+    })
+  );
+
+  let aborted = false;
+  await page.route('**/api/card', async (route) => {
+    if (route.request().method() === 'POST' && !aborted) {
+      aborted = true;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto('/sources/ckad-import-fail/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      { frontText: 'What is a Pod?', backText: 'The smallest deployable unit.' },
+      { frontText: 'What is a Service?', backText: 'A stable endpoint for pods.' },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Failed to import 1 of 2 cards')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT readiness FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-import-fail']
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].readiness).toBe('DRAFT');
+  });
+});
+
+test('failed generated cards stay in preview and retry without duplicates', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-retry',
+    name: 'CKAD Retry',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  let aborted = false;
+  await page.route('**/api/card', async (route) => {
+    if (route.request().method() === 'POST' && !aborted) {
+      aborted = true;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto('/sources/ckad-retry/prompt');
+  await page.getByLabel('Base prompt').fill('CKAD certification exam preparation');
+  await page.getByRole('button', { name: 'Save prompt' }).click();
+
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('heading', { name: 'Preview (2 selected)' })).toBeVisible();
+
+  await page.getByLabel('Include card 2').uncheck();
+  await page.getByRole('button', { name: 'Create 1 cards' }).click();
+
+  await expect(page.getByText('Failed to create 1 of 1 cards')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
+  await expect(page.getByLabel('Include card 2')).toBeVisible();
+
+  await page.getByLabel('Include card 2').check();
+  await page.getByRole('button', { name: 'Create 2 cards' }).click();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE source_id = $1`,
+        ['ckad-retry']
+      );
+      return result.rows.length;
+    })
+  ).toBe(2);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT data FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-retry']
+    );
+    const frontTexts = result.rows.map((row) => row.data.frontText);
+    expect(new Set(frontTexts).size).toBe(2);
+  });
+});
+
+test('generated suggestion preview shows category and topic chips', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-preview-chips',
+    name: 'CKAD Preview Chips',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.route('**/api/source/ckad-preview-chips/generate-cards', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cards: [
+          {
+            frontText: 'What is a Pod?',
+            backText: 'The smallest deployable unit.',
+            topic: 'Pods',
+            category: 'Workloads',
+          },
+        ],
+      }),
+    })
+  );
+
+  await page.goto('/sources/ckad-preview-chips/prompt');
+  await page.getByRole('button', { name: 'Generate' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
+  const previewItem = page.getByRole('listitem').filter({ hasText: 'What is a Pod?' });
+  await expect(previewItem.getByText('Workloads', { exact: true })).toBeVisible();
+  await expect(previewItem.getByText('Pods', { exact: true })).toBeVisible();
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',
@@ -111,6 +396,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
       frontText: 'What is a **Pod**?',
       backText: 'The smallest deployable unit.',
       topic: 'Pods',
+      category: 'Workloads',
     },
   });
 
@@ -120,10 +406,12 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
   await expect(page.getByLabel('Front text')).toHaveValue('What is a **Pod**?');
   await expect(page.getByLabel('Back text')).toHaveValue('The smallest deployable unit.');
   await expect(page.getByLabel('Topic')).toHaveValue('Pods');
+  await expect(page.getByLabel('Category')).toHaveValue('Workloads');
   await expect(page.getByLabel('Front preview')).toContainText('What is a Pod?');
 
   await page.getByLabel('Back text').fill('A Pod is the smallest deployable unit in Kubernetes.');
   await page.getByLabel('Topic').fill('Core Concepts');
+  await page.getByLabel('Category').fill('Kubernetes Basics');
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect(page.getByText('Card updated successfully')).toBeVisible();
@@ -138,9 +426,11 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
       'A Pod is the smallest deployable unit in Kubernetes.'
     );
     expect(result.rows[0].data.topic).toBe('Core Concepts');
+    expect(result.rows[0].data.category).toBe('Kubernetes Basics');
   });
 
   await page.getByLabel('Topic').clear();
+  await page.getByLabel('Category').clear();
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect.poll(async () =>
@@ -150,6 +440,16 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
         ['ckad-pods-edit']
       );
       return result.rows[0].data.topic;
+    })
+  ).toBeUndefined();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-pods-edit']
+      );
+      return result.rows[0].data.category;
     })
   ).toBeUndefined();
 });
@@ -218,6 +518,7 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
       frontText: 'What is a **Pod**?',
       backText: 'A Pod is the smallest deployable unit.\n\n- holds containers\n- shares network',
       topic: 'Pods',
+      category: 'Workloads',
     },
   });
 
@@ -226,6 +527,8 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText(/What is a/)).toBeVisible();
+  await expect(flashcard.getByLabel('Topic')).toHaveText('Pods');
+  await expect(flashcard.getByLabel('Category')).toHaveText('Workloads');
   await expect(flashcard.getByText('holds containers')).not.toBeVisible();
 
   await pressRemoteKey(page, 'Enter');

@@ -1,0 +1,31 @@
+.dialog-content {
+  min-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.intro {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+}
+
+.json-example {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container, #f0f0f0);
+  font-size: 13px;
+  overflow-x: auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error {
+  margin: 0;
+  color: var(--mat-sys-error, #b3261e);
+  white-space: pre-line;
+}

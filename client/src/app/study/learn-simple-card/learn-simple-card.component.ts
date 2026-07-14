@@ -18,4 +18,5 @@ export class LearnSimpleCardComponent {
   readonly frontText = computed(() => this.card()?.value()?.data.frontText ?? '');
   readonly backText = computed(() => this.card()?.value()?.data.backText ?? '');
   readonly topic = computed(() => this.card()?.value()?.data.topic);
+  readonly category = computed(() => this.card()?.value()?.data.category);
 }

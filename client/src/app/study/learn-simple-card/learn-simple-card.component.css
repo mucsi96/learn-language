@@ -8,12 +8,26 @@
   box-sizing: border-box;
 }
 
-.topic-chip {
+.chips-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
   align-self: flex-start;
+}
+
+.topic-chip {
   padding: 4px 12px;
   border-radius: 16px;
   background: var(--mat-sys-secondary-container, #e0e0e0);
   color: var(--mat-sys-on-secondary-container, #1d1d1d);
+  font-size: 0.85rem;
+}
+
+.category-chip {
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: var(--mat-sys-tertiary-container, #ececec);
+  color: var(--mat-sys-on-tertiary-container, #1d1d1d);
   font-size: 0.85rem;
 }
 

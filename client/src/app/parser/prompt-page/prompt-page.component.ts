@@ -9,16 +9,23 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { injectParams } from '../../utils/inject-params';
+import { dialogResult } from '../../utils/dialog-result';
 import { SourcesService } from '../../sources.service';
 import { PromptSourceService } from '../../prompt-source.service';
 import { MarkdownPipe } from '../../shared/markdown.pipe';
 import { CoverageOverviewComponent } from '../../coverage-overview/coverage-overview.component';
+import {
+  SimpleCardImportDialogComponent,
+  SimpleCardImportDialogResult,
+} from '../../simple-card-import-dialog/simple-card-import-dialog.component';
 import { SimpleCardSuggestion } from '../types';
 
 type PreviewItem = {
@@ -48,6 +55,8 @@ export class PromptPageComponent {
   private readonly routeSourceId = injectParams('sourceId');
   private readonly sourcesService = inject(SourcesService);
   private readonly promptSourceService = inject(PromptSourceService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly sourceId = computed(() => {
     const id = this.routeSourceId();
@@ -69,6 +78,7 @@ export class PromptPageComponent {
   readonly savingPrompt = signal(false);
   readonly generating = signal(false);
   readonly creating = signal(false);
+  readonly importing = signal(false);
 
   readonly suggestions = signal<PreviewItem[]>([]);
   readonly selectedCount = computed(
@@ -139,13 +149,69 @@ export class PromptPageComponent {
     }
     this.creating.set(true);
     try {
-      await this.promptSourceService.createCards(sourceId, selected);
-      this.suggestions.set([]);
-      this.coverageVersion.update((v) => v + 1);
-      this.sourcesService.refetchSources();
+      const failed = await this.promptSourceService.createCards(
+        sourceId,
+        selected,
+        'READY'
+      );
+      if (failed.length === 0) {
+        this.suggestions.set([]);
+      } else {
+        // Matches by reference: createCards returns entries of the same
+        // suggestion objects it was given, so don't clone them upstream.
+        const failedSuggestions = new Set(failed);
+        this.suggestions.update((items) =>
+          items.filter(
+            (item) => !item.include || failedSuggestions.has(item.suggestion)
+          )
+        );
+        this.snackBar.open(
+          `Failed to create ${failed.length} of ${selected.length} cards`,
+          'Dismiss',
+          { duration: 5000 }
+        );
+      }
     } finally {
       this.creating.set(false);
+      this.refreshAfterCreation();
     }
+  }
+
+  async importJson(): Promise<void> {
+    const sourceId = this.sourceId();
+    if (!sourceId) {
+      return;
+    }
+    const ref = this.dialog.open<
+      SimpleCardImportDialogComponent,
+      void,
+      SimpleCardImportDialogResult
+    >(SimpleCardImportDialogComponent, { width: '640px' });
+    const result = await dialogResult(ref);
+    if (!result || result.cards.length === 0) {
+      return;
+    }
+    this.importing.set(true);
+    try {
+      const failed = await this.promptSourceService.createCards(
+        sourceId,
+        result.cards,
+        'DRAFT'
+      );
+      const message =
+        failed.length > 0
+          ? `Failed to import ${failed.length} of ${result.cards.length} cards`
+          : `Imported ${result.cards.length} cards as drafts`;
+      this.snackBar.open(message, 'Dismiss', { duration: 5000 });
+    } finally {
+      this.importing.set(false);
+      this.refreshAfterCreation();
+    }
+  }
+
+  private refreshAfterCreation(): void {
+    this.coverageVersion.update((v) => v + 1);
+    this.sourcesService.refetchSources();
   }
 
   refreshCoverage(): void {

@@ -11,8 +11,10 @@ import {
   GenerateCardsResponse,
   SimpleCardSuggestion,
 } from './parser/types';
+import { CardReadiness } from './shared/state/card-readiness';
 
 const CARD_GENERATION_OPERATION = 'card_generation';
+const CARD_CREATION_CHUNK_SIZE = 10;
 
 @Injectable({
   providedIn: 'root',
@@ -50,28 +52,58 @@ export class PromptSourceService {
 
   async createCards(
     sourceId: string,
-    suggestions: SimpleCardSuggestion[]
-  ): Promise<void> {
-    for (const suggestion of suggestions) {
-      const emptyCard = createEmptyCard();
-      const cardPayload = {
-        id: `${sourceId}-${crypto.randomUUID()}`,
-        sourceId,
-        sourcePageNumber: 1,
-        type: 'simple' as const,
-        data: {
-          frontText: suggestion.frontText,
-          backText: suggestion.backText,
-          ...(suggestion.topic ? { topic: suggestion.topic } : {}),
-        },
-        ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'READY',
-      } satisfies CardCreatePayload;
+    suggestions: SimpleCardSuggestion[],
+    readiness: CardReadiness
+  ): Promise<SimpleCardSuggestion[]> {
+    const chunks = Array.from(
+      { length: Math.ceil(suggestions.length / CARD_CREATION_CHUNK_SIZE) },
+      (_, index) =>
+        suggestions.slice(
+          index * CARD_CREATION_CHUNK_SIZE,
+          (index + 1) * CARD_CREATION_CHUNK_SIZE
+        )
+    );
 
-      await fetchJson(this.http, `/api/card`, {
-        body: mapCardDatesToISOStrings(cardPayload),
-        method: 'POST',
-      });
-    }
+    const results = await chunks.reduce(
+      async (previous, chunk) => {
+        const settled = await previous;
+        const chunkResults = await Promise.allSettled(
+          chunk.map((suggestion) => this.createCard(sourceId, suggestion, readiness))
+        );
+        return [...settled, ...chunkResults];
+      },
+      Promise.resolve([] as PromiseSettledResult<unknown>[])
+    );
+
+    return suggestions.filter(
+      (_, index) => results[index].status === 'rejected'
+    );
+  }
+
+  private createCard(
+    sourceId: string,
+    suggestion: SimpleCardSuggestion,
+    readiness: CardReadiness
+  ): Promise<unknown> {
+    const emptyCard = createEmptyCard();
+    const cardPayload = {
+      id: `${sourceId}-${crypto.randomUUID()}`,
+      sourceId,
+      sourcePageNumber: 1,
+      type: 'simple' as const,
+      data: {
+        frontText: suggestion.frontText,
+        backText: suggestion.backText,
+        ...(suggestion.topic ? { topic: suggestion.topic } : {}),
+        ...(suggestion.category ? { category: suggestion.category } : {}),
+      },
+      ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
+      readiness,
+    } satisfies CardCreatePayload;
+
+    return fetchJson(this.http, `/api/card`, {
+      body: mapCardDatesToISOStrings(cardPayload),
+      method: 'POST',
+    });
   }
 }

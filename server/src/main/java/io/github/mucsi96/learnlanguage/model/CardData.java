@@ -51,4 +51,7 @@ public class CardData implements Serializable {
 
     @JsonInclude(Include.NON_NULL)
     private String topic;
+
+    @JsonInclude(Include.NON_NULL)
+    private String category;
 }
