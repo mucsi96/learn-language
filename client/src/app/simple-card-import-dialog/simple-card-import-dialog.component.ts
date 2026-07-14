@@ -15,9 +15,8 @@ type ParseResult =
   | { status: 'invalid'; error: string }
   | { status: 'valid'; cards: SimpleCardSuggestion[] };
 
-const REQUIRED_FIELDS = ['frontText', 'backText'] as const;
+const REQUIRED_FIELDS = ['id', 'frontText', 'backText'] as const;
 const OPTIONAL_FIELDS = ['topic', 'category'] as const;
-const NON_EMPTY_OPTIONAL_FIELDS = ['id'] as const;
 
 function validateCard(item: unknown, index: number): string[] {
   const cardNumber = index + 1;
@@ -31,21 +30,15 @@ function validateCard(item: unknown, index: number): string[] {
   const optionalErrors = OPTIONAL_FIELDS.filter(
     (field) => record[field] !== undefined && typeof record[field] !== 'string'
   ).map((field) => `Card ${cardNumber}: "${field}" must be a string.`);
-  const nonEmptyOptionalErrors = NON_EMPTY_OPTIONAL_FIELDS.filter(
-    (field) =>
-      record[field] !== undefined &&
-      (typeof record[field] !== 'string' || !(record[field] as string).trim())
-  ).map((field) => `Card ${cardNumber}: "${field}" must be a non-empty string.`);
-  return [...requiredErrors, ...optionalErrors, ...nonEmptyOptionalErrors];
+  return [...requiredErrors, ...optionalErrors];
 }
 
 function toSuggestion(item: Record<string, unknown>): SimpleCardSuggestion {
-  const id = typeof item['id'] === 'string' ? item['id'].trim() : '';
   const topic = typeof item['topic'] === 'string' ? item['topic'].trim() : '';
   const category =
     typeof item['category'] === 'string' ? item['category'].trim() : '';
   return {
-    ...(id ? { id } : {}),
+    id: (item['id'] as string).trim(),
     frontText: (item['frontText'] as string).trim(),
     backText: (item['backText'] as string).trim(),
     ...(topic ? { topic } : {}),
@@ -102,7 +95,7 @@ export class SimpleCardImportDialogComponent {
   readonly exampleJson = JSON.stringify(
     [
       {
-        id: 'Optional card id',
+        id: 'Card id',
         frontText: 'Question (Markdown)',
         backText: 'Answer (Markdown)',
         topic: 'Optional topic',

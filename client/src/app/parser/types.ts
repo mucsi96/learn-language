@@ -237,15 +237,17 @@ export type SourceFormatType =
 export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'aiPrompt';
 
 export type SimpleCardSuggestion = {
-  id?: string;
+  id: string;
   frontText: string;
   backText: string;
   topic?: string;
   category?: string;
 };
 
+export type GeneratedCard = Omit<SimpleCardSuggestion, 'id'>;
+
 export type GenerateCardsResponse = {
-  cards: SimpleCardSuggestion[];
+  cards: GeneratedCard[];
 };
 
 export type TopicCoverage = {

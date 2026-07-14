@@ -137,6 +137,7 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
         category: 'Workloads',
       },
       {
+        id: 'ckad-import-service',
         frontText: 'What is a Service?',
         backText: 'A stable endpoint for a set of pods.',
       },
@@ -177,7 +178,7 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
     expect(podCard.data.topic).toBe('Pods');
     expect(podCard.data.category).toBe('Workloads');
 
-    expect(serviceCard.id).toMatch(/^ckad-import-/);
+    expect(serviceCard.id).toBe('ckad-import-service');
     expect(serviceCard.readiness).toBe('DRAFT');
     expect(serviceCard.type).toBe('SIMPLE');
     expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
@@ -209,14 +210,16 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
   await expect(dialog.getByText('The array contains no cards.')).toBeVisible();
 
   await dialog.getByLabel('Cards JSON').fill(
-    JSON.stringify([{ frontText: 'Question', backText: 'Answer', category: 123 }])
+    JSON.stringify([
+      { id: 'card-1', frontText: 'Question', backText: 'Answer', category: 123 },
+    ])
   );
   await expect(
     dialog.getByText('Card 1: "category" must be a string.')
   ).toBeVisible();
 
   await dialog.getByLabel('Cards JSON').fill(
-    JSON.stringify([{ id: '  ', frontText: 'Question', backText: 'Answer' }])
+    JSON.stringify([{ frontText: 'Question', backText: 'Answer' }])
   );
   await expect(
     dialog.getByText('Card 1: "id" must be a non-empty string.')
@@ -224,8 +227,8 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
 
   await dialog.getByLabel('Cards JSON').fill(
     JSON.stringify([
-      { frontText: 'Question without an answer' },
-      { backText: 'Answer without a question' },
+      { id: 'card-1', frontText: 'Question without an answer' },
+      { id: 'card-2', backText: 'Answer without a question' },
     ])
   );
 
@@ -273,8 +276,8 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
   await dialog.getByLabel('Cards JSON').fill(
     JSON.stringify([
-      { frontText: 'What is a Pod?', backText: 'The smallest deployable unit.' },
-      { frontText: 'What is a Service?', backText: 'A stable endpoint for pods.' },
+      { id: 'ckad-fail-pod', frontText: 'What is a Pod?', backText: 'The smallest deployable unit.' },
+      { id: 'ckad-fail-service', frontText: 'What is a Service?', backText: 'A stable endpoint for pods.' },
     ])
   );
   await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
