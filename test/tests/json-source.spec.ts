@@ -357,6 +357,67 @@ test('simple card in review shows edit form and can be marked as reviewed', asyn
   ).toBe('REVIEWED');
 });
 
+test('bulk completion moves simple draft cards straight to ready state', async ({ page }) => {
+  await createSource({
+    id: 'ckad-complete',
+    name: 'CKAD Complete',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-complete-pod',
+    sourceId: 'ckad-complete',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a Pod?',
+      backText: 'The smallest deployable unit.',
+    },
+    readiness: 'DRAFT',
+  });
+
+  await createCard({
+    cardId: 'ckad-complete-service',
+    sourceId: 'ckad-complete',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a Service?',
+      backText: 'A stable endpoint for a set of pods.',
+    },
+    readiness: 'DRAFT',
+  });
+
+  await page.goto('/sources/ckad-complete/cards?filter=draft');
+
+  await page
+    .getByRole('columnheader', { name: /Select all 2 cards/ })
+    .getByRole('checkbox')
+    .click();
+
+  await page.getByRole('button').filter({ hasText: 'Complete 2 cards' }).click();
+
+  await expect(page.getByText('2 card(s) completed')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, readiness, data FROM learn_language.cards WHERE source_id = $1 ORDER BY id`,
+      ['ckad-complete']
+    );
+    expect(result.rows.length).toBe(2);
+    expect(result.rows[0].id).toBe('ckad-complete-pod');
+    expect(result.rows[0].readiness).toBe('READY');
+    expect(result.rows[0].data.frontText).toBe('What is a Pod?');
+    expect(result.rows[1].id).toBe('ckad-complete-service');
+    expect(result.rows[1].readiness).toBe('READY');
+    expect(result.rows[1].data.backText).toBe('A stable endpoint for a set of pods.');
+  });
+});
+
 test('study mode renders a simple card front and back as markdown', async ({ page }) => {
   await createSource({
     id: 'ckad-study',

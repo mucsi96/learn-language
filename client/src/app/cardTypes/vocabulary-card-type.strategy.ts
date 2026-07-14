@@ -14,6 +14,7 @@ import {
   CardData,
   LanguageTexts,
 } from '../parser/types';
+import { CardReadiness } from '../shared/state/card-readiness';
 import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
 import { nonNullable } from '../utils/type-guards';
 import { getWordTypeInfo } from '../shared/word-type-translations';
@@ -46,6 +47,7 @@ interface WordIdResponse {
 })
 export class VocabularyCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'vocabulary';
+  readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
   private readonly multiModelService = inject(MultiModelService);
