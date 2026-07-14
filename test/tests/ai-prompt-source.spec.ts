@@ -188,6 +188,13 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
   await page.getByRole('button', { name: 'Import JSON' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+
+  await dialog.getByLabel('Cards JSON').fill('{"frontText": "not an array"}');
+  await expect(dialog.getByText('Expected a JSON array of cards.')).toBeVisible();
+
+  await dialog.getByLabel('Cards JSON').fill('[]');
+  await expect(dialog.getByText('The array contains no cards.')).toBeVisible();
+
   await dialog.getByLabel('Cards JSON').fill(
     JSON.stringify([
       { frontText: 'Question without an answer' },
@@ -259,6 +266,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
   });
 
   await page.getByLabel('Topic').clear();
+  await page.getByLabel('Category').clear();
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect.poll(async () =>
@@ -268,6 +276,16 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
         ['ckad-pods-edit']
       );
       return result.rows[0].data.topic;
+    })
+  ).toBeUndefined();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-pods-edit']
+      );
+      return result.rows[0].data.category;
     })
   ).toBeUndefined();
 });

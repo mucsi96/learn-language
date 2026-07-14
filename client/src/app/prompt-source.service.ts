@@ -54,27 +54,29 @@ export class PromptSourceService {
     suggestions: SimpleCardSuggestion[],
     readiness: CardReadiness
   ): Promise<void> {
-    for (const suggestion of suggestions) {
-      const emptyCard = createEmptyCard();
-      const cardPayload = {
-        id: `${sourceId}-${crypto.randomUUID()}`,
-        sourceId,
-        sourcePageNumber: 1,
-        type: 'simple' as const,
-        data: {
-          frontText: suggestion.frontText,
-          backText: suggestion.backText,
-          ...(suggestion.topic ? { topic: suggestion.topic } : {}),
-          ...(suggestion.category ? { category: suggestion.category } : {}),
-        },
-        ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness,
-      } satisfies CardCreatePayload;
+    await Promise.all(
+      suggestions.map((suggestion) => {
+        const emptyCard = createEmptyCard();
+        const cardPayload = {
+          id: `${sourceId}-${crypto.randomUUID()}`,
+          sourceId,
+          sourcePageNumber: 1,
+          type: 'simple' as const,
+          data: {
+            frontText: suggestion.frontText,
+            backText: suggestion.backText,
+            ...(suggestion.topic ? { topic: suggestion.topic } : {}),
+            ...(suggestion.category ? { category: suggestion.category } : {}),
+          },
+          ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
+          readiness,
+        } satisfies CardCreatePayload;
 
-      await fetchJson(this.http, `/api/card`, {
-        body: mapCardDatesToISOStrings(cardPayload),
-        method: 'POST',
-      });
-    }
+        return fetchJson(this.http, `/api/card`, {
+          body: mapCardDatesToISOStrings(cardPayload),
+          method: 'POST',
+        });
+      })
+    );
   }
 }
