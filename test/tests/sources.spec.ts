@@ -627,6 +627,34 @@ test('can create a source with multiple card types', async ({ page }) => {
   expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
 });
 
+test('can create a source with simple card type', async ({ page }) => {
+  await page.goto('/sources');
+
+  await page.getByRole('button', { name: 'Add Source' }).click();
+
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Simple Source');
+
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Simple' }).click();
+  await page.keyboard.press('Escape');
+
+  await page.getByLabel('Language Level').click();
+  await page.getByRole('option', { name: 'A1' }).click();
+
+  await page.getByLabel('Source Type').click();
+  await page.getByRole('option', { name: 'Image Collection' }).click();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+  await expect(page.getByText('Test Simple Source')).toBeVisible();
+
+  const createdSource = await getSource('test-simple-source');
+  expect(createdSource).not.toBeNull();
+  expect(createdSource?.cardTypes).toEqual(['SIMPLE']);
+  expect(createdSource?.sourceType).toBe('IMAGES');
+});
+
 test('edit dialog shows card limit and new card limit fields with defaults', async ({ page }) => {
   await page.goto('/sources');
 
