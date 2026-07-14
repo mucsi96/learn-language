@@ -109,8 +109,8 @@ export class AdminComponent {
   }
 
   navigateToPages(source: Source): void {
-    if (source.sourceType === 'aiPrompt') {
-      this.router.navigate(['/sources', source.id, 'prompt']);
+    if (source.sourceType === 'json') {
+      this.router.navigate(['/sources', source.id, 'json']);
       return;
     }
     this.router.navigate(['/sources', source.id, 'page', source.startPage]);

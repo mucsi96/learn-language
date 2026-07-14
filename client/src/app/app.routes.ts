@@ -141,9 +141,9 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'sources/:sourceId/prompt',
+    path: 'sources/:sourceId/json',
     canActivate: [authGuard],
-    title: (route) => `Prompt / ${route.params['sourceId']}`,
+    title: (route) => `JSON / ${route.params['sourceId']}`,
     children: [
       {
         path: '',
@@ -157,8 +157,8 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./parser/prompt-page/prompt-page.component').then(
-            (m) => m.PromptPageComponent
+          import('./parser/json-page/json-page.component').then(
+            (m) => m.JsonPageComponent
           ),
       },
     ],

@@ -28,5 +28,4 @@ public class SourceResponse {
     private Integer newCardLimit;
     private Integer learningPartnerId;
     private List<String> detectionSourceIds;
-    private String prompt;
 }

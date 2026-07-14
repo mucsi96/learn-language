@@ -1197,3 +1197,17 @@ databaseChangeLog:
                   ) stats
               ) rs ON true;
               CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON card_view (id)
+  - changeSet:
+      id: 38-replace-ai-prompt-source-type-with-json
+      author: mucsi96
+      changes:
+        - update:
+            tableName: sources
+            columns:
+              - column:
+                  name: source_type
+                  value: JSON
+            where: source_type = 'AI_PROMPT'
+        - dropColumn:
+            tableName: sources
+            columnName: prompt

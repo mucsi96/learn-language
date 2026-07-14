@@ -12,7 +12,7 @@ public enum SourceType {
     PDF("pdf", "PDF Document"),
     IMAGES("images", "Image Collection"),
     EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary"),
-    AI_PROMPT("aiPrompt", "AI Prompt");
+    JSON("json", "JSON");
 
     private final String code;
     private final String displayName;

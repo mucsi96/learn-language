@@ -4,7 +4,6 @@ import {
   createCard,
   createSource,
   getSource,
-  setupDefaultChatModelSettings,
   withDbConnection,
 } from '../utils';
 
@@ -18,77 +17,33 @@ async function pressRemoteKey(page: Page, key: string) {
   );
 }
 
-test('create AI prompt source, generate, preview and create simple cards', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-
+test('create JSON source restricted to simple cards', async ({ page }) => {
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source' }).click();
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('CKAD Prep');
   await page.getByLabel('Source Type').click();
-  await page.getByRole('option', { name: 'AI Prompt' }).click();
+  await page.getByRole('option', { name: 'JSON' }).click();
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
-  await page
-    .getByLabel('Base prompt')
-    .fill('Kubernetes Application Developer (CKAD) certification exam preparation');
+
+  await expect(
+    page.getByText('Cards are added by importing a JSON array after creating the source.')
+  ).toBeVisible();
 
   await page.getByRole('button', { name: 'Create' }).click();
 
   await expect(page.getByText('CKAD Prep')).toBeVisible();
 
   const source = await getSource('ckad-prep');
-  expect(source?.sourceType).toBe('AI_PROMPT');
+  expect(source?.sourceType).toBe('JSON');
   expect(source?.cardTypes).toEqual(['SIMPLE']);
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT prompt FROM learn_language.sources WHERE id = $1`,
-      ['ckad-prep']
-    );
-    expect(result.rows[0].prompt).toContain('CKAD');
-  });
 
   await page.getByRole('button', { name: 'Actions for CKAD Prep' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
 
-  await expect(page).toHaveURL(/\/sources\/ckad-prep\/prompt/);
-
-  const coverageList = page.getByRole('list', { name: 'Topic coverage' });
-  await expect(coverageList.getByText('Services & Networking')).toBeVisible();
-  await expect(coverageList.getByText('Pods')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Generate' }).click();
-
-  await expect(page.getByText(/What command creates a pod named/)).toBeVisible();
-
-  await page.getByRole('button', { name: /Create 2 cards/ }).click();
-
-  await expect.poll(async () =>
-    withDbConnection(async (client) => {
-      const result = await client.query(
-        `SELECT data FROM learn_language.cards WHERE source_id = $1`,
-        ['ckad-prep']
-      );
-      return result.rows.length;
-    })
-  ).toBe(2);
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT data, readiness FROM learn_language.cards WHERE source_id = $1`,
-      ['ckad-prep']
-    );
-    for (const row of result.rows) {
-      expect(row.data.frontText).toBeTruthy();
-      expect(row.data.backText).toBeTruthy();
-      expect(row.data.topic).toBe('Pods');
-      expect(row.readiness).toBe('READY');
-    }
-  });
-
-  const podsRow = coverageList.getByRole('listitem').filter({ hasText: 'Pods' });
-  await expect(podsRow).toContainText('2');
+  await expect(page).toHaveURL(/\/sources\/ckad-prep\/json/);
+  await expect(page.getByRole('button', { name: 'Import JSON' })).toBeVisible();
 });
 
 test('bulk JSON import creates simple cards in draft state', async ({ page }) => {
@@ -99,17 +54,10 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
-  await page.route('**/api/source/ckad-import/coverage', (route) =>
-    route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ topics: [] }),
-    })
-  );
-
-  await page.goto('/sources/ckad-import/prompt');
+  await page.goto('/sources/ckad-import/json');
   await page.getByRole('button', { name: 'Import JSON' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
@@ -195,10 +143,10 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
-  await page.goto('/sources/ckad-import-invalid/prompt');
+  await page.goto('/sources/ckad-import-invalid/json');
   await page.getByRole('button', { name: 'Import JSON' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
@@ -250,15 +198,8 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
-
-  await page.route('**/api/source/ckad-import-fail/coverage', (route) =>
-    route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ topics: [] }),
-    })
-  );
 
   let aborted = false;
   await page.route('**/api/card', async (route) => {
@@ -270,7 +211,7 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
     await route.continue();
   });
 
-  await page.goto('/sources/ckad-import-fail/prompt');
+  await page.goto('/sources/ckad-import-fail/json');
   await page.getByRole('button', { name: 'Import JSON' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
@@ -294,102 +235,6 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
   });
 });
 
-test('failed generated cards stay in preview and retry without duplicates', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await createSource({
-    id: 'ckad-retry',
-    name: 'CKAD Retry',
-    startPage: 1,
-    languageLevel: 'A1',
-    cardTypes: ['SIMPLE'],
-    formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
-  });
-
-  let aborted = false;
-  await page.route('**/api/card', async (route) => {
-    if (route.request().method() === 'POST' && !aborted) {
-      aborted = true;
-      await route.abort();
-      return;
-    }
-    await route.continue();
-  });
-
-  await page.goto('/sources/ckad-retry/prompt');
-  await page.getByLabel('Base prompt').fill('CKAD certification exam preparation');
-  await page.getByRole('button', { name: 'Save prompt' }).click();
-
-  await page.getByRole('button', { name: 'Generate' }).click();
-  await expect(page.getByRole('heading', { name: 'Preview (2 selected)' })).toBeVisible();
-
-  await page.getByLabel('Include card 2').uncheck();
-  await page.getByRole('button', { name: 'Create 1 cards' }).click();
-
-  await expect(page.getByText('Failed to create 1 of 1 cards')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
-  await expect(page.getByLabel('Include card 2')).toBeVisible();
-
-  await page.getByLabel('Include card 2').check();
-  await page.getByRole('button', { name: 'Create 2 cards' }).click();
-
-  await expect.poll(async () =>
-    withDbConnection(async (client) => {
-      const result = await client.query(
-        `SELECT data FROM learn_language.cards WHERE source_id = $1`,
-        ['ckad-retry']
-      );
-      return result.rows.length;
-    })
-  ).toBe(2);
-
-  await withDbConnection(async (client) => {
-    const result = await client.query(
-      `SELECT data FROM learn_language.cards WHERE source_id = $1`,
-      ['ckad-retry']
-    );
-    const frontTexts = result.rows.map((row) => row.data.frontText);
-    expect(new Set(frontTexts).size).toBe(2);
-  });
-});
-
-test('generated suggestion preview shows category and topic chips', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await createSource({
-    id: 'ckad-preview-chips',
-    name: 'CKAD Preview Chips',
-    startPage: 1,
-    languageLevel: 'A1',
-    cardTypes: ['SIMPLE'],
-    formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
-  });
-
-  await page.route('**/api/source/ckad-preview-chips/generate-cards', (route) =>
-    route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
-        cards: [
-          {
-            frontText: 'What is a Pod?',
-            backText: 'The smallest deployable unit.',
-            topic: 'Pods',
-            category: 'Workloads',
-          },
-        ],
-      }),
-    })
-  );
-
-  await page.goto('/sources/ckad-preview-chips/prompt');
-  await page.getByRole('button', { name: 'Generate' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
-  const previewItem = page.getByRole('listitem').filter({ hasText: 'What is a Pod?' });
-  await expect(previewItem.getByText('Workloads', { exact: true })).toBeVisible();
-  await expect(previewItem.getByText('Pods', { exact: true })).toBeVisible();
-});
-
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',
@@ -398,7 +243,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
   await createCard({
@@ -476,7 +321,7 @@ test('simple card in review shows edit form and can be marked as reviewed', asyn
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
   await createCard({
@@ -520,7 +365,7 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
   await createCard({
@@ -559,7 +404,7 @@ test('study mode syntax-highlights code blocks in simple cards', async ({ page }
     languageLevel: 'A1',
     cardTypes: ['SIMPLE'],
     formatType: 'FLOWING_TEXT',
-    sourceType: 'AI_PROMPT',
+    sourceType: 'JSON',
   });
 
   await createCard({

@@ -69,11 +69,11 @@ export class SourceDialogComponent {
       (source) => source.id !== this.data.source?.id
     )
   );
-  readonly isAiPrompt = computed(() => this.formModel().sourceType === 'aiPrompt');
+  readonly isJson = computed(() => this.formModel().sourceType === 'json');
 
   readonly cardTypes = computed(() =>
     CARD_TYPE_OPTIONS.filter((option) =>
-      this.isAiPrompt() ? option.code === 'simple' : option.code !== 'simple'
+      this.isJson() ? option.code === 'simple' : option.code !== 'simple'
     )
   );
 
@@ -89,7 +89,6 @@ export class SourceDialogComponent {
     newCardLimit: number;
     learningPartnerId: number | null;
     detectionSourceIds: string[];
-    prompt: string;
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
@@ -102,12 +101,11 @@ export class SourceDialogComponent {
     newCardLimit: this.data.source?.newCardLimit ?? 50,
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
     detectionSourceIds: this.data.source?.detectionSourceIds ?? [],
-    prompt: this.data.source?.prompt ?? '',
   });
 
   private readonly forceSimpleCardType = effect(() => {
     const cardTypes = this.formModel().cardTypes;
-    if (this.isAiPrompt() && (cardTypes.length !== 1 || cardTypes[0] !== 'simple')) {
+    if (this.isJson() && (cardTypes.length !== 1 || cardTypes[0] !== 'simple')) {
       this.formModel.update((m) => ({ ...m, cardTypes: ['simple'] }));
     }
   });
@@ -128,7 +126,7 @@ export class SourceDialogComponent {
       }
       return undefined;
     });
-    disabled(path.cardTypes, () => this.isAiPrompt());
+    disabled(path.cardTypes, () => this.isJson());
     disabled(path.sourceType, () => this.data.mode === 'edit');
   });
 
@@ -140,7 +138,7 @@ export class SourceDialogComponent {
   readonly isValid = computed(() =>
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
-      this.formModel().sourceType === 'aiPrompt' ||
+      this.formModel().sourceType === 'json' ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );
@@ -181,7 +179,6 @@ export class SourceDialogComponent {
           ? 0
           : result.learningPartnerId,
         detectionSourceIds: result.detectionSourceIds,
-        prompt: cardTypes.includes('simple') ? result.prompt || undefined : undefined,
       };
       this.dialogRef.close(formData);
     }
