@@ -122,15 +122,8 @@
               [aria-label]="'Include card ' + ($index + 1)"
             ></mat-checkbox>
             <div class="preview-card">
-              @if (item.suggestion.topic || item.suggestion.category) {
-                <div class="chips-row">
-                  @if (item.suggestion.category) {
-                    <div class="category-chip">{{ item.suggestion.category }}</div>
-                  }
-                  @if (item.suggestion.topic) {
-                    <div class="topic-chip">{{ item.suggestion.topic }}</div>
-                  }
-                </div>
+              @if (item.suggestion.category) {
+                <div class="category-chip">{{ item.suggestion.category }}</div>
               }
               <div class="preview-front markdown-body" [innerHTML]="item.suggestion.frontText | markdown"></div>
               <hr class="divider" />

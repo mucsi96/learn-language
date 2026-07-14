@@ -60,7 +60,6 @@ export type CardData = {
   hint?: string;
   frontText?: string;
   backText?: string;
-  topic?: string;
   category?: string;
 };
 
@@ -239,7 +238,6 @@ export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'aiPrompt';
 export type SimpleCardSuggestion = {
   frontText: string;
   backText: string;
-  topic?: string;
   category?: string;
 };
 

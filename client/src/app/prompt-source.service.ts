@@ -94,7 +94,6 @@ export class PromptSourceService {
       data: {
         frontText: suggestion.frontText,
         backText: suggestion.backText,
-        ...(suggestion.topic ? { topic: suggestion.topic } : {}),
         ...(suggestion.category ? { category: suggestion.category } : {}),
       },
       ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),

@@ -70,7 +70,7 @@ public class CoverageService {
         1. Infer the full curriculum of topics implied by the deck topic above (the areas an exam or
            exercise on this subject would cover). Keep the list focused - typically 5 to 15 areas.
         2. For each curriculum topic, count how many of the existing cards below belong to it (match on
-           meaning, not only on the literal topic label) and assign a coverage status:
+           meaning, not only on the literal category label) and assign a coverage status:
            - "none": no cards cover this topic
            - "low": some cards but the topic is under-covered
            - "good": the topic is well covered
@@ -78,7 +78,7 @@ public class CoverageService {
 
         Respond ONLY with JSON of the form {"topics": [...]} matching the example shape below.
 
-        Existing cards (frontText -> topic):
+        Existing cards (frontText -> category):
         %s
         """.formatted(
         source.getPrompt() != null ? source.getPrompt() : "",
@@ -92,7 +92,7 @@ public class CoverageService {
   }
 
   private String describeExistingCard(CardData data) {
-    final String topic = data.getTopic() != null ? data.getTopic() : "(untagged)";
-    return "- " + data.getFrontText().replaceAll("\\s+", " ").trim() + " -> " + topic;
+    final String category = data.getCategory() != null ? data.getCategory() : "(untagged)";
+    return "- " + data.getFrontText().replaceAll("\\s+", " ").trim() + " -> " + category;
   }
 }

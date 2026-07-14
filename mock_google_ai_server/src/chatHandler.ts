@@ -384,12 +384,12 @@ export class ChatHandler {
         {
           frontText: 'What command creates a pod named `nginx` using the `nginx` image?',
           backText: '```sh\nkubectl run nginx --image=nginx\n```',
-          topic: 'Pods',
+          category: 'Pods',
         },
         {
           frontText: 'List the resources a Pod can request.\n\n- CPU\n- Memory',
           backText: 'A Pod can request **CPU** and **memory** via `resources.requests`.',
-          topic: 'Pods',
+          category: 'Pods',
         },
       ],
     });

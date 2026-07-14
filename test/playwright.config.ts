@@ -31,6 +31,9 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        launchOptions: {
+          executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+        },
         // HAR recording
         contextOptions: {
           recordHar: {

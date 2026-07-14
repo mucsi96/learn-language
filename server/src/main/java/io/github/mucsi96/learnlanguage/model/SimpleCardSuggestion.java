@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class SimpleCardSuggestion {
     private String frontText;
     private String backText;
-    private String topic;
+    private String category;
 }

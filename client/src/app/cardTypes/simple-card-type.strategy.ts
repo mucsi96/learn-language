@@ -39,13 +39,11 @@ export class SimpleCardType implements CardTypeStrategy {
     const simple = item as ExtractedItem & {
       frontText?: string;
       backText?: string;
-      topic?: string;
       category?: string;
     };
     return {
       frontText: simple.frontText,
       backText: simple.backText,
-      ...(simple.topic ? { topic: simple.topic } : {}),
       ...(simple.category ? { category: simple.category } : {}),
     };
   }
@@ -67,10 +65,7 @@ export class SimpleCardType implements CardTypeStrategy {
   }
 
   getCardAdditionalInfo(card: Card): string | undefined {
-    const info = [card.data.category, card.data.topic]
-      .filter(Boolean)
-      .join(' · ');
-    return info || undefined;
+    return card.data.category;
   }
 
   getAudioItems(_card: Card): AudioGenerationItem[] {

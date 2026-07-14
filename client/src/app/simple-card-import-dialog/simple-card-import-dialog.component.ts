@@ -16,7 +16,7 @@ type ParseResult =
   | { status: 'valid'; cards: SimpleCardSuggestion[] };
 
 const REQUIRED_FIELDS = ['frontText', 'backText'] as const;
-const OPTIONAL_FIELDS = ['topic', 'category'] as const;
+const OPTIONAL_FIELDS = ['category'] as const;
 
 function validateCard(item: unknown, index: number): string[] {
   const cardNumber = index + 1;
@@ -34,13 +34,11 @@ function validateCard(item: unknown, index: number): string[] {
 }
 
 function toSuggestion(item: Record<string, unknown>): SimpleCardSuggestion {
-  const topic = typeof item['topic'] === 'string' ? item['topic'].trim() : '';
   const category =
     typeof item['category'] === 'string' ? item['category'].trim() : '';
   return {
     frontText: (item['frontText'] as string).trim(),
     backText: (item['backText'] as string).trim(),
-    ...(topic ? { topic } : {}),
     ...(category ? { category } : {}),
   };
 }
@@ -96,7 +94,6 @@ export class SimpleCardImportDialogComponent {
       {
         frontText: 'Question (Markdown)',
         backText: 'Answer (Markdown)',
-        topic: 'Optional topic',
         category: 'Optional category',
       },
     ],

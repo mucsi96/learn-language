@@ -18,7 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class PromptCardGenerationService {
 
-  record GeneratedCard(String frontText, String backText, String topic) {
+  record GeneratedCard(String frontText, String backText, String category) {
   }
 
   record GeneratedCards(List<GeneratedCard> cards) {
@@ -47,7 +47,7 @@ public class PromptCardGenerationService {
         .map(card -> SimpleCardSuggestion.builder()
             .frontText(card.frontText())
             .backText(card.backText())
-            .topic(normalize(card.topic()))
+            .category(normalize(card.category()))
             .build())
         .toList();
   }
@@ -77,7 +77,7 @@ public class PromptCardGenerationService {
         Card format:
         - "frontText": the question/prompt side, in GitHub-flavoured Markdown. Bullet lists are allowed.
         - "backText": the answer/explanation side, in GitHub-flavoured Markdown. Bullet lists are allowed.
-        - "topic": a short topic label (a few words) naming the curriculum area this card belongs to.
+        - "category": a short category label (a few words) naming the curriculum area this card belongs to.
           Reuse the exact same label for cards in the same area so coverage can be tracked.
 
         Rules:
@@ -85,7 +85,7 @@ public class PromptCardGenerationService {
         - Keep cards self-contained and unambiguous.
         - Respond ONLY with JSON of the form {"cards": [...]} matching the example shape below.
 
-        Existing cards (frontText -> topic):
+        Existing cards (frontText -> category):
         %s
         """.formatted(
         source.getPrompt() != null ? source.getPrompt() : "",
@@ -102,8 +102,8 @@ public class PromptCardGenerationService {
   }
 
   private String describeExistingCard(CardData data) {
-    final String topic = data.getTopic() != null ? data.getTopic() : "(untagged)";
-    return "- " + data.getFrontText().replaceAll("\\s+", " ").trim() + " -> " + topic;
+    final String category = data.getCategory() != null ? data.getCategory() : "(untagged)";
+    return "- " + data.getFrontText().replaceAll("\\s+", " ").trim() + " -> " + category;
   }
 
   private String buildUserMessage(String generationPrompt, int count) {

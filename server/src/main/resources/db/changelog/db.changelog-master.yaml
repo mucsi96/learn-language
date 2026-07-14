@@ -1197,3 +1197,16 @@ databaseChangeLog:
                   ) stats
               ) rs ON true;
               CREATE UNIQUE INDEX IF NOT EXISTS card_view_id_idx ON card_view (id)
+  - changeSet:
+      id: 38-rename-simple-card-topic-to-category
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              UPDATE cards
+              SET data = CASE
+                  WHEN jsonb_exists(data, 'category') THEN data - 'topic'
+                  ELSE (data - 'topic') || jsonb_build_object('category', data->'topic')
+              END
+              WHERE type = 'SIMPLE' AND jsonb_exists(data, 'topic');
+              REFRESH MATERIALIZED VIEW card_view
