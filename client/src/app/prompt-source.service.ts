@@ -40,7 +40,10 @@ export class PromptSourceService {
         body: { prompt, count },
       }
     );
-    return response.cards;
+    return response.cards.map((card) => ({
+      ...card,
+      id: `${sourceId}-${crypto.randomUUID()}`,
+    }));
   }
 
   async getCoverage(sourceId: string): Promise<CoverageResponse> {
@@ -87,7 +90,7 @@ export class PromptSourceService {
   ): Promise<unknown> {
     const emptyCard = createEmptyCard();
     const cardPayload = {
-      id: `${sourceId}-${crypto.randomUUID()}`,
+      id: suggestion.id,
       sourceId,
       sourcePageNumber: 1,
       type: 'simple' as const,
