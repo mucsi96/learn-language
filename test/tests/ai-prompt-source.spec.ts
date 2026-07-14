@@ -137,6 +137,8 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
   await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
   await expect(dialog).not.toBeVisible();
 
+  await expect(page.getByText('Imported 2 cards as drafts')).toBeVisible();
+
   await expect.poll(async () =>
     withDbConnection(async (client) => {
       const result = await client.query(

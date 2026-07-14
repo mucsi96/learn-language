@@ -15,6 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { injectParams } from '../../utils/inject-params';
 import { dialogResult } from '../../utils/dialog-result';
 import { SourcesService } from '../../sources.service';
@@ -55,6 +56,7 @@ export class PromptPageComponent {
   private readonly sourcesService = inject(SourcesService);
   private readonly promptSourceService = inject(PromptSourceService);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly sourceId = computed(() => {
     const id = this.routeSourceId();
@@ -149,10 +151,14 @@ export class PromptPageComponent {
     try {
       await this.promptSourceService.createCards(sourceId, selected, 'READY');
       this.suggestions.set([]);
-      this.coverageVersion.update((v) => v + 1);
-      this.sourcesService.refetchSources();
+    } catch (error) {
+      this.snackBar.open((error as Error).message, 'Dismiss', {
+        duration: 5000,
+      });
     } finally {
       this.creating.set(false);
+      this.coverageVersion.update((v) => v + 1);
+      this.sourcesService.refetchSources();
     }
   }
 
@@ -173,10 +179,19 @@ export class PromptPageComponent {
     this.importing.set(true);
     try {
       await this.promptSourceService.createCards(sourceId, result.cards, 'DRAFT');
-      this.coverageVersion.update((v) => v + 1);
-      this.sourcesService.refetchSources();
+      this.snackBar.open(
+        `Imported ${result.cards.length} cards as drafts`,
+        'Dismiss',
+        { duration: 5000 }
+      );
+    } catch (error) {
+      this.snackBar.open((error as Error).message, 'Dismiss', {
+        duration: 5000,
+      });
     } finally {
       this.importing.set(false);
+      this.coverageVersion.update((v) => v + 1);
+      this.sourcesService.refetchSources();
     }
   }
 
