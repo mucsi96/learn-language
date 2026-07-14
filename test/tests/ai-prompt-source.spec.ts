@@ -214,6 +214,107 @@ test('bulk JSON import rejects cards with missing required fields', async ({ pag
   await expect(dialog.getByRole('button', { name: 'Import' })).toBeDisabled();
 });
 
+test('bulk JSON import reports cards that failed to create', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import-fail',
+    name: 'CKAD Import Fail',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  let aborted = false;
+  await page.route('**/api/card', async (route) => {
+    if (route.request().method() === 'POST' && !aborted) {
+      aborted = true;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto('/sources/ckad-import-fail/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      { frontText: 'What is a Pod?', backText: 'The smallest deployable unit.' },
+      { frontText: 'What is a Service?', backText: 'A stable endpoint for pods.' },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Failed to import 1 of 2 cards')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT readiness FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-import-fail']
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].readiness).toBe('DRAFT');
+  });
+});
+
+test('failed generated cards stay in preview and retry without duplicates', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-retry',
+    name: 'CKAD Retry',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  let aborted = false;
+  await page.route('**/api/card', async (route) => {
+    if (route.request().method() === 'POST' && !aborted) {
+      aborted = true;
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto('/sources/ckad-retry/prompt');
+  await page.getByLabel('Base prompt').fill('CKAD certification exam preparation');
+  await page.getByRole('button', { name: 'Save prompt' }).click();
+
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('heading', { name: 'Preview (2 selected)' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Create 2 cards' }).click();
+
+  await expect(page.getByText('Failed to create 1 of 2 cards')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Create 1 cards' }).click();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE source_id = $1`,
+        ['ckad-retry']
+      );
+      return result.rows.length;
+    })
+  ).toBe(2);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT data FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-retry']
+    );
+    const frontTexts = result.rows.map((row) => row.data.frontText);
+    expect(new Set(frontTexts).size).toBe(2);
+  });
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',

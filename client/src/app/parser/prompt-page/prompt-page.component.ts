@@ -149,16 +149,24 @@ export class PromptPageComponent {
     }
     this.creating.set(true);
     try {
-      await this.promptSourceService.createCards(sourceId, selected, 'READY');
-      this.suggestions.set([]);
-    } catch (error) {
-      this.snackBar.open((error as Error).message, 'Dismiss', {
-        duration: 5000,
-      });
+      const failed = await this.promptSourceService.createCards(
+        sourceId,
+        selected,
+        'READY'
+      );
+      this.suggestions.set(
+        failed.map((suggestion) => ({ suggestion, include: true }))
+      );
+      if (failed.length > 0) {
+        this.snackBar.open(
+          `Failed to create ${failed.length} of ${selected.length} cards`,
+          'Dismiss',
+          { duration: 5000 }
+        );
+      }
     } finally {
       this.creating.set(false);
-      this.coverageVersion.update((v) => v + 1);
-      this.sourcesService.refetchSources();
+      this.refreshAfterCreation();
     }
   }
 
@@ -178,21 +186,25 @@ export class PromptPageComponent {
     }
     this.importing.set(true);
     try {
-      await this.promptSourceService.createCards(sourceId, result.cards, 'DRAFT');
-      this.snackBar.open(
-        `Imported ${result.cards.length} cards as drafts`,
-        'Dismiss',
-        { duration: 5000 }
+      const failed = await this.promptSourceService.createCards(
+        sourceId,
+        result.cards,
+        'DRAFT'
       );
-    } catch (error) {
-      this.snackBar.open((error as Error).message, 'Dismiss', {
-        duration: 5000,
-      });
+      const message =
+        failed.length > 0
+          ? `Failed to import ${failed.length} of ${result.cards.length} cards`
+          : `Imported ${result.cards.length} cards as drafts`;
+      this.snackBar.open(message, 'Dismiss', { duration: 5000 });
     } finally {
       this.importing.set(false);
-      this.coverageVersion.update((v) => v + 1);
-      this.sourcesService.refetchSources();
+      this.refreshAfterCreation();
     }
+  }
+
+  private refreshAfterCreation(): void {
+    this.coverageVersion.update((v) => v + 1);
+    this.sourcesService.refetchSources();
   }
 
   refreshCoverage(): void {

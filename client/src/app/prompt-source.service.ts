@@ -53,7 +53,7 @@ export class PromptSourceService {
     sourceId: string,
     suggestions: SimpleCardSuggestion[],
     readiness: CardReadiness
-  ): Promise<void> {
+  ): Promise<SimpleCardSuggestion[]> {
     const results = await Promise.allSettled(
       suggestions.map((suggestion) => {
         const emptyCard = createEmptyCard();
@@ -79,13 +79,8 @@ export class PromptSourceService {
       })
     );
 
-    const failedCount = results.filter(
-      (result) => result.status === 'rejected'
-    ).length;
-    if (failedCount > 0) {
-      throw new Error(
-        `Failed to create ${failedCount} of ${suggestions.length} cards`
-      );
-    }
+    return suggestions.filter(
+      (_, index) => results[index].status === 'rejected'
+    );
   }
 }
