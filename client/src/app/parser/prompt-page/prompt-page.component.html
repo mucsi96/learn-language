@@ -119,7 +119,7 @@
             <mat-checkbox
               [checked]="item.include"
               (change)="toggleInclude($index, $event.checked)"
-              [attr.aria-label]="'Include card ' + ($index + 1)"
+              [aria-label]="'Include card ' + ($index + 1)"
             ></mat-checkbox>
             <div class="preview-card">
               @if (item.suggestion.topic || item.suggestion.category) {

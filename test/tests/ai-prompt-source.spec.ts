@@ -102,6 +102,13 @@ test('bulk JSON import creates simple cards in draft state', async ({ page }) =>
     sourceType: 'AI_PROMPT',
   });
 
+  await page.route('**/api/source/ckad-import/coverage', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ topics: [] }),
+    })
+  );
+
   await page.goto('/sources/ckad-import/prompt');
   await page.getByRole('button', { name: 'Import JSON' }).click();
 
@@ -225,6 +232,13 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
     sourceType: 'AI_PROMPT',
   });
 
+  await page.route('**/api/source/ckad-import-fail/coverage', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ topics: [] }),
+    })
+  );
+
   let aborted = false;
   await page.route('**/api/card', async (route) => {
     if (route.request().method() === 'POST' && !aborted) {
@@ -288,12 +302,15 @@ test('failed generated cards stay in preview and retry without duplicates', asyn
   await page.getByRole('button', { name: 'Generate' }).click();
   await expect(page.getByRole('heading', { name: 'Preview (2 selected)' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Create 2 cards' }).click();
-
-  await expect(page.getByText('Failed to create 1 of 2 cards')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
-
+  await page.getByLabel('Include card 2').uncheck();
   await page.getByRole('button', { name: 'Create 1 cards' }).click();
+
+  await expect(page.getByText('Failed to create 1 of 1 cards')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
+  await expect(page.getByLabel('Include card 2')).toBeVisible();
+
+  await page.getByLabel('Include card 2').check();
+  await page.getByRole('button', { name: 'Create 2 cards' }).click();
 
   await expect.poll(async () =>
     withDbConnection(async (client) => {
@@ -313,6 +330,43 @@ test('failed generated cards stay in preview and retry without duplicates', asyn
     const frontTexts = result.rows.map((row) => row.data.frontText);
     expect(new Set(frontTexts).size).toBe(2);
   });
+});
+
+test('generated suggestion preview shows category and topic chips', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-preview-chips',
+    name: 'CKAD Preview Chips',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.route('**/api/source/ckad-preview-chips/generate-cards', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        cards: [
+          {
+            frontText: 'What is a Pod?',
+            backText: 'The smallest deployable unit.',
+            topic: 'Pods',
+            category: 'Workloads',
+          },
+        ],
+      }),
+    })
+  );
+
+  await page.goto('/sources/ckad-preview-chips/prompt');
+  await page.getByRole('button', { name: 'Generate' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Preview (1 selected)' })).toBeVisible();
+  const previewItem = page.getByRole('listitem').filter({ hasText: 'What is a Pod?' });
+  await expect(previewItem.getByText('Workloads', { exact: true })).toBeVisible();
+  await expect(previewItem.getByText('Pods', { exact: true })).toBeVisible();
 });
 
 test('simple card can be edited on the card editing page', async ({ page }) => {

@@ -154,10 +154,15 @@ export class PromptPageComponent {
         selected,
         'READY'
       );
-      this.suggestions.set(
-        failed.map((suggestion) => ({ suggestion, include: true }))
-      );
-      if (failed.length > 0) {
+      if (failed.length === 0) {
+        this.suggestions.set([]);
+      } else {
+        const failedSuggestions = new Set(failed);
+        this.suggestions.update((items) =>
+          items.filter(
+            (item) => !item.include || failedSuggestions.has(item.suggestion)
+          )
+        );
         this.snackBar.open(
           `Failed to create ${failed.length} of ${selected.length} cards`,
           'Dismiss',
