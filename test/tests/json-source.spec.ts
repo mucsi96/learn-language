@@ -31,6 +31,8 @@ test('create JSON source restricted to simple cards', async ({ page }) => {
     page.getByText('Cards are added by importing a JSON array after creating the source.')
   ).toBeVisible();
 
+  await page.getByRole('checkbox', { name: 'Practice typing the answer' }).check();
+
   await page.getByRole('button', { name: 'Create' }).click();
 
   await expect(page.getByText('CKAD Prep')).toBeVisible();
@@ -38,6 +40,7 @@ test('create JSON source restricted to simple cards', async ({ page }) => {
   const source = await getSource('ckad-prep');
   expect(source?.sourceType).toBe('JSON');
   expect(source?.cardTypes).toEqual(['SIMPLE']);
+  expect(source?.typingPractice).toBe(true);
 
   await page.getByRole('button', { name: 'Actions for CKAD Prep' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
@@ -450,11 +453,60 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
   await expect(flashcard.getByLabel('Topic')).toHaveText('Pods');
   await expect(flashcard.getByLabel('Category')).toHaveText('Workloads');
   await expect(flashcard.getByText('holds containers')).not.toBeVisible();
+  await expect(flashcard.getByRole('textbox', { name: 'Your answer' })).toHaveCount(0);
 
   await pressRemoteKey(page, 'Enter');
 
   await expect(flashcard.getByText('holds containers')).toBeVisible();
   await expect(flashcard.getByText('shares network')).toBeVisible();
+});
+
+test('study mode lets the user type the answer before revealing when typing practice is enabled', async ({ page }) => {
+  await createSource({
+    id: 'ckad-typing',
+    name: 'CKAD Typing',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+  });
+
+  await createCard({
+    cardId: 'ckad-typing-pod',
+    sourceId: 'ckad-typing',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-typing/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText(/What is a/)).toBeVisible();
+  await expect(flashcard.getByText('The smallest deployable unit.')).not.toBeVisible();
+
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await answerInput.click();
+  await expect(flashcard.getByText('The smallest deployable unit.')).not.toBeVisible();
+
+  await answerInput.fill('The smallest unit in Kubernetes');
+  await answerInput.press('Enter');
+
+  await expect(flashcard.getByText('The smallest deployable unit.')).toBeVisible();
+  await expect(flashcard.getByLabel('Your answer')).toContainText(
+    'The smallest unit in Kubernetes'
+  );
+  await expect(answerInput).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Correct' }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
 });
 
 test('study mode syntax-highlights code blocks in simple cards', async ({ page }) => {

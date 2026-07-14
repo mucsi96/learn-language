@@ -51,8 +51,14 @@ export class AiChatDialogComponent {
   private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
 
   readonly card = this.data.card;
+  readonly isEnglish = this.card.source.aiLanguage === 'english';
   readonly title =
-    this.card.data?.word ?? this.card.data?.grammarTopic ?? 'Kártya';
+    this.card.data?.word ??
+    this.card.data?.grammarTopic ??
+    (this.isEnglish ? 'Card' : 'Kártya');
+  readonly placeholder = this.isEnglish
+    ? 'Ask something about the card...'
+    : 'Kérdezz valamit a kártyáról...';
 
   readonly messages = signal<ChatTurn[]>([]);
   readonly draft = signal('');

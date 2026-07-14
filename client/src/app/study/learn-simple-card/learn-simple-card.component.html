@@ -17,6 +17,31 @@
 
   <div class="front-section markdown-body" aria-label="Front" [innerHTML]="frontText() | markdown"></div>
 
+  @if (typingPractice()) {
+    @if (!isRevealed()) {
+      <mat-form-field
+        appearance="outline"
+        class="answer-field"
+        subscriptSizing="dynamic"
+        (click)="$event.stopPropagation()"
+      >
+        <mat-label>Your answer</mat-label>
+        <input
+          matInput
+          [ngModel]="typedAnswer()"
+          (ngModelChange)="typedAnswer.set($event)"
+          (keydown.enter)="submitAnswer($event)"
+          autocomplete="off"
+        />
+      </mat-form-field>
+    } @else if (typedAnswer().trim()) {
+      <div class="typed-answer-section" aria-label="Your answer">
+        <span class="typed-answer-label">Your answer</span>
+        <div class="typed-answer-text">{{ typedAnswer() }}</div>
+      </div>
+    }
+  }
+
   @if (isRevealed()) {
     <hr class="divider" />
     <div class="back-section markdown-body" aria-label="Back" [innerHTML]="backText() | markdown"></div>

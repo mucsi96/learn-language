@@ -43,6 +43,8 @@ public class CardResponse {
                         .languageLevel(source.getLanguageLevel())
                         .cardTypes(source.getCardTypes())
                         .formatType(source.getFormatType())
+                        .typingPractice(source.getTypingPractice())
+                        .aiLanguage(source.getAiLanguage())
                         .build())
                 .sourcePageNumber(card.getSourcePageNumber())
                 .type(card.getType())
@@ -73,5 +75,7 @@ public class CardResponse {
         private LanguageLevel languageLevel;
         private List<CardType> cardTypes;
         private SourceFormatType formatType;
+        private Boolean typingPractice;
+        private AiLanguage aiLanguage;
     }
 }

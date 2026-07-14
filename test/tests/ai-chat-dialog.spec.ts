@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, setupDefaultChatModelSettings } from '../utils';
+import { createCard, createSource, setupDefaultChatModelSettings } from '../utils';
 import { Page } from '@playwright/test';
 
 async function createAbfahrenCard() {
@@ -49,6 +49,59 @@ test('ask AI explains a card via text and highlights German words', async ({ pag
 
   await expect(dialog.getByText('Miért der Zug?')).toBeVisible();
   await expect(dialog.getByText(/Ez azért helyes/)).toBeVisible();
+  await expect(dialog.getByText('der Zug', { exact: true })).toHaveClass(/german/);
+});
+
+test('ask AI interacts in English when the source AI interaction language is English', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'english-ai',
+    name: 'English AI',
+    startPage: 9,
+    languageLevel: 'A1',
+    cardTypes: ['VOCABULARY'],
+    formatType: 'WORD_LIST_WITH_FORMS_AND_EXAMPLES',
+    aiLanguage: 'ENGLISH',
+  });
+  await createCard({
+    cardId: 'abfahren-to-leave',
+    sourceId: 'english-ai',
+    sourcePageNumber: 9,
+    data: {
+      word: 'abfahren',
+      type: 'VERB',
+      gender: 'NEUTER',
+      forms: ['fährt ab', 'fuhr ab', 'abgefahren'],
+      translation: { en: 'to leave', hu: 'elindulni', ch: 'abfahra' },
+      examples: [
+        {
+          de: 'Wann fährt der Zug ab?',
+          hu: 'Mikor indul a vonat?',
+          en: 'When does the train leave?',
+          isSelected: true,
+        },
+      ],
+    },
+  });
+
+  await page.goto('/sources/english-ai/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await page.getByRole('heading', { name: 'elindulni' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Ask AI' }).click();
+
+  const dialog = page.getByRole('dialog');
+  const questionInput = dialog.getByRole('textbox', { name: 'Ask a question' });
+  await expect(questionInput).toHaveAttribute(
+    'placeholder',
+    'Ask something about the card...'
+  );
+
+  await questionInput.fill('Why der Zug?');
+  await dialog.getByRole('button', { name: 'Send' }).click();
+
+  await expect(dialog.getByText('Why der Zug?')).toBeVisible();
+  await expect(dialog.getByText(/This is correct because/)).toBeVisible();
   await expect(dialog.getByText('der Zug', { exact: true })).toHaveClass(/german/);
 });
 

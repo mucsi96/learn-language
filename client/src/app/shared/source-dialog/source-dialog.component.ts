@@ -11,7 +11,8 @@ import {
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Source, SourceFormatType, SourceType, CardType, LanguageLevel } from '../../parser/types';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Source, SourceFormatType, SourceType, CardType, LanguageLevel, AiLanguage } from '../../parser/types';
 import { uploadDocument } from '../../utils/uploadDocument';
 import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
@@ -47,6 +48,7 @@ const slugify = (input: string): string =>
     MatInputModule,
     MatRadioModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
     MatIcon,
     MatProgressBarModule,
@@ -63,6 +65,10 @@ export class SourceDialogComponent {
   readonly languageLevels = this.environment.languageLevels;
   readonly formatTypes = this.environment.sourceFormatTypes;
   readonly sourceTypes = this.environment.sourceTypes;
+  readonly aiLanguages: { code: AiLanguage; displayName: string }[] = [
+    { code: 'hungarian', displayName: 'Hungarian' },
+    { code: 'english', displayName: 'English' },
+  ];
   readonly partners = this.partnersService.partners;
   readonly otherSources = computed(() =>
     (this.sourcesService.sources.value() ?? []).filter(
@@ -87,6 +93,8 @@ export class SourceDialogComponent {
     formatType: SourceFormatType | '';
     cardLimit: number;
     newCardLimit: number;
+    typingPractice: boolean;
+    aiLanguage: AiLanguage;
     learningPartnerId: number | null;
     detectionSourceIds: string[];
   }>({
@@ -99,6 +107,8 @@ export class SourceDialogComponent {
     formatType: this.data.source?.formatType ?? '',
     cardLimit: this.data.source?.cardLimit ?? 50,
     newCardLimit: this.data.source?.newCardLimit ?? 50,
+    typingPractice: this.data.source?.typingPractice ?? false,
+    aiLanguage: this.data.source?.aiLanguage ?? 'hungarian',
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
     detectionSourceIds: this.data.source?.detectionSourceIds ?? [],
   });
@@ -175,6 +185,8 @@ export class SourceDialogComponent {
             : undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
+        typingPractice: result.sourceType === 'json' ? result.typingPractice : false,
+        aiLanguage: result.aiLanguage,
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
           ? 0
           : result.learningPartnerId,
@@ -229,6 +241,10 @@ export class SourceDialogComponent {
     this.uploadedFile.set(null);
     this.formModel.update((m) => ({ ...m, fileName: '' }));
     this.uploadError.set(null);
+  }
+
+  setTypingPractice(checked: boolean): void {
+    this.formModel.update((m) => ({ ...m, typingPractice: checked }));
   }
 
   hasFile(): boolean {

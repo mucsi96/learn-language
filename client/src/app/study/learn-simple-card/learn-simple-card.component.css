@@ -44,6 +44,31 @@
   margin: 0;
 }
 
+.answer-field {
+  width: 100%;
+}
+
+.typed-answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-high, #f0f0f0);
+}
+
+.typed-answer-label {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant, #666);
+}
+
+.typed-answer-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .markdown-body {
   font-size: 1.1rem;
   line-height: 1.5;

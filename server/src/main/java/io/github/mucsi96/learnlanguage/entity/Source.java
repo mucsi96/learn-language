@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.entity;
 
+import io.github.mucsi96.learnlanguage.model.AiLanguage;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
@@ -60,6 +61,15 @@ public class Source {
 
   @Column(name = "new_card_limit")
   private Integer newCardLimit;
+
+  @Column(name = "typing_practice", nullable = false)
+  @Builder.Default
+  private Boolean typingPractice = false;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "ai_language", nullable = false)
+  @Builder.Default
+  private AiLanguage aiLanguage = AiLanguage.HUNGARIAN;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "learning_partner_id")

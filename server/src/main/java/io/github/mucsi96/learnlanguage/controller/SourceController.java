@@ -36,6 +36,7 @@ import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.AiLanguage;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.ExtractionRegionCreateRequest;
 import io.github.mucsi96.learnlanguage.model.LessonDescription;
@@ -133,6 +134,8 @@ public class SourceController {
           .formatType(source.getFormatType())
           .cardLimit(source.getCardLimit())
           .newCardLimit(source.getNewCardLimit())
+          .typingPractice(source.getTypingPractice())
+          .aiLanguage(source.getAiLanguage())
           .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
           .detectionSourceIds(source.getDetectionSources().stream().map(Source::getId).sorted().toList())
           .build();
@@ -326,6 +329,8 @@ public class SourceController {
         .formatType(request.getFormatType())
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
+        .typingPractice(request.getTypingPractice() != null ? request.getTypingPractice() : false)
+        .aiLanguage(request.getAiLanguage() != null ? request.getAiLanguage() : AiLanguage.HUNGARIAN)
         .learningPartner(request.getLearningPartnerId() != null
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
             : null)
@@ -367,6 +372,8 @@ public class SourceController {
         .formatType(request.getFormatType() != null ? request.getFormatType() : existingSource.getFormatType())
         .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
         .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
+        .typingPractice(request.getTypingPractice() != null ? request.getTypingPractice() : existingSource.getTypingPractice())
+        .aiLanguage(request.getAiLanguage() != null ? request.getAiLanguage() : existingSource.getAiLanguage())
         .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
         .detectionSources(request.getDetectionSourceIds() != null
             ? resolveDetectionSources(request.getDetectionSourceIds(), sourceId)

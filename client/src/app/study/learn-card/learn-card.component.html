@@ -86,7 +86,8 @@
       @case ('simple') {
         <app-learn-simple-card
           [card]="cardResource"
-          [isRevealed]="isRevealed()">
+          [isRevealed]="isRevealed()"
+          (revealRequested)="toggleReveal()">
         </app-learn-simple-card>
       }
     }

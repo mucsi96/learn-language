@@ -36,7 +36,7 @@
       (ngModelChange)="draft.set($event)"
       (keyup.enter)="submitText()"
       [disabled]="isBusy()"
-      placeholder="Kérdezz valamit a kártyáról..."
+      [placeholder]="placeholder"
       aria-label="Ask a question" />
   </mat-form-field>
   <button
