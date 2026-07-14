@@ -8,7 +8,9 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -19,6 +21,10 @@ import { SourcesService } from '../../sources.service';
 import { PromptSourceService } from '../../prompt-source.service';
 import { MarkdownPipe } from '../../shared/markdown.pipe';
 import { CoverageOverviewComponent } from '../../coverage-overview/coverage-overview.component';
+import {
+  SimpleCardImportDialogComponent,
+  SimpleCardImportDialogResult,
+} from '../../simple-card-import-dialog/simple-card-import-dialog.component';
 import { SimpleCardSuggestion } from '../types';
 
 type PreviewItem = {
@@ -48,6 +54,7 @@ export class PromptPageComponent {
   private readonly routeSourceId = injectParams('sourceId');
   private readonly sourcesService = inject(SourcesService);
   private readonly promptSourceService = inject(PromptSourceService);
+  private readonly dialog = inject(MatDialog);
 
   readonly sourceId = computed(() => {
     const id = this.routeSourceId();
@@ -69,6 +76,7 @@ export class PromptPageComponent {
   readonly savingPrompt = signal(false);
   readonly generating = signal(false);
   readonly creating = signal(false);
+  readonly importing = signal(false);
 
   readonly suggestions = signal<PreviewItem[]>([]);
   readonly selectedCount = computed(
@@ -139,12 +147,36 @@ export class PromptPageComponent {
     }
     this.creating.set(true);
     try {
-      await this.promptSourceService.createCards(sourceId, selected);
+      await this.promptSourceService.createCards(sourceId, selected, 'READY');
       this.suggestions.set([]);
       this.coverageVersion.update((v) => v + 1);
       this.sourcesService.refetchSources();
     } finally {
       this.creating.set(false);
+    }
+  }
+
+  async importJson(): Promise<void> {
+    const sourceId = this.sourceId();
+    if (!sourceId) {
+      return;
+    }
+    const ref = this.dialog.open<
+      SimpleCardImportDialogComponent,
+      void,
+      SimpleCardImportDialogResult
+    >(SimpleCardImportDialogComponent, { width: '640px' });
+    const result = await firstValueFrom(ref.afterClosed());
+    if (!result || result.cards.length === 0) {
+      return;
+    }
+    this.importing.set(true);
+    try {
+      await this.promptSourceService.createCards(sourceId, result.cards, 'DRAFT');
+      this.coverageVersion.update((v) => v + 1);
+      this.sourcesService.refetchSources();
+    } finally {
+      this.importing.set(false);
     }
   }
 

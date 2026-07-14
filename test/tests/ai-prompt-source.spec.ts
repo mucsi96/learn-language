@@ -91,6 +91,113 @@ test('create AI prompt source, generate, preview and create simple cards', async
   await expect(podsRow).toContainText('2');
 });
 
+test('bulk JSON import creates simple cards in draft state', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import',
+    name: 'CKAD Import',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.goto('/sources/ckad-import/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  const jsonStructure = dialog.getByLabel('Expected JSON structure');
+  await expect(jsonStructure).toContainText('frontText');
+  await expect(jsonStructure).toContainText('backText');
+  await expect(jsonStructure).toContainText('topic');
+  await expect(jsonStructure).toContainText('category');
+
+  const importButton = dialog.getByRole('button', { name: 'Import' });
+  await expect(importButton).toBeDisabled();
+
+  await dialog.getByLabel('Cards JSON').fill('not valid json');
+  await expect(dialog.getByText(/Invalid JSON/)).toBeVisible();
+  await expect(importButton).toBeDisabled();
+
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        frontText: 'What is a **Pod**?',
+        backText: 'The smallest deployable unit.',
+        topic: 'Pods',
+        category: 'Workloads',
+      },
+      {
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+  await expect(dialog).not.toBeVisible();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT id FROM learn_language.cards WHERE source_id = $1`,
+        ['ckad-import']
+      );
+      return result.rows.length;
+    })
+  ).toBe(2);
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT data, readiness, type FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-import']
+    );
+    const podCard = result.rows.find(
+      (row) => row.data.frontText === 'What is a **Pod**?'
+    );
+    const serviceCard = result.rows.find(
+      (row) => row.data.frontText === 'What is a Service?'
+    );
+
+    expect(podCard.readiness).toBe('DRAFT');
+    expect(podCard.type).toBe('SIMPLE');
+    expect(podCard.data.backText).toBe('The smallest deployable unit.');
+    expect(podCard.data.topic).toBe('Pods');
+    expect(podCard.data.category).toBe('Workloads');
+
+    expect(serviceCard.readiness).toBe('DRAFT');
+    expect(serviceCard.type).toBe('SIMPLE');
+    expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
+    expect(serviceCard.data.topic).toBeUndefined();
+    expect(serviceCard.data.category).toBeUndefined();
+  });
+});
+
+test('bulk JSON import rejects cards with missing required fields', async ({ page }) => {
+  await createSource({
+    id: 'ckad-import-invalid',
+    name: 'CKAD Import Invalid',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'AI_PROMPT',
+  });
+
+  await page.goto('/sources/ckad-import-invalid/prompt');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([{ frontText: 'Question without an answer' }])
+  );
+
+  await expect(
+    dialog.getByText('Card 1: "backText" must be a non-empty string.')
+  ).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Import' })).toBeDisabled();
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',
@@ -111,6 +218,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
       frontText: 'What is a **Pod**?',
       backText: 'The smallest deployable unit.',
       topic: 'Pods',
+      category: 'Workloads',
     },
   });
 
@@ -120,10 +228,12 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
   await expect(page.getByLabel('Front text')).toHaveValue('What is a **Pod**?');
   await expect(page.getByLabel('Back text')).toHaveValue('The smallest deployable unit.');
   await expect(page.getByLabel('Topic')).toHaveValue('Pods');
+  await expect(page.getByLabel('Category')).toHaveValue('Workloads');
   await expect(page.getByLabel('Front preview')).toContainText('What is a Pod?');
 
   await page.getByLabel('Back text').fill('A Pod is the smallest deployable unit in Kubernetes.');
   await page.getByLabel('Topic').fill('Core Concepts');
+  await page.getByLabel('Category').fill('Kubernetes Basics');
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect(page.getByText('Card updated successfully')).toBeVisible();
@@ -138,6 +248,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
       'A Pod is the smallest deployable unit in Kubernetes.'
     );
     expect(result.rows[0].data.topic).toBe('Core Concepts');
+    expect(result.rows[0].data.category).toBe('Kubernetes Basics');
   });
 
   await page.getByLabel('Topic').clear();
@@ -218,6 +329,7 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
       frontText: 'What is a **Pod**?',
       backText: 'A Pod is the smallest deployable unit.\n\n- holds containers\n- shares network',
       topic: 'Pods',
+      category: 'Workloads',
     },
   });
 
@@ -226,6 +338,8 @@ test('study mode renders a simple card front and back as markdown', async ({ pag
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText(/What is a/)).toBeVisible();
+  await expect(flashcard.getByLabel('Topic')).toHaveText('Pods');
+  await expect(flashcard.getByLabel('Category')).toHaveText('Workloads');
   await expect(flashcard.getByText('holds containers')).not.toBeVisible();
 
   await pressRemoteKey(page, 'Enter');

@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Import cards from JSON</h2>
+
+<mat-dialog-content class="dialog-content">
+  <p class="intro">
+    Paste a JSON array of cards below. Each card needs a
+    <code>frontText</code> and a <code>backText</code> (both Markdown);
+    <code>topic</code> and <code>category</code> are optional. Imported cards
+    are created as drafts.
+  </p>
+  <pre class="json-example" aria-label="Expected JSON structure">{{ exampleJson }}</pre>
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Cards JSON</mat-label>
+    <textarea
+      matInput
+      rows="10"
+      [ngModel]="jsonText()"
+      (ngModelChange)="jsonText.set($event)"
+      aria-label="Cards JSON"
+    ></textarea>
+  </mat-form-field>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="confirm()"
+    [disabled]="!canImport()"
+  >
+    @if (canImport()) {
+      Import {{ cardCount() }} card{{ cardCount() === 1 ? '' : 's' }}
+    } @else {
+      Import
+    }
+  </button>
+</mat-dialog-actions>

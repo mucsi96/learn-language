@@ -11,6 +11,7 @@ import {
   GenerateCardsResponse,
   SimpleCardSuggestion,
 } from './parser/types';
+import { CardReadiness } from './shared/state/card-readiness';
 
 const CARD_GENERATION_OPERATION = 'card_generation';
 
@@ -50,7 +51,8 @@ export class PromptSourceService {
 
   async createCards(
     sourceId: string,
-    suggestions: SimpleCardSuggestion[]
+    suggestions: SimpleCardSuggestion[],
+    readiness: CardReadiness
   ): Promise<void> {
     for (const suggestion of suggestions) {
       const emptyCard = createEmptyCard();
@@ -63,9 +65,10 @@ export class PromptSourceService {
           frontText: suggestion.frontText,
           backText: suggestion.backText,
           ...(suggestion.topic ? { topic: suggestion.topic } : {}),
+          ...(suggestion.category ? { category: suggestion.category } : {}),
         },
         ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
-        readiness: 'READY',
+        readiness,
       } satisfies CardCreatePayload;
 
       await fetchJson(this.http, `/api/card`, {

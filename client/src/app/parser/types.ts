@@ -61,6 +61,7 @@ export type CardData = {
   frontText?: string;
   backText?: string;
   topic?: string;
+  category?: string;
 };
 
 export type Card = {
@@ -239,6 +240,7 @@ export type SimpleCardSuggestion = {
   frontText: string;
   backText: string;
   topic?: string;
+  category?: string;
 };
 
 export type GenerateCardsResponse = {

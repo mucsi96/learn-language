@@ -4,7 +4,16 @@
       <mat-icon>arrow_back</mat-icon>
     </a>
     <h1>{{ source()?.name ?? sourceId() }}</h1>
+    <span class="spacer"></span>
+    <button mat-stroked-button (click)="importJson()" [disabled]="importing()">
+      <mat-icon>upload_file</mat-icon>
+      Import JSON
+    </button>
   </header>
+
+  @if (importing()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Importing cards"></mat-progress-bar>
+  }
 
   <section class="panel">
     <h2 class="panel-title">Base prompt</h2>
@@ -113,8 +122,15 @@
               [attr.aria-label]="'Include card ' + ($index + 1)"
             ></mat-checkbox>
             <div class="preview-card">
-              @if (item.suggestion.topic) {
-                <div class="topic-chip">{{ item.suggestion.topic }}</div>
+              @if (item.suggestion.topic || item.suggestion.category) {
+                <div class="chips-row">
+                  @if (item.suggestion.category) {
+                    <div class="topic-chip">{{ item.suggestion.category }}</div>
+                  }
+                  @if (item.suggestion.topic) {
+                    <div class="topic-chip">{{ item.suggestion.topic }}</div>
+                  }
+                </div>
               }
               <div class="preview-front markdown-body" [innerHTML]="item.suggestion.frontText | markdown"></div>
               <hr class="divider" />

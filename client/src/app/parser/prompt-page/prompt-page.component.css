@@ -18,6 +18,16 @@
   font-size: 1.4rem;
 }
 
+.spacer {
+  flex: 1;
+}
+
+.chips-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .panel {
   border: 1px solid var(--mat-sys-outline-variant, #ddd);
   border-radius: 12px;
