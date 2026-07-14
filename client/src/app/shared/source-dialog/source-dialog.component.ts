@@ -72,9 +72,9 @@ export class SourceDialogComponent {
   readonly isJson = computed(() => this.formModel().sourceType === 'json');
 
   readonly cardTypes = computed(() =>
-    CARD_TYPE_OPTIONS.filter((option) =>
-      this.isJson() ? option.code === 'simple' : option.code !== 'simple'
-    )
+    this.isJson()
+      ? CARD_TYPE_OPTIONS.filter((option) => option.code === 'simple')
+      : CARD_TYPE_OPTIONS
   );
 
   readonly formModel = signal<{
