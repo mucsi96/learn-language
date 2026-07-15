@@ -28,10 +28,9 @@ export class LearnSimpleCardComponent {
   );
 
   readonly typedAnswer = signal('');
-  private readonly currentCardId = computed(() => this.card()?.value()?.id);
 
   private readonly clearTypedAnswerOnCardChange = effect(() => {
-    this.currentCardId();
+    this.card()?.value();
     this.typedAnswer.set('');
   });
 

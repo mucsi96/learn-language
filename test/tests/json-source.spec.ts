@@ -513,6 +513,13 @@ test('study mode lets the user type the answer before revealing when typing prac
       frontText: 'What is a **Pod**?',
       backText: 'The smallest deployable unit.',
     },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
   });
 
   await page.goto('/sources/ckad-typing/study');
