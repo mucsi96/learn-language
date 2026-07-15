@@ -49,6 +49,37 @@ test('create JSON source restricted to simple cards', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Import JSON' })).toBeVisible();
 });
 
+test('typing practice can be toggled off when editing a JSON source', async ({ page }) => {
+  await createSource({
+    id: 'ckad-toggle',
+    name: 'CKAD Toggle',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+  });
+
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Actions for CKAD Toggle' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
+
+  const checkbox = page.getByRole('checkbox', {
+    name: 'Practice typing the answer',
+  });
+  await expect(checkbox).toBeChecked();
+
+  await checkbox.uncheck();
+  await page.getByRole('button', { name: 'Update' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
+
+  await expect
+    .poll(async () => (await getSource('ckad-toggle'))?.typingPractice)
+    .toBe(false);
+});
+
 test('bulk JSON import creates simple cards in draft state', async ({ page }) => {
   await createSource({
     id: 'ckad-import',
