@@ -324,6 +324,8 @@ test('can create a new source', async ({ page }) => {
   expect(createdSource?.languageLevel).toBe('B2');
   expect(createdSource?.cardTypes).toEqual(['VOCABULARY']);
   expect(createdSource?.formatType).toBe('WORD_LIST_WITH_EXAMPLES');
+  expect(createdSource?.typingPractice).toBe(false);
+  expect(createdSource?.aiLanguage).toBe('HUNGARIAN');
 
   const documents = await getDocuments('test-source');
   expect(documents).toHaveLength(1);
@@ -347,6 +349,9 @@ test('can edit an existing source', async ({ page }) => {
   const nameField = page.getByRole('textbox', { name: 'Name', exact: true });
   await nameField.fill('Goethe A1 Updated');
 
+  await page.getByLabel('AI Interaction Language').click();
+  await page.getByRole('option', { name: 'English' }).click();
+
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
@@ -355,6 +360,7 @@ test('can edit an existing source', async ({ page }) => {
 
   const updatedSource = await getSource('goethe-a1');
   expect(updatedSource?.name).toBe('Goethe A1 Updated');
+  expect(updatedSource?.aiLanguage).toBe('ENGLISH');
 });
 
 test('can add a card type to an existing source', async ({ page }) => {

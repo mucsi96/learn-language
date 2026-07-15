@@ -58,6 +58,8 @@ export async function createSource(params: {
   bookmarkedDocumentId?: number | null;
   cardLimit?: number | null;
   newCardLimit?: number | null;
+  typingPractice?: boolean;
+  aiLanguage?: string;
   learningPartnerId?: number | null;
   detectionSourceIds?: string[];
 }): Promise<void> {
@@ -73,15 +75,17 @@ export async function createSource(params: {
     bookmarkedDocumentId = null,
     cardLimit = null,
     newCardLimit = null,
+    typingPractice = false,
+    aiLanguage = 'HUNGARIAN',
     learningPartnerId = null,
     detectionSourceIds = [],
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_types, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, learning_partner_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-      [id, name, startPage, languageLevel, cardTypes.join(','), formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, learningPartnerId]
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_types, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, typing_practice, ai_language, learning_partner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [id, name, startPage, languageLevel, cardTypes.join(','), formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, typingPractice, aiLanguage, learningPartnerId]
     );
 
     await Promise.all(
@@ -176,6 +180,8 @@ export async function getSource(id: string): Promise<{
   bookmarkedDocumentId: number | null;
   cardLimit: number | null;
   newCardLimit: number | null;
+  typingPractice: boolean;
+  aiLanguage: string;
   learningPartnerId: number | null;
 } | null> {
   return withDbConnection(async (client) => {
@@ -187,6 +193,8 @@ export async function getSource(id: string): Promise<{
               bookmarked_document_id as "bookmarkedDocumentId",
               card_limit as "cardLimit",
               new_card_limit as "newCardLimit",
+              typing_practice as "typingPractice",
+              ai_language as "aiLanguage",
               learning_partner_id as "learningPartnerId"
        FROM learn_language.sources
        WHERE id = $1`,

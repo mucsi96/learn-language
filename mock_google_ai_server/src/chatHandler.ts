@@ -361,6 +361,14 @@ export class ChatHandler {
   handleExplanation(request: GeminiRequest): any | null {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
 
+    if (systemContent.includes('German language teacher assisting an English-speaking learner')) {
+      return createGeminiResponse(
+        'This is correct because **der Zug** is a masculine noun, so we use the ' +
+          '**der** article. In the example sentence **abfahren** is a separable verb, ' +
+          'so **ab** moves to the end of the sentence.'
+      );
+    }
+
     if (!systemContent.includes('German language teacher assisting a Hungarian learner')) {
       return null;
     }

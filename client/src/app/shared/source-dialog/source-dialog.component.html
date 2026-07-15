@@ -182,7 +182,27 @@
             }
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>AI Interaction Language</mat-label>
+          <mat-select
+            [formField]="sourceForm.aiLanguage"
+          >
+            @for (language of aiLanguages; track language.code) {
+            <mat-option [value]="language.code">{{ language.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
       </div>
+
+      @if (isJson()) {
+      <mat-checkbox
+        [checked]="formModel().typingPractice"
+        (change)="setTypingPractice($event.checked)"
+      >
+        Practice typing the answer
+      </mat-checkbox>
+      }
     </section>
   </form>
 </mat-dialog-content>

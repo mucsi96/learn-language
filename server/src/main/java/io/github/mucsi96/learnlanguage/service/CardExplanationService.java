@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
+import io.github.mucsi96.learnlanguage.model.AiLanguage;
 import io.github.mucsi96.learnlanguage.model.ChatMessage;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -44,7 +45,20 @@ public class CardExplanationService {
     private String buildSystemPrompt(Card card) {
         final String cardContext = jsonMapper.writeValueAsString(card.getData());
 
-        return """
+        return card.getSource().getAiLanguage() == AiLanguage.ENGLISH
+                ? """
+                You are a German language teacher assisting an English-speaking learner who is studying a flashcard.
+                ALWAYS respond in English, no matter which language the question arrives in.
+                Never refuse the question; always give a helpful, patient explanation.
+                Explain the grammar rules, the gender of nouns, verb conjugation, and why the \
+                example sentences are structured the way they are.
+                Wrap EVERY German word or phrase (including articles) in double asterisks, \
+                for example: **der Zug**, **abfahren**. Never wrap the English text in asterisks.
+
+                The flashcard being studied (JSON):
+                %s
+                """.formatted(cardContext)
+                : """
                 You are a German language teacher assisting a Hungarian learner who is studying a flashcard.
                 MINDIG magyarul válaszolj, függetlenül attól, hogy a kérdés milyen nyelven érkezik.
                 Soha ne utasítsd vissza a kérdést; mindig adj segítőkész, türelmes magyarázatot.

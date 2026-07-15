@@ -71,6 +71,8 @@ export type Card = {
     name?: string;
     startPage?: number;
     cardTypes?: CardType[];
+    typingPractice?: boolean;
+    aiLanguage?: AiLanguage;
   };
   sourcePageNumber: number;
   type?: CardType;
@@ -236,6 +238,7 @@ export type SourceFormatType =
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
 export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json';
+export type AiLanguage = 'hungarian' | 'english';
 
 export type SimpleCardSuggestion = {
   id: string;
@@ -263,6 +266,8 @@ export type Source = {
   formatType?: SourceFormatType;
   cardLimit?: number;
   newCardLimit?: number;
+  typingPractice?: boolean;
+  aiLanguage?: AiLanguage;
   learningPartnerId?: number | null;
   detectionSourceIds?: string[];
 };

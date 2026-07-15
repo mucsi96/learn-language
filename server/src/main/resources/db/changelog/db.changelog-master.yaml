@@ -1211,3 +1211,29 @@ databaseChangeLog:
         - dropColumn:
             tableName: sources
             columnName: prompt
+  - changeSet:
+      id: 39-add-typing-practice-to-sources
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: typing_practice
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 40-add-ai-language-to-sources
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: ai_language
+                  type: varchar(32)
+                  defaultValue: HUNGARIAN
+                  constraints:
+                    nullable: false
