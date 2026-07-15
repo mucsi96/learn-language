@@ -504,7 +504,7 @@ test('study mode lets the user type the answer before revealing when typing prac
   );
   await expect(answerInput).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Correct' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
