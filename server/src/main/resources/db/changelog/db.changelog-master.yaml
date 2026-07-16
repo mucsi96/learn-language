@@ -1237,3 +1237,37 @@ databaseChangeLog:
                   defaultValue: HUNGARIAN
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 41-seed-answer-check-model-settings
+      author: mucsi96
+      changes:
+        - insert:
+            tableName: chat_model_settings
+            columns:
+              - column:
+                  name: model_name
+                  value: gpt-5-nano
+              - column:
+                  name: operation_type
+                  value: ANSWER_CHECK
+              - column:
+                  name: is_enabled
+                  valueBoolean: true
+              - column:
+                  name: is_primary
+                  valueBoolean: true
+        - insert:
+            tableName: chat_model_settings
+            columns:
+              - column:
+                  name: model_name
+                  value: claude-haiku-4-5
+              - column:
+                  name: operation_type
+                  value: ANSWER_CHECK
+              - column:
+                  name: is_enabled
+                  valueBoolean: true
+              - column:
+                  name: is_primary
+                  valueBoolean: false

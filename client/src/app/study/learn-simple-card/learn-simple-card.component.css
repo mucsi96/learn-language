@@ -62,11 +62,37 @@
   color: var(--mat-sys-on-surface-variant, #666);
 }
 
+.typed-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .typed-answer-text {
   font-size: 1.1rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.answer-correct-icon {
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.answer-feedback {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--mat-sys-error, #b00020);
+  overflow-wrap: anywhere;
+}
+
+.answer-check-unavailable {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant, #666);
 }
 
 .markdown-body {

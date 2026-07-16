@@ -37,7 +37,25 @@
     } @else if (typedAnswer().trim()) {
       <div class="typed-answer-section" aria-label="Your answer">
         <span class="typed-answer-label">Your answer</span>
-        <div class="typed-answer-text">{{ typedAnswer() }}</div>
+        <div class="typed-answer-row">
+          <div class="typed-answer-text">{{ typedAnswer() }}</div>
+          @if (answerCorrect()) {
+            <mat-icon
+              class="answer-correct-icon"
+              role="img"
+              aria-hidden="false"
+              aria-label="Correct answer"
+            >check_circle</mat-icon>
+          }
+        </div>
+        @if (answerFeedback(); as feedback) {
+          <div class="answer-feedback" role="alert">{{ feedback }}</div>
+        }
+        @if (answerCheck.error()) {
+          <div class="answer-check-unavailable" role="alert">
+            Could not check your answer.
+          </div>
+        }
       </div>
     }
   }

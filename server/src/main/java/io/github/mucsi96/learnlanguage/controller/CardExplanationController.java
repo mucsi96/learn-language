@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.github.mucsi96.learnlanguage.model.AnswerCheckRequest;
+import io.github.mucsi96.learnlanguage.model.AnswerCheckResponse;
 import io.github.mucsi96.learnlanguage.model.CardExplanationRequest;
 import io.github.mucsi96.learnlanguage.model.CardExplanationResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.TranscriptionResponse;
+import io.github.mucsi96.learnlanguage.service.AnswerCheckService;
 import io.github.mucsi96.learnlanguage.service.CardExplanationService;
 import io.github.mucsi96.learnlanguage.service.TranscriptionService;
 import jakarta.validation.Valid;
@@ -25,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class CardExplanationController {
 
     private final CardExplanationService cardExplanationService;
+    private final AnswerCheckService answerCheckService;
     private final TranscriptionService transcriptionService;
 
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
@@ -39,6 +43,16 @@ public class CardExplanationController {
         return CardExplanationResponse.builder()
                 .answer(answer)
                 .build();
+    }
+
+    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PostMapping("/card/{cardId}/check-answer")
+    public AnswerCheckResponse checkAnswer(
+            @PathVariable String cardId,
+            @Valid @RequestBody AnswerCheckRequest request,
+            @RequestParam ChatModel model) {
+
+        return answerCheckService.checkAnswer(cardId, request.getAnswer(), model);
     }
 
     @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
