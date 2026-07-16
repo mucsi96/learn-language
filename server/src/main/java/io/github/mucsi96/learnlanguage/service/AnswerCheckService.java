@@ -31,6 +31,11 @@ public class AnswerCheckService {
                     "Typing practice is not enabled for source: " + card.getSource().getId());
         }
 
+        if (card.getData().getFrontText() == null || card.getData().getBackText() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Card has no front/back text to check the answer against: " + cardId);
+        }
+
         final String systemPrompt = buildSystemPrompt(card);
         final AnswerCheckResult result = chatService.callWithLogging(
                 model,
