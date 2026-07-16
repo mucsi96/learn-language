@@ -50,7 +50,7 @@ async function setupVoiceConfigurations() {
 
 test('page title', async ({ page }) => {
   await page.goto('/model-usage');
-  await expect(page).toHaveTitle('Model Usage');
+  await expect(page).toHaveTitle('Model Usage | Learn language');
 });
 
 test('navigates to model usage from profile menu', async ({ page }) => {

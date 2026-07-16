@@ -84,7 +84,7 @@ test('displays empty state when no cards in review', async ({ page }) => {
 
 test('page title', async ({ page }) => {
   await page.goto('/in-review-cards');
-  await expect(page).toHaveTitle('Cards In Review');
+  await expect(page).toHaveTitle('Cards In Review | Learn language');
 });
 
 test('mark as reviewed button disabled when no favorite image', async ({ page }) => {

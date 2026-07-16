@@ -3,17 +3,17 @@ import { createCard, navigateToCardEditing, setupDefaultChatModelSettings, setup
 
 test('home page title', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle('');
+  await expect(page).toHaveTitle('Learn language');
 });
 
 test('sources page title', async ({ page }) => {
   await page.goto('/sources');
-  await expect(page).toHaveTitle('Sources');
+  await expect(page).toHaveTitle('Sources | Learn language');
 });
 
 test('source page title', async ({ page }) => {
   await page.goto('/sources/goethe-a1/page/9');
-  await expect(page).toHaveTitle('9 / goethe-a1');
+  await expect(page).toHaveTitle('9 / goethe-a1 | Learn language');
 });
 
 test('card page title', async ({ page }) => {
@@ -53,5 +53,5 @@ test('card page title', async ({ page }) => {
     },
   });
   await navigateToCardEditing(page);
-  await expect(page).toHaveTitle('Edit Card');
+  await expect(page).toHaveTitle('Edit Card | Learn language');
 });
