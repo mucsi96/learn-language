@@ -19,7 +19,7 @@ test('navigates to cards table from page view', async ({ page }) => {
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
   await page.getByRole('link', { name: 'View all cards' }).click();
-  await expect(page).toHaveTitle('Cards');
+  await expect(page).toHaveTitle('Cards | Learn language');
 });
 
 test('displays cards in table', async ({ page }) => {
@@ -351,7 +351,7 @@ test('navigates to card editing on row click', async ({ page }) => {
 
   await page.getByRole('row', { name: /click-card/ }).click();
 
-  await expect(page).toHaveTitle('Edit Card');
+  await expect(page).toHaveTitle('Edit Card | Learn language');
 });
 
 test('filters cards by last review time', async ({ page }) => {
@@ -521,7 +521,7 @@ test('sorts cards by last review', async ({ page }) => {
 
 test('page title shows Cards', async ({ page }) => {
   await page.goto('/sources/goethe-a1/cards');
-  await expect(page).toHaveTitle('Cards');
+  await expect(page).toHaveTitle('Cards | Learn language');
 });
 
 test('delete image button shows as text button', async ({ page }) => {
@@ -1407,7 +1407,7 @@ test('draft cards do not navigate on row click', async ({ page }) => {
 
   await page.getByRole('row', { name: /draft-click-card/ }).click();
 
-  await expect(page).toHaveTitle('Cards');
+  await expect(page).toHaveTitle('Cards | Learn language');
 });
 
 test('complete button visible for draft cards in non-draft mode', async ({ page }) => {

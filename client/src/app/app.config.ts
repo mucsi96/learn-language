@@ -4,7 +4,7 @@ import {
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, TitleStrategy } from '@angular/router';
 
 import {
   provideHttpClient,
@@ -17,6 +17,7 @@ import {
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideAngularMaterialTheme } from '@mucsi96/angular-material-theme';
 import { routes } from './app.routes';
+import { AppTitleStrategy } from './utils/app-title.strategy';
 import { provideOidcAuth } from './auth.config';
 import { AuthService } from './auth.service';
 import { authRetryInterceptor } from './utils/auth-retry.interceptor';
@@ -38,6 +39,7 @@ export function getAppConfig(environment: EnvironmentConfig): ApplicationConfig 
     providers: [
       provideZoneChangeDetection({ eventCoalescing: true }),
       provideRouter(routes),
+      { provide: TitleStrategy, useClass: AppTitleStrategy },
       provideHttpClient(
         withInterceptors([
           errorInterceptor,
