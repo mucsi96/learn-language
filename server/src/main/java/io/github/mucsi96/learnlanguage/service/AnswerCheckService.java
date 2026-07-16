@@ -32,7 +32,7 @@ public class AnswerCheckService {
                     "Typing practice is not enabled for source: " + card.getSource().getId());
         }
 
-        if (card.getData().getFrontText() == null || card.getData().getBackText() == null) {
+        if (isMissing(card.getData().getFrontText()) || isMissing(card.getData().getBackText())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Card has no front/back text to check the answer against: " + cardId);
         }
@@ -55,6 +55,10 @@ public class AnswerCheckService {
                 .correct(result.correct())
                 .explanation(result.explanation())
                 .build();
+    }
+
+    private static boolean isMissing(String text) {
+        return text == null || text.isBlank();
     }
 
     private String buildSystemPrompt(Card card) {
