@@ -83,7 +83,7 @@ export class LearnSimpleCardComponent {
     this.revealRequested.emit();
   }
 
-  private checkAnswer(cardId: string, answer: string): Promise<AnswerCheckResult> {
+  private async checkAnswer(cardId: string, answer: string): Promise<AnswerCheckResult> {
     const model = this.environmentConfig.primaryModelByOperation['answer_check'];
     if (!model) {
       throw new Error('No primary model configured for answer check');

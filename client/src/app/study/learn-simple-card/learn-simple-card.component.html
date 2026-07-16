@@ -51,6 +51,11 @@
         @if (answerFeedback(); as feedback) {
           <div class="answer-feedback" role="alert">{{ feedback }}</div>
         }
+        @if (answerCheck.error()) {
+          <div class="answer-check-unavailable" role="alert">
+            Could not check your answer.
+          </div>
+        }
       </div>
     }
   }

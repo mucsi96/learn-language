@@ -88,6 +88,13 @@
   overflow-wrap: anywhere;
 }
 
+.answer-check-unavailable {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant, #666);
+}
+
 .markdown-body {
   font-size: 1.1rem;
   line-height: 1.5;
