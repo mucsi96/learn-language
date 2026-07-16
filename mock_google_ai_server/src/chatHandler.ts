@@ -380,6 +380,39 @@ export class ChatHandler {
     );
   }
 
+  handleAnswerCheck(request: GeminiRequest): any | null {
+    const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
+    const userContent = getTextContent(request);
+
+    if (
+      !systemContent.includes("checking a learner's typed answer to a flashcard") ||
+      !userContent
+    ) {
+      return null;
+    }
+
+    const expectedMatch = systemContent.match(
+      /The expected answer on the back of the card:\s*([\s\S]*?)\s*$/
+    );
+    const answerMatch = userContent.match(/The learner's answer: (.*)/);
+    const expected = expectedMatch?.[1]?.trim() || '';
+    const answer = answerMatch?.[1]?.trim() || '';
+
+    const normalize = (text: string) =>
+      text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+    if (normalize(expected) === normalize(answer)) {
+      return createGeminiResponse({ correct: true, explanation: null });
+    }
+
+    const isHungarian = systemContent.includes('ALWAYS write the explanation in Hungarian');
+    const explanation = isHungarian
+      ? `A(z) "${answer}" válasz mást jelent — a várt válasz: "${expected}".`
+      : `Your answer "${answer}" means something different — the expected answer is "${expected}".`;
+
+    return createGeminiResponse({ correct: false, explanation });
+  }
+
   async processRequest(request: GeminiRequest): Promise<any> {
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
@@ -387,6 +420,9 @@ export class ChatHandler {
 
     const explanationResponse = this.handleExplanation(request);
     if (explanationResponse) return explanationResponse;
+
+    const answerCheckResponse = this.handleAnswerCheck(request);
+    if (answerCheckResponse) return answerCheckResponse;
 
     const dictionaryResponse = this.handleDictionaryLookup(request);
     if (dictionaryResponse) return dictionaryResponse;

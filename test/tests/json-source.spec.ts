@@ -4,6 +4,7 @@ import {
   createCard,
   createSource,
   getSource,
+  setupDefaultChatModelSettings,
   withDbConnection,
 } from '../utils';
 
@@ -545,6 +546,89 @@ test('study mode lets the user type the answer before revealing when typing prac
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();
+});
+
+test('typed answer matching the back text shows a green tick after reveal', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-check-ok',
+    name: 'CKAD Check Ok',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+    aiLanguage: 'ENGLISH',
+  });
+
+  await createCard({
+    cardId: 'ckad-check-ok-pod',
+    sourceId: 'ckad-check-ok',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-check-ok/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await answerInput.fill('the smallest deployable unit');
+  await answerInput.press('Enter');
+
+  await expect(flashcard.getByLabel('Your answer')).toContainText(
+    'the smallest deployable unit'
+  );
+  await expect(
+    flashcard.getByRole('img', { name: 'Correct answer' })
+  ).toBeVisible();
+  await expect(flashcard.getByRole('alert')).toHaveCount(0);
+});
+
+test('typed answer not matching the back text shows a red explanation', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-check-wrong',
+    name: 'CKAD Check Wrong',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+    aiLanguage: 'ENGLISH',
+  });
+
+  await createCard({
+    cardId: 'ckad-check-wrong-pod',
+    sourceId: 'ckad-check-wrong',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-check-wrong/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await answerInput.fill('A large virtual machine');
+  await answerInput.press('Enter');
+
+  await expect(flashcard.getByRole('alert')).toHaveText(
+    'Your answer "A large virtual machine" means something different — the expected answer is "The smallest deployable unit.".'
+  );
+  await expect(
+    flashcard.getByRole('img', { name: 'Correct answer' })
+  ).toHaveCount(0);
 });
 
 test('study mode syntax-highlights code blocks in simple cards', async ({ page }) => {
