@@ -68,7 +68,14 @@ export class LearnSimpleCardComponent {
     loader: ({ params }) => this.checkAnswer(params.cardId, params.answer),
   });
 
+  readonly answerCorrect = computed(
+    () => this.answerCheck.hasValue() && this.answerCheck.value()?.correct === true
+  );
+
   readonly answerFeedback = computed(() => {
+    if (!this.answerCheck.hasValue()) {
+      return null;
+    }
     const result = this.answerCheck.value();
     if (!result || result.correct) {
       return null;

@@ -39,7 +39,7 @@
         <span class="typed-answer-label">Your answer</span>
         <div class="typed-answer-row">
           <div class="typed-answer-text">{{ typedAnswer() }}</div>
-          @if (answerCheck.value()?.correct) {
+          @if (answerCorrect()) {
             <mat-icon
               class="answer-correct-icon"
               role="img"
