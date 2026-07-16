@@ -31,13 +31,20 @@ public class ModelPricingConfig {
         Map.entry("gpt-5-mini", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
         Map.entry("gpt-5-nano", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
         Map.entry("gpt-5.5", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        // OpenAI GPT-5.6 family
+        Map.entry("gpt-5.6-sol", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-terra", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-luna", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
         // Anthropic Claude
         Map.entry("claude-sonnet-4-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-fable-5", new ChatModelPricing(new BigDecimal("10.00"), new BigDecimal("50.00"))),
         // Google Gemini
         Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
-        Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00")))
+        Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00"))),
+        Map.entry("gemini-3.5-flash", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00")))
     );
 
     // OpenAI image models priced per quality variant at 1024x1024. The High prices are the
@@ -52,7 +59,9 @@ public class ModelPricingConfig {
         Map.entry("ideogram-4-default", new ImageModelPricing(new BigDecimal("0.06"))),
         Map.entry("ideogram-4-quality", new ImageModelPricing(new BigDecimal("0.10"))),
         // Gemini Developer API: 1,290 output tokens per 1024x1024 image at $30/M tokens
-        Map.entry("gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134")))
+        Map.entry("gemini-3-pro-image-preview", new ImageModelPricing(new BigDecimal("0.134"))),
+        // Gemini Developer API: 1,120 output tokens per 1K image at $60/M tokens
+        Map.entry("gemini-3.1-flash-image", new ImageModelPricing(new BigDecimal("0.067")))
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(

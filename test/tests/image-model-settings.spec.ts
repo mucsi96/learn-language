@@ -24,6 +24,7 @@ test('displays all image model quality variants with default image counts', asyn
     'Ideogram 4 (Default)',
     'Ideogram 4 (Quality)',
     'Gemini 3 Pro',
+    'Gemini 3.1 Flash',
   ];
 
   await Promise.all(

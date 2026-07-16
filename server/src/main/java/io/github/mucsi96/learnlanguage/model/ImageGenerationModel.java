@@ -17,7 +17,8 @@ public enum ImageGenerationModel {
     IDEOGRAM_4_TURBO("ideogram-4-turbo", "ideogram-v4", "Ideogram 4 (Turbo)", ImageQuality.LOW, "2048x2048"),
     IDEOGRAM_4_DEFAULT("ideogram-4-default", "ideogram-v4", "Ideogram 4 (Default)", ImageQuality.MEDIUM, "2048x2048"),
     IDEOGRAM_4_QUALITY("ideogram-4-quality", "ideogram-v4", "Ideogram 4 (Quality)", ImageQuality.HIGH, "2048x2048"),
-    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "gemini-3-pro-image-preview", "Gemini 3 Pro", null, null);
+    GEMINI_3_PRO_IMAGE_PREVIEW("gemini-3-pro-image-preview", "gemini-3-pro-image-preview", "Gemini 3 Pro", null, null),
+    GEMINI_3_1_FLASH_IMAGE("gemini-3.1-flash-image", "gemini-3.1-flash-image", "Gemini 3.1 Flash", null, null);
 
     public enum ImageQuality {
         LOW, MEDIUM, HIGH

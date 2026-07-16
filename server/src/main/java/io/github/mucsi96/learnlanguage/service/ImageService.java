@@ -37,7 +37,7 @@ public class ImageService {
         openAIImageService.generateImage(prompt, model);
       case IDEOGRAM_4_TURBO, IDEOGRAM_4_DEFAULT, IDEOGRAM_4_QUALITY ->
         ideogramImageService.generateImage(prompt, model);
-      case GEMINI_3_PRO_IMAGE_PREVIEW ->
+      case GEMINI_3_PRO_IMAGE_PREVIEW, GEMINI_3_1_FLASH_IMAGE ->
         googleImageService.generateGeminiImage(prompt, model);
     };
 
