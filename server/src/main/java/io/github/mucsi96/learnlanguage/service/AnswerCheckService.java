@@ -18,6 +18,7 @@ public class AnswerCheckService {
 
     private final CardService cardService;
     private final ChatService chatService;
+    private final ChatModelSettingService chatModelSettingService;
 
     record AnswerCheckResult(boolean correct, String explanation) {
     }
@@ -34,6 +35,12 @@ public class AnswerCheckService {
         if (card.getData().getFrontText() == null || card.getData().getBackText() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Card has no front/back text to check the answer against: " + cardId);
+        }
+
+        if (!chatModelSettingService.getEnabledModelsForOperation(OperationType.ANSWER_CHECK)
+                .contains(model.getModelName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Model is not enabled for answer checking: " + model.getModelName());
         }
 
         final String systemPrompt = buildSystemPrompt(card);

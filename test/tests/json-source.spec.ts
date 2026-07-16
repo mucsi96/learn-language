@@ -631,6 +631,47 @@ test('typed answer not matching the back text shows a red explanation', async ({
   ).toHaveCount(0);
 });
 
+test('typed answer marked incorrect without explanation shows a fallback message', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+  await createSource({
+    id: 'ckad-check-noexpl',
+    name: 'CKAD Check No Explanation',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+    aiLanguage: 'ENGLISH',
+  });
+
+  await createCard({
+    cardId: 'ckad-check-noexpl-pod',
+    sourceId: 'ckad-check-noexpl',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-check-noexpl/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await answerInput.fill('unexplainable');
+  await answerInput.press('Enter');
+
+  await expect(flashcard.getByRole('alert')).toHaveText(
+    'Your answer does not match the expected answer.'
+  );
+  await expect(
+    flashcard.getByRole('img', { name: 'Correct answer' })
+  ).toHaveCount(0);
+});
+
 test('typed answer shows a notice when answer checking is unavailable', async ({ page }) => {
   await createSource({
     id: 'ckad-check-nomodel',

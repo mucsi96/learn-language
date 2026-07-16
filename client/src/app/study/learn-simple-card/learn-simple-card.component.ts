@@ -70,7 +70,10 @@ export class LearnSimpleCardComponent {
 
   readonly answerFeedback = computed(() => {
     const result = this.answerCheck.value();
-    return result && !result.correct ? result.explanation : null;
+    if (!result || result.correct) {
+      return null;
+    }
+    return result.explanation || 'Your answer does not match the expected answer.';
   });
 
   private readonly clearTypedAnswerOnCardChange = effect(() => {

@@ -405,6 +405,10 @@ export class ChatHandler {
       return createGeminiResponse({ correct: true, explanation: null });
     }
 
+    if (normalize(answer) === 'unexplainable') {
+      return createGeminiResponse({ correct: false, explanation: null });
+    }
+
     const isHungarian = systemContent.includes('ALWAYS write the explanation in Hungarian');
     const explanation = isHungarian
       ? `A(z) "${answer}" válasz mást jelent — a várt válasz: "${expected}".`
