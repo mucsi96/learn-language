@@ -1,6 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
@@ -23,6 +25,11 @@ public class AnswerCheckService {
     public AnswerCheckResponse checkAnswer(String cardId, String answer, ChatModel model) {
         final Card card = cardService.getCardById(cardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Card not found: " + cardId));
+
+        if (!Boolean.TRUE.equals(card.getSource().getTypingPractice())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Typing practice is not enabled for source: " + card.getSource().getId());
+        }
 
         final String systemPrompt = buildSystemPrompt(card);
         final AnswerCheckResult result = chatService.callWithLogging(
