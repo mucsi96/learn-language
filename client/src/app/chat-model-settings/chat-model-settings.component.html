@@ -57,6 +57,10 @@
                       }
                       <span class="model-name">{{ model.modelName }}</span>
                     </div>
+                    <span class="model-price">
+                      {{ model.inputPricePerMillion | currency: 'USD' }} in /
+                      {{ model.outputPricePerMillion | currency: 'USD' }} out per 1M tokens
+                    </span>
                   </td>
                   @for (operation of operationTypes; track operation.code) {
                     <td class="toggle-cell">

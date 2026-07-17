@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.config.ModelPricingConfig;
 import io.github.mucsi96.learnlanguage.model.AudioModelResponse;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -36,6 +38,7 @@ public class EnvironmentController {
   private final ImageModelSettingService imageModelSettingService;
   private final RateLimitSettingService rateLimitSettingService;
   private final AudioSettingService audioSettingService;
+  private final ModelPricingConfig modelPricingConfig;
 
   @Value("${tenant-id:}")
   private String tenantId;
@@ -101,7 +104,14 @@ public class EnvironmentController {
         rateLimitSettingService.getAudioDailyLimit(),
         audioSettingService.isFrontAudioDisabled(),
         Arrays.stream(ChatModel.values())
-            .map(model -> new ChatModelInfo(model.getModelName(), model.getProvider().getCode()))
+            .map(model -> {
+              final var pricing = modelPricingConfig.getChatModelPricing(model.getModelName());
+              return new ChatModelInfo(
+                  model.getModelName(),
+                  model.getProvider().getCode(),
+                  pricing.inputPerMillion(),
+                  pricing.outputPerMillion());
+            })
             .toList(),
         imageModelSettingService.getImageModelsWithSettings(),
         audioService.getAvailableModels(),
@@ -118,7 +128,11 @@ public class EnvironmentController {
         sourceTypes);
   }
 
-  public record ChatModelInfo(String modelName, String provider) {
+  public record ChatModelInfo(
+      String modelName,
+      String provider,
+      BigDecimal inputPricePerMillion,
+      BigDecimal outputPricePerMillion) {
   }
 
   public record SupportedLanguage(String code, String displayName) {

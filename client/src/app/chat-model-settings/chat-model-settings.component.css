@@ -92,6 +92,14 @@ mat-card-header {
   text-overflow: ellipsis;
 }
 
+.model-price {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}
+
 .toggle-cell {
   vertical-align: middle;
 }

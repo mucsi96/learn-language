@@ -1,9 +1,12 @@
 package io.github.mucsi96.learnlanguage.config;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.context.annotation.Configuration;
+
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 
 // Pricing sources:
 // OpenAI: https://platform.openai.com/docs/pricing
@@ -17,6 +20,7 @@ public class ModelPricingConfig {
     public record ImageModelPricing(BigDecimal perImage) {}
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
+    // Keyed by API model name; effort-level variants of the same model share one entry.
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
         // OpenAI GPT-4o family
         Map.entry("gpt-4o", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("10.00"))),
@@ -26,8 +30,8 @@ public class ModelPricingConfig {
         Map.entry("gpt-4.1-mini", new ChatModelPricing(new BigDecimal("0.40"), new BigDecimal("1.60"))),
         Map.entry("gpt-4.1-nano", new ChatModelPricing(new BigDecimal("0.10"), new BigDecimal("0.40"))),
         // OpenAI GPT-5 family
-        Map.entry("gpt-5", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
-        Map.entry("gpt-5.2", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
+        Map.entry("gpt-5-chat-latest", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
+        Map.entry("gpt-5.2-chat-latest", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
         Map.entry("gpt-5-mini", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
         Map.entry("gpt-5-nano", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
         Map.entry("gpt-5.5", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
@@ -37,21 +41,19 @@ public class ModelPricingConfig {
         Map.entry("gpt-5.6-luna", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
         // Anthropic Claude
         Map.entry("claude-sonnet-4-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
-        Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
+        Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("5.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
         Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
-        Map.entry("claude-fable-5", new ChatModelPricing(new BigDecimal("10.00"), new BigDecimal("50.00"))),
         // Google Gemini
         Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00"))),
         Map.entry("gemini-3.5-flash", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00")))
     );
 
-    // OpenAI image models priced per quality variant at 1024x1024. The High prices are the
-    // published values; Low/Medium are estimates scaled by gpt-image-1's quality ratios
-    // (low ~0.066x high, medium ~0.25x high) and should be verified against OpenAI's live pricing.
+    // OpenAI image models priced per quality variant at 1024x1024, derived from
+    // OpenAI's token-based image pricing calculator.
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
-        Map.entry("gpt-image-2-low", new ImageModelPricing(new BigDecimal("0.014"))),
+        Map.entry("gpt-image-2-low", new ImageModelPricing(new BigDecimal("0.006"))),
         Map.entry("gpt-image-2-medium", new ImageModelPricing(new BigDecimal("0.053"))),
         Map.entry("gpt-image-2-high", new ImageModelPricing(new BigDecimal("0.211"))),
         // Ideogram 4.0 per-image pricing by rendering speed (Turbo / Default / Quality)
@@ -65,15 +67,20 @@ public class ModelPricingConfig {
     );
 
     private static final Map<String, AudioModelPricing> AUDIO_MODEL_PRICING = Map.of(
-        // ElevenLabs (approximately $0.20 per 1000 characters)
-        "eleven_turbo_v2_5", new AudioModelPricing(new BigDecimal("0.20")),
-        "eleven_v3", new AudioModelPricing(new BigDecimal("0.20")),
+        // ElevenLabs API pricing per 1000 characters
+        "eleven_turbo_v2_5", new AudioModelPricing(new BigDecimal("0.05")),
+        "eleven_v3", new AudioModelPricing(new BigDecimal("0.10")),
         // Gemini TTS is token-priced; approximated per 1000 characters
         "gemini-3.1-flash-tts-preview", new AudioModelPricing(new BigDecimal("0.02"))
     );
 
     public ChatModelPricing getChatModelPricing(String modelName) {
-        return CHAT_MODEL_PRICING.getOrDefault(modelName,
+        final String apiModelName = Arrays.stream(ChatModel.values())
+            .filter(model -> model.getModelName().equals(modelName))
+            .findFirst()
+            .map(ChatModel::getApiModelName)
+            .orElse(modelName);
+        return CHAT_MODEL_PRICING.getOrDefault(apiModelName,
             new ChatModelPricing(BigDecimal.ZERO, BigDecimal.ZERO));
     }
 

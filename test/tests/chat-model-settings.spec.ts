@@ -14,13 +14,21 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
   await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
-  await expect(page.getByText('gemini-3.1-pro-preview')).toBeVisible();
-  await expect(page.getByText('gpt-5.6-sol')).toBeVisible();
-  await expect(page.getByText('gpt-5.6-terra')).toBeVisible();
-  await expect(page.getByText('gpt-5.6-luna')).toBeVisible();
+  await expect(page.getByText('gemini-3.1-pro-preview', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-terra', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-luna', { exact: true })).toBeVisible();
   await expect(page.getByText('claude-sonnet-5', { exact: true })).toBeVisible();
-  await expect(page.getByText('claude-fable-5')).toBeVisible();
-  await expect(page.getByText('gemini-3.5-flash')).toBeVisible();
+  await expect(page.getByText('gemini-3.5-flash', { exact: true })).toBeVisible();
+
+  await expect(page.getByText('gpt-5.6-sol-xhigh', { exact: true })).toBeVisible();
+  await expect(page.getByText('claude-opus-4-8-max', { exact: true })).toBeVisible();
+  await expect(page.getByText('claude-sonnet-5-low', { exact: true })).toBeVisible();
+  await expect(page.getByText('gemini-3.5-flash-minimal', { exact: true })).toBeVisible();
+  await expect(page.getByText('gemini-3.1-pro-preview-high', { exact: true })).toBeVisible();
+
+  await expect(page.getByText('$2.50 in / $10.00 out per 1M tokens')).toBeVisible();
+  await expect(page.getByText('$5.00 in / $25.00 out per 1M tokens').first()).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();
   await expect(page.getByText('Extraction')).toBeVisible();

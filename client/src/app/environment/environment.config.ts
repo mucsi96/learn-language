@@ -5,6 +5,8 @@ export type ModelProvider = 'openai' | 'anthropic' | 'google' | 'elevenlabs';
 export interface ChatModelInfo {
   modelName: string;
   provider: ModelProvider;
+  inputPricePerMillion: number;
+  outputPricePerMillion: number;
 }
 
 export interface ImageModel {
