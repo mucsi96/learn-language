@@ -1919,3 +1919,55 @@ test('study session respects source new card limit', async ({ page }) => {
   const sessionCards = await getStudySessionCardsBySource('new-limited-source');
   expect(sessionCards.length).toBe(4);
 });
+
+test('long simple card content is scrollable in study mode', async ({ page }) => {
+  await cleanupDbRecords({ withSources: true });
+  await setupTestRateLimits();
+  await createSource({
+    id: 'ckad-scroll',
+    name: 'CKAD Scroll',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  const longFront = Array.from(
+    { length: 40 },
+    (_, i) => `Front line ${i + 1} with descriptive explanatory text.`
+  ).join('\n\n');
+
+  await createCard({
+    cardId: 'multi-container-pods',
+    sourceId: 'ckad-scroll',
+    cardType: 'SIMPLE',
+    data: {
+      frontText: `${longFront}\n\nEND_OF_FRONT_MARKER`,
+      backText: 'The answer.',
+      topic: 'Multi-container pods',
+      category: 'Workloads',
+    },
+  });
+
+  await page.setViewportSize({ width: 1000, height: 600 });
+  await page.goto('/sources/ckad-scroll/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByText('Front line 1 with descriptive explanatory text.')).toBeVisible();
+
+  const scroll = await flashcard.evaluate((el) => {
+    const container = el.parentElement as HTMLElement;
+    const overflowY = getComputedStyle(container).overflowY;
+    const overflowsViewport = container.scrollHeight > container.clientHeight;
+    container.scrollTop = container.scrollHeight;
+    return { overflowY, overflowsViewport, scrolledTop: container.scrollTop };
+  });
+
+  expect(scroll.overflowY).toBe('auto');
+  expect(scroll.overflowsViewport).toBe(true);
+  expect(scroll.scrolledTop).toBeGreaterThan(0);
+
+  await expect(flashcard.getByText('END_OF_FRONT_MARKER')).toBeInViewport();
+});
