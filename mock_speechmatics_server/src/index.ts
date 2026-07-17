@@ -33,16 +33,17 @@ wss.on('connection', (socket: WebSocket) => {
 
     if (message.message === 'StartRecognition') {
       socket.send(JSON.stringify({ message: 'RecognitionStarted', id: 'mock-session' }));
-      socket.send(
-        JSON.stringify({
-          message: 'AddTranscript',
-          metadata: { transcript: `${TRANSCRIPT_WORDS.join(' ')} ` },
-          results: TRANSCRIPT_WORDS.map((word) => ({
-            type: 'word',
-            alternatives: [{ content: word, confidence: 0.98 }],
-          })),
-        })
-      );
+      TRANSCRIPT_WORDS.forEach((word) => {
+        socket.send(
+          JSON.stringify({
+            message: 'AddTranscript',
+            metadata: { transcript: `${word} ` },
+            results: [
+              { type: 'word', alternatives: [{ content: word, confidence: 0.98 }] },
+            ],
+          })
+        );
+      });
     } else if (message.message === 'EndOfStream') {
       socket.send(JSON.stringify({ message: 'EndOfTranscript' }));
     }
