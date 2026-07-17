@@ -124,6 +124,22 @@ spec:
         periodSeconds: 2
         failureThreshold: 5
 
+    - name: mock-speechmatics
+      image: localhost/learn-language-mock-speechmatics:test
+      ports:
+        - containerPort: 3075
+          hostPort: 3075
+      env:
+        - name: PORT
+          value: "3075"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3075
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        failureThreshold: 5
+
     - name: mock-oauth2
       image: docker.io/mucsi96/mock-oidc-provider:latest
       ports:
@@ -195,6 +211,10 @@ spec:
           value: mock-elevenlabs-key
         - name: ELEVEN_LABS_BASE_URL
           value: http://localhost:3072
+        - name: SPEECHMATICS_API_KEY
+          value: mock-speechmatics-key
+        - name: SPEECHMATICS_URL
+          value: ws://localhost:3075/v2
       volumeMounts:
         - name: storage
           mountPath: /app/storage

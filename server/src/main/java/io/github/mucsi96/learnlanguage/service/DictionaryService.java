@@ -27,11 +27,11 @@ public class DictionaryService {
     private final ChatService chatService;
     private final ChatModelSettingService chatModelSettingService;
 
-    record DictionaryLookupResponse(String normalizedWord, String translation,
+    record DictionaryLookupResponse(String translation,
             String germanExample, String translatedExample, List<String> forms) {
     }
 
-    public record LookupResult(String formattedResponse, String normalizedWord,
+    public record LookupResult(String formattedResponse,
             String translation, String germanExample, String translatedExample,
             List<String> forms) {
     }
@@ -67,7 +67,7 @@ public class DictionaryService {
 
         final String formattedResponse = formatResponse(response);
 
-        return new LookupResult(formattedResponse, response.normalizedWord(),
+        return new LookupResult(formattedResponse,
                 response.translation(), response.germanExample(),
                 response.translatedExample(), response.forms());
     }
@@ -92,12 +92,9 @@ public class DictionaryService {
                 You are a German language dictionary lookup assistant.
                 Your task is to perform a dictionary lookup for a highlighted word from a German text.
 
-                The highlighted word may be in any conjugated, declined, or inflected form. Normalize it to its standard dictionary base form (Grundform) and return it as normalizedWord.
-                For verbs: use the infinitive form. If the word is a separable verb prefix or part of a separable verb in the sentence, reconstruct the full infinitive (e.g., "fahren" in "Wir fahren um zwölf Uhr ab." becomes "abfahren").
-                For nouns: include the article (e.g., "Häuser" becomes "das Haus").
-                For adjectives: use the base form (e.g., "großen" becomes "groß").
+                The highlighted word may be in any conjugated, declined, or inflected form. Determine its dictionary base form (Grundform) to translate its meaning accurately. If the word is a separable verb prefix or part of a separable verb in the sentence, reconstruct the full infinitive (e.g., "fahren" in "Wir fahren um zwölf Uhr ab." means "abfahren").
 
-                Translate the normalized word to %s.
+                Translate the word's dictionary base-form meaning to %s.
 
                 Generate standard grammatical forms. Return only the forms list, do NOT include the base form itself:
                 - For nouns: only the plural form with article (e.g., ["die Häuser"])

@@ -28,3 +28,6 @@ spring:
     elevenlabs:
       base-url: ${ELEVEN_LABS_BASE_URL}
       api-key: ${ELEVEN_LABS_API_KEY}
+    speechmatics:
+      api-key: ${SPEECHMATICS_API_KEY}
+      url: ${SPEECHMATICS_URL}

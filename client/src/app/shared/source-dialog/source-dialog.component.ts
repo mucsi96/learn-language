@@ -149,6 +149,7 @@ export class SourceDialogComponent {
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
       this.formModel().sourceType === 'json' ||
+      this.formModel().sourceType === 'audioStream' ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );

@@ -45,7 +45,8 @@ public class SecurityConfiguration {
         .requestMatchers(
             "/test/cleanup-storage",
             "/environment",
-            "/actuator/**")
+            "/actuator/**",
+            "/ws/**")
         .permitAll()
         .anyRequest().authenticated());
 

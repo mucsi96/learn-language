@@ -1,0 +1,30 @@
+<div class="audio-stream-page">
+  <header class="page-header">
+    <h2>{{ source()?.name ?? sourceId() }}</h2>
+    @if (!recording()) {
+    <button mat-flat-button (click)="startRecording()">
+      <mat-icon>fiber_manual_record</mat-icon>
+      Record
+    </button>
+    } @else {
+    <button mat-stroked-button (click)="stopRecording()">
+      <mat-icon>stop</mat-icon>
+      Stop
+    </button>
+    }
+  </header>
+
+  @if (error()) {
+  <p class="error-message" role="alert">{{ error() }}</p>
+  }
+
+  <section class="transcript" aria-label="Transcript">
+    @if (transcript()) {
+    <p class="transcript-text">{{ transcript() }}</p>
+    } @else {
+    <p class="transcript-placeholder">
+      Start recording to capture and transcribe audio.
+    </p>
+    }
+  </section>
+</div>

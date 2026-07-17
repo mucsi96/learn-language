@@ -1,0 +1,23 @@
+{
+  "name": "mock-speechmatics-server",
+  "version": "1.0.0",
+  "description": "A mock server for the Speechmatics Realtime API",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "ws": "8.18.3"
+  },
+  "devDependencies": {
+    "@tsconfig/node-ts": "23.6.4",
+    "@types/express": "5.0.6",
+    "@types/node": "26.0.0",
+    "@types/ws": "8.18.1",
+    "ts-node": "10.9.2",
+    "typescript": "6.0.3"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -33,7 +33,8 @@ public class DictionaryController {
         if (request.getBookTitle() != null && request.getHighlightedWord() != null
                 && request.getSentence() != null) {
             draftCardService.createDraftCard(request.getBookTitle(),
-                    request.getTargetLanguage(), result);
+                    request.getTargetLanguage(), request.getHighlightedWord(),
+                    request.getSentence(), result);
         }
 
         return result.formattedResponse();

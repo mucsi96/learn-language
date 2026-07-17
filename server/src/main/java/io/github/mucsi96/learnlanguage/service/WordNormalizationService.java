@@ -2,8 +2,10 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import io.github.mucsi96.learnlanguage.config.CacheConfiguration;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -29,17 +31,20 @@ public class WordNormalizationService {
             - For nouns: the plural form with article (e.g., "die Häuser")
             - For verbs: 3rd Person Singular Präsens, 3rd Person Singular Präteritum, and 3rd Person Singular Perfekt. Only the verb forms, no pronouns.
             - For other word types: return an empty forms list.
+
+            Also determine suitableForCard: true if the word is a content word worth learning as vocabulary (noun, verb, adjective, adverb), false for function words (articles, pronouns, prepositions, conjunctions, numbers, proper names, interjections).
             """;
 
     private final ChatService chatService;
 
-    record NormalizationResult(String normalizedWord, List<String> forms) {
+    record NormalizationResult(String normalizedWord, List<String> forms, boolean suitableForCard) {
     }
 
+    @Cacheable(value = CacheConfiguration.LEMMATIZATION_CACHE, key = "#word.toLowerCase()")
     public NormalizeWordResponse normalize(String word, String sentence, ChatModel model) {
         final NormalizationResult result = chatService.callWithLogging(
                 model,
-                OperationType.CLASSIFICATION,
+                OperationType.LEMMATIZATION,
                 SYSTEM_PROMPT,
                 "The word is: \"%s\". The sentence is: \"%s\".".formatted(word, sentence),
                 NormalizationResult.class);
@@ -47,6 +52,7 @@ public class WordNormalizationService {
         return NormalizeWordResponse.builder()
                 .normalizedWord(result.normalizedWord())
                 .forms(result.forms())
+                .suitableForCard(result.suitableForCard())
                 .build();
     }
 }

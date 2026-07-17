@@ -77,6 +77,8 @@ public interface CardRepository
 
     boolean existsByIdStartingWithAndIdNotAndSource_IdIn(String prefix, String id, Collection<String> sourceIds);
 
+    boolean existsByIdStartingWithAndSource_IdIn(String prefix, Collection<String> sourceIds);
+
     List<Card> findBySource_IdIn(Collection<String> sourceIds);
 
     @Modifying

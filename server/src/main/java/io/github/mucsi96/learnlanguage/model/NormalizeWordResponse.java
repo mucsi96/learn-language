@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class NormalizeWordResponse {
     private String normalizedWord;
     private List<String> forms;
+    private boolean suitableForCard;
 }

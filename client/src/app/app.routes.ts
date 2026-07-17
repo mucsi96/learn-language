@@ -163,6 +163,29 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'sources/:sourceId/audio-stream',
+    canActivate: [authGuard],
+    title: (route) => `Audio Stream / ${route.params['sourceId']}`,
+    children: [
+      {
+        path: '',
+        outlet: 'source-selector',
+        loadComponent: () =>
+          import('./shared/source-selector/source-selector.component').then(
+            (m) => m.SourceSelectorComponent
+          ),
+        data: { mode: 'admin' },
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./audio-stream/audio-stream-page.component').then(
+            (m) => m.AudioStreamPageComponent
+          ),
+      },
+    ],
+  },
+  {
     path: 'sources/:sourceId/cards',
     canActivate: [authGuard],
     title: 'Cards',

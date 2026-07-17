@@ -14,6 +14,7 @@ public enum OperationType {
     TRANSLATION("translation", "Translation", true),
     EXTRACTION("extraction", "Extraction", true),
     CLASSIFICATION("classification", "Classification", true),
+    LEMMATIZATION("lemmatization", "Lemmatization", true),
     DUPLICATE_DETECTION("duplicate_detection", "Duplicate Detection", true),
     IMAGE_GENERATION("image_generation", "Image Generation", false),
     IMAGE_DESCRIPTION("image_description", "Image Description", true),

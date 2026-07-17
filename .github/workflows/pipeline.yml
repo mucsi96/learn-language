@@ -87,6 +87,14 @@ jobs:
           tags: localhost/learn-language-mock-ideogram:test
           cache-from: type=gha,scope=mock-ideogram
           cache-to: type=gha,mode=max,scope=mock-ideogram
+      - name: Build mock Speechmatics image
+        uses: docker/build-push-action@v6
+        with:
+          context: mock_speechmatics_server
+          load: true
+          tags: localhost/learn-language-mock-speechmatics:test
+          cache-from: type=gha,scope=mock-speechmatics
+          cache-to: type=gha,mode=max,scope=mock-speechmatics
       - name: Load images into Podman
         run: |
           docker save localhost/learn-language-server:test | podman load
@@ -96,6 +104,7 @@ jobs:
           docker save localhost/learn-language-mock-elevenlabs:test | podman load
           docker save localhost/learn-language-mock-anthropic:test | podman load
           docker save localhost/learn-language-mock-ideogram:test | podman load
+          docker save localhost/learn-language-mock-speechmatics:test | podman load
       - name: Setup test environment and start pod
         env:
           SKIP_BUILD: "1"

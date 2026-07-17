@@ -67,6 +67,8 @@
       <h3 class="section-title">Content</h3>
       @if (isJson()) {
       <p class="hint-text">Cards are added by importing a JSON array after creating the source.</p>
+      } @else if (formModel().sourceType === 'audioStream') {
+      <p class="hint-text">Cards are created automatically from captured audio after creating the source.</p>
       } @else if (formModel().sourceType === 'pdf') {
       <div
         class="dropzone"

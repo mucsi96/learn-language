@@ -290,7 +290,6 @@ export const PHOTO_GRAMMAR_LESSON_DESCRIPTION: PhotoGrammarLessonDescription = {
 };
 
 interface DictionaryLookup {
-  normalizedWord: string;
   translation: string;
   germanExample: string;
   translatedExample: string;
@@ -300,21 +299,18 @@ interface DictionaryLookup {
 export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>> = {
   hu: {
     fahren: {
-      normalizedWord: 'abfahren',
       translation: 'elindulni, elhagyni',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'Elindulunk.',
       forms: ['fährt ab', 'fuhr ab', 'ist abgefahren'],
     },
     Hund: {
-      normalizedWord: 'der Hund',
       translation: 'kutya',
       germanExample: 'Der Hund läuft schnell.',
       translatedExample: 'A kutya gyorsan fut.',
       forms: ['die Hunde'],
     },
     Katze: {
-      normalizedWord: 'die Katze',
       translation: 'macska',
       germanExample: 'Die Katze schläft gern.',
       translatedExample: 'A macska szívesen alszik.',
@@ -323,7 +319,6 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>
   },
   en: {
     fahren: {
-      normalizedWord: 'abfahren',
       translation: 'to depart, to leave',
       germanExample: 'Wir fahren ab.',
       translatedExample: 'We depart.',
@@ -332,11 +327,11 @@ export const DICTIONARY_LOOKUPS: Record<string, Record<string, DictionaryLookup>
   },
 };
 
-export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[] }> = {
-  fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'] },
-  Haus: { normalizedWord: 'Haus', forms: ['die Häuser'] },
-  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'] },
-  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
+export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[]; suitableForCard: boolean }> = {
+  fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'], suitableForCard: true },
+  Haus: { normalizedWord: 'Haus', forms: ['die Häuser'], suitableForCard: true },
+  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'], suitableForCard: true },
+  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'], suitableForCard: true },
 };
 
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {

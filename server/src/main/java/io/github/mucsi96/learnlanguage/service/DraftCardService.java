@@ -1,21 +1,17 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
-import io.github.mucsi96.learnlanguage.model.CardData;
-import io.github.mucsi96.learnlanguage.model.CardReadiness;
 import io.github.mucsi96.learnlanguage.model.CardType;
-import io.github.mucsi96.learnlanguage.model.ExampleData;
+import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
+import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
+import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
 import io.github.mucsi96.learnlanguage.service.DictionaryService.LookupResult;
@@ -27,48 +23,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DraftCardService {
 
-    private final CardService cardService;
     private final SourceService sourceService;
-    private final WordIdService wordIdService;
+    private final ChatModelSettingService chatModelSettingService;
+    private final WordNormalizationService wordNormalizationService;
+    private final DraftCardFactory draftCardFactory;
 
     @Async
-    @Transactional
-    public void createDraftCard(String bookTitle, String targetLanguage, LookupResult lookupResult) {
+    public void createDraftCard(String bookTitle, String targetLanguage, String highlightedWord,
+            String sentence, LookupResult lookupResult) {
         try {
+            final ChatModel model = chatModelSettingService.getPrimaryModel(OperationType.LEMMATIZATION);
+            final NormalizeWordResponse normalized = wordNormalizationService.normalize(highlightedWord, sentence, model);
+
             final Source source = getOrCreateSource(bookTitle);
 
-            final String cardId = wordIdService.generateWordId(
-                    lookupResult.normalizedWord(),
-                    lookupResult.translation());
-
-            if (cardService.getCardById(cardId).isPresent()) {
-                return;
-            }
-
-            cardService.saveCard(Card.builder()
-                    .id(cardId)
-                    .source(source)
-                    .sourcePageNumber(1)
-                    .type(CardType.VOCABULARY)
-                    .data(CardData.builder()
-                            .word(lookupResult.normalizedWord())
-                            .translation(Map.of(targetLanguage, lookupResult.translation()))
-                            .forms(lookupResult.forms())
-                            .examples(List.of(ExampleData.builder()
-                                    .de(lookupResult.germanExample())
-                                    .build()))
-                            .build())
-                    .readiness(CardReadiness.DRAFT)
-                    .state("NEW")
-                    .due(LocalDateTime.now())
-                    .stability(0f)
-                    .difficulty(0f)
-                    .elapsedDays(0f)
-                    .scheduledDays(0f)
-                    .learningSteps(0)
-                    .reps(0)
-                    .lapses(0)
-                    .build());
+            draftCardFactory.createVocabularyDraftCard(source, 1, normalized.getNormalizedWord(),
+                    targetLanguage, lookupResult.translation(), normalized.getForms(),
+                    lookupResult.germanExample());
         } catch (Exception e) {
             log.error("Failed to create draft card: {}", e.getMessage(), e);
         }

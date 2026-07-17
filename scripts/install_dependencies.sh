@@ -120,5 +120,8 @@ cd mock_openai_server && npm install && cd ..
 echo "Installing mock Ideogram server dependencies..."
 cd mock_ideogram_server && npm install && cd ..
 
+echo "Installing mock Speechmatics server dependencies..."
+cd mock_speechmatics_server && npm install && cd ..
+
 echo "Installing test dependencies..."
 cd test && npm install && npx playwright install --with-deps chromium && cd ..

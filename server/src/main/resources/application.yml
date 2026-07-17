@@ -56,6 +56,9 @@ spring:
       tts:
         options:
           output-format: mp3_44100_128
+    speechmatics:
+      api-key: ${speechmatics-api-key}
+      url: wss://eu2.rt.speechmatics.com/v2
 server:
   forward-headers-strategy: framework
   servlet:

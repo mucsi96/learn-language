@@ -38,6 +38,10 @@ export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),
+        fetch('http://localhost:3075/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
       ]);
     } catch (error) {
       console.warn('Warning: Could not reset mock AI servers:', error);

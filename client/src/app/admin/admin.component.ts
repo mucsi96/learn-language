@@ -113,6 +113,10 @@ export class AdminComponent {
       this.router.navigate(['/sources', source.id, 'json']);
       return;
     }
+    if (source.sourceType === 'audioStream') {
+      this.router.navigate(['/sources', source.id, 'audio-stream']);
+      return;
+    }
     this.router.navigate(['/sources', source.id, 'page', source.startPage]);
   }
 

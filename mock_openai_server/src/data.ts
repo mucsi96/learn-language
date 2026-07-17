@@ -244,11 +244,11 @@ export const GRAMMAR_SENTENCE_LISTS: Record<string, string[]> = {
   ],
 };
 
-export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[] }> = {
-  fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'] },
-  Haus: { normalizedWord: 'Haus', forms: ['die Häuser'] },
-  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'] },
-  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'] },
+export const NORMALIZATIONS: Record<string, { normalizedWord: string; forms: string[]; suitableForCard: boolean }> = {
+  fahren: { normalizedWord: 'abfahren', forms: ['fährt ab', 'fuhr ab', 'abgefahren'], suitableForCard: true },
+  Haus: { normalizedWord: 'Haus', forms: ['die Häuser'], suitableForCard: true },
+  Hund: { normalizedWord: 'der Hund', forms: ['die Hunde'], suitableForCard: true },
+  Katze: { normalizedWord: 'die Katze', forms: ['die Katzen'], suitableForCard: true },
 };
 
 export const SENTENCE_TRANSLATIONS: Record<string, Record<string, string>> = {
