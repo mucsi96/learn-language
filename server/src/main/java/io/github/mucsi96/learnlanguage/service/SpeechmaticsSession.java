@@ -4,13 +4,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.JsonNode;
@@ -36,8 +36,8 @@ public class SpeechmaticsSession {
         this.onTranscript = onTranscript;
     }
 
-    public void connect(String url, String apiKey) {
-        sendChain = HttpClient.newHttpClient()
+    public void connect(HttpClient httpClient, String url, String apiKey) {
+        sendChain = httpClient
                 .newWebSocketBuilder()
                 .header("Authorization", "Bearer " + apiKey)
                 .buildAsync(URI.create(url), new Listener())
@@ -97,16 +97,11 @@ public class SpeechmaticsSession {
         }
 
         if ("AddTranscript".equals(type)) {
-            final List<String> words = new ArrayList<>();
-            node.path("results").forEach(result -> {
-                if (!"word".equals(result.path("type").asString(""))) {
-                    return;
-                }
-                final String content = result.path("alternatives").path(0).path("content").asString("");
-                if (!content.isBlank()) {
-                    words.add(content);
-                }
-            });
+            final List<String> words = StreamSupport.stream(node.path("results").spliterator(), false)
+                    .filter(result -> "word".equals(result.path("type").asString("")))
+                    .map(result -> result.path("alternatives").path(0).path("content").asString(""))
+                    .filter(content -> !content.isBlank())
+                    .toList();
             final String transcript = node.path("metadata").path("transcript").asString(
                     String.join(" ", words));
             if (!words.isEmpty()) {

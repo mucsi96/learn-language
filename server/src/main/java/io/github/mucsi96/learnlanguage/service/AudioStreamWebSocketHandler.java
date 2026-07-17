@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,7 @@ public class AudioStreamWebSocketHandler extends BinaryWebSocketHandler {
     private final AudioStreamWordService audioStreamWordService;
 
     private final Map<String, SpeechmaticsSession> sessions = new ConcurrentHashMap<>();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -51,7 +53,7 @@ public class AudioStreamWebSocketHandler extends BinaryWebSocketHandler {
                 });
 
         sessions.put(session.getId(), speechmatics);
-        speechmatics.connect(speechmaticsProperties.getUrl(), speechmaticsProperties.getApiKey());
+        speechmatics.connect(httpClient, speechmaticsProperties.getUrl(), speechmaticsProperties.getApiKey());
     }
 
     @Override

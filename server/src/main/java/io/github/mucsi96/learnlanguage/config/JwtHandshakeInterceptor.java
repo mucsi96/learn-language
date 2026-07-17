@@ -3,12 +3,14 @@ package io.github.mucsi96.learnlanguage.config;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,9 @@ import lombok.RequiredArgsConstructor;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     public static final String SOURCE_ID_ATTRIBUTE = "sourceId";
+
+    private static final String REQUIRED_ROLE = "DeckCreator";
+    private static final String REQUIRED_SCOPE = "createDeck";
 
     private final JwtDecoder jwtDecoder;
 
@@ -37,15 +42,34 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
 
+        final Jwt jwt;
         try {
-            jwtDecoder.decode(token);
+            jwt = jwtDecoder.decode(token);
         } catch (JwtException e) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return false;
         }
 
+        if (!hasDeckCreatorAuthority(jwt)) {
+            response.setStatusCode(HttpStatus.FORBIDDEN);
+            return false;
+        }
+
         attributes.put(SOURCE_ID_ATTRIBUTE, sourceId);
         return true;
+    }
+
+    private boolean hasDeckCreatorAuthority(Jwt jwt) {
+        final List<String> roles = jwt.getClaimAsStringList("roles");
+        final boolean hasRole = roles != null && roles.contains(REQUIRED_ROLE);
+
+        final String scopeClaim = jwt.getClaimAsString("scp") != null
+                ? jwt.getClaimAsString("scp")
+                : jwt.getClaimAsString("scope");
+        final boolean hasScope = scopeClaim != null
+                && Arrays.asList(scopeClaim.split(" ")).contains(REQUIRED_SCOPE);
+
+        return hasRole && hasScope;
     }
 
     @Override
