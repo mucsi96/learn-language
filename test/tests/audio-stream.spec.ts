@@ -8,7 +8,7 @@ import {
 
 async function stubDisplayAudioCapture(page: import('@playwright/test').Page): Promise<void> {
   await page.addInitScript(() => {
-    const track = { stop() {} };
+    const track = { stop() {}, addEventListener() {} };
     (navigator.mediaDevices as unknown as {
       getDisplayMedia: () => Promise<MediaStream>;
     }).getDisplayMedia = async () =>

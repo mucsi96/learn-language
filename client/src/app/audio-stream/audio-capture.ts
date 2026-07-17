@@ -16,13 +16,19 @@ const toPcm16 = (input: Float32Array, ratio: number): ArrayBuffer => {
 };
 
 export async function startAudioCapture(
-  onPcm: (chunk: ArrayBuffer) => void
+  onPcm: (chunk: ArrayBuffer) => void,
+  onEnded?: () => void
 ): Promise<AudioCapture> {
   const stream = await navigator.mediaDevices.getDisplayMedia({
     audio: true,
     video: true,
   });
   stream.getVideoTracks().forEach((track) => track.stop());
+
+  const audioTrack = stream.getAudioTracks()[0];
+  if (audioTrack && onEnded) {
+    audioTrack.addEventListener('ended', onEnded);
+  }
 
   const audioContext = new AudioContext();
   const source = audioContext.createMediaStreamSource(stream);

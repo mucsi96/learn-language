@@ -40,6 +40,7 @@ export class AudioStreamPageComponent implements OnDestroy {
 
   private socket: WebSocket | null = null;
   private capture: AudioCapture | null = null;
+  private destroyed = false;
 
   async startRecording(): Promise<void> {
     const sourceId = this.sourceId();
@@ -60,18 +61,37 @@ export class AudioStreamPageComponent implements OnDestroy {
       socket.binaryType = 'arraybuffer';
       this.socket = socket;
       socket.addEventListener('message', (event) => this.handleMessage(event));
-      socket.addEventListener('close', () => this.stopRecording());
 
       await new Promise<void>((resolve, reject) => {
-        socket.addEventListener('open', () => resolve());
-        socket.addEventListener('error', () => reject(new Error('Connection error')));
+        socket.addEventListener('open', () => resolve(), { once: true });
+        socket.addEventListener('error', () => reject(new Error('Connection error')), { once: true });
+        socket.addEventListener('close', () => reject(new Error('Connection closed')), { once: true });
       });
 
-      this.capture = await startAudioCapture((chunk) => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(chunk);
-        }
+      if (this.destroyed) {
+        this.cleanup();
+        return;
+      }
+
+      socket.addEventListener('close', () => this.stopRecording());
+      socket.addEventListener('error', () => {
+        this.error.set('Connection error');
+        this.stopRecording();
       });
+
+      this.capture = await startAudioCapture(
+        (chunk) => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(chunk);
+          }
+        },
+        () => this.stopRecording()
+      );
+
+      if (this.destroyed) {
+        this.cleanup();
+        return;
+      }
       this.recording.set(true);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Failed to start recording');
@@ -117,6 +137,7 @@ export class AudioStreamPageComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.cleanup();
   }
 }
