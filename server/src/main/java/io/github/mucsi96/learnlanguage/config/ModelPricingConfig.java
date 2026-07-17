@@ -1,9 +1,17 @@
 package io.github.mucsi96.learnlanguage.config;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Configuration;
+
+import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import jakarta.annotation.PostConstruct;
 
 // Pricing sources:
 // OpenAI: https://platform.openai.com/docs/pricing
@@ -116,22 +124,39 @@ public class ModelPricingConfig {
         "eleven_turbo_v2_5", new AudioModelPricing(new BigDecimal("0.05")),
         "eleven_v3", new AudioModelPricing(new BigDecimal("0.10")),
         // Gemini TTS is token-priced; approximated per 1000 characters
-        "gemini-3.1-flash-tts-preview", new AudioModelPricing(new BigDecimal("0.02"))
+        "gemini-3.1-flash-tts-preview", new AudioModelPricing(new BigDecimal("0.02")),
+        // Priced per audio minute ($0.006); approximated per 1000 transcript characters
+        "gpt-4o-transcribe", new AudioModelPricing(new BigDecimal("0.008"))
     );
 
+    @PostConstruct
+    void validatePricingCompleteness() {
+        final List<String> missing = Stream.concat(
+            Arrays.stream(ChatModel.values())
+                .map(ChatModel::getModelName)
+                .filter(modelName -> !CHAT_MODEL_PRICING.containsKey(modelName)),
+            Arrays.stream(ImageGenerationModel.values())
+                .map(ImageGenerationModel::getModelName)
+                .filter(modelName -> !IMAGE_MODEL_PRICING.containsKey(modelName)))
+            .toList();
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException("Missing pricing configuration for models: " + missing);
+        }
+    }
+
     public ChatModelPricing getChatModelPricing(String modelName) {
-        return CHAT_MODEL_PRICING.getOrDefault(modelName,
-            new ChatModelPricing(BigDecimal.ZERO, BigDecimal.ZERO));
+        return Optional.ofNullable(CHAT_MODEL_PRICING.get(modelName))
+            .orElseThrow(() -> new IllegalArgumentException("No pricing configured for chat model: " + modelName));
     }
 
     public ImageModelPricing getImageModelPricing(String modelName) {
-        return IMAGE_MODEL_PRICING.getOrDefault(modelName,
-            new ImageModelPricing(BigDecimal.ZERO));
+        return Optional.ofNullable(IMAGE_MODEL_PRICING.get(modelName))
+            .orElseThrow(() -> new IllegalArgumentException("No pricing configured for image model: " + modelName));
     }
 
     public AudioModelPricing getAudioModelPricing(String modelName) {
-        return AUDIO_MODEL_PRICING.getOrDefault(modelName,
-            new AudioModelPricing(BigDecimal.ZERO));
+        return Optional.ofNullable(AUDIO_MODEL_PRICING.get(modelName))
+            .orElseThrow(() -> new IllegalArgumentException("No pricing configured for audio model: " + modelName));
     }
 
     public BigDecimal calculateChatCost(String modelName, long inputTokens, long outputTokens) {
