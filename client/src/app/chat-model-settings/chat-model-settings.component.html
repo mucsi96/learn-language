@@ -65,19 +65,23 @@
                   @for (operation of operationTypes; track operation.code) {
                     <td class="toggle-cell">
                       <div class="cell-controls">
-                        <mat-slide-toggle
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          class="cell-toggle"
                           [checked]="settingsMatrix()[model.modelName][operation.code]"
                           (change)="toggleSetting(model.modelName, operation.code)"
-                          [aria-label]="model.modelName + ' for ' + operation.displayName"
-                        ></mat-slide-toggle>
-                        <mat-radio-button
+                          [attr.aria-label]="model.modelName + ' for ' + operation.displayName"
+                        />
+                        <input
+                          type="radio"
+                          class="primary-radio"
                           [name]="'primary-' + operation.code"
                           [checked]="isPrimaryModel(model.modelName, operation.code)"
                           [disabled]="!settingsMatrix()[model.modelName][operation.code]"
                           (change)="setPrimaryModel(model.modelName, operation.code)"
-                          [aria-label]="'Set ' + model.modelName + ' as primary for ' + operation.displayName"
-                          class="primary-radio"
-                        ></mat-radio-button>
+                          [attr.aria-label]="'Set ' + model.modelName + ' as primary for ' + operation.displayName"
+                        />
                       </div>
                     </td>
                   }
