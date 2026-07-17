@@ -1,12 +1,9 @@
 package io.github.mucsi96.learnlanguage.config;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.context.annotation.Configuration;
-
-import io.github.mucsi96.learnlanguage.model.ChatModel;
 
 // Pricing sources:
 // OpenAI: https://platform.openai.com/docs/pricing
@@ -20,7 +17,7 @@ public class ModelPricingConfig {
     public record ImageModelPricing(BigDecimal perImage) {}
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
-    // Keyed by API model name; effort-level variants of the same model share one entry.
+    // Keyed by model name; every effort-level variant has its own entry.
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
         // OpenAI GPT-4o family
         Map.entry("gpt-4o", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("10.00"))),
@@ -30,24 +27,72 @@ public class ModelPricingConfig {
         Map.entry("gpt-4.1-mini", new ChatModelPricing(new BigDecimal("0.40"), new BigDecimal("1.60"))),
         Map.entry("gpt-4.1-nano", new ChatModelPricing(new BigDecimal("0.10"), new BigDecimal("0.40"))),
         // OpenAI GPT-5 family
-        Map.entry("gpt-5-chat-latest", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
-        Map.entry("gpt-5.2-chat-latest", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
+        Map.entry("gpt-5", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
+        Map.entry("gpt-5.2", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
         Map.entry("gpt-5-mini", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
+        Map.entry("gpt-5-mini-minimal", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
+        Map.entry("gpt-5-mini-low", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
+        Map.entry("gpt-5-mini-medium", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
+        Map.entry("gpt-5-mini-high", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
         Map.entry("gpt-5-nano", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
+        Map.entry("gpt-5-nano-minimal", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
+        Map.entry("gpt-5-nano-low", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
+        Map.entry("gpt-5-nano-medium", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
+        Map.entry("gpt-5-nano-high", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
         Map.entry("gpt-5.5", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.5-none", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.5-low", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.5-medium", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.5-high", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.5-xhigh", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
         // OpenAI GPT-5.6 family
         Map.entry("gpt-5.6-sol", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-none", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-low", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-medium", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-high", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-xhigh", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-sol-max", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
         Map.entry("gpt-5.6-terra", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-none", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-low", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-medium", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-high", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-xhigh", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-terra-max", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
         Map.entry("gpt-5.6-luna", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-none", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-low", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-medium", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-high", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-xhigh", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
+        Map.entry("gpt-5.6-luna-max", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
         // Anthropic Claude
         Map.entry("claude-sonnet-4-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("5.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-4-8-low", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-4-8-medium", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-4-8-high", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-4-8-xhigh", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-4-8-max", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
         Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5-low", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5-medium", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5-high", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5-xhigh", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5-max", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
         // Google Gemini
         Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
+        Map.entry("gemini-3.1-pro-preview-low", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
+        Map.entry("gemini-3.1-pro-preview-medium", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
+        Map.entry("gemini-3.1-pro-preview-high", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00"))),
-        Map.entry("gemini-3.5-flash", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00")))
+        Map.entry("gemini-3.5-flash", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00"))),
+        Map.entry("gemini-3.5-flash-minimal", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00"))),
+        Map.entry("gemini-3.5-flash-low", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00"))),
+        Map.entry("gemini-3.5-flash-medium", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00"))),
+        Map.entry("gemini-3.5-flash-high", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00")))
     );
 
     // OpenAI image models priced per quality variant at 1024x1024, derived from
@@ -75,12 +120,7 @@ public class ModelPricingConfig {
     );
 
     public ChatModelPricing getChatModelPricing(String modelName) {
-        final String apiModelName = Arrays.stream(ChatModel.values())
-            .filter(model -> model.getModelName().equals(modelName))
-            .findFirst()
-            .map(ChatModel::getApiModelName)
-            .orElse(modelName);
-        return CHAT_MODEL_PRICING.getOrDefault(apiModelName,
+        return CHAT_MODEL_PRICING.getOrDefault(modelName,
             new ChatModelPricing(BigDecimal.ZERO, BigDecimal.ZERO));
     }
 
