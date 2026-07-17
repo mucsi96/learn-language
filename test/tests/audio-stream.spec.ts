@@ -57,8 +57,8 @@ test('audio stream transcribes and creates draft cards only for unknown words', 
     startPage: 1,
     languageLevel: 'B1',
     cardTypes: ['vocabulary'],
-    formatType: 'wordListWithExamples',
-    sourceType: 'pdf',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'PDF',
   });
   await createCard({
     cardId: 'hund-kutya',
@@ -78,9 +78,9 @@ test('audio stream transcribes and creates draft cards only for unknown words', 
     startPage: 1,
     languageLevel: 'A1',
     cardTypes: ['vocabulary'],
-    formatType: 'wordListWithExamples',
-    sourceType: 'audioStream',
-    aiLanguage: 'hungarian',
+    formatType: 'WORD_LIST_WITH_EXAMPLES',
+    sourceType: 'AUDIO_STREAM',
+    aiLanguage: 'HUNGARIAN',
     detectionSourceIds: ['known-words-source'],
   });
 
