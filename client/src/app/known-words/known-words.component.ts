@@ -12,6 +12,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { KnownWordsService } from './known-words.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
+import { ExtractKnownCardsDialogComponent } from './extract-known-cards-dialog/extract-known-cards-dialog.component';
 
 @Component({
   selector: 'app-known-words',
@@ -65,6 +66,25 @@ export class KnownWordsComponent {
 
   async deleteWord(word: string): Promise<void> {
     await this.service.deleteWord(word);
+  }
+
+  async extractKnownCards(): Promise<void> {
+    const dialogRef = this.dialog.open(ExtractKnownCardsDialogComponent);
+    const sourceIds = await firstValueFrom(dialogRef.afterClosed());
+    if (!sourceIds || sourceIds.length === 0) return;
+
+    const words = await this.service.exportKnownCards(sourceIds);
+    this.downloadWordsFile(words);
+  }
+
+  private downloadWordsFile(words: string[]): void {
+    const blob = new Blob([words.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'known-cards.txt';
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   async clearAll(): Promise<void> {

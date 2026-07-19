@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.KnownCardsExportRequest;
+import io.github.mucsi96.learnlanguage.model.KnownCardsExportResponse;
 import io.github.mucsi96.learnlanguage.model.KnownWordsImportRequest;
 import io.github.mucsi96.learnlanguage.model.KnownWordsImportResponse;
 import io.github.mucsi96.learnlanguage.model.KnownWordsResponse;
@@ -39,6 +41,14 @@ public class KnownWordController {
         int importedCount = knownWordService.importFromCsv(request.getText());
         return KnownWordsImportResponse.builder()
                 .importedCount(importedCount)
+                .build();
+    }
+
+    @PostMapping("/export")
+    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    public KnownCardsExportResponse exportKnownCards(@RequestBody KnownCardsExportRequest request) {
+        return KnownCardsExportResponse.builder()
+                .words(knownWordService.getExportWords(request.getSourceIds()))
                 .build();
     }
 
