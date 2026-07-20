@@ -14,18 +14,20 @@ import { firstValueFrom } from 'rxjs';
 import { ApiTokensService, ApiToken, ApiTokenScope } from './api-tokens.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 
-const SCOPE_OPTIONS: { value: ApiTokenScope; label: string; fileName: string }[] = [
-  {
-    value: 'DICTIONARY',
+const SCOPE_CONFIG: Record<ApiTokenScope, { label: string; fileName: string }> = {
+  DICTIONARY: {
     label: 'Dictionary (e-book reader)',
     fileName: 'ai-dictionary.token',
   },
-  {
-    value: 'KNOWN_CARDS_EXPORT',
+  KNOWN_CARDS_EXPORT: {
     label: 'Known cards export',
     fileName: 'known-cards-export.token',
   },
-];
+};
+
+const SCOPE_OPTIONS = (Object.keys(SCOPE_CONFIG) as ApiTokenScope[]).map(
+  (value) => ({ value, label: SCOPE_CONFIG[value].label })
+);
 
 @Component({
   selector: 'app-api-tokens',
@@ -64,7 +66,7 @@ export class ApiTokensComponent {
   readonly skeletonRows = [{}, {}, {}];
 
   scopeLabel(scope: ApiTokenScope): string {
-    return SCOPE_OPTIONS.find((option) => option.value === scope)?.label ?? scope;
+    return SCOPE_CONFIG[scope].label;
   }
 
   async createToken(): Promise<void> {
@@ -83,9 +85,7 @@ export class ApiTokensComponent {
   }
 
   private downloadTokenFile(scope: ApiTokenScope, token: string): void {
-    const fileName =
-      SCOPE_OPTIONS.find((option) => option.value === scope)?.fileName ??
-      'api.token';
+    const fileName = SCOPE_CONFIG[scope].fileName;
     const blob = new Blob([token], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
