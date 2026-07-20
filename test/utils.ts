@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import { Page, Locator, expect } from '@playwright/test';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -1166,6 +1167,22 @@ export async function getKnownWords(): Promise<Array<{ word: string; hungarianTr
 export async function clearKnownWords(): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query('DELETE FROM learn_language.known_words');
+  });
+}
+
+export async function createApiToken(params: {
+  name: string;
+  scope: 'DICTIONARY' | 'KNOWN_CARDS_EXPORT';
+  token: string;
+}): Promise<void> {
+  const { name, scope, token } = params;
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.api_tokens (name, token_hash, scope, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [name, tokenHash, scope]
+    );
   });
 }
 
