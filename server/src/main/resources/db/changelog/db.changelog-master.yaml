@@ -1337,3 +1337,14 @@ databaseChangeLog:
         - dropUniqueConstraint:
             tableName: api_tokens
             constraintName: api_tokens_token_hash_unique
+  - changeSet:
+      id: 47-encrypt-api-tokens-at-rest
+      author: mucsi96
+      changes:
+        - delete:
+            tableName: api_tokens
+        - renameColumn:
+            tableName: api_tokens
+            oldColumnName: token_hash
+            newColumnName: encrypted_token
+            columnDataType: varchar(255)

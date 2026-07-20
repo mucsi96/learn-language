@@ -1,12 +1,13 @@
 package io.github.mucsi96.learnlanguage.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,7 +25,7 @@ public class ApiTokenService {
     private static final int TOKEN_BYTE_LENGTH = 48;
 
     private final ApiTokenRepository apiTokenRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final TokenEncryptionService tokenEncryptionService;
 
     public List<ApiTokenResponse> getAllTokens() {
         return apiTokenRepository.findAll().stream()
@@ -34,10 +35,10 @@ public class ApiTokenService {
 
     public ApiTokenCreateResponse createToken(ApiTokenRequest request) {
         final String token = generateSecureToken();
-        final String tokenHash = passwordEncoder.encode(token);
+        final String encryptedToken = tokenEncryptionService.encrypt(token);
         final ApiToken entity = ApiToken.builder()
                 .name(request.getName())
-                .tokenHash(tokenHash)
+                .encryptedToken(encryptedToken)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -62,12 +63,18 @@ public class ApiTokenService {
 
         final String token = authorizationHeader.substring(7);
 
-        final boolean tokenMatches = apiTokenRepository.findAllTokenHashes().stream()
-                .anyMatch(tokenHash -> passwordEncoder.matches(token, tokenHash));
+        final boolean tokenMatches = apiTokenRepository.findAllEncryptedTokens().stream()
+                .anyMatch(encryptedToken -> constantTimeEquals(token, tokenEncryptionService.decrypt(encryptedToken)));
 
         if (!tokenMatches) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token");
         }
+    }
+
+    private boolean constantTimeEquals(String presented, String stored) {
+        return MessageDigest.isEqual(
+                presented.getBytes(StandardCharsets.UTF_8),
+                stored.getBytes(StandardCharsets.UTF_8));
     }
 
     private String generateSecureToken() {
