@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner, setDetectionSources, getDetectionSources } from '../utils';
+import { createCard, cleanupDbRecords, getSource, getDocuments, setupTestRateLimits, getCardFromDb, createLearningPartner, createSourceGroup, setSourceGroup, getSourceGroup } from '../utils';
 
 test('displays sources', async ({ page }) => {
   await page.goto('/sources');
@@ -384,7 +384,9 @@ test('can add a card type to an existing source', async ({ page }) => {
   }).toPass();
 });
 
-test('can configure existing card detection sources', async ({ page }) => {
+test('can assign a source to a group', async ({ page }) => {
+  const groupId = await createSourceGroup({ name: 'Goethe' });
+
   await page.goto('/sources');
 
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
@@ -392,38 +394,36 @@ test('can configure existing card detection sources', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByLabel('Existing card detection sources').click();
-  await page.getByRole('option', { name: 'Goethe A2' }).click();
-  await page.getByRole('option', { name: 'Goethe B1' }).click();
-  await page.keyboard.press('Escape');
+  await page.getByLabel('Group').click();
+  await page.getByRole('option', { name: 'Goethe' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
 
   await expect(async () => {
-    const detectionSourceIds = await getDetectionSources('goethe-a1');
-    expect(detectionSourceIds).toEqual(['goethe-a2', 'goethe-b1']);
+    const assignedGroupId = await getSourceGroup('goethe-a1');
+    expect(assignedGroupId).toBe(groupId);
   }).toPass();
 });
 
-test('can remove existing card detection sources', async ({ page }) => {
-  await setDetectionSources('goethe-a1', ['goethe-a2']);
+test('can remove a source from a group', async ({ page }) => {
+  const groupId = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', groupId);
 
   await page.goto('/sources');
 
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Edit' }).click();
 
-  await page.getByLabel('Existing card detection sources').click();
-  await page.getByRole('option', { name: 'Goethe A2' }).click();
-  await page.keyboard.press('Escape');
+  await page.getByLabel('Group').click();
+  await page.getByRole('option', { name: 'None' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
 
   await expect(async () => {
-    const detectionSourceIds = await getDetectionSources('goethe-a1');
-    expect(detectionSourceIds).toEqual([]);
+    const assignedGroupId = await getSourceGroup('goethe-a1');
+    expect(assignedGroupId).toBeNull();
   }).toPass();
 });
 

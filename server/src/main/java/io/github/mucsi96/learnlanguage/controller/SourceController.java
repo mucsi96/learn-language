@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -35,6 +34,7 @@ import io.github.mucsi96.learnlanguage.entity.ExtractionRegion;
 import io.github.mucsi96.learnlanguage.entity.LearningPartner;
 import io.github.mucsi96.learnlanguage.entity.PendingPhoto;
 import io.github.mucsi96.learnlanguage.entity.Source;
+import io.github.mucsi96.learnlanguage.entity.SourceGroup;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.AiLanguage;
 import io.github.mucsi96.learnlanguage.model.CardType;
@@ -68,6 +68,7 @@ import io.github.mucsi96.learnlanguage.service.PendingPhotoService;
 import io.github.mucsi96.learnlanguage.service.PhotoGrammarConceptService;
 import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService;
 import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService.PreparedPage;
+import io.github.mucsi96.learnlanguage.service.SourceGroupService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,6 +93,7 @@ public class SourceController {
   private final ExtractionRegionRepository extractionRegionRepository;
   private final KnownWordService knownWordService;
   private final LearningPartnerService learningPartnerService;
+  private final SourceGroupService sourceGroupService;
   private final PendingPhotoService pendingPhotoService;
   private final PhotoPreprocessingService photoPreprocessingService;
   private final LessonDescriptionService lessonDescriptionService;
@@ -137,7 +139,7 @@ public class SourceController {
           .typingPractice(source.getTypingPractice())
           .aiLanguage(source.getAiLanguage())
           .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
-          .detectionSourceIds(source.getDetectionSources().stream().map(Source::getId).sorted().toList())
+          .groupId(source.getGroup() != null ? source.getGroup().getId() : null)
           .build();
     }).collect(Collectors.toList());
   }
@@ -334,7 +336,9 @@ public class SourceController {
         .learningPartner(request.getLearningPartnerId() != null
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
             : null)
-        .detectionSources(resolveDetectionSources(request.getDetectionSourceIds(), request.getId()))
+        .group(request.getGroupId() != null && request.getGroupId() != 0
+            ? sourceGroupService.getSourceGroupById(request.getGroupId())
+            : null)
         .build();
 
     sourceService.saveSource(source);
@@ -375,9 +379,7 @@ public class SourceController {
         .typingPractice(request.getTypingPractice() != null ? request.getTypingPractice() : existingSource.getTypingPractice())
         .aiLanguage(request.getAiLanguage() != null ? request.getAiLanguage() : existingSource.getAiLanguage())
         .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
-        .detectionSources(request.getDetectionSourceIds() != null
-            ? resolveDetectionSources(request.getDetectionSourceIds(), sourceId)
-            : existingSource.getDetectionSources())
+        .group(resolveGroup(request.getGroupId(), existingSource))
         .build();
 
     sourceService.saveSource(updatedSource);
@@ -687,18 +689,14 @@ public class SourceController {
     return learningPartnerService.getLearningPartnerById(learningPartnerId);
   }
 
-  private Set<Source> resolveDetectionSources(List<String> detectionSourceIds, String selfId) {
-    if (detectionSourceIds == null) {
-      return Set.of();
+  private SourceGroup resolveGroup(Integer groupId, Source existingSource) {
+    if (groupId == null) {
+      return existingSource.getGroup();
     }
-    if (detectionSourceIds.contains(selfId)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "A source cannot reference itself as a detection source");
+    if (groupId == 0) {
+      return null;
     }
-    return detectionSourceIds.stream()
-        .map(id -> sourceService.getSourceById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + id)))
-        .collect(Collectors.toUnmodifiableSet());
+    return sourceGroupService.getSourceGroupById(groupId);
   }
 
   private boolean isImageFile(String filename) {

@@ -1271,3 +1271,49 @@ databaseChangeLog:
               - column:
                   name: is_primary
                   valueBoolean: false
+  - changeSet:
+      id: 42-create-source-groups-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: source_groups
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: source_groups_pkey
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: source_groups
+            columnNames: name
+            constraintName: source_groups_name_unique
+  - changeSet:
+      id: 43-add-group-id-to-sources
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: group_id
+                  type: int
+        - addForeignKeyConstraint:
+            constraintName: sources_group_fkey
+            baseTableName: sources
+            baseColumnNames: group_id
+            referencedTableName: source_groups
+            referencedColumnNames: id
+            onDelete: SET NULL
+  - changeSet:
+      id: 44-drop-source-detection-sources-table
+      author: mucsi96
+      changes:
+        - dropTable:
+            tableName: source_detection_sources

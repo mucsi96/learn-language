@@ -34,9 +34,12 @@ public class SourceService {
     public Set<String> getDetectionSourceIds(String sourceId) {
         final Source source = sourceRepository.findById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+        if (source.getGroup() == null) {
+            return Set.of(sourceId);
+        }
         return Stream.concat(
                 Stream.of(sourceId),
-                source.getDetectionSources().stream().map(Source::getId))
+                sourceRepository.findByGroup_Id(source.getGroup().getId()).stream().map(Source::getId))
                 .collect(Collectors.toUnmodifiableSet());
     }
 

@@ -5,9 +5,7 @@ import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
 import io.github.mucsi96.learnlanguage.model.SourceType;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -76,9 +74,8 @@ public class Source {
   @ToString.Exclude
   private LearningPartner learningPartner;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "source_detection_sources", schema = "learn_language", joinColumns = @JoinColumn(name = "source_id"), inverseJoinColumns = @JoinColumn(name = "target_source_id"))
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "group_id")
   @ToString.Exclude
-  @Builder.Default
-  private Set<Source> detectionSources = new HashSet<>();
+  private SourceGroup group;
 }

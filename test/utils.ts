@@ -61,7 +61,7 @@ export async function createSource(params: {
   typingPractice?: boolean;
   aiLanguage?: string;
   learningPartnerId?: number | null;
-  detectionSourceIds?: string[];
+  groupId?: number | null;
 }): Promise<void> {
   const {
     id,
@@ -78,56 +78,66 @@ export async function createSource(params: {
     typingPractice = false,
     aiLanguage = 'HUNGARIAN',
     learningPartnerId = null,
-    detectionSourceIds = [],
+    groupId = null,
   } = params;
 
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_types, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, typing_practice, ai_language, learning_partner_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-      [id, name, startPage, languageLevel, cardTypes.join(','), formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, typingPractice, aiLanguage, learningPartnerId]
-    );
-
-    await Promise.all(
-      detectionSourceIds.map((targetSourceId) =>
-        client.query(
-          `INSERT INTO learn_language.source_detection_sources (source_id, target_source_id)
-           VALUES ($1, $2)`,
-          [id, targetSourceId]
-        )
-      )
+      `INSERT INTO learn_language.sources (id, name, start_page, language_level, card_types, format_type, source_type, bookmarked_page, bookmarked_document_id, card_limit, new_card_limit, typing_practice, ai_language, learning_partner_id, group_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [id, name, startPage, languageLevel, cardTypes.join(','), formatType, sourceType, bookmarkedPage, bookmarkedDocumentId, cardLimit, newCardLimit, typingPractice, aiLanguage, learningPartnerId, groupId]
     );
   });
 }
 
-export async function setDetectionSources(sourceId: string, targetSourceIds: string[]): Promise<void> {
+export async function createSourceGroup(params: { name: string }): Promise<number> {
+  const { name } = params;
+
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `INSERT INTO learn_language.source_groups (name)
+       VALUES ($1)
+       RETURNING id`,
+      [name]
+    );
+    return result.rows[0].id;
+  });
+}
+
+export async function getSourceGroups(): Promise<
+  Array<{
+    id: number;
+    name: string;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, name
+       FROM learn_language.source_groups
+       ORDER BY id`
+    );
+    return result.rows;
+  });
+}
+
+export async function setSourceGroup(sourceId: string, groupId: number | null): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query(
-      `DELETE FROM learn_language.source_detection_sources WHERE source_id = $1`,
-      [sourceId]
-    );
-    await Promise.all(
-      targetSourceIds.map((targetSourceId) =>
-        client.query(
-          `INSERT INTO learn_language.source_detection_sources (source_id, target_source_id)
-           VALUES ($1, $2)`,
-          [sourceId, targetSourceId]
-        )
-      )
+      `UPDATE learn_language.sources SET group_id = $1 WHERE id = $2`,
+      [groupId, sourceId]
     );
   });
 }
 
-export async function getDetectionSources(sourceId: string): Promise<string[]> {
+export async function getSourceGroup(sourceId: string): Promise<number | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT target_source_id as "targetSourceId"
-       FROM learn_language.source_detection_sources
-       WHERE source_id = $1
-       ORDER BY target_source_id ASC`,
+      `SELECT group_id as "groupId"
+       FROM learn_language.sources
+       WHERE id = $1`,
       [sourceId]
     );
-    return result.rows.map((row) => row.targetSourceId);
+    return result.rows.length > 0 ? result.rows[0].groupId : null;
   });
 }
 
@@ -183,6 +193,7 @@ export async function getSource(id: string): Promise<{
   typingPractice: boolean;
   aiLanguage: string;
   learningPartnerId: number | null;
+  groupId: number | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
@@ -195,7 +206,8 @@ export async function getSource(id: string): Promise<{
               new_card_limit as "newCardLimit",
               typing_practice as "typingPractice",
               ai_language as "aiLanguage",
-              learning_partner_id as "learningPartnerId"
+              learning_partner_id as "learningPartnerId",
+              group_id as "groupId"
        FROM learn_language.sources
        WHERE id = $1`,
       [id]
