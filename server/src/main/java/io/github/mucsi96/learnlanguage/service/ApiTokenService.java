@@ -38,11 +38,10 @@ public class ApiTokenService {
     public ApiTokenCreateResponse createToken(ApiTokenRequest request) {
         final String token = generateSecureToken();
         final String tokenHash = hashToken(token);
-        final ApiTokenScope scope = request.getScope() != null ? request.getScope() : ApiTokenScope.DICTIONARY;
         final ApiToken entity = ApiToken.builder()
                 .name(request.getName())
                 .tokenHash(tokenHash)
-                .scope(scope)
+                .scope(request.getScope())
                 .createdAt(LocalDateTime.now())
                 .build();
 
