@@ -43,7 +43,7 @@ public class KnownWordService {
         return (int) knownWordRepository.count();
     }
 
-    public List<String> getExportWords(List<Integer> groupIds) {
+    public List<String> getExportWords(List<String> groupIds) {
         final List<Card> cards = resolveCards(groupIds);
 
         final Stream<String> cardWords = cards.stream()
@@ -63,7 +63,7 @@ public class KnownWordService {
                 .toList();
     }
 
-    private List<Card> resolveCards(List<Integer> groupIds) {
+    private List<Card> resolveCards(List<String> groupIds) {
         if (groupIds == null || groupIds.isEmpty()) {
             return cardRepository.findAll();
         }

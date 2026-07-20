@@ -8,6 +8,17 @@ import { v4 as uuidv4 } from 'uuid';
 // Storage directory path
 export const STORAGE_DIR = path.join(__dirname, 'storage');
 
+export const slugify = (input: string): string =>
+  input
+    .normalize('NFKD')
+    .replace(/ß/g, 'ss')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50)
+    .replace(/-+$/g, '');
+
 // Database connection helper
 export async function withDbConnection<T>(callback: (client: Client) => Promise<T>): Promise<T> {
   const client = new Client({
@@ -62,7 +73,7 @@ export async function createSource(params: {
   typingPractice?: boolean;
   aiLanguage?: string;
   learningPartnerId?: number | null;
-  groupId?: number | null;
+  groupId?: string | null;
 }): Promise<void> {
   const {
     id,
@@ -91,23 +102,24 @@ export async function createSource(params: {
   });
 }
 
-export async function createSourceGroup(params: { name: string }): Promise<number> {
+export async function createSourceGroup(params: { id?: string; name: string }): Promise<string> {
   const { name } = params;
+  const id = params.id ?? slugify(name);
 
-  return await withDbConnection(async (client) => {
-    const result = await client.query(
-      `INSERT INTO learn_language.source_groups (name)
-       VALUES ($1)
-       RETURNING id`,
-      [name]
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.source_groups (id, name)
+       VALUES ($1, $2)`,
+      [id, name]
     );
-    return result.rows[0].id;
   });
+
+  return id;
 }
 
 export async function getSourceGroups(): Promise<
   Array<{
-    id: number;
+    id: string;
     name: string;
   }>
 > {
@@ -121,7 +133,7 @@ export async function getSourceGroups(): Promise<
   });
 }
 
-export async function setSourceGroup(sourceId: string, groupId: number | null): Promise<void> {
+export async function setSourceGroup(sourceId: string, groupId: string | null): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query(
       `UPDATE learn_language.sources SET group_id = $1 WHERE id = $2`,
@@ -130,7 +142,7 @@ export async function setSourceGroup(sourceId: string, groupId: number | null): 
   });
 }
 
-export async function getSourceGroup(sourceId: string): Promise<number | null> {
+export async function getSourceGroup(sourceId: string): Promise<string | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT group_id as "groupId"
@@ -194,7 +206,7 @@ export async function getSource(id: string): Promise<{
   typingPractice: boolean;
   aiLanguage: string;
   learningPartnerId: number | null;
-  groupId: number | null;
+  groupId: string | null;
 } | null> {
   return withDbConnection(async (client) => {
     const result = await client.query(

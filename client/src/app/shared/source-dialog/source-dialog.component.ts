@@ -21,19 +21,7 @@ import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
 import { SourceGroupsService } from '../../source-groups/source-groups.service';
 import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
-
-const SLUG_MAX_LENGTH = 50;
-
-const slugify = (input: string): string =>
-  input
-    .normalize('NFKD')
-    .replace(/ß/g, 'ss')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, SLUG_MAX_LENGTH)
-    .replace(/-+$/g, '');
+import { slugify } from '../../utils/slugify';
 
 @Component({
   selector: 'app-source-dialog',
@@ -92,7 +80,7 @@ export class SourceDialogComponent {
     typingPractice: boolean;
     aiLanguage: AiLanguage;
     learningPartnerId: number | null;
-    groupId: number | null;
+    groupId: string | null;
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
@@ -187,7 +175,7 @@ export class SourceDialogComponent {
           ? 0
           : result.learningPartnerId,
         groupId: this.data.mode === 'edit' && result.groupId === null
-          ? 0
+          ? ''
           : result.groupId,
       };
       this.dialogRef.close(formData);

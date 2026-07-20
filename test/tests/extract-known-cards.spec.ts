@@ -131,7 +131,7 @@ test('export returns only known words for an unknown group', async () => {
   await createKnownWords([{ word: 'apfel', hungarianTranslation: 'alma' }]);
   await seedExportToken();
 
-  expect(await exportWords('?groupId=999999')).toEqual(['apfel']);
+  expect(await exportWords('?groupId=no-such-group')).toEqual(['apfel']);
 });
 
 test('export deduplicates card words already in the known words table', async () => {

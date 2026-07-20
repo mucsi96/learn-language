@@ -12,6 +12,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { SourceGroupsService, SourceGroup } from './source-groups.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
+import { slugify } from '../utils/slugify';
 
 @Component({
   selector: 'app-source-groups',
@@ -50,7 +51,7 @@ export class SourceGroupsComponent {
 
     this.isAdding.set(true);
     try {
-      await this.service.createGroup({ name });
+      await this.service.createGroup({ id: slugify(name), name });
       this.formModel.set({ name: '' });
     } finally {
       this.isAdding.set(false);

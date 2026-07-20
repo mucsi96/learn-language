@@ -23,7 +23,7 @@ public class KnownCardsExportController {
     @GetMapping("/known-cards")
     public KnownCardsExportResponse exportKnownCards(
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-            @RequestParam(name = "groupId", required = false) List<Integer> groupIds) {
+            @RequestParam(name = "groupId", required = false) List<String> groupIds) {
         apiTokenService.validateBearerToken(authorizationHeader, ApiTokenScope.KNOWN_CARDS_EXPORT);
         return KnownCardsExportResponse.builder()
                 .words(knownWordService.getExportWords(groupIds))

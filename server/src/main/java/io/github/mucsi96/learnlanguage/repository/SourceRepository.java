@@ -23,9 +23,9 @@ public interface SourceRepository extends JpaRepository<Source, String> {
     @EntityGraph(attributePaths = { "learningPartner", "group" })
     Optional<Source> findById(String id);
 
-    List<Source> findByGroup_Id(Integer groupId);
+    List<Source> findByGroup_Id(String groupId);
 
-    List<Source> findByGroup_IdIn(Collection<Integer> groupIds);
+    List<Source> findByGroup_IdIn(Collection<String> groupIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Source s LEFT JOIN FETCH s.learningPartner WHERE s.id = :id")
