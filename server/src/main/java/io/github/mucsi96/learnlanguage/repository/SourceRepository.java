@@ -16,11 +16,13 @@ import java.util.Optional;
 
 @Repository
 public interface SourceRepository extends JpaRepository<Source, String> {
-    @EntityGraph(attributePaths = { "learningPartner", "detectionSources" })
+    @EntityGraph(attributePaths = { "learningPartner", "group" })
     List<Source> findAllByOrderByIdAsc();
 
-    @EntityGraph(attributePaths = { "learningPartner", "detectionSources" })
+    @EntityGraph(attributePaths = { "learningPartner", "group" })
     Optional<Source> findById(String id);
+
+    List<Source> findByGroup_Id(Integer groupId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Source s LEFT JOIN FETCH s.learningPartner WHERE s.id = :id")

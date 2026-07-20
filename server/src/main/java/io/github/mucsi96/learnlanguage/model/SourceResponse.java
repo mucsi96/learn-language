@@ -29,5 +29,5 @@ public class SourceResponse {
     private Boolean typingPractice;
     private AiLanguage aiLanguage;
     private Integer learningPartnerId;
-    private List<String> detectionSourceIds;
+    private Integer groupId;
 }

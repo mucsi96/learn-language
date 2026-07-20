@@ -8,7 +8,8 @@ import {
   getSource,
   selectTextRange,
   scrollElementToTop,
-  setDetectionSources,
+  createSourceGroup,
+  setSourceGroup,
   setupDefaultChatModelSettings,
   setupDefaultImageModelSettings,
   menschenA1Image,
@@ -92,7 +93,7 @@ test('drag to select words highlights existing cards', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'abfahren' })).toHaveAccessibleDescription('Card exists');
 });
 
-test('cards from other sources are not marked existing without detection config', async ({ page }) => {
+test('cards from other sources are not marked existing without a shared group', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createCard({
@@ -114,7 +115,7 @@ test('cards from other sources are not marked existing without detection config'
   await expect(page.getByText('abfahren').first()).toHaveAccessibleDescription('Card does not exist');
 });
 
-test('cards from configured detection sources are marked existing', async ({ page }) => {
+test('cards from sources in the same group are marked existing', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   await createCard({
@@ -129,7 +130,9 @@ test('cards from configured detection sources are marked existing', async ({ pag
       examples: [],
     },
   });
-  await setDetectionSources('goethe-a1', ['goethe-a2']);
+  const groupId = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', groupId);
+  await setSourceGroup('goethe-a2', groupId);
   await navigateToSource(page, 'Goethe A1');
 
   await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
