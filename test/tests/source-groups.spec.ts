@@ -43,6 +43,24 @@ test('can add multiple source groups', async ({ page }) => {
   expect(groups.length).toBe(2);
 });
 
+test('does not overwrite an existing group when a new name slugifies to the same id', async ({ page }) => {
+  await page.goto('/settings/source-groups');
+
+  await page.getByLabel('Group name').fill('Goethe A1');
+  await page.getByRole('button', { name: 'Add' }).click();
+  await expect(page.getByText('Goethe A1')).toBeVisible();
+
+  await page.getByLabel('Group name').fill('Goethe A1!');
+  await page.getByRole('button', { name: 'Add' }).click();
+
+  await expect(async () => {
+    const groups = await getSourceGroups();
+    expect(groups.length).toBe(1);
+    expect(groups[0].id).toBe('goethe-a1');
+    expect(groups[0].name).toBe('Goethe A1');
+  }).toPass();
+});
+
 test('can delete a source group', async ({ page }) => {
   await createSourceGroup({ name: 'Goethe' });
 
