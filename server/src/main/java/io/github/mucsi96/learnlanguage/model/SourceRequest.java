@@ -25,5 +25,5 @@ public class SourceRequest {
     private Boolean typingPractice;
     private AiLanguage aiLanguage;
     private Integer learningPartnerId;
-    private Integer groupId;
+    private String groupId;
 }

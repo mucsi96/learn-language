@@ -269,7 +269,7 @@ export type Source = {
   typingPractice?: boolean;
   aiLanguage?: AiLanguage;
   learningPartnerId?: number | null;
-  groupId?: number | null;
+  groupId?: string | null;
 };
 
 export type WordList = {

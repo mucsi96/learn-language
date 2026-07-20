@@ -12,5 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SourceGroupRequest {
     @NotBlank
+    private String id;
+
+    @NotBlank
     private String name;
 }

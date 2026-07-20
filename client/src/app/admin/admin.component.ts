@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { SourcesService } from '../sources.service';
+import { SourceGroupsService, SourceGroup } from '../source-groups/source-groups.service';
 import { SourceDialogComponent } from '../shared/source-dialog/source-dialog.component';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { Source } from '../parser/types';
@@ -35,10 +36,16 @@ type AttentionItem = {
   cssClass: string;
 };
 
+type SourceGroupSection = {
+  group: SourceGroup;
+  sources: Source[];
+};
+
 @Component({
   selector: 'app-admin',
   imports: [
     NgClass,
+    NgTemplateOutlet,
     RouterLink,
     BarLoaderComponent,
     MatTableModule,
@@ -53,11 +60,13 @@ type AttentionItem = {
 })
 export class AdminComponent {
   private readonly sourcesService = inject(SourcesService);
+  private readonly groupsService = inject(SourceGroupsService);
   private readonly dialog = inject(MatDialog);
   readonly router = inject(Router);
 
   readonly sources = this.sourcesService.sources.value;
   readonly loading = this.sourcesService.sources.isLoading;
+  readonly groups = this.groupsService.groups.value;
 
   readonly displayedColumns = ['name', 'level', 'cards', 'states', 'readiness', 'attention', 'actions'];
 
@@ -69,6 +78,20 @@ export class AdminComponent {
       ? all.filter((source) => this.getAttentionItems(source).length > 0)
       : all;
   });
+
+  readonly groupedSections = computed<SourceGroupSection[]>(() => {
+    const sources = this.visibleSources();
+    return (this.groups() ?? [])
+      .map((group) => ({
+        group,
+        sources: sources.filter((source) => source.groupId === group.id),
+      }))
+      .filter((section) => section.sources.length > 0);
+  });
+
+  readonly ungroupedSources = computed(() =>
+    this.visibleSources().filter((source) => !source.groupId)
+  );
 
   getAttentionItems(source: Source): AttentionItem[] {
     const items: AttentionItem[] = [

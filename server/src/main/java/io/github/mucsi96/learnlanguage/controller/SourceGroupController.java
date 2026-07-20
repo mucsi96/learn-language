@@ -42,14 +42,14 @@ public class SourceGroupController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
     public SourceGroupResponse updateSourceGroup(
-            @PathVariable Integer id,
+            @PathVariable String id,
             @Valid @RequestBody SourceGroupRequest request) {
         return sourceGroupService.updateSourceGroup(id, request);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
-    public ResponseEntity<Void> deleteSourceGroup(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteSourceGroup(@PathVariable String id) {
         sourceGroupService.deleteSourceGroup(id);
         return ResponseEntity.noContent().build();
     }

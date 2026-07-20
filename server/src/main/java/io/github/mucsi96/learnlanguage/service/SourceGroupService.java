@@ -25,13 +25,14 @@ public class SourceGroupService {
 
     public SourceGroupResponse createSourceGroup(SourceGroupRequest request) {
         final SourceGroup group = SourceGroup.builder()
+                .id(request.getId())
                 .name(request.getName())
                 .build();
 
         return toResponse(sourceGroupRepository.save(group));
     }
 
-    public SourceGroupResponse updateSourceGroup(Integer id, SourceGroupRequest request) {
+    public SourceGroupResponse updateSourceGroup(String id, SourceGroupRequest request) {
         final SourceGroup group = sourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Source group not found: " + id));
 
@@ -40,11 +41,11 @@ public class SourceGroupService {
         return toResponse(sourceGroupRepository.save(group));
     }
 
-    public void deleteSourceGroup(Integer id) {
+    public void deleteSourceGroup(String id) {
         sourceGroupRepository.deleteById(id);
     }
 
-    public SourceGroup getSourceGroupById(Integer id) {
+    public SourceGroup getSourceGroupById(String id) {
         return sourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Source group not found: " + id));
     }

@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 
 export interface SourceGroup {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface SourceGroupRequest {
+  id: string;
   name: string;
 }
 
@@ -35,7 +36,7 @@ export class SourceGroupsService {
   }
 
   async updateGroup(
-    id: number,
+    id: string,
     request: SourceGroupRequest
   ): Promise<SourceGroup> {
     const result = await fetchJson<SourceGroup>(
@@ -50,7 +51,7 @@ export class SourceGroupsService {
     return result;
   }
 
-  async deleteGroup(id: number): Promise<void> {
+  async deleteGroup(id: string): Promise<void> {
     await fetchJson(this.http, `/api/source-groups/${id}`, {
       method: 'DELETE',
     });
