@@ -1,14 +1,12 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.HexFormat;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,7 +16,6 @@ import io.github.mucsi96.learnlanguage.model.ApiTokenRequest;
 import io.github.mucsi96.learnlanguage.model.ApiTokenResponse;
 import io.github.mucsi96.learnlanguage.repository.ApiTokenRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +24,7 @@ public class ApiTokenService {
     private static final int TOKEN_BYTE_LENGTH = 48;
 
     private final ApiTokenRepository apiTokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<ApiTokenResponse> getAllTokens() {
         return apiTokenRepository.findAll().stream()
@@ -36,7 +34,7 @@ public class ApiTokenService {
 
     public ApiTokenCreateResponse createToken(ApiTokenRequest request) {
         final String token = generateSecureToken();
-        final String tokenHash = hashToken(token);
+        final String tokenHash = passwordEncoder.encode(token);
         final ApiToken entity = ApiToken.builder()
                 .name(request.getName())
                 .tokenHash(tokenHash)
@@ -63,9 +61,11 @@ public class ApiTokenService {
         }
 
         final String token = authorizationHeader.substring(7);
-        final String tokenHash = hashToken(token);
 
-        if (!apiTokenRepository.existsByTokenHash(tokenHash)) {
+        final boolean tokenMatches = apiTokenRepository.findAllTokenHashes().stream()
+                .anyMatch(tokenHash -> passwordEncoder.matches(token, tokenHash));
+
+        if (!tokenMatches) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token");
         }
     }
@@ -74,13 +74,6 @@ public class ApiTokenService {
         final byte[] bytes = new byte[TOKEN_BYTE_LENGTH];
         new SecureRandom().nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    @SneakyThrows
-    private String hashToken(String token) {
-        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        final byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-        return HexFormat.of().formatHex(hash);
     }
 
     private ApiTokenResponse toResponse(ApiToken entity) {
