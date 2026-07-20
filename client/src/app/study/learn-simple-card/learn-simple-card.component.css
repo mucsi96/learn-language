@@ -82,9 +82,12 @@
 
 .answer-feedback {
   margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
   font-size: 0.95rem;
   line-height: 1.4;
-  color: var(--mat-sys-error, #b00020);
+  background: var(--mat-sys-error-container, #f9dedc);
+  color: var(--mat-sys-on-error-container, #410e0b);
   overflow-wrap: anywhere;
 }
 
