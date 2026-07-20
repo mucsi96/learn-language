@@ -45,6 +45,7 @@ test('generating a known cards export token downloads a scoped token file', asyn
   await page.getByLabel('Token name').fill('My export');
   await page.getByLabel('Purpose').click();
   await page.getByRole('option', { name: 'Known cards export', exact: true }).click();
+  await expect(page.getByLabel('Purpose')).toContainText('Known cards export');
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
