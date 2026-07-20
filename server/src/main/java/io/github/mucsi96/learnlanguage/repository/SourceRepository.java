@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,8 @@ public interface SourceRepository extends JpaRepository<Source, String> {
     Optional<Source> findById(String id);
 
     List<Source> findByGroup_Id(Integer groupId);
+
+    List<Source> findByGroup_IdIn(Collection<Integer> groupIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Source s LEFT JOIN FETCH s.learningPartner WHERE s.id = :id")

@@ -30,6 +30,10 @@ mat-card-header {
   flex: 1;
 }
 
+.token-scope-field {
+  min-width: 200px;
+}
+
 .tokens-list {
   max-height: 400px;
   overflow-y: auto;

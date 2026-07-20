@@ -8,8 +8,9 @@
       </mat-card-header>
       <mat-card-content>
         <p class="section-description">
-          Generate API tokens for external devices like e-book readers to access
-          the dictionary translation endpoint.
+          Generate API tokens for external tools. Dictionary tokens let e-book
+          readers access the translation endpoint. Known cards export tokens
+          allow downloading your known words as JSON from the export endpoint.
         </p>
 
         <div class="add-token-form">
@@ -22,6 +23,14 @@
               aria-label="Token name"
               (keydown.enter)="createToken()"
             />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="token-scope-field">
+            <mat-label>Purpose</mat-label>
+            <mat-select [formField]="tokenForm.scope" aria-label="Token purpose">
+              @for (option of scopeOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
           <button
             mat-flat-button
@@ -59,9 +68,9 @@
           @for (token of tokensList(); track token.id) {
           <mat-list-item role="listitem">
             <span matListItemTitle>{{ token.name }}</span>
-            <span matListItemLine class="token-date">{{
-              token.createdAt | date: 'medium'
-            }}</span>
+            <span matListItemLine class="token-date">
+              {{ scopeLabel(token.scope) }} · {{ token.createdAt | date: 'medium' }}
+            </span>
             <div matListItemMeta class="token-actions">
               <button
                 mat-icon-button

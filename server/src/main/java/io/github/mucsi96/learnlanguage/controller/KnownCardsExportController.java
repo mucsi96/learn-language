@@ -23,10 +23,10 @@ public class KnownCardsExportController {
     @GetMapping("/known-cards")
     public KnownCardsExportResponse exportKnownCards(
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-            @RequestParam(name = "sourceId", required = false) List<String> sourceIds) {
+            @RequestParam(name = "groupId", required = false) List<Integer> groupIds) {
         apiTokenService.validateBearerToken(authorizationHeader, ApiTokenScope.KNOWN_CARDS_EXPORT);
         return KnownCardsExportResponse.builder()
-                .words(knownWordService.getExportWords(sourceIds))
+                .words(knownWordService.getExportWords(groupIds))
                 .build();
     }
 }

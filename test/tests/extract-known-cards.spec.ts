@@ -1,104 +1,134 @@
+import { type Page } from '@playwright/test';
 import * as fs from 'fs';
 import { test, expect } from '../fixtures';
-import { createCard, createKnownWords } from '../utils';
+import {
+  createCard,
+  createKnownWords,
+  createSourceGroup,
+  setSourceGroup,
+} from '../utils';
 
-async function readDownloadedWords(downloadPath: string): Promise<string[]> {
-  const content = fs.readFileSync(downloadPath, 'utf-8');
-  return content.length === 0 ? [] : content.split('\n');
+const EXPORT_URL = 'http://localhost:8170/api/known-cards';
+
+async function createTokenViaUI(
+  page: Page,
+  name: string,
+  purpose: 'Dictionary (e-book reader)' | 'Known cards export'
+): Promise<string> {
+  await page.goto('/settings/api-tokens');
+  await page.getByLabel('Token name').fill(name);
+  await page.getByRole('combobox', { name: 'Token purpose' }).click();
+  await page.getByRole('option', { name: purpose, exact: true }).click();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+  const download = await downloadPromise;
+  return fs.readFileSync((await download.path())!, 'utf-8');
 }
 
-test('shows extract known cards button on known words page', async ({ page }) => {
-  await page.goto('/settings/known-words');
-  await expect(
-    page.getByRole('button', { name: 'Extract known cards' })
-  ).toBeVisible();
+function nounCard(cardId: string, sourceId: string, word: string) {
+  return {
+    cardId,
+    sourceId,
+    data: { word, type: 'NOUN', translation: {}, forms: [], examples: [] },
+  };
+}
+
+test('known cards export downloads the token file for the export purpose', async ({
+  page,
+}) => {
+  await page.goto('/settings/api-tokens');
+  await page.getByLabel('Token name').fill('My export');
+  await page.getByRole('combobox', { name: 'Token purpose' }).click();
+  await page.getByRole('option', { name: 'Known cards export', exact: true }).click();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Generate token' }).click();
+  const download = await downloadPromise;
+
+  expect(download.suggestedFilename()).toBe('known-cards-export.token');
 });
 
-test('opens source picker dialog when extracting', async ({ page }) => {
-  await page.goto('/settings/known-words');
-  await page.getByRole('button', { name: 'Extract known cards' }).click();
-
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await expect(
-    dialog.getByRole('heading', { name: 'Extract Known Cards' })
-  ).toBeVisible();
-  await expect(dialog.getByRole('combobox', { name: 'Sources' })).toBeVisible();
+test('export endpoint returns 401 without a token', async () => {
+  const response = await fetch(EXPORT_URL);
+  expect(response.status).toBe(401);
 });
 
-test('export is disabled until a source is selected', async ({ page }) => {
-  await page.goto('/settings/known-words');
-  await page.getByRole('button', { name: 'Extract known cards' }).click();
+test('export endpoint returns 403 for a dictionary-scoped token', async ({
+  page,
+}) => {
+  const token = await createTokenViaUI(page, 'Dict token', 'Dictionary (e-book reader)');
 
-  const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('button', { name: 'Export' })).toBeDisabled();
+  const response = await fetch(EXPORT_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-  await dialog.getByRole('combobox', { name: 'Sources' }).click();
-  await page.getByRole('option', { name: 'Goethe A1' }).click();
-  await page.keyboard.press('Escape');
-
-  await expect(dialog.getByRole('button', { name: 'Export' })).toBeEnabled();
+  expect(response.status).toBe(403);
 });
 
-test('downloads normal form words from selected sources and known words', async ({ page }) => {
-  await createCard({
-    cardId: 'goethe-a1_haus',
-    sourceId: 'goethe-a1',
-    data: { word: 'Haus', type: 'NOUN', translation: {}, forms: [], examples: [] },
-  });
-  await createCard({
-    cardId: 'goethe-a1_baum',
-    sourceId: 'goethe-a1',
-    data: { word: 'Baum', type: 'NOUN', translation: {}, forms: [], examples: [] },
-  });
-  await createCard({
-    cardId: 'goethe-a2_zebra',
-    sourceId: 'goethe-a2',
-    data: { word: 'Zebra', type: 'NOUN', translation: {}, forms: [], examples: [] },
-  });
+test('export returns normal-form words for the selected group plus known words', async ({
+  page,
+}) => {
+  const groupId = await createSourceGroup({ name: 'Export Group' });
+  await setSourceGroup('goethe-a1', groupId);
+  await setSourceGroup('goethe-a2', groupId);
+
+  await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
+  await createCard(nounCard('goethe-a2_baum', 'goethe-a2', 'Baum'));
+  await createCard(nounCard('goethe-b1_zebra', 'goethe-b1', 'Zebra'));
   await createKnownWords([
     { word: 'apfel', hungarianTranslation: 'alma' },
     { word: 'wasser', hungarianTranslation: 'víz' },
   ]);
 
-  await page.goto('/settings/known-words');
-  await page.getByRole('button', { name: 'Extract known cards' }).click();
+  const token = await createTokenViaUI(page, 'Export token', 'Known cards export');
 
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('combobox', { name: 'Sources' }).click();
-  await page.getByRole('option', { name: 'Goethe A1' }).click();
-  await page.keyboard.press('Escape');
+  const response = await fetch(`${EXPORT_URL}?groupId=${groupId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-  const downloadPromise = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: 'Export' }).click();
-  const download = await downloadPromise;
+  expect(response.status).toBe(200);
+  expect(response.headers.get('content-type')).toContain('application/json');
 
-  expect(download.suggestedFilename()).toBe('known-cards.txt');
-
-  const words = await readDownloadedWords(await download.path());
-  expect(words).toEqual(['apfel', 'baum', 'haus', 'wasser']);
+  const body = await response.json();
+  expect(body.words).toEqual(['apfel', 'baum', 'haus', 'wasser']);
 });
 
-test('deduplicates card words that are already known', async ({ page }) => {
-  await createCard({
-    cardId: 'goethe-a1_haus',
-    sourceId: 'goethe-a1',
-    data: { word: 'Haus', type: 'NOUN', translation: {}, forms: [], examples: [] },
+test('export without a group returns words from all sources plus known words', async ({
+  page,
+}) => {
+  const groupId = await createSourceGroup({ name: 'Export Group' });
+  await setSourceGroup('goethe-a1', groupId);
+
+  await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
+  await createCard(nounCard('goethe-b1_zebra', 'goethe-b1', 'Zebra'));
+  await createKnownWords([{ word: 'apfel', hungarianTranslation: 'alma' }]);
+
+  const token = await createTokenViaUI(page, 'Export token', 'Known cards export');
+
+  const response = await fetch(EXPORT_URL, {
+    headers: { Authorization: `Bearer ${token}` },
   });
+
+  const body = await response.json();
+  expect(body.words).toEqual(['apfel', 'haus', 'zebra']);
+});
+
+test('export deduplicates card words already in the known words table', async ({
+  page,
+}) => {
+  const groupId = await createSourceGroup({ name: 'Export Group' });
+  await setSourceGroup('goethe-a1', groupId);
+
+  await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
   await createKnownWords([{ word: 'haus', hungarianTranslation: 'ház' }]);
 
-  await page.goto('/settings/known-words');
-  await page.getByRole('button', { name: 'Extract known cards' }).click();
+  const token = await createTokenViaUI(page, 'Export token', 'Known cards export');
 
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('combobox', { name: 'Sources' }).click();
-  await page.getByRole('option', { name: 'Goethe A1' }).click();
-  await page.keyboard.press('Escape');
+  const response = await fetch(`${EXPORT_URL}?groupId=${groupId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
-  const downloadPromise = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: 'Export' }).click();
-  const download = await downloadPromise;
-
-  const words = await readDownloadedWords(await download.path());
-  expect(words).toEqual(['haus']);
+  const body = await response.json();
+  expect(body.words).toEqual(['haus']);
 });

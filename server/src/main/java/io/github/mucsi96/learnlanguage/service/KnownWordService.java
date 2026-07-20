@@ -13,10 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.KnownWord;
+import io.github.mucsi96.learnlanguage.entity.Source;
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.github.mucsi96.learnlanguage.model.KnownWordResponse;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.KnownWordRepository;
+import io.github.mucsi96.learnlanguage.repository.SourceRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,6 +27,7 @@ public class KnownWordService {
 
     private final KnownWordRepository knownWordRepository;
     private final CardRepository cardRepository;
+    private final SourceRepository sourceRepository;
 
     public List<KnownWordResponse> getAllKnownWords() {
         return knownWordRepository.findAll().stream()
@@ -40,10 +43,8 @@ public class KnownWordService {
         return (int) knownWordRepository.count();
     }
 
-    public List<String> getExportWords(List<String> sourceIds) {
-        final List<Card> cards = sourceIds == null || sourceIds.isEmpty()
-                ? cardRepository.findAll()
-                : cardRepository.findBySource_IdIn(sourceIds);
+    public List<String> getExportWords(List<Integer> groupIds) {
+        final List<Card> cards = resolveCards(groupIds);
 
         final Stream<String> cardWords = cards.stream()
                 .map(Card::getData)
@@ -60,6 +61,18 @@ public class KnownWordService {
                 .distinct()
                 .sorted()
                 .toList();
+    }
+
+    private List<Card> resolveCards(List<Integer> groupIds) {
+        if (groupIds == null || groupIds.isEmpty()) {
+            return cardRepository.findAll();
+        }
+
+        final List<String> sourceIds = sourceRepository.findByGroup_IdIn(groupIds).stream()
+                .map(Source::getId)
+                .toList();
+
+        return sourceIds.isEmpty() ? List.of() : cardRepository.findBySource_IdIn(sourceIds);
     }
 
     public boolean isWordKnown(String word) {
