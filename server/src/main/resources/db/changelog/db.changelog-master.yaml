@@ -1271,3 +1271,16 @@ databaseChangeLog:
               - column:
                   name: is_primary
                   valueBoolean: false
+  - changeSet:
+      id: 42-add-scope-to-api-tokens
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: api_tokens
+            columns:
+              - column:
+                  name: scope
+                  type: varchar(255)
+                  defaultValue: DICTIONARY
+                  constraints:
+                    nullable: false

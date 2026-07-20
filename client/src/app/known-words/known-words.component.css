@@ -21,12 +21,6 @@ mat-card-header {
   margin-bottom: 16px;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .import-description {
   margin: 0 0 16px 0;
   color: var(--mat-sys-on-surface-variant);

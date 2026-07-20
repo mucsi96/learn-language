@@ -7,11 +7,25 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
-import { ApiTokensService, ApiToken } from './api-tokens.service';
+import { ApiTokensService, ApiToken, ApiTokenScope } from './api-tokens.service';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
+
+const SCOPE_OPTIONS: { value: ApiTokenScope; label: string; fileName: string }[] = [
+  {
+    value: 'DICTIONARY',
+    label: 'Dictionary (e-book reader)',
+    fileName: 'ai-dictionary.token',
+  },
+  {
+    value: 'KNOWN_CARDS_EXPORT',
+    label: 'Known cards export',
+    fileName: 'known-cards-export.token',
+  },
+];
 
 @Component({
   selector: 'app-api-tokens',
@@ -25,6 +39,7 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
     MatFormFieldModule,
     MatInputModule,
     MatListModule,
+    MatSelectModule,
     MatTooltipModule,
     MatDialogModule,
   ],
@@ -36,7 +51,11 @@ export class ApiTokensComponent {
   private readonly dialog = inject(MatDialog);
 
   readonly tokens = this.service.tokens;
-  readonly formModel = signal({ name: '' });
+  readonly scopeOptions = SCOPE_OPTIONS;
+  readonly formModel = signal<{ name: string; scope: ApiTokenScope }>({
+    name: '',
+    scope: 'DICTIONARY',
+  });
   readonly tokenForm = form(this.formModel);
   readonly isCreating = signal(false);
 
@@ -44,26 +63,34 @@ export class ApiTokensComponent {
 
   readonly skeletonRows = [{}, {}, {}];
 
+  scopeLabel(scope: ApiTokenScope): string {
+    return SCOPE_OPTIONS.find((option) => option.value === scope)?.label ?? scope;
+  }
+
   async createToken(): Promise<void> {
     const name = this.formModel().name.trim();
     if (!name) return;
 
+    const scope = this.formModel().scope;
     this.isCreating.set(true);
     try {
-      const result = await this.service.createToken(name);
-      this.downloadTokenFile(name, result.token);
-      this.formModel.set({ name: '' });
+      const result = await this.service.createToken(name, scope);
+      this.downloadTokenFile(result.scope, result.token);
+      this.formModel.set({ name: '', scope });
     } finally {
       this.isCreating.set(false);
     }
   }
 
-  private downloadTokenFile(name: string, token: string): void {
+  private downloadTokenFile(scope: ApiTokenScope, token: string): void {
+    const fileName =
+      SCOPE_OPTIONS.find((option) => option.value === scope)?.fileName ??
+      'api.token';
     const blob = new Blob([token], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'ai-dictionary.token';
+    anchor.download = fileName;
     anchor.click();
     URL.revokeObjectURL(url);
   }

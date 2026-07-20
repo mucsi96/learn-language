@@ -2,15 +2,19 @@ import { Injectable, inject, resource, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 
+export type ApiTokenScope = 'DICTIONARY' | 'KNOWN_CARDS_EXPORT';
+
 export interface ApiToken {
   id: number;
   name: string;
+  scope: ApiTokenScope;
   createdAt: string;
 }
 
 export interface ApiTokenCreateResponse {
   id: number;
   name: string;
+  scope: ApiTokenScope;
   token: string;
   createdAt: string;
 }
@@ -29,13 +33,16 @@ export class ApiTokensService {
     },
   });
 
-  async createToken(name: string): Promise<ApiTokenCreateResponse> {
+  async createToken(
+    name: string,
+    scope: ApiTokenScope
+  ): Promise<ApiTokenCreateResponse> {
     const result = await fetchJson<ApiTokenCreateResponse>(
       this.http,
       '/api/api-tokens',
       {
         method: 'POST',
-        body: { name },
+        body: { name, scope },
       }
     );
     this.tokens.reload();

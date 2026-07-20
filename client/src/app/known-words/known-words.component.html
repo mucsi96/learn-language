@@ -49,26 +49,16 @@
         <mat-card-title>
           <h2>Known Words ({{ wordCount() }})</h2>
         </mat-card-title>
-        <div class="header-actions">
-          <button
-            mat-stroked-button
-            (click)="extractKnownCards()"
-            aria-label="Extract known cards"
-          >
-            <mat-icon>download</mat-icon>
-            Extract known cards
-          </button>
-          @if (wordCount() > 0) {
-          <button
-            mat-icon-button
-            (click)="clearAll()"
-            matTooltip="Clear all words"
-            aria-label="Clear all known words"
-          >
-            <mat-icon>delete_sweep</mat-icon>
-          </button>
-          }
-        </div>
+        @if (wordCount() > 0) {
+        <button
+          mat-icon-button
+          (click)="clearAll()"
+          matTooltip="Clear all words"
+          aria-label="Clear all known words"
+        >
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+        }
       </mat-card-header>
       <mat-card-content>
         @if (knownWords.isLoading()) {

@@ -16,10 +16,6 @@ export interface KnownWordsImportResponse {
   importedCount: number;
 }
 
-export interface KnownCardsExportResponse {
-  words: string[];
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -52,18 +48,6 @@ export class KnownWordsService {
 
   async addWord(word: string): Promise<void> {
     await this.importWords(word);
-  }
-
-  async exportKnownCards(sourceIds: string[]): Promise<string[]> {
-    const result = await fetchJson<KnownCardsExportResponse>(
-      this.http,
-      '/api/known-words/export',
-      {
-        method: 'POST',
-        body: { sourceIds },
-      }
-    );
-    return result.words;
   }
 
   async deleteWord(word: string): Promise<void> {

@@ -23,7 +23,7 @@ public class SecurityConfiguration {
   SecurityFilterChain dictionaryFilterChain(HttpSecurity http)
       throws Exception {
 
-    http.securityMatcher("/dictionary");
+    http.securityMatcher("/dictionary", "/known-cards");
     http.csrf(csrf -> csrf.disable());
     http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
 

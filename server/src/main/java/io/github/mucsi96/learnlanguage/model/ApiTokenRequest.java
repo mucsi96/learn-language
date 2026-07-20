@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApiTokenRequest {
     private String name;
+    private ApiTokenScope scope;
 }

@@ -41,7 +41,11 @@ public class KnownWordService {
     }
 
     public List<String> getExportWords(List<String> sourceIds) {
-        final Stream<String> cardWords = cardRepository.findBySource_IdIn(sourceIds).stream()
+        final List<Card> cards = sourceIds == null || sourceIds.isEmpty()
+                ? cardRepository.findAll()
+                : cardRepository.findBySource_IdIn(sourceIds);
+
+        final Stream<String> cardWords = cards.stream()
                 .map(Card::getData)
                 .filter(Objects::nonNull)
                 .map(CardData::getWord)

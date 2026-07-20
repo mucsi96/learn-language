@@ -16,6 +16,7 @@ import io.github.mucsi96.learnlanguage.entity.ApiToken;
 import io.github.mucsi96.learnlanguage.model.ApiTokenCreateResponse;
 import io.github.mucsi96.learnlanguage.model.ApiTokenRequest;
 import io.github.mucsi96.learnlanguage.model.ApiTokenResponse;
+import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import io.github.mucsi96.learnlanguage.repository.ApiTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -37,9 +38,11 @@ public class ApiTokenService {
     public ApiTokenCreateResponse createToken(ApiTokenRequest request) {
         final String token = generateSecureToken();
         final String tokenHash = hashToken(token);
+        final ApiTokenScope scope = request.getScope() != null ? request.getScope() : ApiTokenScope.DICTIONARY;
         final ApiToken entity = ApiToken.builder()
                 .name(request.getName())
                 .tokenHash(tokenHash)
+                .scope(scope)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -48,6 +51,7 @@ public class ApiTokenService {
         return ApiTokenCreateResponse.builder()
                 .id(saved.getId())
                 .name(saved.getName())
+                .scope(saved.getScope())
                 .token(token)
                 .createdAt(saved.getCreatedAt())
                 .build();
@@ -57,7 +61,7 @@ public class ApiTokenService {
         apiTokenRepository.deleteById(id);
     }
 
-    public void validateBearerToken(String authorizationHeader) {
+    public void validateBearerToken(String authorizationHeader, ApiTokenScope requiredScope) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
         }
@@ -65,8 +69,11 @@ public class ApiTokenService {
         final String token = authorizationHeader.substring(7);
         final String tokenHash = hashToken(token);
 
-        if (!apiTokenRepository.existsByTokenHash(tokenHash)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token");
+        final ApiToken apiToken = apiTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token"));
+
+        if (apiToken.getScope() != requiredScope) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "API token is not permitted for this operation");
         }
     }
 
@@ -87,6 +94,7 @@ public class ApiTokenService {
         return ApiTokenResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .scope(entity.getScope())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
