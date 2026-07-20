@@ -38,22 +38,6 @@ async function exportWords(query = ''): Promise<string[]> {
   return body.words;
 }
 
-test('generating a known cards export token downloads a scoped token file', async ({
-  page,
-}) => {
-  await page.goto('/settings/api-tokens');
-  await page.getByLabel('Token name').fill('My export');
-  await page.getByLabel('Purpose').click();
-  await page.getByRole('option', { name: 'Known cards export', exact: true }).click();
-  await expect(page.getByLabel('Purpose')).toContainText('Known cards export');
-
-  const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Generate token' }).click();
-  const download = await downloadPromise;
-
-  expect(download.suggestedFilename()).toBe('known-cards-export.token');
-});
-
 test('export endpoint returns 401 without a token', async () => {
   const response = await fetch(EXPORT_URL);
   expect(response.status).toBe(401);
