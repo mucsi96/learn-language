@@ -394,7 +394,7 @@ test('can assign a source to a group', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByLabel('Group').click();
+  await page.getByLabel('Group', { exact: true }).click();
   await page.getByRole('option', { name: 'Goethe' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
@@ -415,7 +415,7 @@ test('can remove a source from a group', async ({ page }) => {
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Edit' }).click();
 
-  await page.getByLabel('Group').click();
+  await page.getByLabel('Group', { exact: true }).click();
   await page.getByRole('option', { name: 'None' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
