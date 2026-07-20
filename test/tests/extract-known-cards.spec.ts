@@ -38,12 +38,12 @@ async function exportWords(query = ''): Promise<string[]> {
   return body.words;
 }
 
-test('export endpoint returns 401 without a token', async () => {
+test('export endpoint returns 401 without a token', async ({ page }) => {
   const response = await fetch(EXPORT_URL);
   expect(response.status).toBe(401);
 });
 
-test('export endpoint returns 403 for a dictionary-scoped token', async () => {
+test('export endpoint returns 403 for a dictionary-scoped token', async ({ page }) => {
   await createApiToken({
     name: 'Dict',
     scope: 'DICTIONARY',
@@ -57,7 +57,7 @@ test('export endpoint returns 403 for a dictionary-scoped token', async () => {
   expect(response.status).toBe(403);
 });
 
-test('dictionary endpoint returns 403 for a known-cards export token', async () => {
+test('dictionary endpoint returns 403 for a known-cards export token', async ({ page }) => {
   await seedExportToken();
 
   const response = await fetch(DICTIONARY_URL, {
@@ -78,7 +78,7 @@ test('dictionary endpoint returns 403 for a known-cards export token', async () 
   expect(response.status).toBe(403);
 });
 
-test('export returns normal-form words for the selected group plus known words', async () => {
+test('export returns normal-form words for the selected group plus known words', async ({ page }) => {
   const groupId = await createSourceGroup({ name: 'Export Group' });
   await setSourceGroup('goethe-a1', groupId);
   await setSourceGroup('goethe-a2', groupId);
@@ -99,7 +99,7 @@ test('export returns normal-form words for the selected group plus known words',
   ]);
 });
 
-test('export can filter across multiple groups', async () => {
+test('export can filter across multiple groups', async ({ page }) => {
   const groupA = await createSourceGroup({ name: 'Group A' });
   const groupB = await createSourceGroup({ name: 'Group B' });
   await setSourceGroup('goethe-a1', groupA);
@@ -115,7 +115,7 @@ test('export can filter across multiple groups', async () => {
   ]);
 });
 
-test('export without a group returns words from all sources plus known words', async () => {
+test('export without a group returns words from all sources plus known words', async ({ page }) => {
   const groupId = await createSourceGroup({ name: 'Export Group' });
   await setSourceGroup('goethe-a1', groupId);
   await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
@@ -126,7 +126,7 @@ test('export without a group returns words from all sources plus known words', a
   expect(await exportWords()).toEqual(['apfel', 'haus', 'zebra']);
 });
 
-test('export returns only known words for an unknown group', async () => {
+test('export returns only known words for an unknown group', async ({ page }) => {
   await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
   await createKnownWords([{ word: 'apfel', hungarianTranslation: 'alma' }]);
   await seedExportToken();
@@ -134,7 +134,7 @@ test('export returns only known words for an unknown group', async () => {
   expect(await exportWords('?groupId=no-such-group')).toEqual(['apfel']);
 });
 
-test('export deduplicates card words already in the known words table', async () => {
+test('export deduplicates card words already in the known words table', async ({ page }) => {
   const groupId = await createSourceGroup({ name: 'Export Group' });
   await setSourceGroup('goethe-a1', groupId);
   await createCard(nounCard('goethe-a1_haus', 'goethe-a1', 'Haus'));
