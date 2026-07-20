@@ -23,6 +23,12 @@
 </div>
 
 @if (sources()?.length) {
+@if (!visibleSources().length) {
+<div class="empty-state">
+  <mat-icon class="empty-icon">filter_alt</mat-icon>
+  <p>No sources need attention.</p>
+</div>
+} @else {
 @for (section of groupedSections(); track section.group.id) {
 <section class="source-group">
   <h2 class="group-heading">{{ section.group.name }}</h2>
@@ -40,6 +46,7 @@
     *ngTemplateOutlet="sourcesTable; context: { sources: ungroupedSources(), label: 'Ungrouped' }"
   ></ng-container>
 </section>
+}
 }
 
 <ng-template #sourcesTable let-sources="sources" let-label="label">

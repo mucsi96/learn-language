@@ -82,6 +82,16 @@ test('needs attention only filter hides clear sources', async ({ page }) => {
   await expect(page.getByRole('row', { name: 'Goethe A2' })).not.toBeVisible();
 });
 
+test('needs attention only filter shows a message when nothing matches', async ({ page }) => {
+  await page.goto('/sources');
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
+
+  await page.getByRole('switch', { name: 'Needs attention only' }).click();
+
+  await expect(page.getByText('No sources need attention.')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).not.toBeVisible();
+});
+
 test('displays card counts excluding drafts', async ({ page }) => {
   await createCard({
     cardId: 'test-card-1',
