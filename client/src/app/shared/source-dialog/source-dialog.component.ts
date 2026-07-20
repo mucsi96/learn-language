@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { LearningPartnersService } from '../../learning-partners/learning-partners.service';
-import { SourcesService } from '../../sources.service';
+import { SourceGroupsService } from '../../source-groups/source-groups.service';
 import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
 
 const SLUG_MAX_LENGTH = 50;
@@ -58,7 +58,7 @@ export class SourceDialogComponent {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_CONFIG);
   private readonly partnersService = inject(LearningPartnersService);
-  private readonly sourcesService = inject(SourcesService);
+  private readonly groupsService = inject(SourceGroupsService);
   data: { source?: Source; mode: 'create' | 'edit' } = inject(MAT_DIALOG_DATA);
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
@@ -70,11 +70,7 @@ export class SourceDialogComponent {
     { code: 'english', displayName: 'English' },
   ];
   readonly partners = this.partnersService.partners;
-  readonly otherSources = computed(() =>
-    (this.sourcesService.sources.value() ?? []).filter(
-      (source) => source.id !== this.data.source?.id
-    )
-  );
+  readonly groups = this.groupsService.groups;
   readonly isJson = computed(() => this.formModel().sourceType === 'json');
 
   readonly cardTypes = computed(() =>
@@ -96,7 +92,7 @@ export class SourceDialogComponent {
     typingPractice: boolean;
     aiLanguage: AiLanguage;
     learningPartnerId: number | null;
-    detectionSourceIds: string[];
+    groupId: number | null;
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
@@ -110,7 +106,7 @@ export class SourceDialogComponent {
     typingPractice: this.data.source?.typingPractice ?? false,
     aiLanguage: this.data.source?.aiLanguage ?? 'hungarian',
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
-    detectionSourceIds: this.data.source?.detectionSourceIds ?? [],
+    groupId: this.data.source?.groupId ?? null,
   });
 
   private readonly forceSimpleCardType = effect(() => {
@@ -190,7 +186,9 @@ export class SourceDialogComponent {
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null
           ? 0
           : result.learningPartnerId,
-        detectionSourceIds: result.detectionSourceIds,
+        groupId: this.data.mode === 'edit' && result.groupId === null
+          ? 0
+          : result.groupId,
       };
       this.dialogRef.close(formData);
     }

@@ -65,6 +65,12 @@ export const routes: Routes = [
         title: 'Learning Partners',
       },
       {
+        path: 'source-groups',
+        loadComponent: () =>
+          import('./source-groups/source-groups.component').then((m) => m.SourceGroupsComponent),
+        title: 'Source Groups',
+      },
+      {
         path: 'grammar-topics',
         loadComponent: () =>
           import('./grammar-topics/grammar-topics.component').then((m) => m.GrammarTopicsComponent),
