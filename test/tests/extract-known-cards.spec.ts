@@ -17,7 +17,7 @@ async function createTokenViaUI(
 ): Promise<string> {
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
-  await page.getByRole('combobox', { name: 'Token purpose' }).click();
+  await page.getByLabel('Purpose').click();
   await page.getByRole('option', { name: purpose, exact: true }).click();
 
   const downloadPromise = page.waitForEvent('download');
@@ -39,7 +39,7 @@ test('known cards export downloads the token file for the export purpose', async
 }) => {
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('My export');
-  await page.getByRole('combobox', { name: 'Token purpose' }).click();
+  await page.getByLabel('Purpose').click();
   await page.getByRole('option', { name: 'Known cards export', exact: true }).click();
 
   const downloadPromise = page.waitForEvent('download');

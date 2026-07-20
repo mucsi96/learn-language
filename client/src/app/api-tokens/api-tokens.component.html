@@ -26,7 +26,7 @@
           </mat-form-field>
           <mat-form-field appearance="outline" class="token-scope-field">
             <mat-label>Purpose</mat-label>
-            <mat-select [formField]="tokenForm.scope" aria-label="Token purpose">
+            <mat-select [formField]="tokenForm.scope">
               @for (option of scopeOptions; track option.value) {
               <mat-option [value]="option.value">{{ option.label }}</mat-option>
               }
