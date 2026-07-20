@@ -23,7 +23,34 @@
 </div>
 
 @if (sources()?.length) {
-<table mat-table [dataSource]="visibleSources()" class="sources-table" aria-label="Sources">
+@if (!visibleSources().length) {
+<div class="empty-state">
+  <mat-icon class="empty-icon">filter_alt</mat-icon>
+  <p>No sources need attention.</p>
+</div>
+} @else {
+@for (section of groupedSections(); track section.group.id) {
+<section class="source-group">
+  <h2 class="group-heading">{{ section.group.name }}</h2>
+  <ng-container
+    *ngTemplateOutlet="sourcesTable; context: { sources: section.sources, label: section.group.name }"
+  ></ng-container>
+</section>
+}
+@if (ungroupedSources().length) {
+<section class="source-group">
+  @if (groupedSections().length) {
+  <h2 class="group-heading">Ungrouped</h2>
+  }
+  <ng-container
+    *ngTemplateOutlet="sourcesTable; context: { sources: ungroupedSources(), label: 'Ungrouped' }"
+  ></ng-container>
+</section>
+}
+}
+
+<ng-template #sourcesTable let-sources="sources" let-label="label">
+<table mat-table [dataSource]="sources" class="sources-table" [attr.aria-label]="label + ' sources'">
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef>Name</th>
     <td mat-cell *matCellDef="let source">
@@ -120,6 +147,7 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
+</ng-template>
 
 <mat-menu #actionsMenu>
   <ng-template matMenuContent let-source="source">

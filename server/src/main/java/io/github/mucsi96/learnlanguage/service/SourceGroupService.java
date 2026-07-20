@@ -2,7 +2,9 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.SourceGroup;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
@@ -24,14 +26,20 @@ public class SourceGroupService {
     }
 
     public SourceGroupResponse createSourceGroup(SourceGroupRequest request) {
+        if (sourceGroupRepository.existsById(request.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Source group already exists: " + request.getId());
+        }
+
         final SourceGroup group = SourceGroup.builder()
+                .id(request.getId())
                 .name(request.getName())
                 .build();
 
         return toResponse(sourceGroupRepository.save(group));
     }
 
-    public SourceGroupResponse updateSourceGroup(Integer id, SourceGroupRequest request) {
+    public SourceGroupResponse updateSourceGroup(String id, SourceGroupRequest request) {
         final SourceGroup group = sourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Source group not found: " + id));
 
@@ -40,11 +48,11 @@ public class SourceGroupService {
         return toResponse(sourceGroupRepository.save(group));
     }
 
-    public void deleteSourceGroup(Integer id) {
+    public void deleteSourceGroup(String id) {
         sourceGroupRepository.deleteById(id);
     }
 
-    public SourceGroup getSourceGroupById(Integer id) {
+    public SourceGroup getSourceGroupById(String id) {
         return sourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Source group not found: " + id));
     }

@@ -37,6 +37,17 @@ p {
   white-space: nowrap;
 }
 
+.source-group {
+  margin-bottom: 2rem;
+}
+
+.group-heading {
+  color: var(--mat-sys-on-surface);
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
 .sources-table {
   width: 100%;
   background: var(--mat-sys-surface);

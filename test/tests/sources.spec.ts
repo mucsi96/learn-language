@@ -82,6 +82,16 @@ test('needs attention only filter hides clear sources', async ({ page }) => {
   await expect(page.getByRole('row', { name: 'Goethe A2' })).not.toBeVisible();
 });
 
+test('needs attention only filter shows a message when nothing matches', async ({ page }) => {
+  await page.goto('/sources');
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
+
+  await page.getByRole('switch', { name: 'Needs attention only' }).click();
+
+  await expect(page.getByText('No sources need attention.')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).not.toBeVisible();
+});
+
 test('displays card counts excluding drafts', async ({ page }) => {
   await createCard({
     cardId: 'test-card-1',
@@ -394,7 +404,7 @@ test('can assign a source to a group', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByLabel('Group').click();
+  await page.getByLabel('Group', { exact: true }).click();
   await page.getByRole('option', { name: 'Goethe' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
@@ -415,7 +425,7 @@ test('can remove a source from a group', async ({ page }) => {
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Edit' }).click();
 
-  await page.getByLabel('Group').click();
+  await page.getByLabel('Group', { exact: true }).click();
   await page.getByRole('option', { name: 'None' }).click();
 
   await page.getByRole('button', { name: 'Update' }).click();
@@ -425,6 +435,47 @@ test('can remove a source from a group', async ({ page }) => {
     const assignedGroupId = await getSourceGroup('goethe-a1');
     expect(assignedGroupId).toBeNull();
   }).toPass();
+});
+
+test('creates a source group with a readable slug id', async () => {
+  const groupId = await createSourceGroup({ name: 'Goethe Zertifikat' });
+  expect(groupId).toBe('goethe-zertifikat');
+});
+
+test('groups sources into a table per source group', async ({ page }) => {
+  const goetheGroup = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', goetheGroup);
+  await setSourceGroup('goethe-a2', goetheGroup);
+
+  await page.goto('/sources');
+
+  await expect(page.getByRole('heading', { name: 'Goethe', exact: true })).toBeVisible();
+
+  const goetheTable = page.getByRole('table', { name: 'Goethe sources' });
+  await expect(goetheTable.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
+  await expect(goetheTable.getByRole('row', { name: 'Goethe A2' })).toBeVisible();
+  await expect(goetheTable.getByRole('row', { name: 'Goethe B1' })).not.toBeVisible();
+});
+
+test('shows ungrouped sources in a table below the groups', async ({ page }) => {
+  const goetheGroup = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', goetheGroup);
+
+  await page.goto('/sources');
+
+  await expect(page.getByRole('heading', { name: 'Ungrouped' })).toBeVisible();
+
+  const ungroupedTable = page.getByRole('table', { name: 'Ungrouped sources' });
+  await expect(ungroupedTable.getByRole('row', { name: 'Goethe B1' })).toBeVisible();
+  await expect(ungroupedTable.getByRole('row', { name: 'Goethe A1' })).not.toBeVisible();
+});
+
+test('shows no group headings when no sources are grouped', async ({ page }) => {
+  await page.goto('/sources');
+
+  await expect(page.getByRole('heading', { name: 'Ungrouped' })).not.toBeVisible();
+  await expect(page.getByRole('table', { name: 'Ungrouped sources' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
 });
 
 test('can delete a source and its cards', async ({ page }) => {

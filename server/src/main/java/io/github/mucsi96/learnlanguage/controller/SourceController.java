@@ -336,7 +336,7 @@ public class SourceController {
         .learningPartner(request.getLearningPartnerId() != null
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
             : null)
-        .group(request.getGroupId() != null && request.getGroupId() != 0
+        .group(request.getGroupId() != null && !request.getGroupId().isEmpty()
             ? sourceGroupService.getSourceGroupById(request.getGroupId())
             : null)
         .build();
@@ -689,11 +689,11 @@ public class SourceController {
     return learningPartnerService.getLearningPartnerById(learningPartnerId);
   }
 
-  private SourceGroup resolveGroup(Integer groupId, Source existingSource) {
+  private SourceGroup resolveGroup(String groupId, Source existingSource) {
     if (groupId == null) {
       return existingSource.getGroup();
     }
-    if (groupId == 0) {
+    if (groupId.isEmpty()) {
       return null;
     }
     return sourceGroupService.getSourceGroupById(groupId);

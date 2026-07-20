@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SourceGroupResponse {
-    private Integer id;
+    private String id;
     private String name;
 }
