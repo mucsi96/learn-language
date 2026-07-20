@@ -8,6 +8,7 @@ import {
 } from '../utils';
 
 const EXPORT_URL = 'http://localhost:8170/api/known-cards';
+const DICTIONARY_URL = 'http://localhost:8170/api/dictionary';
 const EXPORT_TOKEN = 'test-known-cards-export-token';
 const DICTIONARY_TOKEN = 'test-dictionary-token';
 
@@ -66,6 +67,27 @@ test('export endpoint returns 403 for a dictionary-scoped token', async () => {
 
   const response = await fetch(EXPORT_URL, {
     headers: { Authorization: `Bearer ${DICTIONARY_TOKEN}` },
+  });
+
+  expect(response.status).toBe(403);
+});
+
+test('dictionary endpoint returns 403 for a known-cards export token', async () => {
+  await seedExportToken();
+
+  const response = await fetch(DICTIONARY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${EXPORT_TOKEN}`,
+    },
+    body: JSON.stringify({
+      bookTitle: 'Test',
+      author: 'Author',
+      targetLanguage: 'hu',
+      sentence: 'Wir fahren ab.',
+      highlightedWord: 'fahren',
+    }),
   });
 
   expect(response.status).toBe(403);
