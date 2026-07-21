@@ -28,8 +28,8 @@ public class ApiToken {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "token_hash", nullable = false, unique = true)
-    private String tokenHash;
+    @Column(name = "encrypted_token", nullable = false)
+    private String encryptedToken;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

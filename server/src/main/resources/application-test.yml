@@ -1,3 +1,4 @@
+token-encryption-key: ${TOKEN_ENCRYPTION_KEY}
 spring:
   cloud:
     azure:
