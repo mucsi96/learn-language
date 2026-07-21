@@ -31,8 +31,8 @@ public class ApiToken {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "token_hash", nullable = false, unique = true)
-    private String tokenHash;
+    @Column(name = "encrypted_token", nullable = false)
+    private String encryptedToken;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

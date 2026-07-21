@@ -195,6 +195,8 @@ spec:
           value: mock-elevenlabs-key
         - name: ELEVEN_LABS_BASE_URL
           value: http://localhost:3072
+        - name: TOKEN_ENCRYPTION_KEY
+          value: AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=
       volumeMounts:
         - name: storage
           mountPath: /app/storage

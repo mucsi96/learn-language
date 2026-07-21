@@ -1331,7 +1331,25 @@ databaseChangeLog:
               ALTER TABLE learn_language.sources ADD CONSTRAINT sources_group_fkey
                   FOREIGN KEY (group_id) REFERENCES learn_language.source_groups(id) ON DELETE SET NULL;
   - changeSet:
-      id: 46-add-scope-to-api-tokens
+      id: 46-drop-api-tokens-token-hash-unique
+      author: mucsi96
+      changes:
+        - dropUniqueConstraint:
+            tableName: api_tokens
+            constraintName: api_tokens_token_hash_unique
+  - changeSet:
+      id: 47-encrypt-api-tokens-at-rest
+      author: mucsi96
+      changes:
+        - delete:
+            tableName: api_tokens
+        - renameColumn:
+            tableName: api_tokens
+            oldColumnName: token_hash
+            newColumnName: encrypted_token
+            columnDataType: varchar(255)
+  - changeSet:
+      id: 48-add-scope-to-api-tokens
       author: mucsi96
       changes:
         - addColumn:

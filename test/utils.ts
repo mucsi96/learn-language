@@ -1182,18 +1182,32 @@ export async function clearKnownWords(): Promise<void> {
   });
 }
 
+// Matches the server's TokenEncryptionService (AES-256-GCM, payload = iv + ciphertext + tag)
+// and the TOKEN_ENCRYPTION_KEY configured for the test pod.
+const TOKEN_ENCRYPTION_KEY = Buffer.from(
+  'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=',
+  'base64'
+);
+
+function encryptApiToken(token: string): string {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', TOKEN_ENCRYPTION_KEY, iv);
+  const ciphertext = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, ciphertext, tag]).toString('base64');
+}
+
 export async function createApiToken(params: {
   name: string;
   scope: 'DICTIONARY' | 'KNOWN_CARDS_EXPORT';
   token: string;
 }): Promise<void> {
   const { name, scope, token } = params;
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
   await withDbConnection(async (client) => {
     await client.query(
-      `INSERT INTO learn_language.api_tokens (name, token_hash, scope, created_at)
+      `INSERT INTO learn_language.api_tokens (name, encrypted_token, scope, created_at)
        VALUES ($1, $2, $3, NOW())`,
-      [name, tokenHash, scope]
+      [name, encryptApiToken(token), scope]
     );
   });
 }
