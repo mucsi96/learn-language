@@ -102,9 +102,7 @@ jobs:
         run: scripts/pod_up.sh
       - name: Run Playwright tests
         working-directory: test
-        run: |
-          set -o pipefail
-          npx playwright test --shard=${{ matrix.shard }}/5 2>&1 | tee playwright-output.log
+        run: npx playwright test --shard=${{ matrix.shard }}/5
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         if: failure()
@@ -119,19 +117,6 @@ jobs:
             echo "=== $container ==="
             podman logs "$container" 2>&1 || true
           done
-      - name: Print token diagnostics
-        if: failure()
-        run: |
-          echo "=== TOKENDIAG (shard ${{ matrix.shard }}) ==="
-          for container in $(podman pod inspect learn-language-test --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null); do
-            podman logs "$container" 2>&1 | grep TOKENDIAG || true
-          done
-      - name: Print Playwright failure summary
-        if: failure()
-        working-directory: test
-        run: |
-          echo "=== Playwright failure summary (shard ${{ matrix.shard }}) ==="
-          tail -n 300 playwright-output.log || true
 
   publish-server:
     concurrency:
