@@ -54,7 +54,8 @@ test('export endpoint returns 403 for a dictionary-scoped token', async ({ page 
     headers: { Authorization: `Bearer ${DICTIONARY_TOKEN}` },
   });
 
-  expect(response.status).toBe(403);
+  const body = await response.text();
+  expect(response.status, `body: ${body}`).toBe(403);
 });
 
 test('dictionary endpoint returns 403 for a known-cards export token', async ({ page }) => {
@@ -75,7 +76,8 @@ test('dictionary endpoint returns 403 for a known-cards export token', async ({ 
     }),
   });
 
-  expect(response.status).toBe(403);
+  const body = await response.text();
+  expect(response.status, `body: ${body}`).toBe(403);
 });
 
 test('export returns normal-form words for the selected group plus known words', async ({ page }) => {
