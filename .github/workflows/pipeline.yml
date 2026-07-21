@@ -119,6 +119,13 @@ jobs:
             echo "=== $container ==="
             podman logs "$container" 2>&1 || true
           done
+      - name: Print token diagnostics
+        if: failure()
+        run: |
+          echo "=== TOKENDIAG (shard ${{ matrix.shard }}) ==="
+          for container in $(podman pod inspect learn-language-test --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null); do
+            podman logs "$container" 2>&1 | grep TOKENDIAG || true
+          done
       - name: Print Playwright failure summary
         if: failure()
         working-directory: test

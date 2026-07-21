@@ -18,9 +18,13 @@ import io.github.mucsi96.learnlanguage.model.ApiTokenResponse;
 import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import io.github.mucsi96.learnlanguage.repository.ApiTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ApiTokenService {
 
     private static final int TOKEN_BYTE_LENGTH = 48;
@@ -66,10 +70,18 @@ public class ApiTokenService {
 
         final String token = authorizationHeader.substring(7);
 
-        final ApiToken apiToken = apiTokenRepository.findAll().stream()
+        final List<ApiToken> allTokens = apiTokenRepository.findAll();
+        final Optional<ApiToken> match = allTokens.stream()
                 .filter(candidate -> constantTimeEquals(token,
                         tokenEncryptionService.decrypt(candidate.getEncryptedToken())))
-                .findFirst()
+                .findFirst();
+
+        log.warn("TOKENDIAG requiredScope={} totalTokens={} matched={} matchedScope={} allScopes={}",
+                requiredScope, allTokens.size(), match.isPresent(),
+                match.map(ApiToken::getScope).orElse(null),
+                allTokens.stream().map(ApiToken::getScope).toList());
+
+        final ApiToken apiToken = match
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token"));
 
         if (apiToken.getScope() != requiredScope) {
