@@ -548,6 +548,70 @@ test('study mode lets the user type the answer before revealing when typing prac
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
 
+test('typing practice focuses the answer field without clicking for each card', async ({ page }) => {
+  await createSource({
+    id: 'ckad-typing-focus',
+    name: 'CKAD Typing Focus',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+  });
+
+  await createCard({
+    cardId: 'ckad-typing-focus-pod',
+    sourceId: 'ckad-typing-focus',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Pod**?',
+      backText: 'The smallest deployable unit.',
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await createCard({
+    cardId: 'ckad-typing-focus-service',
+    sourceId: 'ckad-typing-focus',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a **Service**?',
+      backText: 'A stable endpoint for a set of pods.',
+    },
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('/sources/ckad-typing-focus/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await expect(answerInput).toBeFocused();
+
+  await page.keyboard.type('typed without clicking');
+  await expect(answerInput).toHaveValue('typed without clicking');
+
+  await answerInput.press('Enter');
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(answerInput).toBeFocused();
+});
+
 test('typed answer matching the back text shows a green tick after reveal', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
