@@ -78,7 +78,7 @@ export class ApiTokensComponent {
     try {
       const result = await this.service.createToken(name, scope);
       this.downloadTokenFile(result.scope, result.token);
-      this.formModel.set({ name: '', scope });
+      this.formModel.set({ name: '', scope: '' });
     } finally {
       this.isCreating.set(false);
     }
