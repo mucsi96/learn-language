@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import io.github.mucsi96.learnlanguage.model.DictionaryRequest;
 import io.github.mucsi96.learnlanguage.service.ApiTokenService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService;
@@ -26,7 +27,7 @@ public class DictionaryController {
     public String translate(
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @Valid @RequestBody DictionaryRequest request) {
-        apiTokenService.validateBearerToken(authorizationHeader);
+        apiTokenService.validateBearerToken(authorizationHeader, ApiTokenScope.DICTIONARY);
 
         final LookupResult result = dictionaryService.lookup(request);
 

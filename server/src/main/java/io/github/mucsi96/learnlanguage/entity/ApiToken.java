@@ -2,7 +2,10 @@ package io.github.mucsi96.learnlanguage.entity;
 
 import java.time.LocalDateTime;
 
+import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +33,10 @@ public class ApiToken {
 
     @Column(name = "encrypted_token", nullable = false)
     private String encryptedToken;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApiTokenScope scope;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

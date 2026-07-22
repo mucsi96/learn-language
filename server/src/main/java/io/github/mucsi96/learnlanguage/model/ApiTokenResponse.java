@@ -14,5 +14,6 @@ import lombok.NoArgsConstructor;
 public class ApiTokenResponse {
     private Integer id;
     private String name;
+    private ApiTokenScope scope;
     private LocalDateTime createdAt;
 }

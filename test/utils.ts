@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import { Page, Locator, expect } from '@playwright/test';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -1178,6 +1179,36 @@ export async function getKnownWords(): Promise<Array<{ word: string; hungarianTr
 export async function clearKnownWords(): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query('DELETE FROM learn_language.known_words');
+  });
+}
+
+// Matches the server's TokenEncryptionService (AES-256-GCM, payload = iv + ciphertext + tag)
+// and the TOKEN_ENCRYPTION_KEY configured for the test pod.
+const TOKEN_ENCRYPTION_KEY = Buffer.from(
+  'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=',
+  'base64'
+);
+
+function encryptApiToken(token: string): string {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', TOKEN_ENCRYPTION_KEY, iv);
+  const ciphertext = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, ciphertext, tag]).toString('base64');
+}
+
+export async function createApiToken(params: {
+  name: string;
+  scope: 'DICTIONARY' | 'KNOWN_CARDS_EXPORT';
+  token: string;
+}): Promise<void> {
+  const { name, scope, token } = params;
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.api_tokens (name, encrypted_token, scope, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [name, encryptApiToken(token), scope]
+    );
   });
 }
 

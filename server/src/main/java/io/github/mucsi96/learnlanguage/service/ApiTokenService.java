@@ -15,6 +15,7 @@ import io.github.mucsi96.learnlanguage.entity.ApiToken;
 import io.github.mucsi96.learnlanguage.model.ApiTokenCreateResponse;
 import io.github.mucsi96.learnlanguage.model.ApiTokenRequest;
 import io.github.mucsi96.learnlanguage.model.ApiTokenResponse;
+import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import io.github.mucsi96.learnlanguage.repository.ApiTokenRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,7 @@ public class ApiTokenService {
         final ApiToken entity = ApiToken.builder()
                 .name(request.getName())
                 .encryptedToken(encryptedToken)
+                .scope(request.getScope())
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -47,6 +49,7 @@ public class ApiTokenService {
         return ApiTokenCreateResponse.builder()
                 .id(saved.getId())
                 .name(saved.getName())
+                .scope(saved.getScope())
                 .token(token)
                 .createdAt(saved.getCreatedAt())
                 .build();
@@ -56,18 +59,21 @@ public class ApiTokenService {
         apiTokenRepository.deleteById(id);
     }
 
-    public void validateBearerToken(String authorizationHeader) {
+    public void validateBearerToken(String authorizationHeader, ApiTokenScope requiredScope) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
         }
 
         final String token = authorizationHeader.substring(7);
 
-        final boolean tokenMatches = apiTokenRepository.findAllEncryptedTokens().stream()
-                .anyMatch(encryptedToken -> constantTimeEquals(token, tokenEncryptionService.decrypt(encryptedToken)));
+        final ApiToken apiToken = apiTokenRepository.findAll().stream()
+                .filter(candidate -> constantTimeEquals(token,
+                        tokenEncryptionService.decrypt(candidate.getEncryptedToken())))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token"));
 
-        if (!tokenMatches) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API token");
+        if (apiToken.getScope() != requiredScope) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "API token is not permitted for this operation");
         }
     }
 
@@ -87,6 +93,7 @@ public class ApiTokenService {
         return ApiTokenResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .scope(entity.getScope())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
