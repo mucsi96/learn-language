@@ -1361,3 +1361,11 @@ databaseChangeLog:
                   defaultValue: DICTIONARY
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 49-drop-default-scope-from-api-tokens
+      author: mucsi96
+      changes:
+        - dropDefaultValue:
+            tableName: api_tokens
+            columnName: scope
+            columnDataType: varchar(255)

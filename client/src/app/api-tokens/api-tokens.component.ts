@@ -54,9 +54,9 @@ export class ApiTokensComponent {
 
   readonly tokens = this.service.tokens;
   readonly scopeOptions = SCOPE_OPTIONS;
-  readonly formModel = signal<{ name: string; scope: ApiTokenScope }>({
+  readonly formModel = signal<{ name: string; scope: ApiTokenScope | '' }>({
     name: '',
-    scope: 'DICTIONARY',
+    scope: '',
   });
   readonly tokenForm = form(this.formModel);
   readonly isCreating = signal(false);
@@ -71,14 +71,14 @@ export class ApiTokensComponent {
 
   async createToken(): Promise<void> {
     const name = this.formModel().name.trim();
-    if (!name) return;
-
     const scope = this.formModel().scope;
+    if (!name || !scope) return;
+
     this.isCreating.set(true);
     try {
       const result = await this.service.createToken(name, scope);
       this.downloadTokenFile(result.scope, result.token);
-      this.formModel.set({ name: '', scope });
+      this.formModel.set({ name: '', scope: '' });
     } finally {
       this.isCreating.set(false);
     }
