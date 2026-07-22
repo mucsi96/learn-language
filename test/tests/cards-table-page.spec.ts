@@ -1159,6 +1159,8 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
@@ -1207,6 +1209,8 @@ test('dictionary lookup does not duplicate draft cards', async ({ page, baseURL 
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
@@ -1266,6 +1270,8 @@ test('completes selected draft cards from cards table', async ({ page, baseURL }
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
