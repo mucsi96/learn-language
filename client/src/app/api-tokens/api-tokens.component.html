@@ -35,7 +35,7 @@
           <button
             mat-flat-button
             (click)="createToken()"
-            [disabled]="!formModel().name.trim() || isCreating()"
+            [disabled]="!formModel().name.trim() || !formModel().scope || isCreating()"
             aria-label="Generate token"
           >
             @if (isCreating()) {

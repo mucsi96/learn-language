@@ -13,6 +13,8 @@ const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Generate token' }).click();
@@ -134,4 +136,19 @@ test('dictionary endpoint returns 401 after token is deleted', async ({
     const responseAfterDelete = await lookupWord(token, 'hu');
     expect(responseAfterDelete.status).toBe(401);
   }).toPass();
+});
+
+test('token generation requires an explicitly selected purpose', async ({
+  page,
+}) => {
+  await page.goto('/settings/api-tokens');
+  await page.getByLabel('Token name').fill('Needs Purpose');
+
+  const generateButton = page.getByRole('button', { name: 'Generate token' });
+  await expect(generateButton).toBeDisabled();
+
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
+
+  await expect(generateButton).toBeEnabled();
 });
