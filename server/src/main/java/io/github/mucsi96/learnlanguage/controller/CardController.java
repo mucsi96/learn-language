@@ -136,6 +136,7 @@ public class CardController {
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @Transactional
   public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
     final Source source = sourceRepository.findById(request.getSourceId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
@@ -164,8 +165,9 @@ public class CardController {
 
           if (existingCard.getType() != request.getType()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Card %s already exists with type %s".formatted(
-                    existingCard.getId(), existingCard.getType().getTypeName()));
+                "Card %s already exists with type %s (requested %s)".formatted(
+                    existingCard.getId(), existingCard.getType().getTypeName(),
+                    request.getType().getTypeName()));
           }
 
           existingCard.setData(request.getData());
