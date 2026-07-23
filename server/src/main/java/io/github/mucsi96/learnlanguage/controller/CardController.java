@@ -150,8 +150,24 @@ public class CardController {
               request.getType().getTypeName(), source.getId()));
     }
 
+    if (request.getId() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id is required");
+    }
+
     final Card card = cardRepository.findById(request.getId())
         .map(existingCard -> {
+          if (!existingCard.getSource().getId().equals(source.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Card %s already exists in source %s".formatted(
+                    existingCard.getId(), existingCard.getSource().getId()));
+          }
+
+          if (existingCard.getType() != request.getType()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Card %s already exists with type %s".formatted(
+                    existingCard.getId(), existingCard.getType().getTypeName()));
+          }
+
           existingCard.setData(request.getData());
           return existingCard;
         })

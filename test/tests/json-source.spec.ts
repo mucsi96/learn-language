@@ -360,6 +360,80 @@ test('bulk JSON import updates existing cards with matching ids', async ({ page 
   });
 });
 
+test('bulk JSON import does not touch cards belonging to another source', async ({ page }) => {
+  await createSource({
+    id: 'ckad-owner',
+    name: 'CKAD Owner',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createSource({
+    id: 'ckad-intruder',
+    name: 'CKAD Intruder',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-shared-id',
+    sourceId: 'ckad-owner',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a Pod?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-intruder/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        id: 'ckad-shared-id',
+        frontText: 'A different question',
+        backText: 'A different answer',
+      },
+      {
+        id: 'ckad-intruder-service',
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Failed to import 1 of 2 cards')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT source_id, data FROM learn_language.cards WHERE id = $1`,
+      ['ckad-shared-id']
+    );
+    expect(result.rows[0].source_id).toBe('ckad-owner');
+    expect(result.rows[0].data.frontText).toBe('What is a Pod?');
+    expect(result.rows[0].data.backText).toBe('The smallest deployable unit.');
+  });
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-intruder']
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].id).toBe('ckad-intruder-service');
+  });
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',
