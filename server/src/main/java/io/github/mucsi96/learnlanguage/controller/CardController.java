@@ -155,6 +155,10 @@ public class CardController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id is required");
     }
 
+    if (request.getData() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "data is required");
+    }
+
     final Card card = cardRepository.findById(request.getId())
         .map(existingCard -> {
           if (!existingCard.getSource().getId().equals(source.getId())) {
