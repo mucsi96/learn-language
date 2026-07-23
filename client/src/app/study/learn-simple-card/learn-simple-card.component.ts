@@ -2,11 +2,13 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   input,
   output,
   resource,
   signal,
+  viewChild,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -57,6 +59,9 @@ export class LearnSimpleCardComponent {
 
   readonly typedAnswer = signal('');
 
+  private readonly answerInput =
+    viewChild<ElementRef<HTMLInputElement>>('answerInput');
+
   readonly answerCheck = resource({
     params: () => {
       const cardId = this.card()?.value()?.id;
@@ -86,6 +91,11 @@ export class LearnSimpleCardComponent {
   private readonly clearTypedAnswerOnCardChange = effect(() => {
     this.card()?.value();
     this.typedAnswer.set('');
+  });
+
+  private readonly focusAnswerInput = effect(() => {
+    this.card()?.value();
+    this.answerInput()?.nativeElement.focus();
   });
 
   submitAnswer(event: Event): void {

@@ -28,6 +28,7 @@
         <mat-label>Your answer</mat-label>
         <input
           matInput
+          #answerInput
           [ngModel]="typedAnswer()"
           (ngModelChange)="typedAnswer.set($event)"
           (keydown.enter)="submitAnswer($event)"
