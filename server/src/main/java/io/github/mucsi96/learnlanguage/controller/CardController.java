@@ -159,8 +159,8 @@ public class CardController {
         .map(existingCard -> {
           if (!existingCard.getSource().getId().equals(source.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Card %s already exists in source %s".formatted(
-                    existingCard.getId(), existingCard.getSource().getId()));
+                "Card %s already exists in source %s (requested %s)".formatted(
+                    existingCard.getId(), existingCard.getSource().getId(), source.getId()));
           }
 
           if (existingCard.getType() != request.getType()) {
