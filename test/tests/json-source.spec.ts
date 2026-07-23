@@ -270,6 +270,96 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
   });
 });
 
+test('bulk JSON import updates existing cards with matching ids', async ({ page }) => {
+  await createSource({
+    id: 'ckad-upsert',
+    name: 'CKAD Upsert',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-upsert-pod',
+    sourceId: 'ckad-upsert',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a Pod?',
+      backText: 'An outdated answer.',
+      topic: 'Pods',
+    },
+    readiness: 'READY',
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('/sources/ckad-upsert/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        id: 'ckad-upsert-pod',
+        frontText: 'What is a **Pod**?',
+        backText: 'The smallest deployable unit.',
+        topic: 'Core Concepts',
+        category: 'Workloads',
+      },
+      {
+        id: 'ckad-upsert-service',
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Imported 2 cards as drafts')).toBeVisible();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-upsert-pod']
+      );
+      return result.rows[0].data.backText;
+    })
+  ).toBe('The smallest deployable unit.');
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, readiness, state, reps FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-upsert']
+    );
+    expect(result.rows.length).toBe(2);
+
+    const podCard = result.rows.find((row) => row.id === 'ckad-upsert-pod');
+    expect(podCard.data.frontText).toBe('What is a **Pod**?');
+    expect(podCard.data.backText).toBe('The smallest deployable unit.');
+    expect(podCard.data.topic).toBe('Core Concepts');
+    expect(podCard.data.category).toBe('Workloads');
+    expect(podCard.readiness).toBe('READY');
+    expect(podCard.state).toBe('REVIEW');
+    expect(podCard.reps).toBe(3);
+
+    const serviceCard = result.rows.find(
+      (row) => row.id === 'ckad-upsert-service'
+    );
+    expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
+    expect(serviceCard.readiness).toBe('DRAFT');
+    expect(serviceCard.state).toBe('NEW');
+  });
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',

@@ -150,24 +150,29 @@ public class CardController {
               request.getType().getTypeName(), source.getId()));
     }
 
-    final Card card = Card.builder()
-        .id(request.getId())
-        .source(source)
-        .sourcePageNumber(request.getSourcePageNumber())
-        .type(request.getType())
-        .data(request.getData())
-        .readiness(request.getReadiness())
-        .due(request.getDue())
-        .stability(request.getStability())
-        .difficulty(request.getDifficulty())
-        .elapsedDays(request.getElapsedDays())
-        .scheduledDays(request.getScheduledDays())
-        .learningSteps(request.getLearningSteps())
-        .reps(request.getReps())
-        .lapses(request.getLapses())
-        .state(request.getState())
-        .lastReview(request.getLastReview())
-        .build();
+    final Card card = cardRepository.findById(request.getId())
+        .map(existingCard -> {
+          existingCard.setData(request.getData());
+          return existingCard;
+        })
+        .orElseGet(() -> Card.builder()
+            .id(request.getId())
+            .source(source)
+            .sourcePageNumber(request.getSourcePageNumber())
+            .type(request.getType())
+            .data(request.getData())
+            .readiness(request.getReadiness())
+            .due(request.getDue())
+            .stability(request.getStability())
+            .difficulty(request.getDifficulty())
+            .elapsedDays(request.getElapsedDays())
+            .scheduledDays(request.getScheduledDays())
+            .learningSteps(request.getLearningSteps())
+            .reps(request.getReps())
+            .lapses(request.getLapses())
+            .state(request.getState())
+            .lastReview(request.getLastReview())
+            .build());
 
     cardService.saveCard(card);
 
