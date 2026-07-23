@@ -136,6 +136,7 @@ public class CardController {
 
   @PostMapping("/card")
   @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @Transactional
   public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
     final Source source = sourceRepository.findById(request.getSourceId())
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + request.getSourceId()));
@@ -150,24 +151,50 @@ public class CardController {
               request.getType().getTypeName(), source.getId()));
     }
 
-    final Card card = Card.builder()
-        .id(request.getId())
-        .source(source)
-        .sourcePageNumber(request.getSourcePageNumber())
-        .type(request.getType())
-        .data(request.getData())
-        .readiness(request.getReadiness())
-        .due(request.getDue())
-        .stability(request.getStability())
-        .difficulty(request.getDifficulty())
-        .elapsedDays(request.getElapsedDays())
-        .scheduledDays(request.getScheduledDays())
-        .learningSteps(request.getLearningSteps())
-        .reps(request.getReps())
-        .lapses(request.getLapses())
-        .state(request.getState())
-        .lastReview(request.getLastReview())
-        .build();
+    if (request.getId() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id is required");
+    }
+
+    if (request.getData() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "data is required");
+    }
+
+    final Card card = cardRepository.findById(request.getId())
+        .map(existingCard -> {
+          if (!existingCard.getSource().getId().equals(source.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Card %s already exists in source %s (requested %s)".formatted(
+                    existingCard.getId(), existingCard.getSource().getId(), source.getId()));
+          }
+
+          if (existingCard.getType() != request.getType()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Card %s already exists with type %s (requested %s)".formatted(
+                    existingCard.getId(), existingCard.getType().getTypeName(),
+                    request.getType().getTypeName()));
+          }
+
+          existingCard.setData(request.getData());
+          return existingCard;
+        })
+        .orElseGet(() -> Card.builder()
+            .id(request.getId())
+            .source(source)
+            .sourcePageNumber(request.getSourcePageNumber())
+            .type(request.getType())
+            .data(request.getData())
+            .readiness(request.getReadiness())
+            .due(request.getDue())
+            .stability(request.getStability())
+            .difficulty(request.getDifficulty())
+            .elapsedDays(request.getElapsedDays())
+            .scheduledDays(request.getScheduledDays())
+            .learningSteps(request.getLearningSteps())
+            .reps(request.getReps())
+            .lapses(request.getLapses())
+            .state(request.getState())
+            .lastReview(request.getLastReview())
+            .build());
 
     cardService.saveCard(card);
 

@@ -270,6 +270,238 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
   });
 });
 
+test('bulk JSON import updates existing cards with matching ids', async ({ page }) => {
+  await createSource({
+    id: 'ckad-upsert',
+    name: 'CKAD Upsert',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-upsert-pod',
+    sourceId: 'ckad-upsert',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 5,
+    data: {
+      frontText: 'What is a Pod?',
+      backText: 'An outdated answer.',
+      topic: 'Pods',
+    },
+    readiness: 'READY',
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+
+  await page.goto('/sources/ckad-upsert/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        id: 'ckad-upsert-pod',
+        frontText: 'What is a **Pod**?',
+        backText: 'The smallest deployable unit.',
+        topic: 'Core Concepts',
+        category: 'Workloads',
+      },
+      {
+        id: 'ckad-upsert-service',
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Imported 2 cards as drafts')).toBeVisible();
+
+  await expect.poll(async () =>
+    withDbConnection(async (client) => {
+      const result = await client.query(
+        `SELECT data FROM learn_language.cards WHERE id = $1`,
+        ['ckad-upsert-pod']
+      );
+      return result.rows[0].data.backText;
+    })
+  ).toBe('The smallest deployable unit.');
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id, data, readiness, state, reps, source_page_number FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-upsert']
+    );
+    expect(result.rows.length).toBe(2);
+
+    const podCard = result.rows.find((row) => row.id === 'ckad-upsert-pod');
+    expect(podCard.data.frontText).toBe('What is a **Pod**?');
+    expect(podCard.data.backText).toBe('The smallest deployable unit.');
+    expect(podCard.data.topic).toBe('Core Concepts');
+    expect(podCard.data.category).toBe('Workloads');
+    expect(podCard.readiness).toBe('READY');
+    expect(podCard.state).toBe('REVIEW');
+    expect(podCard.reps).toBe(3);
+    expect(podCard.source_page_number).toBe(5);
+
+    const serviceCard = result.rows.find(
+      (row) => row.id === 'ckad-upsert-service'
+    );
+    expect(serviceCard.data.backText).toBe('A stable endpoint for a set of pods.');
+    expect(serviceCard.readiness).toBe('DRAFT');
+    expect(serviceCard.state).toBe('NEW');
+  });
+});
+
+test('bulk JSON import does not touch cards belonging to another source', async ({ page }) => {
+  await createSource({
+    id: 'ckad-owner',
+    name: 'CKAD Owner',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createSource({
+    id: 'ckad-intruder',
+    name: 'CKAD Intruder',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-shared-id',
+    sourceId: 'ckad-owner',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'What is a Pod?',
+      backText: 'The smallest deployable unit.',
+    },
+  });
+
+  await page.goto('/sources/ckad-intruder/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        id: 'ckad-shared-id',
+        frontText: 'A different question',
+        backText: 'A different answer',
+      },
+      {
+        id: 'ckad-intruder-service',
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Failed to import 1 of 2 cards')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT source_id, data FROM learn_language.cards WHERE id = $1`,
+      ['ckad-shared-id']
+    );
+    expect(result.rows[0].source_id).toBe('ckad-owner');
+    expect(result.rows[0].data.frontText).toBe('What is a Pod?');
+    expect(result.rows[0].data.backText).toBe('The smallest deployable unit.');
+  });
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id FROM learn_language.cards WHERE source_id = $1`,
+      ['ckad-intruder']
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].id).toBe('ckad-intruder-service');
+  });
+});
+
+test('bulk JSON import rejects an id already used by a different card type', async ({ page }) => {
+  await createSource({
+    id: 'ckad-type-clash',
+    name: 'CKAD Type Clash',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+  });
+
+  await createCard({
+    cardId: 'ckad-type-clash-word',
+    sourceId: 'ckad-type-clash',
+    cardType: 'VOCABULARY',
+    sourcePageNumber: 1,
+    data: {
+      word: 'gehen',
+      type: 'VERB',
+      translation: { en: 'to go' },
+      forms: [],
+      examples: [],
+    },
+  });
+
+  await page.goto('/sources/ckad-type-clash/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill(
+    JSON.stringify([
+      {
+        id: 'ckad-type-clash-word',
+        frontText: 'What does gehen mean?',
+        backText: 'To go.',
+      },
+      {
+        id: 'ckad-type-clash-service',
+        frontText: 'What is a Service?',
+        backText: 'A stable endpoint for a set of pods.',
+      },
+    ])
+  );
+  await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+
+  await expect(page.getByText('Failed to import 1 of 2 cards')).toBeVisible();
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT type, data FROM learn_language.cards WHERE id = $1`,
+      ['ckad-type-clash-word']
+    );
+    expect(result.rows[0].type).toBe('VOCABULARY');
+    expect(result.rows[0].data.word).toBe('gehen');
+    expect(result.rows[0].data.frontText).toBeUndefined();
+  });
+
+  await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT id FROM learn_language.cards WHERE source_id = $1 AND id != $2`,
+      ['ckad-type-clash', 'ckad-type-clash-word']
+    );
+    expect(result.rows.length).toBe(1);
+    expect(result.rows[0].id).toBe('ckad-type-clash-service');
+  });
+});
+
 test('simple card can be edited on the card editing page', async ({ page }) => {
   await createSource({
     id: 'ckad-edit',
