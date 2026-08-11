@@ -1,4 +1,4 @@
-import { Client } from 'pg';
+import { Client, Pool } from 'pg';
 import { Page, Locator, expect } from '@playwright/test';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -19,22 +19,21 @@ export const slugify = (input: string): string =>
     .slice(0, 50)
     .replace(/-+$/g, '');
 
+const pool = new Pool({
+  host: 'localhost',
+  port: 5470,
+  database: 'test',
+  user: 'postgres',
+  password: 'postgres',
+});
+
 // Database connection helper
 export async function withDbConnection<T>(callback: (client: Client) => Promise<T>): Promise<T> {
-  const client = new Client({
-    host: 'localhost',
-    port: 5470,
-    database: 'test',
-    user: 'postgres',
-    password: 'postgres',
-  });
-
-  await client.connect();
+  const client = await pool.connect();
   try {
-    const result = await callback(client);
-    return result;
+    return await callback(client);
   } finally {
-    await client.end();
+    client.release();
   }
 }
 
