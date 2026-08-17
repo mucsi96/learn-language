@@ -3,8 +3,37 @@
 } @else {
 <h1>Welcome to Learn Language</h1>
 <p>Select a source to start learning:</p>
-<section class="sources">
-  @for (source of sources(); track source.id) {
+@for (section of groupedSections(); track section.group.id) {
+<section
+  class="source-group"
+  [attr.aria-label]="section.group.name + ' sources'"
+>
+  <h2 class="group-heading">{{ section.group.name }}</h2>
+  <div class="sources">
+    @for (source of section.sources; track source.id) {
+    <ng-container
+      *ngTemplateOutlet="sourceCard; context: { source: source }"
+    ></ng-container>
+    }
+  </div>
+</section>
+}
+@if (ungroupedSources().length) {
+<section class="source-group" aria-label="Ungrouped sources">
+  @if (groupedSections().length) {
+  <h2 class="group-heading">Ungrouped</h2>
+  }
+  <div class="sources">
+    @for (source of ungroupedSources(); track source.id) {
+    <ng-container
+      *ngTemplateOutlet="sourceCard; context: { source: source }"
+    ></ng-container>
+    }
+  </div>
+</section>
+}
+
+<ng-template #sourceCard let-source="source">
   <a
     [routerLink]="['/sources', source.id, 'study']"
     [class.disabled]="!hasDueCards(source.id)"
@@ -25,6 +54,5 @@
       </mat-card-content>
     </mat-card>
   </a>
-  }
-</section>
+</ng-template>
 }
