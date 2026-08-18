@@ -22,6 +22,17 @@ p {
   gap: 20px;
 }
 
+.source-group {
+  margin-bottom: 2rem;
+}
+
+.group-heading {
+  color: var(--bt-text-strong);
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
 .card-link {
   text-decoration: none;
   color: inherit;

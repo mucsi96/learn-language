@@ -1,5 +1,11 @@
 import { test, expect } from '../fixtures';
-import { createCard, createCardsWithStates, createStudySession } from '../utils';
+import {
+  createCard,
+  createCardsWithStates,
+  createSourceGroup,
+  createStudySession,
+  setSourceGroup,
+} from '../utils';
 import { v4 as uuidv4 } from 'uuid';
 
 test('displays welcome message', async ({ page }) => {
@@ -130,6 +136,43 @@ test('cards due later today are counted regardless of time of day', async ({ pag
   const goetheA1Card = page.getByRole('heading', { name: 'Goethe A1' });
   await expect(goetheA1Card.getByTitle('New', { exact: true })).toContainText('1');
   await expect(goetheA1Card.getByTitle('Review', { exact: true })).not.toBeVisible();
+});
+
+test('groups sources into a section per source group', async ({ page }) => {
+  const goetheGroup = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', goetheGroup);
+  await setSourceGroup('goethe-a2', goetheGroup);
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Goethe', exact: true })).toBeVisible();
+
+  const goetheSection = page.getByRole('region', { name: 'Goethe sources' });
+  await expect(goetheSection.getByRole('heading', { name: 'Goethe A1', exact: true })).toBeVisible();
+  await expect(goetheSection.getByRole('heading', { name: 'Goethe A2', exact: true })).toBeVisible();
+  await expect(goetheSection.getByRole('heading', { name: 'Goethe B1', exact: true })).not.toBeVisible();
+});
+
+test('shows ungrouped sources in a section below the groups', async ({ page }) => {
+  const goetheGroup = await createSourceGroup({ name: 'Goethe' });
+  await setSourceGroup('goethe-a1', goetheGroup);
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Ungrouped' })).toBeVisible();
+
+  const ungroupedSection = page.getByRole('region', { name: 'Ungrouped sources' });
+  await expect(ungroupedSection.getByRole('heading', { name: 'Goethe B1', exact: true })).toBeVisible();
+  await expect(ungroupedSection.getByRole('heading', { name: 'Goethe A1', exact: true })).not.toBeVisible();
+});
+
+test('shows no group headings when no sources are grouped', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Ungrouped' })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A1', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe A2', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Goethe B1', exact: true })).toBeVisible();
 });
 
 test('in review cards not on home page', async ({ page }) => {
