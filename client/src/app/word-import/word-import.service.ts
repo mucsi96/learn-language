@@ -84,6 +84,11 @@ export class WordImportService {
     );
   }
 
+  reloadQueue(): void {
+    this.failedSyncCount.set(0);
+    this.queue.reload();
+  }
+
   async clearQueue(sourceId: string): Promise<void> {
     await this.flush();
     await fetchJson(this.http, `/api/source/${sourceId}/word-import`, {

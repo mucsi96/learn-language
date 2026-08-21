@@ -191,6 +191,61 @@ test('keyboard shortcuts decide candidates', async ({ page }) => {
   ).toEqual(['sehen:KNOWN', 'denken:CARD_CREATED', 'Geschichte:PENDING']);
 });
 
+test('undo removes the draft card created for a word', async ({ page }) => {
+  await setupDefaultChatModelSettings();
+
+  await openWordImport(page);
+  await dropWordList(page);
+
+  await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+  await page.getByRole('button', { name: 'I know this word' }).click();
+
+  await expect(page.getByRole('heading', { name: 'denken' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add as new card' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Geschichte' })).toBeVisible();
+  await expect
+    .poll(async () => (await getCardFromDb('denken-gondolkodni'))?.readiness)
+    .toBe('DRAFT');
+
+  await page.getByRole('button', { name: 'Undo last decision' }).click();
+
+  await expect(page.getByRole('heading', { name: 'denken' })).toBeVisible();
+  await expect
+    .poll(async () => await getCardFromDb('denken-gondolkodni'))
+    .toBeUndefined();
+});
+
+test('a decision that fails to save keeps the word in the queue', async ({
+  page,
+}) => {
+  await openWordImport(page);
+  await dropWordList(page);
+
+  await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+
+  await page.route('**/word-import/candidates/*/known', (route) => route.abort());
+  await page.getByRole('button', { name: 'I know this word' }).click();
+  await expect(page.getByText('Unsaved decisions: 1')).toBeVisible();
+  await page.unroute('**/word-import/candidates/*/known');
+
+  await page.getByRole('button', { name: 'I know this word' }).click();
+  await page.getByRole('button', { name: 'I know this word' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Triage complete' })
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Import another list' }).click();
+
+  await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+  expect(
+    (await getWordImportCandidates('goethe-a1')).map(
+      ({ lemma, status }) => `${lemma}:${status}`
+    )
+  ).toContain('sehen:PENDING');
+});
+
 test('pending triage queue is announced on the sources page and can be resumed', async ({
   page,
 }) => {

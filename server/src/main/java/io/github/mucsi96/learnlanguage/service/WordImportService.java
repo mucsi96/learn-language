@@ -44,6 +44,7 @@ import io.github.mucsi96.learnlanguage.model.WordImportWordRequest;
 import io.github.mucsi96.learnlanguage.repository.CardRepository;
 import io.github.mucsi96.learnlanguage.repository.WordImportCandidateRepository;
 import io.github.mucsi96.learnlanguage.repository.WordImportPendingCountProjection;
+import io.github.mucsi96.learnlanguage.repository.WordImportStatusCountProjection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -286,7 +287,9 @@ public class WordImportService {
         }
 
         if (candidate.getStatus() == WordImportStatus.CARD_CREATED && candidate.getCardId() != null) {
-            cardService.getCardById(candidate.getCardId()).ifPresent(this::deleteDraftCard);
+            cardService.getCardById(candidate.getCardId())
+                    .filter(card -> card.getSource().getId().equals(candidate.getSource().getId()))
+                    .ifPresent(this::deleteDraftCard);
         }
     }
 
@@ -300,14 +303,21 @@ public class WordImportService {
     }
 
     private WordImportStatsResponse getStats(String sourceId) {
+        final Map<WordImportStatus, Long> counts = wordImportCandidateRepository.countGroupedByStatus(sourceId)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        WordImportStatusCountProjection::getStatus,
+                        WordImportStatusCountProjection::getCount));
+
         return WordImportStatsResponse.builder()
-                .pendingCount(wordImportCandidateRepository.countBySource_IdAndStatus(sourceId,
-                        WordImportStatus.PENDING))
-                .knownCount(wordImportCandidateRepository.countBySource_IdAndStatus(sourceId,
-                        WordImportStatus.KNOWN))
-                .cardCount(wordImportCandidateRepository.countBySource_IdAndStatus(sourceId,
-                        WordImportStatus.CARD_CREATED))
+                .pendingCount(countOf(counts, WordImportStatus.PENDING))
+                .knownCount(countOf(counts, WordImportStatus.KNOWN))
+                .cardCount(countOf(counts, WordImportStatus.CARD_CREATED))
                 .build();
+    }
+
+    private static int countOf(Map<WordImportStatus, Long> counts, WordImportStatus status) {
+        return counts.getOrDefault(status, 0L).intValue();
     }
 
     private WordImportDecisionResponse toDecisionResponse(WordImportCandidate candidate) {

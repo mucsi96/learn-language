@@ -215,6 +215,17 @@ export class WordImportComponent {
   }
 
   async finish(): Promise<void> {
+    if (this.failedSyncCount() > 0) {
+      this.wordImportService.reloadQueue();
+      this.stageResult.set(null);
+      this.snackBar.open(
+        'Some decisions were not saved. The words still waiting are back in the deck.',
+        'Dismiss',
+        { duration: 8000 }
+      );
+      return;
+    }
+
     try {
       await this.wordImportService.clearQueue(this.sourceId());
       this.stageResult.set(null);

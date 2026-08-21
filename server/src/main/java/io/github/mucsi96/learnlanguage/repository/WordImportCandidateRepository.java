@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import io.github.mucsi96.learnlanguage.entity.WordImportCandidate;
@@ -21,11 +22,17 @@ public interface WordImportCandidateRepository extends JpaRepository<WordImportC
 
     Optional<WordImportCandidate> findByIdAndSource_Id(Integer id, String sourceId);
 
-    int countBySource_IdAndStatus(String sourceId, WordImportStatus status);
-
     void deleteBySource_Id(String sourceId);
 
     int deleteByCreatedAtBefore(Instant createdBefore);
+
+    @Query("""
+            SELECT c.status AS status, COUNT(c) AS count
+            FROM WordImportCandidate c
+            WHERE c.source.id = :sourceId
+            GROUP BY c.status
+            """)
+    List<WordImportStatusCountProjection> countGroupedByStatus(@Param("sourceId") String sourceId);
 
     @Query("""
             SELECT c.source.id AS sourceId, COUNT(c) AS count

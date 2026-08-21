@@ -114,10 +114,10 @@
 }
 
 @if (pendingSyncCount() > 0) {
-<p class="sync" aria-live="polite">Saving {{ pendingSyncCount() }} decisions…</p>
+<p class="sync" aria-live="polite">Saving decisions…</p>
 } @else if (failedSyncCount() > 0) {
 <p class="sync failed" role="alert">
-  {{ failedSyncCount() }} decisions could not be saved
+  Unsaved decisions: {{ failedSyncCount() }}
 </p>
 } @else if (decidedCount() > 0) {
 <p class="sync" aria-live="polite">All decisions saved</p>
