@@ -259,6 +259,7 @@ export type Source = {
   flaggedCardCount?: number;
   unhealthyCardCount?: number;
   suggestedKnownCardCount?: number;
+  pendingWordImportCount?: number;
   stateCounts?: Record<string, number>;
   readinessCounts?: Record<string, number>;
   languageLevel?: LanguageLevel;

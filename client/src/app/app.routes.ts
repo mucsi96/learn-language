@@ -169,6 +169,15 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'sources/:sourceId/word-import',
+    loadComponent: () =>
+      import('./word-import/word-import.component').then(
+        (m) => m.WordImportComponent
+      ),
+    canActivate: [authGuard],
+    title: 'Word Triage',
+  },
+  {
     path: 'sources/:sourceId/cards',
     canActivate: [authGuard],
     title: 'Cards',

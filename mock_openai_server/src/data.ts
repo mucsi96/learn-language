@@ -123,6 +123,18 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'the cat',
       examples: ['The cat likes to sleep.'],
     },
+    'sehen': {
+      translation: 'to see',
+      examples: ['I can see you.'],
+    },
+    'denken': {
+      translation: 'to think',
+      examples: ['We are thinking of you.'],
+    },
+    'Geschichte': {
+      translation: 'story',
+      examples: ['The story is long.'],
+    },
   },
   hungarian: {
     'hören': {
@@ -165,6 +177,18 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
       translation: 'macska',
       examples: ['A macska szívesen alszik.'],
     },
+    'sehen': {
+      translation: 'látni',
+      examples: ['Látlak téged.'],
+    },
+    'denken': {
+      translation: 'gondolkodni',
+      examples: ['Rád gondolunk.'],
+    },
+    'Geschichte': {
+      translation: 'történet',
+      examples: ['A történet hosszú.'],
+    },
   },
   'swiss-german': {
     'hören': {
@@ -206,6 +230,18 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     'die Katze': {
       translation: 'd Chatz',
       examples: ['D Chatz schlaft gärn.'],
+    },
+    'sehen': {
+      translation: 'gseh',
+      examples: ['I gseh di.'],
+    },
+    'denken': {
+      translation: 'dänke',
+      examples: ['Mir dänked a di.'],
+    },
+    'Geschichte': {
+      translation: 'Gschicht',
+      examples: ['D Gschicht isch lang.'],
     },
   },
 };

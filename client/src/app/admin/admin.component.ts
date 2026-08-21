@@ -29,11 +29,13 @@ const STATE_ORDER: readonly CardState[] = ['NEW', 'LEARNING', 'REVIEW', 'RELEARN
 const READINESS_ORDER = ['READY', 'KNOWN', 'IN_REVIEW', 'REVIEWED'] as const;
 
 type AttentionItem = {
-  filter: 'flagged' | 'draft' | 'suggestedKnown' | 'unhealthy';
+  key: 'flagged' | 'draft' | 'suggestedKnown' | 'unhealthy' | 'wordImport';
   icon: string;
   label: string;
   count: number;
   cssClass: string;
+  link: (string | number)[];
+  queryParams?: Record<string, string>;
 };
 
 type SourceGroupSection = {
@@ -94,13 +96,23 @@ export class AdminComponent {
   );
 
   getAttentionItems(source: Source): AttentionItem[] {
+    const cardsLink = ['/sources', source.id, 'cards'];
     const items: AttentionItem[] = [
-      { filter: 'flagged', icon: 'flag', label: 'flagged', count: source.flaggedCardCount ?? 0, cssClass: 'flagged' },
-      { filter: 'draft', icon: 'edit_note', label: 'draft', count: source.draftCardCount ?? 0, cssClass: 'draft' },
-      { filter: 'suggestedKnown', icon: 'check_circle', label: 'suggested known', count: source.suggestedKnownCardCount ?? 0, cssClass: 'suggested-known' },
-      { filter: 'unhealthy', icon: 'warning', label: 'unhealthy', count: source.unhealthyCardCount ?? 0, cssClass: 'unhealthy' },
+      { key: 'wordImport', icon: 'swipe', label: 'to triage', count: source.pendingWordImportCount ?? 0, cssClass: 'word-import', link: ['/sources', source.id, 'word-import'] },
+      { key: 'flagged', icon: 'flag', label: 'flagged', count: source.flaggedCardCount ?? 0, cssClass: 'flagged', link: cardsLink, queryParams: { filter: 'flagged' } },
+      { key: 'draft', icon: 'edit_note', label: 'draft', count: source.draftCardCount ?? 0, cssClass: 'draft', link: cardsLink, queryParams: { filter: 'draft' } },
+      { key: 'suggestedKnown', icon: 'check_circle', label: 'suggested known', count: source.suggestedKnownCardCount ?? 0, cssClass: 'suggested-known', link: cardsLink, queryParams: { filter: 'suggestedKnown' } },
+      { key: 'unhealthy', icon: 'warning', label: 'unhealthy', count: source.unhealthyCardCount ?? 0, cssClass: 'unhealthy', link: cardsLink, queryParams: { filter: 'unhealthy' } },
     ];
     return items.filter((item) => item.count > 0);
+  }
+
+  supportsWordImport(source: Source): boolean {
+    return (source.cardTypes ?? []).includes('vocabulary');
+  }
+
+  navigateToWordImport(source: Source): void {
+    this.router.navigate(['/sources', source.id, 'word-import']);
   }
 
   hasStateCounts(source: Source): boolean {

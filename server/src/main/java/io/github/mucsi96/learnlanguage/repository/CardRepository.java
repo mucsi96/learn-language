@@ -79,6 +79,9 @@ public interface CardRepository
 
     List<Card> findBySource_IdIn(Collection<String> sourceIds);
 
+    @Query("SELECT c.id FROM Card c WHERE c.source.id IN :sourceIds")
+    List<String> findIdsBySource_IdIn(@Param("sourceIds") Collection<String> sourceIds);
+
     @Modifying
     void deleteBySource(Source source);
 }

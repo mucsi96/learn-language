@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +74,23 @@ public class KnownWordService {
                 .toList();
 
         return sourceIds.isEmpty() ? List.of() : cardRepository.findBySource_IdIn(sourceIds);
+    }
+
+    public Set<String> getKnownWordSet() {
+        return knownWordRepository.findAll().stream()
+                .map(KnownWord::getWord)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    @Transactional
+    public void addKnownWord(String word) {
+        final String normalizedWord = word.toLowerCase().trim();
+
+        if (normalizedWord.isEmpty() || knownWordRepository.existsByWord(normalizedWord)) {
+            return;
+        }
+
+        knownWordRepository.save(KnownWord.builder().word(normalizedWord).build());
     }
 
     public boolean isWordKnown(String word) {

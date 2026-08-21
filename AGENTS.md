@@ -138,12 +138,16 @@ Tracks review history and performance metrics for spaced repetition
 - `GET /api/source/{sourceId}/study-session` - Get today's existing study session (204 if none)
 - `POST /api/source/{sourceId}/study-session` - Create or resume today's study session (idempotent)
 - `GET /api/source/{sourceId}/study-session/current-card` - Get next card for today's session
+- `POST /api/source/{sourceId}/word-import` - Stage word candidates from an analyzer JSON word list
+- `GET /api/source/{sourceId}/word-import` - Pending word candidates and triage stats
+- `POST /api/source/{sourceId}/word-import/candidates/{id}/known|card|undo` - Decide or revert a candidate
 
 ### Frontend Routes
 - `/` - Home dashboard with study overview
 - `/sources` - Admin panel for managing PDF sources
 - `/sources/:sourceId/page/:pageNumber` - PDF page viewer with word selection
 - `/sources/:sourceId/study` - Flashcard study mode
+- `/sources/:sourceId/word-import` - Swipe triage of imported word candidates
 - `/in-review-cards` - Cards pending review
 
 ## Development Patterns
@@ -196,4 +200,5 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 ### Content Creation
 - Interactive PDF page viewer for word selection
 - Bulk operations for efficient card creation
+- Word list import with swipe/keyboard triage: known words go to the known words table, unknown ones become draft vocabulary cards
 - AI-generated contextual examples and images

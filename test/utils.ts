@@ -1176,6 +1176,29 @@ export async function getKnownWords(): Promise<Array<{ word: string; hungarianTr
   });
 }
 
+export async function getWordImportCandidates(sourceId: string): Promise<
+  Array<{
+    lemma: string;
+    wordType: string | null;
+    occurrenceCount: number;
+    status: string;
+    cardId: string | null;
+    examples: string[];
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT lemma, word_type as "wordType", occurrence_count as "occurrenceCount",
+              status, card_id as "cardId", examples
+       FROM learn_language.word_import_candidates
+       WHERE source_id = $1
+       ORDER BY occurrence_count DESC, lemma ASC`,
+      [sourceId]
+    );
+    return result.rows;
+  });
+}
+
 export async function clearKnownWords(): Promise<void> {
   await withDbConnection(async (client) => {
     await client.query('DELETE FROM learn_language.known_words');

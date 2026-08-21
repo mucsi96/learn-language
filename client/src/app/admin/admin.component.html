@@ -111,13 +111,13 @@
     <td mat-cell *matCellDef="let source">
       @if (getAttentionItems(source).length) {
       <div class="attention-row">
-        @for (item of getAttentionItems(source); track item.filter) {
+        @for (item of getAttentionItems(source); track item.key) {
         <a
           class="attention-chip"
           [ngClass]="item.cssClass"
-          [routerLink]="['/sources', source.id, 'cards']"
-          [queryParams]="{ filter: item.filter }"
-          [attr.aria-label]="source.name + ': ' + item.count + ' ' + item.label + ' cards'"
+          [routerLink]="item.link"
+          [queryParams]="item.queryParams"
+          [attr.aria-label]="source.name + ': ' + item.count + ' ' + item.label"
         >
           <mat-icon>{{ item.icon }}</mat-icon>
           {{ item.count }} {{ item.label }}
@@ -159,6 +159,11 @@
     <button mat-menu-item (click)="navigateToPages(source)">
       <mat-icon>menu_book</mat-icon>
       <span>Pages</span>
+    </button>
+    } @if (supportsWordImport(source)) {
+    <button mat-menu-item (click)="navigateToWordImport(source)">
+      <mat-icon>swipe</mat-icon>
+      <span>Import Words</span>
     </button>
     }
     <button mat-menu-item (click)="openEditSourceDialog(source)">
