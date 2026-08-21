@@ -117,7 +117,7 @@
           [ngClass]="item.cssClass"
           [routerLink]="item.link"
           [queryParams]="item.queryParams"
-          [attr.aria-label]="source.name + ': ' + item.count + ' ' + item.label"
+          [attr.aria-label]="item.ariaLabel"
         >
           <mat-icon>{{ item.icon }}</mat-icon>
           {{ item.count }} {{ item.label }}

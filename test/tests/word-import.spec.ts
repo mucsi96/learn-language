@@ -173,6 +173,8 @@ test('keyboard shortcuts decide candidates', async ({ page }) => {
   await openWordImport(page);
   await dropWordList(page);
 
+  await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+
   await page.keyboard.press('ArrowLeft');
   await expect(page.getByRole('heading', { name: 'denken' })).toBeVisible();
   await expect(page.getByLabel('Known: 1')).toBeVisible();
