@@ -83,14 +83,15 @@ public class KnownWordService {
     }
 
     @Transactional
-    public void addKnownWord(String word) {
+    public boolean addKnownWord(String word) {
         final String normalizedWord = word.toLowerCase().trim();
 
         if (normalizedWord.isEmpty() || knownWordRepository.existsByWord(normalizedWord)) {
-            return;
+            return false;
         }
 
         knownWordRepository.save(KnownWord.builder().word(normalizedWord).build());
+        return true;
     }
 
     public boolean isWordKnown(String word) {

@@ -118,6 +118,16 @@ jobs:
             podman logs "$container" 2>&1 || true
           done
 
+      - name: Summarize failed tests
+        if: failure()
+        working-directory: test
+        run: |
+          for context in test-results/*/error-context.md; do
+            [ -f "$context" ] || continue
+            echo "=== $(dirname "$context") ==="
+            head -40 "$context"
+          done
+
   publish-server:
     concurrency:
       group: publish-server-${{ github.ref }}

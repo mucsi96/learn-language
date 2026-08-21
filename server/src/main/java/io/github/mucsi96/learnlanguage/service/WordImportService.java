@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -97,9 +99,7 @@ public class WordImportService {
 
         final List<WordImportWordRequest> newWords = byOutcome.getOrDefault(StagingOutcome.STAGED, List.of());
 
-        wordImportCandidateRepository.saveAll(newWords.stream()
-                .map(word -> toCandidate(source, word))
-                .toList());
+        stageCandidates(source, newWords);
 
         final int fileDuplicates = request.getWords().size() - uniqueWords.size();
 
@@ -112,6 +112,17 @@ public class WordImportService {
                         fileDuplicates + byOutcome.getOrDefault(StagingOutcome.ALREADY_STAGED, List.of()).size())
                 .stats(getStats(sourceId))
                 .build();
+    }
+
+    private void stageCandidates(Source source, List<WordImportWordRequest> words) {
+        try {
+            wordImportCandidateRepository.saveAllAndFlush(words.stream()
+                    .map(word -> toCandidate(source, word))
+                    .toList());
+        } catch (DataIntegrityViolationException exception) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Another import for this source is already in progress");
+        }
     }
 
     public WordImportQueueResponse getQueue(String sourceId) {
@@ -133,10 +144,12 @@ public class WordImportService {
     public WordImportDecisionResponse markAsKnown(String sourceId, Integer candidateId) {
         final WordImportCandidate candidate = getPendingCandidate(sourceId, candidateId);
 
-        knownWordService.addKnownWord(candidate.getLemma());
+        final boolean knownWordCreated = knownWordService.addKnownWord(candidate.getLemma());
 
-        return toDecisionResponse(wordImportCandidateRepository.save(
-                candidate.toBuilder().status(WordImportStatus.KNOWN).build()));
+        return toDecisionResponse(wordImportCandidateRepository.save(candidate.toBuilder()
+                .status(WordImportStatus.KNOWN)
+                .knownWordCreated(knownWordCreated)
+                .build()));
     }
 
     public WordImportDecisionResponse createDraftCard(String sourceId, Integer candidateId) {
@@ -166,8 +179,11 @@ public class WordImportService {
 
         revertDecision(candidate);
 
-        return toDecisionResponse(wordImportCandidateRepository.save(
-                candidate.toBuilder().status(WordImportStatus.PENDING).cardId(null).build()));
+        return toDecisionResponse(wordImportCandidateRepository.save(candidate.toBuilder()
+                .status(WordImportStatus.PENDING)
+                .cardId(null)
+                .knownWordCreated(null)
+                .build()));
     }
 
     @Transactional
@@ -220,6 +236,7 @@ public class WordImportService {
                 .wordType(word.getWordType())
                 .occurrenceCount(word.getOccurrenceCount())
                 .examples(word.getExamples().stream()
+                        .filter(Objects::nonNull)
                         .filter(example -> !example.isBlank())
                         .limit(MAX_STORED_EXAMPLES)
                         .toList())
@@ -263,15 +280,23 @@ public class WordImportService {
     }
 
     private void revertDecision(WordImportCandidate candidate) {
-        if (candidate.getStatus() == WordImportStatus.KNOWN) {
+        if (candidate.getStatus() == WordImportStatus.KNOWN
+                && Boolean.TRUE.equals(candidate.getKnownWordCreated())) {
             knownWordService.deleteWord(candidate.getLemma());
         }
 
         if (candidate.getStatus() == WordImportStatus.CARD_CREATED && candidate.getCardId() != null) {
-            cardService.getCardById(candidate.getCardId())
-                    .filter(card -> card.getReadiness() == CardReadiness.DRAFT)
-                    .ifPresent(card -> cardService.deleteCardById(card.getId()));
+            cardService.getCardById(candidate.getCardId()).ifPresent(this::deleteDraftCard);
         }
+    }
+
+    private void deleteDraftCard(Card card) {
+        if (card.getReadiness() != CardReadiness.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "The card created for this word is no longer a draft: " + card.getId());
+        }
+
+        cardService.deleteCardById(card.getId());
     }
 
     private WordImportStatsResponse getStats(String sourceId) {

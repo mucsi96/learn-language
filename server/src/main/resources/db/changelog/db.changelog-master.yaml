@@ -1434,3 +1434,13 @@ databaseChangeLog:
                   name: source_id
               - column:
                   name: status
+  - changeSet:
+      id: 51-add-known-word-created-to-word-import-candidates
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: word_import_candidates
+            columns:
+              - column:
+                  name: known_word_created
+                  type: boolean

@@ -58,6 +58,9 @@ public class WordImportCandidate {
     @Column(name = "card_id")
     private String cardId;
 
+    @Column(name = "known_word_created")
+    private Boolean knownWordCreated;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }
