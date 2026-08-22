@@ -15,6 +15,8 @@ const SWIPE_HINT_DISTANCE = 24;
 const TAP_DISTANCE = 8;
 const VISIBLE_DECK_SIZE = 3;
 
+// Nominative singular articles only; the analyzer emits singular lemmas,
+// so plural "die" (which any gender can take) never reaches this map.
 const ARTICLE_GENDERS: Record<string, GenderTranslation['gender']> = {
   der: 'MASCULINE',
   die: 'FEMININE',
@@ -92,6 +94,12 @@ export class WordTriageDeckComponent {
 
   toggleReveal(): void {
     this.revealed.update((revealed) => !revealed);
+  }
+
+  onKeyToggle(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.toggleReveal();
   }
 
   onPointerDown(event: PointerEvent): void {

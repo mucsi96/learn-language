@@ -171,7 +171,7 @@ test('the card flips to reveal the article on the back', async ({ page }) => {
   await expect(page.getByText('Wir sehen den Film.')).not.toBeVisible();
   await expect(page.getByLabel('Word type')).not.toBeVisible();
 
-  await page.getByRole('article', { name: 'Flashcard' }).click();
+  await page.getByRole('button', { name: 'Flashcard' }).click();
 
   await expect(
     page.getByRole('heading', { name: 'sehen', exact: true })
@@ -187,7 +187,7 @@ test('the card flips to reveal the article on the back', async ({ page }) => {
   await expect(page.getByText('Die Geschichte ist lang.')).toBeVisible();
   await expect(page.getByLabel('Word type')).not.toBeVisible();
 
-  await page.getByRole('article', { name: 'Flashcard' }).click();
+  await page.getByRole('button', { name: 'Flashcard' }).click();
 
   await expect(
     page.getByRole('heading', { name: 'die Geschichte' })

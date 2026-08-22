@@ -6,14 +6,18 @@
   } @for (item of frontItems(); track item.candidate.id) {
   <article
     class="deck-card front"
+    role="button"
+    tabindex="0"
     aria-label="Flashcard"
+    [attr.aria-pressed]="revealed()"
     [class.dragging]="dragging()"
-    [class.revealed]="revealed()"
     [style.transform]="frontTransform()"
     (pointerdown)="onPointerDown($event)"
     (pointermove)="onPointerMove($event)"
     (pointerup)="onPointerUp()"
     (pointercancel)="onPointerUp()"
+    (keydown.enter)="onKeyToggle($event)"
+    (keydown.space)="onKeyToggle($event)"
   >
     <div class="swipe-hint known" [class.visible]="hintedDecision() === 'known'">
       <mat-icon>done_all</mat-icon>
