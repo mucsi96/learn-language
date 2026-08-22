@@ -1,6 +1,9 @@
 import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { getGenderInfo } from '../../shared/gender-translations';
+import {
+  GenderTranslation,
+  getGenderInfo,
+} from '../../shared/gender-translations';
 import {
   WordTypeTranslation,
   getWordTypeInfo,
@@ -12,7 +15,7 @@ const SWIPE_HINT_DISTANCE = 24;
 const TAP_DISTANCE = 8;
 const VISIBLE_DECK_SIZE = 3;
 
-const ARTICLE_GENDERS: Record<string, string> = {
+const ARTICLE_GENDERS: Record<string, GenderTranslation['gender']> = {
   der: 'MASCULINE',
   die: 'FEMININE',
   das: 'NEUTER',

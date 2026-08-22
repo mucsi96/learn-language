@@ -169,6 +169,14 @@ test('the card flips to reveal the article on the back', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
   await expect(page.getByText('Ich kann dich sehen.')).toBeVisible();
   await expect(page.getByText('Wir sehen den Film.')).not.toBeVisible();
+  await expect(page.getByLabel('Word type')).not.toBeVisible();
+
+  await page.getByRole('article', { name: 'Flashcard' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'sehen', exact: true })
+  ).toBeVisible();
+  await expect(page.getByLabel('Word type')).toHaveText('Ige');
 
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowLeft');
