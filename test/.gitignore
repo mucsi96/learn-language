@@ -13,3 +13,4 @@ test-results/
 node_modules
 storage/
 playwright-report/
+.local/

@@ -64,7 +64,7 @@ export async function createSource(params: {
   startPage?: number;
   languageLevel: string;
   cardTypes: string[];
-  formatType: string;
+  formatType?: string;
   sourceType?: string;
   bookmarkedPage?: number | null;
   bookmarkedDocumentId?: number | null;
@@ -81,7 +81,7 @@ export async function createSource(params: {
     startPage,
     languageLevel,
     cardTypes,
-    formatType,
+    formatType = null,
     sourceType = 'PDF',
     bookmarkedPage = null,
     bookmarkedDocumentId = null,

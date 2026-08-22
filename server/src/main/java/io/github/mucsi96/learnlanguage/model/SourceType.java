@@ -12,7 +12,8 @@ public enum SourceType {
     PDF("pdf", "PDF Document"),
     IMAGES("images", "Image Collection"),
     EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary"),
-    JSON("json", "JSON");
+    JSON("json", "JSON"),
+    WORD_LIST("wordList", "Word List");
 
     private final String code;
     private final String displayName;

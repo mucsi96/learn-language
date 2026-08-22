@@ -83,7 +83,9 @@ export class SourceSelectorComponent {
       case 'admin':
         return source.sourceType === 'ebookDictionary'
           ? ['/sources', source.id, 'cards']
-          : ['/sources', source.id, 'page', String(source.startPage)];
+          : source.sourceType === 'wordList'
+            ? ['/sources', source.id, 'word-import']
+            : ['/sources', source.id, 'page', String(source.startPage)];
       default:
         throw new Error(`Unknown route mode: ${mode}`);
     }

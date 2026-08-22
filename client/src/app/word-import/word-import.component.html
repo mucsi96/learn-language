@@ -14,6 +14,19 @@
 
 @if (loading()) {
 <bt-bar-loader class="page-loader" label="Loading word queue" />
+} @else if (unsupportedSource()) {
+<section class="summary" role="alert">
+  <mat-icon class="summary-icon blocked">block</mat-icon>
+  <h2>Word triage is not available here</h2>
+  <p>Only word list sources can import a word list.</p>
+  <a mat-flat-button routerLink="/sources">Back to sources</a>
+</section>
+} @else if (queueFailed()) {
+<section class="summary" role="alert">
+  <mat-icon class="summary-icon blocked">error_outline</mat-icon>
+  <h2>Could not load the word queue</h2>
+  <button mat-flat-button (click)="reload()">Try again</button>
+</section>
 } @else {
 
 @if (stageResult(); as result) {

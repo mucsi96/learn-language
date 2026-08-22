@@ -65,7 +65,20 @@ export class WordImportComponent {
     )
   );
 
-  readonly loading = this.wordImportService.queue.isLoading;
+  readonly unsupportedSource = computed(() => {
+    const source = this.source();
+    return !!source && source.sourceType !== 'wordList';
+  });
+
+  readonly queueFailed = computed(
+    () => this.wordImportService.queue.status() === 'error'
+  );
+
+  readonly loading = computed(
+    () =>
+      this.wordImportService.queue.isLoading() ||
+      this.sourcesService.sources.isLoading()
+  );
   readonly pendingSyncCount = this.wordImportService.pendingSyncCount;
   readonly failedSyncCount = this.wordImportService.failedSyncCount;
 
@@ -212,6 +225,10 @@ export class WordImportComponent {
     this.decisions.update((decisions) => decisions.slice(0, -1));
     this.index.set(previousIndex);
     this.wordImportService.undoDecision(this.sourceId(), candidate.id);
+  }
+
+  reload(): void {
+    this.wordImportService.reloadQueue();
   }
 
   async finish(): Promise<void> {

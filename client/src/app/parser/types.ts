@@ -237,7 +237,7 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
-export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json';
+export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json' | 'wordList';
 export type AiLanguage = 'hungarian' | 'english';
 
 export type SimpleCardSuggestion = {
