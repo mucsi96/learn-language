@@ -126,6 +126,11 @@ export class WordTriageDeckComponent {
     );
   }
 
+  onPointerCancel(): void {
+    this.pointerStart.set(null);
+    this.dragOffset.set(0);
+  }
+
   onPointerUp(): void {
     const wasDragging = this.dragging();
     const offset = this.dragOffset();

@@ -236,7 +236,7 @@ public class WordImportService {
                 .source(source)
                 .lemma(word.getLemma().trim())
                 .wordType(word.getWordType())
-                .article(word.getArticle())
+                .article(normalizeArticle(word.getArticle()))
                 .occurrenceCount(word.getOccurrenceCount())
                 .examples(word.getExamples().stream()
                         .filter(Objects::nonNull)
@@ -373,5 +373,12 @@ public class WordImportService {
 
     private static String normalize(String lemma) {
         return lemma.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeArticle(String article) {
+        return Optional.ofNullable(article)
+                .map(WordImportService::normalize)
+                .filter(value -> !value.isEmpty())
+                .orElse(null);
     }
 }
