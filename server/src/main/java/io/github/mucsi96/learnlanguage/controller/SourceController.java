@@ -325,6 +325,8 @@ public class SourceController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
     }
 
+    validateCardTypesForSourceType(request.getSourceType(), request.getCardTypes());
+
     Source source = Source.builder()
         .id(request.getId())
         .name(request.getName())
@@ -370,6 +372,10 @@ public class SourceController {
 
     final Source existingSource = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
+
+    validateCardTypesForSourceType(
+        request.getSourceType() != null ? request.getSourceType() : existingSource.getSourceType(),
+        request.getCardTypes() != null ? request.getCardTypes() : existingSource.getCardTypes());
 
     final Source updatedSource = existingSource.toBuilder()
         .name(request.getName() != null ? request.getName() : existingSource.getName())
@@ -681,6 +687,13 @@ public class SourceController {
       return MediaType.parseMediaType("image/webp");
     }
     return MediaType.APPLICATION_OCTET_STREAM;
+  }
+
+  private static void validateCardTypesForSourceType(SourceType sourceType, List<CardType> cardTypes) {
+    if (sourceType == SourceType.WORD_TRIAGE && !List.of(CardType.VOCABULARY).equals(cardTypes)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Word triage sources support vocabulary cards only");
+    }
   }
 
   private LearningPartner resolveLearningPartner(Integer learningPartnerId, Source existingSource) {

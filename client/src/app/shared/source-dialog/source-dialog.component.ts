@@ -60,12 +60,18 @@ export class SourceDialogComponent {
   readonly partners = this.partnersService.partners;
   readonly groups = this.groupsService.groups;
   readonly isJson = computed(() => this.formModel().sourceType === 'json');
+  readonly isWordTriage = computed(() => this.formModel().sourceType === 'wordTriage');
 
-  readonly cardTypes = computed(() =>
-    this.isJson()
-      ? CARD_TYPE_OPTIONS.filter((option) => option.code === 'simple')
-      : CARD_TYPE_OPTIONS
+  readonly forcedCardType = computed<CardType | undefined>(() =>
+    this.isJson() ? 'simple' : this.isWordTriage() ? 'vocabulary' : undefined
   );
+
+  readonly cardTypes = computed(() => {
+    const forced = this.forcedCardType();
+    return forced
+      ? CARD_TYPE_OPTIONS.filter((option) => option.code === forced)
+      : CARD_TYPE_OPTIONS;
+  });
 
   readonly formModel = signal<{
     name: string;
@@ -97,10 +103,11 @@ export class SourceDialogComponent {
     groupId: this.data.source?.groupId ?? null,
   });
 
-  private readonly forceSimpleCardType = effect(() => {
+  private readonly applyForcedCardType = effect(() => {
+    const forced = this.forcedCardType();
     const cardTypes = this.formModel().cardTypes;
-    if (this.isJson() && (cardTypes.length !== 1 || cardTypes[0] !== 'simple')) {
-      this.formModel.update((m) => ({ ...m, cardTypes: ['simple'] }));
+    if (forced && (cardTypes.length !== 1 || cardTypes[0] !== forced)) {
+      this.formModel.update((m) => ({ ...m, cardTypes: [forced] }));
     }
   });
   readonly sourceForm = form(this.formModel, (path) => {
@@ -115,12 +122,12 @@ export class SourceDialogComponent {
     );
     validate(path.formatType, (ctx) => {
       const cardTypes = ctx.valueOf(path.cardTypes);
-      if (cardTypes.includes('vocabulary') && !ctx.value()) {
+      if (!this.isWordTriage() && cardTypes.includes('vocabulary') && !ctx.value()) {
         return requiredError();
       }
       return undefined;
     });
-    disabled(path.cardTypes, () => this.isJson());
+    disabled(path.cardTypes, () => !!this.forcedCardType());
     disabled(path.sourceType, () => this.data.mode === 'edit');
   });
 
@@ -133,6 +140,7 @@ export class SourceDialogComponent {
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
       this.formModel().sourceType === 'json' ||
+      this.isWordTriage() ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );
@@ -162,11 +170,13 @@ export class SourceDialogComponent {
         startPage: result.startPage,
         languageLevel: result.languageLevel || undefined,
         cardTypes: cardTypes.length > 0 ? cardTypes : undefined,
-        formatType: cardTypes.includes('vocabulary')
-          ? result.formatType || undefined
-          : cardTypes.includes('speech') || cardTypes.includes('grammar')
-            ? 'flowingText'
-            : undefined,
+        formatType: this.isWordTriage()
+          ? undefined
+          : cardTypes.includes('vocabulary')
+            ? result.formatType || undefined
+            : cardTypes.includes('speech') || cardTypes.includes('grammar')
+              ? 'flowingText'
+              : undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
         typingPractice: result.sourceType === 'json' ? result.typingPractice : false,

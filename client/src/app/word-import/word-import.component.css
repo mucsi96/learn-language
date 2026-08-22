@@ -150,6 +150,10 @@ kbd {
   color: #2e7d32;
 }
 
+.summary-icon.blocked {
+  color: var(--mat-sys-error);
+}
+
 .summary-actions {
   display: flex;
   flex-wrap: wrap;

@@ -155,7 +155,7 @@
       <mat-icon>style</mat-icon>
       <span>Cards</span>
     </button>
-    @if (source.sourceType !== 'ebookDictionary') {
+    @if (supportsPages(source)) {
     <button mat-menu-item (click)="navigateToPages(source)">
       <mat-icon>menu_book</mat-icon>
       <span>Pages</span>

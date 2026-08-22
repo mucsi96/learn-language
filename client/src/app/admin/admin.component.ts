@@ -126,7 +126,11 @@ export class AdminComponent {
   }
 
   supportsWordImport(source: Source): boolean {
-    return (source.cardTypes ?? []).includes('vocabulary');
+    return source.sourceType === 'wordTriage';
+  }
+
+  supportsPages(source: Source): boolean {
+    return source.sourceType !== 'ebookDictionary' && source.sourceType !== 'wordTriage';
   }
 
   navigateToWordImport(source: Source): void {
