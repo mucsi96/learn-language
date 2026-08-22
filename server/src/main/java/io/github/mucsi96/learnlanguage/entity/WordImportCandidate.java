@@ -44,6 +44,9 @@ public class WordImportCandidate {
     @Column(name = "word_type")
     private String wordType;
 
+    @Column
+    private String article;
+
     @Column(name = "occurrence_count", nullable = false)
     private Integer occurrenceCount;
 

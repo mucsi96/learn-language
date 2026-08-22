@@ -37,6 +37,7 @@ const WORD_LIST = {
       lemma: 'Geschichte',
       pos: 'NOUN',
       word_type: 'noun',
+      article: 'die',
       count: 25,
       sentences: ['Die Geschichte ist lang.'],
     },
@@ -159,6 +160,55 @@ test('skips words that are already known or already have a card', async ({
   expect(
     (await getWordImportCandidates(SOURCE_ID)).map(({ lemma }) => lemma)
   ).toEqual(['Geschichte']);
+});
+
+test('the card flips to reveal the article on the back', async ({ page }) => {
+  await openWordImport(page);
+  await dropWordList(page);
+
+  await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+  await expect(page.getByText('Ich kann dich sehen.')).toBeVisible();
+  await expect(page.getByText('Wir sehen den Film.')).not.toBeVisible();
+  await expect(page.getByLabel('Word type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Flashcard' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'sehen', exact: true })
+  ).toBeVisible();
+  await expect(page.getByLabel('Word type')).toHaveText('Ige');
+
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+
+  await expect(
+    page.getByRole('heading', { name: 'Geschichte', exact: true })
+  ).toBeVisible();
+  await expect(page.getByText('Die Geschichte ist lang.')).toBeVisible();
+  await expect(page.getByLabel('Word type')).not.toBeVisible();
+
+  await page.getByRole('button', { name: 'Flashcard' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'die Geschichte' })
+  ).toBeVisible();
+  await expect(page.getByText('Die Geschichte ist lang.')).toBeVisible();
+  await expect(page.getByLabel('Word type')).toHaveText('Főnév');
+
+  await page.keyboard.press('Enter');
+
+  await expect(
+    page.getByRole('heading', { name: 'Geschichte', exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'die Geschichte' })
+  ).not.toBeVisible();
+
+  expect(
+    (await getWordImportCandidates(SOURCE_ID)).find(
+      ({ lemma }) => lemma === 'Geschichte'
+    )?.article
+  ).toBe('die');
 });
 
 test('undo reverts the last decision', async ({ page }) => {

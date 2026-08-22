@@ -11,6 +11,7 @@ public class WordImportCandidateResponse {
     private Integer id;
     private String lemma;
     private String wordType;
+    private String article;
     private Integer occurrenceCount;
     private List<String> examples;
 }

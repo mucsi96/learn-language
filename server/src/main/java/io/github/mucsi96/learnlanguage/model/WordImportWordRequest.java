@@ -23,6 +23,9 @@ public class WordImportWordRequest {
     @Size(max = 255)
     private String wordType;
 
+    @Size(max = 255)
+    private String article;
+
     @NotNull
     private Integer occurrenceCount;
 

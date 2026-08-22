@@ -36,33 +36,6 @@ export const WORD_TYPE_TRANSLATIONS: WordTypeTranslation[] = [
 ];
 
 /**
- * Get the Hungarian translation for a word type
- * @param type The word type
- * @returns The Hungarian translation
- */
-export function getWordTypeTranslation(type: string): string {
-  return WORD_TYPE_TRANSLATIONS.find(wt => wt.type === type)?.translation ?? type;
-}
-
-/**
- * Get the word type for a Hungarian translation
- * @param translation The Hungarian translation
- * @returns The word type
- */
-export function getWordTypeFromTranslation(translation: string): string {
-  return WORD_TYPE_TRANSLATIONS.find(wt => wt.translation === translation)?.type ?? translation;
-}
-
-/**
- * Get the color for a word type
- * @param type The word type
- * @returns The color code
- */
-export function getWordTypeColor(type: string): string {
-  return WORD_TYPE_TRANSLATIONS.find(wt => wt.type === type)?.color ?? '#9e9e9e';
-}
-
-/**
  * Get the word type information
  * @param type The word type
  * @returns The word type information
