@@ -1444,3 +1444,13 @@ databaseChangeLog:
               - column:
                   name: known_word_created
                   type: boolean
+  - changeSet:
+      id: 52-add-article-to-word-import-candidates
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: word_import_candidates
+            columns:
+              - column:
+                  name: article
+                  type: varchar(255)

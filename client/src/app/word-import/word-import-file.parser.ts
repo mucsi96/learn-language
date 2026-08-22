@@ -38,10 +38,14 @@ function toWord(record: Record<string, unknown>): WordImportWord {
   const wordType = isNonEmptyString(record['word_type'])
     ? record['word_type'].trim()
     : '';
+  const article = isNonEmptyString(record['article'])
+    ? record['article'].trim()
+    : '';
 
   return {
     lemma: (record['lemma'] as string).trim(),
     ...(wordType ? { wordType } : {}),
+    ...(article ? { article } : {}),
     occurrenceCount: record['count'] as number,
     examples: (record['sentences'] as string[])
       .map((sentence) => sentence.trim())

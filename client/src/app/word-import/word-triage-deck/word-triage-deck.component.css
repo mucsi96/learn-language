@@ -10,7 +10,7 @@
 .deck-card {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--mat-sys-surface-container);
   box-shadow: var(--mat-sys-level2);
   padding: 1.5rem;
@@ -36,7 +36,11 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+  padding: 2rem 1.5rem;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
@@ -56,21 +60,29 @@
   }
 }
 
-.lemma {
-  margin: 0;
-  font-size: clamp(2rem, 7vw, 3rem);
-  line-height: 1.1;
-  color: var(--mat-sys-on-surface);
-  word-break: break-word;
-}
-
-.tags {
+.chips-corner {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.tag {
+.word-type-chip {
+  padding: 0 8px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 24px;
+}
+
+.count-chip {
   padding: 0.125rem 0.625rem;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -79,29 +91,27 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.tag.type {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-}
-
-.examples {
-  margin: 0;
-  padding-left: 1.1rem;
+.word-section {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  color: var(--mat-sys-on-surface-variant);
-  overflow-y: auto;
+  align-items: center;
 }
 
-.examples li {
-  line-height: 1.45;
+.lemma {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 2.5rem);
+  line-height: 1.1;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+  word-break: break-word;
 }
 
-mark {
-  background: transparent;
-  color: var(--mat-sys-primary);
-  font-weight: 700;
+.example {
+  margin: 0;
+  padding: 0 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--mat-sys-on-surface);
 }
 
 .swipe-hint {

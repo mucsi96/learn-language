@@ -6,6 +6,7 @@ import {
   inject,
   linkedSignal,
   signal,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -56,6 +57,8 @@ export class WordImportComponent {
   private readonly wordImportService = inject(WordImportService);
   private readonly sourcesService = inject(SourcesService);
   private readonly snackBar = inject(MatSnackBar);
+
+  private readonly deck = viewChild(WordTriageDeckComponent);
 
   readonly sourceId = computed(() => String(this.routeSourceId()));
 
@@ -158,6 +161,16 @@ export class WordImportComponent {
     const target = event.target as HTMLElement | null;
 
     if (target?.closest('input, textarea, select')) {
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      if (target?.closest('button, a')) {
+        return;
+      }
+
+      event.preventDefault();
+      this.deck()?.toggleReveal();
       return;
     }
 

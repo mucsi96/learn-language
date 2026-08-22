@@ -236,6 +236,7 @@ public class WordImportService {
                 .source(source)
                 .lemma(word.getLemma().trim())
                 .wordType(word.getWordType())
+                .article(word.getArticle())
                 .occurrenceCount(word.getOccurrenceCount())
                 .examples(word.getExamples().stream()
                         .filter(Objects::nonNull)
@@ -335,6 +336,7 @@ public class WordImportService {
                 .id(candidate.getId())
                 .lemma(candidate.getLemma())
                 .wordType(candidate.getWordType())
+                .article(candidate.getArticle())
                 .occurrenceCount(candidate.getOccurrenceCount())
                 .examples(candidate.getExamples())
                 .build();

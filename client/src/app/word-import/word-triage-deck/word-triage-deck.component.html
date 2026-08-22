@@ -6,7 +6,9 @@
   } @for (item of frontItems(); track item.candidate.id) {
   <article
     class="deck-card front"
+    aria-label="Flashcard"
     [class.dragging]="dragging()"
+    [class.revealed]="revealed()"
     [style.transform]="frontTransform()"
     (pointerdown)="onPointerDown($event)"
     (pointermove)="onPointerMove($event)"
@@ -22,31 +24,35 @@
       Learn
     </div>
 
-    <h2 class="lemma">{{ item.candidate.lemma }}</h2>
-
-    <div class="tags">
-      @if (item.wordTypeLabel) {
-      <span class="tag type">{{ item.wordTypeLabel }}</span>
+    @if (revealed()) {
+    <div class="chips-corner">
+      @if (item.wordTypeInfo; as wordTypeInfo) {
+      <div
+        class="word-type-chip"
+        [style.background-color]="wordTypeInfo.color"
+        aria-label="Word type"
+      >
+        {{ wordTypeInfo.translation }}
+      </div>
       }
       <span
-        class="tag count"
+        class="count-chip"
         [attr.aria-label]="
           item.candidate.occurrenceCount + ' occurrences in the source'
         "
         >{{ item.candidate.occurrenceCount }}×</span
       >
     </div>
+    }
 
-    @if (item.examples.length) {
-    <ul class="examples">
-      @for (segments of item.examples; track $index) {
-      <li>
-        @for (segment of segments; track $index) { @if (segment.highlighted) {
-        <mark>{{ segment.text }}</mark>
-        } @else {<span>{{ segment.text }}</span>} }
-      </li>
-      }
-    </ul>
+    <div class="word-section">
+      <h2 class="lemma" [style.color]="revealed() ? item.articleColor : null">
+        {{ revealed() ? item.backTitle : item.candidate.lemma }}
+      </h2>
+    </div>
+
+    @if (item.example) {
+    <p class="example">{{ item.example }}</p>
     }
   </article>
   }

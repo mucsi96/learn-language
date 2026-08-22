@@ -1,42 +1,34 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { getWordTypeTranslation } from '../../shared/word-type-translations';
+import { getGenderInfo } from '../../shared/gender-translations';
+import {
+  WordTypeTranslation,
+  getWordTypeInfo,
+} from '../../shared/word-type-translations';
 import { WordImportCandidate, WordImportDecision } from '../word-import.types';
 
 const SWIPE_COMMIT_DISTANCE = 110;
 const SWIPE_HINT_DISTANCE = 24;
-const MAX_VISIBLE_EXAMPLES = 3;
+const TAP_DISTANCE = 8;
 const VISIBLE_DECK_SIZE = 3;
-const STEM_TRIM = 2;
-const MIN_STEM_LENGTH = 3;
 
-type ExampleSegment = {
-  text: string;
-  highlighted: boolean;
+const ARTICLE_GENDERS: Record<string, string> = {
+  der: 'MASCULINE',
+  die: 'FEMININE',
+  das: 'NEUTER',
 };
 
 type DeckItem = {
   candidate: WordImportCandidate;
-  wordTypeLabel: string | null;
-  examples: ExampleSegment[][];
+  wordTypeInfo: WordTypeTranslation | undefined;
+  articleColor: string | undefined;
+  backTitle: string;
+  example: string | undefined;
 };
 
-function toStem(lemma: string): string {
-  const normalized = lemma.trim().toLowerCase();
-  return normalized.length > MIN_STEM_LENGTH + STEM_TRIM
-    ? normalized.slice(0, normalized.length - STEM_TRIM)
-    : normalized;
-}
-
-function toSegments(example: string, stem: string): ExampleSegment[] {
-  return example
-    .split(/(\s+)/)
-    .filter((part) => part.length > 0)
-    .map((part) => ({
-      text: part,
-      highlighted:
-        stem.length >= MIN_STEM_LENGTH && part.toLowerCase().includes(stem),
-    }));
+function toArticleColor(article: string | undefined): string | undefined {
+  const gender = article ? ARTICLE_GENDERS[article.toLowerCase()] : undefined;
+  return gender ? getGenderInfo(gender)?.color : undefined;
 }
 
 @Component({
@@ -51,25 +43,30 @@ export class WordTriageDeckComponent {
   readonly decided = output<WordImportDecision>();
 
   private readonly pointerStart = signal<number | null>(null);
+  private readonly maxDragDistance = signal(0);
 
   readonly dragOffset = signal(0);
   readonly dragging = computed(() => this.pointerStart() !== null);
 
+  readonly revealed = linkedSignal<number | undefined, boolean>({
+    source: () => this.candidates()[0]?.id,
+    computation: () => false,
+  });
+
   readonly items = computed<DeckItem[]>(() =>
     this.candidates()
       .slice(0, VISIBLE_DECK_SIZE)
-      .map((candidate) => {
-        const stem = toStem(candidate.lemma);
-        return {
-          candidate,
-          wordTypeLabel: candidate.wordType
-            ? getWordTypeTranslation(candidate.wordType.toUpperCase())
-            : null,
-          examples: candidate.examples
-            .slice(0, MAX_VISIBLE_EXAMPLES)
-            .map((example) => toSegments(example, stem)),
-        };
-      })
+      .map((candidate) => ({
+        candidate,
+        wordTypeInfo: candidate.wordType
+          ? getWordTypeInfo(candidate.wordType.toUpperCase())
+          : undefined,
+        articleColor: toArticleColor(candidate.article),
+        backTitle: candidate.article
+          ? `${candidate.article} ${candidate.lemma}`
+          : candidate.lemma,
+        example: candidate.examples[0],
+      }))
   );
 
   readonly frontItems = computed(() => this.items().slice(0, 1));
@@ -90,6 +87,10 @@ export class WordTriageDeckComponent {
     return `translateX(${offset}px) rotate(${offset / 25}deg)`;
   });
 
+  toggleReveal(): void {
+    this.revealed.update((revealed) => !revealed);
+  }
+
   onPointerDown(event: PointerEvent): void {
     if (event.pointerType === 'mouse' && event.button !== 0) {
       return;
@@ -97,6 +98,7 @@ export class WordTriageDeckComponent {
 
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
     this.pointerStart.set(event.clientX);
+    this.maxDragDistance.set(0);
   }
 
   onPointerMove(event: PointerEvent): void {
@@ -106,10 +108,15 @@ export class WordTriageDeckComponent {
       return;
     }
 
-    this.dragOffset.set(event.clientX - start);
+    const offset = event.clientX - start;
+    this.dragOffset.set(offset);
+    this.maxDragDistance.set(
+      Math.max(this.maxDragDistance(), Math.abs(offset))
+    );
   }
 
   onPointerUp(): void {
+    const wasDragging = this.dragging();
     const offset = this.dragOffset();
     this.pointerStart.set(null);
     this.dragOffset.set(0);
@@ -121,6 +128,11 @@ export class WordTriageDeckComponent {
 
     if (offset >= SWIPE_COMMIT_DISTANCE) {
       this.decided.emit('card');
+      return;
+    }
+
+    if (wasDragging && this.maxDragDistance() < TAP_DISTANCE) {
+      this.toggleReveal();
     }
   }
 }

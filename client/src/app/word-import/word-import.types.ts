@@ -1,6 +1,7 @@
 export type WordImportWord = {
   lemma: string;
   wordType?: string;
+  article?: string;
   occurrenceCount: number;
   examples: string[];
 };
@@ -9,6 +10,7 @@ export type WordImportCandidate = {
   id: number;
   lemma: string;
   wordType?: string;
+  article?: string;
   occurrenceCount: number;
   examples: string[];
 };
