@@ -156,6 +156,11 @@ p {
   color: var(--mat-sys-on-surface-variant);
 }
 
+.attention-chip.word-import {
+  background: rgba(63, 81, 181, 0.15);
+  color: #303f9f;
+}
+
 .attention-chip.flagged {
   background: rgba(255, 152, 0, 0.15);
   color: #e65100;

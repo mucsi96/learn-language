@@ -1,0 +1,126 @@
+<header class="page-header">
+  <a
+    mat-icon-button
+    routerLink="/sources"
+    aria-label="Back to sources"
+  >
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <div class="titles">
+    <h1>Word triage</h1>
+    <p>{{ source()?.name }}</p>
+  </div>
+</header>
+
+@if (loading()) {
+<bt-bar-loader class="page-loader" label="Loading word queue" />
+} @else {
+
+@if (stageResult(); as result) {
+<p class="stage-summary" role="status">
+  {{ result.totalWords }} words in file · {{ result.stagedCount }} to triage ·
+  {{ result.alreadyKnownCount }} already known ·
+  {{ result.existingCardCount }} already have cards ·
+  {{ result.duplicateCount }} duplicates
+</p>
+}
+
+@if (showDropZone()) {
+<app-word-drop-zone
+  [staging]="staging()"
+  (wordsSelected)="stageWords($event)"
+/>
+} @else if (triaging()) {
+<section class="triage">
+  <div class="progress">
+    <mat-progress-bar
+      mode="determinate"
+      [value]="progress()"
+      aria-label="Triage progress"
+    />
+    <div class="counters">
+      <span class="counter known" [attr.aria-label]="'Known: ' + knownCount()">
+        <mat-icon>done_all</mat-icon>{{ knownCount() }}
+      </span>
+      <span class="counter card" [attr.aria-label]="'New cards: ' + cardCount()">
+        <mat-icon>style</mat-icon>{{ cardCount() }}
+      </span>
+      <span class="counter left" [attr.aria-label]="'Remaining: ' + leftCount()">
+        <mat-icon>inventory_2</mat-icon>{{ leftCount() }}
+      </span>
+    </div>
+  </div>
+
+  <app-word-triage-deck
+    [candidates]="remainingCandidates()"
+    (decided)="decide($event)"
+  />
+
+  <div class="actions">
+    <button
+      mat-flat-button
+      class="known-button"
+      aria-label="I know this word"
+      (click)="decide('known')"
+    >
+      <mat-icon>done_all</mat-icon>
+      I know this
+    </button>
+    <button
+      mat-icon-button
+      aria-label="Undo last decision"
+      matTooltip="Undo (Backspace)"
+      [disabled]="!canUndo()"
+      (click)="undo()"
+    >
+      <mat-icon>undo</mat-icon>
+    </button>
+    <button
+      mat-flat-button
+      class="card-button"
+      aria-label="Add as new card"
+      (click)="decide('card')"
+    >
+      <mat-icon>style</mat-icon>
+      Learn it
+    </button>
+  </div>
+
+  <p class="shortcuts">
+    Swipe the card, or use <kbd>←</kbd> / <kbd>K</kbd> for known,
+    <kbd>→</kbd> / <kbd>N</kbd> for a new card, <kbd>⌫</kbd> to undo.
+  </p>
+
+</section>
+} @else if (finished()) {
+<section class="summary">
+  <mat-icon class="summary-icon">task_alt</mat-icon>
+  <h2>Triage complete</h2>
+  <p>
+    Marked as known: {{ knownCount() }} · Draft cards created:
+    {{ cardCount() }}
+  </p>
+  <div class="summary-actions">
+    <a
+      mat-flat-button
+      [routerLink]="['/sources', sourceId(), 'cards']"
+      [queryParams]="{ filter: 'draft' }"
+    >
+      Review draft cards
+    </a>
+    <button mat-stroked-button (click)="finish()">Import another list</button>
+  </div>
+</section>
+}
+
+@if (pendingSyncCount() > 0) {
+<p class="sync" aria-live="polite">Saving decisions…</p>
+} @else if (failedSyncCount() > 0) {
+<p class="sync failed" role="alert">
+  Unsaved decisions: {{ failedSyncCount() }}
+</p>
+} @else if (decidedCount() > 0) {
+<p class="sync" aria-live="polite">All decisions saved</p>
+}
+
+}

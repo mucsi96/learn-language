@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+.deck {
+  position: relative;
+  min-height: 20rem;
+}
+
+.deck-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container);
+  box-shadow: var(--mat-sys-level2);
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.deck-card.stacked {
+  transform: translateY(calc(var(--depth) * 0.75rem))
+    scale(calc(1 - var(--depth) * 0.04));
+  opacity: calc(1 - var(--depth) * 0.35);
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.stacked-lemma {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.deck-card.front {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  transition: transform 0.18s ease-out;
+  animation: card-in 0.16s ease-out;
+}
+
+.deck-card.front.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+@keyframes card-in {
+  from {
+    transform: translateY(0.75rem) scale(0.96);
+    opacity: 0.4;
+  }
+}
+
+.lemma {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3rem);
+  line-height: 1.1;
+  color: var(--mat-sys-on-surface);
+  word-break: break-word;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  padding: 0.125rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.tag.type {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.examples {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  overflow-y: auto;
+}
+
+.examples li {
+  line-height: 1.45;
+}
+
+mark {
+  background: transparent;
+  color: var(--mat-sys-primary);
+  font-weight: 700;
+}
+
+.swipe-hint {
+  position: absolute;
+  top: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.12s ease-out;
+}
+
+.swipe-hint.visible {
+  opacity: 1;
+}
+
+.swipe-hint.known {
+  left: 1.25rem;
+  color: #2e7d32;
+}
+
+.swipe-hint.card {
+  right: 1.25rem;
+  color: var(--mat-sys-primary);
+}
+
+.swipe-hint mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}

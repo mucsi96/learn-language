@@ -1369,3 +1369,78 @@ databaseChangeLog:
             tableName: api_tokens
             columnName: scope
             columnDataType: varchar(255)
+  - changeSet:
+      id: 50-create-word-import-candidates-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: word_import_candidates
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: word_import_candidates_pkey
+              - column:
+                  name: source_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: word_import_candidate_source_fkey
+                    references: sources(id)
+                    deleteCascade: true
+              - column:
+                  name: lemma
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: word_type
+                  type: varchar(255)
+              - column:
+                  name: occurrence_count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: examples
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: card_id
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: word_import_candidates
+            columnNames: source_id, lemma
+            constraintName: word_import_candidates_source_lemma_unique
+        - createIndex:
+            tableName: word_import_candidates
+            indexName: word_import_candidates_source_status_idx
+            columns:
+              - column:
+                  name: source_id
+              - column:
+                  name: status
+  - changeSet:
+      id: 51-add-known-word-created-to-word-import-candidates
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: word_import_candidates
+            columns:
+              - column:
+                  name: known_word_created
+                  type: boolean

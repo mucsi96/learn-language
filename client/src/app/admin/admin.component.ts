@@ -29,12 +29,28 @@ const STATE_ORDER: readonly CardState[] = ['NEW', 'LEARNING', 'REVIEW', 'RELEARN
 const READINESS_ORDER = ['READY', 'KNOWN', 'IN_REVIEW', 'REVIEWED'] as const;
 
 type AttentionItem = {
-  filter: 'flagged' | 'draft' | 'suggestedKnown' | 'unhealthy';
+  key: 'flagged' | 'draft' | 'suggestedKnown' | 'unhealthy' | 'wordImport';
   icon: string;
   label: string;
+  ariaLabel: string;
   count: number;
   cssClass: string;
+  link: (string | number)[];
+  queryParams?: Record<string, string>;
 };
+
+const CARD_ATTENTION_ITEMS = [
+  { key: 'flagged', icon: 'flag', label: 'flagged', cssClass: 'flagged', countOf: (source: Source) => source.flaggedCardCount ?? 0 },
+  { key: 'draft', icon: 'edit_note', label: 'draft', cssClass: 'draft', countOf: (source: Source) => source.draftCardCount ?? 0 },
+  { key: 'suggestedKnown', icon: 'check_circle', label: 'suggested known', cssClass: 'suggested-known', countOf: (source: Source) => source.suggestedKnownCardCount ?? 0 },
+  { key: 'unhealthy', icon: 'warning', label: 'unhealthy', cssClass: 'unhealthy', countOf: (source: Source) => source.unhealthyCardCount ?? 0 },
+] as const satisfies readonly {
+  key: AttentionItem['key'];
+  icon: string;
+  label: string;
+  cssClass: string;
+  countOf: (source: Source) => number;
+}[];
 
 type SourceGroupSection = {
   group: SourceGroup;
@@ -94,13 +110,27 @@ export class AdminComponent {
   );
 
   getAttentionItems(source: Source): AttentionItem[] {
+    const cardsLink = ['/sources', source.id, 'cards'];
+    const wordImportCount = source.pendingWordImportCount ?? 0;
     const items: AttentionItem[] = [
-      { filter: 'flagged', icon: 'flag', label: 'flagged', count: source.flaggedCardCount ?? 0, cssClass: 'flagged' },
-      { filter: 'draft', icon: 'edit_note', label: 'draft', count: source.draftCardCount ?? 0, cssClass: 'draft' },
-      { filter: 'suggestedKnown', icon: 'check_circle', label: 'suggested known', count: source.suggestedKnownCardCount ?? 0, cssClass: 'suggested-known' },
-      { filter: 'unhealthy', icon: 'warning', label: 'unhealthy', count: source.unhealthyCardCount ?? 0, cssClass: 'unhealthy' },
+      { key: 'wordImport', icon: 'swipe', label: 'to triage', ariaLabel: `${source.name}: ${wordImportCount} words to triage`, count: wordImportCount, cssClass: 'word-import', link: ['/sources', source.id, 'word-import'] },
+      ...CARD_ATTENTION_ITEMS.map((item) => ({
+        ...item,
+        ariaLabel: `${source.name}: ${item.countOf(source)} ${item.label} cards`,
+        count: item.countOf(source),
+        link: cardsLink,
+        queryParams: { filter: item.key },
+      })),
     ];
     return items.filter((item) => item.count > 0);
+  }
+
+  supportsWordImport(source: Source): boolean {
+    return (source.cardTypes ?? []).includes('vocabulary');
+  }
+
+  navigateToWordImport(source: Source): void {
+    this.router.navigate(['/sources', source.id, 'word-import']);
   }
 
   hasStateCounts(source: Source): boolean {

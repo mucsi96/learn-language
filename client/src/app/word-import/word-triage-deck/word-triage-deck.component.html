@@ -1,0 +1,53 @@
+<div class="deck">
+  @for (item of stackItems(); track item.candidate.id; let depth = $index) {
+  <article class="deck-card stacked" [style.--depth]="depth + 1" aria-hidden="true">
+    <span class="stacked-lemma">{{ item.candidate.lemma }}</span>
+  </article>
+  } @for (item of frontItems(); track item.candidate.id) {
+  <article
+    class="deck-card front"
+    [class.dragging]="dragging()"
+    [style.transform]="frontTransform()"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointercancel)="onPointerUp()"
+  >
+    <div class="swipe-hint known" [class.visible]="hintedDecision() === 'known'">
+      <mat-icon>done_all</mat-icon>
+      Known
+    </div>
+    <div class="swipe-hint card" [class.visible]="hintedDecision() === 'card'">
+      <mat-icon>style</mat-icon>
+      Learn
+    </div>
+
+    <h2 class="lemma">{{ item.candidate.lemma }}</h2>
+
+    <div class="tags">
+      @if (item.wordTypeLabel) {
+      <span class="tag type">{{ item.wordTypeLabel }}</span>
+      }
+      <span
+        class="tag count"
+        [attr.aria-label]="
+          item.candidate.occurrenceCount + ' occurrences in the source'
+        "
+        >{{ item.candidate.occurrenceCount }}×</span
+      >
+    </div>
+
+    @if (item.examples.length) {
+    <ul class="examples">
+      @for (segments of item.examples; track $index) {
+      <li>
+        @for (segment of segments; track $index) { @if (segment.highlighted) {
+        <mark>{{ segment.text }}</mark>
+        } @else {<span>{{ segment.text }}</span>} }
+      </li>
+      }
+    </ul>
+    }
+  </article>
+  }
+</div>

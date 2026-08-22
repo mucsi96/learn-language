@@ -70,6 +70,7 @@ import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService;
 import io.github.mucsi96.learnlanguage.service.PhotoPreprocessingService.PreparedPage;
 import io.github.mucsi96.learnlanguage.service.SourceGroupService;
 import io.github.mucsi96.learnlanguage.service.SourceService;
+import io.github.mucsi96.learnlanguage.service.WordImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
@@ -98,12 +99,14 @@ public class SourceController {
   private final PhotoPreprocessingService photoPreprocessingService;
   private final LessonDescriptionService lessonDescriptionService;
   private final PhotoGrammarConceptService photoGrammarConceptService;
+  private final WordImportService wordImportService;
 
   @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
   @GetMapping("/sources")
   public List<SourceResponse> getSources() {
     final var sources = sourceService.getAllSources();
     final var statsMap = cardService.getSourceStats();
+    final var pendingWordImportCounts = wordImportService.getPendingCountsBySource();
     final var emptyStats = SourceStats.builder()
         .cardCount(0).draftCardCount(0).flaggedCardCount(0).unhealthyCardCount(0).suggestedKnownCardCount(0)
         .stateCounts(Map.of()).readinessCounts(Map.of())
@@ -130,6 +133,7 @@ public class SourceController {
           .flaggedCardCount(stats.getFlaggedCardCount())
           .unhealthyCardCount(stats.getUnhealthyCardCount())
           .suggestedKnownCardCount(stats.getSuggestedKnownCardCount())
+          .pendingWordImportCount(pendingWordImportCounts.getOrDefault(sourceId, 0))
           .stateCounts(stats.getStateCounts())
           .readinessCounts(stats.getReadinessCounts())
           .languageLevel(source.getLanguageLevel())
