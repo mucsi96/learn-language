@@ -690,9 +690,9 @@ public class SourceController {
   }
 
   private static void validateCardTypesForSourceType(SourceType sourceType, List<CardType> cardTypes) {
-    if (sourceType == SourceType.WORD_LIST && !List.of(CardType.VOCABULARY).equals(cardTypes)) {
+    if (sourceType == SourceType.WORD_TRIAGE && !List.of(CardType.VOCABULARY).equals(cardTypes)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Word list sources support vocabulary cards only");
+          "Word triage sources support vocabulary cards only");
     }
   }
 

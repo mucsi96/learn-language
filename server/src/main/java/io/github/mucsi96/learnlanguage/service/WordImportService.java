@@ -77,7 +77,7 @@ public class WordImportService {
 
     @Transactional
     public WordImportStageResponse stage(String sourceId, WordImportRequest request) {
-        final Source source = getWordListSource(sourceId);
+        final Source source = getWordTriageSource(sourceId);
         final Set<String> detectionSourceIds = sourceService.getDetectionSourceIds(sourceId);
         final Set<String> knownWords = knownWordService.getKnownWordSet();
         final Set<String> stagedLemmas = wordImportCandidateRepository.findBySource_Id(sourceId).stream()
@@ -128,7 +128,7 @@ public class WordImportService {
     }
 
     public WordImportQueueResponse getQueue(String sourceId) {
-        getWordListSource(sourceId);
+        getWordTriageSource(sourceId);
 
         final List<WordImportCandidateResponse> candidates = wordImportCandidateRepository
                 .findBySource_IdAndStatusOrderByOccurrenceCountDescLemmaAsc(sourceId, WordImportStatus.PENDING)
@@ -190,7 +190,7 @@ public class WordImportService {
 
     @Transactional
     public void clear(String sourceId) {
-        getWordListSource(sourceId);
+        getWordTriageSource(sourceId);
         wordImportCandidateRepository.deleteBySource_Id(sourceId);
     }
 
@@ -357,13 +357,13 @@ public class WordImportService {
                         "Word import candidate not found with id: " + candidateId));
     }
 
-    private Source getWordListSource(String sourceId) {
+    private Source getWordTriageSource(String sourceId) {
         final Source source = sourceService.getSourceById(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
-        if (source.getSourceType() != SourceType.WORD_LIST) {
+        if (source.getSourceType() != SourceType.WORD_TRIAGE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Word import is only available for word list sources: " + sourceId);
+                    "Word import is only available for word triage sources: " + sourceId);
         }
 
         return source;

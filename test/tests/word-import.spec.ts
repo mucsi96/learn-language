@@ -11,8 +11,8 @@ import {
   setupDefaultChatModelSettings,
 } from '../utils';
 
-const SOURCE_ID = 'wordlist-a1';
-const SOURCE_NAME = 'Word List A1';
+const SOURCE_ID = 'word-triage-a1';
+const SOURCE_NAME = 'Word Triage A1';
 
 const WORD_LIST = {
   schema_version: 1,
@@ -62,7 +62,7 @@ async function createWordListSource() {
     startPage: 1,
     languageLevel: 'A1',
     cardTypes: ['VOCABULARY'],
-    sourceType: 'WORD_LIST',
+    sourceType: 'WORD_TRIAGE',
   });
 }
 
@@ -319,7 +319,7 @@ test('rejects a file that does not match the word list schema', async ({
   expect(await getWordImportCandidates(SOURCE_ID)).toEqual([]);
 });
 
-test('creates a word list source restricted to vocabulary cards', async ({
+test('creates a word triage source restricted to vocabulary cards', async ({
   page,
 }) => {
   await page.goto('/sources');
@@ -329,7 +329,7 @@ test('creates a word list source restricted to vocabulary cards', async ({
     .getByRole('textbox', { name: 'Name', exact: true })
     .fill('Roman B1');
   await page.getByLabel('Source Type').click();
-  await page.getByRole('option', { name: 'Word List' }).click();
+  await page.getByRole('option', { name: 'Word Triage' }).click();
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B1' }).click();
 
@@ -345,7 +345,7 @@ test('creates a word list source restricted to vocabulary cards', async ({
   await expect(page.getByText('Roman B1')).toBeVisible();
 
   const source = await getSource('roman-b1');
-  expect(source?.sourceType).toBe('WORD_LIST');
+  expect(source?.sourceType).toBe('WORD_TRIAGE');
   expect(source?.cardTypes).toEqual(['VOCABULARY']);
   expect(source?.formatType).toBeNull();
 
@@ -358,7 +358,7 @@ test('creates a word list source restricted to vocabulary cards', async ({
   ).toBeVisible();
 });
 
-test('word import is only offered for word list sources', async ({ page }) => {
+test('word import is only offered for word triage sources', async ({ page }) => {
   await createWordListSource();
 
   await page.goto('/sources');
@@ -387,7 +387,7 @@ test('word import is only offered for word list sources', async ({ page }) => {
   ).not.toBeVisible();
 });
 
-test('word import endpoints reject sources that are not word lists', async ({
+test('word import endpoints reject sources that are not word triage sources', async ({
   page,
   baseURL,
 }) => {
@@ -422,7 +422,7 @@ test('word import endpoints reject sources that are not word lists', async ({
   expect(await getWordImportCandidates('goethe-a1')).toEqual([]);
 });
 
-test('word list sources accept vocabulary cards only', async ({
+test('word triage sources accept vocabulary cards only', async ({
   page,
   baseURL,
 }) => {
@@ -441,16 +441,16 @@ test('word list sources accept vocabulary cards only', async ({
     method: 'POST',
     headers,
     body: JSON.stringify({
-      id: 'speech-word-list',
-      name: 'Speech Word List',
-      sourceType: 'wordList',
+      id: 'speech-word-triage',
+      name: 'Speech Word Triage',
+      sourceType: 'wordTriage',
       startPage: 1,
       languageLevel: 'A1',
       cardTypes: ['speech'],
     }),
   });
   expect(createResponse.status).toBe(400);
-  expect(await getSource('speech-word-list')).toBeNull();
+  expect(await getSource('speech-word-triage')).toBeNull();
 
   await createWordListSource();
 

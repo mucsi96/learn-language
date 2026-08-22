@@ -67,7 +67,7 @@ export class WordImportComponent {
 
   readonly unsupportedSource = computed(() => {
     const source = this.source();
-    return !!source && source.sourceType !== 'wordList';
+    return !!source && source.sourceType !== 'wordTriage';
   });
 
   readonly queueFailed = computed(

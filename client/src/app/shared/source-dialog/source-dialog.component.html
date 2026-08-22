@@ -48,7 +48,7 @@
           </mat-select>
         </mat-form-field>
 
-        @if (formModel().cardTypes.includes('vocabulary') && !isWordList()) {
+        @if (formModel().cardTypes.includes('vocabulary') && !isWordTriage()) {
         <mat-form-field appearance="fill">
           <mat-label>Format Type</mat-label>
           <mat-select
@@ -67,7 +67,7 @@
       <h3 class="section-title">Content</h3>
       @if (isJson()) {
       <p class="hint-text">Cards are added by importing a JSON array after creating the source.</p>
-      } @else if (isWordList()) {
+      } @else if (isWordTriage()) {
       <p class="hint-text">Cards are added by importing a word list JSON after creating the source.</p>
       } @else if (formModel().sourceType === 'pdf') {
       <div

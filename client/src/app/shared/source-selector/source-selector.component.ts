@@ -83,7 +83,7 @@ export class SourceSelectorComponent {
       case 'admin':
         return source.sourceType === 'ebookDictionary'
           ? ['/sources', source.id, 'cards']
-          : source.sourceType === 'wordList'
+          : source.sourceType === 'wordTriage'
             ? ['/sources', source.id, 'word-import']
             : ['/sources', source.id, 'page', String(source.startPage)];
       default:

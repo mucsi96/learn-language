@@ -60,10 +60,10 @@ export class SourceDialogComponent {
   readonly partners = this.partnersService.partners;
   readonly groups = this.groupsService.groups;
   readonly isJson = computed(() => this.formModel().sourceType === 'json');
-  readonly isWordList = computed(() => this.formModel().sourceType === 'wordList');
+  readonly isWordTriage = computed(() => this.formModel().sourceType === 'wordTriage');
 
   readonly forcedCardType = computed<CardType | undefined>(() =>
-    this.isJson() ? 'simple' : this.isWordList() ? 'vocabulary' : undefined
+    this.isJson() ? 'simple' : this.isWordTriage() ? 'vocabulary' : undefined
   );
 
   readonly cardTypes = computed(() => {
@@ -122,7 +122,7 @@ export class SourceDialogComponent {
     );
     validate(path.formatType, (ctx) => {
       const cardTypes = ctx.valueOf(path.cardTypes);
-      if (!this.isWordList() && cardTypes.includes('vocabulary') && !ctx.value()) {
+      if (!this.isWordTriage() && cardTypes.includes('vocabulary') && !ctx.value()) {
         return requiredError();
       }
       return undefined;
@@ -140,7 +140,7 @@ export class SourceDialogComponent {
     this.sourceForm().valid() &&
     (this.formModel().sourceType === 'images' ||
       this.formModel().sourceType === 'json' ||
-      this.isWordList() ||
+      this.isWordTriage() ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );
@@ -170,7 +170,7 @@ export class SourceDialogComponent {
         startPage: result.startPage,
         languageLevel: result.languageLevel || undefined,
         cardTypes: cardTypes.length > 0 ? cardTypes : undefined,
-        formatType: this.isWordList()
+        formatType: this.isWordTriage()
           ? undefined
           : cardTypes.includes('vocabulary')
             ? result.formatType || undefined
