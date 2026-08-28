@@ -1461,3 +1461,17 @@ databaseChangeLog:
         - delete:
             tableName: chat_model_settings
             where: model_name IN ('gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-5', 'gpt-5.2', 'gpt-5-mini', 'gpt-5-nano')
+  - changeSet:
+      id: 54-promote-answer-check-primary-after-model-removal
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              UPDATE learn_language.chat_model_settings
+              SET is_primary = true
+              WHERE operation_type = 'ANSWER_CHECK'
+                AND model_name = 'claude-haiku-4-5'
+                AND NOT EXISTS (
+                  SELECT 1 FROM learn_language.chat_model_settings
+                  WHERE operation_type = 'ANSWER_CHECK' AND is_primary = true
+                );
