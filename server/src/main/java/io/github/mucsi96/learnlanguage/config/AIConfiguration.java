@@ -58,11 +58,13 @@ public class AIConfiguration {
   XaiChatModel xaiChatModel(
       @Value("${spring.ai.xai.api-key}") String apiKey,
       @Value("${spring.ai.xai.base-url:https://api.x.ai/v1}") String baseUrl) {
+    final OpenAIClient xaiClient = OpenAIOkHttpClient.builder()
+        .apiKey(apiKey)
+        .baseUrl(baseUrl)
+        .build();
     return new XaiChatModel(OpenAiChatModel.builder()
-        .openAiClient(OpenAIOkHttpClient.builder()
-            .apiKey(apiKey)
-            .baseUrl(baseUrl)
-            .build())
+        .openAiClient(xaiClient)
+        .openAiClientAsync(xaiClient.async())
         .build());
   }
 
