@@ -29,7 +29,7 @@ test('word extraction only uses enabled models for extraction operation', async 
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await setupChatModelsForAllOperations({
-    EXTRACTION: ['gpt-5.6-sol', 'gemini-3.1-pro-preview'],
+    EXTRACTION: ['gpt-5.6-sol', 'grok-4.6', 'gemini-3.1-pro-preview'],
   });
 
   await page.goto('/sources');
@@ -43,10 +43,11 @@ test('word extraction only uses enabled models for extraction operation', async 
   const logs = await getModelUsageLogs();
   const wordExtractionLogs = logs.filter((log) => log.operationType === 'EXTRACTION');
 
-  expect(wordExtractionLogs.length).toBe(2);
+  expect(wordExtractionLogs.length).toBe(3);
 
   const modelNames = wordExtractionLogs.map((log) => log.modelName);
   expect(modelNames).toContain('gpt-5.6-sol');
+  expect(modelNames).toContain('grok-4.6');
   expect(modelNames).toContain('gemini-3.1-pro-preview');
   expect(modelNames).not.toContain('claude-sonnet-4-5');
   expect(modelNames).not.toContain('gpt-5.5');
