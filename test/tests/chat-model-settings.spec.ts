@@ -14,9 +14,15 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
   await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-terra', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-luna', { exact: true })).toBeVisible();
   await expect(page.getByText('claude-sonnet-5', { exact: true })).toBeVisible();
   await expect(page.getByText('grok-4.6', { exact: true })).toBeVisible();
+  await expect(page.getByText('grok-4.3', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3.1-pro-preview')).toBeVisible();
+  await expect(page.getByText('gemini-3.5-flash', { exact: true })).toBeVisible();
+  await expect(page.getByText('gemini-3.6-flash', { exact: true })).toBeVisible();
+  await expect(page.getByText('gemini-3.7-flash', { exact: true })).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();
   await expect(page.getByText('Extraction')).toBeVisible();
