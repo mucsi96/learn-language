@@ -29,7 +29,7 @@ test('word extraction only uses enabled models for extraction operation', async 
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await setupChatModelsForAllOperations({
-    EXTRACTION: ['gpt-4o', 'gemini-3.1-pro-preview'],
+    EXTRACTION: ['gpt-5.6-sol', 'gemini-3.1-pro-preview'],
   });
 
   await page.goto('/sources');
@@ -46,17 +46,17 @@ test('word extraction only uses enabled models for extraction operation', async 
   expect(wordExtractionLogs.length).toBe(2);
 
   const modelNames = wordExtractionLogs.map((log) => log.modelName);
-  expect(modelNames).toContain('gpt-4o');
+  expect(modelNames).toContain('gpt-5.6-sol');
   expect(modelNames).toContain('gemini-3.1-pro-preview');
   expect(modelNames).not.toContain('claude-sonnet-4-5');
-  expect(modelNames).not.toContain('gpt-4.1');
+  expect(modelNames).not.toContain('gpt-5.5');
 });
 
 test('bulk card creation only uses enabled models for classification operation', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await setupChatModelsForAllOperations({
-    CLASSIFICATION: ['gpt-4o', 'gemini-3.1-pro-preview'],
+    CLASSIFICATION: ['gpt-5.6-sol', 'gemini-3.1-pro-preview'],
   });
 
   await page.goto('/sources');
@@ -75,17 +75,17 @@ test('bulk card creation only uses enabled models for classification operation',
   expect(wordTypeLogs.length).toBeGreaterThan(0);
 
   const modelNames = [...new Set(wordTypeLogs.map((log) => log.modelName))];
-  expect(modelNames).toContain('gpt-4o');
+  expect(modelNames).toContain('gpt-5.6-sol');
   expect(modelNames).toContain('gemini-3.1-pro-preview');
   expect(modelNames).not.toContain('claude-sonnet-4-5');
-  expect(modelNames).not.toContain('gpt-4.1');
+  expect(modelNames).not.toContain('gpt-5.5');
 });
 
 test('bulk card creation only uses enabled models for translation operations', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await setupChatModelsForAllOperations({
-    TRANSLATION: ['gpt-4o', 'gemini-3.1-pro-preview'],
+    TRANSLATION: ['gpt-5.6-sol', 'gemini-3.1-pro-preview'],
   });
 
   await page.goto('/sources');
@@ -105,7 +105,7 @@ test('bulk card creation only uses enabled models for translation operations', a
   expect(translationLogs.length).toBeGreaterThan(0);
   const modelNames = [...new Set(translationLogs.map((log) => log.modelName))];
 
-  expect(modelNames).toContain('gpt-4o');
+  expect(modelNames).toContain('gpt-5.6-sol');
   expect(modelNames).toContain('gemini-3.1-pro-preview');
   expect(modelNames).not.toContain('claude-sonnet-4-5');
 });
@@ -114,7 +114,7 @@ test('different operation types can have different enabled models', async ({ pag
   await setupDefaultImageModelSettings();
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await setupChatModelsForAllOperations({
-    CLASSIFICATION: ['gpt-4o', 'gemini-3.1-pro-preview'],
+    CLASSIFICATION: ['gpt-5.6-sol', 'gemini-3.1-pro-preview'],
     TRANSLATION: ['gemini-3.1-pro-preview'],
   });
 
@@ -135,7 +135,7 @@ test('different operation types can have different enabled models', async ({ pag
 
   const classificationModels = [...new Set(classificationLogs.map((log) => log.modelName))];
   const translationEnModels = [...new Set(translationLogs.map((log) => log.modelName))];
-  expect(classificationModels).toContain('gpt-4o');
+  expect(classificationModels).toContain('gpt-5.6-sol');
   expect(classificationModels).toContain('gemini-3.1-pro-preview');
   expect(translationEnModels).toEqual(['gemini-3.1-pro-preview']);
 });

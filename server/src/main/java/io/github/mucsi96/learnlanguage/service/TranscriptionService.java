@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TranscriptionService {
 
-    private static final String MODEL_NAME = "gpt-4o-transcribe";
+    private static final String MODEL_NAME = "gpt-transcribe";
 
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;

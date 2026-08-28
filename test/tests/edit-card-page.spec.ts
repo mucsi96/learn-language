@@ -478,7 +478,7 @@ test('generates image with OpenAI models', async ({ page }) => {
   await Promise.all(
     ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION', 'IMAGE_DESCRIPTION'].map((operationType) =>
       createChatModelSetting({
-        modelName: 'gpt-5.2',
+        modelName: 'gpt-5.6-sol',
         operationType,
         isEnabled: true,
         isPrimary: true,
@@ -531,7 +531,7 @@ test('generates image with OpenAI models', async ({ page }) => {
   const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
   expect(descriptionLog).toBeDefined();
   expect(descriptionLog!.modelType).toBe('CHAT');
-  expect(descriptionLog!.modelName).toBe('gpt-5.2');
+  expect(descriptionLog!.modelName).toBe('gpt-5.6-sol');
   expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
 
   const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');

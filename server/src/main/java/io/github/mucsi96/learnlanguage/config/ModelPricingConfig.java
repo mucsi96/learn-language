@@ -18,26 +18,24 @@ public class ModelPricingConfig {
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
-        // OpenAI GPT-4o family
-        Map.entry("gpt-4o", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("10.00"))),
-        Map.entry("gpt-4o-mini", new ChatModelPricing(new BigDecimal("0.15"), new BigDecimal("0.60"))),
-        // OpenAI GPT-4.1 family
-        Map.entry("gpt-4.1", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("8.00"))),
-        Map.entry("gpt-4.1-mini", new ChatModelPricing(new BigDecimal("0.40"), new BigDecimal("1.60"))),
-        Map.entry("gpt-4.1-nano", new ChatModelPricing(new BigDecimal("0.10"), new BigDecimal("0.40"))),
-        // OpenAI GPT-5 family
-        Map.entry("gpt-5", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("10.00"))),
-        Map.entry("gpt-5.2", new ChatModelPricing(new BigDecimal("1.75"), new BigDecimal("14.00"))),
-        Map.entry("gpt-5-mini", new ChatModelPricing(new BigDecimal("0.25"), new BigDecimal("2.00"))),
-        Map.entry("gpt-5-nano", new ChatModelPricing(new BigDecimal("0.05"), new BigDecimal("0.40"))),
+        // OpenAI GPT-5.5
         Map.entry("gpt-5.5", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        // OpenAI GPT-5.6 family
+        Map.entry("gpt-5.6-sol", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
+        Map.entry("gpt-5.6-terra", new ChatModelPricing(new BigDecimal("2.50"), new BigDecimal("15.00"))),
+        Map.entry("gpt-5.6-luna", new ChatModelPricing(new BigDecimal("1.00"), new BigDecimal("6.00"))),
         // Anthropic Claude
         Map.entry("claude-sonnet-4-5", new ChatModelPricing(new BigDecimal("3.00"), new BigDecimal("15.00"))),
+        Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
         // Google Gemini
         Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
-        Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00")))
+        Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00"))),
+        Map.entry("gemini-3.5-flash", new ChatModelPricing(new BigDecimal("1.50"), new BigDecimal("9.00"))),
+        // Introductory pricing until 2026-12-31; standard 1.50 / 7.50 from 2027-01-01
+        Map.entry("gemini-3.6-flash", new ChatModelPricing(new BigDecimal("0.75"), new BigDecimal("3.75"))),
+        Map.entry("gemini-3.7-flash", new ChatModelPricing(new BigDecimal("0.75"), new BigDecimal("3.75")))
     );
 
     // OpenAI image models priced per quality variant at 1024x1024. The High prices are the

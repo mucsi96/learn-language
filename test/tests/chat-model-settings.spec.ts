@@ -13,7 +13,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
 
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
-  await expect(page.getByText('gpt-4o', { exact: true })).toBeVisible();
+  await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3.1-pro-preview')).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();
@@ -24,7 +24,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
 
 test('can set primary model for operation type', async ({ page }) => {
   await createChatModelSetting({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: false,
@@ -38,7 +38,7 @@ test('can set primary model for operation type', async ({ page }) => {
 
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const geminiRow = page.getByRole('row', { name: 'gemini-3.1-pro-preview' });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
   const geminiPrimaryRadio = geminiRow.getByRole('radio').first();
@@ -53,7 +53,7 @@ test('can set primary model for operation type', async ({ page }) => {
 
   await expect(async () => {
     const settings = await getChatModelSettings();
-    const gptSetting = settings.find((s) => s.modelName === 'gpt-4o' && s.operationType === 'TRANSLATION');
+    const gptSetting = settings.find((s) => s.modelName === 'gpt-5.6-sol' && s.operationType === 'TRANSLATION');
     const geminiSetting = settings.find(
       (s) => s.modelName === 'gemini-3.1-pro-preview' && s.operationType === 'TRANSLATION'
     );
@@ -66,7 +66,7 @@ test('can set primary model for operation type', async ({ page }) => {
 test('primary radio is disabled when model is not enabled', async ({ page }) => {
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
 
   await expect(gptPrimaryRadio).toBeDisabled();
@@ -74,7 +74,7 @@ test('primary radio is disabled when model is not enabled', async ({ page }) => 
 
 test('shows primary model indicator for enabled model', async ({ page }) => {
   await createChatModelSetting({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     operationType: 'TRANSLATION',
     isEnabled: true,
     isPrimary: true,
@@ -82,7 +82,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
 
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const gptPrimaryRadio = gptRow.getByRole('radio').first();
 
   await expect(gptPrimaryRadio).toBeChecked();
@@ -91,7 +91,7 @@ test('shows primary model indicator for enabled model', async ({ page }) => {
 test('can toggle model setting', async ({ page }) => {
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const toggleInGptRow = gptRow.getByRole('switch').first();
 
   await expect(toggleInGptRow).toBeVisible();
@@ -105,7 +105,7 @@ test('can toggle model setting', async ({ page }) => {
 
   await expect(async () => {
     const settings = await getChatModelSettings();
-    const gptSetting = settings.find((s) => s.modelName === 'gpt-4o');
+    const gptSetting = settings.find((s) => s.modelName === 'gpt-5.6-sol');
     expect(gptSetting).toBeDefined();
     expect(gptSetting!.isEnabled).toBe(!isCheckedBefore);
   }).toPass();
@@ -113,24 +113,24 @@ test('can toggle model setting', async ({ page }) => {
 
 test('displays existing enabled settings from database', async ({ page }) => {
   await createChatModelSetting({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     operationType: 'TRANSLATION',
     isEnabled: true,
   });
   await createChatModelSetting({
-    modelName: 'gpt-4o-mini',
+    modelName: 'gpt-5.6-luna',
     operationType: 'CLASSIFICATION',
     isEnabled: true,
   });
 
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const gptToggles = gptRow.getByRole('switch');
   const firstGptToggle = gptToggles.first();
   await expect(firstGptToggle).toBeChecked();
 
-  const gptMiniRow = page.getByRole('row', { name: 'gpt-4o-mini' });
+  const gptMiniRow = page.getByRole('row', { name: 'gpt-5.6-luna' });
   const gptMiniToggles = gptMiniRow.getByRole('switch');
   const classificationToggle = gptMiniToggles.nth(2);
   await expect(classificationToggle).toBeChecked();
@@ -156,7 +156,7 @@ test('can enable all models for an operation type', async ({ page }) => {
 test('toggle performs optimistic update', async ({ page }) => {
   await page.goto('/settings/data-models');
 
-  const gptRow = page.getByRole('row', { name: /gpt-4o(?!\S)/ });
+  const gptRow = page.getByRole('row', { name: 'gpt-5.6-sol' });
   const toggle = gptRow.getByRole('switch').first();
 
   await expect(toggle).not.toBeChecked();

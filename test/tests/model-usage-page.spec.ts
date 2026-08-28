@@ -63,7 +63,7 @@ test('navigates to model usage from profile menu', async ({ page }) => {
 
 test('displays chat model usage logs', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-chat-1',
@@ -105,7 +105,7 @@ test('displays chat model usage logs', async ({ page }) => {
         Seconds: '0.8',
       },
       {
-        Model: 'gpt-4o',
+        Model: 'gpt-5.6-sol',
         Type: 'CHAT',
         Operation: 'translation',
         Usage: '150 / 50 tokens',
@@ -182,7 +182,7 @@ test('displays audio model usage logs', async ({ page }) => {
 
 test('expands chat log to show response', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-expand-1',
@@ -210,7 +210,7 @@ test('expands chat log to show response', async ({ page }) => {
 
 test('allows rating usage logs', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-rating-1',
@@ -239,7 +239,7 @@ test('allows rating usage logs', async ({ page }) => {
 
     expect(summaryData).toEqual([
       {
-        Model: 'gpt-4o',
+        Model: 'gpt-5.6-sol',
         'Total Calls': '1',
         'Rated Calls': '1',
         'Avg Rating': '4.00',
@@ -253,7 +253,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   const sharedResponse = '{"translation": "hello"}';
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-auto-rate',
@@ -265,7 +265,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   });
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-auto-rate',
@@ -277,7 +277,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
   });
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-auto-rate',
@@ -303,7 +303,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
 
     expect(summaryData).toEqual([
       {
-        Model: 'gpt-4o',
+        Model: 'gpt-5.6-sol',
         'Total Calls': '3',
         'Rated Calls': '2',
         'Avg Rating': '4.00',
@@ -315,7 +315,7 @@ test('auto-rates duplicate logs with same response content', async ({ page }) =>
 
 test('allows clearing rating by clicking the same star', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-clear-rating',
@@ -342,7 +342,7 @@ test('allows clearing rating by clicking the same star', async ({ page }) => {
 
     expect(summaryData).toEqual([
       {
-        Model: 'gpt-4o',
+        Model: 'gpt-5.6-sol',
         'Total Calls': '1',
         'Rated Calls': '0',
         'Avg Rating': '-',
@@ -388,7 +388,7 @@ test('does not show rating for audio models', async ({ page }) => {
 
 test('displays model summary tab', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-summary-1',
@@ -401,7 +401,7 @@ test('displays model summary tab', async ({ page }) => {
   });
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-summary-2',
@@ -446,7 +446,7 @@ test('displays model summary tab', async ({ page }) => {
         'Total Cost': '$0.0010',
       },
       {
-        Model: 'gpt-4o',
+        Model: 'gpt-5.6-sol',
         'Total Calls': '2',
         'Rated Calls': '2',
         'Avg Rating': '3.50',
@@ -565,7 +565,7 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
   const operationId = 'test-op-123';
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -605,7 +605,7 @@ test('shows primary badge on fastest model in group', async ({ page }) => {
   const operationId = 'test-op-primary';
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -637,7 +637,7 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
   const operationId = 'test-op-diff';
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,
@@ -678,7 +678,7 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
 
 test('shows copy to clipboard button in expanded state', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-clipboard',
@@ -704,7 +704,7 @@ test('shows copy to clipboard button in expanded state', async ({ page }) => {
 
 test('clears logs when clicking delete button', async ({ page }) => {
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId: 'op-clear-logs',
@@ -735,7 +735,7 @@ test('shows identical label when grouped logs have same response', async ({ page
   const operationId = 'test-op-identical';
 
   await createModelUsageLog({
-    modelName: 'gpt-4o',
+    modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
     operationType: 'TRANSLATION',
     operationId,

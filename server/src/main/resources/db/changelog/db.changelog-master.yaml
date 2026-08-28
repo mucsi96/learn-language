@@ -1454,3 +1454,10 @@ databaseChangeLog:
               - column:
                   name: article
                   type: varchar(255)
+  - changeSet:
+      id: 53-remove-deprecated-openai-model-settings
+      author: mucsi96
+      changes:
+        - delete:
+            tableName: chat_model_settings
+            where: model_name IN ('gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-5', 'gpt-5.2', 'gpt-5-mini', 'gpt-5-nano')
