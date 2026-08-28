@@ -9,6 +9,7 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
+import io.github.mucsi96.learnlanguage.config.XaiChatModel;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import lombok.RequiredArgsConstructor;
 
@@ -19,41 +20,18 @@ public class ChatClientService {
   private final OpenAiChatModel openAiChatModel;
   private final AnthropicChatModel anthropicChatModel;
   private final GoogleGenAiChatModel googleGenAiChatModel;
+  private final XaiChatModel xaiChatModel;
 
   public ChatClient getChatClient(ChatModel model) {
     return switch (model) {
-      case GPT_4O -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_4O.toString()))
-          .build();
-      case GPT_4O_MINI -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_4O_MINI.toString()))
-          .build();
-      case GPT_4_1 -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_4_1.toString()))
-          .build();
-      case GPT_4_1_MINI -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_4_1_MINI.toString()))
-          .build();
-      case GPT_4_1_NANO -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_4_1_NANO.toString()))
-          .build();
-      case GPT_5 -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_5_CHAT_LATEST.toString()))
-          .build();
-      case GPT_5_2 -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_5_2_CHAT_LATEST.toString()))
-          .build();
-      case GPT_5_MINI -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_5_MINI.toString()))
-          .build();
-      case GPT_5_NANO -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model(com.openai.models.ChatModel.GPT_5_NANO.toString()))
-          .build();
-      case GPT_5_5 -> ChatClient.builder(openAiChatModel)
-          .defaultOptions(OpenAiChatOptions.builder().model("gpt-5.5"))
+      case GPT_5_5, GPT_5_6_SOL, GPT_5_6_TERRA, GPT_5_6_LUNA -> ChatClient.builder(openAiChatModel)
+          .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
           .build();
       case CLAUDE_SONNET_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_SONNET_4_5))
+          .build();
+      case CLAUDE_SONNET_5 -> ChatClient.builder(anthropicChatModel)
+          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-sonnet-5")))
           .build();
       case CLAUDE_HAIKU_4_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_HAIKU_4_5))
@@ -61,12 +39,14 @@ public class ChatClientService {
       case CLAUDE_OPUS_4_8 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-opus-4-8")))
           .build();
-      case GEMINI_3_1_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
-          .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3.1-pro-preview"))
+      case GROK_4_6, GROK_4_3 -> ChatClient.builder(xaiChatModel.chatModel())
+          .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
           .build();
-      case GEMINI_3_FLASH_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
-          .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3-flash-preview"))
-          .build();
+      case GEMINI_3_1_PRO_PREVIEW, GEMINI_3_FLASH_PREVIEW, GEMINI_3_5_FLASH, GEMINI_3_6_FLASH,
+          GEMINI_3_7_FLASH ->
+        ChatClient.builder(googleGenAiChatModel)
+            .defaultOptions(GoogleGenAiChatOptions.builder().model(model.getModelName()))
+            .build();
     };
   }
 }

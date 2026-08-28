@@ -11,6 +11,7 @@ public enum ModelProvider {
     OPENAI("openai"),
     ANTHROPIC("anthropic"),
     GOOGLE("google"),
+    XAI("xai"),
     ELEVENLABS("elevenlabs");
 
     private final String code;

@@ -23,6 +23,9 @@ spring:
       genai:
         api-key: ${GOOGLE_AI_API_KEY}
         base-url: ${GOOGLE_AI_BASE_URL}
+    xai:
+      api-key: ${XAI_API_KEY}
+      base-url: ${XAI_BASE_URL}
     ideogram:
       api-key: ${IDEOGRAM_API_KEY}
       base-url: ${IDEOGRAM_BASE_URL}
