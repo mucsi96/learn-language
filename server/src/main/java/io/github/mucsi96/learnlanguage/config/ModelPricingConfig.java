@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 // OpenAI: https://platform.openai.com/docs/pricing
 // Google: https://ai.google.dev/gemini-api/docs/pricing
 // Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
+// xAI: https://x.ai/api
 // ElevenLabs: https://elevenlabs.io/pricing/api
 @Configuration
 public class ModelPricingConfig {
@@ -29,6 +30,9 @@ public class ModelPricingConfig {
         Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        // xAI Grok
+        Map.entry("grok-4.6", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("6.00"))),
+        Map.entry("grok-4.3", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("2.50"))),
         // Google Gemini
         Map.entry("gemini-3.1-pro-preview", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("12.00"))),
         Map.entry("gemini-3-flash-preview", new ChatModelPricing(new BigDecimal("0.50"), new BigDecimal("3.00"))),

@@ -14,6 +14,8 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
   await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible();
+  await expect(page.getByText('claude-sonnet-5', { exact: true })).toBeVisible();
+  await expect(page.getByText('grok-4.6', { exact: true })).toBeVisible();
   await expect(page.getByText('gemini-3.1-pro-preview')).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();

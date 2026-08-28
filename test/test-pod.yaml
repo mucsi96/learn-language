@@ -187,6 +187,10 @@ spec:
           value: mock-google-key
         - name: GOOGLE_AI_BASE_URL
           value: http://localhost:3071
+        - name: XAI_API_KEY
+          value: mock-xai-key
+        - name: XAI_BASE_URL
+          value: http://localhost:3070
         - name: IDEOGRAM_API_KEY
           value: mock-ideogram-key
         - name: IDEOGRAM_BASE_URL

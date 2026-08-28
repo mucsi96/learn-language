@@ -9,6 +9,7 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
+import io.github.mucsi96.learnlanguage.config.XaiChatModel;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +20,7 @@ public class ChatClientService {
   private final OpenAiChatModel openAiChatModel;
   private final AnthropicChatModel anthropicChatModel;
   private final GoogleGenAiChatModel googleGenAiChatModel;
+  private final XaiChatModel xaiChatModel;
 
   public ChatClient getChatClient(ChatModel model) {
     return switch (model) {
@@ -45,6 +47,12 @@ public class ChatClientService {
           .build();
       case CLAUDE_OPUS_4_8 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-opus-4-8")))
+          .build();
+      case GROK_4_6 -> ChatClient.builder(xaiChatModel.chatModel())
+          .defaultOptions(OpenAiChatOptions.builder().model("grok-4.6"))
+          .build();
+      case GROK_4_3 -> ChatClient.builder(xaiChatModel.chatModel())
+          .defaultOptions(OpenAiChatOptions.builder().model("grok-4.3"))
           .build();
       case GEMINI_3_1_PRO_PREVIEW -> ChatClient.builder(googleGenAiChatModel)
           .defaultOptions(GoogleGenAiChatOptions.builder().model("gemini-3.1-pro-preview"))
