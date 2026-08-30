@@ -162,7 +162,8 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
-        var chatResponse = callResponse.responseEntity(responseType);
+        var chatResponse = callResponse.responseEntity(responseType,
+                spec -> spec.useProviderStructuredOutput());
         final ChatResponse response = chatResponse.getResponse();
         final T entity = chatResponse.getEntity();
 
