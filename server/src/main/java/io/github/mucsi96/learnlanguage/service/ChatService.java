@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.azure.core.util.BinaryData;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -169,10 +170,20 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
+        // Lenient on blank or unparsable text so the generation fallback below
+        // runs instead of a parse error escaping from inside responseEntity:
+        // Gemini maps thought summaries to leading generations with prose text,
+        // which DefaultChatClient would otherwise feed to the converter.
         final var outputConverter = new BeanOutputConverter<T>(responseType) {
             @Override
             public T convert(String text) {
-                return StringUtils.hasText(text) ? super.convert(text) : null;
+                try {
+                    return StringUtils.hasText(text) ? super.convert(text) : null;
+                } catch (JacksonException e) {
+                    log.warn("Failed to parse model response as {}: {}", responseType.getSimpleName(),
+                            e.getMessage());
+                    return null;
+                }
             }
         };
 
@@ -208,10 +219,18 @@ public class ChatService {
     private IllegalStateException noContentException(ChatModel model, OperationType operationType,
             ChatResponse response) {
         return new IllegalStateException(
-                "Chat model %s returned no content for operation %s (finish reason: %s)".formatted(
-                        model.getModelName(),
-                        operationType.getCode(),
-                        extractFinishReason(response)));
+                "Chat model %s returned no parsable content for operation %s (finish reason: %s, response text: %s)"
+                        .formatted(
+                                model.getModelName(),
+                                operationType.getCode(),
+                                extractFinishReason(response),
+                                abbreviate(extractResponseText(response))));
+    }
+
+    private String abbreviate(String text) {
+        return Optional.ofNullable(text)
+                .map(value -> value.length() > 500 ? value.substring(0, 500) + "…" : value)
+                .orElse("none");
     }
 
     private String extractFinishReason(ChatResponse response) {
