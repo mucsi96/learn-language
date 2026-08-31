@@ -212,8 +212,12 @@ public class ChatService {
 
     private String extractFinishReason(ChatResponse response) {
         return Optional.ofNullable(response)
-                .map(ChatResponse::getResult)
-                .map(result -> result.getMetadata().getFinishReason())
+                .map(ChatResponse::getResults)
+                .orElse(List.of())
+                .stream()
+                .map(generation -> generation.getMetadata().getFinishReason())
+                .filter(StringUtils::hasText)
+                .reduce((first, last) -> last)
                 .orElse("unknown");
     }
 
