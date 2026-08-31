@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.azure.core.util.BinaryData;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -113,13 +114,15 @@ public class ChatService {
                 .call();
 
         final ChatResponse response = callResponse.chatResponse();
-        final String text = response.getResult().getOutput().getText();
+        final String text = extractResponseText(response);
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+        logUsage(model, operationType, response,
+                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
+                processingTime);
 
-        return text;
+        return requireResponseText(text, model, operationType, response);
     }
 
     public String callForTextWithHistory(
@@ -139,13 +142,15 @@ public class ChatService {
                 .call();
 
         final ChatResponse response = callResponse.chatResponse();
-        final String text = response.getResult().getOutput().getText();
+        final String text = extractResponseText(response);
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+        logUsage(model, operationType, response,
+                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
+                processingTime);
 
-        return text;
+        return requireResponseText(text, model, operationType, response);
     }
 
     private <T> T callWithLoggingInternal(
@@ -165,27 +170,39 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
+        // Lenient on blank or unparsable text so the generation fallback below
+        // runs instead of a parse error escaping from inside responseEntity:
+        // Gemini maps thought summaries to leading generations with prose text,
+        // which DefaultChatClient would otherwise feed to the converter.
         final var outputConverter = new BeanOutputConverter<T>(responseType) {
             @Override
             public T convert(String text) {
-                return StringUtils.hasText(text) ? super.convert(text) : null;
+                try {
+                    return StringUtils.hasText(text) ? super.convert(text) : null;
+                } catch (JacksonException e) {
+                    log.warn("Failed to parse model response as {}: {}", responseType.getSimpleName(),
+                            e.getMessage());
+                    return null;
+                }
             }
         };
 
         var chatResponse = callResponse.responseEntity(outputConverter,
                 spec -> spec.useProviderStructuredOutput());
         final ChatResponse response = chatResponse.getResponse();
-        final T entity = chatResponse.getEntity();
+        // ChatResponse.getResult() returns the first generation, but Anthropic
+        // thinking models emit thinking blocks as generations before the text
+        // generation, so the entity may be missing even though text was produced.
+        final T entity = Optional.ofNullable(chatResponse.getEntity())
+                .orElseGet(() -> Optional.ofNullable(extractResponseText(response))
+                        .map(outputConverter::convert)
+                        .orElse(null));
 
         long processingTime = System.currentTimeMillis() - startTime;
 
         if (entity == null) {
             logUsage(model, operationType, response, "", processingTime);
-            throw new IllegalStateException(
-                    "Chat model %s returned no content for operation %s (finish reason: %s)".formatted(
-                            model.getModelName(),
-                            operationType.getCode(),
-                            extractFinishReason(response)));
+            throw noContentException(model, operationType, response);
         }
 
         logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
@@ -193,11 +210,54 @@ public class ChatService {
         return entity;
     }
 
+    private String requireResponseText(String text, ChatModel model, OperationType operationType,
+            ChatResponse response) {
+        return Optional.ofNullable(text)
+                .orElseThrow(() -> noContentException(model, operationType, response));
+    }
+
+    private IllegalStateException noContentException(ChatModel model, OperationType operationType,
+            ChatResponse response) {
+        return new IllegalStateException(
+                "Chat model %s returned no parsable content for operation %s (finish reason: %s, response text: %s)"
+                        .formatted(
+                                model.getModelName(),
+                                operationType.getCode(),
+                                extractFinishReason(response),
+                                abbreviate(extractResponseText(response))));
+    }
+
+    private String abbreviate(String text) {
+        return Optional.ofNullable(text)
+                .map(value -> value.length() > 500 ? value.substring(0, 500) + "…" : value)
+                .orElse("none");
+    }
+
     private String extractFinishReason(ChatResponse response) {
         return Optional.ofNullable(response)
-                .map(ChatResponse::getResult)
-                .map(result -> result.getMetadata().getFinishReason())
+                .map(ChatResponse::getResults)
+                .orElse(List.of())
+                .stream()
+                .map(generation -> generation.getMetadata().getFinishReason())
+                .filter(StringUtils::hasText)
+                .reduce((first, last) -> last)
                 .orElse("unknown");
+    }
+
+    // Anthropic thinking models produce a thinking generation before the text
+    // generation, so the text is the last generation with non-blank content.
+    // Assumes single-candidate responses: with multiple real candidates the
+    // last one would be picked, so revisit this if candidate counts are ever
+    // configured.
+    private String extractResponseText(ChatResponse response) {
+        return Optional.ofNullable(response)
+                .map(ChatResponse::getResults)
+                .orElse(List.of())
+                .stream()
+                .map(generation -> generation.getOutput().getText())
+                .filter(StringUtils::hasText)
+                .reduce((first, last) -> last)
+                .orElse(null);
     }
 
     private void logUsage(ChatModel model, OperationType operationType, ChatResponse chatResponse, String text, long processingTime) {
