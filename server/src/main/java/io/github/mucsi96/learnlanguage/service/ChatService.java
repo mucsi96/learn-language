@@ -4,14 +4,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.azure.core.util.BinaryData;
 import tools.jackson.databind.json.JsonMapper;
@@ -162,16 +165,39 @@ public class ChatService {
                 .user(userBuilder)
                 .call();
 
-        var chatResponse = callResponse.responseEntity(responseType,
+        final var outputConverter = new BeanOutputConverter<T>(responseType) {
+            @Override
+            public T convert(String text) {
+                return StringUtils.hasText(text) ? super.convert(text) : null;
+            }
+        };
+
+        var chatResponse = callResponse.responseEntity(outputConverter,
                 spec -> spec.useProviderStructuredOutput());
         final ChatResponse response = chatResponse.getResponse();
         final T entity = chatResponse.getEntity();
 
         long processingTime = System.currentTimeMillis() - startTime;
 
+        if (entity == null) {
+            logUsage(model, operationType, response, "", processingTime);
+            throw new IllegalStateException(
+                    "Chat model %s returned no content for operation %s (finish reason: %s)".formatted(
+                            model.getModelName(),
+                            operationType.getCode(),
+                            extractFinishReason(response)));
+        }
+
         logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
         return entity;
+    }
+
+    private String extractFinishReason(ChatResponse response) {
+        return Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getMetadata().getFinishReason())
+                .orElse("unknown");
     }
 
     private void logUsage(ChatModel model, OperationType operationType, ChatResponse chatResponse, String text, long processingTime) {

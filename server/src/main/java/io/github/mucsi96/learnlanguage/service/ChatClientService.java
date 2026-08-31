@@ -17,6 +17,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatClientService {
 
+  // Anthropic requires max_tokens and Spring AI defaults it to 4096; adaptive
+  // thinking counts against the same budget and can leave no room for output.
+  private static final int ANTHROPIC_MAX_TOKENS = 16000;
+
   private final OpenAiChatModel openAiChatModel;
   private final AnthropicChatModel anthropicChatModel;
   private final GoogleGenAiChatModel googleGenAiChatModel;
@@ -28,16 +32,24 @@ public class ChatClientService {
           .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
           .build();
       case CLAUDE_SONNET_4_5 -> ChatClient.builder(anthropicChatModel)
-          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_SONNET_4_5))
+          .defaultOptions(AnthropicChatOptions.builder()
+              .model(com.anthropic.models.messages.Model.CLAUDE_SONNET_4_5)
+              .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
       case CLAUDE_SONNET_5 -> ChatClient.builder(anthropicChatModel)
-          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-sonnet-5")))
+          .defaultOptions(AnthropicChatOptions.builder()
+              .model(com.anthropic.models.messages.Model.of("claude-sonnet-5"))
+              .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
       case CLAUDE_HAIKU_4_5 -> ChatClient.builder(anthropicChatModel)
-          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.CLAUDE_HAIKU_4_5))
+          .defaultOptions(AnthropicChatOptions.builder()
+              .model(com.anthropic.models.messages.Model.CLAUDE_HAIKU_4_5)
+              .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
       case CLAUDE_OPUS_4_8 -> ChatClient.builder(anthropicChatModel)
-          .defaultOptions(AnthropicChatOptions.builder().model(com.anthropic.models.messages.Model.of("claude-opus-4-8")))
+          .defaultOptions(AnthropicChatOptions.builder()
+              .model(com.anthropic.models.messages.Model.of("claude-opus-4-8"))
+              .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
       case GROK_4_6, GROK_4_3 -> ChatClient.builder(xaiChatModel.chatModel())
           .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
