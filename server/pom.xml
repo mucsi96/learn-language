@@ -197,6 +197,16 @@
           </excludes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <configuration>
+          <buildArgs>
+            <!-- Portable x86-64 code so the binary runs on older deployment hardware -->
+            <buildArg>-march=compatibility</buildArg>
+          </buildArgs>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 

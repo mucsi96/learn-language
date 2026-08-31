@@ -2,14 +2,17 @@ package io.github.mucsi96.learnlanguage;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import io.github.mucsi96.learnlanguage.config.DatabaseStartupInitializer;
+import io.github.mucsi96.learnlanguage.config.NativeRuntimeHints;
 
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
+@ImportRuntimeHints(NativeRuntimeHints.class)
 public class LearnLanguageApplication {
 
 	public static void main(String[] args) {

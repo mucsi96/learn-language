@@ -1,36 +1,32 @@
-# Stage 1: Build server with Maven
-FROM docker.io/library/maven:3-eclipse-temurin-21 AS build
+# Stage 1: Compile a GraalVM native image
+FROM ghcr.io/graalvm/native-image-community:21 AS build
 
 WORKDIR /workspace
 
-# Copy POM and download dependencies (cached separately from source)
-COPY pom.xml ./
-RUN mvn dependency:go-offline -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+# Copy build definition and download dependencies (cached separately from source)
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-# Copy source code and build
+# Copy source code and build the native executable
 COPY src ./src
-RUN mvn package -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+RUN ./mvnw -Pnative native:compile -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-# Extract dependencies for layer caching
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+# Collect the executable and the AWT/JNI shared libraries emitted next to it
+RUN mkdir /dist && cp target/learnlanguage /dist/ && (cp target/*.so /dist/ 2>/dev/null || true)
 
 # Stage 2: Runtime image
-FROM docker.io/library/eclipse-temurin:26-jre
+FROM docker.io/library/ubuntu:24.04
 
 VOLUME /tmp
 
-ARG DEPENDENCY=/workspace/target/dependency
 ARG SPRING_PROFILES_ACTIVE=prod
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl ffmpeg fontconfig fonts-dejavu-core libfreetype6 && rm -rf /var/lib/apt/lists/*
 
-# Copy application layers
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+COPY --from=build /dist /app
 
-# Set environment variables
 ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
 
 # Run the application
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-Djdk.httpclient.allowRestrictedHeaders=content-length", "-cp", "app:app/lib/*", "io.github.mucsi96.learnlanguage.LearnLanguageApplication"]
+ENTRYPOINT ["/app/learnlanguage", "-XX:MaximumHeapSizePercent=75", "-Djdk.httpclient.allowRestrictedHeaders=content-length"]
