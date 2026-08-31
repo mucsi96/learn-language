@@ -219,6 +219,9 @@ public class ChatService {
 
     // Anthropic thinking models produce a thinking generation before the text
     // generation, so the text is the last generation with non-blank content.
+    // Assumes single-candidate responses: with multiple real candidates the
+    // last one would be picked, so revisit this if candidate counts are ever
+    // configured.
     private String extractResponseText(ChatResponse response) {
         return Optional.ofNullable(response)
                 .map(ChatResponse::getResults)
