@@ -117,7 +117,9 @@ public class ChatService {
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+        logUsage(model, operationType, response,
+                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
+                processingTime);
 
         return requireResponseText(text, model, operationType, response);
     }
@@ -143,7 +145,9 @@ public class ChatService {
 
         long processingTime = System.currentTimeMillis() - startTime;
 
-        logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text), processingTime);
+        logUsage(model, operationType, response,
+                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
+                processingTime);
 
         return requireResponseText(text, model, operationType, response);
     }
