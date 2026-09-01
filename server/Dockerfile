@@ -20,7 +20,7 @@ RUN microdnf install -y zip && microdnf clean all \
 # Copy source code and build the native executable; the builder heap is pinned
 # so the compile phase does not exhaust the CI runner's memory
 COPY src ./src
-RUN NATIVE_IMAGE_OPTIONS="-J-Xmx12g" ./mvnw -Pnative native:compile -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+RUN NATIVE_IMAGE_OPTIONS="-J-Xmx13g --parallelism=2" ./mvnw -Pnative native:compile -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
 # Collect the executable and the AWT/JNI shared libraries emitted next to it
 RUN mkdir /dist && cp target/learnlanguage /dist/ && (cp target/*.so /dist/ 2>/dev/null || true)

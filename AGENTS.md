@@ -79,7 +79,10 @@ cd server/
 ./mvnw spring-boot:run              # Run development server
 ./mvnw test                         # Run tests
 ./mvnw clean compile               # Clean and compile
+./mvnw -Pnative native:compile -DskipTests  # Build GraalVM native image (requires GraalVM 25 innovation line)
 ```
+
+The production server image is a GraalVM native executable (see `server/Dockerfile`). Reflection-heavy additions (new model classes are covered automatically by `NativeRuntimeHints`; new AWT/JNI usage is not) may need runtime hints or reachability metadata in `server/src/main/resources/META-INF/native-image/`.
 
 ### Testing
 ```bash
