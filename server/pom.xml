@@ -207,6 +207,9 @@
             <!-- Stateless Jackson 2 constant tables referenced from build-time-initialized
                  static fields of dependencies -->
             <buildArg>--initialize-at-build-time=com.fasterxml.jackson.core.Base64Variant,com.fasterxml.jackson.core.Base64Variants</buildArg>
+            <!-- LoggerFactory initializes at build time and caches these substitute
+                 provider helpers in its static state -->
+            <buildArg>--initialize-at-build-time=org.slf4j.helpers</buildArg>
           </buildArgs>
         </configuration>
       </plugin>
