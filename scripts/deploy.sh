@@ -33,6 +33,9 @@ clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -
 
 echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
 
+# CPU limits are intentionally omitted for both services (limits.cpu=null
+# clears the chart default): on a single-user node they only throttle
+# startup; memory limits are the ones that matter.
 helm upgrade $SERVER_RELEASE_NAME mucsi96/spring-app \
     --install \
     --version $springAppChartVersion \
@@ -54,7 +57,7 @@ helm upgrade $SERVER_RELEASE_NAME mucsi96/spring-app \
     --set resources.requests.memory=640Mi \
     --set resources.requests.cpu=50m \
     --set resources.limits.memory=1Gi \
-    --set resources.limits.cpu=1 \
+    --set resources.limits.cpu=null \
     --wait
 
 echo "Deploying client: $DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag using client-app chart $clientAppChartVersion"
@@ -68,5 +71,5 @@ helm upgrade $CLIENT_RELEASE_NAME mucsi96/client-app \
     --set resources.requests.memory=32Mi \
     --set resources.requests.cpu=10m \
     --set resources.limits.memory=128Mi \
-    --set resources.limits.cpu=200m \
+    --set resources.limits.cpu=null \
     --wait
