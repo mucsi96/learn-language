@@ -210,4 +210,30 @@
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>native</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>process-aot</id>
+                <configuration>
+                  <arguments>
+                    <!-- The Key Vault property source resolves its endpoint during AOT
+                         processing, where no environment is available -->
+                    <argument>--spring.cloud.azure.keyvault.secret.property-source-enabled=false</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
