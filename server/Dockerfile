@@ -1,5 +1,8 @@
 # Stage 1: Compile a GraalVM native image
-FROM ghcr.io/graalvm/native-image-community:25 AS build
+# The innovation line (25iN) is required: the native-maven-plugin managed by
+# Spring Boot needs its reachability-metadata schema support, which the 25.0.x
+# maintenance line lacks
+FROM ghcr.io/graalvm/native-image-community:25i3 AS build
 
 WORKDIR /workspace
 
