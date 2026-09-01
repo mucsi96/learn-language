@@ -226,6 +226,10 @@
                     <!-- The Key Vault property source resolves its endpoint during AOT
                          processing, where no environment is available -->
                     <argument>--spring.cloud.azure.keyvault.secret.property-source-enabled=false</argument>
+                    <!-- Management-port conditions are evaluated during AOT processing, where
+                         SPRING_ACTUATOR_PORT is unset; any port different from the server port
+                         freezes the same separate-management-port topology used at runtime -->
+                    <argument>--management.server.port=8172</argument>
                   </arguments>
                 </configuration>
               </execution>
