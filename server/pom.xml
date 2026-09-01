@@ -204,6 +204,9 @@
           <buildArgs>
             <!-- Portable x86-64 code so the binary runs on older deployment hardware -->
             <buildArg>-march=compatibility</buildArg>
+            <!-- Stateless Jackson 2 constant tables referenced from build-time-initialized
+                 static fields of dependencies -->
+            <buildArg>--initialize-at-build-time=com.fasterxml.jackson.core.Base64Variant,com.fasterxml.jackson.core.Base64Variants</buildArg>
           </buildArgs>
         </configuration>
       </plugin>
