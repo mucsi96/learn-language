@@ -212,6 +212,9 @@
                  provider in its static state, pulling the logging ecosystem into the
                  image heap; Spring Boot reconfigures logging at runtime startup -->
             <buildArg>--initialize-at-build-time=org.slf4j,ch.qos.logback</buildArg>
+            <!-- Kotlin stdlib objects (lazy holders, companions) reached through
+                 build-time-initialized OkHttp/OpenAI client statics -->
+            <buildArg>--initialize-at-build-time=kotlin</buildArg>
           </buildArgs>
         </configuration>
       </plugin>
