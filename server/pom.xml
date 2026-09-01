@@ -204,9 +204,10 @@
           <buildArgs>
             <!-- Portable x86-64 code so the binary runs on older deployment hardware -->
             <buildArg>-march=compatibility</buildArg>
-            <!-- Stateless Jackson 2 constant tables referenced from build-time-initialized
-                 static fields of dependencies -->
-            <buildArg>--initialize-at-build-time=com.fasterxml.jackson.core.Base64Variant,com.fasterxml.jackson.core.Base64Variants</buildArg>
+            <!-- Jackson 2 objects (constant tables, mappers) are referenced from
+                 build-time-initialized static fields of dependencies; Jackson static
+                 state is caches and constants, safe to initialize at build time -->
+            <buildArg>--initialize-at-build-time=com.fasterxml.jackson</buildArg>
             <!-- LoggerFactory initializes at build time and caches the bound Logback
                  provider in its static state, pulling the logging ecosystem into the
                  image heap; Spring Boot reconfigures logging at runtime startup -->
