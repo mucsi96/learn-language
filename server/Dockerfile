@@ -11,6 +11,12 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
+# Strip Microsoft's jar signatures: AOT-generated classes share packages with
+# the signed Azure jars, and native-image refuses mixed signer information
+RUN microdnf install -y zip && microdnf clean all \
+  && find /root/.m2/repository/com/azure /root/.m2/repository/com/microsoft -name '*.jar' \
+       -exec sh -c 'zip -q -d "$1" "META-INF/*.SF" "META-INF/*.RSA" "META-INF/*.DSA" || true' _ {} \;
+
 # Copy source code and build the native executable
 COPY src ./src
 RUN ./mvnw -Pnative native:compile -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
