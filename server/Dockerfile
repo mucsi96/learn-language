@@ -1,5 +1,5 @@
 # Stage 1: Compile a GraalVM native image
-FROM ghcr.io/graalvm/native-image-community:21 AS build
+FROM ghcr.io/graalvm/native-image-community:25 AS build
 
 WORKDIR /workspace
 
