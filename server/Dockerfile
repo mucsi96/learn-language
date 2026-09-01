@@ -35,7 +35,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ffmpeg fon
 
 COPY --from=build /dist /app
 
+# sun.awt.FontConfiguration requires java.home to point at an existing
+# directory with a lib folder; fonts themselves come from system fontconfig
+RUN mkdir -p /app/lib
+
 ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
 
 # Run the application
-ENTRYPOINT ["/app/learnlanguage", "-XX:MaximumHeapSizePercent=75", "-Djdk.httpclient.allowRestrictedHeaders=content-length"]
+ENTRYPOINT ["/app/learnlanguage", "-XX:MaximumHeapSizePercent=75", "-Djdk.httpclient.allowRestrictedHeaders=content-length", "-Djava.home=/app", "-Djava.awt.headless=true"]
