@@ -1,11 +1,21 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+
 import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import io.github.mucsi96.learnlanguage.model.CardData;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
@@ -37,6 +47,19 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
  * {@link CardData} is the only such payload with a structure of its own -
  * {@code WordImportCandidate.examples} is a {@code List<String>}. The registrar
  * follows the property types it reaches, so the nested models come with it.
+ *
+ * Jackson is not the only thing reading these, though. Hibernate takes a deep
+ * copy of every mapped attribute for the dirty-checking snapshot, and
+ * hypersistence implements that for a json column by round-tripping the value
+ * through <em>Java</em> serialization whenever it implements
+ * {@link Serializable} - which {@code CardData} and everything it holds do. A
+ * native image resolves serialization constructors at build time, so without
+ * that metadata reading a single card fails with
+ * {@code UnsupportedFeatureError: SerializationConstructorAccessor class not
+ * found for declaringClass: ... CardData}. The whole model package is scanned
+ * rather than naming the four types that qualify today, and the JDK collections
+ * Jackson instantiates for the {@code List} and {@code Map} fields are
+ * registered alongside them, since the snapshot walks those too.
  */
 @Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(JsonbNativeHints.Registrar.class)
@@ -45,6 +68,12 @@ public class JsonbNativeHints {
   static class Registrar implements RuntimeHintsRegistrar {
 
     private static final String KOTLIN_OBJECT_MAPPER_BUILDER = "io.hypersistence.utils.hibernate.type.util.KotlinObjectMapperBuilder";
+
+    private static final String MODEL_PACKAGE = "io.github.mucsi96.learnlanguage.model";
+
+    /** What Jackson instantiates for the payloads' {@code List} and {@code Map} fields. */
+    private static final List<Class<? extends Serializable>> SNAPSHOT_COLLECTIONS = List.of(
+        ArrayList.class, LinkedHashMap.class, HashMap.class);
 
     private final BindingReflectionHintsRegistrar bindingRegistrar = new BindingReflectionHintsRegistrar();
 
@@ -55,6 +84,16 @@ public class JsonbNativeHints {
       hints.reflection().registerTypeIfPresent(classLoader, KOTLIN_OBJECT_MAPPER_BUILDER,
           MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS);
       bindingRegistrar.registerReflectionHints(hints.reflection(), CardData.class);
+
+      final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
+          false);
+      scanner.addIncludeFilter(new AssignableTypeFilter(Serializable.class));
+      scanner.findCandidateComponents(MODEL_PACKAGE).stream()
+          .map(BeanDefinition::getBeanClassName)
+          .map(TypeReference::of)
+          .forEach(hints.serialization()::registerType);
+
+      SNAPSHOT_COLLECTIONS.forEach(hints.serialization()::registerType);
     }
   }
 }

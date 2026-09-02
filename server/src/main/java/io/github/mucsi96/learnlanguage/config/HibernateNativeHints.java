@@ -16,11 +16,14 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -29,8 +32,22 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.ClassUtils;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 /**
+ * The two things Hibernate reaches for reflectively that nothing else registers:
+ * the generated static metamodel, and the array types.
+ *
+ * Hibernate populates the {@code Xyz_} classes the annotation processor
+ * generates by writing their static fields itself, reflectively, while it builds
+ * the metamodel. Without field access those fields stay null, and because a null
+ * reads as a perfectly ordinary attribute argument the failure surfaces far
+ * away, as a {@code NullPointerException} inside
+ * {@code AbstractSqmPath.resolvePath} the first time a
+ * {@code PredicateSpecification} builds a path - see the specifications in
+ * {@code repository.specification}, which is where every query built from the
+ * metamodel goes through.
+ *
  * Array types Hibernate instantiates reflectively while building the entity
  * manager factory.
  *
@@ -74,14 +91,30 @@ public class HibernateNativeHints {
       Stream.concat(Arrays.stream(BASIC_TYPES), entityFieldTypes(classLoader))
           .distinct()
           .forEach(type -> hints.reflection().registerType(type.arrayType()));
+
+      scan(new AnnotationTypeFilter(StaticMetamodel.class)).stream()
+          .map(BeanDefinition::getBeanClassName)
+          .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name,
+              MemberCategory.ACCESS_DECLARED_FIELDS));
+    }
+
+    private static Set<BeanDefinition> scan(AnnotationTypeFilter filter) {
+      final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
+          false) {
+        @Override
+        protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+          // The default rejects abstract types, and the generated metamodel
+          // classes are all abstract - keeping the default silently finds none
+          // of them, which is indistinguishable from having nothing to register.
+          return true;
+        }
+      };
+      scanner.addIncludeFilter(filter);
+      return scanner.findCandidateComponents(ENTITY_PACKAGE);
     }
 
     private Stream<Class<?>> entityFieldTypes(ClassLoader classLoader) {
-      final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
-          false);
-      scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
-
-      return scanner.findCandidateComponents(ENTITY_PACKAGE).stream()
+      return scan(new AnnotationTypeFilter(Entity.class)).stream()
           .map(BeanDefinition::getBeanClassName)
           .map(name -> ClassUtils.resolveClassName(name, classLoader))
           .flatMap(Registrar::fieldTypes);

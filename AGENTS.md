@@ -204,6 +204,24 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   is what that mapper reads and writes: with no members in the image, writing a
   card produces `{}` and reading one gives back an object with every field null.
   `JsonbNativeHints` covers all three.
+- Hibernate fills in the `Xyz_` classes the annotation processor generates by
+  writing their static fields itself, reflectively, while it builds the
+  metamodel. Without field access registered they stay null, and a null reads as
+  a perfectly ordinary attribute argument, so the failure surfaces far from the
+  cause: a `NullPointerException` inside `AbstractSqmPath.resolvePath` the first
+  time a `PredicateSpecification` builds a path. Every specification in
+  `repository.specification` goes through the metamodel, so this takes out the
+  study session, card search and cleanup queries together.
+  `HibernateNativeHints` registers everything annotated `@StaticMetamodel`.
+- Hibernate takes a deep copy of every mapped attribute for its dirty-checking
+  snapshot, and hypersistence implements that for a `jsonb` column by
+  round-tripping the value through *Java* serialization whenever it implements
+  `Serializable` - which `CardData` and everything it holds do. A native image
+  resolves serialization constructors at build time, so without that metadata
+  reading a single card fails with `UnsupportedFeatureError:
+  SerializationConstructorAccessor class not found`. `JsonbNativeHints`
+  registers the model package's `Serializable` types and the JDK collections
+  Jackson instantiates for their `List` and `Map` fields.
 - A native image generates no bytecode at runtime, so Hibernate's
   `BytecodeProvider` is `none` and it cannot build the `HibernateProxy` that a
   lazy `@ManyToOne` needs: loading a `Document`, or a `Source` that belongs to a
@@ -314,6 +332,13 @@ java -Dspring.aot.enabled=true -jar target/learnlanguage-0.0.1-SNAPSHOT.jar
 That exercises the generated context - missing bean definitions, profile and
 condition mismatches - in seconds. Only class-initialization and reflection
 problems need the real `mvn -Pnative native:compile`.
+
+A trap worth knowing before writing another registrar: the default
+`ClassPathScanningCandidateComponentProvider` silently skips abstract types, and
+several of the things worth registering - the generated metamodel classes, the
+SDKs' union base types, Liquibase's abstract changes - are abstract. Finding
+none of them looks exactly like having nothing to register, so every registrar
+here overrides `isCandidateComponent` to accept them.
 
 Types that are only ever bound reflectively need explicit hints. Controller
 request/response types, JPA entities and Spring Data repositories are covered by
