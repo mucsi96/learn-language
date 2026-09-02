@@ -247,6 +247,15 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   every getter of every change in the changelog. So the first deployment of an
   image works and its next restart fails. `LiquibaseNativeHints` registers the
   whole hierarchy, which also keeps a new changeset from reintroducing it.
+- The framework's AOT processing covers types it can see being bound, which does
+  not include a model that only ever passes through the `JsonMapper` bean -
+  several services build their user message by serializing a request model to
+  JSON by hand. Without members Jackson writes `{}`, so the prompt goes out
+  empty and nothing fails: the model just answers a question that no longer says
+  anything, and the reply fails to parse a step later.
+  `ModelBindingNativeHints` registers the whole `model` package rather than the
+  types that were wrong, because the next service to serialize one by hand would
+  reintroduce this with no signal at build time and none at runtime either.
 - Structured chat responses go through `BeanOutputConverter`, which builds a
   JSON schema from the response type and parses the reply back into it, both
   reflectively. The response types are ordinary application records that nothing
