@@ -284,6 +284,13 @@
             <!-- See native-image.security for why the builder has to ignore
                  jar signatures. -->
             <buildArg>-J-Djava.security.properties=${project.basedir}/native-image.security</buildArg>
+            <!-- The OpenAI SDK ships agent-recorded metadata that registers
+                 its entire 25k-class surface for reflection, which by itself
+                 exhausts the builder's heap. OpenAiNativeHints registers the
+                 packages actually used instead. -->
+            <buildArg>--exclude-config</buildArg>
+            <buildArg>.*/openai-java-core-[^/]+\.jar</buildArg>
+            <buildArg>META-INF/native-image/.*</buildArg>
           </buildArgs>
         </configuration>
       </plugin>

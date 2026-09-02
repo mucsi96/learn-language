@@ -9,7 +9,7 @@ on:
 jobs:
   build-server-image:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     concurrency:
       group: ${{ github.workflow }}-build-server-image-${{ github.ref }}
       cancel-in-progress: true
@@ -183,7 +183,7 @@ jobs:
       group: publish-server-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     needs: test-e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:

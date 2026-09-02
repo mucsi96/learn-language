@@ -191,12 +191,20 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   request time, on every call to the model. `AnthropicNativeHints` and
   `OpenAiNativeHints` register the SDK model packages this application and
   Spring AI use; the beta, assistants, realtime and admin surfaces stay out of
-  the image. `GoogleGenAiNativeHints` does the same for the Google GenAI SDK's
-  AutoValue types, and `ApplicationModelNativeHints` for this application's
+  the image. The OpenAI SDK does ship its own agent-recorded metadata, but it
+  registers all 25k of its classes and by itself exhausts the builder's heap,
+  so the build excludes it (`--exclude-config` in `native-maven-plugin`). The
+  Google GenAI SDK's metadata is generated per type and complete, so it is
+  used as shipped. `ApplicationModelNativeHints` covers this application's
   own Jackson-bound types: the JSONB payloads, the structured-output records the
   services declare, and the records third-party REST responses are read into.
   All of them scan packages rather than naming classes, so a new model type or
   response record needs no hint of its own.
+- Every reflectively registered class is reachable, and the builder's memory
+  and time grow with the reachable set. When a build starts failing with the
+  image generator watchdog aborting on "no activity" next to a nearly full
+  heap, that is memory, not a deadlock: look at the "types registered for
+  reflection" line and find which jar's shipped metadata or which hint grew.
 - The fonts embedded in the study-session PDF and the glyph lists, AFM metrics,
   CMaps and ICC profile PDFBox and FontBox load lazily are classpath resources
   nothing registers by itself; `ClassPathResourceNativeHints` does.
