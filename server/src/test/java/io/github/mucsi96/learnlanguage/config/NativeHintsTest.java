@@ -29,6 +29,7 @@ class NativeHintsTest {
   void openAiModelsAreRegistered() {
     assertThat(registeredTypes(new OpenAiNativeHints.Registrar()))
         .contains("com.openai.models.chat.completions.ChatCompletionCreateParams",
+            "com.openai.models.completions.CompletionUsage",
             "com.openai.models.images.ImageGenerateParams",
             "com.openai.models.audio.transcriptions.TranscriptionCreateParams",
             "com.openai.models.ChatModel",

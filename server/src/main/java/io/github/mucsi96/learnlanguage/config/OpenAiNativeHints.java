@@ -22,7 +22,10 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * excludes the SDK's own metadata ({@code --exclude-config} in
  * {@code pom.xml}) and registers here exactly the packages this application
  * and Spring AI use: chat completions, image generation, audio transcription,
- * and the shared types they sit on.
+ * and the shared types they sit on. Spring AI's chat client reads token usage
+ * through the legacy completions package, which is why that one is listed
+ * next to chat; without it the first chat call fails on
+ * {@code CompletionUsage}.
  *
  * xAI is reached through the same SDK pointed at a different base URL, so it
  * is covered here as well. The Google GenAI SDK needs nothing of the kind: its
@@ -47,6 +50,7 @@ public class OpenAiNativeHints {
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       ClassPathReflectionHints.registerPackages(hints, classLoader,
           "com.openai.models.chat",
+          "com.openai.models.completions",
           "com.openai.models.images",
           "com.openai.models.audio",
           "com.openai.core");
