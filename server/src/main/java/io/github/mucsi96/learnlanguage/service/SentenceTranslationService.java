@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(SentenceTranslationService.SentenceTranslationResponse.class)
 public class SentenceTranslationService {
 
   record SentenceTranslationResponse(String translation) {

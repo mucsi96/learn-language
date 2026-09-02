@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(AnswerCheckService.AnswerCheckResult.class)
 public class AnswerCheckService {
 
     private final CardService cardService;

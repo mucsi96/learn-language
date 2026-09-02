@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(TranslationResponse.class)
 public class TranslationService {
 
   private static final String ENGLISH = "en";

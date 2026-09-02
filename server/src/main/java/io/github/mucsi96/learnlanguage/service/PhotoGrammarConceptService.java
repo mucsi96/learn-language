@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.LessonDescription;
@@ -13,6 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(PhotoGrammarConceptService.ConceptSentences.class)
 public class PhotoGrammarConceptService {
 
   record ConceptSentence(String sentence, String hint) {

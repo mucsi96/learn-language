@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(DictionaryService.DictionaryLookupResponse.class)
 public class DictionaryService {
 
     private static final Map<String, String> LANGUAGE_NAMES = Map.of(

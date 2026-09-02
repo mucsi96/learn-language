@@ -3,6 +3,7 @@ package io.github.mucsi96.learnlanguage.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.NormalizeWordResponse;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(WordNormalizationService.NormalizationResult.class)
 public class WordNormalizationService {
 
     private static final String SYSTEM_PROMPT = """

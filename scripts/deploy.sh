@@ -33,6 +33,18 @@ clientAppChartVersion=$(helm search repo mucsi96/client-app --output json | jq -
 
 echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestTag using spring-app chart $springAppChartVersion"
 
+# The server is a GraalVM native executable, so there is no JVM metaspace, no
+# code cache and no JIT-compiled code to hold: it idles far below what the
+# 640Mi request assumed for the JRE image, hence the smaller request. The
+# request is what the scheduler reserves around the clock, so it is sized for
+# idle. It is an estimate, not a measurement - replace it with the resident
+# figure metrics-server reports once this image has run in production for a
+# while.
+#
+# The limit is the opposite question and stays where it is: it has to cover the
+# idle footprint plus the 512Mi heap the image is capped at (see the ENTRYPOINT
+# in server/Dockerfile - keep the two in step), which PDF rendering and image
+# preprocessing are what actually need.
 helm upgrade $SERVER_RELEASE_NAME mucsi96/spring-app \
     --install \
     --version $springAppChartVersion \
@@ -51,7 +63,7 @@ helm upgrade $SERVER_RELEASE_NAME mucsi96/spring-app \
     --set persistentVolumeClaims[0].mountPath=/app/storage \
     --set persistentVolumeClaims[0].storageClassName="" \
     --set persistentVolumeClaims[0].storage=5Gi \
-    --set resources.requests.memory=640Mi \
+    --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=50m \
     --set resources.limits.memory=1Gi \
     --set resources.limits.cpu=1 \

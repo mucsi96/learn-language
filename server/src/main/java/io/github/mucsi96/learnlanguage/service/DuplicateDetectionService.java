@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.model.ChatModel;
@@ -18,6 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(DuplicateDetectionResponse.class)
 public class DuplicateDetectionService {
 
     private static final int PREFIX_LENGTH = 2;

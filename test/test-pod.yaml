@@ -163,8 +163,6 @@ spec:
           value: "8074"
         - name: SPRING_ACTUATOR_PORT
           value: "8172"
-        - name: SPRING_PROFILES_ACTIVE
-          value: test
         - name: DB_URL
           value: jdbc:postgresql://localhost:5432/test
         - name: DB_USERNAME
@@ -204,10 +202,15 @@ spec:
       volumeMounts:
         - name: storage
           mountPath: /app/storage
+      # The native executable is serving a second or so after the container
+      # starts, so there is little to wait for before the first probe. The
+      # window stays generous because readiness still waits for the db
+      # container and the Liquibase migration.
       startupProbe:
         httpGet:
           path: /actuator/health/readiness
           port: 8172
+        initialDelaySeconds: 2
         periodSeconds: 2
         failureThreshold: 30
       livenessProbe:
