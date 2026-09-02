@@ -23,10 +23,13 @@ WORKDIR /workspace
 COPY pom.xml ./
 RUN mvn dependency:go-offline -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-# Copy source code and compile the native executable
+# Copy source code and compile the native executable. The JVM tests run first:
+# NativeHintsTest is what catches a scanned package that an SDK upgrade
+# renamed, and it is worth its few seconds here rather than forty minutes
+# later as a native image that fails at its first call to that SDK.
 COPY native-image.security ./
 COPY src ./src
-RUN mvn -Pnative native:compile -DskipTests -B \
+RUN mvn -Pnative native:compile -B \
     -Dapp.profile=${SPRING_PROFILE} \
     -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
@@ -48,7 +51,10 @@ COPY --from=build /workspace/target/learnlanguage /workspace/target/*.so /app/
 # There is no JDK in this image, so java.home is unset, and the Azure SDK's JDK
 # HTTP client builder dereferences it to read <java.home>/conf/net.properties.
 # Point it at an empty file: the JDK ships that property empty by default too,
-# and the header allow-list below is what actually matters.
+# and the header allow-list below is what actually matters. TLS is unaffected
+# by the missing JDK: the native image carries the build JDK's CA trust
+# anchors in its image heap, it does not read <java.home>/lib/security at
+# runtime.
 RUN mkdir -p /app/conf && : > /app/conf/net.properties
 
 # An absolute heap cap rather than the percentage of physical memory the default

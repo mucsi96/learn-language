@@ -82,8 +82,8 @@ cd server/
 ```
 
 Local development still runs on a plain JVM. The native image is built only by
-the container build - see **Native image and the baked-in Spring profile**
-below.
+the container build, which also runs the JVM unit tests first - see **Native
+image and the baked-in Spring profile** below.
 
 ### Testing
 ```bash
