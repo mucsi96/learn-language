@@ -3,10 +3,13 @@ package io.github.mucsi96.learnlanguage.config;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import io.hypersistence.utils.hibernate.type.util.JsonSerializer;
 import io.hypersistence.utils.hibernate.type.util.ObjectMapperWrapper;
@@ -49,12 +52,30 @@ public final class JacksonCloningJsonSerializer implements JsonSerializer {
   /**
    * Collections and maps come back as the mutable {@code ArrayList} and
    * {@code LinkedHashMap} Jackson builds for {@code List} and {@code Map},
-   * whatever implementation the application handed over.
+   * whatever implementation the application handed over. Their runtime class
+   * says nothing about the element type, so it is taken from the first
+   * element, the way Hypersistence's own serializer does: a JSONB column
+   * holds one kind of value, and a column declared as {@code List<Record>}
+   * has to come back as records, not as the maps Jackson would otherwise
+   * build.
    */
   private JavaType cloneType(Object value) {
-    final Class<?> type = value instanceof Collection ? List.class
-        : value instanceof Map ? Map.class
-        : value.getClass();
-    return objectMapper.getTypeFactory().constructType(type);
+    final TypeFactory types = objectMapper.getTypeFactory();
+    if (value instanceof Collection<?> collection) {
+      return types.constructCollectionType(List.class, elementType(collection.stream()));
+    }
+    if (value instanceof Map<?, ?> map) {
+      return types.constructMapType(Map.class, types.constructType(String.class), elementType(map.values().stream()));
+    }
+    return types.constructType(value.getClass());
+  }
+
+  private JavaType elementType(Stream<?> elements) {
+    final TypeFactory types = objectMapper.getTypeFactory();
+    return elements
+        .filter(Objects::nonNull)
+        .findFirst()
+        .map(element -> types.constructType(element.getClass()))
+        .orElseGet(() -> types.constructType(Object.class));
   }
 }

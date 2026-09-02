@@ -53,4 +53,24 @@ class JacksonCloningJsonSerializerTest {
 
     assertThat(copy).isEqualTo(List.of("a", "b")).isInstanceOf(ArrayList.class);
   }
+
+  @Test
+  void keepsTheElementTypeOfACollection() {
+    final List<ExampleData> original = List.of(ExampleData.builder().de("Aber nein").build());
+
+    final List<ExampleData> copy = serializer.clone(original);
+
+    assertThat(copy).isEqualTo(original);
+    assertThat(copy.get(0)).isInstanceOf(ExampleData.class).isNotSameAs(original.get(0));
+  }
+
+  @Test
+  void keepsTheValueTypeOfAMap() {
+    final Map<String, ExampleData> original = Map.of("first", ExampleData.builder().de("Aber nein").build());
+
+    final Map<String, ExampleData> copy = serializer.clone(original);
+
+    assertThat(copy).isEqualTo(original);
+    assertThat(copy.get("first")).isInstanceOf(ExampleData.class);
+  }
 }
