@@ -178,6 +178,17 @@ jobs:
             head -40 "$context"
           done
 
+      # The server log above is dominated by SQL statements, and a failing
+      # request's stack trace sits somewhere in the middle of it. Repeat the
+      # error traces on their own at the end of the job log, where they are
+      # the first thing anyone reading from the bottom sees.
+      - name: Summarize server errors
+        if: failure()
+        run: |
+          podman logs learn-language-test-server 2>&1 \
+            | grep -n -A 30 -e ' ERROR ' -e 'Caused by:' \
+            | head -600 || true
+
   publish-server:
     concurrency:
       group: publish-server-${{ github.ref }}
