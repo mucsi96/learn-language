@@ -62,6 +62,13 @@ class NativeHintsTest {
   }
 
   @Test
+  void hypersistenceTypesAreRegistered() {
+    assertThat(registeredTypes(new HypersistenceNativeHints.Registrar()))
+        .contains("io.hypersistence.utils.hibernate.type.json.JsonBinaryType",
+            "io.hypersistence.utils.hibernate.type.util.ObjectMapperWrapper");
+  }
+
+  @Test
   void keyVaultPropertiesAreRegistered() {
     assertThat(registeredTypes(new KeyVaultPropertySourceNativeHints.Registrar()))
         .contains(

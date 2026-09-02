@@ -214,6 +214,10 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   connection, before any table is touched, and only in the container log.
   `LiquibaseNativeHints` registers the change, precondition and SQL generator
   packages wholesale so a new change type needs nothing.
+- Hibernate instantiates the Hypersistence `JsonBinaryType` behind the JSONB
+  columns by looking up its constructor reflectively, and the Hypersistence
+  jar's own metadata covers only the PostgreSQL `PGobject` it writes through.
+  `HypersistenceNativeHints` registers its type package.
 - The fonts embedded in the study-session PDF and the glyph lists, AFM metrics,
   CMaps and ICC profile PDFBox and FontBox load lazily are classpath resources
   nothing registers by itself; `ClassPathResourceNativeHints` does.
