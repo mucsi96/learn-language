@@ -257,6 +257,30 @@
           </execution>
         </executions>
       </plugin>
+      <!-- A native image has no runtime bytecode generation, so Hibernate's
+           BytecodeProvider is 'none' and it cannot build the HibernateProxy a
+           lazy @ManyToOne needs: loading one fails with "Generation of
+           HibernateProxy instances at runtime is not allowed". Enhancing the
+           entities at build time replaces those proxies with field
+           interception, which keeps the associations lazy - making them eager
+           instead would change what the application queries. Nothing about
+           this is native-specific in itself, so the JVM build gets the same
+           enhanced classes and behaves the same way. -->
+      <plugin>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-maven-plugin</artifactId>
+        <version>${hibernate.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+            <configuration>
+              <enableLazyInitialization>true</enableLazyInitialization>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.graalvm.buildtools</groupId>
         <artifactId>native-maven-plugin</artifactId>

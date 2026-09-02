@@ -11,6 +11,11 @@
 // and clipboard packages that a server never loads. Widening the excludes is
 // how the file shrinks; the cost of getting it wrong is an UnsatisfiedLink-like
 // failure deep inside the AWT native libraries at runtime, not a build error.
+//
+// It also emits the ICC colour profiles java.desktop carries as module
+// resources. ICC_Profile loads them by name, so without them a colour
+// conversion - rendering any CMYK PDF page, say - fails at runtime with
+// "CMMException: Invalid profile: null" from inside LCMS.
 
 import java.io.*;
 import java.lang.module.*;
@@ -50,13 +55,25 @@ public class generate_awt_jni_metadata {
     }
     types.addAll(CORE);
     Collections.sort(types);
-    System.err.println("types: " + types.size());
+
+    final List<String> resources;
+    try (ModuleReader r = ref.open()) {
+      resources = r.list().filter(n -> n.startsWith("sun/java2d/cmm/profiles/")).sorted()
+          .collect(Collectors.toList());
+    }
+
+    System.err.println("types: " + types.size() + ", resources: " + resources.size());
     try (PrintWriter w = new PrintWriter(a[0])) {
       w.println("{");
       w.println("  \"jni\": [");
       w.println(types.stream()
           .map(t -> "    {\n      \"type\": \"" + t + "\",\n      \"allDeclaredFields\": true,\n"
               + "      \"allDeclaredMethods\": true,\n      \"allDeclaredConstructors\": true\n    }")
+          .collect(Collectors.joining(",\n")));
+      w.println("  ],");
+      w.println("  \"resources\": [");
+      w.println(resources.stream()
+          .map(n -> "    {\n      \"module\": \"java.desktop\",\n      \"glob\": \"" + n + "\"\n    }")
           .collect(Collectors.joining(",\n")));
       w.println("  ]");
       w.println("}");

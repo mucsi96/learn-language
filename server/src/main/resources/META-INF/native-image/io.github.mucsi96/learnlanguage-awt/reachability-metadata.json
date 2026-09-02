@@ -10200,5 +10200,27 @@
       "allDeclaredMethods": true,
       "allDeclaredConstructors": true
     }
+  ],
+  "resources": [
+    {
+      "module": "java.desktop",
+      "glob": "sun/java2d/cmm/profiles/CIEXYZ.pf"
+    },
+    {
+      "module": "java.desktop",
+      "glob": "sun/java2d/cmm/profiles/GRAY.pf"
+    },
+    {
+      "module": "java.desktop",
+      "glob": "sun/java2d/cmm/profiles/LINEAR_RGB.pf"
+    },
+    {
+      "module": "java.desktop",
+      "glob": "sun/java2d/cmm/profiles/PYCC.pf"
+    },
+    {
+      "module": "java.desktop",
+      "glob": "sun/java2d/cmm/profiles/sRGB.pf"
+    }
   ]
 }
