@@ -19,12 +19,15 @@ jobs:
       # build argument in server/pom.xml). A 16GB runner has that much only if
       # the rest has somewhere to page out to, and the failure without it is
       # "The Native Image build process ran out of memory" tens of minutes in.
+      # A second swapfile, on the ephemeral disk: the runner already swaps on
+      # /swapfile, and fallocate on a file in use fails with "Text file busy".
       - name: Add swap space
         run: |
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo fallocate -l 8G /mnt/swapfile
+          sudo chmod 600 /mnt/swapfile
+          sudo mkswap /mnt/swapfile
+          sudo swapon /mnt/swapfile
+          free -h
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # The Spring profile is resolved during AOT processing and baked into the
@@ -185,13 +188,15 @@ jobs:
         with:
           prefix: 'server'
           src: server
+      # A second swapfile on the ephemeral disk, as in build-server-image.
       - name: Add swap space
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         run: |
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo fallocate -l 8G /mnt/swapfile
+          sudo chmod 600 /mnt/swapfile
+          sudo mkswap /mnt/swapfile
+          sudo swapon /mnt/swapfile
+          free -h
       - name: Set up Docker Buildx
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: docker/setup-buildx-action@v3
