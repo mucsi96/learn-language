@@ -31,7 +31,11 @@ import org.springframework.core.type.filter.TypeFilter;
  */
 final class ClassPathReflectionHints {
 
-  /** Anonymous and lambda classes: a {@code $} followed by a digit. */
+  /**
+   * Anonymous and lambda classes: a {@code $} followed by a digit anywhere in
+   * the name, which also drops nested types of such classes. Named nested
+   * classes ({@code Outer$Inner}) never carry one.
+   */
   private static final Pattern SYNTHETIC = Pattern.compile("\\$\\d");
 
   private static final MemberCategory[] CATEGORIES = {
