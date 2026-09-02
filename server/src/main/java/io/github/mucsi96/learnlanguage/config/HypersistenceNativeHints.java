@@ -1,5 +1,6 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,10 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * only for the PostgreSQL {@code PGobject} it writes through, not for its own
  * types. The whole type package is registered so that switching a column to
  * another of its types needs nothing.
+ *
+ * {@link JacksonCloningJsonSerializer} is instantiated by Hypersistence from
+ * the class name in {@code application.yml}, so its constructor is registered
+ * as well.
  */
 @Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(HypersistenceNativeHints.Registrar.class)
@@ -27,6 +32,7 @@ public class HypersistenceNativeHints {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       ClassPathReflectionHints.registerPackages(hints, classLoader, "io.hypersistence.utils.hibernate.type");
+      hints.reflection().registerType(JacksonCloningJsonSerializer.class, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
     }
   }
 }

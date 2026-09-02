@@ -65,7 +65,16 @@ class NativeHintsTest {
   void hypersistenceTypesAreRegistered() {
     assertThat(registeredTypes(new HypersistenceNativeHints.Registrar()))
         .contains("io.hypersistence.utils.hibernate.type.json.JsonBinaryType",
-            "io.hypersistence.utils.hibernate.type.util.ObjectMapperWrapper");
+            "io.hypersistence.utils.hibernate.type.util.ObjectMapperWrapper",
+            "io.github.mucsi96.learnlanguage.config.JacksonCloningJsonSerializer");
+  }
+
+  @Test
+  void jpaStaticMetamodelIsRegistered() {
+    assertThat(registeredTypes(new JpaStaticMetamodelNativeHints.Registrar()))
+        .contains("io.github.mucsi96.learnlanguage.entity.Card_",
+            "io.github.mucsi96.learnlanguage.entity.ChatModelSetting_")
+        .noneMatch(name -> name.equals("io.github.mucsi96.learnlanguage.entity.Card"));
   }
 
   @Test

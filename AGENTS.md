@@ -218,7 +218,24 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
 - Hibernate instantiates the Hypersistence `JsonBinaryType` behind the JSONB
   columns by looking up its constructor reflectively, and the Hypersistence
   jar's own metadata covers only the PostgreSQL `PGobject` it writes through.
-  `HypersistenceNativeHints` registers its type package.
+  `HypersistenceNativeHints` registers its type package. Hypersistence also
+  deep-copies every JSONB value it loads, for dirty checking, and its default
+  serializer does that through Java serialization - which a native image only
+  supports for classes registered for it, down to the collections inside the
+  value, so the first card loaded fails with `UnsupportedFeatureError:
+  SerializationConstructorAccessor class not found`. (It is not an option to
+  drop `Serializable` from the model classes: the default serializer refuses a
+  value that is not `Serializable` outright.) `application.yml` therefore
+  points `hypersistence.utils.json.serializer` at
+  `JacksonCloningJsonSerializer`, which copies through a Jackson round trip.
+- `hibernate-processor` generates a static metamodel class (`Card_`) next to
+  every entity, and Hibernate fills in its constants at startup by setting the
+  class's static fields reflectively. Spring's JPA AOT support registers the
+  entities but not these companions, and Hibernate treats an unreachable one
+  as absent without a warning, so every constant stays `null` and the first
+  Criteria query or `Specification` that uses one fails with a bare
+  `NullPointerException` in Hibernate's SQM path resolution.
+  `JpaStaticMetamodelNativeHints` registers their fields.
 - The fonts embedded in the study-session PDF and the glyph lists, AFM metrics,
   CMaps and ICC profile PDFBox and FontBox load lazily are classpath resources
   nothing registers by itself; `ClassPathResourceNativeHints` does.
