@@ -1,5 +1,8 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import java.util.stream.Stream;
+
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +28,14 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * is covered here as well. The Google GenAI SDK needs nothing of the kind: its
  * metadata is generated per type alongside the AutoValue classes and is
  * complete.
+ *
+ * Excluding the SDK's metadata also drops the handful of Jackson 2 classes it
+ * listed: the serializer {@code @JsonSerialize(using = NullSerializer.class)}
+ * names on its multipart fields, which Jackson instantiates by constructor,
+ * the Java 7 support classes it looks up by name, {@code TypeReference}, and
+ * the annotation types whose attributes Kotlin reflection reads. Without the
+ * first, every audio transcription fails with "NullSerializer has no default
+ * (no arg) constructor". They are registered here instead.
  */
 @Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(OpenAiNativeHints.Registrar.class)
@@ -40,6 +51,17 @@ public class OpenAiNativeHints {
           "com.openai.models.audio",
           "com.openai.core");
       ClassPathReflectionHints.registerTopLevelPackage(hints, classLoader, "com.openai.models");
+      Stream.of(
+          "com.fasterxml.jackson.databind.ser.std.NullSerializer",
+          "com.fasterxml.jackson.databind.ext.Java7HandlersImpl",
+          "com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+          "com.fasterxml.jackson.core.type.TypeReference",
+          "com.fasterxml.jackson.annotation.JsonAnyGetter",
+          "com.fasterxml.jackson.annotation.JsonAnySetter",
+          "com.fasterxml.jackson.annotation.JsonCreator",
+          "com.fasterxml.jackson.annotation.JsonProperty")
+          .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name,
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
     }
   }
 }

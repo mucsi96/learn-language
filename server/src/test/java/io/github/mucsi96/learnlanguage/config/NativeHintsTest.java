@@ -32,7 +32,8 @@ class NativeHintsTest {
             "com.openai.models.images.ImageGenerateParams",
             "com.openai.models.audio.transcriptions.TranscriptionCreateParams",
             "com.openai.models.ChatModel",
-            "com.openai.core.JsonField")
+            "com.openai.core.JsonField",
+            "com.fasterxml.jackson.databind.ser.std.NullSerializer")
         .noneMatch(name -> name.startsWith("com.openai.models.beta"));
   }
 
