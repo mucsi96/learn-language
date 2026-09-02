@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import java.util.List;
+
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -52,26 +54,23 @@ public class AzureNativeHints {
 
     private static final String AZURE_PACKAGE = "com.azure";
 
-    private static final Class<?>[] REFLECTED_TYPES = {
+    private static final List<Class<?>> REFLECTED_TYPES = List.of(
         ExpandableStringEnum.class,
         XmlSerializable.class,
         JsonSerializable.class,
-        HttpResponseException.class
-    };
+        HttpResponseException.class);
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
           false);
 
-      for (Class<?> type : REFLECTED_TYPES) {
-        scanner.addIncludeFilter(new AssignableTypeFilter(type));
-      }
+      REFLECTED_TYPES.stream().map(AssignableTypeFilter::new).forEach(scanner::addIncludeFilter);
 
-      for (BeanDefinition definition : scanner.findCandidateComponents(AZURE_PACKAGE)) {
-        hints.reflection().registerTypeIfPresent(classLoader, definition.getBeanClassName(),
-            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS);
-      }
+      scanner.findCandidateComponents(AZURE_PACKAGE).stream()
+          .map(BeanDefinition::getBeanClassName)
+          .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name,
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
     }
   }
 }

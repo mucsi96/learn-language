@@ -6,6 +6,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.LessonDescription;
@@ -16,6 +17,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(LessonDescription.class)
 public class LessonDescriptionService {
 
   private final JsonMapper jsonMapper;

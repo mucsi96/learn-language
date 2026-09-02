@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@RegisterReflectionForBinding(AreaSentenceService.AreaSentences.class)
 public class AreaSentenceService {
 
   record AreaSentences(List<String> sentences) {

@@ -56,10 +56,10 @@ public class LiquibaseNativeHints {
       };
       scanner.addIncludeFilter(new AssignableTypeFilter(LiquibaseSerializable.class));
 
-      for (BeanDefinition definition : scanner.findCandidateComponents(LIQUIBASE_PACKAGE)) {
-        hints.reflection().registerTypeIfPresent(classLoader, definition.getBeanClassName(),
-            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS);
-      }
+      scanner.findCandidateComponents(LIQUIBASE_PACKAGE).stream()
+          .map(BeanDefinition::getBeanClassName)
+          .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name,
+              MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
     }
   }
 }

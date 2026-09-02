@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -43,10 +44,10 @@ import jakarta.persistence.Entity;
  *
  * Registering an array class costs nothing but the class itself: no members are
  * requested, because {@code Array.newInstance} is all that is asked of it. So
- * both the JDK types Hibernate maps out of the box and every type declared by an
- * entity - which is where the enums and the embedded models come in - are
- * registered up front, rather than waiting for a new field to rediscover this
- * during a deployment.
+ * both the JDK types Hibernate maps out of the box and every type an entity or
+ * one of its superclasses declares - which is where the enums and the embedded
+ * models come in - are registered up front, rather than waiting for a new field
+ * to rediscover this during a deployment.
  */
 @Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(HibernateNativeHints.Registrar.class)
@@ -83,7 +84,17 @@ public class HibernateNativeHints {
       return scanner.findCandidateComponents(ENTITY_PACKAGE).stream()
           .map(BeanDefinition::getBeanClassName)
           .map(name -> ClassUtils.resolveClassName(name, classLoader))
-          .flatMap(entity -> Arrays.stream(entity.getDeclaredFields()))
+          .flatMap(Registrar::fieldTypes);
+    }
+
+    /**
+     * Up the class hierarchy, not just the entity itself: a field pulled into a
+     * {@code @MappedSuperclass} is mapped exactly the same way, and reading only
+     * the entity's own fields would quietly stop covering it.
+     */
+    private static Stream<Class<?>> fieldTypes(Class<?> type) {
+      return Stream.<Class<?>>iterate(type, Objects::nonNull, Class::getSuperclass)
+          .flatMap(clazz -> Arrays.stream(clazz.getDeclaredFields()))
           .map(Field::getType);
     }
   }
