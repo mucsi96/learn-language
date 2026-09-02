@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.config;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -37,6 +38,9 @@ final class ClassPathReflectionHints {
    * classes ({@code Outer$Inner}) never carry one.
    */
   private static final Pattern SYNTHETIC = Pattern.compile("\\$\\d");
+
+  /** Not types at all: the scanner reads them like any other class file. */
+  private static final Set<String> DESCRIPTORS = Set.of("package-info", "module-info");
 
   private static final MemberCategory[] CATEGORIES = {
       MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
@@ -84,6 +88,7 @@ final class ClassPathReflectionHints {
     return scanner.findCandidateComponents(pkg).stream()
         .map(BeanDefinition::getBeanClassName)
         .filter(Objects::nonNull)
-        .filter(name -> !SYNTHETIC.matcher(name).find());
+        .filter(name -> !SYNTHETIC.matcher(name).find())
+        .filter(name -> !DESCRIPTORS.contains(name.substring(name.lastIndexOf('.') + 1)));
   }
 }

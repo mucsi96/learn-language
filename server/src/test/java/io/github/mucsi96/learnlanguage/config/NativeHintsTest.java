@@ -52,6 +52,16 @@ class NativeHintsTest {
   }
 
   @Test
+  void liquibaseChangeTypesAreRegistered() {
+    assertThat(registeredTypes(new LiquibaseNativeHints.Registrar()))
+        .contains("liquibase.change.core.AddForeignKeyConstraintChange",
+            "liquibase.change.core.CreateTableChange",
+            "liquibase.change.ColumnConfig",
+            "liquibase.precondition.core.TableExistsPrecondition",
+            "liquibase.sqlgenerator.core.AddForeignKeyConstraintGenerator");
+  }
+
+  @Test
   void keyVaultPropertiesAreRegistered() {
     assertThat(registeredTypes(new KeyVaultPropertySourceNativeHints.Registrar()))
         .contains(

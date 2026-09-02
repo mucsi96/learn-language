@@ -205,6 +205,15 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   image generator watchdog aborting on "no activity" next to a nearly full
   heap, that is memory, not a deadlock: look at the "types registered for
   reflection" line and find which jar's shipped metadata or which hint grew.
+- Liquibase computes changeset checksums by invoking every parameter getter of
+  each change class reflectively. The reachability-metadata repository's
+  liquibase-core configuration lists those getters per class as the tracing
+  agent recorded them from some other changelog, so a change type this
+  changelog uses with a parameter that recording never touched fails at
+  startup with `MissingReflectionRegistrationError` - after the database
+  connection, before any table is touched, and only in the container log.
+  `LiquibaseNativeHints` registers the change, precondition and SQL generator
+  packages wholesale so a new change type needs nothing.
 - The fonts embedded in the study-session PDF and the glyph lists, AFM metrics,
   CMaps and ICC profile PDFBox and FontBox load lazily are classpath resources
   nothing registers by itself; `ClassPathResourceNativeHints` does.
