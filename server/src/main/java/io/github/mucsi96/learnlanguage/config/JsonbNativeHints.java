@@ -1,9 +1,6 @@
 package io.github.mucsi96.learnlanguage.config;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
@@ -59,7 +56,9 @@ import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
  * found for declaringClass: ... CardData}. The whole model package is scanned
  * rather than naming the four types that qualify today, and the JDK collections
  * Jackson instantiates for the {@code List} and {@code Map} fields are
- * registered alongside them, since the snapshot walks those too.
+ * registered alongside them, since the snapshot walks those too - including the
+ * immutable ones the application substitutes in, which serialize through a
+ * proxy of their own.
  */
 @Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(JsonbNativeHints.Registrar.class)
@@ -71,9 +70,35 @@ public class JsonbNativeHints {
 
     private static final String MODEL_PACKAGE = "io.github.mucsi96.learnlanguage.model";
 
-    /** What Jackson instantiates for the payloads' {@code List} and {@code Map} fields. */
-    private static final List<Class<? extends Serializable>> SNAPSHOT_COLLECTIONS = List.of(
-        ArrayList.class, LinkedHashMap.class, HashMap.class);
+    /**
+     * The collections the snapshot walks. Jackson builds the payloads'
+     * {@code List} and {@code Map} fields as {@code ArrayList} and
+     * {@code LinkedHashMap}, but application code replaces them with the
+     * immutable results of {@code Stream.toList()} and {@code List.of()} - see
+     * {@code FileStorageCleanupService}, which strips images that way. Those
+     * serialize through {@code CollSer}, a proxy that has to be registered
+     * alongside them or the round trip fails on the write rather than the read.
+     * Named as strings because they are JDK-internal types.
+     */
+    private static final List<String> SNAPSHOT_COLLECTIONS = List.of(
+        "java.util.ArrayList",
+        "java.util.LinkedHashMap",
+        "java.util.HashMap",
+        "java.util.CollSer",
+        "java.util.ImmutableCollections$ListN",
+        "java.util.ImmutableCollections$List12",
+        "java.util.ImmutableCollections$MapN",
+        "java.util.ImmutableCollections$Map1",
+        "java.util.ImmutableCollections$SetN",
+        "java.util.ImmutableCollections$Set12",
+        "java.util.Collections$EmptyList",
+        "java.util.Collections$EmptyMap",
+        "java.util.Collections$EmptySet",
+        "java.util.Collections$SingletonList",
+        "java.util.Collections$UnmodifiableCollection",
+        "java.util.Collections$UnmodifiableList",
+        "java.util.Collections$UnmodifiableRandomAccessList",
+        "java.util.Arrays$ArrayList");
 
     private final BindingReflectionHintsRegistrar bindingRegistrar = new BindingReflectionHintsRegistrar();
 
@@ -93,7 +118,8 @@ public class JsonbNativeHints {
           .map(TypeReference::of)
           .forEach(hints.serialization()::registerType);
 
-      SNAPSHOT_COLLECTIONS.forEach(hints.serialization()::registerType);
+      SNAPSHOT_COLLECTIONS.stream().map(TypeReference::of)
+          .forEach(hints.serialization()::registerType);
     }
   }
 }

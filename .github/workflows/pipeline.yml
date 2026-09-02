@@ -132,6 +132,11 @@ jobs:
       # The server is a single native executable, so if it cannot even start in
       # the runtime image there is nothing to log and the pod just times out two
       # minutes later with an empty container log. Fail here instead.
+      # -XX:PrintFlags= is a GraalVM runtime option: the executable prints its
+      # VM flags and exits without entering main, which is enough to prove the
+      # binary links and its shared libraries load. A failure here means the
+      # image is broken, not the application - unless a toolchain upgrade stops
+      # accepting the flag, in which case fix the flag, not the binary.
       - name: Check the server executable runs
         run: |
           timeout 60 podman run --rm localhost/learn-language-server:test \

@@ -24,7 +24,8 @@ import org.springframework.util.ClassUtils;
  * TranslationRequest} and {@code DictionaryRequest} were reaching the model that
  * way.
  *
- * The whole package is registered rather than the two types that were wrong,
+ * Their array classes go in too. The whole package is registered rather than
+ * the two types that were wrong,
  * because the next service to serialize a model by hand would reintroduce this
  * with no compile-time signal and no error at runtime either. These are small
  * POJOs; registering all of them costs little beyond what binding a handful of
@@ -56,7 +57,14 @@ public class ModelBindingNativeHints {
       scanner.findCandidateComponents(MODEL_PACKAGE).stream()
           .map(BeanDefinition::getBeanClassName)
           .map(name -> ClassUtils.resolveClassName(name, classLoader))
-          .forEach(type -> bindingRegistrar.registerReflectionHints(hints.reflection(), type));
+          .forEach(type -> {
+            bindingRegistrar.registerReflectionHints(hints.reflection(), type);
+            // The array class as well: reading a jsonb payload back reaches for
+            // one for every element type it holds, and builds it reflectively,
+            // so a payload with a list of models fails with
+            // "Cannot reflectively instantiate the array class ...[]".
+            hints.reflection().registerType(type.arrayType());
+          });
     }
   }
 }

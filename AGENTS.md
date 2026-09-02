@@ -222,6 +222,14 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   SerializationConstructorAccessor class not found`. `JsonbNativeHints`
   registers the model package's `Serializable` types and the JDK collections
   Jackson instantiates for their `List` and `Map` fields.
+- The same snapshot walks whatever collection the payload currently holds, and
+  application code replaces Jackson's `ArrayList` with the immutable result of
+  `Stream.toList()` - `FileStorageCleanupService` strips images that way. Those
+  serialize through `java.util.CollSer`, a proxy that has to be registered with
+  them, and the round trip also instantiates an array of each element type. Miss
+  either and the write fails rather than the read: the e2e suite saw it as
+  `POST /api/test/cleanup-storage` returning 500. `JsonbNativeHints` registers
+  the JDK collection family and `ModelBindingNativeHints` the model array types.
 - A native image generates no bytecode at runtime, so Hibernate's
   `BytecodeProvider` is `none` and it cannot build the `HibernateProxy` that a
   lazy `@ManyToOne` needs: loading a `Document`, or a `Source` that belongs to a
