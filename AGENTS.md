@@ -195,7 +195,8 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   registers all 25k of its classes and by itself exhausts the builder's heap,
   so the build excludes it (`--exclude-config` in `native-maven-plugin`). The
   Google GenAI SDK's metadata is generated per type and complete, so it is
-  used as shipped. `ApplicationModelNativeHints` covers this application's
+  used as shipped, and Spring AI's own `ElevenLabsRuntimeHints` registers the
+  ElevenLabs API types. `ApplicationModelNativeHints` covers this application's
   own Jackson-bound types: the JSONB payloads, the structured-output records the
   services declare, and the records third-party REST responses are read into.
   All of them scan packages rather than naming classes, so a new model type or
