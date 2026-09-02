@@ -57,7 +57,10 @@ public final class JacksonCloningJsonSerializer implements JsonSerializer {
    * element, the way Hypersistence's own serializer does: a JSONB column
    * holds one kind of value, and a column declared as {@code List<Record>}
    * has to come back as records, not as the maps Jackson would otherwise
-   * build.
+   * build. That is as deep as the inference goes. A column declared as a
+   * collection of collections, or a map of them, would get its inner values
+   * back as Jackson's generic lists and maps; declare such a column as a
+   * model class instead, whose fields carry their types.
    */
   private JavaType cloneType(Object value) {
     final TypeFactory types = objectMapper.getTypeFactory();
