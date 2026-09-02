@@ -79,6 +79,20 @@ class NativeHintsTest {
   }
 
   @Test
+  void java2dClassesAreRegisteredForJniWithTheirSuperclasses() {
+    final RuntimeHints hints = new RuntimeHints();
+    new Java2dNativeHints.Registrar().registerHints(hints, getClass().getClassLoader());
+
+    final Stream<String> types = hints.jni().typeHints().map(TypeHint::getType).map(type -> type.getName());
+    assertThat(types).contains("sun.java2d.pipe.ShapeSpanIterator",
+        "sun.java2d.pipe.RegionIterator",
+        "sun.awt.image.IntegerComponentRaster",
+        "java.awt.image.Raster",
+        "java.lang.System")
+        .noneMatch(name -> name.startsWith("sun.java2d.x11"));
+  }
+
+  @Test
   void keyVaultPropertiesAreRegistered() {
     assertThat(registeredTypes(new KeyVaultPropertySourceNativeHints.Registrar()))
         .contains(

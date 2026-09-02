@@ -251,7 +251,20 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   (`libawt`, `libfontmanager`, `libjavajpeg`, ...) the native-image builder
   copies next to the executable. The Dockerfile ships those `.so` files
   alongside the binary and installs `freetype` and `fontconfig`, which they
-  link against.
+  link against. Those libraries reach back into Java through JNI, and GraalVM
+  registers only what AWT initialization needs, not what the drawing
+  pipelines look up on first use: rendering a PDF page failed with
+  `NoSuchFieldError: sun.java2d.pipe.ShapeSpanIterator.pData` at the first
+  filled shape, and the next lookup is on a class the library reaches
+  through an object rather than by name, so no list derived from the
+  libraries is complete. `Java2dNativeHints` registers the Java2D packages
+  wholesale, enumerated from the JDK's `java.desktop` module at build time,
+  plus the classes the libraries look up by name outside them, listed in
+  `native/java2d-jni-classes.txt` with the commands that derived it, plus
+  every superclass, since JNI resolves inherited fields through them.
+  Regenerate the list after a JDK upgrade. PDFBox also decodes font names
+  with Windows-1252, a charset a native image omits by default, hence
+  `-H:+AddAllCharsets`.
 
 Spring Cloud Azure needs one workaround in application code:
 `AzureGlobalPropertiesConfiguration` re-declares the `AzureGlobalProperties`
