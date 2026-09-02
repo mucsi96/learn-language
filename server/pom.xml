@@ -208,6 +208,26 @@
           </annotationProcessorPaths>
         </configuration>
       </plugin>
+      <!-- Build-time bytecode enhancement of the entities. A native image has
+           no bytecode provider, so Hibernate cannot generate the proxy classes
+           it would otherwise use for lazy to-one associations: the first load
+           of an entity with one fails with "Generation of HibernateProxy
+           instances at runtime is not allowed when the configured
+           BytecodeProvider is 'none'". Enhanced entities load lazy
+           associations through their own bytecode instead, no proxy needed.
+           This runs for the JVM build too, so both run the same entities. -->
+      <plugin>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-maven-plugin</artifactId>
+        <version>${hibernate.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

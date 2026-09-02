@@ -228,6 +228,14 @@ Build-time details that live in `server/pom.xml` and are easy to trip over:
   value that is not `Serializable` outright.) `application.yml` therefore
   points `hypersistence.utils.json.serializer` at
   `JacksonCloningJsonSerializer`, which copies through a Jackson round trip.
+- A native image has no bytecode provider, so Hibernate cannot generate the
+  proxy classes it uses for lazy to-one associations (`Document.source`,
+  `Source.group`, ...): the first load of such an entity fails with
+  "Generation of HibernateProxy instances at runtime is not allowed when the
+  configured BytecodeProvider is 'none'". The `hibernate-maven-plugin`
+  enhances the entities at build time, and enhanced entities load lazy
+  associations through their own bytecode instead. The JVM build is enhanced
+  too, so the two run the same entity classes.
 - `hibernate-processor` generates a static metamodel class (`Card_`) next to
   every entity, and Hibernate fills in its constants at startup by setting the
   class's static fields reflectively. Spring's JPA AOT support registers the
