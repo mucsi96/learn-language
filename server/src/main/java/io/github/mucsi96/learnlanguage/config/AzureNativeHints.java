@@ -1,15 +1,19 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
 
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.util.ExpandableStringEnum;
@@ -43,6 +47,9 @@ import com.azure.xml.XmlSerializable;
  * misses. Registering every model rather than the handful missing today keeps
  * this from having to be rediscovered on the next SDK upgrade.
  *
+ * Abstract base models count too: azure-core asks the class it is handed, and
+ * that may well be an abstract parent of the type it eventually instantiates.
+ *
  * None of this can be reproduced by the AOT-on-JVM run described in AGENTS.md -
  * reflection always works there. It only shows up in the native image.
  */
@@ -63,17 +70,24 @@ public class AzureNativeHints {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-      final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
-          false);
+      final List<TypeFilter> filters = Arrays.stream(REFLECTED_TYPES)
+          .<TypeFilter>map(AssignableTypeFilter::new)
+          .toList();
+      final TypeFilter anyReflectedType = (metadataReader, metadataReaderFactory) -> filters.stream()
+          .anyMatch(filter -> matches(filter, metadataReader, metadataReaderFactory));
 
-      Arrays.stream(REFLECTED_TYPES)
-          .map(AssignableTypeFilter::new)
-          .forEach(scanner::addIncludeFilter);
-
-      scanner.findCandidateComponents(AZURE_PACKAGE).stream()
-          .map(BeanDefinition::getBeanClassName)
+      ClassPathReflectionHints.classNames(AZURE_PACKAGE, anyReflectedType)
           .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name,
               MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+    }
+
+    private static boolean matches(TypeFilter filter, MetadataReader metadataReader,
+        MetadataReaderFactory metadataReaderFactory) {
+      try {
+        return filter.match(metadataReader, metadataReaderFactory);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
   }
 }

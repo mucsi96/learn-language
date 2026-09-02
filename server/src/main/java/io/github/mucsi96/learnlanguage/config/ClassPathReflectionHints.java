@@ -2,7 +2,6 @@ package io.github.mucsi96.learnlanguage.config;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -11,7 +10,7 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.filter.TypeFilter;
 
 /**
  * Registers every class of a package for reflection, for libraries that bind
@@ -44,25 +43,27 @@ final class ClassPathReflectionHints {
   private ClassPathReflectionHints() {
   }
 
+  private static final TypeFilter EVERY_CLASS = (metadataReader, metadataReaderFactory) -> true;
+
   /** Every class in the packages and their sub-packages. */
   static void registerPackages(RuntimeHints hints, ClassLoader classLoader, String... packages) {
     Arrays.stream(packages)
-        .flatMap(pkg -> classNames(pkg, "**/*.class", reader -> true))
+        .flatMap(pkg -> classNames(pkg, "**/*.class", EVERY_CLASS))
         .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name, CATEGORIES));
   }
 
   /** Only the classes directly in the package, none of its sub-packages. */
   static void registerTopLevelPackage(RuntimeHints hints, ClassLoader classLoader, String pkg) {
-    classNames(pkg, "*.class", reader -> true)
+    classNames(pkg, "*.class", EVERY_CLASS)
         .forEach(name -> hints.reflection().registerTypeIfPresent(classLoader, name, CATEGORIES));
   }
 
   /** Names of the classes in the package and its sub-packages that the filter accepts. */
-  static Stream<String> classNames(String pkg, Predicate<MetadataReader> filter) {
+  static Stream<String> classNames(String pkg, TypeFilter filter) {
     return classNames(pkg, "**/*.class", filter);
   }
 
-  private static Stream<String> classNames(String pkg, String resourcePattern, Predicate<MetadataReader> filter) {
+  private static Stream<String> classNames(String pkg, String resourcePattern, TypeFilter filter) {
     final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
         false) {
       @Override
@@ -74,7 +75,7 @@ final class ClassPathReflectionHints {
       }
     };
     scanner.setResourcePattern(resourcePattern);
-    scanner.addIncludeFilter((metadataReader, metadataReaderFactory) -> filter.test(metadataReader));
+    scanner.addIncludeFilter(filter);
 
     return scanner.findCandidateComponents(pkg).stream()
         .map(BeanDefinition::getBeanClassName)

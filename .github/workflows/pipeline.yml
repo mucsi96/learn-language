@@ -222,7 +222,13 @@ jobs:
           load: true
           build-args: SPRING_PROFILE=prod
           tags: ${{ env.SERVER_IMAGE }}
-          cache-from: type=gha,scope=server-prod
+          # Everything up to the native compile - the toolchain copy and the
+          # dependency download - is the same for both profiles, so the test
+          # build that ran earlier in this pipeline is a valid source for
+          # those layers. Only the compiled executable diverges.
+          cache-from: |
+            type=gha,scope=server-prod
+            type=gha,scope=server-test
           cache-to: type=gha,mode=max,scope=server-prod
 
       # The profile is baked in at build time, so this is a different

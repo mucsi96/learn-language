@@ -39,9 +39,9 @@ public class ApplicationModelNativeHints {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       final Class<?>[] types = Stream.concat(
-          ClassPathReflectionHints.classNames(MODEL_PACKAGE, reader -> true),
+          ClassPathReflectionHints.classNames(MODEL_PACKAGE, (reader, factory) -> true),
           ClassPathReflectionHints.classNames(SERVICE_PACKAGE,
-              reader -> reader.getClassMetadata().getEnclosingClassName() != null))
+              (reader, factory) -> reader.getClassMetadata().getEnclosingClassName() != null))
           .map(name -> ClassUtils.resolveClassName(name, classLoader))
           .toArray(Class<?>[]::new);
 
