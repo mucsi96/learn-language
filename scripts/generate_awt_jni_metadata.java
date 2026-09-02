@@ -43,23 +43,19 @@ public class generate_awt_jni_metadata {
       "java.lang.reflect.Method", "java.lang.reflect.Field");
 
   public static void main(String[] a) throws Exception {
-    ModuleReference ref = ModuleFinder.ofSystem().find("java.desktop").orElseThrow();
-    List<String> types;
-    try (ModuleReader r = ref.open()) {
-      types = r.list()
-          .filter(n -> n.endsWith(".class") && !n.equals("module-info.class"))
-          .map(n -> n.substring(0, n.length() - 6).replace('/', '.'))
-          .filter(n -> INCLUDE.stream().anyMatch(n::startsWith))
-          .filter(n -> EXCLUDE.stream().noneMatch(n::startsWith))
-          .collect(Collectors.toList());
-    }
-    types.addAll(CORE);
-    Collections.sort(types);
-
+    final ModuleReference ref = ModuleFinder.ofSystem().find("java.desktop").orElseThrow();
+    final List<String> types;
     final List<String> resources;
     try (ModuleReader r = ref.open()) {
-      resources = r.list().filter(n -> n.startsWith("sun/java2d/cmm/profiles/")).sorted()
-          .collect(Collectors.toList());
+      types = Stream.concat(
+          r.list()
+              .filter(n -> n.endsWith(".class") && !n.equals("module-info.class"))
+              .map(n -> n.substring(0, n.length() - 6).replace('/', '.'))
+              .filter(n -> INCLUDE.stream().anyMatch(n::startsWith))
+              .filter(n -> EXCLUDE.stream().noneMatch(n::startsWith)),
+          CORE.stream())
+          .distinct().sorted().toList();
+      resources = r.list().filter(n -> n.startsWith("sun/java2d/cmm/profiles/")).sorted().toList();
     }
 
     System.err.println("types: " + types.size() + ", resources: " + resources.size());

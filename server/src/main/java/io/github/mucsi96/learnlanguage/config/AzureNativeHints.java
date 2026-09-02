@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -63,7 +64,15 @@ public class AzureNativeHints {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
-          false);
+          false) {
+        @Override
+        protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+          // The default rejects abstract types, and INVOKE_DECLARED_METHODS does
+          // not cross the class boundary, so an abstract base in one of these
+          // hierarchies would take its methods out of the image with it.
+          return true;
+        }
+      };
 
       REFLECTED_TYPES.stream().map(AssignableTypeFilter::new).forEach(scanner::addIncludeFilter);
 
