@@ -1,0 +1,112 @@
+# Classes the JDK's Java2D shared libraries reach through JNI by name, on top
+# of the packages Java2dNativeHints registers wholesale: every class the
+# libraries look up with FindClass and every class that declares a native
+# method they implement. Derived from the libraries the native-image builder
+# copies next to the executable - libawt, libawt_headless, libfontmanager,
+# libjavajpeg, libmlib_image and liblcms - with
+#   strings -n 6 lib/<library>.so | grep -E '^(sun|java|javax)/'
+#   nm -D --defined-only lib/<library>.so | grep ' Java_'
+# on the GraalVM JDK, minus the X11, OpenGL and printing classes a headless
+# server never touches. Regenerate after a JDK upgrade.
+com.sun.imageio.plugins.jpeg.JPEGImageReader
+com.sun.imageio.plugins.jpeg.JPEGImageWriter
+java.awt.CheckboxMenuItem
+java.awt.Choice
+java.awt.Dimension
+java.awt.Font
+java.awt.FontMetrics
+java.awt.GraphicsEnvironment
+java.awt.Label
+java.awt.MenuBar
+java.awt.ScrollPaneAdjustable
+java.awt.Toolkit
+java.awt.color.CMMException
+java.awt.event.MouseEvent
+java.awt.geom.GeneralPath
+java.awt.geom.Point2D$Float
+java.awt.geom.Rectangle2D$Float
+java.awt.image.BufferedImage
+java.awt.image.ColorModel
+java.awt.image.ComponentColorModel
+java.awt.image.DirectColorModel
+java.awt.image.IndexColorModel
+java.awt.image.Kernel
+java.awt.image.PackedColorModel
+java.awt.image.Raster
+java.awt.image.SampleModel
+java.awt.image.SinglePixelPackedSampleModel
+java.lang.IllegalArgumentException
+java.lang.IllegalStateException
+java.lang.Integer
+java.lang.OutOfMemoryError
+java.lang.String
+java.lang.System
+java.util.ArrayList
+javax.imageio.IIOException
+sun.awt.FcFontManager
+sun.awt.FontDescriptor
+sun.awt.PlatformFont
+sun.awt.image.BufImgSurfaceData
+sun.awt.image.ByteComponentRaster
+sun.awt.image.BytePackedRaster
+sun.awt.image.DataBufferNative
+sun.awt.image.GifImageDecoder
+sun.awt.image.ImageFormatException
+sun.awt.image.ImageRepresentation
+sun.awt.image.ImagingLib
+sun.awt.image.IntegerComponentRaster
+sun.awt.image.JPEGImageDecoder
+sun.awt.image.ShortComponentRaster
+sun.font.CharToGlyphMapper
+sun.font.ColorGlyphSurfaceData
+sun.font.Font2D
+sun.font.FontConfigManager
+sun.font.FontConfigManager$FcCompFont
+sun.font.FontConfigManager$FontConfigFont
+sun.font.FontConfigManager$FontConfigInfo
+sun.font.FontUtilities
+sun.font.FreetypeFontScaler
+sun.font.GlyphLayout$GVData
+sun.font.GlyphList
+sun.font.NativeFont
+sun.font.NativeStrike
+sun.font.NativeStrikeDisposer
+sun.font.NullFontScaler
+sun.font.PhysicalStrike
+sun.font.StrikeCache
+sun.font.StrikeMetrics
+sun.font.SunFontManager
+sun.font.SunLayoutEngine
+sun.font.TrueTypeFont
+sun.font.Type1Font
+sun.font.X11TextRenderer
+sun.java2d.DefaultDisposerRecord
+sun.java2d.Disposer
+sun.java2d.InvalidPipeException
+sun.java2d.NullSurfaceData
+sun.java2d.SurfaceData
+sun.java2d.cmm.lcms.LCMS
+sun.java2d.loops.Blit
+sun.java2d.loops.BlitBg
+sun.java2d.loops.DrawGlyphList
+sun.java2d.loops.DrawGlyphListAA
+sun.java2d.loops.DrawGlyphListLCD
+sun.java2d.loops.DrawLine
+sun.java2d.loops.DrawParallelogram
+sun.java2d.loops.DrawPath
+sun.java2d.loops.DrawPolygons
+sun.java2d.loops.DrawRect
+sun.java2d.loops.FillParallelogram
+sun.java2d.loops.FillPath
+sun.java2d.loops.FillRect
+sun.java2d.loops.FillSpans
+sun.java2d.loops.GraphicsPrimitiveMgr
+sun.java2d.loops.MaskBlit
+sun.java2d.loops.MaskFill
+sun.java2d.loops.ScaledBlit
+sun.java2d.loops.TransformHelper
+sun.java2d.pipe.BufferedMaskBlit
+sun.java2d.pipe.BufferedRenderPipe
+sun.java2d.pipe.Region
+sun.java2d.pipe.ShapeSpanIterator
+sun.java2d.pipe.SpanClipRenderer

@@ -54,7 +54,7 @@ This is a language learning application that uses spaced repetition to help user
 
 ## Architecture
 
-**Backend**: Spring Boot 3.5.3 with Java 21, PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
+**Backend**: Spring Boot 4 with Java 21 (built into a GraalVM native image), PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
 **Frontend**: Angular 20 with Material UI, Azure MSAL authentication, TypeScript
 
 ### Key Technologies
@@ -81,6 +81,10 @@ cd server/
 ./mvnw clean compile               # Clean and compile
 ```
 
+Local development still runs on a plain JVM. The native image is built only by
+the container build, which also runs the JVM unit tests first - see **Native
+image and the baked-in Spring profile** below.
+
 ### Testing
 ```bash
 cd test/
@@ -95,6 +99,231 @@ npm run test:debug          # Run tests in debug mode
 docker-compose up           # Start all services
 docker-compose up -d        # Start in background
 ```
+
+## Native image and the baked-in Spring profile
+
+The server is compiled ahead of time into a GraalVM native executable linked
+against musl, so there is no JRE in the runtime image and startup is in the tens
+of milliseconds rather than seconds.
+
+Ahead-of-time processing resolves bean definitions at build time, which means
+the active Spring profile is decided by the build, not by the environment:
+Spring AOT emits an `EnvironmentPostProcessor` that activates the profile the
+image was built with. `SPRING_PROFILES_ACTIVE` is no longer read at runtime, and
+`test/test-pod.yaml` no longer sets it. Build one image per profile with the
+`SPRING_PROFILE` build argument - `test` for the e2e pod, `prod` for the image
+published to Docker Hub:
+
+```bash
+podman build --build-arg SPRING_PROFILE=test \
+  -t localhost/learn-language-server:test server
+```
+
+Build-time details that live in `server/pom.xml` and are easy to trip over:
+
+- AOT processing refreshes the application context, so every placeholder an
+  auto-configuration condition reads has to resolve during the build. The
+  `process-aot` execution supplies build-time stand-ins for them and turns the
+  Key Vault property source off, so the build never reaches out to Azure. The
+  stand-ins are not baked into the image; they only have to make the same
+  conditions match as the real values do at runtime. A new required environment
+  placeholder read by a condition means adding it there too. Placeholders that
+  are only read while creating beans (`${db-url}`, the AI API keys and base
+  URLs, `${STORAGE_DIRECTORY}`) are resolved at runtime as before and need
+  nothing. `MOCK_OAUTH2_SERVER_URI` is the one test-profile placeholder a
+  condition reads (Spring Security's `IssuerUriCondition`), which is why it has
+  a stand-in.
+- Spring AOT generates bean-definition classes into the packages of the
+  configuration classes it processes, including the signed Spring Cloud Azure
+  jars. Mixing generated (unsigned) and signed classes in one package makes the
+  native-image builder throw `SecurityException: ... signer information does not
+  match`, so the builder is pointed at `server/native-image.security`, which
+  disables jar signature verification.
+- Jars can ship a `META-INF/native-image/.../native-image.properties` that forces
+  classes to build-time initialization. When such a class holds on to objects of
+  types that are still initialized at run time, the builder fails with
+  `UnsupportedFeatureException: An object of type ... was found in the image
+  heap`. `--initialize-at-build-time` in the `native-maven-plugin` config covers
+  the Jackson core classes `azure-core` leaves behind that way. Note that a build
+  cannot undo such a directive: `exclude-config` does not apply to
+  `native-image.properties`, and `initialize-at-run-time` for the same class is
+  rejected outright. That is why `azure-core` is pinned ahead of the version the
+  Azure BOM selects - the BOM's 1.58.0 forces SLF4J and logback to build-time
+  initialization, which is irreconcilable with Spring Boot setting logging up at
+  run time. Check this again when the Azure BOM moves.
+- The Azure SDK's `ExpandableStringEnum` constants are built by instantiating the
+  subclass reflectively, and `fromString` returns `null` rather than failing when
+  it cannot. Missing reflection metadata therefore surfaces as every constant of
+  a class being `null` and a `NullPointerException` far from the cause.
+  `AzureNativeHints` registers the subclasses azure-identity does not ship
+  metadata for.
+- azure-core decides how to read a response body by asking the model class
+  whether it declares the `fromXml` / `fromJson` pair azure-xml and azure-json
+  generate, and it asks with `Class.getDeclaredMethods()`. In a native image that
+  returns nothing for a class with no reachability metadata, so the answer is
+  silently "no" and azure-core falls back to Jackson - for XML that means an
+  `XmlMapper`, and jackson-dataformat-xml is not on the classpath, so the call
+  dies with a `NoClassDefFoundError`. The SDK ships metadata for most of its
+  models but not all. `AzureNativeHints` scans `com.azure` and registers every
+  `XmlSerializable`, `JsonSerializable` and `HttpResponseException` instead of
+  naming the ones missing today, so an SDK upgrade cannot reintroduce this.
+- The Key Vault property source is configured by an `EnvironmentPostProcessor`
+  that runs before there is an application context and reads its own settings
+  with a plain `Binder` over `AzureKeyVaultSecretProperties`. Nothing in the
+  framework infers that, and the auto-configuration that would otherwise
+  contribute the binding metadata for that type never matches here - it is
+  conditional on `spring.cloud.azure.keyvault[.secret].endpoint`, while this
+  application configures the endpoint under `...secret.property-sources[0]`. With
+  no members in the image the binder binds nothing, and an absent binding is
+  indistinguishable from an empty configuration, so the post-processor quietly
+  concludes there is no property source to add. Nothing fails at that point: the
+  image starts and then dies much later on the first secret-backed placeholder.
+  `KeyVaultPropertySourceNativeHints` supplies the metadata. Only the prod
+  profile reads secrets from Key Vault, so no test covers this - after changing
+  anything about the Key Vault configuration, check that the generated
+  `target/spring-aot/main/resources/META-INF/native-image/**/reachability-metadata.json`
+  still carries `AzureKeyVaultSecretProperties` and
+  `AzureKeyVaultPropertySourceProperties` with their accessors.
+- The Anthropic and OpenAI SDKs are Kotlin, and their Jackson mapper binds
+  Kotlin classes through `kotlin-reflect`. Without reflection metadata that
+  fails not as a missing-reflection error but as
+  `KotlinReflectionInternalError: Could not compute caller for function`, at
+  request time, on every call to the model. `AnthropicNativeHints` and
+  `OpenAiNativeHints` register the SDK model packages this application and
+  Spring AI use; the beta, assistants, realtime and admin surfaces stay out of
+  the image. The OpenAI SDK does ship its own agent-recorded metadata, but it
+  registers all 25k of its classes and by itself exhausts the builder's heap,
+  so the build excludes it (`--exclude-config` in `native-maven-plugin`). The
+  Google GenAI SDK's metadata is generated per type and complete, so it is
+  used as shipped, and Spring AI's own `ElevenLabsRuntimeHints` registers the
+  ElevenLabs API types. `ApplicationModelNativeHints` covers this application's
+  own Jackson-bound types: the JSONB payloads, the structured-output records the
+  services declare, and the records third-party REST responses are read into.
+  All of them scan packages rather than naming classes, so a new model type or
+  response record needs no hint of its own.
+- Every reflectively registered class is reachable, and the builder's memory
+  and time grow with the reachable set. When a build starts failing with the
+  image generator watchdog aborting on "no activity" next to a nearly full
+  heap, that is memory, not a deadlock: look at the "types registered for
+  reflection" line and find which jar's shipped metadata or which hint grew.
+- Liquibase computes changeset checksums by invoking every parameter getter of
+  each change class reflectively. The reachability-metadata repository's
+  liquibase-core configuration lists those getters per class as the tracing
+  agent recorded them from some other changelog, so a change type this
+  changelog uses with a parameter that recording never touched fails at
+  startup with `MissingReflectionRegistrationError` - after the database
+  connection, before any table is touched, and only in the container log.
+  `LiquibaseNativeHints` registers the change, precondition and SQL generator
+  packages wholesale so a new change type needs nothing.
+- Hibernate instantiates the Hypersistence `JsonBinaryType` behind the JSONB
+  columns by looking up its constructor reflectively, and the Hypersistence
+  jar's own metadata covers only the PostgreSQL `PGobject` it writes through.
+  `HypersistenceNativeHints` registers its type package. Hypersistence also
+  deep-copies every JSONB value it loads, for dirty checking, and its default
+  serializer does that through Java serialization - which a native image only
+  supports for classes registered for it, down to the collections inside the
+  value, so the first card loaded fails with `UnsupportedFeatureError:
+  SerializationConstructorAccessor class not found`. (It is not an option to
+  drop `Serializable` from the model classes: the default serializer refuses a
+  value that is not `Serializable` outright.) `application.yml` therefore
+  points `hypersistence.utils.json.serializer` at
+  `JacksonCloningJsonSerializer`, which copies through a Jackson round trip.
+- A native image has no bytecode provider, so Hibernate cannot generate the
+  proxy classes it uses for lazy to-one associations (`Document.source`,
+  `Source.group`, ...): the first load of such an entity fails with
+  "Generation of HibernateProxy instances at runtime is not allowed when the
+  configured BytecodeProvider is 'none'". The `hibernate-maven-plugin`
+  enhances the entities at build time, and enhanced entities load lazy
+  associations through their own bytecode instead. The JVM build is enhanced
+  too, so the two run the same entity classes.
+- `hibernate-processor` generates a static metamodel class (`Card_`) next to
+  every entity, and Hibernate fills in its constants at startup by setting the
+  class's static fields reflectively. Spring's JPA AOT support registers the
+  entities but not these companions, and Hibernate treats an unreachable one
+  as absent without a warning, so every constant stays `null` and the first
+  Criteria query or `Specification` that uses one fails with a bare
+  `NullPointerException` in Hibernate's SQM path resolution.
+  `JpaStaticMetamodelNativeHints` registers their fields.
+- The fonts embedded in the study-session PDF and the glyph lists, AFM metrics,
+  CMaps and ICC profile PDFBox and FontBox load lazily are classpath resources
+  nothing registers by itself; `ClassPathResourceNativeHints` does.
+- PDF rendering and photo preprocessing go through Java2D, whose native half
+  (`libawt`, `libfontmanager`, `libjavajpeg`, ...) the native-image builder
+  copies next to the executable. The Dockerfile ships those `.so` files
+  alongside the binary and installs `freetype` and `fontconfig`, which they
+  link against. Those libraries reach back into Java through JNI, and GraalVM
+  registers only what AWT initialization needs, not what the drawing
+  pipelines look up on first use: rendering a PDF page failed with
+  `NoSuchFieldError: sun.java2d.pipe.ShapeSpanIterator.pData` at the first
+  filled shape, and the next lookup is on a class the library reaches
+  through an object rather than by name, so no list derived from the
+  libraries is complete. `Java2dNativeHints` registers the Java2D packages
+  wholesale, enumerated from the JDK's `java.desktop` module at build time,
+  plus the classes the libraries look up by name outside them, listed in
+  `native/java2d-jni-classes.txt` with the commands that derived it, plus
+  every superclass, since JNI resolves inherited fields through them.
+  Regenerate the list after a JDK upgrade. PDFBox also decodes font names
+  with Windows-1252, a charset a native image omits by default, hence
+  `-H:+AddAllCharsets`.
+
+Spring Cloud Azure needs one workaround in application code:
+`AzureGlobalPropertiesConfiguration` re-declares the `AzureGlobalProperties`
+bean. Spring Cloud Azure registers it from an `ImportBeanDefinitionRegistrar`
+using a lambda instance supplier, which AOT cannot turn into generated code, so
+it drops the bean and the image fails to start with "required a bean of type
+AzureGlobalProperties that could not be found". See the class comment for why it
+uses its own bean name. That workaround turns on Spring Cloud Azure's
+registration order, which is not a public contract, so smoke-test the image
+whenever `spring-cloud-azure-dependencies` moves - a change there could drop the
+bean again with no compile-time signal.
+
+The image is deliberately not built with `--static`. A fully static binary links
+but then segfaults the moment it starts in the container - before GraalVM
+installs its own segfault handler, so with no output whatsoever, which looks
+exactly like a container that silently never starts.
+
+### Reproducing AOT problems without a native build
+
+Most AOT problems reproduce without waiting for a native compile (which takes
+several minutes). Run the AOT-processed application on a normal JVM:
+
+```bash
+cd server
+mvn -Pnative package -DskipTests -Dapp.profile=test
+java -Dspring.aot.enabled=true -jar target/learnlanguage-0.0.1-SNAPSHOT.jar
+```
+
+That exercises the generated context - missing bean definitions, profile and
+condition mismatches - in seconds. Only class-initialization and reflection
+problems need the real `mvn -Pnative native:compile`. The container build links
+against musl; to compile on a regular Linux workstation with a GraalVM JDK on
+the `PATH`, pass `-Dnative.libc=glibc`.
+
+Types that are only ever bound reflectively need explicit hints. Controller
+request/response types, JPA entities and Spring Data repositories are covered by
+the framework's own AOT processing and need nothing. Types read with a plain
+`ObjectMapper` want `@RegisterReflectionForBinding` - or, here, to live in the
+`model` package or as a nested record of a service, which
+`ApplicationModelNativeHints` registers wholesale; types bound by a `Binder`
+rather than Jackson want `BindableRuntimeHintsRegistrar`, which registers exactly
+what `JavaBeanBinder` looks for over the whole class hierarchy - see
+`KeyVaultPropertySourceNativeHints`.
+
+### Release and image publishing
+
+`publish-server` and `publish-client` each ask `mucsi96/get-next-version` for a
+version. It answers from the newest `server-N` / `client-N` tag: no changes under
+the component's directory since that tag means no version, and every publish step
+is skipped. The release step must therefore tag the commit its image was built
+from - `target_commitish: ${{ github.sha }}` - because the action otherwise tags
+whatever the default branch points at when the release is created, and the
+server's native build takes long enough that another push can land first. A tag
+left on a commit that was never built makes the next run believe that commit is
+already released, so nothing is published for it. That is silent: `deploy`
+resolves the newest tag on Docker Hub by `last_updated` and succeeds, deploying
+the previous commit's image, so a fix can look deployed while the running image
+predates it. When a change does not reach production, check that a release tag
+exists on the commit and that `publish-server` did not skip its build steps.
 
 ## Core Entities
 

@@ -7,11 +7,106 @@ on:
   pull_request:
 
 jobs:
+  build-server-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: ${{ github.workflow }}-build-server-image-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # The Spring profile is resolved during AOT processing and baked into the
+      # native executable, so the e2e image is built with the test profile and
+      # the published image (see publish-server) with the prod profile.
+      - name: Build server image
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          build-args: SPRING_PROFILE=test
+          tags: localhost/learn-language-server:test
+          outputs: type=docker,dest=/tmp/server-image.tar
+          cache-from: type=gha,scope=server-test
+          cache-to: type=gha,mode=max,scope=server-test
+      - name: Upload server image
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-image
+          path: /tmp/server-image.tar
+          retention-days: 1
+
+  build-client-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: ${{ github.workflow }}-build-client-image-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build client image
+        uses: docker/build-push-action@v6
+        with:
+          context: client
+          tags: localhost/learn-language-client:test
+          outputs: type=docker,dest=/tmp/client-image.tar
+          cache-from: type=gha,scope=client
+          cache-to: type=gha,mode=max,scope=client
+      - name: Upload client image
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-image
+          path: /tmp/client-image.tar
+          retention-days: 1
+
+  build-mock-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: ${{ github.workflow }}-build-mock-${{ matrix.name }}-image-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: openai
+            context: mock_openai_server
+          - name: google-ai
+            context: mock_google_ai_server
+          - name: elevenlabs
+            context: mock_elevenlabs_server
+          - name: anthropic
+            context: mock_anthropic_server
+          - name: ideogram
+            context: mock_ideogram_server
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build mock ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          tags: localhost/learn-language-mock-${{ matrix.name }}:test
+          outputs: type=docker,dest=/tmp/mock-${{ matrix.name }}-image.tar
+          cache-from: type=gha,scope=mock-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=mock-${{ matrix.name }}
+      - name: Upload mock ${{ matrix.name }} image
+        uses: actions/upload-artifact@v4
+        with:
+          name: mock-${{ matrix.name }}-image
+          path: /tmp/mock-${{ matrix.name }}-image.tar
+          retention-days: 1
+
   test-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     concurrency:
       group: test-e2e-${{ github.ref }}-${{ matrix.shard }}
       cancel-in-progress: true
-    runs-on: ubuntu-latest
+    needs: [build-server-image, build-client-image, build-mock-images]
     strategy:
       fail-fast: false
       matrix:
@@ -29,73 +124,28 @@ jobs:
       - name: Install Playwright browsers
         working-directory: test
         run: npx playwright install chromium --with-deps
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build server image
-        uses: docker/build-push-action@v6
+      # Only the image tarballs. Without the pattern this also pulls the
+      # .dockerbuild build records docker/build-push-action uploads on its own,
+      # which this job has no use for and which failed the whole step when one
+      # of them would not download.
+      - name: Download images
+        uses: actions/download-artifact@v4
         with:
-          context: server
-          load: true
-          tags: localhost/learn-language-server:test
-          cache-from: type=gha,scope=server
-          cache-to: type=gha,mode=max,scope=server
-      - name: Build client image
-        uses: docker/build-push-action@v6
-        with:
-          context: client
-          load: true
-          tags: localhost/learn-language-client:test
-          cache-from: type=gha,scope=client
-          cache-to: type=gha,mode=max,scope=client
-      - name: Build mock OpenAI image
-        uses: docker/build-push-action@v6
-        with:
-          context: mock_openai_server
-          load: true
-          tags: localhost/learn-language-mock-openai:test
-          cache-from: type=gha,scope=mock-openai
-          cache-to: type=gha,mode=max,scope=mock-openai
-      - name: Build mock Google AI image
-        uses: docker/build-push-action@v6
-        with:
-          context: mock_google_ai_server
-          load: true
-          tags: localhost/learn-language-mock-google-ai:test
-          cache-from: type=gha,scope=mock-google-ai
-          cache-to: type=gha,mode=max,scope=mock-google-ai
-      - name: Build mock ElevenLabs image
-        uses: docker/build-push-action@v6
-        with:
-          context: mock_elevenlabs_server
-          load: true
-          tags: localhost/learn-language-mock-elevenlabs:test
-          cache-from: type=gha,scope=mock-elevenlabs
-          cache-to: type=gha,mode=max,scope=mock-elevenlabs
-      - name: Build mock Anthropic image
-        uses: docker/build-push-action@v6
-        with:
-          context: mock_anthropic_server
-          load: true
-          tags: localhost/learn-language-mock-anthropic:test
-          cache-from: type=gha,scope=mock-anthropic
-          cache-to: type=gha,mode=max,scope=mock-anthropic
-      - name: Build mock Ideogram image
-        uses: docker/build-push-action@v6
-        with:
-          context: mock_ideogram_server
-          load: true
-          tags: localhost/learn-language-mock-ideogram:test
-          cache-from: type=gha,scope=mock-ideogram
-          cache-to: type=gha,mode=max,scope=mock-ideogram
+          pattern: "*-image"
+          path: /tmp
+          merge-multiple: true
       - name: Load images into Podman
         run: |
-          docker save localhost/learn-language-server:test | podman load
-          docker save localhost/learn-language-client:test | podman load
-          docker save localhost/learn-language-mock-openai:test | podman load
-          docker save localhost/learn-language-mock-google-ai:test | podman load
-          docker save localhost/learn-language-mock-elevenlabs:test | podman load
-          docker save localhost/learn-language-mock-anthropic:test | podman load
-          docker save localhost/learn-language-mock-ideogram:test | podman load
+          for image in /tmp/*-image.tar; do
+            podman load -i "$image"
+          done
+      # The server is a single native executable, so if it cannot even start in
+      # the runtime image there is nothing to log and the pod just times out two
+      # minutes later with an empty container log. Fail here instead.
+      - name: Check the server executable runs
+        run: |
+          timeout 60 podman run --rm localhost/learn-language-server:test \
+            -XX:PrintFlags= > /dev/null
       - name: Setup test environment and start pod
         env:
           SKIP_BUILD: "1"
@@ -128,11 +178,23 @@ jobs:
             head -40 "$context"
           done
 
+      # The server log above is dominated by SQL statements, and a failing
+      # request's stack trace sits somewhere in the middle of it. Repeat the
+      # error traces on their own at the end of the job log, where they are
+      # the first thing anyone reading from the bottom sees.
+      - name: Summarize server errors
+        if: failure()
+        run: |
+          podman logs learn-language-test-server 2>&1 \
+            | grep -n -A 30 -e ' ERROR ' -e 'Caused by:' \
+            | head -600 || true
+
   publish-server:
     concurrency:
       group: publish-server-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     needs: test-e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -156,20 +218,57 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push server image
+      - name: Resolve server image tag
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: |
+          echo "SERVER_IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }}" >> "$GITHUB_ENV"
+
+      # Built, then checked, then pushed - not build-and-push - so a prod
+      # executable that cannot start never reaches Docker Hub.
+      - name: Build server image
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: docker/build-push-action@v6
         with:
           context: server
-          push: true
-          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-server:${{ steps.get_next_version.outputs.version }}
-          cache-from: type=gha,scope=server
-          cache-to: type=gha,mode=max,scope=server
+          load: true
+          build-args: SPRING_PROFILE=prod
+          tags: ${{ env.SERVER_IMAGE }}
+          # Everything up to the native compile - the toolchain copy and the
+          # dependency download - is the same for both profiles, so the test
+          # build that ran earlier in this pipeline is a valid source for
+          # those layers. Only the compiled executable diverges.
+          cache-from: |
+            type=gha,scope=server-prod
+            type=gha,scope=server-test
+          cache-to: type=gha,mode=max,scope=server-prod
+
+      # The profile is baked in at build time, so this is a different
+      # executable from the one test-e2e exercised, taking code paths - the Key
+      # Vault property source above all - that no test covers. This cannot
+      # catch a missing reflection hint, but it does catch a binary that does
+      # not start, before the image is published and deploy picks it up.
+      - name: Check the server executable runs
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: |
+          timeout 60 docker run --rm "$SERVER_IMAGE" -XX:PrintFlags= > /dev/null
+
+      - name: Push server image
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: docker push "$SERVER_IMAGE"
+
+      # Tag the commit this image was actually built from. Without
+      # target_commitish the release action tags whatever main points at when
+      # the release is created, which is a different commit whenever another
+      # push lands during the minutes the native build takes. The next run then
+      # asks get-next-version for a version, sees the tag already on its own
+      # HEAD, concludes nothing changed and publishes nothing - while deploy
+      # still succeeds, on the previous commit's image.
       - name: Create release
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_next_version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
 
   publish-client:
@@ -177,6 +276,7 @@ jobs:
       group: publish-client-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: test-e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -209,17 +309,21 @@ jobs:
           tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/learn-language-client:${{ steps.get_next_version.outputs.version }}
           cache-from: type=gha,scope=client
           cache-to: type=gha,mode=max,scope=client
+      # Tag the commit this image was built from, not whatever main points at
+      # by the time the release is created - see publish-server above.
       - name: Create release
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_next_version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
   deploy:
     concurrency:
       group: ${{ github.workflow }}-deploy
       cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [publish-server, publish-client]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:

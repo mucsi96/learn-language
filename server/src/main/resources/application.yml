@@ -24,6 +24,10 @@ spring:
     properties:
       hibernate:
         show-sql: true
+      hypersistence:
+        utils:
+          json:
+            serializer: io.github.mucsi96.learnlanguage.config.JacksonCloningJsonSerializer
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     default-schema: learn_language
