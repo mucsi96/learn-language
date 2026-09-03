@@ -29,6 +29,7 @@ import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 import { SessionStatsComponent } from '../session-stats/session-stats.component';
+import { DayGoalProgressComponent } from '../day-goal-progress/day-goal-progress.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -46,6 +47,7 @@ import { SessionStatsComponent } from '../session-stats/session-stats.component'
     LearnCardSkeletonComponent,
     ConfettiComponent,
     SessionStatsComponent,
+    DayGoalProgressComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -98,32 +100,12 @@ export class LearnCardComponent implements OnDestroy {
   private readonly cardShownAt = signal<number | null>(null);
   readonly reviewDuration = signal<number | null>(null);
 
-  private readonly sessionComplete = computed(() => {
-    const cardData = this.currentCardData.value();
-    const isLoading = this.currentCardData.isLoading();
-    return !isLoading && cardData === null && this.hasSession();
-  });
-
   readonly sessionStats = resource({
     params: () => {
       const sourceId = this.sourceId();
-      const complete = this.sessionComplete();
-      return complete && sourceId ? { sourceId } : undefined;
-    },
-    loader: async ({ params }) =>
-      this.studySessionService.fetchSessionStats(params.sourceId),
-    injector: this.injector,
-  });
-
-  readonly existingSessionStats = resource({
-    params: () => {
-      const sourceId = this.sourceId();
-      const hasExisting = this.hasExistingSession();
-      const hasActive = this.hasSession();
-      const checking = this.isCheckingSession();
-      return !checking && hasExisting && !hasActive && sourceId
-        ? { sourceId }
-        : undefined;
+      const sessionKnown =
+        !this.isCheckingSession() && (this.hasSession() || this.hasExistingSession());
+      return sessionKnown && sourceId ? { sourceId } : undefined;
     },
     loader: async ({ params }) =>
       this.studySessionService.fetchSessionStats(params.sourceId),
@@ -257,5 +239,6 @@ export class LearnCardComponent implements OnDestroy {
     this.reviewDuration.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.refreshSession();
+    this.sessionStats.reload();
   }
 }

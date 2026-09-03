@@ -1479,3 +1479,26 @@ databaseChangeLog:
                   )
                 ORDER BY operation_type, id
               );
+  - changeSet:
+      id: 55-create-day-goal-settings-table
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: day_goal_settings
+            columns:
+              - column:
+                  name: tier
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: day_goal_settings_pkey
+              - column:
+                  name: required_completion_percent
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: required_accuracy_percent
+                  type: int
+                  constraints:
+                    nullable: false

@@ -425,6 +425,24 @@ export async function createCard(params: {
   });
 }
 
+export async function createReviewCard(params: {
+  cardId: string;
+  sourceId: string;
+  data: CardData;
+  sourcePageNumber?: number;
+}): Promise<void> {
+  await createCard({
+    ...params,
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(),
+    elapsedDays: 1,
+    scheduledDays: 10,
+  });
+}
+
 interface CardSpec {
   state: string;
   count: number;
@@ -1017,6 +1035,44 @@ export async function getRateLimitSettings(): Promise<
   return await withDbConnection(async (client) => {
     const result = await client.query(
       `SELECT key, value FROM learn_language.rate_limit_settings ORDER BY key`
+    );
+    return result.rows;
+  });
+}
+
+export type DayGoalTier = 'BRONZE' | 'SILVER' | 'GOLD';
+
+export async function createDayGoalSetting(params: {
+  tier: DayGoalTier;
+  requiredCompletionPercent: number;
+  requiredAccuracyPercent: number;
+}): Promise<void> {
+  const { tier, requiredCompletionPercent, requiredAccuracyPercent } = params;
+
+  await withDbConnection(async (client) => {
+    await client.query(
+      `INSERT INTO learn_language.day_goal_settings (tier, required_completion_percent, required_accuracy_percent)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (tier) DO UPDATE SET required_completion_percent = $2, required_accuracy_percent = $3`,
+      [tier, requiredCompletionPercent, requiredAccuracyPercent]
+    );
+  });
+}
+
+export async function getDayGoalSettings(): Promise<
+  Array<{
+    tier: DayGoalTier;
+    requiredCompletionPercent: number;
+    requiredAccuracyPercent: number;
+  }>
+> {
+  return await withDbConnection(async (client) => {
+    const result = await client.query(
+      `SELECT tier,
+              required_completion_percent AS "requiredCompletionPercent",
+              required_accuracy_percent AS "requiredAccuracyPercent"
+       FROM learn_language.day_goal_settings
+       ORDER BY tier`
     );
     return result.rows;
   });

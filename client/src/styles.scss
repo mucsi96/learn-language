@@ -8,6 +8,9 @@ body {
 
 html {
   @include bt.theme();
+  --day-goal-bronze: #cd7f32;
+  --day-goal-silver: #b8bcc4;
+  --day-goal-gold: #ffc928;
 }
 
 body {

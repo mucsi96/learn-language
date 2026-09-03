@@ -5,6 +5,7 @@ import {
   yellowImage,
   greenImage,
   createCard,
+  createReviewCard,
   uploadMockImage,
   createCardsWithStates,
   createLearningPartner,
@@ -1970,4 +1971,93 @@ test('long simple card content is scrollable in study mode', async ({ page }) =>
   expect(scroll.scrolledTop).toBeGreaterThan(0);
 
   await expect(flashcard.getByText('END_OF_FRONT_MARKER')).toBeInViewport();
+});
+
+test('day goal progress advances as session cards are completed', async ({ page }) => {
+  const words = [
+    { cardId: 'day-goal-card-1', word: 'Ziel', hu: 'cél' },
+    { cardId: 'day-goal-card-2', word: 'Fortschritt', hu: 'haladás' },
+    { cardId: 'day-goal-card-3', word: 'Erfolg', hu: 'siker' },
+    { cardId: 'day-goal-card-4', word: 'Medaille', hu: 'érem' },
+  ];
+  await words.reduce(
+    (previous, { cardId, word, hu }, index) =>
+      previous.then(() =>
+        createReviewCard({
+          cardId,
+          sourceId: 'goethe-a1',
+          sourcePageNumber: 95 + index,
+          data: { word, type: 'NOUN', translation: { en: word, hu, ch: word } },
+        })
+      ),
+    Promise.resolve()
+  );
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const dayGoal = page.getByRole('group', { name: 'Day goal' });
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+
+  await expect(dayGoal).toContainText('No goal achieved yet');
+  await expect(dayGoal).toContainText('0 of 4 cards done');
+  await expect(dayGoal.getByRole('listitem', { name: 'Bronze goal: not achieved' })).toBeVisible();
+  await expect(dayGoal.getByRole('listitem', { name: 'Silver goal: not achieved' })).toBeVisible();
+  await expect(dayGoal.getByRole('listitem', { name: 'Gold goal: not achieved' })).toBeVisible();
+
+  await flashcard.getByRole('heading', { name: 'cél' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(dayGoal).toContainText('1 of 4 cards done');
+  await expect(dayGoal).toContainText('No goal achieved yet');
+
+  await flashcard.getByRole('heading', { name: 'haladás' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(dayGoal.getByRole('listitem', { name: 'Bronze goal: achieved' })).toBeVisible();
+  await expect(dayGoal.getByRole('listitem', { name: 'Silver goal: not achieved' })).toBeVisible();
+  await expect(dayGoal).toContainText('Bronze goal achieved');
+
+  await flashcard.getByRole('heading', { name: 'siker' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(dayGoal.getByRole('listitem', { name: 'Silver goal: achieved' })).toBeVisible();
+  await expect(dayGoal).toContainText('Silver goal achieved');
+
+  await flashcard.getByRole('heading', { name: 'érem' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  await expect(page.getByText('All caught up!')).toBeVisible();
+  await expect(dayGoal.getByRole('listitem', { name: 'Gold goal: achieved' })).toBeVisible();
+  await expect(dayGoal).toContainText('Gold goal achieved');
+  await expect(dayGoal).toContainText('4 of 4 cards done · 100% accuracy');
+});
+
+test('returning to an unfinished session shows the day goal earned so far', async ({ page }) => {
+  await createReviewCard({
+    cardId: 'day-goal-return-1',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 99,
+    data: { word: 'Pause', type: 'NOUN', translation: { en: 'break', hu: 'szünet', ch: 'Pause' } },
+  });
+  await createReviewCard({
+    cardId: 'day-goal-return-2',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 100,
+    data: { word: 'Rückkehr', type: 'NOUN', translation: { en: 'return', hu: 'visszatérés', ch: 'Rückkehr' } },
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.getByRole('heading', { name: 'szünet' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(flashcard.getByRole('heading', { name: 'visszatérés' })).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByText('Welcome back!')).toBeVisible();
+  const dayGoal = page.getByRole('group', { name: 'Day goal' });
+  await expect(dayGoal).toContainText('Bronze goal achieved');
+  await expect(dayGoal).toContainText('1 of 2 cards done');
+  await expect(dayGoal.getByRole('listitem', { name: 'Bronze goal: achieved' })).toBeVisible();
+  await expect(dayGoal.getByRole('listitem', { name: 'Gold goal: not achieved' })).toBeVisible();
 });
