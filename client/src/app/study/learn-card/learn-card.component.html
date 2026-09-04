@@ -10,11 +10,14 @@
   @if (hasExistingSession()) {
     <h2>Welcome back!</h2>
     <p>You have an ongoing study session from today.</p>
+    @if (sessionStats.value(); as stats) {
+      <app-day-goal-progress class="day-goal-progress" [stats]="stats" />
+    }
     <button mat-flat-button color="primary" (click)="startSession()" aria-label="Continue study session">
       <mat-icon>play_arrow</mat-icon>
       Continue
     </button>
-    @if (existingSessionStats.value(); as stats) {
+    @if (sessionStats.value(); as stats) {
       @if (stats.badCount > 0) {
         <button mat-stroked-button (click)="downloadStruggledCardsPdf()" aria-label="Export struggled cards as PDF">
           <mat-icon>picture_as_pdf</mat-icon>
@@ -45,6 +48,7 @@
   <p>No cards are due for review right now.</p>
   <p>Great job keeping up with your studies! 🎉</p>
   @if (sessionStats.value(); as stats) {
+    <app-day-goal-progress class="day-goal-progress" [stats]="stats" />
     <app-session-stats [stats]="stats" />
     @if (stats.badCount > 0) {
       <button mat-flat-button (click)="downloadStruggledCardsPdf()" aria-label="Export struggled cards as PDF">
@@ -56,6 +60,9 @@
 </div>
 } @else {
 <div class="learn-card-container">
+  @if (sessionStats.value(); as stats) {
+    <app-day-goal-progress class="day-goal-progress" [stats]="stats" />
+  }
   <div
     class="learn-card"
     [class.revealed]="isRevealed()"

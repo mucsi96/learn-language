@@ -367,6 +367,9 @@ Tracks review history and performance metrics for spaced repetition
 - `GET /api/source/{sourceId}/study-session` - Get today's existing study session (204 if none)
 - `POST /api/source/{sourceId}/study-session` - Create or resume today's study session (idempotent)
 - `GET /api/source/{sourceId}/study-session/current-card` - Get next card for today's session
+- `GET /api/source/{sourceId}/study-session/stats` - Today's session statistics including day goal progress
+- `GET /api/day-goal-settings` - Requirements of the bronze, silver and gold day goals
+- `PUT /api/day-goal-settings/{tier}` - Update what a day goal tier requires
 - `POST /api/source/{sourceId}/word-import` - Stage word candidates from an analyzer JSON word list (word triage sources only)
 - `GET /api/source/{sourceId}/word-import` - Pending word candidates and triage stats
 - `POST /api/source/{sourceId}/word-import/candidates/{id}/known|card|undo` - Decide or revert a candidate
@@ -377,6 +380,7 @@ Tracks review history and performance metrics for spaced repetition
 - `/sources/:sourceId/page/:pageNumber` - PDF page viewer with word selection
 - `/sources/:sourceId/study` - Flashcard study mode
 - `/sources/:sourceId/word-import` - Swipe triage of imported word candidates
+- `/settings/day-goals` - Configure the bronze, silver and gold day goal requirements
 - `/in-review-cards` - Cards pending review
 
 ## Development Patterns
@@ -420,6 +424,12 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
 - Sessions older than 1 day are automatically cleaned up
+
+### Day Goals
+- Three tiers (bronze, silver, gold) are evaluated against today's session for a source
+- Each tier requires a share of the session's cards to be completed (no longer due today) and a minimum accuracy; both are configured under Settings > Day Goals and stored in `day_goal_settings`
+- Missing rows fall back to bronze 50%, silver 75%, gold 100% completion with no accuracy requirement; nothing about the tiers is hardcoded elsewhere
+- `DayGoalService.evaluate` returns the progress and the highest achieved tier as part of the session stats; the study page shows it while studying, when returning to a session and on the completion screen
 
 ### Multilingual Support
 - German as primary language with smart context-aware translations

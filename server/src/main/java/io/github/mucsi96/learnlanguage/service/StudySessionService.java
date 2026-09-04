@@ -54,6 +54,7 @@ public class StudySessionService {
     private final StudySessionRepository studySessionRepository;
     private final StudySessionCardRepository studySessionCardRepository;
     private final ReviewLogRepository reviewLogRepository;
+    private final DayGoalService dayGoalService;
 
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
@@ -323,12 +324,7 @@ public class StudySessionService {
     }
 
     private Optional<StudySessionCardResponse> findNextCard(StudySession session, LocalDateTime startOfNextDay) {
-        final List<StudySessionCard> eligibleCards = session.getCards().stream()
-                .filter(c -> c.getCard().isReady())
-                .filter(c -> c.getCard().getDue().isBefore(startOfNextDay))
-                .toList();
-
-        final Optional<StudySessionCard> nextCard = eligibleCards.stream()
+        final Optional<StudySessionCard> nextCard = pendingCards(session, startOfNextDay).stream()
                 .min(Comparator.comparingInt(StudySessionCard::getPosition));
 
         return nextCard.map(sessionCard -> {
@@ -347,14 +343,31 @@ public class StudySessionService {
         });
     }
 
-    @Transactional(readOnly = true)
-    public Optional<SessionStatsResponse> getSessionStats(String sourceId, LocalDateTime startOfDay) {
-        return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
-                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
-                .map(session -> buildSessionStats(session, startOfDay));
+    private List<StudySessionCard> pendingCards(StudySession session, LocalDateTime startOfNextDay) {
+        return readyCards(session).stream()
+                .filter(c -> c.getCard().getDue().isBefore(startOfNextDay))
+                .toList();
     }
 
-    private SessionStatsResponse buildSessionStats(StudySession session, LocalDateTime startOfDay) {
+    private List<StudySessionCard> readyCards(StudySession session) {
+        return session.getCards().stream()
+                .filter(c -> c.getCard().isReady())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SessionStatsResponse> getSessionStats(String sourceId, LocalDateTime startOfDay,
+            LocalDateTime startOfNextDay) {
+        return studySessionRepository.findOne(hasSourceId(sourceId).and(createdOnOrAfter(startOfDay)))
+                .flatMap(session -> studySessionRepository.findWithCardsById(session.getId()))
+                .map(session -> buildSessionStats(session, startOfDay, startOfNextDay));
+    }
+
+    private SessionStatsResponse buildSessionStats(StudySession session, LocalDateTime startOfDay,
+            LocalDateTime startOfNextDay) {
+        final int totalCards = readyCards(session).size();
+        final int completedCards = totalCards - pendingCards(session, startOfNextDay).size();
+
         final List<String> cardIds = session.getCards().stream()
                 .map(sc -> sc.getCard().getId())
                 .toList();
@@ -436,6 +449,9 @@ public class StudySessionService {
                 .badCount(badCount)
                 .studyMode(session.getStudyMode())
                 .personStats(personStats)
+                .totalCards(totalCards)
+                .completedCards(completedCards)
+                .dayGoal(dayGoalService.evaluate(totalCards, completedCards, goodCount, badCount))
                 .build();
     }
 

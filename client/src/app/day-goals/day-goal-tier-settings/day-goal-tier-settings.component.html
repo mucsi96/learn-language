@@ -1,0 +1,29 @@
+<section
+  class="tier"
+  role="group"
+  [attr.data-tier]="setting().tier"
+  [attr.aria-label]="label() + ' goal'"
+>
+  <h3 class="tier-title">
+    <mat-icon class="tier-icon" aria-hidden="true">emoji_events</mat-icon>
+    {{ label() }}
+  </h3>
+  <mat-form-field>
+    <mat-label>Completed cards (%)</mat-label>
+    <input
+      matInput
+      type="number"
+      [formField]="requirementsForm.requiredCompletionPercent"
+      [attr.aria-label]="label() + ' required completed cards percent'"
+    />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Accuracy (%)</mat-label>
+    <input
+      matInput
+      type="number"
+      [formField]="requirementsForm.requiredAccuracyPercent"
+      [attr.aria-label]="label() + ' required accuracy percent'"
+    />
+  </mat-form-field>
+</section>

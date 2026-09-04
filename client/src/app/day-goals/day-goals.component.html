@@ -1,0 +1,30 @@
+<div class="day-goals-container">
+  <mat-card>
+    <mat-card-header>
+      <h2 mat-card-title>Day Goals</h2>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        A goal is earned once today's study session reaches the required share
+        of completed cards and the required accuracy. Set a requirement to 0
+        to ignore it.
+      </p>
+      @if (settings.isLoading()) {
+        <div class="tiers" aria-busy="true">
+          @for (row of skeletonRows; track $index) {
+            <div class="skeleton skeleton-tier"></div>
+          }
+        </div>
+      } @else {
+        <div class="tiers">
+          @for (setting of settings.value(); track setting.tier) {
+            <app-day-goal-tier-settings
+              [setting]="setting"
+              (settingChange)="updateSetting($event)"
+            />
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

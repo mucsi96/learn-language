@@ -67,7 +67,8 @@ public class StudySessionController {
     public ResponseEntity<SessionStatsResponse> getSessionStats(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
-        return studySessionService.getSessionStats(sourceId, startOfDayUtc(parseTimezone(timezone)))
+        final ZoneId zone = parseTimezone(timezone);
+        return studySessionService.getSessionStats(sourceId, startOfDayUtc(zone), startOfNextDayUtc(zone))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }

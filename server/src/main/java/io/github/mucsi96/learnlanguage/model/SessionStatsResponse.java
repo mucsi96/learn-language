@@ -18,6 +18,9 @@ public class SessionStatsResponse {
     private int badCount;
     private String studyMode;
     private List<PersonStats> personStats;
+    private int totalCards;
+    private int completedCards;
+    private DayGoalProgressResponse dayGoal;
 
     @Data
     @Builder

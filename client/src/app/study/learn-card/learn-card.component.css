@@ -101,6 +101,18 @@
   margin-top: 1.5rem;
 }
 
+.day-goal-progress {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1rem;
+}
+
+.learn-card-container .day-goal-progress {
+  max-width: none;
+  margin: 0 0 0.5rem;
+}
+
 .grading-buttons-container {
   display: flex;
   align-items: center;

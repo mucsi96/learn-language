@@ -1,0 +1,27 @@
+<section class="day-goal" role="group" aria-label="Day goal" [attr.data-tier]="achievedTier()">
+  <div class="status">
+    <mat-icon class="status-icon" aria-hidden="true">
+      {{ achievedTier() ? 'emoji_events' : 'flag' }}
+    </mat-icon>
+    <div class="status-text">
+      <span class="status-title">{{ status() }}</span>
+      <span class="status-summary">{{ summary() }}</span>
+    </div>
+  </div>
+  <ul class="tiers" aria-label="Day goals">
+    @for (tier of tiers(); track tier.tier) {
+      <li
+        class="tier"
+        [class.achieved]="tier.achieved"
+        [attr.data-tier]="tier.tier"
+        [attr.aria-label]="tier.label + ' goal: ' + (tier.achieved ? 'achieved' : 'not achieved')"
+      >
+        <mat-icon class="tier-icon" aria-hidden="true">
+          {{ tier.achieved ? 'emoji_events' : 'radio_button_unchecked' }}
+        </mat-icon>
+        <span class="tier-name">{{ tier.label }}</span>
+        <span class="tier-requirements">{{ tier.requirements }}</span>
+      </li>
+    }
+  </ul>
+</section>

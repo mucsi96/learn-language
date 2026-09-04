@@ -1,0 +1,103 @@
+.day-goal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  text-align: left;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.day-goal[data-tier='BRONZE'] .status-icon {
+  color: var(--day-goal-bronze);
+}
+
+.day-goal[data-tier='SILVER'] .status-icon {
+  color: var(--day-goal-silver);
+}
+
+.day-goal[data-tier='GOLD'] .status-icon {
+  color: var(--day-goal-gold);
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-title {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.status-summary {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tier {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.85rem;
+}
+
+.tier-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.tier.achieved {
+  color: var(--mat-sys-on-surface);
+  border-color: currentColor;
+}
+
+.tier.achieved[data-tier='BRONZE'] .tier-icon {
+  color: var(--day-goal-bronze);
+}
+
+.tier.achieved[data-tier='SILVER'] .tier-icon {
+  color: var(--day-goal-silver);
+}
+
+.tier.achieved[data-tier='GOLD'] .tier-icon {
+  color: var(--day-goal-gold);
+}
+
+.tier-name {
+  font-weight: 600;
+}
+
+.tier-requirements {
+  opacity: 0.8;
+}

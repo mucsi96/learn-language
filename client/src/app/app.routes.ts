@@ -83,6 +83,12 @@ export const routes: Routes = [
         title: 'API Tokens',
       },
       {
+        path: 'day-goals',
+        loadComponent: () =>
+          import('./day-goals/day-goals.component').then((m) => m.DayGoalsComponent),
+        title: 'Day Goals',
+      },
+      {
         path: 'daily-sessions',
         loadComponent: () =>
           import('./daily-sessions/daily-sessions.component').then((m) => m.DailySessionsComponent),

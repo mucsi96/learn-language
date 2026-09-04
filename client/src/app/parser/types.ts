@@ -307,6 +307,22 @@ export type PersonStats = {
   badCount: number;
 };
 
+export type DayGoalTier = 'BRONZE' | 'SILVER' | 'GOLD';
+
+export type DayGoalTierProgress = {
+  tier: DayGoalTier;
+  requiredCompletionPercent: number;
+  requiredAccuracyPercent: number;
+  achieved: boolean;
+};
+
+export type DayGoalProgress = {
+  completionPercent: number;
+  accuracyPercent: number;
+  achievedTier: DayGoalTier | null;
+  tiers: DayGoalTierProgress[];
+};
+
 export type SessionStats = {
   totalDurationMs: number;
   averageDurationMs: number;
@@ -314,4 +330,7 @@ export type SessionStats = {
   badCount: number;
   studyMode: 'SOLO' | 'WITH_PARTNER';
   personStats: PersonStats[];
+  totalCards: number;
+  completedCards: number;
+  dayGoal: DayGoalProgress;
 };
