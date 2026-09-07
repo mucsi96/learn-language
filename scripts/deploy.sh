@@ -40,8 +40,8 @@ echo "Deploying server: $DOCKERHUB_USERNAME/learn-language-server:$serverLatestT
 # code cache and no JIT-compiled code to hold: it idles far below what the
 # 640Mi request assumed for the JRE image, hence the smaller request. The
 # request is what the scheduler reserves around the clock, so it is sized for
-# idle. Metrics-server puts the resident footprint at 104Mi over the last three
-# days; study-session load peaks around 185Mi, which the limit absorbs.
+# idle. Over 36h in production RSS averaged 124Mi and peaked at 155Mi, while
+# the working set peaked at 267Mi.
 #
 # The limit is the opposite question and stays where it is: it has to cover the
 # idle footprint plus the 512Mi heap the image is capped at (see the ENTRYPOINT
@@ -78,8 +78,8 @@ helm upgrade $CLIENT_RELEASE_NAME mucsi96/client-app \
     --set image=$DOCKERHUB_USERNAME/learn-language-client:$clientLatestTag \
     --set host=$HOSTNAME \
     --set entryPoint=web \
-    --set resources.requests.memory=32Mi \
+    --set resources.requests.memory=8Mi \
     --set resources.requests.cpu=10m \
-    --set resources.limits.memory=128Mi \
+    --set resources.limits.memory=32Mi \
     --set resources.limits.cpu=200m \
     --wait
