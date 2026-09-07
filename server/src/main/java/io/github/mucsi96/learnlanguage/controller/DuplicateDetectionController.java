@@ -21,7 +21,7 @@ public class DuplicateDetectionController {
     private final DuplicateDetectionService duplicateDetectionService;
     private final SourceService sourceService;
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @PostMapping("/duplicate-detection")
     public DuplicateDetectionResponse detect(
             @Valid @RequestBody DuplicateDetectionRequest request,

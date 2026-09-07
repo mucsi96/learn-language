@@ -27,20 +27,20 @@ public class LearningPartnerController {
     private final LearningPartnerService learningPartnerService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public List<LearningPartnerResponse> getAllLearningPartners() {
         return learningPartnerService.getAllLearningPartners();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public LearningPartnerResponse createLearningPartner(
             @Valid @RequestBody LearningPartnerRequest request) {
         return learningPartnerService.createLearningPartner(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public LearningPartnerResponse updateLearningPartner(
             @PathVariable Integer id,
             @Valid @RequestBody LearningPartnerRequest request) {
@@ -48,7 +48,7 @@ public class LearningPartnerController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteLearningPartner(@PathVariable Integer id) {
         learningPartnerService.deleteLearningPartner(id);
         return ResponseEntity.noContent().build();

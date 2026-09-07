@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/source/{sourceId}/word-import")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+@PreAuthorize("hasAuthority('APPROLE_createDeck')")
 public class WordImportController {
 
     private final WordImportService wordImportService;

@@ -32,7 +32,7 @@ public class StudySessionController {
     private final StudySessionPdfService studySessionPdfService;
 
     @GetMapping("/source/{sourceId}/study-session")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<StudySessionResponse> getExistingSession(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
@@ -42,7 +42,7 @@ public class StudySessionController {
     }
 
     @PostMapping("/source/{sourceId}/study-session")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<StudySessionResponse> createSession(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
@@ -52,7 +52,7 @@ public class StudySessionController {
     }
 
     @GetMapping("/source/{sourceId}/study-session/current-card")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
@@ -63,7 +63,7 @@ public class StudySessionController {
     }
 
     @GetMapping("/source/{sourceId}/study-session/stats")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<SessionStatsResponse> getSessionStats(
             @PathVariable String sourceId,
             @RequestHeader("X-Timezone") String timezone) {
@@ -73,7 +73,7 @@ public class StudySessionController {
     }
 
     @GetMapping("/source/{sourceId}/study-session/struggled-cards.pdf")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<byte[]> getStruggledCardsPdf(
             @PathVariable String sourceId,
             @RequestHeader(value = "X-Timezone") String timezone) {
@@ -86,7 +86,7 @@ public class StudySessionController {
     }
 
     @PostMapping("/source/{sourceId}/study-session/skip-card/{cardId}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<Void> skipCard(
             @PathVariable String sourceId,
             @PathVariable String cardId,
@@ -96,7 +96,7 @@ public class StudySessionController {
     }
 
     @PostMapping("/study-sessions/add-cards")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> addCardsToSessions(
             @RequestBody AddCardsToSessionRequest request,
             @RequestHeader("X-Timezone") String timezone) {
@@ -105,7 +105,7 @@ public class StudySessionController {
     }
 
     @DeleteMapping("/study-sessions")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteAllSessions() {
         studySessionService.deleteAllSessions();
         return ResponseEntity.noContent().build();

@@ -22,7 +22,7 @@ public class WordIdController {
     private final CardRepository cardRepository;
 
     @PostMapping("/word-id")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<WordIdResponse> generateWordId(@Valid @RequestBody WordIdRequest request) {
         final String id = wordIdService.generateWordId(request.getGermanWord(), request.getHungarianTranslation());
         final Set<String> detectionSourceIds = sourceService.getDetectionSourceIds(request.getSourceId());

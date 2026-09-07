@@ -27,19 +27,19 @@ public class ApiTokenController {
     private final ApiTokenService apiTokenService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public List<ApiTokenResponse> getAllTokens() {
         return apiTokenService.getAllTokens();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ApiTokenCreateResponse createToken(@Valid @RequestBody ApiTokenRequest request) {
         return apiTokenService.createToken(request);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteToken(@PathVariable Integer id) {
         apiTokenService.deleteToken(id);
         return ResponseEntity.noContent().build();

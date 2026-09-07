@@ -52,7 +52,7 @@ public class CardController {
   private final AudioSettingService audioSettingService;
 
   @GetMapping("/source/{sourceId}/cards")
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<CardTableResponse> getCards(
       @PathVariable String sourceId,
       @RequestHeader("X-Timezone") String timezone,
@@ -82,7 +82,7 @@ public class CardController {
   }
 
   @GetMapping("/source/{sourceId}/card-ids")
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<List<String>> getFilteredCardIds(
       @PathVariable String sourceId,
       @RequestHeader("X-Timezone") String timezone,
@@ -108,7 +108,7 @@ public class CardController {
   }
 
   @PutMapping("/cards/mark-known")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsKnown(@RequestBody List<String> cardIds) {
     cardService.markCardsAsKnown(cardIds);
 
@@ -117,7 +117,7 @@ public class CardController {
   }
 
   @DeleteMapping("/cards")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCards(@RequestBody List<String> cardIds) {
     cardService.deleteCardsByIds(cardIds);
 
@@ -126,7 +126,7 @@ public class CardController {
   }
 
   @DeleteMapping("/cards/audio")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCardsAudio(@RequestBody List<String> cardIds) {
     cardService.deleteAudioForCards(cardIds);
 
@@ -135,7 +135,7 @@ public class CardController {
   }
 
   @PostMapping("/card")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @Transactional
   public ResponseEntity<Map<String, String>> createCard(@RequestBody CardCreateRequest request) throws Exception {
     final Source source = sourceRepository.findById(request.getSourceId())
@@ -202,7 +202,7 @@ public class CardController {
   }
 
   @GetMapping("/card/{cardId}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<CardResponse> getCard(@PathVariable String cardId) throws Exception {
     final Card card = cardService.getCardById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
@@ -211,7 +211,7 @@ public class CardController {
   }
 
   @PutMapping("/card/{cardId}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @Transactional
   public ResponseEntity<Map<String, String>> updateCard(@PathVariable String cardId,
       @RequestBody CardUpdateRequest request,
@@ -279,7 +279,7 @@ public class CardController {
   }
 
   @DeleteMapping("/card/{cardId}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteCard(@PathVariable String cardId) throws Exception {
     cardService.deleteCardById(cardId);
 
@@ -289,7 +289,7 @@ public class CardController {
   }
 
   @GetMapping("/cards/readiness/{readiness}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsByReadiness(@PathVariable CardReadiness readiness) {
     final List<CardResponse> cards = cardService.getCardsByReadiness(readiness).stream()
         .map(CardResponse::from)
@@ -298,7 +298,7 @@ public class CardController {
   }
 
   @GetMapping("/cards/flagged")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<List<CardResponse>> getFlaggedCards() {
     final List<CardResponse> cards = cardService.getFlaggedCards().stream()
         .map(CardResponse::from)
@@ -307,7 +307,7 @@ public class CardController {
   }
 
   @PutMapping("/cards/mark-draft")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> markCardsAsDraft(@RequestBody List<String> cardIds) {
     cardService.markCardsAsDraft(cardIds);
 
@@ -316,7 +316,7 @@ public class CardController {
   }
 
   @GetMapping("/cards/missing-audio")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<List<CardResponse>> getCardsMissingAudio() {
     final boolean frontAudioDisabled = audioSettingService.isFrontAudioDisabled();
     final List<CardResponse> cards = cardService.getCardsMissingAudio(frontAudioDisabled).stream()
@@ -326,7 +326,7 @@ public class CardController {
   }
 
   @GetMapping("/cards/sample")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<List<CardResponse>> getSampleCards() {
     final List<CardResponse> cards = cardService.getRecentlyReviewedCards(10).stream()
         .map(CardResponse::from)
@@ -335,7 +335,7 @@ public class CardController {
   }
 
   @PutMapping("/card/{cardId}/audio/{audioId}/select")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> selectVoiceForCard(@PathVariable String cardId, @PathVariable String audioId) {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));
@@ -358,7 +358,7 @@ public class CardController {
   }
 
   @PostMapping("/card/{cardId}/audio")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> addAudioToCard(@PathVariable String cardId, @RequestBody AudioData audioData) {
     Card card = cardRepository.findById(cardId)
         .orElseThrow(() -> new ResourceNotFoundException("Card not found with id: " + cardId));

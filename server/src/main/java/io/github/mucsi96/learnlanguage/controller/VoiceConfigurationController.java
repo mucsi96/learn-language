@@ -32,26 +32,26 @@ public class VoiceConfigurationController {
     private final AudioSettingService audioSettingService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public List<VoiceConfigurationResponse> getAllVoiceConfigurations() {
         return voiceConfigurationService.getAllVoiceConfigurations();
     }
 
     @GetMapping("/enabled")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public List<VoiceConfigurationResponse> getEnabledVoiceConfigurations() {
         return voiceConfigurationService.getEnabledVoiceConfigurations();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public VoiceConfigurationResponse createVoiceConfiguration(
             @Valid @RequestBody VoiceConfigurationRequest request) {
         return voiceConfigurationService.createVoiceConfiguration(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public VoiceConfigurationResponse updateVoiceConfiguration(
             @PathVariable Integer id,
             @Valid @RequestBody VoiceConfigurationRequest request) {
@@ -59,7 +59,7 @@ public class VoiceConfigurationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteVoiceConfiguration(@PathVariable Integer id) {
         voiceConfigurationService.deleteVoiceConfiguration(id);
         return ResponseEntity.noContent().build();
@@ -67,7 +67,7 @@ public class VoiceConfigurationController {
 
     @PutMapping("/front-audio")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public void updateFrontAudioDisabled(@RequestBody FrontAudioRequest request) {
         audioSettingService.setFrontAudioDisabled(request.isDisabled());
     }

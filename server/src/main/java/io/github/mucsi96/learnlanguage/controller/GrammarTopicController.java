@@ -27,20 +27,20 @@ public class GrammarTopicController {
     private final GrammarTopicService grammarTopicService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public List<GrammarTopicResponse> getAllGrammarTopics() {
         return grammarTopicService.getAllGrammarTopics();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public GrammarTopicResponse createGrammarTopic(
             @Valid @RequestBody GrammarTopicRequest request) {
         return grammarTopicService.createGrammarTopic(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public GrammarTopicResponse updateGrammarTopic(
             @PathVariable Integer id,
             @Valid @RequestBody GrammarTopicRequest request) {
@@ -48,7 +48,7 @@ public class GrammarTopicController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteGrammarTopic(@PathVariable Integer id) {
         grammarTopicService.deleteGrammarTopic(id);
         return ResponseEntity.noContent().build();
