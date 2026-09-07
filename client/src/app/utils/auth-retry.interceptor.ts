@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, from, switchMap, tap, throwError } from 'rxjs';
+import { catchError, from, NEVER, switchMap, tap, throwError } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { isApiRequest } from './http.util';
 
@@ -43,6 +43,13 @@ export const authRetryInterceptor: HttpInterceptorFn = (req, next) => {
           )
         ),
         catchError((refreshError: unknown) => {
+          if (auth.reauthenticateAfterRefreshFailure(refreshError)) {
+            console.warn(
+              '[auth] Token refresh after 401 requires full re-authentication - waiting for redirect',
+              JSON.stringify({ url: req.url })
+            );
+            return NEVER;
+          }
           console.warn(
             '[auth] Token refresh after 401 failed - propagating original error',
             JSON.stringify({
