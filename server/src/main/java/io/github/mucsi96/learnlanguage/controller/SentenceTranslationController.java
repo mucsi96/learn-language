@@ -20,7 +20,7 @@ public class SentenceTranslationController {
 
     private final SentenceTranslationService sentenceTranslationService;
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @PostMapping("/translate-sentence/{languageCode}")
     public SentenceTranslationResponse translateSentence(
             @Valid @RequestBody SentenceTranslationRequest request,

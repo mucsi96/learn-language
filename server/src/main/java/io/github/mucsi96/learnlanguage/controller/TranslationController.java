@@ -19,7 +19,7 @@ public class TranslationController {
 
     private final TranslationService translationService;
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @PostMapping("/translate/{languageCode}")
     public TranslationResponse translate(
             @RequestBody TranslateWordRequest request,

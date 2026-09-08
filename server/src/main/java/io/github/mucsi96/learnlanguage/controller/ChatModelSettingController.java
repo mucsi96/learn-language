@@ -27,19 +27,19 @@ public class ChatModelSettingController {
     private final ChatModelSettingService chatModelSettingService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public List<ChatModelSettingResponse> getAllSettings() {
         return chatModelSettingService.getAllSettings();
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ChatModelSettingResponse updateSetting(@Valid @RequestBody ChatModelSettingRequest request) {
         return chatModelSettingService.updateSetting(request);
     }
 
     @PostMapping("/enable-all/{operationType}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> enableAllModelsForOperation(@PathVariable OperationType operationType) {
         chatModelSettingService.enableAllModelsForOperation(operationType);
         return ResponseEntity.ok().build();

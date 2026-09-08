@@ -40,7 +40,7 @@ public class AudioController {
   private final ModelUsageLogRepository modelUsageLogRepository;
 
   @PostMapping("/audio")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public AudioData createAudio(@Valid @RequestBody AudioSourceRequest audioSource) throws IOException {
     final int dailyLimit = rateLimitSettingService.getAudioDailyLimit();
     if (dailyLimit > 0) {
@@ -68,7 +68,7 @@ public class AudioController {
   }
 
   @GetMapping(value = "/audio/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<byte[]> getAudio(@PathVariable String id) {
     String filePath = "audio/%s.mp3".formatted(id);
     byte[] audioData = fileStorageService.fetchFile(filePath).toBytes();
@@ -80,7 +80,7 @@ public class AudioController {
   }
 
   @DeleteMapping("/audio/{id}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Void> deleteAudio(@PathVariable String id) {
     String filePath = "audio/%s.mp3".formatted(id);
     fileStorageService.deleteFile(filePath);

@@ -143,9 +143,9 @@ spec:
         - name: OID
           value: 00000000-0000-0000-0000-000000000001
         - name: ROLES
-          value: DeckReader,DeckCreator
+          value: readDecks,createDeck
         - name: SCP
-          value: readDecks createDeck
+          value: api-access
         - name: AUD
           value: mock-api-client-id
       livenessProbe:

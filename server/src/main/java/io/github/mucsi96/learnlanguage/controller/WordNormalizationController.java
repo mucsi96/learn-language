@@ -20,7 +20,7 @@ public class WordNormalizationController {
     private final WordNormalizationService wordNormalizationService;
 
     @PostMapping("/normalize-word")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<NormalizeWordResponse> normalizeWord(
             @RequestBody NormalizeWordRequest request,
             @RequestParam ChatModel model) {

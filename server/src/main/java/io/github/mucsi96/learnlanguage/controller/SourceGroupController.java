@@ -27,20 +27,20 @@ public class SourceGroupController {
     private final SourceGroupService sourceGroupService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public List<SourceGroupResponse> getAllSourceGroups() {
         return sourceGroupService.getAllSourceGroups();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public SourceGroupResponse createSourceGroup(
             @Valid @RequestBody SourceGroupRequest request) {
         return sourceGroupService.createSourceGroup(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public SourceGroupResponse updateSourceGroup(
             @PathVariable String id,
             @Valid @RequestBody SourceGroupRequest request) {
@@ -48,7 +48,7 @@ public class SourceGroupController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteSourceGroup(@PathVariable String id) {
         sourceGroupService.deleteSourceGroup(id);
         return ResponseEntity.noContent().build();

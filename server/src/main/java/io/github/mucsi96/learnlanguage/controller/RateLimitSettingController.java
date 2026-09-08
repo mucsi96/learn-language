@@ -19,7 +19,7 @@ public class RateLimitSettingController {
     private final RateLimitSettingService rateLimitSettingService;
 
     @PutMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public void updateRateLimitSettings(@Valid @RequestBody RateLimitSettingRequest request) {
         rateLimitSettingService.updateRateLimitSettings(request);
     }

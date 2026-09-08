@@ -43,7 +43,7 @@ public class ModelUsageLogController {
     public record ModelSummary(OperationType operationType, String modelName, long totalCalls,
             long ratedCalls, BigDecimal averageRating, BigDecimal totalCost) {}
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @GetMapping("/model-usage-logs")
     public ModelUsageLogTableResponse getModelUsageLogs(
             @RequestParam(defaultValue = "0") int startRow,
@@ -73,7 +73,7 @@ public class ModelUsageLogController {
             .build();
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @PatchMapping("/model-usage-logs/{id}/rating")
     @Transactional
     public ResponseEntity<Void> updateRating(@PathVariable Long id, @RequestBody RatingRequest request) {
@@ -87,7 +87,7 @@ public class ModelUsageLogController {
 
     public record DailyUsageResponse(long imageUsageToday, long audioUsageToday) {}
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     @GetMapping("/model-usage-logs/daily-usage")
     public DailyUsageResponse getDailyUsage() {
         final LocalDateTime startOfDay = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
@@ -102,7 +102,7 @@ public class ModelUsageLogController {
         );
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @GetMapping("/model-usage-logs/summary")
     public List<ModelSummary> getModelSummary() {
         return repository.getModelSummary().stream()
@@ -117,7 +117,7 @@ public class ModelUsageLogController {
             .toList();
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     @DeleteMapping("/model-usage-logs")
     @Transactional
     public ResponseEntity<Void> deleteLogs(

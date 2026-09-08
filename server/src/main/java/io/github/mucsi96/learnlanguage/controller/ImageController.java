@@ -43,7 +43,7 @@ public class ImageController {
   private static final MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
 
   @PostMapping("/image")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ImageGenerationResponse createImage(@Valid @RequestBody ImageSourceRequest imageSource) {
     final int dailyLimit = rateLimitSettingService.getImageDailyLimit();
     if (dailyLimit > 0) {
@@ -73,7 +73,7 @@ public class ImageController {
   }
 
   @GetMapping("/image/{id}/status")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ImageJobStatusResponse getImageStatus(@PathVariable String id) {
     final var job = imageGenerationJobService.getJob(parseId(id));
     return ImageJobStatusResponse.builder()
@@ -91,7 +91,7 @@ public class ImageController {
   }
 
   @GetMapping(value = "/image/{id}", produces = IMAGE_WEBP_VALUE)
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<byte[]> getImage(@PathVariable String id) {
     final String filePath = "images/%s.webp".formatted(id);
     final byte[] data = fileStorageService.fetchFile(filePath).toBytes();

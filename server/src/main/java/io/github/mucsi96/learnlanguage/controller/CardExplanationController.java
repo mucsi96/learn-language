@@ -31,7 +31,7 @@ public class CardExplanationController {
     private final AnswerCheckService answerCheckService;
     private final TranscriptionService transcriptionService;
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     @PostMapping("/card/{cardId}/explain")
     public CardExplanationResponse explain(
             @PathVariable String cardId,
@@ -45,7 +45,7 @@ public class CardExplanationController {
                 .build();
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     @PostMapping("/card/{cardId}/check-answer")
     public AnswerCheckResponse checkAnswer(
             @PathVariable String cardId,
@@ -55,7 +55,7 @@ public class CardExplanationController {
         return answerCheckService.checkAnswer(cardId, request.getAnswer(), model);
     }
 
-    @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     @PostMapping(value = "/transcribe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public TranscriptionResponse transcribe(@RequestParam("file") MultipartFile file) throws IOException {
         final String text = transcriptionService.transcribe(file.getBytes(), file.getOriginalFilename());

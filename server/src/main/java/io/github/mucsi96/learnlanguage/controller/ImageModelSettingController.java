@@ -23,13 +23,13 @@ public class ImageModelSettingController {
     private final ImageModelSettingService imageModelSettingService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public List<ImageModelResponse> getAllSettings() {
         return imageModelSettingService.getImageModelsWithSettings();
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ImageModelResponse updateSetting(@Valid @RequestBody ImageModelSettingRequest request) {
         return imageModelSettingService.updateSetting(request);
     }

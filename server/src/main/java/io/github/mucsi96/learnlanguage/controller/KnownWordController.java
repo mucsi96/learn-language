@@ -25,7 +25,7 @@ public class KnownWordController {
     private final KnownWordService knownWordService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public KnownWordsResponse getKnownWords() {
         return KnownWordsResponse.builder()
                 .words(knownWordService.getAllKnownWords())
@@ -34,7 +34,7 @@ public class KnownWordController {
     }
 
     @PostMapping("/import")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public KnownWordsImportResponse importWords(@Valid @RequestBody KnownWordsImportRequest request) {
         int importedCount = knownWordService.importFromCsv(request.getText());
         return KnownWordsImportResponse.builder()
@@ -43,14 +43,14 @@ public class KnownWordController {
     }
 
     @DeleteMapping("/{word}")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteWord(@PathVariable String word) {
         knownWordService.deleteWord(word);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<Void> deleteAllWords() {
         knownWordService.deleteAllWords();
         return ResponseEntity.noContent().build();

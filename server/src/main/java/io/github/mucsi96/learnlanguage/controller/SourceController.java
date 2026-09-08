@@ -101,7 +101,7 @@ public class SourceController {
   private final PhotoGrammarConceptService photoGrammarConceptService;
   private final WordImportService wordImportService;
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   @GetMapping("/sources")
   public List<SourceResponse> getSources() {
     final var sources = sourceService.getAllSources();
@@ -148,7 +148,7 @@ public class SourceController {
     }).collect(Collectors.toList());
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @GetMapping("/source/{sourceId}/page/{pageNumber}")
   public PageResponse getPage(
       @PathVariable String sourceId,
@@ -224,7 +224,7 @@ public class SourceController {
     return pdfDocuments.isEmpty() ? null : pdfDocuments.get(0);
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/extract/words")
   public WordListResponse extractWords(
       @PathVariable String sourceId,
@@ -247,7 +247,7 @@ public class SourceController {
         .build();
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/extract/sentences")
   public SentenceListResponse extractSentences(
       @PathVariable String sourceId,
@@ -266,7 +266,7 @@ public class SourceController {
         .build();
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/extract/grammar")
   public SentenceListResponse extractGrammarSentences(
       @PathVariable String sourceId,
@@ -285,7 +285,7 @@ public class SourceController {
         .build();
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/extraction-regions")
   public ResponseEntity<Map<String, String>> saveExtractionRegions(
       @PathVariable String sourceId,
@@ -310,7 +310,7 @@ public class SourceController {
     return ResponseEntity.ok(Map.of("detail", "Extraction regions saved"));
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   @GetMapping("/sources/due-cards-count")
   public List<SourceDueCardCountResponse> getDueCardsCountBySource(
       @RequestHeader("X-Timezone") String timezone) {
@@ -319,7 +319,7 @@ public class SourceController {
   }
 
   @PostMapping("/source")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> createSource(@RequestBody SourceRequest request) {
     if (request.getCardTypes() == null || request.getCardTypes().isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one card type is required");
@@ -362,7 +362,7 @@ public class SourceController {
   }
 
   @PutMapping("/source/{sourceId}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> updateSource(
       @PathVariable String sourceId,
       @RequestBody SourceRequest request) {
@@ -398,7 +398,7 @@ public class SourceController {
   }
 
   @DeleteMapping("/source/{sourceId}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteSource(@PathVariable String sourceId) {
     Source source = sourceService.getSourceById(sourceId)
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
@@ -409,7 +409,7 @@ public class SourceController {
   }
 
   @PostMapping("/source/upload")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> uploadSourceFile(@RequestParam("file") MultipartFile file) {
     try {
       final var originalFilename = file.getOriginalFilename();
@@ -429,7 +429,7 @@ public class SourceController {
   }
 
   @PostMapping("/source/{sourceId}/documents")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, Object>> uploadDocument(
       @PathVariable String sourceId,
       @RequestParam("file") MultipartFile file) {
@@ -492,7 +492,7 @@ public class SourceController {
   }
 
   @DeleteMapping("/source/{sourceId}/documents/{pageNumber}")
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<Map<String, String>> deleteDocument(
       @PathVariable String sourceId,
       @PathVariable int pageNumber) {
@@ -509,7 +509,7 @@ public class SourceController {
   }
 
   @GetMapping(value = "/source/{sourceId}/document/{pageNumber}/image")
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   public ResponseEntity<byte[]> getDocumentImage(
       @PathVariable String sourceId,
       @PathVariable int pageNumber) {
@@ -532,7 +532,7 @@ public class SourceController {
         .body(imageData);
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/pending-photo")
   public ResponseEntity<Map<String, Object>> uploadPendingPhoto(
       @PathVariable String sourceId,
@@ -563,7 +563,7 @@ public class SourceController {
         "expiresAt", saved.getExpiresAt().toString()));
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   @GetMapping("/source/{sourceId}/pending-photo")
   public PendingPhotoStatusResponse getPendingPhotoStatus(
       @PathVariable String sourceId,
@@ -579,7 +579,7 @@ public class SourceController {
         .orElseGet(() -> PendingPhotoStatusResponse.builder().hasPending(false).build());
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckReader') and hasAuthority('SCOPE_readDecks')")
+  @PreAuthorize("hasAuthority('APPROLE_readDecks')")
   @GetMapping("/source/{sourceId}/pending-photo/image")
   public ResponseEntity<byte[]> getPendingPhotoImage(
       @PathVariable String sourceId,
@@ -595,7 +595,7 @@ public class SourceController {
         .body(photo.getImageData());
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @PostMapping("/source/{sourceId}/pending-photo/consume")
   public PhotoGrammarSentencesResponse consumePendingPhoto(
       @PathVariable String sourceId,
@@ -640,7 +640,7 @@ public class SourceController {
     }
   }
 
-  @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   @DeleteMapping("/source/{sourceId}/pending-photo")
   public ResponseEntity<Map<String, String>> discardPendingPhoto(
       @PathVariable String sourceId,

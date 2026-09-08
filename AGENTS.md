@@ -388,8 +388,8 @@ Tracks review history and performance metrics for spaced repetition
 
 ### Authentication
 - Azure Active Directory integration with role-based access control
-- Scopes: `readDecks`, `createDeck`
-- Roles: `DeckReader`, `DeckCreator`
+- API scope: `api-access`
+- Roles: `readDecks`, `createDeck`
 
 ### AI Integration
 - Context-aware translations between German, English, Swiss German, Hungarian

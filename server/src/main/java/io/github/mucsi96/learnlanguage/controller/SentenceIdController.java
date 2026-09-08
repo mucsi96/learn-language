@@ -22,7 +22,7 @@ public class SentenceIdController {
     private final CardRepository cardRepository;
 
     @PostMapping("/sentence-id")
-    @PreAuthorize("hasAuthority('APPROLE_DeckCreator') and hasAuthority('SCOPE_createDeck')")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public ResponseEntity<WordIdResponse> generateSentenceId(@Valid @RequestBody SentenceIdRequest request) {
         final String id = sentenceIdService.generateSentenceId(request.getGermanSentence());
         final Set<String> detectionSourceIds = sourceService.getDetectionSourceIds(request.getSourceId());
