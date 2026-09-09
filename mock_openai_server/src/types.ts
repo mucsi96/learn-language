@@ -31,6 +31,7 @@ export interface ImageGenerationRequest {
   prompt: string;
   model: string;
   n?: number;
+  quality?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'auto';
 }
 
 export interface ImageGenerationResponse {
@@ -40,6 +41,19 @@ export interface ImageGenerationResponse {
     revised_prompt: string;
     url: null;
   }>;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    input_tokens_details: {
+      image_tokens: number;
+      text_tokens: number;
+    };
+    output_tokens_details: {
+      image_tokens: number;
+      text_tokens: number;
+    };
+  };
 }
 
 export interface AudioGenerationRequest {

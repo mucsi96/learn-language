@@ -33,7 +33,13 @@ public class ImageService {
     final String prompt = describeScene(input, context);
 
     final byte[] data = switch (model) {
-      case GPT_IMAGE_2_LOW, GPT_IMAGE_2_MEDIUM, GPT_IMAGE_2_HIGH ->
+      case GPT_IMAGE_2_LOW, GPT_IMAGE_2_MEDIUM, GPT_IMAGE_2_HIGH,
+          GPT_IMAGE_2_5_SUNBURST_LOW, GPT_IMAGE_2_5_SUNBURST_MEDIUM,
+          GPT_IMAGE_2_5_SUNBURST_HIGH, GPT_IMAGE_2_5_SUNBURST_XHIGH,
+          GPT_IMAGE_2_5_SUNBURST_MAX, GPT_IMAGE_2_5_SUNBURST_AUTO,
+          GPT_IMAGE_2_5_FLARE_LOW, GPT_IMAGE_2_5_FLARE_MEDIUM,
+          GPT_IMAGE_2_5_FLARE_HIGH, GPT_IMAGE_2_5_FLARE_XHIGH,
+          GPT_IMAGE_2_5_FLARE_MAX, GPT_IMAGE_2_5_FLARE_AUTO ->
         openAIImageService.generateImage(prompt, model);
       case IDEOGRAM_4_TURBO, IDEOGRAM_4_DEFAULT, IDEOGRAM_4_QUALITY ->
         ideogramImageService.generateImage(prompt, model);

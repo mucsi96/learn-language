@@ -75,6 +75,8 @@ public class IdeogramImageService {
             case LOW -> "TURBO";
             case MEDIUM -> "DEFAULT";
             case HIGH -> "QUALITY";
+            case XHIGH, MAX, AUTO -> throw new IllegalArgumentException(
+                "Unsupported Ideogram image quality: " + quality);
         };
     }
 }

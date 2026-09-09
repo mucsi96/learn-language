@@ -76,6 +76,39 @@ public class ModelUsageLoggingService {
                 modelName, operationType, OperationIdContext.get(), imageCount, cost, processingTimeMs);
     }
 
+    public void logGptImage25Usage(
+            String modelName,
+            OperationType operationType,
+            int imageCount,
+            long inputTokens,
+            long textInputTokens,
+            long imageInputTokens,
+            long outputTokens,
+            long processingTimeMs) {
+
+        final BigDecimal cost = pricingConfig.calculateGptImage25Cost(
+                textInputTokens, imageInputTokens, outputTokens);
+
+        final ModelUsageLog usageLog = ModelUsageLog.builder()
+                .modelName(modelName)
+                .modelType(ModelType.IMAGE)
+                .operationType(operationType)
+                .operationId(OperationIdContext.get())
+                .inputTokens(inputTokens)
+                .outputTokens(outputTokens)
+                .imageCount(imageCount)
+                .costUsd(cost)
+                .processingTimeMs(processingTimeMs)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        repository.save(usageLog);
+
+        log.info("Image usage: model={}, operation={}, operationId={}, images={}, inputTokens={}, outputTokens={}, cost=${}, time={}ms",
+                modelName, operationType, OperationIdContext.get(), imageCount, inputTokens, outputTokens, cost,
+                processingTimeMs);
+    }
+
     public void logAudioUsage(
             String modelName,
             OperationType operationType,
