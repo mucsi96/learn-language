@@ -924,6 +924,67 @@ test('confetti celebration appears when all cards are caught up', async ({ page 
   await expect(page.locator('app-confetti canvas')).toBeVisible();
 });
 
+test('celebration marks all suggested words as known', async ({ page }) => {
+  const futureDueDate = new Date(Date.now() + 2 * 86400000);
+  const suggestedCards = [
+    { id: 'known-suggestion-hund', word: 'Hund', translation: 'kutya' },
+    { id: 'known-suggestion-katze', word: 'Katze', translation: 'macska' },
+  ];
+
+  await Promise.all([
+    createCard({
+      cardId: 'celebration-completion-card',
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 51,
+      data: {
+        word: 'lernen',
+        type: 'VERB',
+        translation: { en: 'to learn', hu: 'tanulni', ch: 'lerne' },
+      },
+    }),
+    ...suggestedCards.map(({ id, word, translation }) =>
+      createCard({
+        cardId: id,
+        sourceId: 'goethe-a1',
+        sourcePageNumber: 52,
+        due: futureDueDate,
+        data: {
+          word,
+          type: 'NOUN',
+          translation: { en: word, hu: translation, ch: word },
+        },
+        state: 'REVIEW',
+        stability: 50,
+        reps: 8,
+        lapses: 0,
+      })
+    ),
+  ]);
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await flashcard.getByRole('heading', { name: 'tanulni' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await flashcard.getByRole('heading', { name: 'tanulni' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+
+  const markKnownButton = page.getByRole('button', {
+    name: 'Mark 2 words as known',
+  });
+  await expect(markKnownButton).toBeVisible();
+  await markKnownButton.click();
+  await expect(markKnownButton).not.toBeVisible();
+
+  await expect(async () => {
+    const cards = await Promise.all(
+      suggestedCards.map(({ id }) => getCardFromDb(id))
+    );
+    expect(cards.map(({ readiness }) => readiness)).toEqual(['KNOWN', 'KNOWN']);
+  }).toPass();
+});
+
 test('cards due later today are included but cards due tomorrow are not', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);

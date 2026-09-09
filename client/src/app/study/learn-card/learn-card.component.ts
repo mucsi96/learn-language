@@ -29,6 +29,10 @@ import { Card, LanguageTexts } from '../../parser/types';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
 import { SessionStatsComponent } from '../session-stats/session-stats.component';
+import { SourcesService } from '../../sources.service';
+import { CardsTableService } from '../../cards-table/cards-table.service';
+import { DueCardsService } from '../../due-cards.service';
+import { NotificationsService } from '@mucsi96/angular-material-theme';
 
 @Component({
   selector: 'app-learn-card',
@@ -57,6 +61,10 @@ export class LearnCardComponent implements OnDestroy {
   private readonly audioPlaybackService = inject(AudioPlaybackService);
   private readonly cardTypeRegistry = inject(CardTypeRegistry);
   private readonly injector = inject(Injector);
+  private readonly sourcesService = inject(SourcesService);
+  private readonly cardsTableService = inject(CardsTableService);
+  private readonly dueCardsService = inject(DueCardsService);
+  private readonly notifications = inject(NotificationsService);
   private lastPreparedCardId: string | null = null;
 
   private readonly gradingButtons = viewChild(CardGradingButtonsComponent);
@@ -76,7 +84,9 @@ export class LearnCardComponent implements OnDestroy {
   readonly hasSession = this.studySessionService.hasSession;
   readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
+  readonly isMarkingSuggestedKnown = signal(false);
   private readonly isGrading = signal(false);
+  private readonly markedSuggestedKnownSourceId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
 
   readonly sourceId = computed(() => {
@@ -85,6 +95,18 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentCardType = computed(() => this.card()?.type);
+
+  readonly suggestedKnownCount = computed(() => {
+    const sourceId = this.sourceId();
+    if (!sourceId || this.markedSuggestedKnownSourceId() === sourceId) {
+      return undefined;
+    }
+
+    return this.sourcesService.sources
+      .value()
+      ?.find((source) => source.id === sourceId)
+      ?.suggestedKnownCardCount;
+  });
 
   readonly languageTexts = computed<LanguageTexts[]>(() => {
     const card = this.card();
@@ -246,6 +268,26 @@ export class LearnCardComponent implements OnDestroy {
     const sourceId = this.sourceId();
     if (sourceId) {
       await this.studySessionService.downloadStruggledCardsPdf(sourceId);
+    }
+  }
+
+  async markSuggestedCardsAsKnown() {
+    const sourceId = this.sourceId();
+    if (!sourceId || this.isMarkingSuggestedKnown()) return;
+
+    this.isMarkingSuggestedKnown.set(true);
+    try {
+      const markedCount = await this.cardsTableService.markSuggestedCardsAsKnown(sourceId);
+      this.markedSuggestedKnownSourceId.set(sourceId);
+      this.sourcesService.refetchSources();
+      this.dueCardsService.refetchDueCounts();
+
+      if (markedCount > 0) {
+        const noun = markedCount === 1 ? 'word' : 'words';
+        this.notifications.success(`${markedCount} ${noun} marked as known`);
+      }
+    } finally {
+      this.isMarkingSuggestedKnown.set(false);
     }
   }
 
