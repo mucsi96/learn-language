@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.openai.client.OpenAIClient;
 import com.openai.models.images.ImageGenerateParams;
+import com.openai.models.images.ImagesResponse;
 
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel.ImageQuality;
@@ -34,14 +35,31 @@ public class OpenAIImageService {
                 .outputCompression(75)
                 .build();
 
-            final byte[] image = openAIClient.images().generate(imageGenerateParams).data().orElseThrow().stream()
+            final ImagesResponse response = openAIClient.images().generate(imageGenerateParams);
+            final byte[] image = response.data().orElseThrow().stream()
                 .flatMap(img -> img.b64Json().stream())
                 .map(b64 -> Base64.getDecoder().decode(b64))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
 
             final long processingTime = System.currentTimeMillis() - startTime;
-            usageLoggingService.logImageUsage(model.getModelName(), OperationType.IMAGE_GENERATION, 1, processingTime);
+            if (model.getApiModelName().startsWith("gpt-image-2.5-")) {
+                final ImagesResponse.Usage usage = response.usage().orElseThrow(
+                    () -> new IllegalStateException("OpenAI did not return GPT Image 2.5 usage"));
+                final ImagesResponse.Usage.InputTokensDetails inputTokens = usage.inputTokensDetails();
+                usageLoggingService.logGptImage25Usage(
+                    model.getModelName(),
+                    OperationType.IMAGE_GENERATION,
+                    1,
+                    usage.inputTokens(),
+                    inputTokens.textTokens(),
+                    inputTokens.imageTokens(),
+                    usage.outputTokens(),
+                    processingTime);
+            } else {
+                usageLoggingService.logImageUsage(
+                    model.getModelName(), OperationType.IMAGE_GENERATION, 1, processingTime);
+            }
 
             return image;
 
@@ -56,6 +74,9 @@ public class OpenAIImageService {
             case LOW -> ImageGenerateParams.Quality.LOW;
             case MEDIUM -> ImageGenerateParams.Quality.MEDIUM;
             case HIGH -> ImageGenerateParams.Quality.HIGH;
+            case XHIGH -> ImageGenerateParams.Quality.of("xhigh");
+            case MAX -> ImageGenerateParams.Quality.of("max");
+            case AUTO -> ImageGenerateParams.Quality.AUTO;
         };
     }
 }

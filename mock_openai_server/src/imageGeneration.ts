@@ -14,6 +14,21 @@ type PromptConfig = {
   secondImage: string;
 };
 
+const OUTPUT_TOKENS_BY_QUALITY = {
+  low: 196,
+  medium: 439,
+  high: 1756,
+  xhigh: 3122,
+  max: 7024,
+  auto: 1756,
+} as const;
+
+const SUPPORTED_IMAGE_MODELS = [
+  'gpt-image-2',
+  'gpt-image-2.5-sunburst',
+  'gpt-image-2.5-flare',
+] as const;
+
 const PROMPT_CONFIGS: PromptConfig[] = [
   {
     pattern: 'Wir fahren um zwölf Uhr ab.',
@@ -31,7 +46,13 @@ export class ImageGenerationHandler {
   reset(): void {}
 
   generateImages(request: ImageGenerationRequest): ImageGenerationResponse {
-    const { prompt, model, n = 1 } = request;
+    const { prompt, model, n = 1, quality = 'auto' } = request;
+    const inputTokens = 20;
+    const outputTokens = OUTPUT_TOKENS_BY_QUALITY[quality] * n;
+
+    if (!SUPPORTED_IMAGE_MODELS.some(supportedModel => supportedModel === model)) {
+      throw new Error(`Unsupported image model: ${model}`);
+    }
 
     console.log('Received image generation request with prompt:', prompt, 'n:', n);
 
@@ -47,6 +68,19 @@ export class ImageGenerationHandler {
         revised_prompt: prompt,
         url: null,
       })),
+      usage: {
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: inputTokens + outputTokens,
+        input_tokens_details: {
+          image_tokens: 0,
+          text_tokens: inputTokens,
+        },
+        output_tokens_details: {
+          image_tokens: outputTokens,
+          text_tokens: 0,
+        },
+      },
     };
   }
 }

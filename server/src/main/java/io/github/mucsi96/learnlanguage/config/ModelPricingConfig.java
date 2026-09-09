@@ -2,6 +2,7 @@ package io.github.mucsi96.learnlanguage.config;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.context.annotation.Configuration;
 
@@ -42,13 +43,26 @@ public class ModelPricingConfig {
         Map.entry("gemini-3.7-flash", new ChatModelPricing(new BigDecimal("0.75"), new BigDecimal("3.75")))
     );
 
-    // OpenAI image models priced per quality variant at 1024x1024. The High prices are the
-    // published values; Low/Medium are estimates scaled by gpt-image-1's quality ratios
-    // (low ~0.066x high, medium ~0.25x high) and should be verified against OpenAI's live pricing.
+    private static final BigDecimal GPT_IMAGE_2_5_TEXT_INPUT_PER_MILLION = new BigDecimal("5.00");
+    private static final BigDecimal GPT_IMAGE_2_5_IMAGE_INPUT_PER_MILLION = new BigDecimal("8.00");
+    private static final BigDecimal GPT_IMAGE_2_5_IMAGE_OUTPUT_PER_MILLION = new BigDecimal("30.00");
+
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
+        // GPT Image 2 estimates at 1024x1024
         Map.entry("gpt-image-2-low", new ImageModelPricing(new BigDecimal("0.014"))),
         Map.entry("gpt-image-2-medium", new ImageModelPricing(new BigDecimal("0.053"))),
         Map.entry("gpt-image-2-high", new ImageModelPricing(new BigDecimal("0.211"))),
+        // GPT Image 2.5 official calculator estimates at 1024x1024, excluding input tokens
+        Map.entry("gpt-image-2.5-sunburst-low", new ImageModelPricing(new BigDecimal("0.00588"))),
+        Map.entry("gpt-image-2.5-sunburst-medium", new ImageModelPricing(new BigDecimal("0.01317"))),
+        Map.entry("gpt-image-2.5-sunburst-high", new ImageModelPricing(new BigDecimal("0.05268"))),
+        Map.entry("gpt-image-2.5-sunburst-xhigh", new ImageModelPricing(new BigDecimal("0.09366"))),
+        Map.entry("gpt-image-2.5-sunburst-max", new ImageModelPricing(new BigDecimal("0.21072"))),
+        Map.entry("gpt-image-2.5-flare-low", new ImageModelPricing(new BigDecimal("0.00588"))),
+        Map.entry("gpt-image-2.5-flare-medium", new ImageModelPricing(new BigDecimal("0.01317"))),
+        Map.entry("gpt-image-2.5-flare-high", new ImageModelPricing(new BigDecimal("0.05268"))),
+        Map.entry("gpt-image-2.5-flare-xhigh", new ImageModelPricing(new BigDecimal("0.09366"))),
+        Map.entry("gpt-image-2.5-flare-max", new ImageModelPricing(new BigDecimal("0.21072"))),
         // Ideogram 4.0 per-image pricing by rendering speed (Turbo / Default / Quality)
         Map.entry("ideogram-4-turbo", new ImageModelPricing(new BigDecimal("0.03"))),
         Map.entry("ideogram-4-default", new ImageModelPricing(new BigDecimal("0.06"))),
@@ -71,8 +85,8 @@ public class ModelPricingConfig {
     }
 
     public ImageModelPricing getImageModelPricing(String modelName) {
-        return IMAGE_MODEL_PRICING.getOrDefault(modelName,
-            new ImageModelPricing(BigDecimal.ZERO));
+        return Optional.ofNullable(IMAGE_MODEL_PRICING.get(modelName))
+            .orElseThrow(() -> new IllegalArgumentException("No fixed image pricing for model: " + modelName));
     }
 
     public AudioModelPricing getAudioModelPricing(String modelName) {
@@ -94,6 +108,18 @@ public class ModelPricingConfig {
     public BigDecimal calculateImageCost(String modelName, int imageCount) {
         ImageModelPricing pricing = getImageModelPricing(modelName);
         return pricing.perImage().multiply(BigDecimal.valueOf(imageCount));
+    }
+
+    public BigDecimal calculateGptImage25Cost(long textInputTokens, long imageInputTokens, long outputTokens) {
+        final BigDecimal textInputCost = GPT_IMAGE_2_5_TEXT_INPUT_PER_MILLION
+            .multiply(BigDecimal.valueOf(textInputTokens));
+        final BigDecimal imageInputCost = GPT_IMAGE_2_5_IMAGE_INPUT_PER_MILLION
+            .multiply(BigDecimal.valueOf(imageInputTokens));
+        final BigDecimal imageOutputCost = GPT_IMAGE_2_5_IMAGE_OUTPUT_PER_MILLION
+            .multiply(BigDecimal.valueOf(outputTokens));
+
+        return textInputCost.add(imageInputCost).add(imageOutputCost)
+            .divide(BigDecimal.valueOf(1_000_000), 6, java.math.RoundingMode.HALF_UP);
     }
 
     public BigDecimal calculateAudioCost(String modelName, long characterCount) {

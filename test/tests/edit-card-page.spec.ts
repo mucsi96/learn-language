@@ -485,10 +485,16 @@ test('generates image with OpenAI models', async ({ page }) => {
       })
     )
   );
-  await createImageModelSetting({
-    modelName: 'gpt-image-2-high',
-    imageCount: 1,
-  });
+  await Promise.all([
+    createImageModelSetting({
+      modelName: 'gpt-image-2.5-sunburst-auto',
+      imageCount: 1,
+    }),
+    createImageModelSetting({
+      modelName: 'gpt-image-2.5-flare-max',
+      imageCount: 1,
+    }),
+  ]);
   const image1 = uploadMockImage(blueImage);
   await createCard({
     cardId: 'abfahren-elindulni',
@@ -517,9 +523,10 @@ test('generates image with OpenAI models', async ({ page }) => {
   await navigateToCardEditing(page);
 
   await page.getByRole('button', { name: 'Add example image' }).first().click();
-  await expect(page.getByRole('img')).toHaveCount(2);
+  await expect(page.getByRole('img')).toHaveCount(3);
 
-  await expect(page.getByText('GPT Image 2 (High)')).toHaveCount(1);
+  await expect(page.getByText('GPT Image 2.5 Sunburst (Auto)')).toHaveCount(1);
+  await expect(page.getByText('GPT Image 2.5 Flare (Max)')).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   const generatedImageContent = await getImageContent(
@@ -534,10 +541,21 @@ test('generates image with OpenAI models', async ({ page }) => {
   expect(descriptionLog!.modelName).toBe('gpt-5.6-sol');
   expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
 
-  const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');
-  expect(generationLog).toBeDefined();
-  expect(generationLog!.modelType).toBe('IMAGE');
-  expect(generationLog!.modelName).toBe('gpt-image-2-high');
+  const generationLogs = logs.filter((log) => log.operationType === 'IMAGE_GENERATION');
+  expect(generationLogs).toHaveLength(2);
+  expect(generationLogs.every((log) => log.modelType === 'IMAGE')).toBe(true);
+  expect(generationLogs.map((log) => log.modelName).sort()).toEqual([
+    'gpt-image-2.5-flare-max',
+    'gpt-image-2.5-sunburst-auto',
+  ]);
+
+  const autoGenerationLog = generationLogs.find((log) => log.modelName === 'gpt-image-2.5-sunburst-auto');
+  expect(Number(autoGenerationLog!.inputTokens)).toBe(20);
+  expect(Number(autoGenerationLog!.outputTokens)).toBe(1756);
+  expect(Number(autoGenerationLog!.costUsd)).toBe(0.05278);
+
+  const maxGenerationLog = generationLogs.find((log) => log.modelName === 'gpt-image-2.5-flare-max');
+  expect(Number(maxGenerationLog!.costUsd)).toBe(0.21082);
 });
 
 test('add image with context dialog', async ({ page }) => {

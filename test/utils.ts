@@ -814,6 +814,7 @@ export async function getModelUsageLogs(): Promise<
     operationId: string | null;
     inputTokens: number | null;
     outputTokens: number | null;
+    costUsd: number;
     rating: number | null;
     responseContent: string | null;
   }>
@@ -822,8 +823,8 @@ export async function getModelUsageLogs(): Promise<
     const result = await client.query(
       `SELECT id, model_name as "modelName", model_type as "modelType",
               operation_type as "operationType", operation_id as "operationId",
-              input_tokens as "inputTokens",
-              output_tokens as "outputTokens", rating,
+               input_tokens as "inputTokens",
+               output_tokens as "outputTokens", cost_usd as "costUsd", rating,
               response_content as "responseContent"
        FROM learn_language.model_usage_logs
        ORDER BY created_at DESC`
@@ -1513,4 +1514,3 @@ export async function getStudySessionCardsBySource(sourceId: string): Promise<
     return result.rows;
   });
 }
-
