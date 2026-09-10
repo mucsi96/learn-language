@@ -52,19 +52,21 @@
 }
 
 .delete-fab {
-  background-color: red;
-}
-
-.delete-fab:hover {
-  background-color: darkred;
+  --mat-fab-container-color: var(--bt-error);
+  --mat-fab-foreground-color: var(--bt-text-on-brand);
+  --mat-fab-state-layer-color: var(--bt-error-hover);
 }
 
 .delete-audio-fab {
-  background-color: #ff6d00;
+  --mat-fab-container-color: var(--bt-warn);
+  --mat-fab-foreground-color: var(--bt-text-on-brand);
+  --mat-fab-state-layer-color: var(--bt-warn-hover);
 }
 
-.delete-audio-fab:hover {
-  background-color: #e65100;
+.mark-known-fab {
+  --mat-fab-container-color: var(--bt-success);
+  --mat-fab-foreground-color: var(--bt-text-on-brand);
+  --mat-fab-state-layer-color: var(--bt-success-hover);
 }
 
 .cards-grid {

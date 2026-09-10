@@ -92,7 +92,7 @@ app-word-triage-deck {
 }
 
 .known-button {
-  --mat-sys-primary: #2e7d32;
+  --bt-button-bg: var(--bt-success);
 }
 
 .shortcuts {

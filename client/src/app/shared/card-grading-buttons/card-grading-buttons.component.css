@@ -17,7 +17,6 @@
   min-height: 44px;
   padding: 0.5rem;
   border-radius: 12px;
-  color: white;
   font-weight: 500;
   font-size: 0.875rem;
 }
@@ -27,19 +26,11 @@
 }
 
 .grade-incorrect {
-  background-color: #dc3545 !important;
+  --bt-button-bg: var(--bt-error);
 }
 
 .grade-correct {
-  background-color: #28a745 !important;
-}
-
-.grade-incorrect:hover {
-  background-color: #bb2d3b !important;
-}
-
-.grade-correct:hover {
-  background-color: #208637 !important;
+  --bt-button-bg: var(--bt-success);
 }
 
 @media (min-width: 768px) {

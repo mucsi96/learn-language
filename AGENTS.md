@@ -36,6 +36,8 @@
 - Make sure the UI is testable using role based selectors and selectors based on accesibility
 - Follow functional programming patterns from TypeScript Code style section
 - Prefer using Angular Material components
+- Follow `@mucsi96/angular-material-theme`'s documented APIs before overriding Angular Material styles. For a custom `mat-flat-button` color, set only `--bt-button-bg`; never set the button background, label color, or hover state directly.
+- Prefer Material's standard `color` input for other button variants. If a custom FAB color is required, override its container, foreground, and state-layer tokens together using semantic `--bt-*` colors so hover cannot fall back to brand blue.
 - Prefer using Angular signal / resource for state management
 - Prefer putting styles and templates to separate files
 - Use angular resources core method when necessary

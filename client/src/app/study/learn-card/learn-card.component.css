@@ -102,8 +102,7 @@
 }
 
 .suggested-known-button {
-  --mat-button-filled-container-color: var(--bt-success);
-  --mat-button-filled-label-text-color: var(--bt-text-on-brand);
+  --bt-button-bg: var(--bt-success);
 }
 
 .grading-buttons-container {

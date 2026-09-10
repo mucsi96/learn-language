@@ -30,8 +30,9 @@
   width: 24px !important;
   height: 24px !important;
   pointer-events: auto;
-  background: hsl(0, 65%, 50%);
-  color: white;
+  --mat-fab-small-container-color: var(--bt-error);
+  --mat-fab-small-foreground-color: var(--bt-text-on-brand);
+  --mat-fab-small-state-layer-color: var(--bt-error-hover);
 }
 
 .remove-button mat-icon {
