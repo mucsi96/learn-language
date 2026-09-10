@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.config;
 
+import java.time.Duration;
+
 import org.springframework.ai.elevenlabs.api.ElevenLabsVoicesApi;
 import org.springframework.ai.model.elevenlabs.autoconfigure.ElevenLabsConnectionProperties;
 import org.springframework.ai.model.google.genai.autoconfigure.chat.GoogleGenAiConnectionProperties;
@@ -8,6 +10,7 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
@@ -47,10 +50,17 @@ public class AIConfiguration {
   @Bean
   RestClient ideogramRestClient(
       @Value("${spring.ai.ideogram.api-key}") String apiKey,
-      @Value("${spring.ai.ideogram.base-url:https://api.ideogram.ai}") String baseUrl) {
+      @Value("${spring.ai.ideogram.base-url:https://api.ideogram.ai}") String baseUrl,
+      @Value("${spring.ai.ideogram.connect-timeout}") Duration connectTimeout,
+      @Value("${spring.ai.ideogram.read-timeout}") Duration readTimeout) {
+    final ReactorClientHttpRequestFactory requestFactory = new ReactorClientHttpRequestFactory();
+    requestFactory.setConnectTimeout(connectTimeout);
+    requestFactory.setReadTimeout(readTimeout);
+
     return RestClient.builder()
         .baseUrl(baseUrl)
         .defaultHeader("Api-Key", apiKey)
+        .requestFactory(requestFactory)
         .build();
   }
 
