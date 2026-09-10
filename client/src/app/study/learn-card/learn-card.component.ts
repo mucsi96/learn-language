@@ -98,7 +98,11 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly suggestedKnownCount = computed(() => {
     const sourceId = this.sourceId();
-    if (!sourceId || this.markedSuggestedKnownSourceId() === sourceId) {
+    if (
+      !sourceId ||
+      this.sourcesService.sources.isLoading() ||
+      this.markedSuggestedKnownSourceId() === sourceId
+    ) {
       return undefined;
     }
 
