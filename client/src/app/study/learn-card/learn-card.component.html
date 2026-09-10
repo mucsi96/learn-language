@@ -44,6 +44,17 @@
   <h2>All caught up!</h2>
   <p>No cards are due for review right now.</p>
   <p>Great job keeping up with your studies! 🎉</p>
+  @if (suggestedKnownCount(); as count) {
+    <button
+      mat-flat-button
+      class="suggested-known-button"
+      (click)="markSuggestedCardsAsKnown()"
+      [disabled]="isMarkingSuggestedKnown()"
+    >
+      <mat-icon>check_circle</mat-icon>
+      Mark {{ count }} {{ count === 1 ? 'word' : 'words' }} as known
+    </button>
+  }
   @if (sessionStats.value(); as stats) {
     <app-session-stats [stats]="stats" />
     @if (stats.badCount > 0) {

@@ -127,6 +127,19 @@ export class CardsTableService {
     );
   }
 
+  async markSuggestedCardsAsKnown(sourceId: string): Promise<number> {
+    const cardIds = await this.fetchFilteredCardIds({
+      sourceId,
+      suggestedKnown: true,
+    });
+
+    if (cardIds.length > 0) {
+      await this.markCardsAsKnown(cardIds);
+    }
+
+    return cardIds.length;
+  }
+
   async markCardsAsDraft(cardIds: readonly string[]): Promise<void> {
     await firstValueFrom(
       this.http.put('/api/cards/mark-draft', cardIds)
