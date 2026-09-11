@@ -30,8 +30,6 @@
   width: 24px !important;
   height: 24px !important;
   pointer-events: auto;
-  background: hsl(0, 65%, 50%);
-  color: white;
 }
 
 .remove-button mat-icon {

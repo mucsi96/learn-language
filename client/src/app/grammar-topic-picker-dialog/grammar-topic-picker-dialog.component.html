@@ -12,7 +12,7 @@
     </p>
     <a
       mat-flat-button
-      color="primary"
+      bt-color="primary"
       routerLink="/settings/grammar-topics"
       mat-dialog-close
       aria-label="Go to grammar topics settings"
@@ -47,7 +47,7 @@
   @if (hasTopics()) {
   <button
     mat-flat-button
-    color="primary"
+    bt-color="primary"
     (click)="confirm()"
     [disabled]="!canConfirm()"
     aria-label="Continue with selected topic"

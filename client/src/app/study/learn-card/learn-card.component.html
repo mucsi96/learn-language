@@ -10,7 +10,7 @@
   @if (hasExistingSession()) {
     <h2>Welcome back!</h2>
     <p>You have an ongoing study session from today.</p>
-    <button mat-flat-button color="primary" (click)="startSession()" aria-label="Continue study session">
+    <button mat-flat-button bt-color="primary" (click)="startSession()" aria-label="Continue study session">
       <mat-icon>play_arrow</mat-icon>
       Continue
     </button>
@@ -25,7 +25,7 @@
   } @else {
     <h2>Ready to study?</h2>
     <p>Click start to begin your study session.</p>
-    <button mat-flat-button color="primary" (click)="startSession()" aria-label="Start study session">
+    <button mat-flat-button bt-color="primary" (click)="startSession()" aria-label="Start study session">
       <mat-icon>play_arrow</mat-icon>
       Start
     </button>
@@ -47,7 +47,7 @@
   @if (suggestedKnownCount(); as count) {
     <button
       mat-flat-button
-      class="suggested-known-button"
+      bt-color="success"
       (click)="markSuggestedCardsAsKnown()"
       [disabled]="isMarkingSuggestedKnown()"
     >

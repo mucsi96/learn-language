@@ -4,10 +4,14 @@
    (angular.json loads highlight.js/styles/github-dark.css); inline code
    follows the Material theme via --mat-sys tokens. */
 
+:root {
+  --card-code-font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo,
+    Consolas, monospace;
+}
+
 .markdown-body {
   code {
-    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, Consolas,
-      monospace;
+    font-family: var(--card-code-font-family);
   }
 
   pre code.hljs {
