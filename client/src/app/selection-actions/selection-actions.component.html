@@ -2,7 +2,7 @@
 <div class="selection-actions">
   <button
     mat-mini-fab
-    color="warn"
+    bt-color="error"
     (click)="cancelSelection()"
     aria-label="Cancel selection"
   >
@@ -11,7 +11,7 @@
   <span [matTooltip]="hasCardType() ? '' : 'Select a card type first'">
     <button
       mat-mini-fab
-      color="primary"
+      bt-color="primary"
       [matBadge]="selectionStateService.selectionCount()"
       matBadgeColor="accent"
       [disabled]="!hasCardType()"
