@@ -8,6 +8,12 @@
   border-radius: initial !important;
 }
 
+.word[mat-flat-button] {
+  min-width: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
 .word:not(a) {
   outline: 2px solid var(--mat-sys-primary);
   outline-offset: 1px;

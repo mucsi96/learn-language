@@ -107,7 +107,15 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   readonly documentImage = this.pageService.documentImage;
   readonly selectionRegions = this.pageService.selectionRegions;
   readonly extractionRegions = computed(
-    () => this.pageService.page.value()?.extractionRegions ?? []
+    () => [
+      ...(this.pageService.page.value()?.extractionRegions ?? []),
+      ...this.pageService.getAllExtractionSelections()
+        .filter(selection =>
+          selection.sourceId === this.selectedSourceId() &&
+          selection.pageNumber === this.pageNumber()
+        )
+        .map(selection => selection.rectangle),
+    ]
   );
   readonly sourceName = computed(
     () => this.pageService.page.value()?.sourceName
@@ -169,12 +177,24 @@ export class PageComponent implements AfterViewInit, OnDestroy {
     this.selectionRegions().length > 0
   );
   private resizeObserver: ResizeObserver | undefined;
+  private readonly containerWidth = signal<number | undefined>(undefined);
   private readonly scrollPositionService = inject(ScrollPositionService);
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly isDragging = signal(false);
 
   constructor() {
+    effect(() => {
+      const containerWidth = this.containerWidth();
+      const pageWidth = this.width();
+      if (containerWidth !== undefined && pageWidth !== undefined) {
+        this.elRef.nativeElement.style.setProperty(
+          '--page-width',
+          `calc(${containerWidth}px / ${pageWidth})`
+        );
+      }
+    });
+
     effect(() => {
       const sourceId = this.routeSourceId();
       const pageNumber = this.routePageNumber();
@@ -208,10 +228,7 @@ export class PageComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.resizeObserver = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
-        this.elRef.nativeElement.style.setProperty(
-          '--page-width',
-          `calc(${entry.contentRect.width}px / ${this.width()})`
-        );
+        this.containerWidth.set(entry.contentRect.width);
       });
     });
 
