@@ -9,3 +9,9 @@
   outline: 1px solid var(--outline, darkslategray);
   outline-offset: 2px;
 }
+
+.word[mat-flat-button] {
+  min-width: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}

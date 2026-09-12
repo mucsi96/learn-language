@@ -57,17 +57,20 @@ export class PageService {
     },
   });
 
-  readonly selectedCardType = linkedSignal<Page | undefined, CardType | undefined>({
-    source: this.page.value,
-    computation: (page, previous) => {
+  readonly selectedCardType = linkedSignal<
+    { sourceId: string | undefined; page: Page | undefined },
+    CardType | undefined
+  >({
+    source: () => ({ sourceId: this.selectedSource()?.sourceId, page: this.page.value() }),
+    computation: ({ sourceId, page }, previous) => {
       const cardTypes = page?.cardTypes ?? [];
       if (cardTypes.length === 1) {
         return cardTypes[0];
       }
       if (
         previous?.value &&
-        previous.source?.sourceId === page?.sourceId &&
-        cardTypes.includes(previous.value)
+        previous.source.sourceId === sourceId &&
+        (!page || cardTypes.includes(previous.value))
       ) {
         return previous.value;
       }

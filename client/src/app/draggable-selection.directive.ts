@@ -55,12 +55,12 @@ export class DraggableSelectionDirective {
       this.renderer.setStyle(
         this.rect,
         'left',
-        `${Math.min(event.pageX, this.startX)}px`
+        `${Math.min(currentX, this.startX)}px`
       );
       this.renderer.setStyle(
         this.rect,
         'top',
-        `${Math.min(event.pageY, this.startY)}px`
+        `${Math.min(currentY, this.startY)}px`
       );
     }
   }
