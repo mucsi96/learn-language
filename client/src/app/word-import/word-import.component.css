@@ -91,10 +91,6 @@ app-word-triage-deck {
   font-size: 1rem;
 }
 
-.known-button {
-  --bt-button-bg: var(--bt-success);
-}
-
 .shortcuts {
   margin: 0;
   text-align: center;

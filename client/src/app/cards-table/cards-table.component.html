@@ -88,7 +88,8 @@
       <button
         mat-fab
         extended
-        class="action-fab delete-fab"
+        class="action-fab"
+        bt-color="error"
         (click)="deleteSelected()"
       >
         <mat-icon>delete</mat-icon>
@@ -98,7 +99,8 @@
         <button
           mat-fab
           extended
-          class="action-fab delete-audio-fab"
+          class="action-fab"
+          bt-color="warn"
           (click)="deleteSelectedAudio()"
         >
           <mat-icon>volume_off</mat-icon>
@@ -107,7 +109,8 @@
         <button
           mat-fab
           extended
-          class="action-fab mark-known-fab"
+          class="action-fab"
+          bt-color="success"
           (click)="markSelectedAsKnown()"
         >
           <mat-icon>check_circle</mat-icon>
@@ -127,7 +130,7 @@
         <button
           mat-fab
           extended
-          color="primary"
+          bt-color="primary"
           class="action-fab"
           (click)="completeDraftCards()"
           [disabled]="isCompletingDrafts()"

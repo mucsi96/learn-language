@@ -101,10 +101,6 @@
   margin-top: 1.5rem;
 }
 
-.suggested-known-button {
-  --bt-button-bg: var(--bt-success);
-}
-
 .grading-buttons-container {
   display: flex;
   align-items: center;

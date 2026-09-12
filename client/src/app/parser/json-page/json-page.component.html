@@ -5,7 +5,7 @@
     </a>
     <h1>{{ source()?.name ?? sourceId() }}</h1>
     <span class="spacer"></span>
-    <button mat-flat-button color="primary" (click)="importJson()" [disabled]="importing()">
+    <button mat-flat-button bt-color="primary" (click)="importJson()" [disabled]="importing()">
       <mat-icon>upload_file</mat-icon>
       Import JSON
     </button>

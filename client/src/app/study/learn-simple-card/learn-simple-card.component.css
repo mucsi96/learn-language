@@ -48,6 +48,11 @@
   width: 100%;
 }
 
+.answer-field input,
+.typed-answer-text {
+  font-family: var(--card-code-font-family);
+}
+
 .typed-answer-section {
   display: flex;
   flex-direction: column;
