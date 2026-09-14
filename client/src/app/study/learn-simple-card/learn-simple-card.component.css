@@ -50,7 +50,8 @@
 
 .answer-field input,
 .typed-answer-text {
-  font-family: var(--card-code-font-family);
+  font: var(--card-code-font);
+  letter-spacing: var(--card-code-letter-spacing);
 }
 
 .typed-answer-section {
@@ -74,8 +75,6 @@
 }
 
 .typed-answer-text {
-  font-size: 1.1rem;
-  line-height: 1.5;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
