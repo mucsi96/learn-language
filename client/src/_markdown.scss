@@ -7,6 +7,8 @@
 :root {
   --card-code-font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo,
     Consolas, monospace;
+  --card-code-font: normal 400 0.99rem / 1.6 var(--card-code-font-family);
+  --card-code-letter-spacing: normal;
 }
 
 .markdown-body {
@@ -17,8 +19,8 @@
   pre code.hljs {
     padding: 14px 18px;
     border-radius: 12px;
-    font-size: 0.9em;
-    line-height: 1.6;
+    font: var(--card-code-font);
+    letter-spacing: var(--card-code-letter-spacing);
   }
 
   :not(pre) > code {

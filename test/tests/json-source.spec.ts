@@ -780,6 +780,52 @@ test('study mode lets the user type the answer before revealing when typing prac
   await expect(page.getByText('All caught up!')).toBeVisible();
 });
 
+test('typing practice matches code block typography before and after revealing the answer', async ({ page }) => {
+  await createSource({
+    id: 'ckad-typing-font',
+    name: 'CKAD Typing Font',
+    startPage: 1,
+    languageLevel: 'A1',
+    cardTypes: ['SIMPLE'],
+    formatType: 'FLOWING_TEXT',
+    sourceType: 'JSON',
+    typingPractice: true,
+  });
+  await createCard({
+    cardId: 'ckad-typing-font-pod',
+    sourceId: 'ckad-typing-font',
+    cardType: 'SIMPLE',
+    sourcePageNumber: 1,
+    data: {
+      frontText: 'Explain this command:\n\n```sh\nkubectl get pods\n```',
+      backText: 'Lists the pods.',
+    },
+  });
+
+  await page.goto('/sources/ckad-typing-font/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const code = flashcard.getByRole('code');
+  await expect(code).toBeVisible();
+  const typography = await code.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      font: style.font,
+      letterSpacing: style.letterSpacing,
+    };
+  });
+  const answerInput = flashcard.getByRole('textbox', { name: 'Your answer' });
+  await expect(answerInput).toHaveCSS('font', typography.font);
+  await expect(answerInput).toHaveCSS('letter-spacing', typography.letterSpacing);
+  await answerInput.fill('Lists all pods');
+  await answerInput.press('Enter');
+
+  const typedAnswer = flashcard.getByLabel('Your answer').getByText('Lists all pods', { exact: true });
+  await expect(typedAnswer).toHaveCSS('font', typography.font);
+  await expect(typedAnswer).toHaveCSS('letter-spacing', typography.letterSpacing);
+});
+
 test('typing practice focuses the answer field without clicking for each card', async ({ page }) => {
   await createSource({
     id: 'ckad-typing-focus',
