@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import {
   createCard,
+  createChatModelSetting,
   createModelUsageLog,
   createRateLimitSetting,
   createVoiceConfiguration,
@@ -564,6 +565,12 @@ test('creates audio model usage logs when using bulk audio creation', async ({ p
 test('groups logs with same operation id and shows diff summary', async ({ page }) => {
   const operationId = 'test-op-123';
 
+  await createChatModelSetting({
+    modelName: 'gpt-5.6-sol',
+    operationType: 'TRANSLATION',
+    isPrimary: true,
+  });
+
   await createModelUsageLog({
     modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
@@ -585,7 +592,7 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
     outputTokens: 50,
     costUsd: 0.001,
     processingTimeMs: 800,
-    responseContent: 'line1\nmodified\nline3',
+    responseContent: 'line1\nmodified\nextra\nline3',
   });
 
   await page.goto('/model-usage');
@@ -597,8 +604,12 @@ test('groups logs with same operation id and shows diff summary', async ({ page 
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await expect(page.getByText('+1')).toBeVisible();
-  await expect(page.getByText('-1')).toBeVisible();
+  const comparisonRow = grid.getByRole('row').filter({ hasText: 'gemini-3.1-pro-preview' });
+  await expect(comparisonRow.getByText('+2', { exact: true })).toBeVisible();
+  await expect(comparisonRow.getByText('-1', { exact: true })).toBeVisible();
+  const primaryRow = grid.getByRole('row').filter({ hasText: 'gpt-5.6-sol' });
+  await expect(primaryRow.getByText('primary', { exact: true })).toBeVisible();
+  await expect(primaryRow.getByText('+2', { exact: true })).toHaveCount(0);
 });
 
 test('shows primary badge on fastest model in group', async ({ page }) => {
@@ -636,6 +647,12 @@ test('shows primary badge on fastest model in group', async ({ page }) => {
 test('shows diff view in expanded state for non-primary logs', async ({ page }) => {
   const operationId = 'test-op-diff';
 
+  await createChatModelSetting({
+    modelName: 'gpt-5.6-sol',
+    operationType: 'TRANSLATION',
+    isPrimary: true,
+  });
+
   await createModelUsageLog({
     modelName: 'gpt-5.6-sol',
     modelType: 'CHAT',
@@ -668,12 +685,13 @@ test('shows diff view in expanded state for non-primary logs', async ({ page }) 
     expect(rows.length).toBe(2);
   }).toPass();
 
-  const bodyRows = grid.locator('[role="row"]').filter({ has: page.locator('[role="gridcell"]') });
-  await bodyRows.nth(1).click();
+  await grid.getByRole('row').filter({ hasText: 'gemini-3.1-pro-preview' }).click();
 
   await expect(page.getByText('Diff vs Primary')).toBeVisible();
   await expect(page.getByText('- world')).toBeVisible();
   await expect(page.getByText('+ earth')).toBeVisible();
+  await expect(page.getByText('+ world', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('- earth', { exact: true })).toHaveCount(0);
 });
 
 test('shows copy to clipboard button in expanded state', async ({ page }) => {
