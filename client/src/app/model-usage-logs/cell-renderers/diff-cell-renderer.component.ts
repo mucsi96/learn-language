@@ -79,8 +79,8 @@ export class DiffCellRendererComponent implements ICellRendererAngularComp {
     }
 
     const diff = params.context.computeDiffSummary(
-      log.responseContent,
       group.primaryLog.responseContent,
+      log.responseContent,
     );
 
     if (diff.additions === 0 && diff.deletions === 0) {
