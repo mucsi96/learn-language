@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.GeneratedImage;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +34,8 @@ public class AsyncImageGenerationService {
       imageGenerationJobService.markCompleted(id);
     } catch (Exception e) {
       log.error("Image generation job {} failed", id, e);
-      imageGenerationJobService.markFailed(id, "Image generation failed");
+      imageGenerationJobService.markFailed(id,
+          ProviderBillingException.findCause(e).map(ProviderBillingException::getMessage).orElse("Image generation failed"));
     }
   }
 }

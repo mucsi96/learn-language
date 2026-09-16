@@ -15,7 +15,22 @@ app.use((req, res, next) => {
 });
 
 app.post('/reset', (req, res) => {
+  app.set('testFailure', null);
   res.status(200).json({ status: 'ok', message: 'Reset complete' });
+});
+
+app.post('/test-failure', (req, res) => {
+  app.set('testFailure', req.body);
+  res.json({ status: 'ok' });
+});
+
+app.use((req, res, next) => {
+  const failure = app.get('testFailure');
+  if (failure && req.path === failure.path) {
+    res.status(failure.status).json(failure.body);
+    return;
+  }
+  next();
 });
 
 app.post('/v1/messages', async (req, res) => {

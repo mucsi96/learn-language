@@ -1,0 +1,29 @@
+@for (issue of issues(); track issue.provider) {
+  <section class="billing-alert" role="alert" [attr.aria-labelledby]="'billing-alert-title-' + issue.provider">
+    <mat-icon aria-hidden="true">account_balance_wallet</mat-icon>
+    <div class="content">
+      <h2 [id]="'billing-alert-title-' + issue.provider">{{ issue.providerName }} billing needs attention</h2>
+      <p>{{ issue.message }}</p>
+      <p>AI operations using {{ issue.providerName }} may fail until this is resolved.</p>
+      <p class="details">Last reported {{ issue.lastDetectedAt | date:'medium' }}. This alert stays visible across visits until marked resolved.</p>
+      <div class="actions">
+        <a mat-flat-button bt-color="primary" [href]="issue.billingUrl" target="_blank" rel="noopener noreferrer">
+          <mat-icon>open_in_new</mat-icon>
+          Open {{ issue.providerName }} billing
+        </a>
+        @if (issue.canResolve) {
+          <button mat-stroked-button [disabled]="resolving()" (click)="resolve(issue)">I've resolved billing</button>
+        }
+      </div>
+      @if (resolutionError()) {
+        <p>Could not mark this issue resolved. Please try again.</p>
+      }
+    </div>
+  </section>
+}
+@if (status.error()) {
+  <div class="status-error" role="status">
+    Could not check AI billing status.
+    <button mat-button (click)="status.reload()">Retry billing status</button>
+  </div>
+}

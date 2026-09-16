@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { rethrowProviderBillingError } from './provider-billing-error';
 
 export async function fetchJson<T>(
   http: HttpClient,
@@ -18,6 +19,6 @@ export async function fetchJson<T>(
       body,
       responseType: 'json',
     })
-  );
+  ).catch(rethrowProviderBillingError);
   return response as T;
 }

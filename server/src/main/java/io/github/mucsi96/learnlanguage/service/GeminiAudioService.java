@@ -20,6 +20,7 @@ import io.github.mucsi96.learnlanguage.model.LanguageResponse;
 import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,6 +75,7 @@ public class GeminiAudioService {
 
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
+  private final ProviderBillingIssueService billingIssueService;
 
   public byte[] generateAudio(String input, String voiceName, String language, boolean singleWord) {
     long startTime = System.currentTimeMillis();
@@ -110,6 +112,9 @@ public class GeminiAudioService {
 
     } catch (Exception e) {
       log.error("Failed to generate audio with Gemini TTS", e);
+      if (billingIssueService.recordFailure(ModelProvider.GOOGLE, e)) {
+        throw new ProviderBillingException(ModelProvider.GOOGLE, e);
+      }
       throw new RuntimeException("Failed to generate audio with Gemini TTS: " + e.getMessage(), e);
     }
   }

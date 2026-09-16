@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import {
   MatDialogRef,
   MatDialogModule,
@@ -22,6 +22,7 @@ import { PipelineProgressComponent } from '../shared/pipeline-progress/pipeline-
 })
 export class BulkCreationProgressDialogComponent {
   readonly bulkCardService = inject(BulkCardCreationService);
+  readonly failedTasks = computed(() => this.bulkCardService.progress().filter(task => task.status === 'error'));
   private readonly dialogRef = inject(MatDialogRef<BulkCreationProgressDialogComponent>);
 
   closeDialog(): void {

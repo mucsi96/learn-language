@@ -5,6 +5,7 @@ import { ImageGenerationHandler, IMAGES } from './imageGeneration';
 const app = express();
 const upload = multer();
 const imageHandler = new ImageGenerationHandler();
+app.use(express.json());
 
 app.use((req, res, next) => {
   if (req.url !== '/health' && req.url !== '/reset') {
@@ -14,8 +15,23 @@ app.use((req, res, next) => {
 });
 
 app.post('/reset', (req, res) => {
+  app.set('testFailure', null);
   imageHandler.reset();
   res.status(200).json({ status: 'ok', message: 'Mock state reset' });
+});
+
+app.post('/test-failure', (req, res) => {
+  app.set('testFailure', req.body);
+  res.json({ status: 'ok' });
+});
+
+app.use((req, res, next) => {
+  const failure = app.get('testFailure');
+  if (failure && req.path === failure.path) {
+    res.status(failure.status).json(failure.body);
+    return;
+  }
+  next();
 });
 
 app.post('/v1/:model/generate', upload.none(), (req, res) => {

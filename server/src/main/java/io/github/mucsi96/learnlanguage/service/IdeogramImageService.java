@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel.ImageQuality;
 import io.github.mucsi96.learnlanguage.model.OperationType;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +26,7 @@ public class IdeogramImageService {
 
     private final RestClient ideogramRestClient;
     private final ModelUsageLoggingService usageLoggingService;
+    private final ProviderBillingIssueService billingIssueService;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record IdeogramImage(String url) {
@@ -66,6 +69,9 @@ public class IdeogramImageService {
 
         } catch (Exception e) {
             log.error("Failed to generate image with Ideogram", e);
+            if (billingIssueService.recordFailure(ModelProvider.IDEOGRAM, e)) {
+                throw new ProviderBillingException(ModelProvider.IDEOGRAM, e);
+            }
             throw new RuntimeException("Failed to generate image with Ideogram: " + e.getMessage(), e);
         }
     }

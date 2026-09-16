@@ -26,7 +26,7 @@ export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
     // Reset mock AI servers
     try {
       await Promise.all([
-        fetch('http://localhost:3070/reset', {
+        fetch(`${process.env.OPENAI_MOCK_URL ?? 'http://localhost:3070'}/reset`, {
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),
@@ -35,6 +35,14 @@ export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
           signal: AbortSignal.timeout(5000),
         }),
         fetch('http://localhost:3073/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
+        fetch('http://localhost:3072/reset', {
+          method: 'POST',
+          signal: AbortSignal.timeout(5000),
+        }),
+        fetch('http://localhost:3074/reset', {
           method: 'POST',
           signal: AbortSignal.timeout(5000),
         }),

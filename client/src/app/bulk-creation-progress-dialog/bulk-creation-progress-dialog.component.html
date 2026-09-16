@@ -7,6 +7,16 @@
     [tasks]="bulkCardService.progress()"
     [toolPool]="bulkCardService.toolPool"
   />
+  @if (failedTasks().length > 0) {
+    <section class="creation-errors" role="alert">
+      <h3>Some cards could not be created</h3>
+      <ul>
+        @for (task of failedTasks(); track task.label) {
+          <li>{{ task.tooltip }}</li>
+        }
+      </ul>
+    </section>
+  }
 </mat-dialog-content>
 
 @if (!bulkCardService.isProcessing()) {

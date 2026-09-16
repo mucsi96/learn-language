@@ -23,6 +23,7 @@ export const waitForImageReady = async (
     }
 
     if (status === 'failed') {
+      window.dispatchEvent(new Event('ai-operation-failed'));
       throw new Error(error ?? 'Image generation failed');
     }
 

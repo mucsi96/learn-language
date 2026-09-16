@@ -18,9 +18,24 @@ app.use((req, res, next) => {
 
 // Add route to reset state for tests
 app.post('/reset', (req, res) => {
+  app.set('testFailure', null);
   audioHandler.reset();
   console.log('Reset audio call counter to 0');
   res.status(200).json({ status: 'ok', message: 'Audio call counter reset to 0' });
+});
+
+app.post('/test-failure', (req, res) => {
+  app.set('testFailure', req.body);
+  res.json({ status: 'ok' });
+});
+
+app.use((req, res, next) => {
+  const failure = app.get('testFailure');
+  if (failure && req.path === failure.path) {
+    res.status(failure.status).json(failure.body);
+    return;
+  }
+  next();
 });
 
 // Eleven Labs TTS API endpoint - mock response

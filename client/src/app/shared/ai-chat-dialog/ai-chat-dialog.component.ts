@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from '../../utils/fetchJson';
+import { rethrowProviderBillingError } from '../../utils/provider-billing-error';
 import { Card } from '../../parser/types';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
 import { ActiveRecording, startRecording } from './voice-recorder';
@@ -144,7 +145,7 @@ export class AiChatDialogComponent {
       form.append('file', blob, 'question.webm');
       const response = await firstValueFrom(
         this.http.post<{ text: string }>('/api/transcribe', form)
-      );
+      ).catch(rethrowProviderBillingError);
       const text = response.text.trim();
       if (text.length > 0) {
         await this.sendMessage(text);

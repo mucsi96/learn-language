@@ -10,6 +10,8 @@ import com.google.genai.types.ImageConfig;
 
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +22,7 @@ public class GoogleImageService {
 
   private final Client googleAiClient;
   private final ModelUsageLoggingService usageLoggingService;
+  private final ProviderBillingIssueService billingIssueService;
 
   public byte[] generateGeminiImage(String input, ImageGenerationModel model) {
     return generateWithUsageLogging(model.getModelName(), () -> {
@@ -57,6 +60,9 @@ public class GoogleImageService {
 
     } catch (Exception e) {
       log.error("Failed to generate image with {}", modelName, e);
+      if (billingIssueService.recordFailure(ModelProvider.GOOGLE, e)) {
+        throw new ProviderBillingException(ModelProvider.GOOGLE, e);
+      }
       throw new RuntimeException("Failed to generate image with " + modelName + ": " + e.getMessage(), e);
     }
   }
