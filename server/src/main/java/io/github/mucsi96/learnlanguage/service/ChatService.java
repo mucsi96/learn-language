@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.PromptUserSpec;
@@ -21,6 +22,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class ChatService {
     private final JsonMapper jsonMapper;
     private final FileStorageService fileStorageService;
     private final Environment environment;
+    private final ProviderBillingIssueService billingIssueService;
 
     public <T> T callWithLogging(
             ChatModel model,
@@ -113,7 +116,7 @@ public class ChatService {
                 .user(u -> u.text(userMessage))
                 .call();
 
-        final ChatResponse response = callResponse.chatResponse();
+        final ChatResponse response = callProvider(model, callResponse::chatResponse);
         final String text = extractResponseText(response);
 
         long processingTime = System.currentTimeMillis() - startTime;
@@ -141,7 +144,7 @@ public class ChatService {
                 .messages(messages)
                 .call();
 
-        final ChatResponse response = callResponse.chatResponse();
+        final ChatResponse response = callProvider(model, callResponse::chatResponse);
         final String text = extractResponseText(response);
 
         long processingTime = System.currentTimeMillis() - startTime;
@@ -187,8 +190,8 @@ public class ChatService {
             }
         };
 
-        var chatResponse = callResponse.responseEntity(outputConverter,
-                spec -> spec.useProviderStructuredOutput());
+        final var chatResponse = callProvider(model, () -> callResponse.responseEntity(outputConverter,
+                spec -> spec.useProviderStructuredOutput()));
         final ChatResponse response = chatResponse.getResponse();
         // ChatResponse.getResult() returns the first generation, but Anthropic
         // thinking models emit thinking blocks as generations before the text
@@ -208,6 +211,17 @@ public class ChatService {
         logUsage(model, operationType, response, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity), processingTime);
 
         return entity;
+    }
+
+    private <T> T callProvider(ChatModel model, Supplier<T> request) {
+        try {
+            return request.get();
+        } catch (RuntimeException error) {
+            if (billingIssueService.recordFailure(model.getProvider(), error)) {
+                throw new ProviderBillingException(model.getProvider(), error);
+            }
+            throw error;
+        }
     }
 
     private String requireResponseText(String text, ChatModel model, OperationType operationType,

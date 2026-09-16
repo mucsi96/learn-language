@@ -11,6 +11,8 @@ import com.openai.models.images.ImagesResponse;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel.ImageQuality;
 import io.github.mucsi96.learnlanguage.model.OperationType;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +23,7 @@ public class OpenAIImageService {
 
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
+    private final ProviderBillingIssueService billingIssueService;
 
     public byte[] generateImage(String input, ImageGenerationModel model) {
         final long startTime = System.currentTimeMillis();
@@ -65,6 +68,9 @@ public class OpenAIImageService {
 
         } catch (Exception e) {
             log.error("Failed to generate image with OpenAI", e);
+            if (billingIssueService.recordFailure(ModelProvider.OPENAI, e)) {
+                throw new ProviderBillingException(ModelProvider.OPENAI, e);
+            }
             throw new RuntimeException("Failed to generate image with OpenAI: " + e.getMessage(), e);
         }
     }

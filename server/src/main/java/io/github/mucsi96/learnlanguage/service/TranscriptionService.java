@@ -10,6 +10,8 @@ import com.openai.core.MultipartField;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
+import io.github.mucsi96.learnlanguage.model.ModelProvider;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +24,7 @@ public class TranscriptionService {
 
     private final OpenAIClient openAIClient;
     private final ModelUsageLoggingService usageLoggingService;
+    private final ProviderBillingIssueService billingIssueService;
 
     public String transcribe(byte[] audio, String fileName) {
         final long startTime = System.currentTimeMillis();
@@ -45,6 +48,9 @@ public class TranscriptionService {
             return text;
         } catch (Exception e) {
             log.error("Failed to transcribe audio with OpenAI", e);
+            if (billingIssueService.recordFailure(ModelProvider.OPENAI, e)) {
+                throw new ProviderBillingException(ModelProvider.OPENAI, e);
+            }
             throw new RuntimeException("Failed to transcribe audio with OpenAI: " + e.getMessage(), e);
         }
     }

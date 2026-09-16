@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ENVIRONMENT_CONFIG } from './environment/environment.config';
+import { ProviderBillingError } from './utils/provider-billing-error';
 
 export interface ModelResponse<T> {
   model: string;
@@ -55,6 +56,13 @@ export class MultiModelService {
     if (!primaryResponse) {
       if (successfulResponses.length > 0) {
         return successfulResponses[0];
+      }
+      const billingFailure = modelResponses.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected' && result.reason instanceof ProviderBillingError
+      );
+      if (billingFailure) {
+        throw billingFailure.reason;
       }
       throw new Error(`Primary model ${primaryModelName} failed and no other models succeeded`);
     }

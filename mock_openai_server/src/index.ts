@@ -21,7 +21,43 @@ app.use((req, res, next) => {
 // Add route to reset state for tests
 app.post('/reset', (req, res) => {
   imageHandler.reset();
+  app.set('testFailure', null);
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
+});
+
+app.post('/test-failure', (req, res) => {
+  const { path, code } = req.body;
+  if (!['/chat/completions', '/images/generations', '/audio/transcriptions'].includes(path)
+      || !['insufficient_quota', 'rate_limit_exceeded'].includes(code)) {
+    res.status(400).json({ error: 'Invalid failure scenario' });
+    return;
+  }
+  app.set('testFailure', { path, code });
+  res.json({ status: 'ok' });
+});
+
+app.post('/test-provider-failure', (req, res) => {
+  app.set('testFailure', req.body);
+  res.json({ status: 'ok' });
+});
+
+app.use((req, res, next) => {
+  const failure = app.get('testFailure');
+  if (failure && req.path === failure.path) {
+    if (failure.body) {
+      res.status(failure.status).json(failure.body);
+      return;
+    }
+    res.status(429).json({ error: {
+      code: failure.code,
+      type: failure.code,
+      message: failure.code === 'insufficient_quota'
+        ? 'You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.'
+        : 'Rate limit reached for requests per minute. Please try again later.',
+    } });
+    return;
+  }
+  next();
 });
 
 // Add route for image generation mock

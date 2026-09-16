@@ -35,6 +35,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleException(Exception exception) {
         log.error("Unhandled exception", exception);
+        final var billingFailure = ProviderBillingException.findCause(exception);
+        if (billingFailure.isPresent()) {
+            final var provider = billingFailure.get().getProvider();
+            final var problem = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+                provider.getBillingMessage());
+            problem.setTitle(provider.getDisplayName() + " billing needs attention");
+            problem.setProperty("code", "PROVIDER_BILLING_REQUIRED");
+            problem.setProperty("provider", provider.getCode());
+            problem.setProperty("billingUrl", provider.getBillingUrl());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"));
     }

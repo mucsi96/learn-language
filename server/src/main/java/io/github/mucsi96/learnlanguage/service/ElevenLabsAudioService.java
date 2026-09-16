@@ -10,6 +10,7 @@ import io.github.mucsi96.learnlanguage.model.LanguageResponse;
 import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.model.VoiceResponse;
+import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +34,7 @@ public class ElevenLabsAudioService {
   private final ElevenLabsTextToSpeechModel textToSpeechModel;
   private final ElevenLabsVoicesApi voicesApi;
   private final ModelUsageLoggingService usageLoggingService;
+  private final ProviderBillingIssueService billingIssueService;
 
   public byte[] generateAudio(String input, String voiceId, String model, String language, String context, boolean singleWord) {
     long startTime = System.currentTimeMillis();
@@ -71,6 +73,9 @@ public class ElevenLabsAudioService {
 
     } catch (Exception e) {
       log.error("Failed to generate audio with Eleven Labs", e);
+      if (billingIssueService.recordFailure(ModelProvider.ELEVENLABS, e)) {
+        throw new ProviderBillingException(ModelProvider.ELEVENLABS, e);
+      }
       throw new RuntimeException("Failed to generate audio with Eleven Labs: " + e.getMessage(), e);
     }
   }
@@ -114,6 +119,9 @@ public class ElevenLabsAudioService {
 
     } catch (Exception e) {
       log.error("Failed to fetch voices from Eleven Labs", e);
+      if (billingIssueService.recordFailure(ModelProvider.ELEVENLABS, e)) {
+        throw new ProviderBillingException(ModelProvider.ELEVENLABS, e);
+      }
       throw new RuntimeException("Failed to fetch voices from Eleven Labs: " + e.getMessage(), e);
     }
   }

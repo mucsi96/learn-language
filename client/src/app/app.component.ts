@@ -5,6 +5,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './header/header.component';
 import { AuthService } from './auth.service';
+import { ProviderBillingAlertComponent } from './provider-billing-alert/provider-billing-alert.component';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { AuthService } from './auth.service';
     MatButtonModule,
     MatTooltipModule,
     HeaderComponent,
+    ProviderBillingAlertComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

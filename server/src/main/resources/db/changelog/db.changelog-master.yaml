@@ -1479,3 +1479,31 @@ databaseChangeLog:
                   )
                 ORDER BY operation_type, id
               );
+  - changeSet:
+      id: 55-create-provider-billing-issues
+      author: mucsi96
+      changes:
+        - createTable:
+            tableName: provider_billing_issues
+            columns:
+              - column:
+                  name: provider
+                  type: varchar(32)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: occurrence_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_detected_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_detected_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false

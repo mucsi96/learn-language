@@ -3,6 +3,25 @@
   min-width: 300px;
 }
 
+.creation-errors {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border-inline-start: 3px solid var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, var(--bt-surface-1));
+  color: var(--mat-sys-on-surface);
+  overflow-wrap: anywhere;
+
+  h3 {
+    margin-top: 0;
+  }
+
+  ul {
+    margin-bottom: 0;
+    padding-inline-start: 1.25rem;
+  }
+}
+
 .cleanup-hint,
 .cleanup-result {
   margin-top: 16px;
