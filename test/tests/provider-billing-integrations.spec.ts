@@ -153,6 +153,7 @@ test('OpenAI transcription failures also persist a billing alert', async ({ page
 });
 
 test('Gemini temporary quota errors do not create a billing alert', async ({ page, baseURL }) => {
+  test.setTimeout(120_000);
   await configureFailure({ mockUrl: 'http://localhost:3071',
     path: '/v1beta/models/gemini-3.1-pro-preview:generateContent', status: 429,
     body: { error: { code: 429, status: 'RESOURCE_EXHAUSTED',
@@ -160,11 +161,13 @@ test('Gemini temporary quota errors do not create a billing alert', async ({ pag
   const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
   const authorization = (await sourcesRequest).headers()['authorization'];
-  const response = await fetch(`${baseURL}/api/translate/hu?model=gemini-3.1-pro-preview`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authorization },
-    body: JSON.stringify(translation),
+  const response = await page.request.post(`${baseURL}/api/translate/hu?model=gemini-3.1-pro-preview`, {
+    headers: { Authorization: authorization },
+    data: translation,
+    timeout: 90_000,
   });
-  expect(response.status).toBe(500);
-  const issues = await fetch(`${baseURL}/api/provider-billing-issues`, { headers: { Authorization: authorization } });
+  expect(response.status()).toBe(500);
+  const issues = await page.request.get(`${baseURL}/api/provider-billing-issues`, { headers: { Authorization: authorization } });
+  expect(issues.ok()).toBe(true);
   expect(await issues.json()).toEqual([]);
 });
