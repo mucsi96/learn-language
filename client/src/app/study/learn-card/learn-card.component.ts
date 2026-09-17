@@ -207,23 +207,32 @@ export class LearnCardComponent implements OnDestroy {
   private static readonly GRADE_BY_KEY = {
     'Red': 'Again',
     'Green': 'Good',
+    'j': 'Again',
+    'k': 'Good',
   } as const satisfies Record<string, 'Again' | 'Good'>;
 
   @HostListener('document:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {
-    if (!this.card()) return;
+    if (
+      !this.card() || this.currentCardData.isLoading() || this.isGrading() ||
+      event.defaultPrevented || event.repeat || event.isComposing ||
+      event.ctrlKey || event.altKey || event.metaKey
+    ) return;
 
     const target = event.target as HTMLElement;
-    const isInteractiveElement = target?.closest?.('button, a, input, select, textarea');
+    if (target?.isContentEditable || target?.closest?.('input, select, textarea, [role="textbox"]')) return;
 
-    if (event.key === 'Enter' && !isInteractiveElement && !this.isGrading()) {
+    const isInteractiveElement = target?.closest?.('button, a, input, select, textarea');
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+
+    if (key === 'h' || key === 'l' || (key === 'Enter' && !isInteractiveElement)) {
       event.preventDefault();
       this.toggleReveal();
       return;
     }
 
     if (this.isRevealed() && !this.isGrading()) {
-      const grade = LearnCardComponent.GRADE_BY_KEY[event.key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
+      const grade = LearnCardComponent.GRADE_BY_KEY[key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
       if (grade) {
         event.preventDefault();
         this.isGrading.set(true);

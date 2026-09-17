@@ -1604,6 +1604,74 @@ test('Enter key reveals and unreveals card', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
 });
 
+test('h and l toggle the card and j and k grade answers', async ({ page }) => {
+  const now = Date.now();
+  await createCard({
+    cardId: 'letter-keys-wrong',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 71,
+    data: {
+      word: 'rot',
+      type: 'ADJECTIVE',
+      translation: { en: 'red', hu: 'piros', ch: 'rot' },
+    },
+    state: 'LEARNING',
+    due: new Date(now - 4 * 3600000),
+  });
+  await createCard({
+    cardId: 'letter-keys-correct',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 72,
+    data: {
+      word: 'grün',
+      type: 'ADJECTIVE',
+      translation: { en: 'green', hu: 'zöld', ch: 'grüen' },
+    },
+    state: 'LEARNING',
+    due: new Date(now - 2 * 3600000),
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  const correct = page.getByRole('button', { name: 'Correct', exact: true });
+  await expect(flashcard.getByRole('heading', { name: 'piros' })).toBeVisible();
+  await page.keyboard.press('j');
+  await page.keyboard.press('k');
+  await page.keyboard.press('Control+h');
+  await expect(correct).not.toBeVisible();
+  expect(await getReviewLogs()).toHaveLength(0);
+
+  await page.keyboard.press('h');
+  await expect(correct).toBeVisible();
+  await page.keyboard.press('h');
+  await expect(correct).not.toBeVisible();
+  await page.keyboard.press('l');
+  await expect(correct).toBeVisible();
+  await page.keyboard.press('l');
+  await expect(correct).not.toBeVisible();
+  await page.keyboard.press('h');
+  await expect(correct).toBeVisible();
+  await correct.focus();
+  await page.keyboard.press('j');
+
+  await expect(flashcard.getByRole('heading', { name: 'zöld' })).toBeVisible();
+  await page.keyboard.press('l');
+  await expect(correct).toBeVisible();
+  await page.keyboard.press('k');
+
+  await expect(async () => {
+    const reviewLogs = await getReviewLogs();
+    expect(reviewLogs.map(({ cardId, rating }) => ({ cardId, rating }))).toEqual(
+      expect.arrayContaining([
+        { cardId: 'letter-keys-wrong', rating: 1 },
+        { cardId: 'letter-keys-correct', rating: 3 },
+      ]),
+    );
+  }).toPass();
+});
+
 test('Green color key grades card as Correct when revealed', async ({ page }) => {
   await createCard({
     cardId: 'green-key-test-1',
