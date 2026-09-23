@@ -14,6 +14,9 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByRole('heading', { name: 'Data Models' })).toBeVisible();
 
   await expect(page.getByText('gpt-5.6-sol', { exact: true })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'gpt-6-astra' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'gpt-6-sol' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'claude-opus-5-5' })).toBeVisible();
   await expect(page.getByText('gpt-5.6-terra', { exact: true })).toBeVisible();
   await expect(page.getByText('gpt-5.6-luna', { exact: true })).toBeVisible();
   await expect(page.getByText('claude-sonnet-5', { exact: true })).toBeVisible();
@@ -28,6 +31,27 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByText('Extraction')).toBeVisible();
   await expect(page.getByText('Classification')).toBeVisible();
   await expect(page.getByText('Image Description')).toBeVisible();
+});
+
+['gpt-6-astra', 'gpt-6-sol', 'claude-opus-5-5'].forEach((modelName) => {
+  test(`can enable ${modelName} as the primary translation model`, async ({ page }) => {
+    await page.goto('/settings/data-models');
+
+    const modelRow = page.getByRole('row', { name: modelName });
+    await modelRow.getByRole('switch').first().click();
+    await modelRow.getByRole('radio').first().click();
+
+    await expect(async () => {
+      const settings = await getChatModelSettings();
+      const setting = settings.find((value) => value.modelName === modelName
+        && value.operationType === 'TRANSLATION');
+      expect(setting).toMatchObject({ isEnabled: true, isPrimary: true });
+    }).toPass();
+
+    await page.reload();
+    await expect(modelRow.getByRole('switch').first()).toBeChecked();
+    await expect(modelRow.getByRole('radio').first()).toBeChecked();
+  });
 });
 
 test('can set primary model for operation type', async ({ page }) => {

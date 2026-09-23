@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ChatModel {
+  GPT_6_ASTRA("gpt-6-astra", ModelProvider.OPENAI),
+  GPT_6_SOL("gpt-6-sol", ModelProvider.OPENAI),
   GPT_5_5("gpt-5.5", ModelProvider.OPENAI),
   GPT_5_6_SOL("gpt-5.6-sol", ModelProvider.OPENAI),
   GPT_5_6_TERRA("gpt-5.6-terra", ModelProvider.OPENAI),
@@ -17,6 +19,7 @@ public enum ChatModel {
   CLAUDE_SONNET_5("claude-sonnet-5", ModelProvider.ANTHROPIC),
   CLAUDE_HAIKU_4_5("claude-haiku-4-5", ModelProvider.ANTHROPIC),
   CLAUDE_OPUS_4_8("claude-opus-4-8", ModelProvider.ANTHROPIC),
+  CLAUDE_OPUS_5_5("claude-opus-5-5", ModelProvider.ANTHROPIC),
   GROK_4_6("grok-4.6", ModelProvider.XAI),
   GROK_4_3("grok-4.3", ModelProvider.XAI),
   GEMINI_3_1_PRO_PREVIEW("gemini-3.1-pro-preview", ModelProvider.GOOGLE),
