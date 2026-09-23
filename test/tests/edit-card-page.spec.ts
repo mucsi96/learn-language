@@ -535,11 +535,16 @@ test('generates image with OpenAI models', async ({ page }) => {
   expect(await getImageColor(page, generatedImageContent)).toBe('red');
 
   const logs = await getModelUsageLogs();
-  const descriptionLog = logs.find((log) => log.operationType === 'IMAGE_DESCRIPTION');
-  expect(descriptionLog).toBeDefined();
-  expect(descriptionLog!.modelType).toBe('CHAT');
-  expect(descriptionLog!.modelName).toBe('gpt-5.6-sol');
-  expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
+  const descriptionLogs = logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLogs).toHaveLength(2);
+  descriptionLogs.forEach((log) => {
+    expect(log.modelType).toBe('CHAT');
+    expect(log.modelName).toBe('gpt-5.6-sol');
+    expect(log.responseContent).toContain('Wann fährt der Zug ab?');
+    expect(log.responseContent).toContain('Composition:');
+    expect(log.responseContent).toContain('Lighting:');
+    expect(log.responseContent).toContain('Background:');
+  });
 
   const generationLogs = logs.filter((log) => log.operationType === 'IMAGE_GENERATION');
   expect(generationLogs).toHaveLength(2);
@@ -660,9 +665,12 @@ test('image generation uses context instead of German sentence', async ({ page }
   expect(descriptionLog).toBeDefined();
   expect(descriptionLog!.responseContent).toContain('A vintage steam train at sunset');
   expect(descriptionLog!.responseContent).not.toContain('Wann fährt der Zug ab?');
+  expect(descriptionLog!.responseContent).toContain('Composition:');
+  expect(descriptionLog!.responseContent).toContain('Lighting:');
+  expect(descriptionLog!.responseContent).toContain('Background:');
 });
 
-test('image generation sends German example by default', async ({ page }) => {
+test('image generation sends German example and per-image variation cues', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(blueImage);
@@ -700,6 +708,18 @@ test('image generation sends German example by default', async ({ page }) => {
   const request = await requestPromise;
 
   expect(request.postDataJSON().input).toBe('Wann fährt der Zug ab?');
+  await expect(page.getByRole('img')).toHaveCount(5);
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  const logs = await getModelUsageLogs();
+  const descriptionLogs = logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLogs).toHaveLength(4);
+  descriptionLogs.forEach((log) => {
+    expect(log.responseContent).toContain('Wann fährt der Zug ab?');
+    expect(log.responseContent).toContain('Composition:');
+    expect(log.responseContent).toContain('Lighting:');
+    expect(log.responseContent).toContain('Background:');
+  });
 });
 
 test('word type editing', async ({ page }) => {
