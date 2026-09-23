@@ -28,7 +28,7 @@ public class ChatClientService {
 
   public ChatClient getChatClient(ChatModel model) {
     return switch (model) {
-      case GPT_5_5, GPT_5_6_SOL, GPT_5_6_TERRA, GPT_5_6_LUNA -> ChatClient.builder(openAiChatModel)
+      case GPT_6_ASTRA, GPT_6_SOL, GPT_5_5, GPT_5_6_SOL, GPT_5_6_TERRA, GPT_5_6_LUNA -> ChatClient.builder(openAiChatModel)
           .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
           .build();
       case CLAUDE_SONNET_4_5 -> ChatClient.builder(anthropicChatModel)
@@ -46,9 +46,9 @@ public class ChatClientService {
               .model(com.anthropic.models.messages.Model.CLAUDE_HAIKU_4_5)
               .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
-      case CLAUDE_OPUS_4_8 -> ChatClient.builder(anthropicChatModel)
+      case CLAUDE_OPUS_4_8, CLAUDE_OPUS_5_5 -> ChatClient.builder(anthropicChatModel)
           .defaultOptions(AnthropicChatOptions.builder()
-              .model(com.anthropic.models.messages.Model.of("claude-opus-4-8"))
+              .model(com.anthropic.models.messages.Model.of(model.getModelName()))
               .maxTokens(ANTHROPIC_MAX_TOKENS))
           .build();
       case GROK_4_6, GROK_4_3 -> ChatClient.builder(xaiChatModel.chatModel())

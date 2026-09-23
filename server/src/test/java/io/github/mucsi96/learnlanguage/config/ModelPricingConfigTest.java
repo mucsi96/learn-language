@@ -9,11 +9,23 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class ModelPricingConfigTest {
 
     private final ModelPricingConfig pricingConfig = new ModelPricingConfig();
+
+    @ParameterizedTest
+    @CsvSource({
+        "gpt-6-astra, 0.035",
+        "gpt-6-sol, 0.007",
+        "claude-opus-5-5, 0.014"
+    })
+    void calculatesChatUsageWithOfficialStandardRates(String modelName, String expectedCost) {
+        assertThat(pricingConfig.calculateChatCost(modelName, 1_000, 500))
+            .isEqualByComparingTo(expectedCost);
+    }
 
     @ParameterizedTest
     @MethodSource("gptImage25Prices")

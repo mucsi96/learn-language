@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.context.annotation.Configuration;
 
 // Pricing sources:
-// OpenAI: https://platform.openai.com/docs/pricing
+// OpenAI: https://developers.openai.com/api/docs/pricing
 // Google: https://ai.google.dev/gemini-api/docs/pricing
 // Anthropic: https://platform.claude.com/docs/en/about-claude/pricing
 // xAI: https://x.ai/api
@@ -20,6 +20,9 @@ public class ModelPricingConfig {
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
+        // Standard short-context rates, verified 2026-09-23
+        Map.entry("gpt-6-astra", new ChatModelPricing(new BigDecimal("10.00"), new BigDecimal("50.00"))),
+        Map.entry("gpt-6-sol", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),
         // OpenAI GPT-5.5
         Map.entry("gpt-5.5", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("30.00"))),
         // OpenAI GPT-5.6 family
@@ -31,6 +34,7 @@ public class ModelPricingConfig {
         Map.entry("claude-sonnet-5", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),
         Map.entry("claude-haiku-4-5", new ChatModelPricing(new BigDecimal("0.80"), new BigDecimal("4.00"))),
         Map.entry("claude-opus-4-8", new ChatModelPricing(new BigDecimal("5.00"), new BigDecimal("25.00"))),
+        Map.entry("claude-opus-5-5", new ChatModelPricing(new BigDecimal("4.00"), new BigDecimal("20.00"))),
         // xAI Grok
         Map.entry("grok-4.6", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("6.00"))),
         Map.entry("grok-4.3", new ChatModelPricing(new BigDecimal("1.25"), new BigDecimal("2.50"))),
