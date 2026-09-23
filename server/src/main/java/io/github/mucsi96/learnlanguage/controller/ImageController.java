@@ -19,11 +19,14 @@ import io.github.mucsi96.learnlanguage.model.ImageGenerationJobStatus;
 import io.github.mucsi96.learnlanguage.model.ImageGenerationResponse;
 import io.github.mucsi96.learnlanguage.model.ImageJobStatusResponse;
 import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
+import io.github.mucsi96.learnlanguage.model.ImageDescriptionsRequest;
+import io.github.mucsi96.learnlanguage.model.ImageDescriptionsResponse;
 import io.github.mucsi96.learnlanguage.model.ModelType;
 import io.github.mucsi96.learnlanguage.repository.ModelUsageLogRepository;
 import io.github.mucsi96.learnlanguage.service.AsyncImageGenerationService;
 import io.github.mucsi96.learnlanguage.service.FileStorageService;
 import io.github.mucsi96.learnlanguage.service.ImageGenerationJobService;
+import io.github.mucsi96.learnlanguage.service.ImageService;
 import io.github.mucsi96.learnlanguage.service.RateLimitSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -38,9 +41,16 @@ public class ImageController {
   private final ImageGenerationJobService imageGenerationJobService;
   private final RateLimitSettingService rateLimitSettingService;
   private final ModelUsageLogRepository modelUsageLogRepository;
+  private final ImageService imageService;
 
   private static final String IMAGE_WEBP_VALUE = "image/webp";
   private static final MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
+
+  @PostMapping("/image/descriptions")
+  @PreAuthorize("hasAuthority('APPROLE_createDeck')")
+  public ImageDescriptionsResponse describeImages(@Valid @RequestBody ImageDescriptionsRequest request) {
+    return imageService.describeScenes(request.input(), request.context(), request.count());
+  }
 
   @PostMapping("/image")
   @PreAuthorize("hasAuthority('APPROLE_createDeck')")
@@ -58,8 +68,7 @@ public class ImageController {
     final UUID id = UUID.randomUUID();
     imageGenerationJobService.createPending(id, displayName);
     try {
-      asyncImageGenerationService.generate(
-          id, imageSource.getInput(), imageSource.getContext(), imageSource.getModel());
+      asyncImageGenerationService.generate(id, imageSource);
     } catch (TaskRejectedException e) {
       imageGenerationJobService.markFailed(id, "Image generation queue is full");
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,

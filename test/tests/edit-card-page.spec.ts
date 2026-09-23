@@ -467,6 +467,8 @@ test('generates image with Gemini model', async ({ page }) => {
   expect(descriptionLog!.modelType).toBe('CHAT');
   expect(descriptionLog!.modelName).toBe('gemini-3.1-pro-preview');
   expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
+  expect(logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION')).toHaveLength(1);
+  expect(JSON.parse(descriptionLog!.responseContent!).descriptions).toHaveLength(1);
 
   const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');
   expect(generationLog).toBeDefined();
@@ -540,6 +542,10 @@ test('generates image with OpenAI models', async ({ page }) => {
   expect(descriptionLog!.modelType).toBe('CHAT');
   expect(descriptionLog!.modelName).toBe('gpt-5.6-sol');
   expect(descriptionLog!.responseContent).toContain('Wann fährt der Zug ab?');
+  expect(logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION')).toHaveLength(1);
+  const { descriptions } = JSON.parse(descriptionLog!.responseContent!);
+  expect(descriptions).toHaveLength(2);
+  expect(new Set(descriptions).size).toBe(2);
 
   const generationLogs = logs.filter((log) => log.operationType === 'IMAGE_GENERATION');
   expect(generationLogs).toHaveLength(2);
@@ -614,7 +620,7 @@ test('image generation uses context instead of German sentence', async ({ page }
   await setupDefaultChatModelSettings();
   await createImageModelSetting({
     modelName: 'gemini-3-pro-image-preview',
-    imageCount: 1,
+    imageCount: 3,
   });
   const image1 = uploadMockImage(blueImage);
   await createCard({
@@ -651,7 +657,7 @@ test('image generation uses context instead of German sentence', async ({ page }
     .fill('A vintage steam train at sunset');
   await page.getByRole('button', { name: 'Generate' }).click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
-  await expect(page.getByRole('img')).toHaveCount(2);
+  await expect(page.getByRole('img')).toHaveCount(4);
 
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
@@ -660,9 +666,14 @@ test('image generation uses context instead of German sentence', async ({ page }
   expect(descriptionLog).toBeDefined();
   expect(descriptionLog!.responseContent).toContain('A vintage steam train at sunset');
   expect(descriptionLog!.responseContent).not.toContain('Wann fährt der Zug ab?');
+  expect(logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION')).toHaveLength(1);
+  const { descriptions } = JSON.parse(descriptionLog!.responseContent!);
+  expect(descriptions).toHaveLength(3);
+  expect(new Set(descriptions).size).toBe(3);
+  expect(logs.filter((log) => log.operationType === 'IMAGE_GENERATION')).toHaveLength(3);
 });
 
-test('image generation sends German example by default', async ({ page }) => {
+test('image generation plans distinct scenes together and uses each description once', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
   const image1 = uploadMockImage(blueImage);
@@ -694,12 +705,27 @@ test('image generation sends German example by default', async ({ page }) => {
   await navigateToCardEditing(page);
 
   const requestPromise = page.waitForRequest(
-    (req) => req.url().includes('/api/image') && req.method() === 'POST'
+    (req) => req.url().endsWith('/api/image/descriptions') && req.method() === 'POST'
   );
+  const imageRequests = Promise.all(Array.from({ length: 4 }, (_, index) =>
+    page.waitForRequest((req) => req.url().endsWith('/api/image') && req.method() === 'POST'
+      && req.postDataJSON().description?.startsWith(`Scene ${index + 1} `))
+  ));
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   const request = await requestPromise;
 
-  expect(request.postDataJSON().input).toBe('Wann fährt der Zug ab?');
+  expect(request.postDataJSON()).toEqual({ input: 'Wann fährt der Zug ab?', count: 4 });
+  await expect(page.getByRole('img')).toHaveCount(5);
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
+
+  const logs = await getModelUsageLogs();
+  const descriptionLogs = logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLogs).toHaveLength(1);
+  const { descriptions } = JSON.parse(descriptionLogs[0].responseContent!);
+  expect(descriptions).toHaveLength(4);
+  expect(new Set(descriptions).size).toBe(4);
+  expect((await imageRequests).map((req) => req.postDataJSON().description)).toEqual(descriptions);
+  expect(logs.filter((log) => log.operationType === 'IMAGE_GENERATION')).toHaveLength(4);
 });
 
 test('word type editing', async ({ page }) => {

@@ -9,6 +9,7 @@ import { waitForImageReady } from '../utils/wait-for-image-ready';
 import { GridImageResource, GridImageValue } from './image-grid/image-grid.component';
 import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
+import { describeImageScenes } from '../utils/image-descriptions.util';
 
 type PendingImageResource = {
   gridResource: GridImageResource;
@@ -51,9 +52,17 @@ export class ImageResourceService {
     );
 
     const { imagePool } = this.rateLimitTokenService;
-    const done = Promise.all(
-      subtasks.map(({ model }, idx) =>
-        (async () => {
+    const done = (async () => {
+      if (subtasks.length === 0) {
+        return;
+      }
+      const descriptions = await describeImageScenes(this.http, {
+        input,
+        context,
+        count: subtasks.length,
+      });
+      await Promise.all(
+        subtasks.map(async ({ model }, idx) => {
           await imagePool.acquire();
           try {
             const response = await fetchJson<ImageResponse>(
@@ -63,7 +72,7 @@ export class ImageResourceService {
                 body: {
                   input,
                   model: model.id,
-                  ...(context ? { context } : {}),
+                  description: descriptions[idx],
                 } satisfies ImageSourceRequest,
                 method: 'POST',
               }
@@ -76,9 +85,9 @@ export class ImageResourceService {
           } finally {
             imagePool.release();
           }
-        })()
-      )
-    ).then(() => undefined);
+        })
+      );
+    })();
 
     return {
       placeholders: pending.map((p) => p.gridResource),

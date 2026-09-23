@@ -4,6 +4,7 @@ import { ImageResponse, ImageSourceRequest } from '../shared/types/image-generat
 import { fetchJson } from './fetchJson';
 import { ToolPool } from './tool-pool';
 import { waitForImageReady } from './wait-for-image-ready';
+import { describeImageScenes } from './image-descriptions.util';
 
 export type ImageGenerationInput = {
   exampleIndex: number;
@@ -28,17 +29,30 @@ export const generateExampleImages = async (
     return new Map();
   }
 
-  const subtasks = inputs.flatMap((input) =>
-    activeModels.flatMap((model) =>
-      Array.from({ length: model.imageCount }, () => ({ input, model }))
-    )
+  const models = activeModels.flatMap((model) =>
+    Array.from({ length: model.imageCount }, () => model)
+  );
+  const descriptionResults = await Promise.allSettled(
+    inputs.map(async (input) => ({
+      input,
+      descriptions: await describeImageScenes(http, { input: input.input, count: models.length }),
+    }))
+  );
+  const subtasks = descriptionResults.flatMap((result) =>
+    result.status === 'fulfilled'
+      ? models.map((model, index) => ({
+          input: result.value.input,
+          model,
+          description: result.value.descriptions[index],
+        }))
+      : []
   );
 
   const acquirePromises = subtasks.map(() => imageTokenPool.acquire());
   onToolsRequested?.();
 
   const results = await Promise.all(
-    subtasks.map(async ({ input, model }, i) => {
+    subtasks.map(async ({ input, model, description }, i) => {
       await acquirePromises[i];
       try {
         const response = await fetchJson<ImageResponse>(
@@ -48,6 +62,7 @@ export const generateExampleImages = async (
             body: {
               input: input.input,
               model: model.id,
+              description,
             } satisfies ImageSourceRequest,
             method: 'POST',
           }
