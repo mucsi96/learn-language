@@ -209,9 +209,21 @@ export class ChatHandler {
       return null;
     }
 
-    return createAssistantResponse(
-      `Detailed scene: ${userMessage} A train platform with a large clock, no visible text.`
-    );
+    const match = /^Count: (\d+)\nInput:\n([\s\S]+)$/.exec(userMessage);
+    if (!match) {
+      throw new Error('Invalid image descriptions request');
+    }
+    const scenarios = [
+      'A family with suitcases asks a conductor beside a passenger train.',
+      'A railway worker signals to a locomotive driver outside a rural station.',
+      'A commuter inside a carriage watches the platform as the doors close.',
+      'Hikers at a mountain railway stop watch an approaching train.',
+    ];
+    return createAssistantResponse({
+      descriptions: Array.from({ length: Number(match[1]) }, (_, index) =>
+        `Scene ${index + 1} for ${match[2]}: ${scenarios[index % scenarios.length]} No visible text.`
+      ),
+    });
   }
 
   handleSentenceTranslation(messages: ChatMessage[]): any | null {

@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import io.github.mucsi96.learnlanguage.model.GeneratedImage;
-import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+import io.github.mucsi96.learnlanguage.model.ImageSourceRequest;
 import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +24,11 @@ public class AsyncImageGenerationService {
   private final ImageGenerationJobService imageGenerationJobService;
 
   @Async("imageGenerationExecutor")
-  public void generate(UUID id, String input, String context, ImageGenerationModel model) {
+  public void generate(UUID id, ImageSourceRequest request) {
     try {
-      final GeneratedImage generatedImage = imageService.generateImage(input, context, model);
+      final String description = request.getDescription() != null ? request.getDescription()
+          : imageService.describeScenes(request.getInput(), request.getContext(), 1).descriptions().getFirst();
+      final GeneratedImage generatedImage = imageService.generateImage(description, request.getModel());
       final String filePath = "images/%s.webp".formatted(id);
       ffmpegService.resizeImage(
           generatedImage.getData(), MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION,

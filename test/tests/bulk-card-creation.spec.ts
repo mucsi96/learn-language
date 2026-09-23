@@ -13,6 +13,7 @@ import {
   withDbConnection,
   downloadImage,
   getImageColor,
+  getModelUsageLogs,
   menschenA1Image,
   ensureTimezoneAware,
   setupDefaultChatModelSettings,
@@ -410,6 +411,8 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData.examples[0].images[2].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
     expect(cardData.examples[1].images[0].model).toBe('Ideogram 4 (Quality)');
+    expect(cardData.examples[0].images).toHaveLength(4);
+    expect(cardData.examples[1].images).toHaveLength(4);
 
     expect(cardData.translationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData.classificationModel).toBe('gemini-3.1-pro-preview');
@@ -427,6 +430,16 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(cardData2.translationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData2.classificationModel).toBe('gemini-3.1-pro-preview');
     expect(cardData2.extractionModel).toBe('gemini-3.1-pro-preview');
+  });
+
+  const logs = await getModelUsageLogs();
+  ['Wir fahren um zwölf Uhr ab.', 'Wann fährt der Zug ab?'].forEach((context) => {
+    const descriptionLogs = logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION'
+      && log.responseContent?.includes(context));
+    expect(descriptionLogs).toHaveLength(1);
+    const { descriptions } = JSON.parse(descriptionLogs[0].responseContent!);
+    expect(descriptions).toHaveLength(4);
+    expect(new Set(descriptions).size).toBe(4);
   });
 });
 
@@ -690,6 +703,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card1?.data.examples[0].en).toBe('What is the name of the song?');
     expect(card1?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card1?.data.extractionModel).toBe('gemini-3.1-pro-preview');
+    expect(card1?.data.examples[0].images).toHaveLength(4);
 
     const card2 = result.rows.find((row) => row.data.examples?.[0]?.de === 'Hören Sie.');
     expect(card2).toBeDefined();
@@ -697,6 +711,16 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
     expect(card2?.data.examples[0].en).toBe('Listen.');
     expect(card2?.data.translationModel).toBe('gemini-3.1-pro-preview');
     expect(card2?.data.extractionModel).toBe('gemini-3.1-pro-preview');
+    expect(card2?.data.examples[0].images).toHaveLength(4);
+  });
+
+  const logs = await getModelUsageLogs();
+  const descriptionLogs = logs.filter((log) => log.operationType === 'IMAGE_DESCRIPTION');
+  expect(descriptionLogs).toHaveLength(2);
+  descriptionLogs.forEach((log) => {
+    const { descriptions } = JSON.parse(log.responseContent!);
+    expect(descriptions).toHaveLength(4);
+    expect(new Set(descriptions).size).toBe(4);
   });
 });
 
