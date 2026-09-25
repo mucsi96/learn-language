@@ -1507,3 +1507,5 @@ databaseChangeLog:
                   type: timestamp with time zone
                   constraints:
                     nullable: false
+  - include:
+      file: db/changelog/source-content.yaml

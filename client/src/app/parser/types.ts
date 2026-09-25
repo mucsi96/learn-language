@@ -237,7 +237,7 @@ export type SourceFormatType =
   | 'wordListWithExamples'
   | 'wordListWithFormsAndExamples'
   | 'flowingText';
-export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json' | 'wordTriage';
+export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json' | 'wordTriage' | 'extension';
 export type AiLanguage = 'hungarian' | 'english';
 
 export type SimpleCardSuggestion = {
@@ -252,6 +252,7 @@ export type Source = {
   id: string;
   name: string;
   sourceType?: SourceType;
+  extensionId?: string;
   startPage: number;
   pageCount?: number;
   cardCount?: number;

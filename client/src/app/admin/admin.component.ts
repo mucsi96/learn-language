@@ -15,6 +15,7 @@ import { SourceGroupsService, SourceGroup } from '../source-groups/source-groups
 import { SourceDialogComponent } from '../shared/source-dialog/source-dialog.component';
 import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confirm-dialog.component';
 import { Source } from '../parser/types';
+import { SourceExtensionsService } from '../content/source-extensions.service';
 import { StateComponent } from '../shared/state/state.component';
 import { CardState } from '../shared/state/card-state';
 
@@ -75,6 +76,7 @@ type SourceGroupSection = {
   styleUrl: './admin.component.css'
 })
 export class AdminComponent {
+  readonly extensions = inject(SourceExtensionsService);
   private readonly sourcesService = inject(SourcesService);
   private readonly groupsService = inject(SourceGroupsService);
   private readonly dialog = inject(MatDialog);

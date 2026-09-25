@@ -1,4 +1,7 @@
 token-encryption-key: ${TOKEN_ENCRYPTION_KEY}
+extensions:
+  einfach-deutsch-lernen:
+    index: http://localhost:3070/content-fixtures/a1-index
 spring:
   cloud:
     azure:

@@ -45,6 +45,7 @@ public class SecurityConfiguration {
         .requestMatchers(
             "/test/cleanup-storage",
             "/environment",
+            "/source/*/content/*/media",
             "/actuator/**")
         .permitAll()
         .anyRequest().hasAuthority("SCOPE_api-access"));

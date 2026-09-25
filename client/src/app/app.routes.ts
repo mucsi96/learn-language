@@ -2,6 +2,22 @@ import { Routes } from '@angular/router';
 import { authGuard } from './utils/auth.guard';
 
 export const routes: Routes = [
+  ...['content', 'listen'].flatMap(mode => [
+    {
+      path: `sources/:sourceId/${mode}`,
+      loadComponent: () => import('./content/source-content.component').then(m => m.SourceContentComponent),
+      canActivate: [authGuard],
+      data: { contentMode: mode },
+      title: mode === 'listen' ? 'Listen' : 'Source Content',
+    },
+    {
+      path: `sources/:sourceId/${mode}/:contentId`,
+      loadComponent: () => import('./content/source-content.component').then(m => m.SourceContentComponent),
+      canActivate: [authGuard],
+      data: { contentMode: mode },
+      title: mode === 'listen' ? 'Listen' : 'Source Content',
+    },
+  ]),
   {
     path: '',
     pathMatch: 'full',

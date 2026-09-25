@@ -1,0 +1,35 @@
+@if (!playback()) {
+  <div class="actions">
+    <button mat-flat-button [disabled]="busy()" (click)="start()">
+      @if (item().progress && !item().progress!.completed && item().progress!.position > 0) {
+        Continue from {{ formatPosition(item().progress!.position) }}
+      } @else {
+        Listen
+      }
+    </button>
+    @if (item().progress && item().progress!.position > 0) {
+      <button mat-button [disabled]="busy()" (click)="start(true)">Start over</button>
+    }
+  </div>
+} @else {
+  @if (playback()!.kind === 'youtube') {
+    <app-youtube-player [videoId]="playback()!.youtubeVideoId!" [startPosition]="playback()!.progress.position"
+      (changed)="videoChanged($event)" (checkpoint)="save()" />
+  } @else {
+  <audio #audio [src]="playback()!.mediaUrl" preload="metadata" aria-label="Episode audio"
+    (loadedmetadata)="loaded()" (timeupdate)="updatePosition()" (play)="paused.set(false)"
+    (pause)="paused.set(true); save()" (ended)="save()"
+    (error)="error.set('Audio could not be played. Reopen the player to retry.')"></audio>
+  <input type="range" aria-label="Playback position" min="0" [max]="duration()" step="1"
+    [value]="position()" (input)="seek($event)" />
+  }
+  <div class="actions">
+    <button mat-flat-button [disabled]="!canPlay()" (click)="toggle()">{{ paused() ? 'Play' : 'Pause' }}</button>
+    @if (duration() > 0) { <span>{{ formatPosition(position()) }} / {{ formatPosition(duration()) }}</span> }
+  </div>
+  @if (saved()) { <p role="status">Listening progress saved</p> }
+}
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+  @if (playback()) { <button mat-button (click)="save()">Retry saving progress</button> }
+}

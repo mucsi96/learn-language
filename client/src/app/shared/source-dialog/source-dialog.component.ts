@@ -22,6 +22,7 @@ import { LearningPartnersService } from '../../learning-partners/learning-partne
 import { SourceGroupsService } from '../../source-groups/source-groups.service';
 import { CARD_TYPE_OPTIONS } from '../../cardTypes/card-type-options';
 import { slugify } from '../../utils/slugify';
+import { SourceExtensionsService } from '../../content/source-extensions.service';
 
 @Component({
   selector: 'app-source-dialog',
@@ -47,6 +48,7 @@ export class SourceDialogComponent {
   private readonly environment = inject(ENVIRONMENT_CONFIG);
   private readonly partnersService = inject(LearningPartnersService);
   private readonly groupsService = inject(SourceGroupsService);
+  readonly extensionsService = inject(SourceExtensionsService);
   data: { source?: Source; mode: 'create' | 'edit' } = inject(MAT_DIALOG_DATA);
   dialogRef: MatDialogRef<SourceDialogComponent> = inject(MatDialogRef);
 
@@ -61,9 +63,10 @@ export class SourceDialogComponent {
   readonly groups = this.groupsService.groups;
   readonly isJson = computed(() => this.formModel().sourceType === 'json');
   readonly isWordTriage = computed(() => this.formModel().sourceType === 'wordTriage');
+  readonly isExtension = computed(() => this.formModel().sourceType === 'extension');
 
   readonly forcedCardType = computed<CardType | undefined>(() =>
-    this.isJson() ? 'simple' : this.isWordTriage() ? 'vocabulary' : undefined
+    this.isJson() ? 'simple' : this.isWordTriage() || this.isExtension() ? 'vocabulary' : undefined
   );
 
   readonly cardTypes = computed(() => {
@@ -76,6 +79,7 @@ export class SourceDialogComponent {
   readonly formModel = signal<{
     name: string;
     sourceType: SourceType | '';
+    extensionId: string;
     fileName: string;
     startPage: number;
     languageLevel: LanguageLevel | '';
@@ -90,6 +94,7 @@ export class SourceDialogComponent {
   }>({
     name: this.data.source?.name || '',
     sourceType: this.data.source?.sourceType ?? '',
+    extensionId: this.data.source?.extensionId ?? '',
     fileName: '',
     startPage: this.data.source?.startPage || 1,
     languageLevel: this.data.source?.languageLevel ?? '',
@@ -110,9 +115,18 @@ export class SourceDialogComponent {
       this.formModel.update((m) => ({ ...m, cardTypes: [forced] }));
     }
   });
+  private readonly applyExtensionName = effect(() => {
+    const model = this.formModel();
+    const extension = this.extensionsService.descriptors().find(item => item.id === model.extensionId);
+    if (this.isExtension() && extension && !model.name) {
+      this.formModel.update(value => ({ ...value, name: extension.name }));
+    }
+  });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.name);
-    required(path.languageLevel);
+    validate(path.languageLevel, ctx => !this.isExtension() && !ctx.value() ? requiredError() : undefined);
+    validate(path.extensionId, ctx => this.isExtension() && !ctx.value() ? requiredError() : undefined);
+    disabled(path.extensionId, () => this.data.mode === 'edit');
     required(path.sourceType);
     min(path.startPage, 1);
     min(path.cardLimit, 1);
@@ -122,7 +136,7 @@ export class SourceDialogComponent {
     );
     validate(path.formatType, (ctx) => {
       const cardTypes = ctx.valueOf(path.cardTypes);
-      if (!this.isWordTriage() && cardTypes.includes('vocabulary') && !ctx.value()) {
+      if (!this.isWordTriage() && !this.isExtension() && cardTypes.includes('vocabulary') && !ctx.value()) {
         return requiredError();
       }
       return undefined;
@@ -141,6 +155,7 @@ export class SourceDialogComponent {
     (this.formModel().sourceType === 'images' ||
       this.formModel().sourceType === 'json' ||
       this.isWordTriage() ||
+      this.isExtension() ||
       this.data.mode === 'edit' ||
       this.hasFile())
   );
@@ -166,11 +181,12 @@ export class SourceDialogComponent {
         id,
         name: result.name,
         sourceType: result.sourceType || undefined,
+        extensionId: this.isExtension() ? result.extensionId : undefined,
         fileName: result.fileName,
         startPage: result.startPage,
         languageLevel: result.languageLevel || undefined,
         cardTypes: cardTypes.length > 0 ? cardTypes : undefined,
-        formatType: this.isWordTriage()
+        formatType: this.isExtension() ? 'flowingText' : this.isWordTriage()
           ? undefined
           : cardTypes.includes('vocabulary')
             ? result.formatType || undefined

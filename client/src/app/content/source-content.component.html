@@ -1,0 +1,85 @@
+<nav class="actions" aria-label="Content navigation">
+  <a mat-button [routerLink]="admin() ? '/sources' : '/'">{{ admin() ? 'Sources' : 'Home' }}</a>
+  <a mat-button [routerLink]="['/sources', sourceId(), 'study']">Study vocabulary</a>
+  @if (admin()) { <a mat-button [routerLink]="['/sources', sourceId(), 'cards']" [queryParams]="{ filter: 'draft' }">Draft cards</a> }
+</nav>
+<h1>{{ source()?.name }}</h1>
+@if (error()) { <p role="alert">{{ error() }}</p> }
+@if (contentId()) {
+  <a mat-button [routerLink]="['/sources', sourceId(), route()]">Back to {{ descriptor()?.itemLabel }}</a>
+  @if (detail.error()) {
+    <p role="alert">Content could not be retrieved.</p>
+    <button mat-button (click)="detail.reload()">Retry</button>
+  } @else if (detail.value(); as item) {
+    <h2>{{ item.metadata.title }}</h2>
+    <p>{{ item.metadata.languageLevel ?? 'Level unavailable' }} · {{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</p>
+    @if (item.metadata.matchError) { <p role="alert">{{ item.metadata.matchError }}</p> }
+    @if (processing()) { <bt-bar-loader label="Preparing transcript and vocabulary" /> }
+    @if (item.status === 'failed') {
+      <p role="alert">Preparation failed: {{ item.error }}</p>
+      @if (admin()) { <button mat-flat-button [disabled]="busy()" (click)="prepare()">Retry preparation</button> }
+    }
+    @if (item.status === 'prepared') {
+      @if (admin()) {
+        <details><summary>Transcript used</summary><p>{{ item.transcript }}</p></details>
+        <h3>Missing vocabulary</h3>
+        <p>Every extracted word needs a ready card studied at least once. Unselected words keep listening locked.</p>
+        @for (candidate of missing(); track candidate.key) {
+          <div class="candidate">
+            <mat-checkbox [checked]="selected().includes(candidate.key)" (change)="toggle(candidate.key, $event.checked)">{{ candidate.word.lemma }}</mat-checkbox>
+            @for (example of candidate.word.examples; track example) { <p class="context">{{ example }}</p> }
+          </div>
+        } @empty { <p>All extracted words already have cards in this source group.</p> }
+        <button mat-flat-button [disabled]="busy() || !selected().length" (click)="drafts()">Create drafts ({{ selected().length }})</button>
+      }
+      <h3>{{ descriptor()?.capabilities?.includes('listen') ? 'Listening prerequisites' : 'Vocabulary coverage' }}</h3>
+      @if (descriptor()?.capabilities?.includes('listen')) {
+        <p role="status">{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</p>
+      }
+      <ul aria-label="Vocabulary prerequisites">
+        @for (word of item.words; track word.key) {
+          <li>{{ word.word.lemma }} — {{ labels[word.status] }}</li>
+        }
+      </ul>
+      <button mat-button (click)="detail.reload()">Refresh prerequisites</button>
+      @if (!admin() && item.unlocked && descriptor()?.capabilities?.includes('listen')) {
+        <app-content-player [sourceId]="sourceId()" [item]="item" />
+      }
+    } @else if (!admin() && item.status === 'unprepared') {
+      <p>Transcript and vocabulary must be prepared in source administration before listening.</p>
+    }
+  } @else { <bt-bar-loader label="Retrieving content" /> }
+} @else {
+  <div class="actions">
+    <h2>{{ descriptor()?.itemLabel }}</h2>
+    @if (admin()) { <button mat-button [disabled]="busy()" (click)="refresh()">Refresh catalogue</button> }
+  </div>
+  <mat-form-field><mat-label>Search content</mat-label><input matInput [value]="search()" (input)="search.set($any($event.target).value)" /></mat-form-field>
+  @if (listing.error()) {
+    <p role="alert">Content discovery failed. Please retry.</p>
+    <button mat-button (click)="listing.reload()">Retry</button>
+  } @else if (!listing.hasValue()) { <bt-bar-loader label="Discovering content" /> }
+  <div class="table-scroll">
+    <table aria-label="Source content">
+      <thead><tr><th>Number</th><th>Title</th><th>Duration</th><th>Level</th><th>Status</th></tr></thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td>{{ item.metadata.number ?? '—' }}</td>
+            <td><a [routerLink]="['/sources', sourceId(), route(), item.id]">{{ item.metadata.title }}</a></td>
+            <td>{{ item.metadata.durationSeconds === null ? 'Unavailable' : formatPosition(item.metadata.durationSeconds) }}</td>
+            <td>{{ item.metadata.languageLevel ?? 'Unavailable' }}</td>
+            <td>
+              @if (item.progress?.completed) { Completed }
+              @else if (item.progress && item.progress.position > 0) { Continue from {{ formatPosition(item.progress.position) }} }
+              @else if (item.metadata.matchError) { {{ item.metadata.matchError }} }
+              @else if (item.unlocked) { Ready to listen }
+              @else if (item.status === 'prepared') { Vocabulary incomplete }
+              @else { {{ item.status }} }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

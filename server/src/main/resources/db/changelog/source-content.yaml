@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 56-source-extensions
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS learn_language.extension_discovery (
+                extension_id text PRIMARY KEY,
+                refreshed_at timestamptz NOT NULL
+              );
+              CREATE TABLE learn_language.content_items (
+                id uuid PRIMARY KEY,
+                extension_id text NOT NULL,
+                external_id text NOT NULL,
+                descriptor jsonb NOT NULL,
+                preparation jsonb,
+                status text NOT NULL DEFAULT 'unprepared',
+                error text,
+                lease_token uuid,
+                lease_until timestamptz,
+                UNIQUE(extension_id, external_id)
+              );
+              CREATE TABLE learn_language.listening_progress (
+                source_id text NOT NULL,
+                content_id uuid NOT NULL REFERENCES learn_language.content_items(id) ON DELETE CASCADE,
+                user_id text NOT NULL,
+                audio_revision text NOT NULL,
+                position double precision NOT NULL DEFAULT 0 CHECK(position >= 0),
+                duration double precision NOT NULL DEFAULT 0 CHECK(duration >= 0),
+                completed boolean NOT NULL DEFAULT false,
+                session_id uuid NOT NULL,
+                sequence bigint NOT NULL DEFAULT 0,
+                updated_at timestamptz NOT NULL DEFAULT now(),
+                expires_at timestamptz NOT NULL,
+                PRIMARY KEY(source_id, content_id, user_id)
+              );
+  - changeSet:
+      id: 57-source-extension-reference
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: extension_id
+                  type: text
+        - sql:
+            sql: |
+              ALTER TABLE learn_language.listening_progress ADD CONSTRAINT listening_source_fk
+                FOREIGN KEY(source_id) REFERENCES learn_language.sources(id) ON DELETE CASCADE;

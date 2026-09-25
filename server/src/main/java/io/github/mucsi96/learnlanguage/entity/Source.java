@@ -33,6 +33,8 @@ public class Source {
   @Column(name = "source_type")
   private SourceType sourceType;
 
+  private String extensionId;
+
   @Nonnull
   private Integer startPage;
 

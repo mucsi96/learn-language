@@ -13,7 +13,8 @@ public enum SourceType {
     IMAGES("images", "Image Collection"),
     EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary"),
     JSON("json", "JSON"),
-    WORD_TRIAGE("wordTriage", "Word Triage");
+    WORD_TRIAGE("wordTriage", "Word Triage"),
+    EXTENSION("extension", "Source Extension");
 
     private final String code;
     private final String displayName;

@@ -308,6 +308,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
 }
 
 export function cleanupStorage(): void {
+  fs.rmSync(path.join(STORAGE_DIR, 'content-assets'), { recursive: true, force: true });
   const imagesDir = path.join(STORAGE_DIR, 'images');
   const audioDir = path.join(STORAGE_DIR, 'audio');
 
