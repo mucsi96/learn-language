@@ -8,12 +8,25 @@ In **Sources → Add Source**, choose **Source Extension**, then select
 the publisher's [A1–A2 index](https://www.einfachdeutschlernen.com/en/niveau-a1-a2);
 no URLs or file uploads are needed.
 
+Choose its data model under **Settings → Data Models → Source Content Extraction**.
+This operation discovers catalogue entries and extracts the requested story from
+cleaned page HTML, independently of the model used for vocabulary extraction.
+It does not depend on heading tags, Wix player classes, or story-page URL patterns.
+Returned links and verbatim story paragraphs are validated against the page.
+Upgrading initially copies the existing Extraction model settings into this new
+operation; subsequent changes are independent. Without a configured primary
+model, extraction fails explicitly rather than falling back to another operation.
+
 - Open **Stories** from the source's actions menu to browse the catalogue.
 - Opening a story retrieves its German HTML text and prepares vocabulary in the
   background. Vocabulary sections, exercises, other stories, and promotional
   content are excluded. Extracted text and successful AI results are cached
   persistently. Reopening a story does not repeat preparation. Failed jobs
   can be retried from their last successful stage.
+- Catalogue extraction is cached for 24 hours and can be refreshed explicitly.
+  Changing the source-extraction model does not regenerate already prepared
+  stories. Extracted story text is checkpointed before vocabulary generation, so
+  a vocabulary retry does not repeat the source AI call.
 - Select missing words to create drafts, then use the existing draft-card
   workflow to enrich and review them. Cards in the same source group are reused.
 - The home page's **Listen** action unlocks a story only when every extracted

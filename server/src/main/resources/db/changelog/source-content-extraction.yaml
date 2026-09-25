@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 58-source-content-extraction-model-settings
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO learn_language.chat_model_settings (model_name, operation_type, is_enabled, is_primary)
+              SELECT model_name, 'SOURCE_CONTENT_EXTRACTION', is_enabled, is_primary
+              FROM learn_language.chat_model_settings existing
+              WHERE existing.operation_type = 'EXTRACTION'
+                AND NOT EXISTS (
+                  SELECT 1 FROM learn_language.chat_model_settings
+                  WHERE operation_type = 'SOURCE_CONTENT_EXTRACTION'
+                );

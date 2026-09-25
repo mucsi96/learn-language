@@ -26,8 +26,7 @@ public class ContentPreparationService {
             final Preparation previous = item.preparation() == null
                     ? Preparation.builder().version("1").model(text.model().getModelName()).build() : item.preparation();
             final var model = io.github.mucsi96.learnlanguage.model.ChatModel.fromString(previous.model());
-            final Preparation extracted = previous.blocks() != null ? previous : previous.toBuilder()
-                    .blocks(blocks(item)).build();
+            final Preparation extracted = previous.blocks() != null ? previous : extract(item, previous);
             store.checkpoint(item, extracted, "processing");
             final Preparation isolated = extracted.transcript() != null ? extracted : extracted.toBuilder()
                     .transcript(text.isolate(extracted.blocks(), extensions.require(item.extensionId()).isolationPolicy(),
@@ -41,10 +40,10 @@ public class ContentPreparationService {
         }
     }
 
-    private java.util.List<TextBlock> blocks(ContentItem item) {
+    private Preparation extract(ContentItem item, Preparation previous) {
         final var transcript = extensions.require(item.extensionId()).resolveTranscript(item.descriptor());
-        return transcript.text() == null
-                ? text.blocks(assets.cached(transcript.url()), transcript.mediaType())
-                : text.textBlocks(transcript.text());
+        return transcript.isolatedText() == null
+                ? previous.toBuilder().blocks(text.blocks(assets.cached(transcript.url()), transcript.mediaType())).build()
+                : previous.toBuilder().blocks(text.textBlocks(transcript.isolatedText())).transcript(transcript.isolatedText()).build();
     }
 }

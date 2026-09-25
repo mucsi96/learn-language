@@ -11,7 +11,10 @@ public final class ContentModels {
     public record ContentDescriptor(String externalId, String title, Integer number, Integer durationSeconds,
             String languageLevel, String audioUrl, String transcriptUrl, String transcriptMediaType, String matchError,
             String youtubeVideoId) {}
-    public record ResolvedTranscript(String text, String url, String mediaType) {}
+    public record ResolvedTranscript(String isolatedText, String url, String mediaType) {}
+    public record SourceStoryLink(String title, String url) {}
+    public record SourceIndexExtraction(boolean complete, List<SourceStoryLink> stories) {}
+    public record SourceStoryExtraction(boolean complete, List<String> paragraphs) {}
     public record StoryRecording(String title, String transcriptTitle, String videoId, int number, int durationSeconds,
             String transcriptIssue) {}
     public record IsolationPolicy(List<String> excludedSectionHeadings, String lineNumberPattern) {}

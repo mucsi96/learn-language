@@ -1509,3 +1509,5 @@ databaseChangeLog:
                     nullable: false
   - include:
       file: db/changelog/source-content.yaml
+  - include:
+      file: db/changelog/source-content-extraction.yaml

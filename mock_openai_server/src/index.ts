@@ -92,7 +92,7 @@ app.post('/audio/transcriptions', (req, res) => {
 app.post('/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;
-    const result = contentResponse(messages) ?? await chatHandler.processMessages(messages);
+    const result = contentResponse(messages, req.body.model) ?? await chatHandler.processMessages(messages);
     res.status(200).json(result);
   } catch (error) {
     console.error('Chat completion error:', error);

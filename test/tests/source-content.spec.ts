@@ -2,16 +2,19 @@ import { Page } from '@playwright/test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { test, expect } from '../fixtures';
-import { createCard, createChatModelSetting, createSourceGroup, setSourceGroup, withDbConnection } from '../utils';
+import { createCard, createChatModelSetting, createSourceGroup, getModelUsageLogs, setSourceGroup, withDbConnection } from '../utils';
 import { mockYouTube } from '../youtube';
 
 const SOURCE = 'deutsch-lernen-durch-horen-a1-a2';
 const NAME = 'Deutsch lernen durch Hören A1–A2';
 const fixtureUrl = 'http://localhost:3070/content-fixtures';
-const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
+const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; sourceModels: string[]; sourceInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
 
-async function addSource(page: Page) {
+async function addSource(page: Page, configureSourceModel = true) {
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
+  if (configureSourceModel) {
+    await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'SOURCE_CONTENT_EXTRACTION', isEnabled: true, isPrimary: true });
+  }
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source', exact: true }).click();
   await page.getByRole('combobox', { name: 'Source Type', exact: true }).click();
@@ -50,6 +53,11 @@ async function listen(page: Page) {
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
 }
 
+async function restartServer(page: Page) {
+  await promisify(execFile)('podman', ['restart', 'learn-language-test-server']);
+  await expect.poll(async () => (await page.request.get('/api/environment')).status(), { timeout: 90000 }).toBe(200);
+}
+
 test('discovers website stories lazily and caches vocabulary without glossary or unrelated text', async ({ page }) => {
   await addSource(page);
   expect((await stats()).requests).toEqual([]);
@@ -57,7 +65,7 @@ test('discovers website stories lazily and caches vocabulary without glossary or
   await expect(page.getByRole('row', { name: /209 Brezel 2:55 A1-A2/ })).toBeVisible();
   await expect(page.getByRole('row', { name: /294 Zwillinge 2:49 A1-A2/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Unlisted story' })).not.toBeVisible();
-  expect((await stats()).requests).toEqual(['index']);
+  expect((await stats()).requests).toEqual(['index', 'source-index']);
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
   await expect(page.getByRole('checkbox', { name: 'Gespenst' })).not.toBeVisible();
@@ -65,7 +73,7 @@ test('discovers website stories lazily and caches vocabulary without glossary or
   await page.getByText('Transcript used', { exact: true }).click();
   await expect(page.getByText('Wir sehen ein Haus. Wir sehen ein Haus.', { exact: true })).toBeVisible();
   const first = await stats();
-  expect(first.requests).toEqual(['index', 'story-page', 'isolation', 'vocabulary']);
+  expect(first.requests).toEqual(['index', 'source-index', 'story-page', 'source-story', 'vocabulary']);
   expect(first.vocabularyInputs).toEqual(['Wir sehen ein Haus. Wir sehen ein Haus.']);
   await page.reload();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
@@ -84,7 +92,77 @@ test('keeps unverified recordings and incorrect publisher transcripts visible bu
   await stories(page);
   await page.getByRole('link', { name: 'Neue Geschichte', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('recording has not been verified');
-  expect((await stats()).requests).toEqual(['index']);
+  expect((await stats()).requests).toEqual(['index', 'source-index']);
+});
+
+test('configures source extraction independently in Data Models and preserves prepared caches after model changes', async ({ page }) => {
+  test.setTimeout(60000);
+  await addSource(page, false);
+  await page.goto(`/sources/${SOURCE}/content`);
+  await expect(page.getByRole('alert')).toContainText('Content discovery failed');
+  expect((await stats()).requests).toEqual([]);
+
+  await page.goto('/settings/data-models');
+  await page.getByRole('switch', { name: 'gpt-6-sol for Source Content Extraction', exact: true }).click();
+  await page.getByRole('radio', { name: 'Set gpt-6-sol as primary for Source Content Extraction', exact: true }).check();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Set gpt-6-sol as primary for Source Content Extraction', exact: true })).toBeChecked();
+  await prepare(page);
+  expect((await stats()).sourceModels).toEqual(['gpt-6-sol', 'gpt-6-sol']);
+  const usage = await getModelUsageLogs();
+  expect(usage.filter(log => log.operationType === 'SOURCE_CONTENT_EXTRACTION').map(log => log.modelName)).toEqual(['gpt-6-sol', 'gpt-6-sol']);
+  expect(usage.filter(log => log.operationType === 'EXTRACTION').map(log => log.modelName)).toEqual(['gpt-5.5']);
+  expect((await stats()).sourceInputs.every(input => !input.includes('Ignore the requested story') && !input.includes('Ghost text'))).toBe(true);
+
+  await page.goto('/settings/data-models');
+  await page.getByRole('switch', { name: 'gpt-6-astra for Source Content Extraction', exact: true }).click();
+  await page.getByRole('radio', { name: 'Set gpt-6-astra as primary for Source Content Extraction', exact: true }).check();
+  await stories(page);
+  await page.getByRole('button', { name: 'Refresh catalogue', exact: true }).click();
+  await expect.poll(async () => (await stats()).sourceModels).toEqual(['gpt-6-sol', 'gpt-6-sol', 'gpt-6-astra']);
+  await page.getByRole('link', { name: 'Brezel', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
+  expect((await stats()).requests.filter(request => request === 'source-story')).toHaveLength(1);
+  expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
+});
+
+test('rejects invented catalogue links rather than fetching or storing them', async ({ page }) => {
+  await addSource(page);
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'invented-link' }) });
+  await page.goto(`/sources/${SOURCE}/content`);
+  await expect(page.getByRole('alert')).toContainText('Content discovery failed');
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).not.toBeVisible();
+  expect(await withDbConnection(async db => (await db.query('SELECT count(*)::int AS count FROM learn_language.content_items')).rows[0].count)).toBe(0);
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: '' }) });
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+});
+
+test('upgrading initializes the new operation from the existing extraction settings', async ({ page }) => {
+  test.setTimeout(150000);
+  await createChatModelSetting({ modelName: 'gpt-6-sol', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
+  await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: false });
+  await withDbConnection(db => db.query("DELETE FROM learn_language.databasechangelog WHERE id = '58-source-content-extraction-model-settings'"));
+  await restartServer(page);
+  await page.goto('/settings/data-models');
+  await expect(page.getByRole('switch', { name: 'gpt-6-sol for Source Content Extraction', exact: true })).toBeChecked();
+  await expect(page.getByRole('switch', { name: 'gpt-5.5 for Source Content Extraction', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Set gpt-6-sol as primary for Source Content Extraction', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Set gpt-5.5 as primary for Source Content Extraction', exact: true })).not.toBeChecked();
+});
+
+['invented-text', 'incomplete-story'].forEach(failure => {
+  test(`does not prepare vocabulary from ${failure} and can retry extraction`, async ({ page }) => {
+    await addSource(page);
+    await stories(page);
+    await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure }) });
+    await page.getByRole('link', { name: 'Brezel', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Retry preparation', exact: true })).toBeVisible();
+    expect((await stats()).requests.filter(request => request === 'vocabulary')).toEqual([]);
+    await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: '' }) });
+    await page.getByRole('button', { name: 'Retry preparation', exact: true }).click();
+    await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
+  });
 });
 
 test('filters group cards and requires every extracted word to be ready and studied', async ({ page }) => {
@@ -149,7 +227,7 @@ test('embeds the verified YouTube recording and resumes pauses, backward seeks a
     (await db.query('SELECT completed FROM learn_language.listening_progress WHERE source_id = $1', [SOURCE])).rows[0]?.completed)).toBe(true);
   await page.getByRole('link', { name: 'Back to Stories' }).click();
   await expect(page.getByRole('row', { name: /Brezel.*Completed/ })).toBeVisible();
-  expect((await stats()).requests).toEqual(['index', 'story-page', 'isolation', 'vocabulary']);
+  expect((await stats()).requests).toEqual(['index', 'source-index', 'story-page', 'source-story', 'vocabulary']);
 });
 
 test('does not load YouTube while locked and stops playback if prerequisites change', async ({ page }) => {
@@ -235,23 +313,25 @@ test('retries failed vocabulary extraction without refetching the story or repea
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
   const requests = (await stats()).requests;
   expect(requests.filter(request => request === 'story-page')).toHaveLength(1);
-  expect(requests.filter(request => request === 'isolation')).toHaveLength(1);
+  expect(requests.filter(request => request === 'source-story')).toHaveLength(1);
 });
 
 test('concurrent tabs prepare once and cached vocabulary survives a server restart', async ({ page }) => {
   test.setTimeout(150000);
   await addSource(page);
-  await stories(page);
-  const href = await page.getByRole('link', { name: 'Brezel', exact: true }).getAttribute('href');
   const other = await page.context().newPage();
+  await Promise.all([page.goto(`/sources/${SOURCE}/content`), other.goto(`/sources/${SOURCE}/content`)]);
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+  await expect(other.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+  expect((await stats()).requests.filter(request => request === 'source-index')).toHaveLength(1);
+  const href = await page.getByRole('link', { name: 'Brezel', exact: true }).getAttribute('href');
   await Promise.all([page.goto(href!), other.goto(href!)]);
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
   await expect(other.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
   const before = await stats();
   expect(before.requests.filter(request => request === 'vocabulary')).toHaveLength(1);
   await other.close();
-  await promisify(execFile)('podman', ['restart', 'learn-language-test-server']);
-  await expect.poll(async () => (await page.request.get('/api/environment')).status(), { timeout: 90000 }).toBe(200);
+  await restartServer(page);
   await page.reload();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   expect(await stats()).toEqual(before);

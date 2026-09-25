@@ -43,7 +43,7 @@ export class SourceContentComponent {
   readonly error = signal<string | null>(null);
   private readonly preparedRequest = signal<string | null>(null);
   readonly items = computed(() => {
-    const items = (this.listing.value() ?? []).filter(item =>
+    const items = (this.listing.hasValue() ? this.listing.value() : []).filter(item =>
       `${item.metadata.title} ${item.metadata.number} ${item.metadata.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
     return [...items.filter(item => item.progress && !item.progress.completed), ...items.filter(item => !item.progress || item.progress.completed)];
   });

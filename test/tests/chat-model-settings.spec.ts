@@ -28,7 +28,8 @@ test('displays matrix with all chat models and operation types', async ({ page }
   await expect(page.getByText('gemini-3.7-flash', { exact: true })).toBeVisible();
 
   await expect(page.getByText('Translation')).toBeVisible();
-  await expect(page.getByText('Extraction')).toBeVisible();
+  await expect(page.getByText('Extraction', { exact: true })).toBeVisible();
+  await expect(page.getByText('Source Content Extraction', { exact: true })).toBeVisible();
   await expect(page.getByText('Classification')).toBeVisible();
   await expect(page.getByText('Image Description')).toBeVisible();
 });
