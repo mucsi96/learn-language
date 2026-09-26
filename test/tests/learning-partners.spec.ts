@@ -136,10 +136,17 @@ test('study page alternates between user and source partner', async ({ page }) =
 
   const turnIndicator = page.getByRole('status', { name: 'Current turn' });
 
-  await page.getByRole('heading', { name: 'első' }).click();
+  await expect(turnIndicator).toContainText(/Test|Alice/);
+  const firstTurn = await turnIndicator.innerText();
+  const firstWord = await page.getByRole('article', { name: 'Flashcard' }).getByRole('heading').innerText();
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue study session' }).click();
+  await expect(turnIndicator).toHaveText(firstTurn);
+  await page.getByRole('heading', { name: firstWord, exact: true }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(turnIndicator).toContainText('Alice');
+  await expect(turnIndicator).toContainText(firstTurn.includes('Alice') ? 'Test' : 'Alice');
 });
 
 test('study page does not show turn indicator when source has no partner', async ({ page }) => {
@@ -190,18 +197,22 @@ test('review log records learning partner when grading', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await flashcard.getByRole('heading', { name: 'első' }).click();
+  const turnIndicator = page.getByRole('status', { name: 'Current turn' });
+  await expect(turnIndicator).toContainText(/Test|Alice/);
+  const partnerStarts = (await turnIndicator.innerText()).includes('Alice');
+  await flashcard.getByRole('heading', { name: /^(első|második)$/ }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await flashcard.getByRole('heading', { name: 'második' }).click();
+  await expect(turnIndicator).toContainText(partnerStarts ? 'Test' : 'Alice');
+  await flashcard.getByRole('heading', { name: /^(első|második)$/ }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(2);
-  expect(reviewLogs[0].learningPartnerId).toBeNull();
-  expect(reviewLogs[1].learningPartnerId).toBe(aliceId);
+  expect(reviewLogs[0].learningPartnerId).toBe(partnerStarts ? aliceId : null);
+  expect(reviewLogs[1].learningPartnerId).toBe(partnerStarts ? null : aliceId);
 });
 
 test('review log has null learning partner when source has no partner', async ({ page }) => {

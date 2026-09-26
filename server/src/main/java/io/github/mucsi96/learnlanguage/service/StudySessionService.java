@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -151,7 +152,8 @@ public class StudySessionService {
                         .reversed())
                 .toList();
 
-        final int userSlots = (sortedByPreference.size() + 1) / 2;
+        final boolean userStarts = ThreadLocalRandom.current().nextBoolean();
+        final int userSlots = (sortedByPreference.size() + (userStarts ? 1 : 0)) / 2;
 
         final List<Card> userCards = sortedByPreference.stream()
                 .limit(userSlots)
@@ -167,12 +169,13 @@ public class StudySessionService {
 
         return IntStream.range(0, sortedByPreference.size())
                 .mapToObj(i -> {
-                    final Card assignedCard = i % 2 == 0 ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2);
+                    final boolean userTurn = (i % 2 == 0) == userStarts;
+                    final Card assignedCard = userTurn ? userCards.get(i / 2) : partnerCardsReversed.get(i / 2);
                     return StudySessionCard.builder()
                             .session(session)
                             .card(assignedCard)
                             .position(positionOffset + i)
-                            .learningPartner(i % 2 == 0 ? null : partner)
+                            .learningPartner(userTurn ? null : partner)
                             .swapApplies("NEW".equals(assignedCard.getState()))
                             .build();
                 })
