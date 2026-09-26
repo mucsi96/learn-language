@@ -57,9 +57,7 @@ metadata interpretation, and catalogue matching belong to the extension.
 Core services handle persistent assets, preparation jobs, PDF/plain-text
 extraction, vocabulary, group-wide card coverage, media delivery, and progress.
 The test profile includes a text-only extension exercising the same core without
-the publisher website or YouTube. The original [architecture proposal](PODCAST_SOURCE_ARCHITECTURE.md)
-documents the earlier RSS/PDF direction; this section describes the implemented
-website-text/YouTube-embed workflow.
+the publisher website or YouTube.
 
 Focused E2E coverage:
 
