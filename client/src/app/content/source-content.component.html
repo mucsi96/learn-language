@@ -23,7 +23,7 @@
         <h2 id="story-title">{{ item.metadata.title }}</h2>
         <div class="story-meta">
           <span class="level-badge">{{ item.metadata.languageLevel ?? 'Level unavailable' }}</span>
-          <span class="duration"><mat-icon aria-hidden="true">schedule</mat-icon>{{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</span>
+          <span class="duration"><mat-icon aria-hidden="true">schedule</mat-icon><span>{{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</span></span>
         </div>
       </div>
     </header>
