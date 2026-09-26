@@ -26,6 +26,7 @@
           </mat-select>
         </mat-form-field>
 
+        @if (!isExtension()) {
         <mat-form-field appearance="fill">
           <mat-label>Language Level</mat-label>
           <mat-select
@@ -37,6 +38,7 @@
           </mat-select>
         </mat-form-field>
 
+        }
         <mat-form-field appearance="fill">
           <mat-label>Source Type</mat-label>
           <mat-select
@@ -48,7 +50,21 @@
           </mat-select>
         </mat-form-field>
 
-        @if (formModel().cardTypes.includes('vocabulary') && !isWordTriage()) {
+        @if (isExtension()) {
+        <mat-form-field appearance="fill">
+          <mat-label>Source Extension</mat-label>
+          <mat-select [formField]="sourceForm.extensionId">
+            @for (extension of extensionsService.descriptors(); track extension.id) {
+              <mat-option [value]="extension.id">{{ extension.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (extensionsService.extensions.error()) {
+          <p role="alert">Source extensions could not be retrieved.</p>
+          <button mat-button type="button" (click)="extensionsService.extensions.reload()">Retry extensions</button>
+        }
+        }
+        @if (formModel().cardTypes.includes('vocabulary') && !isWordTriage() && !isExtension()) {
         <mat-form-field appearance="fill">
           <mat-label>Format Type</mat-label>
           <mat-select
@@ -65,7 +81,9 @@
 
     <section class="form-section">
       <h3 class="section-title">Content</h3>
-      @if (isJson()) {
+      @if (isExtension()) {
+      <p class="hint-text">Content is discovered by the extension. Transcripts and vocabulary are prepared only when you open an item.</p>
+      } @else if (isJson()) {
       <p class="hint-text">Cards are added by importing a JSON array after creating the source.</p>
       } @else if (isWordTriage()) {
       <p class="hint-text">Cards are added by importing a word list JSON after creating the source.</p>

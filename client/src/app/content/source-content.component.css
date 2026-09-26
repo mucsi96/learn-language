@@ -1,0 +1,12 @@
+:host { display: block; max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+.actions { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+a { color: var(--mat-sys-primary); }
+.candidate { padding: .75rem 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+.context { margin: .25rem 0 .5rem 2.5rem; color: var(--mat-sys-on-surface-variant); }
+details { padding: 1rem; background: var(--mat-sys-surface-container); border-radius: .5rem; }
+details p { line-height: 1.7; }
+li { margin-bottom: .5rem; }
+[role='alert'] { color: var(--mat-sys-error); }

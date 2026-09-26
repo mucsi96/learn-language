@@ -27,6 +27,7 @@ public class ClassPathResourceNativeHints {
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
       hints.resources()
           .registerPattern("fonts/*.ttf")
+          .registerPattern("source-extensions/*.json")
           .registerPattern("org/apache/pdfbox/resources/**")
           .registerPattern("org/apache/fontbox/cmap/*")
           .registerPattern("org/apache/fontbox/unicode/*");

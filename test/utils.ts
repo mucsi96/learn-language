@@ -308,6 +308,7 @@ export async function cleanupDbRecords({ withSources }: { withSources?: boolean 
 }
 
 export function cleanupStorage(): void {
+  fs.rmSync(path.join(STORAGE_DIR, 'content-assets'), { recursive: true, force: true });
   const imagesDir = path.join(STORAGE_DIR, 'images');
   const audioDir = path.join(STORAGE_DIR, 'audio');
 
@@ -902,6 +903,7 @@ const ALL_OPERATION_TYPES = [
   'IMAGE_DESCRIPTION',
   'LESSON_DESCRIPTION',
   'CARD_GENERATION',
+  'SOURCE_CONTENT_EXTRACTION',
 ];
 
 const DEFAULT_CHAT_MODEL = 'gemini-3.1-pro-preview';

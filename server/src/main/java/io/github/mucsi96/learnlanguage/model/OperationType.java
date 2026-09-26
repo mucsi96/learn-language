@@ -22,7 +22,8 @@ public enum OperationType {
     ANSWER_CHECK("answer_check", "Answer Check", true),
     TRANSCRIPTION("transcription", "Transcription", false),
     LESSON_DESCRIPTION("lesson_description", "Lesson Description", true),
-    CARD_GENERATION("card_generation", "Card Generation", true);
+    CARD_GENERATION("card_generation", "Card Generation", true),
+    SOURCE_CONTENT_EXTRACTION("source_content_extraction", "Source Content Extraction", true);
 
     private final String code;
     private final String displayName;

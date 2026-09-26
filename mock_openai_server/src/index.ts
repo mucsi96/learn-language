@@ -2,6 +2,7 @@ import express from 'express';
 import { ImageGenerationHandler } from './imageGeneration';
 import { AudioGenerationHandler } from './audioGeneration';
 import { ChatHandler } from './chatHandler';
+import { contentFixtures, contentResponse, resetContentFixtures } from './contentFixtures';
 
 const app = express();
 const imageHandler = new ImageGenerationHandler();
@@ -9,6 +10,7 @@ const audioHandler = new AudioGenerationHandler();
 const chatHandler = new ChatHandler();
 
 app.use(express.json());
+app.use('/content-fixtures', contentFixtures);
 
 // Middleware to log access details
 app.use((req, res, next) => {
@@ -20,6 +22,7 @@ app.use((req, res, next) => {
 
 // Add route to reset state for tests
 app.post('/reset', (req, res) => {
+  resetContentFixtures();
   imageHandler.reset();
   app.set('testFailure', null);
   res.status(200).json({ status: 'ok', message: 'Image counter reset to 0' });
@@ -89,7 +92,7 @@ app.post('/audio/transcriptions', (req, res) => {
 app.post('/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;
-    const result = await chatHandler.processMessages(messages);
+    const result = contentResponse(messages, req.body.model) ?? await chatHandler.processMessages(messages);
     res.status(200).json(result);
   } catch (error) {
     console.error('Chat completion error:', error);

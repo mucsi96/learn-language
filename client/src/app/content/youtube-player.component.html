@@ -1,0 +1,5 @@
+<div #host class="player" aria-label="Story video"></div>
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+  <button mat-button (click)="retryPlayer()">Retry video</button>
+}

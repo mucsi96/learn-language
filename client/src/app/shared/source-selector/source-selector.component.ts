@@ -81,6 +81,7 @@ export class SourceSelectorComponent {
       case 'cards':
         return ['/sources', source.id, 'cards'];
       case 'admin':
+        if (source.sourceType === 'extension') return ['/sources', source.id, 'content'];
         return source.sourceType === 'ebookDictionary'
           ? ['/sources', source.id, 'cards']
           : source.sourceType === 'wordTriage'

@@ -34,6 +34,9 @@
 }
 
 <ng-template #sourceCard let-source="source">
+  @if (extensions.supports(source, 'listen')) {
+  <a mat-flat-button [routerLink]="['/sources', source.id, 'listen']">Listen to {{ source.name }}</a>
+  }
   <a
     [routerLink]="['/sources', source.id, 'study']"
     [class.disabled]="!hasDueCards(source.id)"
