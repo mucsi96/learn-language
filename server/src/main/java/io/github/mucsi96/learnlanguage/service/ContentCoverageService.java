@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class ContentCoverageService {
     private final JdbcClient jdbc;
     private final SourceService sources;
+    private final KnownWordService knownWords;
 
     public record MatchingCard(String id, String word, String readiness, int reviews) {}
 
@@ -28,10 +29,13 @@ public class ContentCoverageService {
 
     public List<WordCoverage> coverage(ContentItem item, Map<String, List<MatchingCard>> cards) {
         if (!item.status().equals("prepared")) return List.of();
+        final var known = knownWords.getKnownWordSet().stream().map(ContentTextService::lexicalKey)
+                .collect(Collectors.toUnmodifiableSet());
         return item.preparation().words().stream().map(word -> {
             final String key = ContentTextService.lexicalKey(word.lemma());
             final List<MatchingCard> matches = cards.getOrDefault(key, List.of());
-            final String status = matches.isEmpty() ? "missing"
+            final String status = known.contains(key) || matches.stream().anyMatch(card -> card.readiness().equals("KNOWN")) ? "satisfied"
+                    : matches.isEmpty() ? "missing"
                     : matches.stream().anyMatch(card -> card.readiness().equals("READY") && card.reviews() > 0) ? "satisfied"
                     : matches.stream().anyMatch(card -> card.readiness().equals("READY")) ? "unreviewed" : "not_ready";
             return new WordCoverage(key, word, status, matches.stream().map(MatchingCard::id).toList());

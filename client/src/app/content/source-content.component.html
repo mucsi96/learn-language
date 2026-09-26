@@ -23,21 +23,22 @@
       @if (admin()) {
         <details><summary>Transcript used</summary><p>{{ item.transcript }}</p></details>
         <h3>Missing vocabulary</h3>
-        <p>Every extracted word needs a ready card studied at least once. Unselected words keep listening locked.</p>
+        <p>Every extracted word must be known or have a ready card studied at least once. Unresolved words keep listening locked.</p>
         @for (candidate of missing(); track candidate.key) {
           <div class="candidate">
             <mat-checkbox [checked]="selected().includes(candidate.key)" (change)="toggle(candidate.key, $event.checked)">{{ candidate.word.lemma }}</mat-checkbox>
             @for (example of candidate.word.examples; track example) { <p class="context">{{ example }}</p> }
           </div>
-        } @empty { <p>All extracted words already have cards in this source group.</p> }
+        } @empty { <p>All extracted words are known or already have cards in this source group.</p> }
         <button mat-flat-button [disabled]="busy() || !selected().length" (click)="drafts()">Create drafts ({{ selected().length }})</button>
+        <button mat-flat-button bt-color="success" [disabled]="busy() || !selected().length" (click)="markKnown()">Mark as known ({{ selected().length }})</button>
       }
       <h3>{{ descriptor()?.capabilities?.includes('listen') ? 'Listening prerequisites' : 'Vocabulary coverage' }}</h3>
       @if (descriptor()?.capabilities?.includes('listen')) {
         <p role="status">{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</p>
       }
       <ul aria-label="Vocabulary prerequisites">
-        @for (word of item.words; track word.key) {
+        @for (word of unresolved(); track word.key) {
           <li>{{ word.word.lemma }} — {{ labels[word.status] }}</li>
         }
       </ul>

@@ -13,3 +13,12 @@ databaseChangeLog:
                   SELECT 1 FROM learn_language.chat_model_settings
                   WHERE operation_type = 'SOURCE_CONTENT_EXTRACTION'
                 );
+  - changeSet:
+      id: 59-content-masculine-vocabulary
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              UPDATE learn_language.content_items
+              SET status = 'queued', error = NULL
+              WHERE status = 'prepared' AND preparation->>'version' IS DISTINCT FROM '2';

@@ -64,6 +64,7 @@ test('discovers website stories lazily and caches vocabulary without glossary or
   await stories(page);
   await expect(page.getByRole('row', { name: /209 Brezel 2:55 A1-A2/ })).toBeVisible();
   await expect(page.getByRole('row', { name: /294 Zwillinge 2:49 A1-A2/ })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Source content' }).getByRole('link')).toHaveText(['Brezel', 'Zwillinge', 'Neue Geschichte']);
   await expect(page.getByRole('link', { name: 'Unlisted story' })).not.toBeVisible();
   expect((await stats()).requests).toEqual(['index', 'source-index']);
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
@@ -192,6 +193,52 @@ test('filters group cards and requires every extracted word to be ready and stud
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByRole('checkbox', { name: 'sehen', exact: true })).toBeVisible();
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
+});
+
+test('upgrades cached vocabulary and matches feminine occurrences to masculine cards', async ({ page }) => {
+  test.setTimeout(150000);
+  await addSource(page);
+  await prepare(page);
+  await readyWords(SOURCE, ['Freund', 'Arzt', 'Lehrer']);
+  await withDbConnection(async db => {
+    await db.query(`UPDATE learn_language.content_items SET preparation = jsonb_set(jsonb_set(preparation,
+      '{version}', '"1"'), '{transcript}', to_jsonb($1::text)) WHERE status = 'prepared'`,
+      ['Meine Freundin ist Ärztin. Mein Freund ist Lehrer.']);
+    await db.query("DELETE FROM learn_language.databasechangelog WHERE id = '59-content-masculine-vocabulary'");
+  });
+  await restartServer(page);
+  await page.reload();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible({ timeout: 60000 });
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  const words = await withDbConnection(async db => (await db.query("SELECT preparation->'words' AS words FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].words);
+  expect(words.map((word: { lemma: string }) => word.lemma)).toEqual(['Freund', 'Arzt', 'Lehrer']);
+  expect(words[0].surfaceForms).toEqual(['Freundin', 'Freund']);
+  expect(words[0].examples).toEqual(['Meine Freundin ist Ärztin.', 'Mein Freund ist Lehrer.']);
+  expect((await stats()).requests.filter(request => request === 'source-story')).toHaveLength(1);
+});
+
+test('known cards satisfy prerequisites even without study repetitions', async ({ page }) => {
+  await addSource(page);
+  await readyWords();
+  await withDbConnection(db => db.query("UPDATE learn_language.cards SET readiness = 'KNOWN', reps = CASE WHEN data->>'word' = 'Haus' THEN 5 ELSE 0 END WHERE source_id = $1", [SOURCE]));
+  await prepare(page);
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveCount(0);
+});
+
+test('marks missing vocabulary known without creating cards and hides satisfied prerequisites', async ({ page }) => {
+  await addSource(page);
+  await readyWords(SOURCE, ['wir', 'sehen', 'ein']);
+  await prepare(page);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveText(['Haus — Missing card']);
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  await page.getByRole('button', { name: 'Mark as known (1)', exact: true }).click();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).not.toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveCount(0);
+  expect(await withDbConnection(async db => (await db.query("SELECT id FROM learn_language.cards WHERE source_id = $1 AND data->>'word' = 'Haus'", [SOURCE])).rows)).toEqual([]);
 });
 
 test('embeds the verified YouTube recording and resumes pauses, backward seeks and completion', async ({ page }) => {
