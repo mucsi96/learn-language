@@ -321,16 +321,21 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await flashcard.getByRole('heading', { name: 'egyutt' }).click();
+  const firstHeading = flashcard.getByRole('heading', { name: /^(egyutt|egyedul)$/ });
+  await expect(firstHeading).toBeVisible();
+  const firstWord = await firstHeading.innerText();
+  const secondWord = firstWord === 'egyutt' ? 'egyedul' : 'egyutt';
+
+  await flashcard.getByRole('heading', { name: firstWord, exact: true }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await flashcard.getByRole('heading', { name: 'egyedul' }).click();
+  await flashcard.getByRole('heading', { name: secondWord, exact: true }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
-  await flashcard.getByRole('heading', { name: 'egyutt' }).click();
+  await flashcard.getByRole('heading', { name: firstWord, exact: true }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await flashcard.getByRole('heading', { name: 'egyedul' }).click();
+  await flashcard.getByRole('heading', { name: secondWord, exact: true }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(page.getByText('All caught up!')).toBeVisible();

@@ -1938,11 +1938,16 @@ test('session stats show per-person breakdown when studying with partner', async
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await flashcard.getByRole('heading', { name: 'partner' }).click();
-  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  const turnIndicator = page.getByRole('status', { name: 'Current turn' });
+  await expect(turnIndicator).toContainText(/Test|Alice/);
+  const partnerStarts = (await turnIndicator.innerText()).includes('Alice');
 
-  await flashcard.getByRole('heading', { name: 'barát' }).click();
-  await page.getByRole('button', { name: 'Incorrect' }).click();
+  await flashcard.getByRole('heading', { name: /^(partner|barát)$/ }).click();
+  await page.getByRole('button', { name: partnerStarts ? 'Incorrect' : 'Correct', exact: true }).click();
+
+  await expect(turnIndicator).toContainText(partnerStarts ? 'Test' : 'Alice');
+  await flashcard.getByRole('heading', { name: /^(partner|barát)$/ }).click();
+  await page.getByRole('button', { name: partnerStarts ? 'Correct' : 'Incorrect', exact: true }).click();
 
   await flashcard.getByRole('heading', { name: 'barát' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();

@@ -51,7 +51,7 @@ test('smart assignment: equal distribution between user and partner', async ({ p
   expect(partnerCards.length).toBe(2);
 });
 
-test('smart assignment: odd number of cards gives extra card to user', async ({ page }) => {
+test('smart assignment: odd number of cards gives extra card to the starter', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner' });
   await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
@@ -83,11 +83,15 @@ test('smart assignment: odd number of cards gives extra card to user', async ({ 
   const userCards = sessionCards.filter((c) => c.learningPartnerId === null);
   const partnerCards = sessionCards.filter((c) => c.learningPartnerId === partnerId);
 
-  expect(userCards.length).toBe(2);
-  expect(partnerCards.length).toBe(1);
+  const userStarts = sessionCards[0].learningPartnerId === null;
+  expect(userCards.length).toBe(userStarts ? 2 : 1);
+  expect(partnerCards.length).toBe(userStarts ? 1 : 2);
+  expect(sessionCards.map((card) => card.learningPartnerId)).toEqual(
+    userStarts ? [null, partnerId, null] : [partnerId, null, partnerId]
+  );
 });
 
-test('smart assignment: user gets first card, partner gets second', async ({ page }) => {
+test('smart assignment: either learner starts and the other gets the second card', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner' });
   await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
@@ -111,9 +115,11 @@ test('smart assignment: user gets first card, partner gets second', async ({ pag
   const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards[0].position).toBe(0);
-  expect(sessionCards[0].learningPartnerId).toBeNull();
+  expect([null, partnerId]).toContain(sessionCards[0].learningPartnerId);
   expect(sessionCards[1].position).toBe(1);
-  expect(sessionCards[1].learningPartnerId).toBe(partnerId);
+  expect(sessionCards[1].learningPartnerId).toBe(
+    sessionCards[0].learningPartnerId === null ? partnerId : null
+  );
 });
 
 test('smart assignment: card with higher user complexity assigned to user', async ({ page }) => {
@@ -387,16 +393,13 @@ test('smart assignment: new cards without reviews distributed evenly', async ({ 
   expect(userCards.length).toBe(3);
   expect(partnerCards.length).toBe(3);
 
-  for (let i = 0; i < sessionCards.length; i++) {
-    if (i % 2 === 0) {
-      expect(sessionCards[i].learningPartnerId).toBeNull();
-    } else {
-      expect(sessionCards[i].learningPartnerId).toBe(partnerId);
-    }
-  }
+  const userStarts = sessionCards[0].learningPartnerId === null;
+  sessionCards.forEach((card, index) => {
+    expect(card.learningPartnerId).toBe((index % 2 === 0) === userStarts ? null : partnerId);
+  });
 });
 
-test('smart assignment: single card goes to user', async ({ page }) => {
+test('smart assignment: single card goes to either learner', async ({ page }) => {
   const partnerId = await createLearningPartner({ name: 'Partner' });
   await setSourceLearningPartner('goethe-a1', partnerId);
   const yesterday = new Date(Date.now() - 86400000);
@@ -414,7 +417,10 @@ test('smart assignment: single card goes to user', async ({ page }) => {
   const sessionCards = await getStudySessionCards(page);
 
   expect(sessionCards.length).toBe(1);
-  expect(sessionCards[0].learningPartnerId).toBeNull();
+  expect([null, partnerId]).toContain(sessionCards[0].learningPartnerId);
+  await expect(page.getByRole('status', { name: 'Current turn' })).toContainText(
+    sessionCards[0].learningPartnerId === null ? 'Test' : 'Partner'
+  );
 });
 
 test('smart assignment: complexity combines rating and elapsed days', async ({ page }) => {
@@ -527,17 +533,10 @@ test('smart assignment: hardest cards for each person at front of their queue', 
 
   const sessionCards = await getStudySessionCards(page);
 
-  expect(sessionCards[0].cardId).toBe('schwerste-legnehezebb');
-  expect(sessionCards[0].learningPartnerId).toBeNull();
-
-  expect(sessionCards[1].cardId).toBe('schwerste_p-legnehezebb_p');
-  expect(sessionCards[1].learningPartnerId).toBe(partnerId);
-
-  expect(sessionCards[2].cardId).toBe('mittel-kozepes');
-  expect(sessionCards[2].learningPartnerId).toBeNull();
-
-  expect(sessionCards[3].cardId).toBe('mittel_p-kozepes_p');
-  expect(sessionCards[3].learningPartnerId).toBe(partnerId);
+  expect(sessionCards.filter((card) => card.learningPartnerId === null).map((card) => card.cardId))
+    .toEqual(['schwerste-legnehezebb', 'mittel-kozepes']);
+  expect(sessionCards.filter((card) => card.learningPartnerId === partnerId).map((card) => card.cardId))
+    .toEqual(['schwerste_p-legnehezebb_p', 'mittel_p-kozepes_p']);
 });
 
 test('smart assignment: uses first grading of the day instead of last corrected review', async ({
@@ -684,11 +683,8 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(async () => {
-    const initialCards = await getStudySessionCards(page);
-    expect(initialCards[0].learningPartnerId).toBeNull();
-    expect(initialCards[1].learningPartnerId).toBe(partnerId);
-  }).toPass();
+  const [firstCard] = await getStudySessionCards(page);
+  const nextAssignee = firstCard.learningPartnerId === null ? partnerId : null;
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
@@ -696,8 +692,8 @@ test('smart assignment: new card assignee swaps after grading', async ({ page })
 
   await expect(async () => {
     const updatedCards = await getStudySessionCardsBySource('goethe-a1');
-    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
-    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+    const gradedCard = updatedCards.find((c) => c.cardId === firstCard.cardId);
+    expect(gradedCard?.learningPartnerId).toBe(nextAssignee);
   }).toPass();
 });
 
@@ -718,13 +714,15 @@ test('smart assignment: new card assignee does not swap after negative grading',
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
+  const [firstCard] = await getStudySessionCards(page);
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Incorrect' }).click();
 
   await expect(async () => {
     const updatedCards = await getStudySessionCardsBySource('goethe-a1');
-    const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
-    expect(gradedCard?.learningPartnerId).toBeNull();
+    const gradedCard = updatedCards.find((c) => c.cardId === firstCard.cardId);
+    expect(gradedCard?.position).toBeGreaterThan(firstCard.position);
+    expect(gradedCard?.learningPartnerId).toBe(firstCard.learningPartnerId);
   }).toPass();
 });
 
@@ -745,13 +743,15 @@ test('smart assignment: learning card assignee does not swap after grading', asy
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
+  const [firstCard] = await getStudySessionCards(page);
+  const nextAssignee = firstCard.learningPartnerId === null ? partnerId : null;
   await page.getByRole('article', { name: 'Flashcard' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
   await expect(async () => {
     const updatedCards = await getStudySessionCardsBySource('goethe-a1');
     const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
-    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+    expect(gradedCard?.learningPartnerId).toBe(nextAssignee);
   }).toPass();
 
   await page.getByRole('article', { name: 'Flashcard' }).click();
@@ -760,6 +760,7 @@ test('smart assignment: learning card assignee does not swap after grading', asy
   await expect(async () => {
     const updatedCards = await getStudySessionCardsBySource('goethe-a1');
     const gradedCard = updatedCards.find((c) => c.cardId === 'wort1-szo1');
-    expect(gradedCard?.learningPartnerId).toBe(partnerId);
+    expect(gradedCard?.position).toBeGreaterThan(firstCard.position + 1);
+    expect(gradedCard?.learningPartnerId).toBe(nextAssignee);
   }).toPass();
 });
