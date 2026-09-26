@@ -66,6 +66,13 @@ public class SourceContentController {
         return Map.of();
     }
 
+    @PostMapping("/source/{sourceId}/content/{contentId}/known")
+    @PreAuthorize("hasAuthority('APPROLE_createDeck')")
+    public Map<String, String> known(@PathVariable String sourceId, @PathVariable UUID contentId, @RequestBody DraftRequest request) {
+        content.markKnown(sourceId, contentId, request);
+        return Map.of();
+    }
+
     @PostMapping("/source/{sourceId}/content/{contentId}/playback")
     @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<Playback> playback(@PathVariable String sourceId, @PathVariable UUID contentId,

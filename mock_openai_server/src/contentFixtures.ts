@@ -81,6 +81,14 @@ export const contentResponse = (messages: { content: unknown }[], model: string)
     record('vocabulary');
     state.vocabularyInputs = [...state.vocabularyInputs, user];
     if (state.failVocabulary) throw new Error('Vocabulary fixture failed');
+    if (user.includes('Meine Freundin ist Ärztin.')) {
+      return createAssistantResponse({ words: [
+        { lemma: 'Freund', wordType: 'noun', article: 'der', forms: ['die Freunde'], examples: ['Meine Freundin ist Ärztin.'], surfaceForms: ['Freundin'] },
+        { lemma: 'Freund', wordType: 'noun', article: 'der', forms: ['die Freunde'], examples: ['Mein Freund ist Lehrer.'], surfaceForms: ['Freund'] },
+        { lemma: 'Arzt', wordType: 'noun', article: 'der', forms: ['die Ärzte'], examples: ['Meine Freundin ist Ärztin.'], surfaceForms: ['Ärztin'] },
+        { lemma: 'Lehrer', wordType: 'noun', article: 'der', forms: ['die Lehrer'], examples: ['Mein Freund ist Lehrer.'], surfaceForms: ['Lehrer'] },
+      ] });
+    }
     return createAssistantResponse({ words: [
       { lemma: 'wir', wordType: 'pronoun', article: '', forms: [], examples: ['Wir sehen ein Haus.'], surfaceForms: ['Wir'] },
       { lemma: 'sehen', wordType: 'verb', article: '', forms: ['sieht', 'sah', 'hat gesehen'], examples: ['Wir sehen ein Haus.'], surfaceForms: ['sehen'] },

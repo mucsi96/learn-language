@@ -25,6 +25,7 @@ public class SourceContentService {
     private final ContentCoverageService coverage;
     private final CardService cards;
     private final JdbcClient jdbc;
+    private final KnownWordService knownWords;
 
     public Source source(String id) {
         final Source source = sources.getSourceById(id)
@@ -84,6 +85,20 @@ public class SourceContentService {
         }
         words.stream().filter(word -> request.wordKeys().contains(word.key()) && word.status().equals("missing"))
                 .forEach(word -> cards.saveCard(draft(source, word)));
+    }
+
+    @Transactional
+    public void markKnown(String sourceId, UUID contentId, DraftRequest request) {
+        final ContentItem item = require(sourceId, contentId);
+        if (!item.status().equals("prepared") || request.wordKeys() == null || request.wordKeys().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select prepared vocabulary words");
+        }
+        final var words = coverage.coverage(item, coverage.cards(sourceId));
+        if (request.wordKeys().stream().anyMatch(key -> words.stream().noneMatch(word -> word.key().equals(key)))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown vocabulary selection");
+        }
+        words.stream().filter(word -> request.wordKeys().contains(word.key()) && word.status().equals("missing"))
+                .forEach(word -> knownWords.addKnownWord(word.word().lemma()));
     }
 
     private Card draft(Source source, WordCoverage candidate) {

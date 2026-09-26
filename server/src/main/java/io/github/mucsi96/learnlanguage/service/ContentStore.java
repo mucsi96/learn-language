@@ -41,7 +41,7 @@ public class ContentStore {
     }
 
     public List<ContentItem> list(String extensionId) {
-        return jdbc.sql("SELECT * FROM learn_language.content_items WHERE extension_id = :id ORDER BY (descriptor->>'number')::int DESC NULLS LAST, descriptor->>'title'")
+        return jdbc.sql("SELECT * FROM learn_language.content_items WHERE extension_id = :id ORDER BY (descriptor->>'number')::int ASC NULLS LAST, descriptor->>'title'")
                 .param("id", extensionId).query(this::item).list();
     }
 

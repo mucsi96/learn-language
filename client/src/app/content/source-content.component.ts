@@ -45,9 +45,10 @@ export class SourceContentComponent {
   readonly items = computed(() => {
     const items = (this.listing.hasValue() ? this.listing.value() : []).filter(item =>
       `${item.metadata.title} ${item.metadata.number} ${item.metadata.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
-    return [...items.filter(item => item.progress && !item.progress.completed), ...items.filter(item => !item.progress || item.progress.completed)];
+    return items;
   });
   readonly missing = computed(() => this.detail.value()?.words.filter(word => word.status === 'missing') ?? []);
+  readonly unresolved = computed(() => this.detail.value()?.words.filter(word => word.status !== 'satisfied') ?? []);
   readonly processing = computed(() => ['queued', 'processing'].includes(this.detail.value()?.status ?? ''));
   readonly formatPosition = formatPosition;
   readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Not yet studied', satisfied: 'Ready and studied' };
@@ -84,6 +85,11 @@ export class SourceContentComponent {
     await this.run(() => this.service.action(this.sourceId(), this.contentId(), 'drafts', { wordKeys: this.selected() }));
     this.selected.set([]);
     this.sources.refetchSources();
+  }
+
+  async markKnown(): Promise<void> {
+    await this.run(() => this.service.action(this.sourceId(), this.contentId(), 'known', { wordKeys: this.selected() }));
+    this.selected.set([]);
   }
 
   private async run(operation: () => Promise<void>): Promise<void> {
