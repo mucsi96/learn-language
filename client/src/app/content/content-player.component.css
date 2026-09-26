@@ -1,4 +1,4 @@
-:host { display: block; padding: 1rem 0; }
+:host { display: block; padding: 1.5rem 0 0; }
 .actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 input[type='range'] { width: 100%; margin-top: 1.5rem; }
 [role='alert'] { color: var(--mat-sys-error); }

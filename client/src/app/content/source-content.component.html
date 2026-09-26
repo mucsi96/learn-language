@@ -1,20 +1,41 @@
-<nav class="actions" aria-label="Content navigation">
-  <a mat-button [routerLink]="admin() ? '/sources' : '/'">{{ admin() ? 'Sources' : 'Home' }}</a>
-  <a mat-button [routerLink]="['/sources', sourceId(), 'study']">Study vocabulary</a>
-  @if (admin()) { <a mat-button [routerLink]="['/sources', sourceId(), 'cards']" [queryParams]="{ filter: 'draft' }">Draft cards</a> }
+<nav class="content-nav" aria-label="Content navigation">
+  <a mat-button [routerLink]="admin() ? '/sources' : '/'"><mat-icon>arrow_back</mat-icon>{{ admin() ? 'Sources' : 'Home' }}</a>
+  <div class="nav-tools">
+    <a mat-button [routerLink]="['/sources', sourceId(), 'study']"><mat-icon>style</mat-icon>Study vocabulary</a>
+    @if (admin()) { <a mat-button [routerLink]="['/sources', sourceId(), 'cards']" [queryParams]="{ filter: 'draft' }">Draft cards</a> }
+  </div>
 </nav>
-<h1>{{ source()?.name }}</h1>
+<header class="source-header" [class.detail-header]="contentId()">
+  <p class="eyebrow">{{ admin() ? 'Content library' : 'Listening practice' }}</p>
+  <h1>{{ source()?.name }}</h1>
+</header>
 @if (error()) { <p role="alert">{{ error() }}</p> }
 @if (contentId()) {
-  <a mat-button [routerLink]="['/sources', sourceId(), route()]">Back to {{ descriptor()?.itemLabel }}</a>
+  <a class="back-link" mat-button [routerLink]="['/sources', sourceId(), route()]"><mat-icon>arrow_back</mat-icon>Back to {{ descriptor()?.itemLabel }}</a>
   @if (detail.error()) {
     <p role="alert">Content could not be retrieved.</p>
     <button mat-button (click)="detail.reload()">Retry</button>
   } @else if (detail.value(); as item) {
-    <h2>{{ item.metadata.title }}</h2>
-    <p>{{ item.metadata.languageLevel ?? 'Level unavailable' }} · {{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</p>
+    <article class="story-panel" aria-labelledby="story-title">
+    <header class="story-header">
+      <div class="story-symbol" aria-hidden="true"><mat-icon>{{ descriptor()?.capabilities?.includes('listen') ? 'headphones' : 'menu_book' }}</mat-icon></div>
+      <div>
+        <h2 id="story-title">{{ item.metadata.title }}</h2>
+        <div class="story-meta">
+          <span class="level-badge">{{ item.metadata.languageLevel ?? 'Level unavailable' }}</span>
+          <span class="duration"><mat-icon aria-hidden="true">schedule</mat-icon>{{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</span>
+        </div>
+      </div>
+    </header>
+    <div class="story-body">
     @if (item.metadata.matchError) { <p role="alert">{{ item.metadata.matchError }}</p> }
-    @if (processing()) { <bt-bar-loader label="Preparing transcript and vocabulary" /> }
+    @if (processing()) {
+      <section class="preparation" role="status" aria-label="Preparing transcript and vocabulary">
+        <h3>Preparing your story</h3>
+        <p>Checking the transcript and vocabulary before listening.</p>
+        <div class="transcript-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
+      </section>
+    }
     @if (item.status === 'failed') {
       <p role="alert">Preparation failed: {{ item.error }}</p>
       @if (admin()) { <button mat-flat-button [disabled]="busy()" (click)="prepare()">Retry preparation</button> }
@@ -22,6 +43,7 @@
     @if (item.status === 'prepared') {
       @if (admin()) {
         <details><summary>Transcript used</summary><p>{{ item.transcript }}</p></details>
+        <section class="vocabulary-section">
         <h3>Missing vocabulary</h3>
         <p>Every extracted word must be known or have a ready card studied at least once. Unresolved words keep listening locked.</p>
         @for (candidate of missing(); track candidate.key) {
@@ -30,12 +52,16 @@
             @for (example of candidate.word.examples; track example) { <p class="context">{{ example }}</p> }
           </div>
         } @empty { <p>All extracted words are known or already have cards in this source group.</p> }
+        <div class="actions">
         <button mat-flat-button [disabled]="busy() || !selected().length" (click)="drafts()">Create drafts ({{ selected().length }})</button>
         <button mat-flat-button bt-color="success" [disabled]="busy() || !selected().length" (click)="markKnown()">Mark as known ({{ selected().length }})</button>
+        </div>
+        </section>
       }
+      <section class="prerequisites" [class.ready]="item.unlocked">
       <h3>{{ descriptor()?.capabilities?.includes('listen') ? 'Listening prerequisites' : 'Vocabulary coverage' }}</h3>
       @if (descriptor()?.capabilities?.includes('listen')) {
-        <p role="status">{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</p>
+        <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</p>
       }
       <ul aria-label="Vocabulary prerequisites">
         @for (word of unresolved(); track word.key) {
@@ -43,19 +69,26 @@
         }
       </ul>
       <button mat-button (click)="detail.reload()">Refresh prerequisites</button>
+      </section>
       @if (!admin() && item.unlocked && descriptor()?.capabilities?.includes('listen')) {
         <app-content-player [sourceId]="sourceId()" [item]="item" />
       }
     } @else if (!admin() && item.status === 'unprepared') {
       <p>Transcript and vocabulary must be prepared in source administration before listening.</p>
     }
-  } @else { <bt-bar-loader label="Retrieving content" /> }
+    </div>
+    </article>
+  } @else {
+    <div class="story-panel detail-skeleton" role="status" aria-label="Retrieving content">
+      <div class="transcript-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div>
+  }
 } @else {
-  <div class="actions">
+  <div class="catalogue-heading">
     <h2>{{ descriptor()?.itemLabel }}</h2>
     @if (admin()) { <button mat-button [disabled]="busy()" (click)="refresh()">Refresh catalogue</button> }
   </div>
-  <mat-form-field><mat-label>Search content</mat-label><input matInput [value]="search()" (input)="search.set($any($event.target).value)" /></mat-form-field>
+  <mat-form-field appearance="outline"><mat-label>Search content</mat-label><mat-icon matPrefix>search</mat-icon><input matInput [value]="search()" (input)="search.set($any($event.target).value)" /></mat-form-field>
   @if (listing.error()) {
     <p role="alert">Content discovery failed. Please retry.</p>
     <button mat-button (click)="listing.reload()">Retry</button>

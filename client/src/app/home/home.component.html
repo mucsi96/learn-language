@@ -34,18 +34,17 @@
 }
 
 <ng-template #sourceCard let-source="source">
-  @if (extensions.supports(source, 'listen')) {
-  <a mat-flat-button [routerLink]="['/sources', source.id, 'listen']">Listen to {{ source.name }}</a>
-  }
-  <a
-    [routerLink]="['/sources', source.id, 'study']"
-    [class.disabled]="!hasDueCards(source.id)"
-    class="card-link"
+  <mat-card
+    role="group"
+    [attr.aria-label]="source.name"
+    [class.disabled]="!hasDueCards(source.id) && !extensions.supports(source, 'listen')"
   >
-    <mat-card
-      [class.disabled]="!hasDueCards(source.id)"
+    <a
+      [routerLink]="hasDueCards(source.id) ? ['/sources', source.id, 'study'] : null"
+      role="link"
       [attr.aria-disabled]="!hasDueCards(source.id)"
       [attr.tabindex]="hasDueCards(source.id) ? 0 : -1"
+      class="card-link"
     >
       <mat-card-content>
         <h2 class="source-title">
@@ -55,7 +54,19 @@
           }
         </h2>
       </mat-card-content>
-    </mat-card>
-  </a>
+    </a>
+    @if (extensions.supports(source, 'listen')) {
+    <mat-card-actions>
+      <a
+        mat-button
+        [routerLink]="['/sources', source.id, 'listen']"
+        [attr.aria-label]="'Listen to ' + source.name"
+      >
+        <mat-icon>headphones</mat-icon>
+        Listen
+      </a>
+    </mat-card-actions>
+    }
+  </mat-card>
 </ng-template>
 }

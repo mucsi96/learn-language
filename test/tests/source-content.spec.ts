@@ -58,6 +58,27 @@ async function restartServer(page: Page) {
   await expect.poll(async () => (await page.request.get('/api/environment')).status(), { timeout: 90000 }).toBe(200);
 }
 
+test('opens listening from its source card without due vocabulary on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await addSource(page);
+  await page.goto('/');
+
+  const sourceCard = page.getByRole('group', { name: NAME, exact: true });
+  await expect(sourceCard.getByRole('heading', { name: NAME, exact: true })).toBeVisible();
+  await expect(sourceCard.getByRole('link', { name: NAME, exact: true })).toBeDisabled();
+  await sourceCard.getByRole('link', { name: `Listen to ${NAME}`, exact: true }).click();
+  await page.getByRole('link', { name: 'Brezel', exact: true }).click();
+
+  const story = page.getByRole('article', { name: 'Brezel', exact: true });
+  await expect(story.getByRole('heading', { name: 'Brezel', exact: true })).toBeVisible();
+  await expect(story.getByText('A1-A2', { exact: true })).toBeVisible();
+  await expect(story.getByText('2:55', { exact: true })).toBeVisible();
+  await expect(story.getByText('Transcript and vocabulary must be prepared in source administration before listening.')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.getByRole('link', { name: 'Back to Stories', exact: true }).click();
+  await expect(page.getByRole('table', { name: 'Source content' })).toBeVisible();
+});
+
 test('discovers website stories lazily and caches vocabulary without glossary or unrelated text', async ({ page }) => {
   await addSource(page);
   expect((await stats()).requests).toEqual([]);

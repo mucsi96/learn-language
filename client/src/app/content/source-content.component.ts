@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { injectParams, injectRouteData } from '../utils/inject-params';
 import { SourcesService } from '../sources.service';
@@ -14,7 +15,7 @@ import { formatPosition } from './content.types';
 
 @Component({
   selector: 'app-source-content',
-  imports: [RouterLink, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatInputModule,
+  imports: [RouterLink, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatIconModule,
     BarLoaderComponent, ContentPlayerComponent],
   templateUrl: './source-content.component.html',
   styleUrl: './source-content.component.css',
