@@ -79,6 +79,41 @@ test('opens listening from its source card without due vocabulary on mobile', as
   await expect(page.getByRole('table', { name: 'Source content' })).toBeVisible();
 });
 
+test('sorts missing vocabulary and listening prerequisites alphabetically in German', async ({ page }) => {
+  await addSource(page);
+  await page.route(`**/api/source/${SOURCE}/content/alphabetical`, route => route.fulfill({
+    json: {
+      id: 'alphabetical',
+      metadata: { title: 'Alphabetical vocabulary', number: 1, durationSeconds: 175, languageLevel: 'A1-A2', transcriptUrl: null, matchError: null },
+      status: 'prepared', error: null, transcript: 'Vocabulary ordering fixture.', unlocked: false, progress: null,
+      words: [
+        { lemma: 'Zug', status: 'missing' },
+        { lemma: 'Öl', status: 'not_ready' },
+        { lemma: 'Brot', status: 'missing' },
+        { lemma: 'Äpfel', status: 'missing' },
+        { lemma: 'essen', status: 'unreviewed' },
+        { lemma: 'Haus', status: 'satisfied' },
+      ].map(({ lemma, status }) => ({
+        key: lemma, status, cardIds: [],
+        word: { lemma, wordType: 'NOUN', article: '', forms: [], examples: [], surfaceForms: [] },
+      })),
+    },
+  }));
+  await page.goto(`/sources/${SOURCE}/content/alphabetical`);
+  await expect(page.getByRole('checkbox')).toHaveCount(3);
+  await expect(page.getByRole('checkbox').nth(0)).toHaveAccessibleName('Äpfel');
+  await expect(page.getByRole('checkbox').nth(1)).toHaveAccessibleName('Brot');
+  await expect(page.getByRole('checkbox').nth(2)).toHaveAccessibleName('Zug');
+  const prerequisites = page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem');
+  await expect(prerequisites).toHaveText([
+    'Äpfel — Missing card', 'Brot — Missing card', 'essen — Not yet studied', 'Öl — Card not ready', 'Zug — Missing card',
+  ]);
+  await page.goto(`/sources/${SOURCE}/listen/alphabetical`);
+  await expect(prerequisites).toHaveText([
+    'Äpfel — Missing card', 'Brot — Missing card', 'essen — Not yet studied', 'Öl — Card not ready', 'Zug — Missing card',
+  ]);
+});
+
 test('discovers website stories lazily and caches vocabulary without glossary or unrelated text', async ({ page }) => {
   await addSource(page);
   expect((await stats()).requests).toEqual([]);

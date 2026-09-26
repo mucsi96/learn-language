@@ -48,8 +48,11 @@ export class SourceContentComponent {
       `${item.metadata.title} ${item.metadata.number} ${item.metadata.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
     return items;
   });
-  readonly missing = computed(() => this.detail.value()?.words.filter(word => word.status === 'missing') ?? []);
-  readonly unresolved = computed(() => this.detail.value()?.words.filter(word => word.status !== 'satisfied') ?? []);
+  private readonly alphabeticalWords = computed(() =>
+    this.detail.value()?.words.toSorted((a, b) =>
+      a.word.lemma.localeCompare(b.word.lemma, 'de', { sensitivity: 'base' })) ?? []);
+  readonly missing = computed(() => this.alphabeticalWords().filter(word => word.status === 'missing'));
+  readonly unresolved = computed(() => this.alphabeticalWords().filter(word => word.status !== 'satisfied'));
   readonly processing = computed(() => ['queued', 'processing'].includes(this.detail.value()?.status ?? ''));
   readonly formatPosition = formatPosition;
   readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Not yet studied', satisfied: 'Ready and studied' };

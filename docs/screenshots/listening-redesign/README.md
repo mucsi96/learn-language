@@ -21,3 +21,9 @@ Captured from the Angular production build in Chromium using fixture API respons
 ## Preparation
 
 ![Story preparation in administration](listening-preparation-desktop.png)
+
+## Alphabetical vocabulary
+
+![Missing vocabulary and prerequisites in German alphabetical order](listening-vocabulary-desktop.png)
+
+![Locked listening on mobile](listening-locked-mobile.png)
