@@ -18,7 +18,9 @@ export const WORD_TYPES = [
   'ARTICLE',
   'NUMERAL',
   'DETERMINER',
-  'NOUN'
+  'NOUN',
+  'EXPRESSION',
+  'OTHER'
 ];
 
 export const WORD_TYPE_TRANSLATIONS: WordTypeTranslation[] = [
@@ -32,7 +34,9 @@ export const WORD_TYPE_TRANSLATIONS: WordTypeTranslation[] = [
   { type: 'ARTICLE', translation: 'Névelő', color: '#ffc107' },     // Amber
   { type: 'NUMERAL', translation: 'Számnév', color: '#03a9f4' },    // Light Blue
   { type: 'DETERMINER', translation: 'Determináns', color: '#673ab7' }, // Deep Purple
-  { type: 'NOUN', translation: 'Főnév', color: '#e91e63' }          // Pink
+  { type: 'NOUN', translation: 'Főnév', color: '#e91e63' },         // Pink
+  { type: 'EXPRESSION', translation: 'Kifejezés', color: '#009688' },
+  { type: 'OTHER', translation: 'Egyéb', color: '#757575' }
 ];
 
 /**

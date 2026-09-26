@@ -267,6 +267,35 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
 });
 
+[
+  { type: 'expression', label: 'Kifejezés', editedType: 'OTHER', editedLabel: 'Egyéb' },
+  { type: 'other', label: 'Egyéb', editedType: 'EXPRESSION', editedLabel: 'Kifejezés' },
+].forEach(({ type, label, editedType, editedLabel }) => {
+  test(`creates and edits a ${type} vocabulary draft with supported word types`, async ({ page }) => {
+    await addSource(page);
+    await prepare(page);
+    await cachedWords([{ lemma: 'auf jeden Fall', wordType: type }]);
+    await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+    await page.getByRole('checkbox', { name: 'auf jeden Fall', exact: true }).check();
+    await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+    await expect(page.getByText('auf jeden Fall — Card not ready', { exact: true })).toBeVisible();
+    const card = await withDbConnection(async db =>
+      (await db.query("SELECT id, data FROM learn_language.cards WHERE source_id = $1 AND data->>'word' = 'auf jeden Fall'", [SOURCE])).rows[0]);
+    expect(card.data.type).toBe(type.toUpperCase());
+    await page.goto(`/sources/${SOURCE}/page/1/cards/${card.id}`);
+    const wordType = page.getByRole('combobox', { name: 'Word type', exact: true });
+    await expect(wordType).toHaveText(label);
+    await wordType.click();
+    await page.getByRole('option', { name: editedLabel, exact: true }).click();
+    await page.getByRole('button', { name: 'Update', exact: true }).click();
+    await expect(page.getByText('Card updated successfully', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(wordType).toHaveText(editedLabel);
+    expect(await withDbConnection(async db =>
+      (await db.query("SELECT data->>'type' AS type FROM learn_language.cards WHERE id = $1", [card.id])).rows[0].type)).toBe(editedType);
+  });
+});
+
 test('matches optional reflexive cards and explicit dictionary aliases without matching unrelated words', async ({ page }) => {
   await addSource(page);
   const group = await createSourceGroup({ name: 'Shared vocabulary' });
