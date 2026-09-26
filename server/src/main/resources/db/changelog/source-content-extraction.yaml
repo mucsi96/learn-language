@@ -22,3 +22,12 @@ databaseChangeLog:
               UPDATE learn_language.content_items
               SET status = 'queued', error = NULL
               WHERE status = 'prepared' AND preparation->>'version' IS DISTINCT FROM '2';
+  - changeSet:
+      id: 60-content-worth-learning-vocabulary
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              UPDATE learn_language.content_items
+              SET status = 'queued', error = NULL
+              WHERE status = 'prepared' AND preparation->>'version' IS DISTINCT FROM '3';

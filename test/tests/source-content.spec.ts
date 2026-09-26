@@ -8,7 +8,7 @@ import { mockYouTube } from '../youtube';
 const SOURCE = 'deutsch-lernen-durch-horen-a1-a2';
 const NAME = 'Deutsch lernen durch Hören A1–A2';
 const fixtureUrl = 'http://localhost:3070/content-fixtures';
-const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; sourceModels: string[]; sourceInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
+const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; vocabularyPrompts: string[]; sourceModels: string[]; sourceInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
 
 async function addSource(page: Page, configureSourceModel = true) {
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
@@ -40,11 +40,17 @@ async function prepare(page: Page) {
   await expect(page.getByRole('heading', { name: 'Listening prerequisites' })).toBeVisible({ timeout: 60000 });
 }
 
-async function readyWords(sourceId = SOURCE, words = ['wir', 'sehen', 'ein', 'Haus']) {
+async function readyWords(sourceId = SOURCE, words = ['sehen', 'Haus']) {
   await Promise.all(words.map(word => createCard({
     cardId: `${sourceId}-${word}`, sourceId, readiness: 'READY', reps: 1,
     data: { word, type: 'NOUN', translation: { hu: word } },
   })));
+}
+
+async function cachedWords(words: { lemma: string; wordType: string }[]) {
+  await withDbConnection(db => db.query(`UPDATE learn_language.content_items
+    SET preparation = jsonb_set(preparation, '{words}', $1::jsonb) WHERE status = 'prepared'`,
+    [JSON.stringify(words.map(word => ({ ...word, article: '', forms: [], examples: [word.lemma], surfaceForms: [word.lemma] })))]));
 }
 
 async function listen(page: Page) {
@@ -56,6 +62,16 @@ async function listen(page: Page) {
 async function restartServer(page: Page) {
   await promisify(execFile)('podman', ['restart', 'learn-language-test-server']);
   await expect.poll(async () => (await page.request.get('/api/environment')).status(), { timeout: 90000 }).toBe(200);
+}
+
+async function upgradeVocabulary(page: Page, transcript: string) {
+  await withDbConnection(async db => {
+    await db.query(`UPDATE learn_language.content_items SET preparation = jsonb_set(jsonb_set(preparation,
+      '{version}', '"2"'), '{transcript}', to_jsonb($1::text)) WHERE status = 'prepared'`, [transcript]);
+    await db.query("DELETE FROM learn_language.databasechangelog WHERE id = '60-content-worth-learning-vocabulary'");
+  });
+  await restartServer(page);
+  await page.reload();
 }
 
 test('discovers website stories lazily and caches vocabulary without glossary or unrelated text', async ({ page }) => {
@@ -166,7 +182,7 @@ test('upgrading initializes the new operation from the existing extraction setti
   });
 });
 
-test('filters group cards and requires every extracted word to be ready and studied', async ({ page }) => {
+test('filters group cards and requires every vocabulary prerequisite to be ready and studied', async ({ page }) => {
   await addSource(page);
   const group = await createSourceGroup({ name: 'Shared vocabulary' });
   await setSourceGroup(SOURCE, group);
@@ -193,6 +209,102 @@ test('filters group cards and requires every extracted word to be ready and stud
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByRole('checkbox', { name: 'sehen', exact: true })).toBeVisible();
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
+});
+
+test('matches optional reflexive cards and explicit dictionary aliases without matching unrelated words', async ({ page }) => {
+  await addSource(page);
+  const group = await createSourceGroup({ name: 'Shared vocabulary' });
+  await setSourceGroup(SOURCE, group);
+  await setSourceGroup('goethe-a1', group);
+  await readyWords('goethe-a1', ['(sich) treffen', 'setzen', 'zu sein']);
+  await createCard({ cardId: 'all-known', sourceId: 'goethe-a1', readiness: 'KNOWN', reps: 0,
+    data: { word: 'all-', type: 'ADJECTIVE', translation: { hu: 'mind' } } });
+  await prepare(page);
+  await cachedWords([
+    { lemma: 'sich treffen', wordType: 'verb' },
+    { lemma: 'treffen', wordType: 'verb' },
+    { lemma: 'all', wordType: 'adjective' },
+    { lemma: 'alles', wordType: 'pronoun' },
+    { lemma: 'allein', wordType: 'adverb' },
+    { lemma: 'sich setzen', wordType: 'verb' },
+    { lemma: 'zu', wordType: 'preposition' },
+  ]);
+  await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
+    .toHaveText(['allein — Missing card', 'sich setzen — Missing card', 'zu — Missing card']);
+  await expect(page.getByRole('checkbox')).toHaveCount(3);
+  await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
+  await page.getByRole('checkbox', { name: 'allein', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'sich setzen', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'zu', exact: true }).check();
+  await page.getByRole('button', { name: 'Mark as known (3)', exact: true }).click();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 0 WHERE data->>'word' = '(sich) treffen'"));
+  await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
+    .toHaveText(['sich treffen — Not yet studied', 'treffen — Not yet studied']);
+  await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
+});
+
+test('re-extracts cached vocabulary using transcript exclusions without fetching the story again', async ({ page }) => {
+  test.setTimeout(150000);
+  await addSource(page);
+  await readyWords(SOURCE, ['sehen']);
+  await createCard({ cardId: 'unreviewed-wir', sourceId: SOURCE, readiness: 'READY', reps: 0,
+    data: { word: 'wir', type: 'PRONOUN', translation: { hu: 'mi' } } });
+  await prepare(page);
+  await cachedWords([
+    { lemma: 'ihr', wordType: 'pronoun' },
+    { lemma: 'wir', wordType: 'personal_pronoun' },
+    { lemma: 'der', wordType: 'definite article' },
+    { lemma: 'ein', wordType: 'article' },
+    { lemma: 'mein', wordType: 'possessive-determiner' },
+    { lemma: 'alles', wordType: 'indefinite pronoun' },
+    { lemma: 'Haus', wordType: 'noun' },
+  ]);
+  await upgradeVocabulary(page, 'Wir sehen ein Haus. Wir sehen ein Haus.');
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
+    .toHaveText(['Haus — Missing card'], { timeout: 60000 });
+  await expect(page.getByRole('checkbox')).toHaveCount(1);
+  const preparation = await withDbConnection(async db =>
+    (await db.query("SELECT preparation FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].preparation);
+  expect(preparation.version).toBe('3');
+  expect(preparation.words.map((word: { lemma: string }) => word.lemma)).toEqual(['sehen', 'Haus']);
+  const extraction = await stats();
+  expect(extraction.requests.filter(request => request === 'source-story')).toHaveLength(1);
+  expect(extraction.requests.filter(request => request === 'story-page')).toHaveLength(1);
+  expect(extraction.requests.filter(request => request === 'vocabulary')).toHaveLength(2);
+  const prompt = extraction.vocabularyPrompts[1];
+  expect(prompt).toContain('Ignore — do not return:');
+  expect(prompt).toContain('Proper names of people, places, brands, and fictional characters.');
+  expect(prompt).toContain('Numbers, dates, times, punctuation, and symbols.');
+  expect(prompt).toContain('articles, pronouns,');
+  expect(prompt).toContain('prepositions, conjunctions, question words, auxiliary and modal verbs');
+  expect(prompt).toContain('and particles');
+  expect(prompt).toContain('Interjections, fillers, and greetings');
+  expect(prompt).toContain('Absolute beginner (A1) words');
+  expect(prompt).toContain('Anything garbled, misspelled beyond recognition, or not German.');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  await page.getByRole('button', { name: 'Mark as known (1)', exact: true }).click();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+});
+
+test('accepts an empty AI vocabulary result and allows playback when nothing is worth learning', async ({ page }) => {
+  test.setTimeout(150000);
+  await mockYouTube(page);
+  await addSource(page);
+  await prepare(page);
+  await upgradeVocabulary(page, 'Hallo! Wie geht es euch?');
+  await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible({ timeout: 60000 });
+  expect(await withDbConnection(async db =>
+    (await db.query("SELECT preparation->'words' AS words FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].words)).toEqual([]);
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  await listen(page);
+  await page.getByRole('button', { name: 'Listen', exact: true }).click();
+  await expect(page.getByTitle('YouTube story player')).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/y3CLBWZOetI');
 });
 
 test('upgrades cached vocabulary and matches feminine occurrences to masculine cards', async ({ page }) => {
@@ -392,6 +504,9 @@ test('rejects locked sessions and stale progress writes on the server', async ({
   const contentId = page.url().split('/').slice(-1)[0];
   const api = `/api/source/${SOURCE}/content/${contentId}`;
   expect((await page.request.post(`${api}/playback`, { headers })).status()).toBe(423);
+  await withDbConnection(db => db.query("UPDATE learn_language.content_items SET status = 'unprepared' WHERE id = $1", [contentId]));
+  expect((await page.request.post(`${api}/playback`, { headers })).status()).toBe(423);
+  await withDbConnection(db => db.query("UPDATE learn_language.content_items SET status = 'prepared' WHERE id = $1", [contentId]));
   await readyWords();
   const playback = await page.request.post(`${api}/playback`, { headers });
   const session = await playback.json();

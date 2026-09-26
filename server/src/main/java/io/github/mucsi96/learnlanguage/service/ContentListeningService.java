@@ -80,8 +80,8 @@ public class ContentListeningService {
     private ContentItem eligible(String sourceId, UUID contentId) {
         final var item = content.require(sourceId, contentId);
         if ((item.descriptor().audioUrl() == null && item.descriptor().youtubeVideoId() == null)
-                || !coverage.unlocked(coverage.coverage(item, coverage.cards(sourceId)))) {
-            throw new ResponseStatusException(HttpStatus.LOCKED, "Every word needs a ready card reviewed at least once");
+                || !coverage.unlocked(item, coverage.coverage(item, coverage.cards(sourceId)))) {
+            throw new ResponseStatusException(HttpStatus.LOCKED, "Every vocabulary prerequisite must be known or have a ready card reviewed at least once");
         }
         return item;
     }

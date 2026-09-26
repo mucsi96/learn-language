@@ -67,7 +67,7 @@ public class SourceContentService {
         final var publicMetadata = new ContentDescriptor(descriptor.externalId(), descriptor.title(), descriptor.number(),
                 descriptor.durationSeconds(), descriptor.languageLevel(), null, descriptor.transcriptUrl(), descriptor.transcriptMediaType(), descriptor.matchError(), null);
         return new ContentView(item.id(), publicMetadata, item.status(), item.error(),
-                item.preparation() == null ? null : item.preparation().transcript(), words, coverage.unlocked(words), progress);
+                item.preparation() == null ? null : item.preparation().transcript(), words, coverage.unlocked(item, words), progress);
     }
 
     @Transactional

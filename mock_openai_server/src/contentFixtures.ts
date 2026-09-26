@@ -3,7 +3,7 @@ import { createAssistantResponse } from './utils';
 
 export const contentFixtures = Router();
 const state = {
-  requests: [] as string[], vocabularyInputs: [] as string[], failVocabulary: false,
+  requests: [] as string[], vocabularyInputs: [] as string[], vocabularyPrompts: [] as string[], failVocabulary: false,
   sourceModels: [] as string[], sourceInputs: [] as string[], sourceFailure: '' as string,
 };
 const record = (name: string) => { state.requests = [...state.requests, name]; };
@@ -11,6 +11,7 @@ const record = (name: string) => { state.requests = [...state.requests, name]; }
 export const resetContentFixtures = () => {
   state.requests = [];
   state.vocabularyInputs = [];
+  state.vocabularyPrompts = [];
   state.failVocabulary = false;
   state.sourceModels = [];
   state.sourceInputs = [];
@@ -80,7 +81,9 @@ export const contentResponse = (messages: { content: unknown }[], model: string)
   if (system.includes('CONTENT_VOCABULARY_V1')) {
     record('vocabulary');
     state.vocabularyInputs = [...state.vocabularyInputs, user];
+    state.vocabularyPrompts = [...state.vocabularyPrompts, system];
     if (state.failVocabulary) throw new Error('Vocabulary fixture failed');
+    if (user === 'Hallo! Wie geht es euch?') return createAssistantResponse({ words: [] });
     if (user.includes('Meine Freundin ist Ärztin.')) {
       return createAssistantResponse({ words: [
         { lemma: 'Freund', wordType: 'noun', article: 'der', forms: ['die Freunde'], examples: ['Meine Freundin ist Ärztin.'], surfaceForms: ['Freundin'] },
@@ -90,9 +93,7 @@ export const contentResponse = (messages: { content: unknown }[], model: string)
       ] });
     }
     return createAssistantResponse({ words: [
-      { lemma: 'wir', wordType: 'pronoun', article: '', forms: [], examples: ['Wir sehen ein Haus.'], surfaceForms: ['Wir'] },
       { lemma: 'sehen', wordType: 'verb', article: '', forms: ['sieht', 'sah', 'hat gesehen'], examples: ['Wir sehen ein Haus.'], surfaceForms: ['sehen'] },
-      { lemma: 'ein', wordType: 'article', article: '', forms: [], examples: ['Wir sehen ein Haus.'], surfaceForms: ['ein'] },
       { lemma: 'Haus', wordType: 'noun', article: 'das', forms: ['die Häuser'], examples: ['Wir sehen ein Haus.'], surfaceForms: ['Haus'] },
     ] });
   }
