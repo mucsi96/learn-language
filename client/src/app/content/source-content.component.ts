@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { injectParams, injectRouteData } from '../utils/inject-params';
 import { SourcesService } from '../sources.service';
@@ -14,7 +15,7 @@ import { formatPosition } from './content.types';
 
 @Component({
   selector: 'app-source-content',
-  imports: [RouterLink, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatInputModule,
+  imports: [RouterLink, MatButtonModule, MatCheckboxModule, MatFormFieldModule, MatInputModule, MatIconModule,
     BarLoaderComponent, ContentPlayerComponent],
   templateUrl: './source-content.component.html',
   styleUrl: './source-content.component.css',
@@ -47,8 +48,11 @@ export class SourceContentComponent {
       `${item.metadata.title} ${item.metadata.number} ${item.metadata.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
     return items;
   });
-  readonly missing = computed(() => this.detail.value()?.words.filter(word => word.status === 'missing') ?? []);
-  readonly unresolved = computed(() => this.detail.value()?.words.filter(word => word.status !== 'satisfied') ?? []);
+  private readonly alphabeticalWords = computed(() =>
+    this.detail.value()?.words.toSorted((a, b) =>
+      a.word.lemma.localeCompare(b.word.lemma, 'de', { sensitivity: 'base' })) ?? []);
+  readonly missing = computed(() => this.alphabeticalWords().filter(word => word.status === 'missing'));
+  readonly unresolved = computed(() => this.alphabeticalWords().filter(word => word.status !== 'satisfied'));
   readonly processing = computed(() => ['queued', 'processing'].includes(this.detail.value()?.status ?? ''));
   readonly formatPosition = formatPosition;
   readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Not yet studied', satisfied: 'Ready and studied' };
