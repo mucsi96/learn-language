@@ -61,7 +61,7 @@
       <section class="prerequisites" [class.ready]="item.unlocked">
       <h3>{{ descriptor()?.capabilities?.includes('listen') ? 'Listening prerequisites' : 'Vocabulary coverage' }}</h3>
       @if (descriptor()?.capabilities?.includes('listen')) {
-        <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</p>
+        <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon><span>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</span></p>
       }
       <ul aria-label="Vocabulary prerequisites">
         @for (word of unresolved(); track word.key) {
