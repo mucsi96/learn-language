@@ -24,12 +24,14 @@ public class ContentCoverageService {
                 """).param("sources", sources.getDetectionSourceIds(sourceId))
                 .query((row, index) -> new MatchingCard(row.getString("id"), row.getString("word"),
                         row.getString("readiness"), row.getInt("reps"))).list().stream()
-                .collect(Collectors.groupingBy(card -> ContentTextService.lexicalKey(card.word())));
+                .flatMap(card -> ContentTextService.matchingKeys(card.word()).stream().map(key -> Map.entry(key, card)))
+                .collect(Collectors.groupingBy(Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
     public List<WordCoverage> coverage(ContentItem item, Map<String, List<MatchingCard>> cards) {
         if (!item.status().equals("prepared")) return List.of();
-        final var known = knownWords.getKnownWordSet().stream().map(ContentTextService::lexicalKey)
+        final var known = knownWords.getKnownWordSet().stream().flatMap(word -> ContentTextService.matchingKeys(word).stream())
                 .collect(Collectors.toUnmodifiableSet());
         return item.preparation().words().stream().map(word -> {
             final String key = ContentTextService.lexicalKey(word.lemma());
@@ -42,7 +44,7 @@ public class ContentCoverageService {
         }).toList();
     }
 
-    public boolean unlocked(List<WordCoverage> words) {
-        return !words.isEmpty() && words.stream().allMatch(word -> word.status().equals("satisfied"));
+    public boolean unlocked(ContentItem item, List<WordCoverage> words) {
+        return item.status().equals("prepared") && words.stream().allMatch(word -> word.status().equals("satisfied"));
     }
 }

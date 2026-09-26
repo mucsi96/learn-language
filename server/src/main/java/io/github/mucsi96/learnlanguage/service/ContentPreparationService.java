@@ -24,7 +24,7 @@ public class ContentPreparationService {
     private void prepare(ContentItem item) {
         try {
             final Preparation previous = item.preparation() == null
-                    ? Preparation.builder().version("2").model(text.model().getModelName()).build() : item.preparation();
+                    ? Preparation.builder().version("3").model(text.model().getModelName()).build() : item.preparation();
             final var model = io.github.mucsi96.learnlanguage.model.ChatModel.fromString(previous.model());
             final Preparation extracted = previous.blocks() != null ? previous : extract(item, previous);
             store.checkpoint(item, extracted, "processing");
@@ -32,7 +32,7 @@ public class ContentPreparationService {
                     .transcript(text.isolate(extracted.blocks(), extensions.require(item.extensionId()).isolationPolicy(),
                             item.descriptor().title(), model)).build();
             store.checkpoint(item, isolated, "processing");
-            final Preparation complete = isolated.toBuilder().version("2").words(text.vocabulary(isolated.transcript(), model)).build();
+            final Preparation complete = isolated.toBuilder().version("3").words(text.vocabulary(isolated.transcript(), model)).build();
             store.checkpoint(item, complete, "prepared");
         } catch (Exception exception) {
             log.error("Content preparation failed for {}", item.id(), exception);

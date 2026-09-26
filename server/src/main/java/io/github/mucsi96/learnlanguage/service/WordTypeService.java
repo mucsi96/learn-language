@@ -26,6 +26,8 @@ public class WordTypeService {
       - NUMERAL
       - DETERMINER
       - NOUN
+      - EXPRESSION (a fixed multi-word expression whose meaning is not the sum of its words)
+      - OTHER (only when none of the categories above apply)
       """;
 
   private final ChatService chatService;
