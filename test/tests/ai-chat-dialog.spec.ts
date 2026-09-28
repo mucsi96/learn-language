@@ -108,12 +108,30 @@ test('ask AI interacts in English when the source AI interaction language is Eng
 [
   { mimeType: 'audio/webm;codecs=opus', extension: 'webm' },
   { mimeType: 'audio/mp4;codecs=mp4a.40.2', extension: 'mp4' },
+  { mimeType: 'audio/ogg;codecs=opus', extension: 'ogg' },
 ].forEach(({ mimeType, extension }) => {
   test(`ask AI accepts ${extension} voice input, transcribes and answers`, async ({ page }) => {
     await setupDefaultChatModelSettings();
     await createAbfahrenCard();
 
     await page.addInitScript(({ mimeType }) => {
+      class RecordingFormData extends FormData {
+        override append(name: string, value: string | Blob, filename?: string) {
+          if (typeof value === 'string') {
+            super.append(name, value);
+          } else if (filename === undefined) {
+            super.append(name, value);
+          } else {
+            super.append(name, value, filename);
+          }
+          if (name === 'file') {
+            const file = this.get(name) as File;
+            (window as any).voiceUpload = { name: file.name, type: file.type };
+          }
+        }
+      }
+      window.FormData = RecordingFormData;
+
       const fakeTrack = { stop() {} };
       const fakeStream = { getTracks: () => [fakeTrack] };
       (navigator.mediaDevices as any).getUserMedia = async () => fakeStream;
@@ -164,18 +182,15 @@ test('ask AI interacts in English when the source AI interaction language is Eng
     await openAiChat(page);
 
     const dialog = page.getByRole('dialog');
-    const transcriptionRequest = page.waitForRequest((request) =>
-      request.url().endsWith('/api/transcribe') && request.method() === 'POST'
-    );
     await dialog.getByRole('button', { name: 'Speak' }).click();
-
-    const upload = (await transcriptionRequest).postDataBuffer()!.toString();
-    expect(upload).toContain(`filename="question.${extension}"`);
-    expect(upload).toContain(`Content-Type: ${mimeType}`);
 
     await expect(
       dialog.getByText('Miért ez a helyes nyelvtani megoldás?')
     ).toBeVisible();
     await expect(dialog.getByText(/Ez azért helyes/)).toBeVisible();
+    expect(await page.evaluate(() => (window as any).voiceUpload)).toEqual({
+      name: `question.${extension}`,
+      type: mimeType,
+    });
   });
 });

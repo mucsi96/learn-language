@@ -146,6 +146,7 @@ export class AiChatDialogComponent {
       const extensions: Readonly<Record<string, string>> = {
         'audio/webm': 'webm',
         'audio/mp4': 'mp4',
+        'audio/ogg': 'ogg',
       };
       const extension = extensions[mimeType];
       if (!extension) {
