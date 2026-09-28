@@ -35,8 +35,10 @@ public class TranslationService {
       HUNGARIAN, """
           You are a Hungarian language expert.
           Your task is to translate the given German word and examples to Hungarian.
-          Pay attention to proper Hungarian grammar and word forms.
-          """);
+          Translate the headword in the sense used in the examples. If the examples use distinct
+          senses, include the relevant Hungarian senses in the headword translation.
+          Return exactly one translated sentence for each input example, in the same order.
+          """ + HungarianTranslationPrompt.RECALL_GUIDELINES);
 
   private final JsonMapper jsonMapper;
   private final ChatService chatService;
