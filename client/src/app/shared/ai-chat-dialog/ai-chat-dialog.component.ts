@@ -142,7 +142,16 @@ export class AiChatDialogComponent {
     this.isTranscribing.set(true);
     try {
       const form = new FormData();
-      form.append('file', blob, 'question.webm');
+      const mimeType = blob.type.split(';')[0].trim().toLowerCase();
+      const extensions: Readonly<Record<string, string>> = {
+        'audio/webm': 'webm',
+        'audio/mp4': 'mp4',
+      };
+      const extension = extensions[mimeType];
+      if (!extension) {
+        throw new Error(`Unsupported recording format: ${blob.type}`);
+      }
+      form.append('file', blob, `question.${extension}`);
       const response = await firstValueFrom(
         this.http.post<{ text: string }>('/api/transcribe', form)
       ).catch(rethrowProviderBillingError);
