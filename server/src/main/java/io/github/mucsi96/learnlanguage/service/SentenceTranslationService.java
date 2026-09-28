@@ -19,8 +19,8 @@ public class SentenceTranslationService {
     final String systemPrompt = """
         You are a Hungarian language expert.
         Your task is to translate the given German sentence to Hungarian.
-        Provide an accurate translation that captures the meaning and context.
-        Respond with a JSON object containing a single "translation" field with the Hungarian translation.""";
+        Respond with a JSON object containing a single "translation" field with the Hungarian translation.
+        """ + HungarianTranslationPrompt.RECALL_GUIDELINES;
 
     final var result = chatService.callWithLogging(
         model,
