@@ -105,65 +105,92 @@ test('ask AI interacts in English when the source AI interaction language is Eng
   await expect(dialog.getByText('der Zug', { exact: true })).toHaveClass(/german/);
 });
 
-test('ask AI accepts voice input, transcribes and answers', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await createAbfahrenCard();
+[
+  { mimeType: 'audio/webm;codecs=opus', extension: 'webm' },
+  { mimeType: 'audio/mp4;codecs=mp4a.40.2', extension: 'mp4' },
+  { mimeType: 'audio/ogg;codecs=opus', extension: 'ogg' },
+].forEach(({ mimeType, extension }) => {
+  test(`ask AI accepts ${extension} voice input, transcribes and answers`, async ({ page }) => {
+    await setupDefaultChatModelSettings();
+    await createAbfahrenCard();
 
-  await page.addInitScript(() => {
-    const fakeTrack = { stop() {} };
-    const fakeStream = { getTracks: () => [fakeTrack] };
-    (navigator.mediaDevices as any).getUserMedia = async () => fakeStream;
+    await page.addInitScript(({ mimeType }) => {
+      class RecordingFormData extends FormData {
+        override append(name: string, value: string | Blob, filename?: string) {
+          if (typeof value === 'string') {
+            super.append(name, value);
+          } else if (filename === undefined) {
+            super.append(name, value);
+          } else {
+            super.append(name, value, filename);
+          }
+          if (name === 'file') {
+            const file = this.get(name) as File;
+            (window as any).voiceUpload = { name: file.name, type: file.type };
+          }
+        }
+      }
+      window.FormData = RecordingFormData;
 
-    class FakeMediaRecorder {
-      state = 'inactive';
-      mimeType = 'audio/webm';
-      listeners: Record<string, (event: any) => void> = {};
-      addEventListener(type: string, cb: (event: any) => void) {
-        this.listeners[type] = cb;
-      }
-      start() {
-        this.state = 'recording';
-        setTimeout(() => {
-          const blob = new Blob(['fake-audio'], { type: 'audio/webm' });
-          this.listeners['dataavailable']?.({ data: blob });
-        }, 10);
-      }
-      stop() {
-        this.state = 'inactive';
-        this.listeners['stop']?.({});
-      }
-    }
-    (window as any).MediaRecorder = FakeMediaRecorder;
+      const fakeTrack = { stop() {} };
+      const fakeStream = { getTracks: () => [fakeTrack] };
+      (navigator.mediaDevices as any).getUserMedia = async () => fakeStream;
 
-    let calls = 0;
-    class FakeAudioContext {
-      state = 'running';
-      createMediaStreamSource() {
-        return { connect() {} };
+      class FakeMediaRecorder {
+        state = 'inactive';
+        mimeType = mimeType;
+        listeners: Record<string, (event: any) => void> = {};
+        addEventListener(type: string, cb: (event: any) => void) {
+          this.listeners[type] = cb;
+        }
+        start() {
+          this.state = 'recording';
+          setTimeout(() => {
+            const blob = new Blob(['fake-audio'], { type: mimeType });
+            this.listeners['dataavailable']?.({ data: blob });
+          }, 10);
+        }
+        stop() {
+          this.state = 'inactive';
+          this.listeners['stop']?.({});
+        }
       }
-      createAnalyser() {
-        return {
-          fftSize: 2048,
-          getByteTimeDomainData(buffer: Uint8Array) {
-            calls += 1;
-            buffer.fill(calls < 10 ? 200 : 128);
-          },
-        };
+      (window as any).MediaRecorder = FakeMediaRecorder;
+
+      class FakeAudioContext {
+        state = 'running';
+        createMediaStreamSource() {
+          return { connect() {} };
+        }
+        createAnalyser() {
+          return {
+            fftSize: 2048,
+            calls: 0,
+            getByteTimeDomainData(buffer: Uint8Array) {
+              this.calls += 1;
+              buffer.fill(this.calls < 10 ? 200 : 128);
+            },
+          };
+        }
+        close() {
+          this.state = 'closed';
+        }
       }
-      close() {
-        this.state = 'closed';
-      }
-    }
-    (window as any).AudioContext = FakeAudioContext;
+      (window as any).AudioContext = FakeAudioContext;
+    }, { mimeType });
+
+    await openAiChat(page);
+
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'Speak' }).click();
+
+    await expect(
+      dialog.getByText('Miért ez a helyes nyelvtani megoldás?')
+    ).toBeVisible();
+    await expect(dialog.getByText(/Ez azért helyes/)).toBeVisible();
+    expect(await page.evaluate(() => (window as any).voiceUpload)).toEqual({
+      name: `question.${extension}`,
+      type: mimeType,
+    });
   });
-
-  await openAiChat(page);
-
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'Speak' }).click();
-
-  await expect(
-    dialog.getByText('Miért ez a helyes nyelvtani megoldás?')
-  ).toBeVisible();
-  await expect(dialog.getByText(/Ez azért helyes/)).toBeVisible();
 });

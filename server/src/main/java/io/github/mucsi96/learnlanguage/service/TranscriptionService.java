@@ -2,11 +2,13 @@ package io.github.mucsi96.learnlanguage.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.openai.client.OpenAIClient;
 import com.openai.core.MultipartField;
+import com.openai.core.JsonValue;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
 
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -35,7 +37,7 @@ public class TranscriptionService {
                     .filename(fileName)
                     .build())
                 .model(MODEL_NAME)
-                .language("hu")
+                .putAdditionalBodyProperty("languages", JsonValue.from(List.of("hu")))
                 .build();
 
             final String text = openAIClient.audio().transcriptions().create(params)
