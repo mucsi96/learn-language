@@ -95,7 +95,7 @@ test('opens listening from its source card without due vocabulary on mobile', as
   await expect(page.getByRole('table', { name: 'Source content' })).toBeVisible();
 });
 
-test('sorts missing vocabulary and listening prerequisites alphabetically in German', async ({ page }) => {
+test('groups listening prerequisites by reason and sorts each group alphabetically in German', async ({ page }) => {
   await addSource(page);
   await page.route(`**/api/source/${SOURCE}/content/alphabetical`, route => route.fulfill({
     json: {
@@ -105,6 +105,8 @@ test('sorts missing vocabulary and listening prerequisites alphabetically in Ger
       words: [
         { lemma: 'Zug', status: 'missing' },
         { lemma: 'Öl', status: 'not_ready' },
+        { lemma: 'üben', status: 'unreviewed' },
+        { lemma: 'Ärger', status: 'not_ready' },
         { lemma: 'Brot', status: 'missing' },
         { lemma: 'Äpfel', status: 'missing' },
         { lemma: 'essen', status: 'unreviewed' },
@@ -122,12 +124,17 @@ test('sorts missing vocabulary and listening prerequisites alphabetically in Ger
   await expect(page.getByRole('checkbox').nth(2)).toHaveAccessibleName('Zug');
   const prerequisites = page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem');
   await expect(prerequisites).toHaveText([
-    'Äpfel — Missing card', 'Brot — Missing card', 'essen — Not yet studied', 'Öl — Card not ready', 'Zug — Missing card',
+    'Äpfel', 'Brot', 'Zug', 'Ärger', 'Öl', 'essen', 'üben',
   ]);
   await page.goto(`/sources/${SOURCE}/listen/alphabetical`);
-  await expect(prerequisites).toHaveText([
-    'Äpfel — Missing card', 'Brot — Missing card', 'essen — Not yet studied', 'Öl — Card not ready', 'Zug — Missing card',
-  ]);
+  await expect(page.getByRole('heading', { level: 4 })).toHaveText(['Missing card', 'Card not ready', 'Not yet studied']);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card', exact: true }).getByRole('listitem'))
+    .toHaveText(['Äpfel', 'Brot', 'Zug']);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready', exact: true }).getByRole('listitem'))
+    .toHaveText(['Ärger', 'Öl']);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Not yet studied', exact: true }).getByRole('listitem'))
+    .toHaveText(['essen', 'üben']);
+  await expect(prerequisites).toHaveCount(7);
 });
 
 test('discovers website stories lazily and caches vocabulary without glossary or unrelated text', async ({ page }) => {
@@ -250,13 +257,17 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await prepare(page);
   await expect(page.getByRole('checkbox', { name: 'sehen', exact: true })).not.toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
-  await expect(page.getByText('sehen — Card not ready', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('sehen', { exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await page.getByRole('button', { name: 'Create drafts (1)' }).click();
-  await expect(page.getByText('Haus — Card not ready', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Missing card', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card' })).toHaveCount(0);
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
-  await expect(page.getByText('Haus — Not yet studied', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Not yet studied' }).getByText('Haus', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Card not ready', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' })).toHaveCount(0);
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 1 WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
@@ -278,7 +289,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
     await page.getByRole('checkbox', { name: 'auf jeden Fall', exact: true }).check();
     await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
-    await expect(page.getByText('auf jeden Fall — Card not ready', { exact: true })).toBeVisible();
+    await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('auf jeden Fall', { exact: true })).toBeVisible();
     const card = await withDbConnection(async db =>
       (await db.query("SELECT id, data FROM learn_language.cards WHERE source_id = $1 AND data->>'word' = 'auf jeden Fall'", [SOURCE])).rows[0]);
     expect(card.data.type).toBe(type.toUpperCase());
@@ -316,7 +327,7 @@ test('matches optional reflexive cards and explicit dictionary aliases without m
   ]);
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
-    .toHaveText(['allein — Missing card', 'sich setzen — Missing card', 'zu — Missing card']);
+    .toHaveText(['allein', 'sich setzen', 'zu']);
   await expect(page.getByRole('checkbox')).toHaveCount(3);
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: 'allein', exact: true }).check();
@@ -327,7 +338,7 @@ test('matches optional reflexive cards and explicit dictionary aliases without m
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 0 WHERE data->>'word' = '(sich) treffen'"));
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
-    .toHaveText(['sich treffen — Not yet studied', 'treffen — Not yet studied']);
+    .toHaveText(['sich treffen', 'treffen']);
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
 });
 
@@ -349,7 +360,7 @@ test('re-extracts cached vocabulary using transcript exclusions without fetching
   ]);
   await upgradeVocabulary(page, 'Wir sehen ein Haus. Wir sehen ein Haus.');
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem'))
-    .toHaveText(['Haus — Missing card'], { timeout: 60000 });
+    .toHaveText(['Haus'], { timeout: 60000 });
   await expect(page.getByRole('checkbox')).toHaveCount(1);
   const preparation = await withDbConnection(async db =>
     (await db.query("SELECT preparation FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].preparation);
@@ -427,7 +438,7 @@ test('marks missing vocabulary known without creating cards and hides satisfied 
   await addSource(page);
   await readyWords(SOURCE, ['wir', 'sehen', 'ein']);
   await prepare(page);
-  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveText(['Haus — Missing card']);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveText(['Haus']);
   await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await page.getByRole('button', { name: 'Mark as known (1)', exact: true }).click();
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
@@ -435,6 +446,8 @@ test('marks missing vocabulary known without creating cards and hides satisfied 
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).not.toBeVisible();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 4 })).toHaveCount(0);
   expect(await withDbConnection(async db => (await db.query("SELECT id FROM learn_language.cards WHERE source_id = $1 AND data->>'word' = 'Haus'", [SOURCE])).rows)).toEqual([]);
 });
 

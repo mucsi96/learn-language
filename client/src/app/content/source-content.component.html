@@ -63,11 +63,14 @@
       @if (descriptor()?.capabilities?.includes('listen')) {
         <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon><span>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</span></p>
       }
-      <ul aria-label="Vocabulary prerequisites">
-        @for (word of unresolved(); track word.key) {
-          <li>{{ word.word.lemma }} — {{ labels[word.status] }}</li>
-        }
-      </ul>
+      @for (group of prerequisiteGroups(); track group.status) {
+        <h4>{{ labels[group.status] }}</h4>
+        <ul [attr.aria-label]="'Vocabulary prerequisites: ' + labels[group.status]">
+          @for (word of group.words; track word.key) {
+            <li>{{ word.word.lemma }}</li>
+          }
+        </ul>
+      }
       <button mat-button (click)="detail.reload()">Refresh prerequisites</button>
       </section>
       @if (!admin() && item.unlocked && descriptor()?.capabilities?.includes('listen')) {
