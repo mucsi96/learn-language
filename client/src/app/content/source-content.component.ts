@@ -52,7 +52,10 @@ export class SourceContentComponent {
     this.detail.value()?.words.toSorted((a, b) =>
       a.word.lemma.localeCompare(b.word.lemma, 'de', { sensitivity: 'base' })) ?? []);
   readonly missing = computed(() => this.alphabeticalWords().filter(word => word.status === 'missing'));
-  readonly unresolved = computed(() => this.alphabeticalWords().filter(word => word.status !== 'satisfied'));
+  readonly prerequisiteGroups = computed(() =>
+    (['missing', 'not_ready', 'unreviewed'] as const)
+      .map(status => ({ status, words: this.alphabeticalWords().filter(word => word.status === status) }))
+      .filter(group => group.words.length > 0));
   readonly processing = computed(() => ['queued', 'processing'].includes(this.detail.value()?.status ?? ''));
   readonly formatPosition = formatPosition;
   readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Not yet studied', satisfied: 'Ready and studied' };

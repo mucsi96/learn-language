@@ -80,7 +80,7 @@ p { line-height: 1.6; }
 .prerequisites { border: 1px solid var(--bt-outline); border-radius: 1rem; padding: 1.25rem; }
 .readiness { font-weight: 500; }
 .ready .readiness mat-icon { color: var(--bt-text-strong); }
-.prerequisites ul:empty { display: none; }
+.prerequisites h4 { margin: 1.25rem 0 0.75rem; font-size: 1rem; }
 .catalogue-heading { justify-content: space-between; margin-bottom: 1rem; }
 .catalogue-heading h2 { margin: 0; font-size: 1.5rem; }
 mat-form-field { width: min(100%, 24rem); }
