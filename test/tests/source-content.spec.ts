@@ -11,6 +11,7 @@ const fixtureUrl = 'http://localhost:3070/content-fixtures';
 const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; vocabularyPrompts: string[]; sourceModels: string[]; sourceInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
 
 async function addSource(page: Page, configureSourceModel = true) {
+  await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'TRANSLATION', isEnabled: true, isPrimary: true });
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
   if (configureSourceModel) {
     await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'SOURCE_CONTENT_EXTRACTION', isEnabled: true, isPrimary: true });
@@ -259,8 +260,16 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('sehen', { exact: true })).toBeVisible();
   await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  const draftRequest = page.waitForRequest(request => request.url().endsWith('/drafts'));
   await page.getByRole('button', { name: 'Create drafts (1)' }).click();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
+  const request = await draftRequest;
+  expect((await page.request.post(request.url(), {
+    headers: { authorization: request.headers()['authorization'] }, data: request.postDataJSON(),
+  })).ok()).toBe(true);
+  expect(await withDbConnection(async db =>
+    (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows))
+    .toEqual([expect.objectContaining({ id: 'haus-haz', data: expect.objectContaining({ translation: { hu: 'a ház' } }) })]);
   await expect(page.getByRole('heading', { name: 'Missing card', exact: true })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card' })).toHaveCount(0);
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
@@ -278,6 +287,23 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
 });
 
+test('does not overwrite a Goethe card outside the story source group when its word ID already exists', async ({ page }) => {
+  await addSource(page);
+  await createCard({ cardId: 'haus-haz', sourceId: 'goethe-a1', readiness: 'READY', reps: 4,
+    data: { word: 'das Haus', type: 'NOUN', translation: { hu: 'a ház' } } });
+  const before = await withDbConnection(async db =>
+    (await db.query("SELECT * FROM learn_language.cards WHERE id = 'haus-haz'")).rows[0]);
+  await prepare(page);
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
+  await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+  expect((await response).status()).toBe(409);
+  expect(await withDbConnection(async db =>
+    (await db.query("SELECT * FROM learn_language.cards WHERE id = 'haus-haz'")).rows[0])).toEqual(before);
+  expect(await withDbConnection(async db =>
+    (await db.query('SELECT id FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows)).toEqual([]);
+});
+
 [
   { type: 'expression', label: 'Kifejezés', editedType: 'OTHER', editedLabel: 'Egyéb' },
   { type: 'other', label: 'Egyéb', editedType: 'EXPRESSION', editedLabel: 'Kifejezés' },
@@ -293,6 +319,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     const card = await withDbConnection(async db =>
       (await db.query("SELECT id, data FROM learn_language.cards WHERE source_id = $1 AND data->>'word' = 'auf jeden Fall'", [SOURCE])).rows[0]);
     expect(card.data.type).toBe(type.toUpperCase());
+    expect(card.id).toBe('auf-jeden-fall-mindenkeppen');
     await page.goto(`/sources/${SOURCE}/page/1/cards/${card.id}`);
     const wordType = page.getByRole('combobox', { name: 'Word type', exact: true });
     await expect(wordType).toHaveText(label);

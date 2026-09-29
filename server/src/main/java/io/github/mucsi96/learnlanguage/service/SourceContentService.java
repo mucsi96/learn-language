@@ -26,6 +26,9 @@ public class SourceContentService {
     private final CardService cards;
     private final JdbcClient jdbc;
     private final KnownWordService knownWords;
+    private final TranslationService translations;
+    private final ChatModelSettingService chatModels;
+    private final WordIdService wordIds;
 
     public Source source(String id) {
         final Source source = sources.getSourceById(id)
@@ -103,10 +106,16 @@ public class SourceContentService {
 
     private Card draft(Source source, WordCoverage candidate) {
         final VocabularyWord word = candidate.word();
-        final String id = "content-" + ContentAssetService.key(source.getId() + "\n" + candidate.key());
+        final TranslationResponse translation = translations.translate(
+                TranslateWordRequest.builder().word(word.lemma()).examples(word.examples()).build(),
+                "hu", chatModels.getPrimaryModel(OperationType.TRANSLATION));
+        final String id = wordIds.generateWordId(word.lemma(), translation.getTranslation());
+        if (cards.getCardById(id).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Vocabulary card already exists: " + id);
+        }
         return Card.builder().id(id).source(source).sourcePageNumber(1).type(CardType.VOCABULARY)
                 .data(CardData.builder().word(word.lemma()).type(word.wordType().toUpperCase(java.util.Locale.ROOT))
-                        .forms(word.forms()).translation(Map.of())
+                        .forms(word.forms()).translation(Map.of("hu", translation.getTranslation()))
                         .examples(word.examples().stream().map(example -> ExampleData.builder().de(example).build()).toList()).build())
                 .readiness(CardReadiness.DRAFT).state("NEW").due(LocalDateTime.now())
                 .stability(0f).difficulty(0f).elapsedDays(0f).scheduledDays(0f).learningSteps(0).reps(0).lapses(0).build();
