@@ -137,6 +137,8 @@ export const TRANSLATIONS: Record<string, Record<string, { translation: string; 
     },
   },
   hungarian: {
+    Haus: { translation: 'a ház', examples: ['Látunk egy házat.'] },
+    'auf jeden Fall': { translation: 'mindenképpen', examples: ['mindenképpen'] },
     'hören': {
       translation: 'hallani, hallgatni',
       examples: ['Figyeljen. Hogy hívják a dalt?'],
