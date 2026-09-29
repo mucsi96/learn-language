@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -116,7 +117,9 @@ public class SourceContentService {
         return Card.builder().id(id).source(source).sourcePageNumber(1).type(CardType.VOCABULARY)
                 .data(CardData.builder().word(word.lemma()).type(word.wordType().toUpperCase(java.util.Locale.ROOT))
                         .forms(word.forms()).translation(Map.of("hu", translation.getTranslation()))
-                        .examples(word.examples().stream().map(example -> ExampleData.builder().de(example).build()).toList()).build())
+                        .examples(IntStream.range(0, word.examples().size())
+                                .mapToObj(index -> ExampleData.builder().de(word.examples().get(index))
+                                        .hu(translation.getExamples().get(index)).build()).toList()).build())
                 .readiness(CardReadiness.DRAFT).state("NEW").due(LocalDateTime.now())
                 .stability(0f).difficulty(0f).elapsedDays(0f).scheduledDays(0f).learningSteps(0).reps(0).lapses(0).build();
     }

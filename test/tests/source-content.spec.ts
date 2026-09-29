@@ -269,7 +269,10 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   })).ok()).toBe(true);
   expect(await withDbConnection(async db =>
     (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows))
-    .toEqual([expect.objectContaining({ id: 'haus-haz', data: expect.objectContaining({ translation: { hu: 'a ház' } }) })]);
+    .toEqual([expect.objectContaining({ id: 'haus-haz', data: expect.objectContaining({
+      translation: { hu: 'a ház' },
+      examples: [expect.objectContaining({ de: 'Wir sehen ein Haus.', hu: 'Látunk egy házat.' })],
+    }) })]);
   await expect(page.getByRole('heading', { name: 'Missing card', exact: true })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card' })).toHaveCount(0);
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
@@ -298,6 +301,10 @@ test('does not overwrite a Goethe card outside the story source group when its w
   const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
   await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
   expect((await response).status()).toBe(409);
+  const translationUsage = (await getModelUsageLogs()).filter(log => log.operationType === 'TRANSLATION');
+  expect(translationUsage).toHaveLength(1);
+  expect(translationUsage[0].modelName).toBe('gpt-5.5');
+  expect(Number(translationUsage[0].costUsd)).toBeGreaterThan(0);
   expect(await withDbConnection(async db =>
     (await db.query("SELECT * FROM learn_language.cards WHERE id = 'haus-haz'")).rows[0])).toEqual(before);
   expect(await withDbConnection(async db =>
