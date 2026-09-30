@@ -28,6 +28,9 @@ public class ChatClientService {
 
   public ChatClient getChatClient(ChatModel model) {
     return switch (model) {
+      case GPT_6_1_SOL -> ChatClient.builder(openAiChatModel)
+          .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()).reasoningEffort("low"))
+          .build();
       case GPT_6_ASTRA, GPT_6_SOL, GPT_5_5, GPT_5_6_SOL, GPT_5_6_TERRA, GPT_5_6_LUNA -> ChatClient.builder(openAiChatModel)
           .defaultOptions(OpenAiChatOptions.builder().model(model.getModelName()))
           .build();

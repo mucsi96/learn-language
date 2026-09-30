@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ChatModel {
+  GPT_6_1_SOL("gpt-6.1-sol", ModelProvider.OPENAI),
   GPT_6_ASTRA("gpt-6-astra", ModelProvider.OPENAI),
   GPT_6_SOL("gpt-6-sol", ModelProvider.OPENAI),
   GPT_5_5("gpt-5.5", ModelProvider.OPENAI),

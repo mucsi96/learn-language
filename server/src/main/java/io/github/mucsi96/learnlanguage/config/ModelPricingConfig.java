@@ -20,6 +20,7 @@ public class ModelPricingConfig {
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
+        Map.entry("gpt-6.1-sol", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),
         // Standard short-context rates, verified 2026-09-23
         Map.entry("gpt-6-astra", new ChatModelPricing(new BigDecimal("10.00"), new BigDecimal("50.00"))),
         Map.entry("gpt-6-sol", new ChatModelPricing(new BigDecimal("2.00"), new BigDecimal("10.00"))),

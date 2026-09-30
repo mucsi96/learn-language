@@ -18,6 +18,7 @@ class ModelPricingConfigTest {
 
     @ParameterizedTest
     @CsvSource({
+        "gpt-6.1-sol, 0.007",
         "gpt-6-astra, 0.035",
         "gpt-6-sol, 0.007",
         "claude-opus-5-5, 0.014"
