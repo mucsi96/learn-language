@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ApiTokenScope;
 import io.github.mucsi96.learnlanguage.model.DictionaryRequest;
+import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.service.ApiTokenService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService;
 import io.github.mucsi96.learnlanguage.service.DictionaryService.LookupResult;
@@ -29,7 +30,7 @@ public class DictionaryController {
             @Valid @RequestBody DictionaryRequest request) {
         apiTokenService.validateBearerToken(authorizationHeader, ApiTokenScope.DICTIONARY);
 
-        final LookupResult result = dictionaryService.lookup(request);
+        final LookupResult result = dictionaryService.lookup(request, LanguageLevel.A2);
 
         if (request.getBookTitle() != null && request.getHighlightedWord() != null
                 && request.getSentence() != null) {
