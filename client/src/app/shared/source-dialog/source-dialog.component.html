@@ -26,7 +26,6 @@
           </mat-select>
         </mat-form-field>
 
-        @if (!isExtension()) {
         <mat-form-field appearance="fill">
           <mat-label>Language Level</mat-label>
           <mat-select
@@ -36,9 +35,11 @@
             <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
             }
           </mat-select>
+          @if (isExtension()) {
+            <mat-hint>Used for AI-generated vocabulary examples.</mat-hint>
+          }
         </mat-form-field>
 
-        }
         <mat-form-field appearance="fill">
           <mat-label>Source Type</mat-label>
           <mat-select

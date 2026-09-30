@@ -8,9 +8,10 @@ import { mockYouTube } from '../youtube';
 const SOURCE = 'deutsch-lernen-durch-horen-a1-a2';
 const NAME = 'Deutsch lernen durch Hören A1–A2';
 const fixtureUrl = 'http://localhost:3070/content-fixtures';
-const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; vocabularyPrompts: string[]; sourceModels: string[]; sourceInputs: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
+const stats = async (): Promise<{ requests: string[]; vocabularyInputs: string[]; vocabularyPrompts: string[]; sourceModels: string[]; sourceInputs: string[];
+  dictionaryInputs: { highlightedWord: string; sentence: string; bookTitle: string }[]; dictionaryPrompts: string[] }> => (await fetch(`${fixtureUrl}/stats`)).json();
 
-async function addSource(page: Page, configureSourceModel = true) {
+async function addSource(page: Page, configureSourceModel = true, languageLevel = 'A2 - Elementary') {
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'TRANSLATION', isEnabled: true, isPrimary: true });
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
   if (configureSourceModel) {
@@ -22,6 +23,8 @@ async function addSource(page: Page, configureSourceModel = true) {
   await page.getByRole('option', { name: 'Source Extension', exact: true }).click();
   await page.getByRole('combobox', { name: 'Source Extension', exact: true }).click();
   await page.getByRole('option', { name: NAME, exact: true }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
+  await page.getByRole('option', { name: languageLevel, exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue(NAME);
   await page.getByRole('button', { name: 'Create', exact: true }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
@@ -48,10 +51,10 @@ async function readyWords(sourceId = SOURCE, words = ['sehen', 'Haus']) {
   })));
 }
 
-async function cachedWords(words: { lemma: string; wordType: string }[]) {
+async function cachedWords(words: { lemma: string; wordType: string; examples?: string[] }[]) {
   await withDbConnection(db => db.query(`UPDATE learn_language.content_items
     SET preparation = jsonb_set(preparation, '{words}', $1::jsonb) WHERE status = 'prepared'`,
-    [JSON.stringify(words.map(word => ({ ...word, article: '', forms: [], examples: [word.lemma], surfaceForms: [word.lemma] })))]));
+    [JSON.stringify(words.map(word => ({ article: '', forms: [], examples: [word.lemma], surfaceForms: [word.lemma], ...word })))]));
 }
 
 async function listen(page: Page) {
@@ -271,7 +274,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows))
     .toEqual([expect.objectContaining({ id: 'haus-haz', data: expect.objectContaining({
       translation: { hu: 'a ház' },
-      examples: [expect.objectContaining({ de: 'Wir sehen ein Haus.', hu: 'Látunk egy házat.' })],
+      examples: [expect.objectContaining({ de: 'Das Haus ist klein.', hu: 'A ház kicsi.' })],
     }) })]);
   await expect(page.getByRole('heading', { name: 'Missing card', exact: true })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card' })).toHaveCount(0);
@@ -288,6 +291,76 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByRole('checkbox', { name: 'sehen', exact: true })).toBeVisible();
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
+});
+
+[
+  { level: 'A1 - Beginner', code: 'A1', example: 'Ich sitze auf der Bank.', translation: 'A padon ülök.' },
+  { level: 'B1 - Intermediate', code: 'B1', example: 'Nach dem Spaziergang ruhe ich mich auf einer Bank aus.', translation: 'A séta után megpihenek egy padon.' },
+].forEach(({ level, code, example, translation }) => {
+  test(`generates ${code} story examples using the original word meaning and ebook dictionary flow`, async ({ page }) => {
+    await addSource(page, true, level);
+    await prepare(page);
+    const context = 'Nachdem sie stundenlang durch den Wald gewandert waren, ließen sie sich erschöpft auf einer alten Bank nieder, die unter einer Eiche stand.';
+    await cachedWords([{ lemma: 'Bank', wordType: 'noun', examples: [context] }]);
+    await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+    await expect(page.getByText(context, { exact: true })).toBeVisible();
+    await page.getByRole('checkbox', { name: 'Bank', exact: true }).check();
+    await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+    await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Bank', { exact: true })).toBeVisible();
+    const card = await withDbConnection(async db =>
+      (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows[0]);
+    expect(card.id).toBe('bank-pad');
+    expect(card.data.examples).toEqual([expect.objectContaining({ de: example, hu: translation })]);
+    const calls = await stats();
+    expect(calls.dictionaryInputs).toEqual([expect.objectContaining({ highlightedWord: 'Bank', sentence: context, bookTitle: 'Brezel' })]);
+    expect(calls.dictionaryPrompts).toHaveLength(1);
+    expect(calls.dictionaryPrompts[0]).toContain(`CEFR ${code} level`);
+    expect(calls.dictionaryPrompts[0]).toContain("exact contextual meaning, grammatical role, and usage");
+    expect(calls.dictionaryPrompts[0]).toContain('Do not switch to another dictionary meaning');
+    expect(calls.dictionaryPrompts[0]).toContain('Do not copy the original sentence');
+    expect(await withDbConnection(async db =>
+      (await db.query("SELECT preparation->'words'->0->'examples' AS examples FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].examples))
+      .toEqual([context]);
+    await page.goto(`/sources/${SOURCE}/page/1/cards/${card.id}`);
+    await expect(page.getByRole('textbox', { name: 'Example in German', exact: true })).toHaveValue(example);
+    await expect(page.getByRole('textbox', { name: 'Example in Hungarian', exact: true })).toHaveValue(translation);
+  });
+});
+
+test('requires an explicit level for legacy story sources and uses the edited source level', async ({ page }) => {
+  await addSource(page);
+  await withDbConnection(db => db.query('UPDATE learn_language.sources SET language_level = NULL WHERE id = $1', [SOURCE]));
+  await prepare(page);
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  await expect(page.getByRole('alert')).toContainText('Choose a language level');
+  await expect(page.getByRole('button', { name: 'Create drafts (1)', exact: true })).toBeDisabled();
+  expect((await stats()).dictionaryInputs).toEqual([]);
+  await page.getByRole('link', { name: 'source settings', exact: true }).click();
+  await page.getByRole('button', { name: `Actions for ${NAME}` }).click();
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
+  await page.getByRole('option', { name: 'B1 - Intermediate', exact: true }).click();
+  await page.getByRole('button', { name: 'Update', exact: true }).click();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await prepare(page);
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
+  expect((await stats()).dictionaryPrompts[0]).toContain('CEFR B1 level');
+});
+
+test('does not save a story draft or copy the original context when example generation fails', async ({ page }) => {
+  await addSource(page);
+  await prepare(page);
+  await fetch(`${fixtureUrl}/fail-examples`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fail: true }) });
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
+  await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+  expect((await response).status()).toBe(500);
+  await expect(page.getByRole('alert')).toBeVisible();
+  expect(await withDbConnection(async db =>
+    (await db.query('SELECT id FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows)).toEqual([]);
+  expect((await getModelUsageLogs()).filter(log => log.operationType === 'TRANSLATION')).toHaveLength(1);
 });
 
 test('does not overwrite a Goethe card outside the story source group when its word ID already exists', async ({ page }) => {
@@ -656,6 +729,8 @@ test('a text-only extension reuses preparation without the website or YouTube', 
   await page.getByRole('option', { name: 'Source Extension', exact: true }).click();
   await page.getByRole('combobox', { name: 'Source Extension', exact: true }).click();
   await page.getByRole('option', { name: 'Text fixture', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
+  await page.getByRole('option', { name: 'A2 - Elementary', exact: true }).click();
   await page.getByRole('button', { name: 'Create', exact: true }).click();
   await page.getByRole('button', { name: 'Actions for Text fixture' }).click();
   await page.getByRole('menuitem', { name: 'Texts', exact: true }).click();

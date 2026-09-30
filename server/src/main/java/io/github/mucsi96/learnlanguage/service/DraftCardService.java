@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
@@ -30,13 +33,12 @@ public class DraftCardService {
     private final CardService cardService;
     private final SourceService sourceService;
     private final WordIdService wordIdService;
+    private final JdbcClient jdbc;
 
     @Async
     @Transactional
-    public void createDraftCard(String bookTitle, String targetLanguage, LookupResult lookupResult) {
+    public void createDraftCard(Source source, String targetLanguage, LookupResult lookupResult) {
         try {
-            final Source source = getOrCreateSource(bookTitle);
-
             final String cardId = wordIdService.generateWordId(
                     lookupResult.normalizedWord(),
                     lookupResult.translation());
@@ -74,8 +76,17 @@ public class DraftCardService {
         }
     }
 
-    private Source getOrCreateSource(String bookTitle) {
+    @Transactional
+    public Source getOrCreateSource(String bookTitle) {
+        if (bookTitle == null || bookTitle.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book title is required to resolve the source language level");
+        }
         final String sourceId = toSourceId(bookTitle);
+        if (sourceId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book title must produce a valid source ID");
+        }
+        jdbc.sql("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))")
+                .param("scope", "ebook-source:" + sourceId).query().listOfRows();
 
         return sourceService.getSourceById(sourceId)
                 .orElseGet(() -> {
@@ -84,7 +95,7 @@ public class DraftCardService {
                             .name(bookTitle)
                             .sourceType(SourceType.EBOOK_DICTIONARY)
                             .startPage(1)
-                            .languageLevel(LanguageLevel.B1)
+                            .languageLevel(LanguageLevel.A2)
                             .cardTypes(List.of(CardType.VOCABULARY))
                             .formatType(SourceFormatType.WORD_LIST_WITH_EXAMPLES)
                             .build();

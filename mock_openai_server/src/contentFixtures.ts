@@ -5,6 +5,8 @@ export const contentFixtures = Router();
 const state = {
   requests: [] as string[], vocabularyInputs: [] as string[], vocabularyPrompts: [] as string[], failVocabulary: false,
   sourceModels: [] as string[], sourceInputs: [] as string[], sourceFailure: '' as string,
+  dictionaryInputs: [] as { highlightedWord: string; sentence: string; bookTitle: string }[],
+  dictionaryPrompts: [] as string[], failExamples: false,
 };
 const record = (name: string) => { state.requests = [...state.requests, name]; };
 
@@ -16,6 +18,9 @@ export const resetContentFixtures = () => {
   state.sourceModels = [];
   state.sourceInputs = [];
   state.sourceFailure = '';
+  state.dictionaryInputs = [];
+  state.dictionaryPrompts = [];
+  state.failExamples = false;
 };
 
 contentFixtures.get('/a1-index', (req, res) => {
@@ -54,9 +59,31 @@ contentFixtures.post('/source-failure', (req, res) => {
   res.json({});
 });
 
+contentFixtures.post('/fail-examples', (req, res) => {
+  state.failExamples = req.body.fail === true;
+  res.json({});
+});
+
 export const contentResponse = (messages: { content: unknown }[], model: string): unknown | null => {
   const system = String(messages[0]?.content);
   const user = String(messages[1]?.content);
+  if (system.includes('German language dictionary lookup assistant')) {
+    const input = JSON.parse(user);
+    state.dictionaryInputs = [...state.dictionaryInputs, input];
+    state.dictionaryPrompts = [...state.dictionaryPrompts, system];
+    const examples: Record<string, { translation: string; germanExample: string; translatedExample: string; forms: string[] }> = {
+      Haus: { translation: 'a ház', germanExample: 'Das Haus ist klein.', translatedExample: 'A ház kicsi.', forms: ['die Häuser'] },
+      'auf jeden Fall': { translation: 'mindenképpen', germanExample: 'Ich komme auf jeden Fall.', translatedExample: 'Mindenképpen eljövök.', forms: [] },
+      Bank: system.includes('CEFR A1 level')
+        ? { translation: 'a pad', germanExample: 'Ich sitze auf der Bank.', translatedExample: 'A padon ülök.', forms: ['die Bänke'] }
+        : { translation: 'a pad', germanExample: 'Nach dem Spaziergang ruhe ich mich auf einer Bank aus.', translatedExample: 'A séta után megpihenek egy padon.', forms: ['die Bänke'] },
+    };
+    const example = examples[input.highlightedWord];
+    if (!example) throw new Error(`No dictionary example fixture for ${input.highlightedWord}`);
+    return createAssistantResponse({ normalizedWord: input.highlightedWord, ...example,
+      ...(state.failExamples ? { germanExample: '' } : {}),
+    });
+  }
   if (system.includes('SOURCE_INDEX_EXTRACTION_V1')) {
     record('source-index');
     state.sourceModels = [...state.sourceModels, model];

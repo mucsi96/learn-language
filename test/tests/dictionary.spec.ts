@@ -1,7 +1,7 @@
 import { type Page } from '@playwright/test';
 import * as fs from 'fs';
 import { test, expect } from '../fixtures';
-import { setupDefaultChatModelSettings } from '../utils';
+import { createChatModelSetting, setupDefaultChatModelSettings, withDbConnection } from '../utils';
 
 const API_URL = 'http://localhost:8170/api/dictionary';
 
@@ -73,6 +73,55 @@ test('dictionary endpoint translates a word to English', async ({ page }) => {
   expect(text).toContain('Wir fahren ab.');
   expect(text).toContain('We depart.');
   expect(text).toContain('fährt ab, fuhr ab, ist abgefahren');
+});
+
+test('ebook lookup creates an A2 source and uses the user-adjusted source level on later lookups', async ({ page }) => {
+  await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'TRANSLATION', isEnabled: true, isPrimary: true });
+  const token = await createTokenViaUI(page, 'Configurable level');
+  const lookup = (highlightedWord: string, sentence: string) => fetch(API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ bookTitle: 'Level Book', targetLanguage: 'hu', highlightedWord, sentence }),
+  });
+  const first = await lookup('Haus', 'Wir sehen ein Haus.');
+  expect(first.status).toBe(200);
+  expect(await first.text()).toContain('Das Haus ist klein.');
+  expect(await withDbConnection(async db =>
+    (await db.query("SELECT id, source_type, language_level FROM learn_language.sources WHERE id = 'level-book'")).rows))
+    .toEqual([{ id: 'level-book', source_type: 'EBOOK_DICTIONARY', language_level: 'A2' }]);
+
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Actions for Level Book', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Language Level', exact: true })).toHaveText('A2 - Elementary');
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
+  await page.getByRole('option', { name: 'B1 - Intermediate', exact: true }).click();
+  await page.getByRole('button', { name: 'Update', exact: true }).click();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+
+  const second = await lookup('Bank', 'Nach dem langen Spaziergang setzt sie sich auf eine Bank im Park.');
+  expect(second.status).toBe(200);
+  expect(await second.text()).toContain('Nach dem Spaziergang ruhe ich mich auf einer Bank aus.');
+  const stats = await (await fetch('http://localhost:3070/content-fixtures/stats')).json();
+  expect(stats.dictionaryPrompts).toHaveLength(2);
+  expect(stats.dictionaryPrompts[0]).toContain('CEFR A2 level');
+  expect(stats.dictionaryPrompts[1]).toContain('CEFR B1 level');
+  await expect.poll(async () => withDbConnection(async db =>
+    (await db.query("SELECT id FROM learn_language.cards WHERE source_id = 'level-book' ORDER BY id")).rows))
+    .toEqual([{ id: 'bank-pad' }, { id: 'haus-haz' }]);
+  expect(await withDbConnection(async db =>
+    (await db.query("SELECT language_level FROM learn_language.sources WHERE id = 'level-book'")).rows[0].language_level)).toBe('B1');
+});
+
+test('ebook lookup does not silently replace a missing configured source level with a default', async ({ page }) => {
+  await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'TRANSLATION', isEnabled: true, isPrimary: true });
+  const token = await createTokenViaUI(page, 'Missing level');
+  await withDbConnection(db => db.query("UPDATE learn_language.sources SET language_level = NULL WHERE id = 'goethe-a1'"));
+  const response = await lookupWord(token, 'hu');
+  expect(response.status).toBe(400);
+  const stats = await (await fetch('http://localhost:3070/content-fixtures/stats')).json();
+  expect(stats.dictionaryPrompts).toEqual([]);
+  expect(await withDbConnection(async db =>
+    (await db.query("SELECT language_level FROM learn_language.sources WHERE id = 'goethe-a1'")).rows[0].language_level)).toBeNull();
 });
 
 test('dictionary endpoint returns 401 without authorization header', async ({
