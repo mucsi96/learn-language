@@ -124,7 +124,7 @@ export class SourceDialogComponent {
   });
   readonly sourceForm = form(this.formModel, (path) => {
     required(path.name);
-    validate(path.languageLevel, ctx => !this.isExtension() && !ctx.value() ? requiredError() : undefined);
+    required(path.languageLevel);
     validate(path.extensionId, ctx => this.isExtension() && !ctx.value() ? requiredError() : undefined);
     disabled(path.extensionId, () => this.data.mode === 'edit');
     required(path.sourceType);

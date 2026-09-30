@@ -52,8 +52,11 @@
             @for (example of candidate.word.examples; track example) { <p class="context">{{ example }}</p> }
           </div>
         } @empty { <p>All extracted words are known or already have cards in this source group.</p> }
+        @if (source() && !source()?.languageLevel && missing().length) {
+          <p role="alert">Choose a language level in <a routerLink="/sources">source settings</a> before creating vocabulary drafts.</p>
+        }
         <div class="actions">
-        <button mat-flat-button [disabled]="busy() || !selected().length" (click)="drafts()">Create drafts ({{ selected().length }})</button>
+        <button mat-flat-button [disabled]="busy() || !selected().length || !source()?.languageLevel" (click)="drafts()">Create drafts ({{ selected().length }})</button>
         <button mat-flat-button bt-color="success" [disabled]="busy() || !selected().length" (click)="markKnown()">Mark as known ({{ selected().length }})</button>
         </div>
         </section>

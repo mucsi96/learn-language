@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,7 @@ public class SourceContentService {
     private final CardService cards;
     private final JdbcClient jdbc;
     private final KnownWordService knownWords;
-    private final TranslationService translations;
-    private final ChatModelSettingService chatModels;
+    private final DictionaryService dictionary;
     private final WordIdService wordIds;
 
     public Source source(String id) {
@@ -81,6 +79,9 @@ public class SourceContentService {
         if (!item.status().equals("prepared") || request.wordKeys() == null || request.wordKeys().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select prepared vocabulary words");
         }
+        if (source.getLanguageLevel() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a language level in the source settings before creating drafts");
+        }
         final String scope = source.getGroup() == null ? sourceId : source.getGroup().getId();
         jdbc.sql("SELECT pg_advisory_xact_lock(hashtextextended(:scope, 0))").param("scope", scope).query().listOfRows();
         final var words = coverage.coverage(item, coverage.cards(sourceId));
@@ -88,7 +89,7 @@ public class SourceContentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown vocabulary selection");
         }
         words.stream().filter(word -> request.wordKeys().contains(word.key()) && word.status().equals("missing"))
-                .forEach(word -> cards.saveCard(draft(source, word)));
+                .forEach(word -> cards.saveCard(draft(source, item, word)));
     }
 
     @Transactional
@@ -105,21 +106,20 @@ public class SourceContentService {
                 .forEach(word -> knownWords.addKnownWord(word.word().lemma()));
     }
 
-    private Card draft(Source source, WordCoverage candidate) {
+    private Card draft(Source source, ContentItem item, WordCoverage candidate) {
         final VocabularyWord word = candidate.word();
-        final TranslationResponse translation = translations.translate(
-                TranslateWordRequest.builder().word(word.lemma()).examples(word.examples()).build(),
-                "hu", chatModels.getPrimaryModel(OperationType.TRANSLATION));
-        final String id = wordIds.generateWordId(word.lemma(), translation.getTranslation());
+        final DictionaryService.LookupResult lookup = dictionary.lookup(DictionaryRequest.builder()
+                .bookTitle(item.descriptor().title()).targetLanguage("hu").highlightedWord(word.lemma())
+                .sentence(String.join("\n", word.examples())).build(), source.getLanguageLevel());
+        final String id = wordIds.generateWordId(word.lemma(), lookup.translation());
         if (cards.getCardById(id).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vocabulary card already exists: " + id);
         }
         return Card.builder().id(id).source(source).sourcePageNumber(1).type(CardType.VOCABULARY)
                 .data(CardData.builder().word(word.lemma()).type(word.wordType().toUpperCase(java.util.Locale.ROOT))
-                        .forms(word.forms()).translation(Map.of("hu", translation.getTranslation()))
-                        .examples(IntStream.range(0, word.examples().size())
-                                .mapToObj(index -> ExampleData.builder().de(word.examples().get(index))
-                                        .hu(translation.getExamples().get(index)).build()).toList()).build())
+                        .forms(word.forms()).translation(Map.of("hu", lookup.translation()))
+                        .examples(List.of(ExampleData.builder().de(lookup.germanExample())
+                                .hu(lookup.translatedExample()).build())).build())
                 .readiness(CardReadiness.DRAFT).state("NEW").due(LocalDateTime.now())
                 .stability(0f).difficulty(0f).elapsedDays(0f).scheduledDays(0f).learningSteps(0).reps(0).lapses(0).build();
     }
