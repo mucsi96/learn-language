@@ -30,7 +30,7 @@ model, extraction fails explicitly rather than falling back to another operation
 - Select missing words to create drafts, then use the existing draft-card
   workflow to enrich and review them. Cards in the same source group are reused.
 - The home page's **Listen** action unlocks a story only when every extracted
-  word has a `READY` card studied at least once. Listening progress is saved per
+  word is known or has a `READY` card reviewed at least twice. Listening progress is saved per
   user, including backward seeks, and restored on return. Recordings play in a
   YouTube embed using the official IFrame Player API; the server does not download
   or convert YouTube audio.
