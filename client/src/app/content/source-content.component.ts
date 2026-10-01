@@ -58,7 +58,7 @@ export class SourceContentComponent {
       .filter(group => group.words.length > 0));
   readonly processing = computed(() => ['queued', 'processing'].includes(this.detail.value()?.status ?? ''));
   readonly formatPosition = formatPosition;
-  readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Not yet studied', satisfied: 'Ready and studied' };
+  readonly labels = { missing: 'Missing card', not_ready: 'Card not ready', unreviewed: 'Needs two reviews', satisfied: 'Ready and studied' };
 
   constructor() {
     effect(() => {

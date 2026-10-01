@@ -38,7 +38,7 @@ public class ContentCoverageService {
             final List<MatchingCard> matches = cards.getOrDefault(key, List.of());
             final String status = known.contains(key) || matches.stream().anyMatch(card -> card.readiness().equals("KNOWN")) ? "satisfied"
                     : matches.isEmpty() ? "missing"
-                    : matches.stream().anyMatch(card -> card.readiness().equals("READY") && card.reviews() > 0) ? "satisfied"
+                    : matches.stream().anyMatch(card -> card.readiness().equals("READY") && card.reviews() >= 2) ? "satisfied"
                     : matches.stream().anyMatch(card -> card.readiness().equals("READY")) ? "unreviewed" : "not_ready";
             return new WordCoverage(key, word, status, matches.stream().map(MatchingCard::id).toList());
         }).toList();

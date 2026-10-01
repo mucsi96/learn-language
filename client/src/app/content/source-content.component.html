@@ -45,7 +45,7 @@
         <details><summary>Transcript used</summary><p>{{ item.transcript }}</p></details>
         <section class="vocabulary-section">
         <h3>Missing vocabulary</h3>
-        <p>Every extracted word must be known or have a ready card studied at least once. Unresolved words keep listening locked.</p>
+        <p>Every extracted word must be known or have a ready card reviewed at least twice. Unresolved words keep listening locked.</p>
         @for (candidate of missing(); track candidate.key) {
           <div class="candidate">
             <mat-checkbox [checked]="selected().includes(candidate.key)" (change)="toggle(candidate.key, $event.checked)">{{ candidate.word.lemma }}</mat-checkbox>
