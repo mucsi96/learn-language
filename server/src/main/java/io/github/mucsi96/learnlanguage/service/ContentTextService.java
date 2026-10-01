@@ -97,6 +97,9 @@ public class ContentTextService {
                 Use wordType noun, verb, adjective, adverb, expression, or other.
                 Normalize nouns to singular without article, verbs to infinitive (preserve separable/reflexive
                 parts), adjectives to base form. Use lower-case wordType. Use an empty article when inapplicable.
+                Every noun MUST have its nominative definite article (der, die, or das) in the article field.
+                For example, return lemma "Haus" with article "das", never an empty article for a noun.
+                Keep the article separate from the lemma; it will be included in the vocabulary card's word.
                 For paired masculine/feminine person and profession nouns, ALWAYS use the masculine singular
                 lemma, its masculine article and grammatical forms: Freundin/Freundinnen -> Freund,
                 Lehrerin -> Lehrer, Ärztin -> Arzt, Kollegin -> Kollege, Anwältin -> Anwalt.
@@ -129,6 +132,10 @@ public class ContentTextService {
     }
 
     private static VocabularyWord merge(VocabularyWord first, VocabularyWord second) {
+        if (("noun".equalsIgnoreCase(first.wordType()) || "noun".equalsIgnoreCase(second.wordType()))
+                && !java.util.Objects.equals(first.article(), second.article())) {
+            throw new IllegalStateException("Conflicting articles for vocabulary lemma: " + first.lemma());
+        }
         return new VocabularyWord(first.lemma(), first.wordType(), first.article(),
                 java.util.stream.Stream.concat(first.forms().stream(), second.forms().stream()).distinct().toList(),
                 java.util.stream.Stream.concat(first.examples().stream(), second.examples().stream()).distinct().toList(),
@@ -143,6 +150,7 @@ public class ContentTextService {
                 || word.surfaceForms().stream().anyMatch(form -> form == null || form.isBlank() || !transcript.contains(form))) {
             throw new IllegalStateException("Vocabulary has missing data or context outside the story");
         }
+        word.cardWord();
     }
 
     public static String lexicalKey(String word) {

@@ -21,7 +21,15 @@ public final class ContentModels {
     public record TextBlock(String id, int page, String text) {}
     public record IsolationResult(boolean titleMatches, List<String> storyBlockIds) {}
     public record VocabularyWord(String lemma, String wordType, String article, List<String> forms,
-            List<String> examples, List<String> surfaceForms) {}
+            List<String> examples, List<String> surfaceForms) {
+        public String cardWord() {
+            if (!"noun".equalsIgnoreCase(wordType)) return lemma;
+            if (article == null || !List.of("der", "die", "das").contains(article)) {
+                throw new IllegalStateException("Noun is missing a valid definite article: " + lemma);
+            }
+            return article + " " + lemma;
+        }
+    }
     public record VocabularyResult(List<VocabularyWord> words) {}
     @Builder(toBuilder = true)
     public record Preparation(List<TextBlock> blocks, String transcript, List<VocabularyWord> words,
