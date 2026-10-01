@@ -167,6 +167,57 @@ test('discovers website stories lazily and caches vocabulary without glossary or
   expect(await stats()).toEqual(first);
 });
 
+test('keeps an old catalogue across restarts without repeating discovery', async ({ page }) => {
+  test.setTimeout(150000);
+  await addSource(page);
+  await stories(page);
+  const href = await page.getByRole('link', { name: 'Brezel', exact: true }).getAttribute('href');
+  await withDbConnection(db => db.query("UPDATE learn_language.extension_discovery SET refreshed_at = now() - interval '30 days'"));
+  const discovery = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.extension_discovery')).rows);
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'invented-link' }) });
+  const before = await stats();
+  await restartServer(page);
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toHaveAttribute('href', href!);
+  await expect(page.getByRole('table', { name: 'Source content' }).getByRole('link')).toHaveText(['Brezel', 'Zwillinge', 'Neue Geschichte']);
+  await page.goto('/');
+  await page.getByRole('link', { name: `Listen to ${NAME}`, exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+  expect(await stats()).toEqual(before);
+  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.extension_discovery')).rows)).toEqual(discovery);
+});
+
+test('preserves the saved catalogue on failed refresh and refreshes explicitly without losing preparation', async ({ page }) => {
+  await addSource(page);
+  await prepare(page);
+  const saved = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows);
+  const discovery = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.extension_discovery')).rows);
+  await stories(page);
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'invented-link' }) });
+  const failure = page.waitForResponse(response => response.url().endsWith('/content/refresh'));
+  await page.getByRole('button', { name: 'Refresh catalogue', exact: true }).click();
+  expect((await failure).ok()).toBe(false);
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows)).toEqual(saved);
+  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.extension_discovery')).rows)).toEqual(discovery);
+  const afterFailure = await stats();
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
+  expect(await stats()).toEqual(afterFailure);
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: '' }) });
+  const refreshed = page.waitForResponse(response => response.url().endsWith('/content/refresh'));
+  await page.getByRole('button', { name: 'Refresh catalogue', exact: true }).click();
+  expect((await refreshed).ok()).toBe(true);
+  expect((await stats()).requests.filter(request => request === 'source-index')).toHaveLength(3);
+  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows)).toEqual(saved);
+  const updated = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.extension_discovery')).rows);
+  expect(updated[0].refreshed_at.getTime()).toBeGreaterThan(discovery[0].refreshed_at.getTime());
+  await page.getByRole('link', { name: 'Brezel', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
+  expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
+});
+
 test('keeps unverified recordings and incorrect publisher transcripts visible but unprepared', async ({ page }) => {
   await addSource(page);
   await stories(page);

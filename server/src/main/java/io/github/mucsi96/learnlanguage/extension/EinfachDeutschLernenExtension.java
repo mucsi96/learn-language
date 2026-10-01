@@ -1,7 +1,6 @@
 package io.github.mucsi96.learnlanguage.extension;
 
 import java.text.Normalizer;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -43,9 +42,6 @@ public class EinfachDeutschLernenExtension implements SourceExtension {
         return new ExtensionDescriptor("einfach-deutsch-a1-a2", "Deutsch lernen durch Hören A1–A2", "Stories",
                 List.of("browse", "vocabulary", "listen"));
     }
-
-    @Override
-    public Duration discoveryInterval() { return Duration.ofHours(24); }
 
     @Override
     public List<ContentDescriptor> discoverContent() {

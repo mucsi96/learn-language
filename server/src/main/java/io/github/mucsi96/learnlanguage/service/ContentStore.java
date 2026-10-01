@@ -12,6 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.json.JsonMapper;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
+import io.github.mucsi96.learnlanguage.entity.ExtensionDiscovery;
+import io.github.mucsi96.learnlanguage.entity.SourceContent;
+import io.github.mucsi96.learnlanguage.repository.ExtensionDiscoveryRepository;
+import io.github.mucsi96.learnlanguage.repository.SourceContentRepository;
 import lombok.RequiredArgsConstructor;
 
 @Repository
@@ -19,11 +23,11 @@ import lombok.RequiredArgsConstructor;
 public class ContentStore {
     private final JdbcClient jdbc;
     private final JsonMapper json;
+    private final ExtensionDiscoveryRepository discoveries;
+    private final SourceContentRepository content;
 
-    public boolean discoveryFresh(String extensionId, java.time.Duration interval) {
-        return jdbc.sql("SELECT count(*) FROM learn_language.extension_discovery WHERE extension_id = :id AND refreshed_at > :since")
-                .param("id", extensionId).param("since", java.sql.Timestamp.from(java.time.Instant.now().minus(interval)))
-                .query(Integer.class).single() > 0;
+    public boolean discovered(String extensionId) {
+        return discoveries.existsById(extensionId);
     }
 
     @Transactional
@@ -36,18 +40,19 @@ public class ContentStore {
                 """)
                 .param("id", UUID.randomUUID()).param("extension", extensionId).param("external", descriptor.externalId())
                 .param("descriptor", json.writeValueAsString(descriptor)).update());
-        jdbc.sql("INSERT INTO learn_language.extension_discovery VALUES (:id, now()) ON CONFLICT(extension_id) DO UPDATE SET refreshed_at = now()")
-                .param("id", extensionId).update();
+        discoveries.save(ExtensionDiscovery.builder().extensionId(extensionId)
+                .refreshedAt(java.time.Instant.now()).build());
     }
 
+    @Transactional(readOnly = true)
     public List<ContentItem> list(String extensionId) {
-        return jdbc.sql("SELECT * FROM learn_language.content_items WHERE extension_id = :id ORDER BY (descriptor->>'number')::int ASC NULLS LAST, descriptor->>'title'")
-                .param("id", extensionId).query(this::item).list();
+        return content.findCatalogue(extensionId).stream().map(SourceContent::toContentItem).toList();
     }
 
+    @Transactional(readOnly = true)
     public ContentItem require(UUID id) {
-        return jdbc.sql("SELECT * FROM learn_language.content_items WHERE id = :id").param("id", id)
-                .query(this::item).optional().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found"));
+        return content.findById(id).map(SourceContent::toContentItem)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found"));
     }
 
     public void enqueue(UUID id) {

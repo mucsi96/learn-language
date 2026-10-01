@@ -6,7 +6,6 @@ import io.github.mucsi96.learnlanguage.model.ContentModels.*;
 public interface SourceExtension {
     ExtensionDescriptor descriptor();
     List<ContentDescriptor> discoverContent();
-    java.time.Duration discoveryInterval();
     default ResolvedTranscript resolveTranscript(ContentDescriptor content) {
         return new ResolvedTranscript(null, content.transcriptUrl(), content.transcriptMediaType());
     }
