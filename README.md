@@ -29,10 +29,7 @@ model, extraction fails explicitly rather than falling back to another operation
   a vocabulary retry does not repeat the source AI call.
 - Select missing words to create drafts, then use the existing draft-card
   workflow to enrich and review them. Cards in the same source group are reused.
-  Noun cards include their definite article (for example, `das Haus`). Upgrading
-  repairs article-less noun cards in extension sources from unambiguous cached
-  vocabulary, preserving card IDs and review history. Unmatched nouns and nouns
-  with conflicting cached articles are left for manual review.
+  Noun cards include their definite article (for example, `das Haus`).
 - The home page's **Listen** action unlocks a story only when every extracted
   word is known or has a `READY` card reviewed at least twice. Listening progress is saved per
   user, including backward seeks, and restored on return. Recordings play in a

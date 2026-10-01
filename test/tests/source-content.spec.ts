@@ -334,47 +334,6 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   });
 });
 
-test('repairs existing story noun articles on upgrade without changing other card data', async ({ page }) => {
-  test.setTimeout(150000);
-  await addSource(page);
-  await prepare(page);
-  await cachedWords([
-    { lemma: 'Haus', wordType: 'noun', article: 'das' },
-    { lemma: 'Bank', wordType: 'noun', article: 'die' },
-    { lemma: 'Freund', wordType: 'noun', article: 'der' },
-    { lemma: 'Band', wordType: 'noun', article: 'das' },
-    { lemma: 'Band', wordType: 'noun', article: 'der' },
-  ]);
-  const fixtures = [
-    { cardId: 'legacy-haus', word: 'Haus', expected: 'das Haus' },
-    { cardId: 'legacy-bank', word: 'Bank', expected: 'die Bank' },
-    { cardId: 'legacy-freund', word: 'Freund', expected: 'der Freund' },
-    { cardId: 'existing-article', word: 'das Haus', expected: 'das Haus' },
-    { cardId: 'ambiguous-noun', word: 'Band', expected: 'Band' },
-    { cardId: 'unmatched-noun', word: 'Baum', expected: 'Baum' },
-    { cardId: 'non-noun', word: 'Haus', expected: 'Haus', wordType: 'OTHER' },
-    { cardId: 'ebook-noun', word: 'Haus', expected: 'Haus', sourceId: 'goethe-a1' },
-  ];
-  await Promise.all(fixtures.map(fixture => createCard({
-    cardId: fixture.cardId, sourceId: fixture.sourceId ?? SOURCE, readiness: 'READY', reps: 3,
-    data: { word: fixture.word, type: fixture.wordType ?? 'NOUN', forms: ['preserved form'],
-      translation: { hu: 'preserved translation' }, examples: [{ de: 'Preserved example.' }] },
-  })));
-  const snapshot = () => withDbConnection(async db =>
-    (await db.query('SELECT * FROM learn_language.cards ORDER BY id')).rows);
-  const before = await snapshot();
-  const expected = before.map(card => ({ ...card, data: { ...card.data,
-    word: fixtures.find(fixture => fixture.cardId === card.id)!.expected } }));
-  await withDbConnection(db => db.query("DELETE FROM learn_language.databasechangelog WHERE id = '61-story-vocabulary-articles'"));
-  await restartServer(page);
-  expect(await snapshot()).toEqual(expected);
-  await page.goto(`/sources/${SOURCE}/page/1/cards/legacy-haus`);
-  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('das Haus');
-  await withDbConnection(db => db.query("DELETE FROM learn_language.databasechangelog WHERE id = '61-story-vocabulary-articles'"));
-  await restartServer(page);
-  expect(await snapshot()).toEqual(expected);
-});
-
 test('rejects a cached noun without an article before creating a draft', async ({ page }) => {
   await addSource(page);
   await prepare(page);
