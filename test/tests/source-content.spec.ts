@@ -46,7 +46,7 @@ async function prepare(page: Page) {
 
 async function readyWords(sourceId = SOURCE, words = ['sehen', 'Haus']) {
   await Promise.all(words.map(word => createCard({
-    cardId: `${sourceId}-${word}`, sourceId, readiness: 'READY', reps: 1,
+    cardId: `${sourceId}-${word}`, sourceId, readiness: 'READY', reps: 2,
     data: { word, type: 'NOUN', translation: { hu: word } },
   })));
 }
@@ -131,12 +131,12 @@ test('groups listening prerequisites by reason and sorts each group alphabetical
     'Äpfel', 'Brot', 'Zug', 'Ärger', 'Öl', 'essen', 'üben',
   ]);
   await page.goto(`/sources/${SOURCE}/listen/alphabetical`);
-  await expect(page.getByRole('heading', { level: 4 })).toHaveText(['Missing card', 'Card not ready', 'Not yet studied']);
+  await expect(page.getByRole('heading', { level: 4 })).toHaveText(['Missing card', 'Card not ready', 'Needs two reviews']);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card', exact: true }).getByRole('listitem'))
     .toHaveText(['Äpfel', 'Brot', 'Zug']);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready', exact: true }).getByRole('listitem'))
     .toHaveText(['Ärger', 'Öl']);
-  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Not yet studied', exact: true }).getByRole('listitem'))
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Needs two reviews', exact: true }).getByRole('listitem'))
     .toHaveText(['essen', 'üben']);
   await expect(prerequisites).toHaveCount(7);
 });
@@ -249,7 +249,7 @@ test('upgrading initializes the new operation from the existing extraction setti
   });
 });
 
-test('filters group cards and requires every vocabulary prerequisite to be ready and studied', async ({ page }) => {
+test('filters group cards and requires every vocabulary prerequisite to be ready and reviewed twice', async ({ page }) => {
   await addSource(page);
   const group = await createSourceGroup({ name: 'Shared vocabulary' });
   await setSourceGroup(SOURCE, group);
@@ -280,11 +280,15 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Missing card' })).toHaveCount(0);
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
-  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Not yet studied' }).getByText('Haus', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Needs two reviews' }).getByText('Haus', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Card not ready', exact: true })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' })).toHaveCount(0);
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 1 WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
+  await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+  await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Needs two reviews' }).getByRole('listitem')).toHaveText(['Haus', 'sehen']);
+  await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
+  await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 2 WHERE source_id IN ($1, 'goethe-a1')", [SOURCE]));
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
   await setSourceGroup(SOURCE, null);
@@ -713,6 +717,9 @@ test('rejects locked sessions and stale progress writes on the server', async ({
   expect((await page.request.post(`${api}/playback`, { headers })).status()).toBe(423);
   await withDbConnection(db => db.query("UPDATE learn_language.content_items SET status = 'prepared' WHERE id = $1", [contentId]));
   await readyWords();
+  await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 1 WHERE source_id = $1 AND data->>'word' = 'Haus'", [SOURCE]));
+  expect((await page.request.post(`${api}/playback`, { headers })).status()).toBe(423);
+  await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 2 WHERE source_id = $1 AND data->>'word' = 'Haus'", [SOURCE]));
   const playback = await page.request.post(`${api}/playback`, { headers });
   const session = await playback.json();
   expect(session.kind).toBe('youtube');

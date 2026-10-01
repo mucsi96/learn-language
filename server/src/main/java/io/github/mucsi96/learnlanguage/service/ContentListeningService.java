@@ -81,7 +81,7 @@ public class ContentListeningService {
         final var item = content.require(sourceId, contentId);
         if ((item.descriptor().audioUrl() == null && item.descriptor().youtubeVideoId() == null)
                 || !coverage.unlocked(item, coverage.coverage(item, coverage.cards(sourceId)))) {
-            throw new ResponseStatusException(HttpStatus.LOCKED, "Every vocabulary prerequisite must be known or have a ready card reviewed at least once");
+            throw new ResponseStatusException(HttpStatus.LOCKED, "Every vocabulary prerequisite must be known or have a ready card reviewed at least twice");
         }
         return item;
     }
