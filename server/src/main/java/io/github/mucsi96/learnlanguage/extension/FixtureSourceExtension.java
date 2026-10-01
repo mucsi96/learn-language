@@ -14,11 +14,6 @@ public class FixtureSourceExtension implements SourceExtension {
     }
 
     @Override
-    public java.time.Duration discoveryInterval() {
-        return java.time.Duration.ofDays(1);
-    }
-
-    @Override
     public List<ContentDescriptor> discoverContent() {
         return List.of(new ContentDescriptor("house-text", "Ein gutes Haus", null, null, "A1", null,
                 "http://localhost:3070/content-fixtures/story.txt", "text/plain", null, null));

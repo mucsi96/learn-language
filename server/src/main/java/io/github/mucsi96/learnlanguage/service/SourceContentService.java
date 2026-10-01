@@ -41,7 +41,7 @@ public class SourceContentService {
 
     public synchronized List<ContentItem> list(String sourceId, boolean refresh) {
         final Source source = source(sourceId);
-        if (refresh || !store.discoveryFresh(source.getExtensionId(), extensions.require(source.getExtensionId()).discoveryInterval())) {
+        if (refresh || !store.discovered(source.getExtensionId())) {
             store.discovered(source.getExtensionId(), extensions.require(source.getExtensionId()).discoverContent());
         }
         return store.list(source.getExtensionId());

@@ -23,7 +23,9 @@ model, extraction fails explicitly rather than falling back to another operation
   content are excluded. Extracted text and successful AI results are cached
   persistently. Reopening a story does not repeat preparation. Failed jobs
   can be retried from their last successful stage.
-- Catalogue extraction is cached for 24 hours and can be refreshed explicitly.
+- The catalogue is stored in PostgreSQL and reused across restarts without an
+  expiry. Only **Refresh catalogue** repeats discovery after the first successful
+  extraction; a failed refresh preserves the saved catalogue for subsequent visits.
   Changing the source-extraction model does not regenerate already prepared
   stories. Extracted story text is checkpointed before vocabulary generation, so
   a vocabulary retry does not repeat the source AI call.
@@ -68,6 +70,21 @@ npm test -- source-content.spec.ts
 
 Run this from `test/` with the test pod running. The restart-persistence scenario
 uses Podman to restart `learn-language-test-server`.
+
+### Cache storage and lifetime
+
+Application cache audit for [#454](https://github.com/mucsi96/learn-language/issues/454):
+
+| Data | Storage and lifetime |
+|------|----------------------|
+| Story catalogue | `ExtensionDiscovery` and `SourceContent` entities map the existing `extension_discovery` and `content_items` tables. Shared by extension, retained until explicitly refreshed; existing rows need no migration. |
+| Story text and AI vocabulary | Checkpoints in `content_items.preparation`, retained across restarts and catalogue refreshes. Versioned migrations deliberately invalidate vocabulary when extraction rules change. Atomic SQL upserts and lease updates preserve preparation during concurrent discovery and background work. |
+| Downloaded transcript/audio assets | URL-hashed files under `STORAGE_DIRECTORY/content-assets`, written by atomic rename and reused without expiry. The storage volume must persist across deployments. Website HTML is fetched only when discovery or story extraction is requested; the extracted result is saved in PostgreSQL. |
+| Listening progress | PostgreSQL `listening_progress`, scoped to source, story, and user. The four-hour expiry applies to write sessions, not saved positions. Browser local storage buffers unsent writes until acknowledged. |
+| Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
+| Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |
+| UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
+| Authentication and static frontend assets | OIDC state/tokens use browser local storage. Nginx caches fingerprinted bundles as immutable and revalidates the app shell/manifest so deployments are picked up. |
 
 ## Port Mapping
 
