@@ -1511,5 +1511,3 @@ databaseChangeLog:
       file: db/changelog/source-content.yaml
   - include:
       file: db/changelog/source-content-extraction.yaml
-  - include:
-      file: db/changelog/adjective-forms.yaml

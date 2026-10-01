@@ -606,33 +606,6 @@ test('upgrades cached vocabulary and matches feminine occurrences to masculine c
   expect((await stats()).requests.filter(request => request === 'source-story')).toHaveLength(1);
 });
 
-test('adjective migration regenerates cached vocabulary from its transcript and creates drafts with degrees', async ({ page }) => {
-  test.setTimeout(150000);
-  await addSource(page);
-  await prepare(page);
-  await promisify(execFile)('podman', ['stop', 'learn-language-test-server']);
-  try {
-    await withDbConnection(async db => {
-      await db.query(`UPDATE learn_language.content_items SET preparation = jsonb_set(preparation,
-        '{transcript}', '"Der Fahrer ist zuverlässig."') WHERE status = 'prepared'`);
-      await db.query('DROP TABLE learn_language.adjective_forms_backfill');
-      await db.query("DELETE FROM learn_language.databasechangelog WHERE id = '61-backfill-adjective-degrees'");
-    });
-  } finally {
-    await promisify(execFile)('podman', ['start', 'learn-language-test-server']);
-  }
-  await expect.poll(async () => (await page.request.get('/api/environment')).status(), { timeout: 90000 }).toBe(200);
-  await page.reload();
-  await expect(page.getByRole('checkbox', { name: 'zuverlässig', exact: true })).toBeVisible({ timeout: 60000 });
-  expect((await stats()).requests.filter(request => request === 'source-story')).toHaveLength(1);
-  expect((await stats()).vocabularyPrompts[1]).toContain('Komparativ and Superlativ');
-  await page.getByRole('checkbox', { name: 'zuverlässig', exact: true }).check();
-  await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
-  await expect.poll(async () => withDbConnection(async db =>
-    (await db.query("SELECT data->'forms' AS forms FROM learn_language.cards WHERE source_id = $1", [SOURCE])).rows))
-    .toEqual([{ forms: ['zuverlässiger', 'am zuverlässigsten'] }]);
-});
-
 test('known cards satisfy prerequisites even without study repetitions', async ({ page }) => {
   await addSource(page);
   await readyWords();
