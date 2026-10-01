@@ -132,6 +132,10 @@ public class ContentTextService {
     }
 
     private static VocabularyWord merge(VocabularyWord first, VocabularyWord second) {
+        if (("noun".equalsIgnoreCase(first.wordType()) || "noun".equalsIgnoreCase(second.wordType()))
+                && !java.util.Objects.equals(first.article(), second.article())) {
+            throw new IllegalStateException("Conflicting articles for vocabulary lemma: " + first.lemma());
+        }
         return new VocabularyWord(first.lemma(), first.wordType(), first.article(),
                 java.util.stream.Stream.concat(first.forms().stream(), second.forms().stream()).distinct().toList(),
                 java.util.stream.Stream.concat(first.examples().stream(), second.examples().stream()).distinct().toList(),
