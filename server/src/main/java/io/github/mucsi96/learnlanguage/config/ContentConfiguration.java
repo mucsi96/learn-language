@@ -20,4 +20,12 @@ public class ContentConfiguration {
         scheduler.setThreadNamePrefix("content-preparation-");
         return scheduler;
     }
+
+    @Bean
+    ThreadPoolTaskScheduler adjectiveFormsScheduler() {
+        final var scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("adjective-forms-");
+        return scheduler;
+    }
 }

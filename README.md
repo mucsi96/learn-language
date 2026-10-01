@@ -86,6 +86,33 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
 | Authentication and static frontend assets | OIDC state/tokens use browser local storage. Nginx caches fingerprinted bundles as immutable and revalidates the app shell/manifest so deployments are picked up. |
 
+## Adjective comparison forms
+
+Adjective forms contain the comparative and the `am` superlative, for example
+`gut` → `besser, am besten`. Dictionary lookup, normalization, PDF extraction,
+and story vocabulary generation use the same rule. Non-gradable adjectives in
+their given sense receive no invented degrees.
+
+On upgrade, Liquibase queues every existing vocabulary card classified as
+`ADJECTIVE`, including drafts and cards with partial forms. A background worker
+uses the configured primary **Classification** model to fill in the degrees,
+preserving existing forms, translations, media, review history, and scheduling.
+It processes one card at a time; this incurs normal AI usage. Completed queue
+entries are removed, while failures remain in
+`learn_language.adjective_forms_backfill` with `last_error` and retry after
+15 minutes, including across restarts. Concurrent edits to the word, forms, or
+meaning cause the worker to retry against the newer data. An empty queue means
+the backfill is complete. Prepared story vocabulary is regenerated once using
+the saved transcript so future drafts also receive degrees.
+
+Focused E2E coverage (with the test pod running):
+
+```bash
+npm test -- adjective-forms.spec.ts dictionary.spec.ts source-content.spec.ts
+```
+
+The migration/retry tests restart `learn-language-test-server` using Podman.
+
 ## Port Mapping
 
 All host-bound ports use the 70-79 range to avoid conflicts.

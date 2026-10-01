@@ -60,6 +60,23 @@ test('dictionary endpoint translates a word to Hungarian', async ({ page }) => {
   expect(text).toContain('fährt ab, fuhr ab, ist abgefahren');
 });
 
+test('adjective lookup displays comparison degrees and persists them on the draft card', async ({ page }) => {
+  await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'TRANSLATION', isEnabled: true, isPrimary: true });
+  const token = await createTokenViaUI(page, 'Adjective degrees');
+  const response = await fetch(API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ bookTitle: 'Adjective Book', targetLanguage: 'hu', highlightedWord: 'gut', sentence: 'Das Essen ist gut.' }),
+  });
+  expect(response.status).toBe(200);
+  expect(await response.text()).toContain('besser, am besten');
+  await expect.poll(async () => withDbConnection(async db =>
+    (await db.query("SELECT data->'forms' AS forms FROM learn_language.cards WHERE source_id = 'adjective-book'")).rows))
+    .toEqual([{ forms: ['besser', 'am besten'] }]);
+  const stats = await (await fetch('http://localhost:3070/content-fixtures/stats')).json();
+  expect(stats.dictionaryPrompts[0]).toContain('Komparativ and Superlativ');
+  expect(stats.dictionaryPrompts[0]).toContain('non-gradable');
+});
+
 test('dictionary endpoint translates a word to English', async ({ page }) => {
   await setupDefaultChatModelSettings();
   const token = await createTokenViaUI(page, 'Test Token');

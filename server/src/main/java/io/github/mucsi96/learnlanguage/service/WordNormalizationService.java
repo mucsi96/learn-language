@@ -28,8 +28,8 @@ public class WordNormalizationService {
             Also provide standard grammatical forms:
             - For nouns: the plural form with article (e.g., "die Häuser")
             - For verbs: 3rd Person Singular Präsens, 3rd Person Singular Präteritum, and 3rd Person Singular Perfekt. Only the verb forms, no pronouns.
-            - For other word types: return an empty forms list.
-            """;
+            - For word types other than nouns, verbs and adjectives: return an empty forms list.
+            """ + AdjectiveFormsPrompt.RULE;
 
     private final ChatService chatService;
 
