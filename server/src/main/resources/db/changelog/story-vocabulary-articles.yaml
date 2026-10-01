@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 61-story-vocabulary-articles
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              WITH noun_articles AS (
+                SELECT item.extension_id, word->>'lemma' AS lemma, min(word->>'article') AS article
+                FROM learn_language.content_items item
+                CROSS JOIN LATERAL jsonb_array_elements(nullif(item.preparation->'words', 'null'::jsonb)) word
+                WHERE lower(word->>'wordType') = 'noun'
+                  AND word->>'article' IN ('der', 'die', 'das')
+                GROUP BY item.extension_id, word->>'lemma'
+                HAVING count(DISTINCT word->>'article') = 1
+              )
+              UPDATE learn_language.cards card
+              SET data = jsonb_set(card.data, '{word}', to_jsonb(noun.article || ' ' || noun.lemma))
+              FROM learn_language.sources source, noun_articles noun
+              WHERE card.source_id = source.id
+                AND source.extension_id = noun.extension_id
+                AND card.type = 'VOCABULARY'
+                AND upper(card.data->>'type') = 'NOUN'
+                AND card.data->>'word' = noun.lemma
+                AND card.data->>'word' !~* '^(der|die|das)\s';

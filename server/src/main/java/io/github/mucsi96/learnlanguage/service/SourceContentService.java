@@ -108,6 +108,7 @@ public class SourceContentService {
 
     private Card draft(Source source, ContentItem item, WordCoverage candidate) {
         final VocabularyWord word = candidate.word();
+        final String cardWord = word.cardWord();
         final DictionaryService.LookupResult lookup = dictionary.lookup(DictionaryRequest.builder()
                 .bookTitle(item.descriptor().title()).targetLanguage("hu").highlightedWord(word.lemma())
                 .sentence(String.join("\n", word.examples())).build(), source.getLanguageLevel());
@@ -116,7 +117,7 @@ public class SourceContentService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vocabulary card already exists: " + id);
         }
         return Card.builder().id(id).source(source).sourcePageNumber(1).type(CardType.VOCABULARY)
-                .data(CardData.builder().word(word.lemma()).type(word.wordType().toUpperCase(java.util.Locale.ROOT))
+                .data(CardData.builder().word(cardWord).type(word.wordType().toUpperCase(java.util.Locale.ROOT))
                         .forms(word.forms()).translation(Map.of("hu", lookup.translation()))
                         .examples(List.of(ExampleData.builder().de(lookup.germanExample())
                                 .hu(lookup.translatedExample()).build())).build())

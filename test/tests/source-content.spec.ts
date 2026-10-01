@@ -51,7 +51,7 @@ async function readyWords(sourceId = SOURCE, words = ['sehen', 'Haus']) {
   })));
 }
 
-async function cachedWords(words: { lemma: string; wordType: string; examples?: string[] }[]) {
+async function cachedWords(words: { lemma: string; wordType: string; article?: string; examples?: string[] }[]) {
   await withDbConnection(db => db.query(`UPDATE learn_language.content_items
     SET preparation = jsonb_set(preparation, '{words}', $1::jsonb) WHERE status = 'prepared'`,
     [JSON.stringify(words.map(word => ({ article: '', forms: [], examples: [word.lemma], surfaceForms: [word.lemma], ...word })))]));
@@ -273,6 +273,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   expect(await withDbConnection(async db =>
     (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows))
     .toEqual([expect.objectContaining({ id: 'haus-haz', data: expect.objectContaining({
+      word: 'das Haus',
       translation: { hu: 'a ház' },
       examples: [expect.objectContaining({ de: 'Das Haus ist klein.', hu: 'A ház kicsi.' })],
     }) })]);
@@ -305,7 +306,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     await addSource(page, true, level);
     await prepare(page);
     const context = 'Nachdem sie stundenlang durch den Wald gewandert waren, ließen sie sich erschöpft auf einer alten Bank nieder, die unter einer Eiche stand.';
-    await cachedWords([{ lemma: 'Bank', wordType: 'noun', examples: [context] }]);
+    await cachedWords([{ lemma: 'Bank', wordType: 'noun', article: 'die', examples: [context] }]);
     await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
     await expect(page.getByText(context, { exact: true })).toBeVisible();
     await page.getByRole('checkbox', { name: 'Bank', exact: true }).check();
@@ -314,6 +315,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     const card = await withDbConnection(async db =>
       (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows[0]);
     expect(card.id).toBe('bank-pad');
+    expect(card.data.word).toBe('die Bank');
     expect(card.data.examples).toEqual([expect.objectContaining({ de: example, hu: translation })]);
     const calls = await stats();
     expect(calls.dictionaryInputs).toEqual([expect.objectContaining({ highlightedWord: 'Bank', sentence: context, bookTitle: 'Brezel' })]);
@@ -326,9 +328,67 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
       (await db.query("SELECT preparation->'words'->0->'examples' AS examples FROM learn_language.content_items WHERE status = 'prepared'")).rows[0].examples))
       .toEqual([context]);
     await page.goto(`/sources/${SOURCE}/page/1/cards/${card.id}`);
+    await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('die Bank');
     await expect(page.getByRole('textbox', { name: 'Example in German', exact: true })).toHaveValue(example);
     await expect(page.getByRole('textbox', { name: 'Example in Hungarian', exact: true })).toHaveValue(translation);
   });
+});
+
+test('repairs existing story noun articles on upgrade without changing other card data', async ({ page }) => {
+  test.setTimeout(150000);
+  await addSource(page);
+  await prepare(page);
+  await cachedWords([
+    { lemma: 'Haus', wordType: 'noun', article: 'das' },
+    { lemma: 'Bank', wordType: 'noun', article: 'die' },
+    { lemma: 'Freund', wordType: 'noun', article: 'der' },
+    { lemma: 'Band', wordType: 'noun', article: 'das' },
+    { lemma: 'Band', wordType: 'noun', article: 'der' },
+  ]);
+  const fixtures = [
+    { cardId: 'legacy-haus', word: 'Haus', expected: 'das Haus' },
+    { cardId: 'legacy-bank', word: 'Bank', expected: 'die Bank' },
+    { cardId: 'legacy-freund', word: 'Freund', expected: 'der Freund' },
+    { cardId: 'existing-article', word: 'das Haus', expected: 'das Haus' },
+    { cardId: 'ambiguous-noun', word: 'Band', expected: 'Band' },
+    { cardId: 'unmatched-noun', word: 'Baum', expected: 'Baum' },
+    { cardId: 'non-noun', word: 'Haus', expected: 'Haus', wordType: 'OTHER' },
+    { cardId: 'ebook-noun', word: 'Haus', expected: 'Haus', sourceId: 'goethe-a1' },
+  ];
+  await Promise.all(fixtures.map(fixture => createCard({
+    cardId: fixture.cardId, sourceId: fixture.sourceId ?? SOURCE, readiness: 'READY', reps: 3,
+    data: { word: fixture.word, type: fixture.wordType ?? 'NOUN', forms: ['preserved form'],
+      translation: { hu: 'preserved translation' }, examples: [{ de: 'Preserved example.' }] },
+  })));
+  const snapshot = () => withDbConnection(async db =>
+    (await db.query('SELECT * FROM learn_language.cards ORDER BY id')).rows);
+  const before = await snapshot();
+  const expected = before.map(card => ({ ...card, data: { ...card.data,
+    word: fixtures.find(fixture => fixture.cardId === card.id)!.expected } }));
+  await withDbConnection(db => db.query("DELETE FROM learn_language.databasechangelog WHERE id = '61-story-vocabulary-articles'"));
+  await restartServer(page);
+  expect(await snapshot()).toEqual(expected);
+  await page.goto(`/sources/${SOURCE}/page/1/cards/legacy-haus`);
+  await expect(page.getByLabel('German translation', { exact: true })).toHaveValue('das Haus');
+  await withDbConnection(db => db.query("DELETE FROM learn_language.databasechangelog WHERE id = '61-story-vocabulary-articles'"));
+  await restartServer(page);
+  expect(await snapshot()).toEqual(expected);
+});
+
+test('rejects a cached noun without an article before creating a draft', async ({ page }) => {
+  await addSource(page);
+  await prepare(page);
+  expect((await stats()).vocabularyPrompts[0]).toContain('Every noun MUST have its nominative definite article (der, die, or das)');
+  await cachedWords([{ lemma: 'Haus', wordType: 'noun', article: '' }]);
+  await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
+  await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
+  expect((await response).status()).toBe(500);
+  await expect(page.getByRole('alert')).toBeVisible();
+  expect((await stats()).dictionaryInputs).toEqual([]);
+  expect(await withDbConnection(async db =>
+    (await db.query('SELECT id FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows)).toEqual([]);
 });
 
 test('requires an explicit level for legacy story sources and uses the edited source level', async ({ page }) => {
