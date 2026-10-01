@@ -73,6 +73,7 @@ export const contentResponse = (messages: { content: unknown }[], model: string)
     state.dictionaryPrompts = [...state.dictionaryPrompts, system];
     const examples: Record<string, { translation: string; germanExample: string; translatedExample: string; forms: string[] }> = {
       Haus: { translation: 'a ház', germanExample: 'Das Haus ist klein.', translatedExample: 'A ház kicsi.', forms: ['die Häuser'] },
+      gut: { translation: 'jó', germanExample: 'Das Essen ist gut.', translatedExample: 'Az étel jó.', forms: ['besser', 'am besten'] },
       'auf jeden Fall': { translation: 'mindenképpen', germanExample: 'Ich komme auf jeden Fall.', translatedExample: 'Mindenképpen eljövök.', forms: [] },
       Bank: system.includes('CEFR A1 level')
         ? { translation: 'a pad', germanExample: 'Ich sitze auf der Bank.', translatedExample: 'A padon ülök.', forms: ['die Bänke'] }

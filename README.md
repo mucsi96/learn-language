@@ -86,6 +86,19 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
 | Authentication and static frontend assets | OIDC state/tokens use browser local storage. Nginx caches fingerprinted bundles as immutable and revalidates the app shell/manifest so deployments are picked up. |
 
+## Adjective comparison forms
+
+Adjective forms contain the comparative and the `am` superlative, for example
+`gut` → `besser, am besten`. Dictionary lookup, normalization, PDF extraction,
+and story vocabulary generation use the same rule. Non-gradable adjectives in
+their given sense receive no invented degrees.
+
+Focused E2E coverage (with the test pod running):
+
+```bash
+npm test -- dictionary.spec.ts
+```
+
 ## Port Mapping
 
 All host-bound ports use the 70-79 range to avoid conflicts.

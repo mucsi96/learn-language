@@ -41,13 +41,13 @@ public class AreaWordsService {
         Rules for generating forms:
         - In case of a noun generate the plural form from suggestion. For example if the word is written like "das Angebot, -e" then the plural form is "die Angebote". Or if the word is written like "der Aufzug, -ü, e" then the plural form is "die Aufzüge". Also if the word is written like "der Koffer, –" then the plural form is "die Koffer".
         - In case of verb it's the 3 forms of conjugation (3. Person Singular Präsens, 3. Person Singular Präteritum and 3. Person Singular Perfekt). Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g. for aufnehmen the forms are "nimmt auf", "nahm auf", "hat aufgenommen").
-        - For other word types, leave the forms array empty.""";
+        - For word types other than nouns, verbs and adjectives, leave the forms array empty.""";
       case null, default -> """
         The forms is a string array representing the different forms. Since the document does not contain word forms, you must generate them.
         Rules for generating forms:
         - In case of a noun generate the plural form from suggestion. For example if the word is written like "das Angebot, -e" then the plural form is "die Angebote". Or if the word is written like "der Aufzug, -ü, e" then the plural form is "die Aufzüge". Also if the word is written like "der Koffer, –" then the plural form is "die Koffer".
         - In case of verb generate the 3 forms of conjugation (3. Person Singular Präsens, 3. Person Singular Präteritum and 3. Person Singular Perfekt). Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g. for aufnehmen the forms are "nimmt auf", "nahm auf", "hat aufgenommen").
-        - For other word types, leave the forms array empty.""";
+        - For word types other than nouns, verbs and adjectives, leave the forms array empty.""";
     };
 
     String examplesPrompt = switch (formatType) {
@@ -65,7 +65,7 @@ public class AreaWordsService {
             List.of("Ich gehe jetzt.", "Er ist nach Hause gegangen."))));
 
     final String exampleJson = jsonMapper.writeValueAsString(example);
-    return basePrompt + formsPrompt + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
+    return basePrompt + formsPrompt + AdjectiveFormsPrompt.RULE + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
   }
 
   public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType,
