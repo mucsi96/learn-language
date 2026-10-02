@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, isDevMode } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,8 +19,7 @@ import {
   type SortChangedEvent,
   ModuleRegistry,
   InfiniteRowModelModule,
-  ClientSideRowModelModule,
-  ValidationModule,
+  enableDevValidations,
   ColumnAutoSizeModule,
   themeMaterial,
   colorSchemeDarkBlue,
@@ -50,10 +49,12 @@ const getDurationSeconds = (log: ModelUsageLog): number => {
 
 ModuleRegistry.registerModules([
   InfiniteRowModelModule,
-  ClientSideRowModelModule,
-  ValidationModule,
   ColumnAutoSizeModule,
 ]);
+
+if (isDevMode()) {
+  enableDevValidations();
+}
 
 @Component({
   selector: 'app-model-usage-logs',

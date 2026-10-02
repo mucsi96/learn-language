@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, linkedSignal, resource, signal } from '@angular/core';
+import { Component, computed, effect, inject, isDevMode, linkedSignal, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,8 +25,7 @@ import {
   type SortChangedEvent,
   ModuleRegistry,
   InfiniteRowModelModule,
-  ClientSideRowModelModule,
-  ValidationModule,
+  enableDevValidations,
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
@@ -82,8 +81,6 @@ const parseQuickFilter = (value: string | null): QuickFilter | null =>
 
 ModuleRegistry.registerModules([
   InfiniteRowModelModule,
-  ClientSideRowModelModule,
-  ValidationModule,
   TextFilterModule,
   NumberFilterModule,
   DateFilterModule,
@@ -91,6 +88,10 @@ ModuleRegistry.registerModules([
   RowSelectionModule,
   TooltipModule,
 ]);
+
+if (isDevMode()) {
+  enableDevValidations();
+}
 
 @Component({
   selector: 'app-cards-table',
