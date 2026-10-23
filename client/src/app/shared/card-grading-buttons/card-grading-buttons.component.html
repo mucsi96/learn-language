@@ -1,9 +1,9 @@
 <div class="grading-buttons">
-  <button mat-raised-button bt-color="error" (click)="gradeCard('Again')">
+  <button mat-raised-button bt-color="error" (click)="gradeCard('Again')" [disabled]="isGrading()">
     <mat-icon>close</mat-icon>
     Incorrect
   </button>
-  <button mat-raised-button bt-color="success" (click)="gradeCard('Good')">
+  <button mat-raised-button bt-color="success" (click)="gradeCard('Good')" [disabled]="isGrading()">
     <mat-icon>check</mat-icon>
     Correct
   </button>

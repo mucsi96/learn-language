@@ -1,5 +1,5 @@
 @if (!isCheckingSession() && (hasExistingSession() || hasSession())) {
-  <button mat-stroked-button (click)="startSession(true)" [disabled]="isStartingSession()">
+  <button mat-stroked-button (click)="startSession(true)" [disabled]="cannotStartSession()">
     Start new study session
   </button>
 }

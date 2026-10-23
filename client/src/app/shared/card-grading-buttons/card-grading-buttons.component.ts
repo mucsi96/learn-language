@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FsrsGradingService } from '../../fsrs-grading.service';
@@ -18,19 +18,23 @@ export class CardGradingButtonsComponent {
   learningPartnerId = input<number | null>(null);
   reviewDuration = input<number | null>(null);
   cardProcessed = output<void>();
+  readonly isGrading = signal(false);
 
   private readonly fsrsGradingService = inject(FsrsGradingService);
 
   async gradeCard(grade: Grade) {
     const cardData = this.card()?.value();
-    if (!cardData) return;
+    if (!cardData || this.isGrading()) return;
 
+    this.isGrading.set(true);
     try {
       await this.fsrsGradingService.gradeCard(cardData, grade, this.learningPartnerId(), this.reviewDuration());
       this.card()?.reload?.();
       this.cardProcessed.emit();
     } catch (error) {
       console.error('Error grading card:', error);
+    } finally {
+      this.isGrading.set(false);
     }
   }
 }
