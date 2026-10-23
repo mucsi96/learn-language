@@ -290,6 +290,7 @@ export type ImageSource = {
 };
 
 export type StudySession = {
+  pomodoroEndsAt: number;
   sessionId: string;
 };
 

@@ -1,3 +1,28 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pomodoro {
+  font-variant-numeric: tabular-nums;
+}
+
+.pomodoro.expired {
+  animation: pomodoro-blink 1s step-end infinite;
+}
+
+@keyframes pomodoro-blink {
+  50% { opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pomodoro.expired {
+    animation: none;
+    text-decoration: underline;
+  }
+}
+
 .avatar {
   display: inline-flex;
   user-select: none;

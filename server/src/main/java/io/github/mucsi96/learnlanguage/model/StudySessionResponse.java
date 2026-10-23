@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudySessionResponse {
     private String sessionId;
+    private long pomodoroEndsAt;
 }

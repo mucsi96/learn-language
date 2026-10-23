@@ -84,6 +84,7 @@ export class LearnCardComponent implements OnDestroy {
   readonly hasSession = this.studySessionService.hasSession;
   readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
+  readonly isStartingSession = signal(false);
   readonly isMarkingSuggestedKnown = signal(false);
   private readonly isGrading = signal(false);
   private readonly markedSuggestedKnownSourceId = signal<string | null>(null);
@@ -197,10 +198,19 @@ export class LearnCardComponent implements OnDestroy {
     }
   }
 
-  async startSession() {
+  async startSession(restart = false) {
     const sourceId = this.sourceId();
-    if (sourceId) {
-      await this.studySessionService.createSession(sourceId);
+    if (!sourceId || this.isStartingSession()) return;
+    this.isStartingSession.set(true);
+    try {
+      await this.studySessionService.createSession(sourceId, restart);
+      this.isRevealed.set(false);
+      this.lastPlayedTexts = [];
+      this.lastPreparedCardId = null;
+      this.reviewDuration.set(null);
+      this.sessionStats.reload();
+    } finally {
+      this.isStartingSession.set(false);
     }
   }
 

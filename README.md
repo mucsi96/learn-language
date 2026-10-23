@@ -1,6 +1,19 @@
 # learn-language
 Tools for language learning
 
+## Study Pomodoro
+
+Starting a study session starts a 25-minute countdown in the header. Continuing
+the same session keeps its deadline, even after reloading the page. At zero, the
+timer blinks and announces that it is time for a break; studying can continue.
+Reduced-motion settings disable the blinking.
+
+Use **Start new study session** to begin another session on the same day, including
+on the same source. This replaces that source's current queue with currently due
+cards using its card limits and partner settings, and starts a fresh countdown.
+Card progress and review history are preserved. Other sources' sessions are
+unaffected.
+
 ## Source extensions
 
 In **Sources → Add Source**, choose **Source Extension**, then select
