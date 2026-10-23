@@ -84,8 +84,12 @@ export class LearnCardComponent implements OnDestroy {
   readonly hasSession = this.studySessionService.hasSession;
   readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
+  readonly isStartingSession = signal(false);
   readonly isMarkingSuggestedKnown = signal(false);
-  private readonly isGrading = signal(false);
+  private readonly isGrading = computed(() => this.gradingButtons()?.isGrading() === true);
+  readonly cannotStartSession = computed(() =>
+    this.isStartingSession() || this.isGrading() || this.currentCardData.isLoading()
+  );
   private readonly markedSuggestedKnownSourceId = signal<string | null>(null);
   private lastPlayedTexts: string[] = [];
 
@@ -197,10 +201,22 @@ export class LearnCardComponent implements OnDestroy {
     }
   }
 
-  async startSession() {
+  async startSession(restart = false) {
     const sourceId = this.sourceId();
-    if (sourceId) {
-      await this.studySessionService.createSession(sourceId);
+    if (!sourceId || this.cannotStartSession()) return;
+    this.isStartingSession.set(true);
+    if (restart) {
+      this.audioPlaybackService.releasePrepared();
+    }
+    try {
+      await this.studySessionService.createSession(sourceId, restart);
+      this.isRevealed.set(false);
+      this.lastPlayedTexts = [];
+      this.lastPreparedCardId = null;
+      this.reviewDuration.set(null);
+      this.sessionStats.reload();
+    } finally {
+      this.isStartingSession.set(false);
     }
   }
 
@@ -235,12 +251,7 @@ export class LearnCardComponent implements OnDestroy {
       const grade = LearnCardComponent.GRADE_BY_KEY[key as keyof typeof LearnCardComponent.GRADE_BY_KEY];
       if (grade) {
         event.preventDefault();
-        this.isGrading.set(true);
-        try {
-          await this.gradingButtons()?.gradeCard(grade);
-        } finally {
-          this.isGrading.set(false);
-        }
+        await this.gradingButtons()?.gradeCard(grade);
       }
     }
   }

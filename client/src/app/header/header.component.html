@@ -1,3 +1,12 @@
+@if (studySession.pomodoroTime(); as time) {
+  <span role="timer" aria-label="Study Pomodoro" class="pomodoro"
+    [class.expired]="studySession.pomodoroSeconds() === 0">
+    {{ time }}
+  </span>
+  @if (studySession.pomodoroSeconds() === 0) {
+    <span role="status">Time for a break!</span>
+  }
+}
 <button class="avatar" [matMenuTriggerFor]="menu">
   {{ profile()?.initials }}
 </button>

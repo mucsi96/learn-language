@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, Injector, computed, inject, resource, signal } from '@angular/core';
+import { Injectable, Injector, computed, effect, inject, resource, signal } from '@angular/core';
 import { SourcesService } from './sources.service';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from './utils/fetchJson';
@@ -19,6 +19,27 @@ export class StudySessionService {
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
   readonly hasExistingSession = signal(false);
+  private readonly pomodoroEndsAt = signal<number | null>(null);
+  private readonly now = signal(Date.now());
+  readonly pomodoroSeconds = computed(() => {
+    const endsAt = this.pomodoroEndsAt();
+    return endsAt === null ? null : Math.max(0, Math.ceil((endsAt - this.now()) / 1000));
+  });
+  readonly pomodoroTime = computed(() => {
+    const seconds = this.pomodoroSeconds();
+    if (seconds === null) return null;
+    const minutesPart = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secondsPart = (seconds % 60).toString().padStart(2, '0');
+    return `${minutesPart}:${secondsPart}`;
+  });
+
+  constructor() {
+    effect((onCleanup) => {
+      if (this.pomodoroEndsAt() === null) return;
+      const interval = setInterval(() => this.now.set(Date.now()), 1000);
+      onCleanup(() => clearInterval(interval));
+    });
+  }
 
   readonly currentCard = resource({
     params: () => ({
@@ -69,15 +90,18 @@ export class StudySessionService {
     }
   }
 
-  async createSession(sourceId: string): Promise<StudySession | null> {
+  async createSession(sourceId: string, restart = false): Promise<StudySession | null> {
     const session = await fetchJson<StudySession>(
       this.http,
-      `/api/source/${sourceId}/study-session`,
+      `/api/source/${sourceId}/study-session${restart ? '/restart' : ''}`,
       { method: 'POST' }
     );
     if (session) {
       this.sourceId.set(sourceId);
+      this.now.set(Date.now());
+      this.pomodoroEndsAt.set(session.pomodoroEndsAt);
       this.hasSession.set(true);
+      this.refreshSession();
     }
     return session;
   }
@@ -118,6 +142,7 @@ export class StudySessionService {
   }
 
   clearSession() {
+    this.pomodoroEndsAt.set(null);
     this.sourceId.set(undefined);
     this.hasSession.set(false);
     this.hasExistingSession.set(false);

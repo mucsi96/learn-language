@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -59,13 +60,21 @@ public class StudySessionService {
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
-                .map(session -> StudySessionResponse.builder()
-                        .sessionId(session.getId())
-                        .build());
+                .map(this::toSessionResponse);
     }
 
     @Transactional
     public StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay, LocalDateTime startOfNextDay) {
+        return createSession(sourceId, startOfDay, startOfNextDay, false);
+    }
+
+    @Transactional
+    public StudySessionResponse restartSession(String sourceId, LocalDateTime startOfDay, LocalDateTime startOfNextDay) {
+        return createSession(sourceId, startOfDay, startOfNextDay, true);
+    }
+
+    private StudySessionResponse createSession(String sourceId, LocalDateTime startOfDay,
+            LocalDateTime startOfNextDay, boolean restart) {
         final Source source = sourceRepository.findByIdWithLock(sourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + sourceId));
 
@@ -73,11 +82,11 @@ public class StudySessionService {
 
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay);
-        if (existingSession.isPresent()) {
-            return StudySessionResponse.builder()
-                    .sessionId(existingSession.get().getId())
-                    .build();
+        if (existingSession.isPresent() && !restart) {
+            return toSessionResponse(existingSession.get());
         }
+        existingSession.ifPresent(studySessionRepository::delete);
+        studySessionRepository.flush();
 
         final List<Card> dueCards = resolveSessionDueCards(source, startOfNextDay);
         final Optional<LearningPartner> activePartner = Optional.ofNullable(source.getLearningPartner());
@@ -87,7 +96,7 @@ public class StudySessionService {
         final StudySession session = StudySession.builder()
                 .id(sessionId)
                 .source(source)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
                 .studyMode(studyMode)
                 .cards(new ArrayList<>())
                 .build();
@@ -103,8 +112,13 @@ public class StudySessionService {
 
         studySessionRepository.save(sessionWithCards);
 
+        return toSessionResponse(sessionWithCards);
+    }
+
+    private StudySessionResponse toSessionResponse(StudySession session) {
         return StudySessionResponse.builder()
-                .sessionId(sessionId)
+                .sessionId(session.getId())
+                .pomodoroEndsAt(session.getCreatedAt().plusMinutes(25).toInstant(ZoneOffset.UTC).toEpochMilli())
                 .build();
     }
 

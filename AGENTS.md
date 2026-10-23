@@ -381,6 +381,7 @@ Tracks review history and performance metrics for spaced repetition
 - `GET /api/cards/due` - Spaced repetition due cards query
 - `GET /api/source/{sourceId}/study-session` - Get today's existing study session (204 if none)
 - `POST /api/source/{sourceId}/study-session` - Create or resume today's study session (idempotent)
+- `POST /api/source/{sourceId}/study-session/restart` - Replace this source's current session with a fresh due-card queue and Pomodoro deadline
 - `GET /api/source/{sourceId}/study-session/current-card` - Get next card for today's session
 - `POST /api/source/{sourceId}/word-import` - Stage word candidates from an analyzer JSON word list (word triage sources only)
 - `GET /api/source/{sourceId}/word-import` - Pending word candidates and triage stats
@@ -430,10 +431,11 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Due card queries optimized for study session efficiency
 
 ### Daily Study Sessions
-- Study sessions are day-based: one session per source per day
+- Study sessions are day-based: one current session per source per day; explicitly starting a new session replaces that queue while preserving cards and review history
 - Sessions automatically resume when returning to the study page on the same day
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
+- Each new session starts a 25-minute header Pomodoro; continuing retains the server-stored start time, and expiry blinks (static with reduced motion) without interrupting study
 - Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support

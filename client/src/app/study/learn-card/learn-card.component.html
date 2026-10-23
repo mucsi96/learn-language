@@ -1,4 +1,9 @@
-@if (isCheckingSession()) {
+@if (!isCheckingSession() && (hasExistingSession() || hasSession())) {
+  <button mat-stroked-button (click)="startSession(true)" [disabled]="cannotStartSession()">
+    Start new study session
+  </button>
+}
+@if (isCheckingSession() || isStartingSession()) {
 <div class="learn-card-container">
   <div class="learn-card">
     <app-learn-card-skeleton />

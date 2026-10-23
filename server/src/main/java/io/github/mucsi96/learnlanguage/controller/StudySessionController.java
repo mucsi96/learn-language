@@ -51,6 +51,16 @@ public class StudySessionController {
                 studySessionService.createSession(sourceId, startOfDayUtc(zone), startOfNextDayUtc(zone)));
     }
 
+    @PostMapping("/source/{sourceId}/study-session/restart")
+    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
+    public ResponseEntity<StudySessionResponse> restartSession(
+            @PathVariable String sourceId,
+            @RequestHeader("X-Timezone") String timezone) {
+        final ZoneId zone = parseTimezone(timezone);
+        return ResponseEntity.ok(
+                studySessionService.restartSession(sourceId, startOfDayUtc(zone), startOfNextDayUtc(zone)));
+    }
+
     @GetMapping("/source/{sourceId}/study-session/current-card")
     @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public ResponseEntity<StudySessionCardResponse> getCurrentCardBySource(
