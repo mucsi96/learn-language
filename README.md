@@ -1,6 +1,20 @@
 # learn-language
 Tools for language learning
 
+## ElevenLabs v4 audio
+
+New ElevenLabs voice configurations default to **Eleven v4** (`eleven_v4`) in
+**Settings → Voices**. Existing v3 and Turbo v2.5 configurations keep their model;
+add a v4 configuration and disable the old one to opt in. Preview and card audio
+generation use the selected model, with an estimated v4 cost of $0.08 per 1,000
+characters ([API pricing](https://elevenlabs.io/pricing/api)).
+
+V4 receives the original text and the target language code, retaining punctuation
+and any audio tags. It uses native target-language pronunciation rather than the
+v3-specific language prompting workaround. No SSML or speed/style overrides are
+added. Compare your chosen voices in Preview: v4's cross-language accent handling
+and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/capabilities/text-to-speech/eleven-v4)).
+
 ## Study Pomodoro
 
 Starting a study session starts a 25-minute countdown in the header. Continuing
