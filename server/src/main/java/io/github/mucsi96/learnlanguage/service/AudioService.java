@@ -17,9 +17,15 @@ public class AudioService {
 
   private static final List<AudioModelResponse> AVAILABLE_MODELS = List.of(
       AudioModelResponse.builder()
+          .id("eleven_v4")
+          .displayName("Eleven v4")
+          .isDefault(true)
+          .provider(ModelProvider.ELEVENLABS)
+          .build(),
+      AudioModelResponse.builder()
           .id("eleven_v3")
           .displayName("Eleven v3")
-          .isDefault(true)
+          .isDefault(false)
           .provider(ModelProvider.ELEVENLABS)
           .build(),
       AudioModelResponse.builder()
@@ -40,7 +46,7 @@ public class AudioService {
   private final GeminiAudioService geminiAudioService;
 
   public byte[] generateAudio(String input, String voiceName, String model, String language, String context, boolean singleWord) throws IOException {
-    if ("eleven_turbo_v2_5".equals(model) || "eleven_v3".equals(model)) {
+    if ("eleven_turbo_v2_5".equals(model) || "eleven_v3".equals(model) || "eleven_v4".equals(model)) {
       return elevenLabsAudioService.generateAudio(input, voiceName, model, language, context, singleWord);
     } else if (GeminiAudioService.MODEL_NAME.equals(model)) {
       return geminiAudioService.generateAudio(input, voiceName, language, singleWord);

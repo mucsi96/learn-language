@@ -733,72 +733,67 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
   await expect(page.getByText('No enabled voice configurations for languages: hu')).toBeVisible();
 });
 
-test('bulk audio creation succeeds with all enabled voice configurations', async ({ page }) => {
-  await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
-  // Create enabled voices for both languages
-  await createVoiceConfiguration({
-    voiceId: 'test-voice-de',
-    model: 'eleven_v3',
-    language: 'de',
-    displayName: 'German Voice',
-    isEnabled: true,
-  });
-  await createVoiceConfiguration({
-    voiceId: 'test-voice-hu',
-    model: 'eleven_v3',
-    language: 'hu',
-    displayName: 'Hungarian Voice',
-    isEnabled: true,
-  });
-
-  await createCard({
-    cardId: 'verstehen-erteni',
-    sourceId: 'goethe-a1',
-    sourcePageNumber: 15,
-    data: {
-      word: 'verstehen',
-      type: 'VERB',
-      translation: { en: 'to understand', hu: 'érteni' },
-      examples: [
-        {
-          de: 'Ich verstehe.',
-          hu: 'Értem.',
-          isSelected: true,
-        },
-      ],
-    },
-    readiness: 'REVIEWED',
-  });
-
-  await page.goto('/in-review-cards');
-
-  await page.getByRole('button', { name: 'Generate audio for cards' }).click();
-
-  // Should complete successfully
-  await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
-
-  // Verify the generated audio uses the configured voice
-  await withDbConnection(async (client) => {
-    const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
-
-    const cardData = result.rows[0].data;
-    const audioList = cardData.audio;
-
-    // All audio should use the configured voice IDs
-    const germanAudios = audioList.filter((a: any) => a.language === 'de');
-    const hungarianAudios = audioList.filter((a: any) => a.language === 'hu');
-
-    expect(germanAudios.length).toBeGreaterThan(0);
-    expect(hungarianAudios.length).toBeGreaterThan(0);
-
-    germanAudios.forEach((audio: any) => {
-      expect(audio.voice).toBe('test-voice-de');
-      expect(audio.model).toBe('eleven_v3');
+['eleven_v3', 'eleven_v4'].forEach((model) => {
+  test(`bulk audio creation succeeds with all enabled voice configurations (${model})`, async ({ page }) => {
+    await createRateLimitSetting({ key: 'audio-per-minute', value: 60 });
+    await createVoiceConfiguration({
+      voiceId: 'test-voice-de',
+      model,
+      language: 'de',
+      displayName: 'German Voice',
+      isEnabled: true,
+    });
+    await createVoiceConfiguration({
+      voiceId: 'test-voice-hu',
+      model,
+      language: 'hu',
+      displayName: 'Hungarian Voice',
+      isEnabled: true,
     });
 
-    hungarianAudios.forEach((audio: any) => {
-      expect(audio.voice).toBe('test-voice-hu');
-      expect(audio.model).toBe('eleven_v3');
+    await createCard({
+      cardId: 'verstehen-erteni',
+      sourceId: 'goethe-a1',
+      sourcePageNumber: 15,
+      data: {
+        word: 'verstehen',
+        type: 'VERB',
+        translation: { en: 'to understand', hu: 'érteni' },
+        examples: [
+          {
+            de: 'Ich verstehe.',
+            hu: 'Értem.',
+            isSelected: true,
+          },
+        ],
+      },
+      readiness: 'REVIEWED',
+    });
+
+    await page.goto('/in-review-cards');
+    await page.getByRole('button', { name: 'Generate audio for cards' }).click();
+    await expect(page.getByText('Audio generated successfully for 1 card!')).toBeVisible();
+
+    await withDbConnection(async (client) => {
+      const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'verstehen-erteni'");
+      const audioList = result.rows[0].data.audio;
+      const germanAudios = audioList.filter((a: any) => a.language === 'de');
+      const hungarianAudios = audioList.filter((a: any) => a.language === 'hu');
+
+      expect(germanAudios.length).toBeGreaterThan(0);
+      expect(hungarianAudios.length).toBeGreaterThan(0);
+
+      germanAudios.forEach((audio: any) => {
+        expect(audio.voice).toBe('test-voice-de');
+        expect(audio.model).toBe(model);
+        assertAudioExists(audio.id);
+      });
+
+      hungarianAudios.forEach((audio: any) => {
+        expect(audio.voice).toBe('test-voice-hu');
+        expect(audio.model).toBe(model);
+        assertAudioExists(audio.id);
+      });
     });
   });
 });

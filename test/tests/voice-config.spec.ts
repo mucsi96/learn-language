@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAudioSetting, withDbConnection } from '../utils';
+import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAudioSetting, withDbConnection, assertAudioExists } from '../utils';
 
 test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.goto('/');
@@ -40,6 +40,12 @@ test('displays existing voice configurations grouped by language', async ({ page
 });
 
 test('can add a new voice configuration', async ({ page }) => {
+  await createCard({
+    cardId: 'v4-preview',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 9,
+    data: { word: 'Haus', type: 'NOUN', translation: { en: 'house' } },
+  });
   await page.goto('/settings/voices');
 
   await page.getByRole('button', { name: 'Add voice' }).first().click();
@@ -60,6 +66,20 @@ test('can add a new voice configuration', async ({ page }) => {
   expect(configs).toHaveLength(1);
   expect(configs[0].voiceId).toBe('test-voice-de');
   expect(configs[0].language).toBe('de');
+  expect(configs[0].model).toBe('eleven_v4');
+  await page.reload();
+  await expect(page.getByText('Eleven v4', { exact: true })).toBeVisible();
+
+  const audioResponsePromise = page.waitForResponse(
+    (response) => response.url().endsWith('/api/audio') && response.request().method() === 'POST'
+  );
+  await page.getByRole('button', { name: 'Preview voice' }).click();
+  const audioResponse = await audioResponsePromise;
+  expect(audioResponse.ok()).toBe(true);
+  expect(audioResponse.request().postDataJSON()).toMatchObject({
+    model: 'eleven_v4', voice: 'test-voice-de', input: 'Haus', language: 'de',
+  });
+  assertAudioExists((await audioResponse.json()).id);
 });
 
 test('can add a Gemini TTS voice configuration', async ({ page }) => {
@@ -77,6 +97,7 @@ test('can add a Gemini TTS voice configuration', async ({ page }) => {
   await page.getByLabel('Model').click();
   await expect(page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ })).toBeVisible();
   await expect(page.getByRole('option', { name: /Eleven v3/ })).not.toBeVisible();
+  await expect(page.getByRole('option', { name: /Eleven v4/ })).not.toBeVisible();
   await page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ }).click();
 
   await page.getByRole('button', { name: 'Add' }).click();
