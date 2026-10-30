@@ -37,11 +37,17 @@ the same session keeps its deadline, even after reloading the page. At zero, the
 timer blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
-Use **Start new study session** to begin another session on the same day, including
+Click the header timer (or focus it and press Enter/Space) to **start a new study
+session** on the same day, including
 on the same source. This replaces that source's current queue with currently due
 cards using its card limits and partner settings, and starts a fresh countdown.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
+
+The installed iPad app uses the non-overlay system status bar, keeping the clock
+and battery indicators above the application header. Safe-area padding is retained
+for devices with display cutouts. After updating, reopen the installed app to pick
+up the status-bar setting.
 
 ## Source extensions
 

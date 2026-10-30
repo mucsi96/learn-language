@@ -1,13 +1,18 @@
 @if (studySession.pomodoroTime(); as time) {
-  <span role="timer" aria-label="Study Pomodoro" class="pomodoro"
-    [class.expired]="studySession.pomodoroSeconds() === 0">
-    {{ time }}
-  </span>
+  @if (studySession.restartControl(); as restart) {
+    <button mat-button aria-label="Start new study session" matTooltip="Start new study session"
+      [disabled]="restart.disabled()" (click)="restart.start()">
+      <span role="timer" aria-label="Study Pomodoro" class="pomodoro"
+        [class.expired]="studySession.pomodoroSeconds() === 0">
+        {{ time }}
+      </span>
+    </button>
+  }
   @if (studySession.pomodoroSeconds() === 0) {
-    <span role="status">Time for a break!</span>
+    <span role="status" class="break-status">Time for a break!</span>
   }
 }
-<button class="avatar" [matMenuTriggerFor]="menu">
+<button class="avatar" aria-label="Profile menu" [matMenuTriggerFor]="menu">
   {{ profile()?.initials }}
 </button>
 <mat-menu #menu="matMenu">

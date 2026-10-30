@@ -163,6 +163,11 @@ export class LearnCardComponent implements OnDestroy {
   private previousSourceId: string | null = null;
 
   constructor() {
+    this.studySessionService.restartControl.set({
+      disabled: this.cannotStartSession,
+      start: () => this.startSession(true),
+    });
+
     effect(() => {
       const sourceId = this.sourceId();
       if (sourceId) {
@@ -257,6 +262,7 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.studySessionService.restartControl.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.clearSession();
   }
