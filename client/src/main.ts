@@ -19,24 +19,12 @@ loadEnvironmentConfig().then(environment => {
       visibilityState: document.visibilityState,
     })
   );
-  return bootstrapApplication(AppComponent, getAppConfig(environment));
-}).catch(error => {
-  console.error('[boot] Application startup failed', error);
-  const heading = document.createElement('h1');
-  heading.textContent = 'Learn language could not start';
-  const message = document.createElement('p');
-  message.textContent = 'Please try again. If the problem continues, contact support.';
-  const retry = document.createElement('button');
-  retry.textContent = 'Try again';
-  retry.addEventListener('click', () => window.location.reload());
-  const alert = document.createElement('main');
-  alert.setAttribute('role', 'alert');
-  alert.append(heading, message, retry);
-  document.body.replaceChildren(alert);
+  bootstrapApplication(AppComponent, getAppConfig(environment))
+    .catch((err) => console.error('[boot] Angular bootstrap failed', err));
 });
 
 async function loadEnvironmentConfig(): Promise<EnvironmentConfig> {
-  const response = await fetch('/api/environment', { signal: AbortSignal.timeout(30_000) });
+  const response = await fetch('/api/environment');
   if (!response.ok) {
     throw new Error(`Failed to load config: ${response.status}`);
   }
