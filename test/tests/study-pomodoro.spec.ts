@@ -67,6 +67,11 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
     const navigation = page.getByRole('navigation');
     const restart = navigation.getByRole('button', { name: 'Start new study session' });
     await expect(restart).toBeEnabled();
+    const headerBounds = await navigation.evaluate(element => element.parentElement!.getBoundingClientRect().toJSON());
+    expect(headerBounds.y).toBe(top);
+    if (width >= 768) {
+      expect(headerBounds.height).toBe(65);
+    }
     expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');
     await Promise.all([
       navigation.getByRole('link', { name: 'Learn language', exact: true }),

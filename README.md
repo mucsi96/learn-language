@@ -45,8 +45,9 @@ Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 
 The installed iPad app uses the non-overlay system status bar, keeping the clock
-and battery indicators above the application header. Safe-area padding is retained
-for devices with display cutouts. After updating, reopen the installed app to pick
+and battery indicators above the application header. Any safe-area inset is applied
+outside the toolbar, so the toolbar retains its normal height and the whole app
+starts below the safe area. After updating, reopen the installed app to pick
 up the status-bar setting.
 
 ## Source extensions
