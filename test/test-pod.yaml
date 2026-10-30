@@ -158,6 +158,9 @@ spec:
 
     - name: server
       image: localhost/learn-language-server:test
+      ports:
+        - containerPort: 8172
+          hostPort: 8172
       env:
         - name: SERVER_PORT
           value: "8074"
