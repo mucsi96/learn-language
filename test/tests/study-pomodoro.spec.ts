@@ -8,12 +8,15 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
   });
   await page.goto('/sources/goethe-a1/study');
   const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
+  const restart = page.getByRole('navigation').getByRole('button', { name: 'Start new study session' });
   await expect(timer).not.toBeVisible();
   const started = page.waitForResponse(response =>
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   const original = await (await started).json();
   await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
+  await expect(restart).toContainText(/^\s*(25:00|24:5\d)\s*$/);
+  await expect(page.getByRole('main').getByRole('button', { name: 'Start new study session' })).toHaveCount(0);
 
   await page.clock.install({ time: original.pomodoroEndsAt - 25 * 60_000 });
   await page.clock.fastForward(60_000);
@@ -36,7 +39,8 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
 
   await page.clock.setSystemTime(Date.now());
   const restarted = page.waitForResponse(response => response.url().endsWith('/study-session/restart'));
-  await page.getByRole('button', { name: 'Start new study session' }).click();
+  await restart.focus();
+  await page.keyboard.press('Enter');
   const fresh = await (await restarted).json();
   expect(fresh.sessionId).not.toBe(original.sessionId);
   expect(fresh.pomodoroEndsAt).toBeGreaterThan(original.pomodoroEndsAt);
@@ -44,6 +48,42 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
   await expect(timer).toHaveCSS('animation-name', 'none');
   await expect(page.getByRole('status')).not.toBeVisible();
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' })).toBeVisible();
+  await page.getByRole('link', { name: 'Learn language', exact: true }).click();
+  await expect(timer).not.toBeVisible();
+  await expect(restart).not.toBeVisible();
+});
+
+[
+  { width: 1024, height: 768, top: 24 },
+  { width: 768, height: 1024, top: 24 },
+  { width: 390, height: 844, top: 47 },
+].forEach(({ width, height, top }) => {
+  test(`header controls stay inside the safe area at ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top, left: 0, right: 0, bottom: 0 } });
+    await page.goto('/sources/goethe-a1/study');
+    await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+    const navigation = page.getByRole('navigation');
+    const restart = navigation.getByRole('button', { name: 'Start new study session' });
+    await expect(restart).toBeEnabled();
+    expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');
+    await Promise.all([
+      navigation.getByRole('link', { name: 'Learn language', exact: true }),
+      restart,
+      navigation.getByRole('button', { name: 'Profile menu' }),
+    ].map(async control => {
+      await expect(control).toBeVisible();
+      const bounds = await control.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.y).toBeGreaterThanOrEqual(top);
+      expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    }));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    await navigation.getByRole('button', { name: 'Profile menu' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Settings', exact: true })).toBeVisible();
+  });
 });
 
 test('new same-day session selects remaining due cards and preserves completed reviews', async ({ page }) => {
@@ -68,6 +108,7 @@ test('new same-day session selects remaining due cards and preserves completed r
   expect(await getStudySessionCardsBySource('limited')).toHaveLength(1);
 
   await page.reload();
+  await page.getByRole('button', { name: 'Continue study session' }).click();
   await page.getByRole('button', { name: 'Start new study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
 });

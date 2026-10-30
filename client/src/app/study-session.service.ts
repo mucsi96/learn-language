@@ -19,6 +19,10 @@ export class StudySessionService {
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
   readonly hasExistingSession = signal(false);
+  readonly restartControl = signal<{
+    disabled: () => boolean;
+    start: () => Promise<void>;
+  } | null>(null);
   private readonly pomodoroEndsAt = signal<number | null>(null);
   private readonly now = signal(Date.now());
   readonly pomodoroSeconds = computed(() => {
