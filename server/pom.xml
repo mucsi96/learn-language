@@ -303,6 +303,7 @@
                  by default; PDFBox decodes font names with Windows-1252 and
                  reports UnsupportedCharsetException without it. -->
             <buildArg>-H:+AddAllCharsets</buildArg>
+            <buildArg>-H:+SharedArenaSupport</buildArg>
             <!-- azure-core build-time initializes a few Jackson core classes
                  but not everything they hold on to, which would leave objects
                  of run-time initialized types in the image heap. Naming those
