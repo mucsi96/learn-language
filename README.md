@@ -1,6 +1,21 @@
 # learn-language
 Tools for language learning
 
+## Bootstrap health
+
+Spring readiness includes a `bootstrap` indicator alongside `readinessState` and
+`db`. Every 15 seconds, it requests `/api/environment` over loopback on the actual
+application port, exercising the same configuration and voice-loading path used
+by the frontend. A non-200 response or a three-second timeout reports `DOWN`.
+The health endpoint reads the cached result, so Kubernetes probes do not each
+trigger a provider request. Missing results and results older than 45 seconds
+also report `DOWN`; successful checks restore readiness automatically.
+
+Liveness remains independent of bootstrap dependencies. This detects backend
+bootstrap failures, including native failures surfaced as HTTP 500; it does not
+test JavaScript rendering or external ingress. The local native-stack regression
+test is `cd test && npx playwright test bootstrap-health.spec.ts`.
+
 ## ElevenLabs v4 audio
 
 New ElevenLabs voice configurations default to **Eleven v4** (`eleven_v4`) in
