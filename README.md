@@ -51,6 +51,11 @@ and battery indicators above the application header. Safe-area padding is retain
 for devices with display cutouts. After updating, reopen the installed app to pick
 up the status-bar setting.
 
+Study pages keep the header outside the scrolling content. Vocabulary cards use
+the remaining viewport height, including safe-area insets, with grading controls
+below the card. Images scale to fit in both iPad orientations; unusually long
+content remains scrollable without moving the header into the system status bar.
+
 ## Source extensions
 
 In **Sources → Add Source**, choose **Source Extension**, then select
