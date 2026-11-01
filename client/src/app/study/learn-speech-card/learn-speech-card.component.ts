@@ -24,7 +24,7 @@ type ImageResource = ExampleImage & { url: string };
   standalone: true,
   imports: [CommonModule, StateComponent],
   templateUrl: './learn-speech-card.component.html',
-  styleUrl: './learn-speech-card.component.css',
+  styleUrls: ['../image-card.css', './learn-speech-card.component.css'],
   host: { role: 'article', 'aria-label': 'Flashcard' },
 })
 export class LearnSpeechCardComponent {

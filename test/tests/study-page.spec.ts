@@ -1468,12 +1468,21 @@ test('grammar card without image keeps the same size as image cards', async ({ p
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(flashcard.locator('.gap-word.masked')).toBeVisible();
-
-  const box = await flashcard.boundingBox();
-  const ratio = box!.height / box!.width;
-  expect(ratio).toBeGreaterThan(0.5);
-  expect(ratio).toBeLessThan(0.6);
+  await expect(flashcard.getByLabel('Hungarian translation')).toHaveText('Könyvet olvasok.');
+  const grammarBox = await flashcard.boundingBox();
+  await createCard({
+    cardId: 'speech-size-card', sourceId: 'speech-a1', cardType: 'SPEECH',
+    data: {
+      examples: [{
+        de: 'Ich lese ein Buch.', hu: 'Könyvet olvasok.', isSelected: true,
+        images: [{ id: uploadMockImage(yellowImage), isFavorite: true }],
+      }],
+    },
+  });
+  await page.goto('/sources/speech-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(flashcard.getByRole('img')).toBeVisible();
+  expect(await flashcard.boundingBox()).toEqual(grammarBox);
 });
 
 test('grammar card shows hint above the sentence', async ({ page }) => {

@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
 .content-section {
   position: relative;
   display: flex;

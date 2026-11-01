@@ -51,10 +51,16 @@ and battery indicators above the application header. Safe-area padding is retain
 for devices with display cutouts. After updating, reopen the installed app to pick
 up the status-bar setting.
 
-Study pages keep the header outside the scrolling content. Vocabulary cards use
+Study pages keep the header outside the scrolling content. All card types use
 the remaining viewport height, including safe-area insets, with grading controls
-below the card. Images scale to fit in both iPad orientations; unusually long
+below the card. Vocabulary and speech images share responsive sizing with a
+minimum mobile height. Images scale to fit in both iPad orientations; unusually long
 content remains scrollable without moving the header into the system status bar.
+
+Cross-card layout coverage: `cd test && npx playwright test study-card-strategies.spec.ts`.
+The tests save top/scrolled screenshots for each card type and viewport. Set
+`STUDY_SCREENSHOT_IMAGE` to an absolute image path to capture the vocabulary and
+speech examples with a realistic illustration instead of the test image.
 
 ## Source extensions
 
