@@ -32,15 +32,17 @@ and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/ca
 
 ## Study Pomodoro
 
-Starting a study session starts a 25-minute countdown in the header. Continuing
-the same session keeps its deadline, even after reloading the page. At zero, the
+Click **Start Pomodoro** in the header to start a 25-minute countdown independently
+of study sessions. Switching sources, returning home, starting or continuing a
+study session, and reloading the page all keep its deadline. The countdown is
+stored for the current browser tab. At zero, the
 timer blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
-Click the header timer (or focus it and press Enter/Space) to **start a new study
-session** on the same day, including
-on the same source. This replaces that source's current queue with currently due
-cards using its card limits and partner settings, and starts a fresh countdown.
+Click the header timer (or focus it and press Enter/Space) to restart only the
+countdown. To **start a new study session**, use the profile menu while studying.
+This replaces that source's current queue with currently due
+cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 

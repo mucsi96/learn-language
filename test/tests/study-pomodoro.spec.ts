@@ -1,26 +1,29 @@
 import { test, expect } from '../fixtures';
 import { createCard, createSource, getReviewLogsByCardId, getStudySessionCardsBySource, withDbConnection } from '../utils';
 
-test('Pomodoro survives continuing, blinks at zero, and resets for a new session', async ({ page }) => {
+test('Pomodoro runs independently of sources, sessions and navigation', async ({ page }) => {
+  await createSource({ id: 'other', name: 'Other', languageLevel: 'A1', cardTypes: ['VOCABULARY'] });
   await createCard({
     cardId: 'pomodoro-card', sourceId: 'goethe-a1', sourcePageNumber: 1,
     data: { word: 'lernen', type: 'VERB', translation: { en: 'learn', hu: 'tanulni' } },
   });
-  await page.goto('/sources/goethe-a1/study');
+  await page.clock.install();
+  await page.goto('/');
   const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
-  const restart = page.getByRole('navigation').getByRole('button', { name: 'Start new study session' });
+  const restart = page.getByRole('button', { name: 'Restart Pomodoro' });
   await expect(timer).not.toBeVisible();
+  await page.getByRole('button', { name: 'Start Pomodoro', exact: true }).click();
+  await expect(timer).toHaveText('25:00');
+  await page.clock.fastForward(60_000);
+  await expect(timer).toHaveText('24:00');
+  await page.goto('/sources/goethe-a1/study');
   const started = page.waitForResponse(response =>
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   const original = await (await started).json();
-  await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
-  await expect(restart).toContainText(/^\s*(25:00|24:5\d)\s*$/);
+  await expect(timer).toHaveText(/^\s*(24:00|23:5\d)\s*$/);
   await expect(page.getByRole('main').getByRole('button', { name: 'Start new study session' })).toHaveCount(0);
 
-  await page.clock.install({ time: original.pomodoroEndsAt - 25 * 60_000 });
-  await page.clock.fastForward(60_000);
-  await expect(timer).toHaveText('24:00');
   await page.reload();
   const continued = page.waitForResponse(response =>
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
@@ -28,6 +31,16 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
   expect(await (await continued).json()).toEqual(original);
   await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
 
+  await page.goto('/sources/other/study');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Start new study session' }).click();
+  await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Continue study session' }).click();
   await page.clock.fastForward(25 * 60_000);
   await expect(timer).toHaveText('00:00');
   await expect(timer).toHaveCSS('animation-name', /pomodoro-blink$/);
@@ -37,20 +50,19 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(timer).toHaveCSS('animation-name', 'none');
 
-  await page.clock.setSystemTime(Date.now());
-  const restarted = page.waitForResponse(response => response.url().endsWith('/study-session/restart'));
+  const queue = await getStudySessionCardsBySource('goethe-a1');
   await restart.focus();
   await page.keyboard.press('Enter');
-  const fresh = await (await restarted).json();
-  expect(fresh.sessionId).not.toBe(original.sessionId);
-  expect(fresh.pomodoroEndsAt).toBeGreaterThan(original.pomodoroEndsAt);
   await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
   await expect(timer).toHaveCSS('animation-name', 'none');
   await expect(page.getByRole('status')).not.toBeVisible();
+  expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' })).toBeVisible();
   await page.getByRole('link', { name: 'Learn language', exact: true }).click();
-  await expect(timer).not.toBeVisible();
-  await expect(restart).not.toBeVisible();
+  await expect(timer).toBeVisible();
+  await expect(restart).toBeVisible();
+  await page.clock.fastForward(60_000);
+  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
 });
 
 [
@@ -65,7 +77,9 @@ test('Pomodoro survives continuing, blinks at zero, and resets for a new session
     await page.goto('/sources/goethe-a1/study');
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
     const navigation = page.getByRole('navigation');
-    const restart = navigation.getByRole('button', { name: 'Start new study session' });
+    await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).not.toBeVisible();
+    await navigation.getByRole('button', { name: 'Start Pomodoro', exact: true }).click();
+    const restart = navigation.getByRole('button', { name: 'Restart Pomodoro' });
     await expect(restart).toBeEnabled();
     expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');
     await Promise.all([
@@ -102,14 +116,16 @@ test('new same-day session selects remaining due cards and preserves completed r
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
   const reviews = await getReviewLogsByCardId('first');
   expect(reviews).toHaveLength(1);
-  await page.getByRole('button', { name: 'Start new study session' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Start new study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
   expect(await getReviewLogsByCardId('first')).toEqual(reviews);
   expect(await getStudySessionCardsBySource('limited')).toHaveLength(1);
 
   await page.reload();
   await page.getByRole('button', { name: 'Continue study session' }).click();
-  await page.getByRole('button', { name: 'Start new study session' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Start new study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
 });
 
@@ -125,9 +141,10 @@ test('new same-day session selects remaining due cards and preserves completed r
     })));
     await page.goto('/sources/limited/study');
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-    const restart = page.getByRole('button', { name: 'Start new study session' });
+    const restart = page.getByRole('menuitem', { name: 'Start new study session' });
     await page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'first' }).click();
     await page.route('**/api/card/first', async route => {
+      await page.getByRole('button', { name: 'Profile menu' }).click();
       await expect(restart).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeDisabled();
       await route.continue();
@@ -172,7 +189,8 @@ test('restart stops old-card audio even when the new queue is empty', async ({ p
     expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(false);
     await route.continue();
   });
-  await page.getByRole('button', { name: 'Start new study session' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Start new study session' }).click();
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
   expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(false);
 });
