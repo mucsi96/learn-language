@@ -3,7 +3,7 @@ import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAud
 
 test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'TU' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();

@@ -32,14 +32,14 @@ test('recovers with a user-initiated retry after an authority error', async ({
 
   await page.getByRole('button', { name: 'Try again' }).click();
 
-  await expect(page.getByRole('button', { name: 'TU' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Profile menu' })).toBeVisible();
 });
 
 test('reauthenticates immediately when the refresh token expires', async ({
   page,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'TU' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Profile menu' })).toBeVisible();
 
   const refreshToken = await page.evaluate(() => {
     const key = Object.keys(localStorage).find((item) =>
@@ -81,7 +81,7 @@ test('reauthenticates immediately when the refresh token expires', async ({
       })
     )
     .not.toBe(refreshToken);
-  await expect(page.getByRole('button', { name: 'TU' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Profile menu' })).toBeVisible();
   await expect(page.getByText(/^An error occurred/)).not.toBeVisible();
   expect(authorizationRequests).toBe(1);
 });

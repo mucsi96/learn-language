@@ -6,6 +6,7 @@ import { UserProfileService } from '../user-profile.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterLink } from '@angular/router';
 import { StudySessionService } from '../study-session.service';
+import { PomodoroService } from '../pomodoro.service';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +21,7 @@ import { StudySessionService } from '../study-session.service';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
+  readonly pomodoro = inject(PomodoroService);
   readonly studySession = inject(StudySessionService);
   profile = inject(UserProfileService).profile;
 }
