@@ -9,7 +9,7 @@
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: 0;
+  min-height: min(10rem, 25dvh);
   overflow: hidden;
 }
 
@@ -139,6 +139,7 @@ h2 {
 
   .image-section {
     flex: none;
+    min-height: 0;
     width: 55%;
     padding-top: 0;
   }
