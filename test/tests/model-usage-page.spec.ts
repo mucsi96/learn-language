@@ -56,7 +56,7 @@ test('page title', async ({ page }) => {
 
 test('navigates to model usage from profile menu', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'TU' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Model usage' })).toHaveAttribute('href', '/model-usage');
   await page.getByRole('menuitem', { name: 'Model usage' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Model Usage Logs' })).toBeVisible();

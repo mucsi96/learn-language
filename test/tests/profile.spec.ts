@@ -8,18 +8,18 @@ test('title', async ({ page }) => {
 
 test('shows user initials in header', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'TU' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Profile menu' })).toHaveText('TU');
 });
 
 test('shows user name in popup', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'TU' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByText('Test User')).toBeVisible();
 });
 
 test('navigates to sources from popup', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'TU' }).click();
+  await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Sources' })).toHaveAttribute('href', '/sources');
   await page.getByRole('menuitem', { name: 'Sources' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible();
