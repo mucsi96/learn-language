@@ -39,7 +39,6 @@ async function pressRemoteKey(page: Page, key: string) {
       const now = new Date();
       const lastReview = new Date(now.getTime() - 3 * 86400000);
       const cardId = `v6-${state}-${button}`;
-      await page.clock.setFixedTime(now);
       await createCard({
         cardId,
         sourceId: 'goethe-a1',
@@ -60,6 +59,8 @@ async function pressRemoteKey(page: Page, key: string) {
       });
 
       await page.goto('/sources/goethe-a1/study');
+      await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
+      await page.clock.setFixedTime(now);
       await page.getByRole('button', { name: 'Start study session' }).click();
       await page.getByRole('article', { name: 'Flashcard' })
         .getByRole('heading', { name: 'tanulni' }).click();
