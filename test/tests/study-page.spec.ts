@@ -33,6 +33,62 @@ async function pressRemoteKey(page: Page, key: string) {
   );
 }
 
+(['NEW', 'LEARNING', 'REVIEW', 'RELEARNING'] as const).forEach((state) => {
+  (['Correct', 'Incorrect'] as const).forEach((button) => {
+    test(`v6 scheduling preserves stored ${state} progress when grading ${button}`, async ({ page }) => {
+      const now = new Date();
+      const lastReview = new Date(now.getTime() - 3 * 86400000);
+      const cardId = `v6-${state}-${button}`;
+      await page.clock.setFixedTime(now);
+      await createCard({
+        cardId,
+        sourceId: 'goethe-a1',
+        sourcePageNumber: 1,
+        data: {
+          word: 'lernen',
+          type: 'VERB',
+          translation: { en: 'learn', hu: 'tanulni', ch: 'lerne' },
+        },
+        state,
+        stability: state === 'NEW' ? 0 : 10,
+        difficulty: state === 'NEW' ? 0 : 5,
+        reps: state === 'NEW' ? 0 : 3,
+        lastReview,
+        elapsedDays: 99,
+        scheduledDays: 2,
+        learningSteps: state === 'LEARNING' ? 1 : 0,
+      });
+
+      await page.goto('/sources/goethe-a1/study');
+      await page.getByRole('button', { name: 'Start study session' }).click();
+      await page.getByRole('article', { name: 'Flashcard' })
+        .getByRole('heading', { name: 'tanulni' }).click();
+      const saved = page.waitForResponse((response) =>
+        response.url().includes(`/api/card/${cardId}`) &&
+        response.request().method() === 'PUT'
+      );
+      await page.getByRole('button', { name: button, exact: true }).click();
+      const response = await saved;
+      expect(response.ok()).toBe(true);
+      const payload = response.request().postDataJSON();
+      expect(payload.elapsedDays).toBe(state === 'NEW' ? 0 : 3);
+      expect(payload.reps).toBe(state === 'NEW' ? 1 : 4);
+      expect(new Date(payload.lastReview).getTime()).toBe(now.getTime());
+      expect(payload.rating).toBe(button === 'Correct' ? 3 : 1);
+      const expectedState = button === 'Incorrect'
+        ? (state === 'REVIEW' || state === 'RELEARNING' ? 'RELEARNING' : 'LEARNING')
+        : (state === 'NEW' ? 'LEARNING' : 'REVIEW');
+      expect(payload.state).toBe(expectedState);
+      const stored = await getCardFromDb(cardId);
+      expect(stored.state).toBe(expectedState);
+      expect(stored.reps).toBe(payload.reps);
+      const logs = await getReviewLogsByCardId(cardId);
+      expect(logs).toHaveLength(1);
+      expect(logs[0].rating).toBe(payload.rating);
+    });
+  });
+});
+
 test('study page shows start button initially', async ({ page }) => {
   await page.goto('/sources/goethe-a1/study');
 

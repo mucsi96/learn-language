@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { createEmptyCard } from 'ts-fsrs';
-import { FsrsGradingService } from './fsrs-grading.service';
+import { newCardScheduling } from './shared/state/fsrs-scheduler';
 import { fetchJson } from './utils/fetchJson';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardCreatePayload, SimpleCardSuggestion } from './parser/types';
@@ -14,7 +13,6 @@ const CARD_CREATION_CHUNK_SIZE = 10;
 })
 export class JsonSourceService {
   private readonly http = inject(HttpClient);
-  private readonly fsrsGradingService = inject(FsrsGradingService);
 
   async createCards(
     sourceId: string,
@@ -51,7 +49,6 @@ export class JsonSourceService {
     suggestion: SimpleCardSuggestion,
     readiness: CardReadiness
   ): Promise<unknown> {
-    const emptyCard = createEmptyCard();
     const cardPayload = {
       id: suggestion.id,
       sourceId,
@@ -63,7 +60,7 @@ export class JsonSourceService {
         ...(suggestion.topic ? { topic: suggestion.topic } : {}),
         ...(suggestion.category ? { category: suggestion.category } : {}),
       },
-      ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
+      ...newCardScheduling(suggestion.id),
       readiness,
     } satisfies CardCreatePayload;
 

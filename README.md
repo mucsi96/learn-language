@@ -1,6 +1,22 @@
 # learn-language
 Tools for language learning
 
+## FSRS scheduling
+
+The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
+default 21 weights. The explicit middleware preserves 90% desired retention,
+disabled fuzzing, 1/10-minute learning steps, a 10-minute relearning step,
+UTC calendar-day intervals, and a 36,500-day maximum interval.
+
+Existing database cards and review history retain their application schema.
+The client validates cards at the scheduler boundary, reuses their IDs, and
+maps scheduling results to the existing API. `elapsedDays` is derived from the
+previous and current review timestamps; reset/new cards use zero. Stored review
+logs are application records, not v6 rollback snapshots.
+
+Migration reference: https://open-spaced-repetition.github.io/ts-fsrs/guide/migration.html
+Regression coverage: `cd test && npx playwright test study-page.spec.ts -g 'v6 scheduling'`.
+
 ## Bootstrap health
 
 Spring readiness includes a `bootstrap` indicator alongside `readinessState` and

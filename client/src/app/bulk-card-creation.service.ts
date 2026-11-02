@@ -2,8 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Card, CardCreatePayload, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
-import { createEmptyCard } from 'ts-fsrs';
-import { FsrsGradingService } from './fsrs-grading.service';
+import { newCardScheduling } from './shared/state/fsrs-scheduler';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
 import {
@@ -27,7 +26,6 @@ import { RateLimitTokenService } from './rate-limit-token.service';
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
-  private readonly fsrsGradingService = inject(FsrsGradingService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progress = signal<DotProgress[]>([]);
@@ -121,14 +119,13 @@ export class BulkCardCreationService {
       updateProgress('in-progress', `${label}: Creating draft...`);
 
       const draftCardData = strategy.createDraftCardData(item, context);
-      const emptyCard = createEmptyCard();
       const cardPayload = {
         id: item.id,
         sourceId,
         sourcePageNumber: pageNumber,
         type: cardType,
         data: draftCardData,
-        ...this.fsrsGradingService.convertFromFSRSCard(emptyCard),
+        ...newCardScheduling(item.id),
         readiness: 'DRAFT',
       } satisfies CardCreatePayload;
 
