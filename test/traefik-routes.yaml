@@ -2,7 +2,7 @@ http:
   routers:
     server:
       rule: "PathPrefix(`/api`)"
-      priority: 2
+      priority: 10
       service: server
       entryPoints:
         - web
@@ -10,8 +10,20 @@ http:
       rule: "PathPrefix(`/`)"
       priority: 1
       service: client
+      middlewares:
+        - spa-document
       entryPoints:
         - web
+    assets:
+      rule: 'PathRegexp(`\.[a-zA-Z0-9]+$`)'
+      priority: 2
+      service: client
+      entryPoints:
+        - web
+  middlewares:
+    spa-document:
+      replacePath:
+        path: /index.html
   services:
     server:
       loadBalancer:

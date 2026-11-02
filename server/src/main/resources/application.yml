@@ -1,3 +1,4 @@
+app-origin: https://${hostname}
 storage:
   directory: ${STORAGE_DIRECTORY}
 spring:

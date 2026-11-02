@@ -3,7 +3,21 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { cleanupDbRecords, cleanupStorage, populateStorage, setupTestRateLimits } from './utils';
 
-export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
+export const test = base.extend<{ triggerCleanup: () => Promise<void>; apiHeaders: Record<string, string> }>({
+  apiHeaders: async ({ request, baseURL }, use) => {
+    const issuer = 'http://localhost:8079/default';
+    const redirect = 'http://localhost/test';
+    const authorization = await request.get(`${issuer}/authorize`, {
+      params: { client_id: 'test-client', redirect_uri: redirect, response_type: 'code' },
+      maxRedirects: 0,
+    });
+    const code = new URL(authorization.headers()['location']).searchParams.get('code')!;
+    const tokens = await request.post(`${issuer}/token`, {
+      form: { grant_type: 'authorization_code', client_id: 'test-client', redirect_uri: redirect, code },
+    });
+    if (!tokens.ok()) throw new Error(`Mock token request failed: ${tokens.status()}`);
+    await use({ Authorization: `Bearer ${(await tokens.json()).access_token}`, Origin: new URL(baseURL!).origin });
+  },
   triggerCleanup: async ({ baseURL }, use) => {
     await use(async () => {
       const response = await fetch(`${baseURL}/api/test/cleanup-storage`, {
@@ -14,11 +28,20 @@ export const test = base.extend<{ triggerCleanup: () => Promise<void> }>({
       }
     });
   },
-  page: async ({ page }, use, testInfo: TestInfo) => {
+  page: async ({ page, apiHeaders }, use, testInfo: TestInfo) => {
     await cleanupDbRecords();
     cleanupStorage();
     populateStorage();
     await setupTestRateLimits(100, 100);
+
+    // Stand in for gateway identity; the backend still validates real mock JWTs.
+    await page.context().route('**/api/**', route => route.continue({
+      headers: { ...route.request().headers(), authorization: apiHeaders.Authorization },
+    }));
+    await page.context().route('**/oauth2/userinfo', route => route.fulfill({
+      json: { email: 'test-user@example.com', additionalClaims: { name: 'Test User' } },
+    }));
+    await page.context().route('**/_telemetry/collect', route => route.fulfill({ status: 202, body: 'ok' }));
 
     // Wait for db and storage to be ready
     await new Promise((resolve) => setTimeout(resolve, 2000));

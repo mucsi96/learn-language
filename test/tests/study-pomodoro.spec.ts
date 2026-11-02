@@ -49,7 +49,7 @@ test('a failed study session start does not start the Pomodoro', async ({ page }
   await page.route('**/api/source/goethe-a1/study-session', route =>
     route.request().method() === 'POST'
       ? route.fulfill({ status: 500, body: 'Session creation failed' })
-      : route.continue());
+      : route.fallback());
   const failed = page.waitForResponse(response =>
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
@@ -205,7 +205,7 @@ test('new same-day session selects remaining due cards and preserves completed r
     await page.route('**/api/card/first', async route => {
       await expect(restart).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeDisabled();
-      await route.continue();
+      await route.fallback();
     });
     if (input === 'button') {
       await page.getByRole('button', { name: 'Correct', exact: true }).click();
@@ -245,7 +245,7 @@ test('restart stops old-card audio even when the new queue is empty', async ({ p
   await withDbConnection(client => client.query("UPDATE learn_language.cards SET due = NOW() + INTERVAL '7 days' WHERE id = 'audio-card'"));
   await page.route('**/study-session/restart', async route => {
     expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(false);
-    await route.continue();
+    await route.fallback();
   });
   await page.getByRole('button', { name: 'Start new study session' }).click();
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();

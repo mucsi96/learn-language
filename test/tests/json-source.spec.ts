@@ -243,7 +243,7 @@ test('bulk JSON import reports cards that failed to create', async ({ page }) =>
       await route.abort();
       return;
     }
-    await route.continue();
+    await route.fallback();
   });
 
   await page.goto('/sources/ckad-import-fail/json');

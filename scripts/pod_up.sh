@@ -17,7 +17,7 @@ else
   # processing, so the pod image has to be built with the test profile.
   podman build --build-arg SPRING_PROFILE=test \
     -t localhost/learn-language-server:test "$PROJECT_DIR/server" &
-  podman build -t localhost/learn-language-client:test "$PROJECT_DIR/client" &
+  (cd "$PROJECT_DIR/client" && npm ci && npm run build) &
   podman build -t localhost/learn-language-mock-openai:test "$PROJECT_DIR/mock_openai_server" &
   podman build -t localhost/learn-language-mock-google-ai:test "$PROJECT_DIR/mock_google_ai_server" &
   podman build -t localhost/learn-language-mock-elevenlabs:test "$PROJECT_DIR/mock_elevenlabs_server" &

@@ -1,6 +1,86 @@
 # learn-language
 Tools for language learning
 
+## Gateway authentication and static hosting
+
+The gateway signs users in before serving Angular documents. A per-app
+oauth2-proxy keeps OAuth tokens in shared Redis and uses a Secure, HttpOnly,
+host-only `__Host-session` cookie. The browser reads its display profile from
+`/oauth2/userinfo`; it neither stores nor refreshes OAuth tokens. Legacy `oidc.*`
+storage entries are removed on startup without clearing application preferences.
+
+The API retains JWT issuer, audience, scope and role checks. All authenticated
+mutation endpoints require an exact `Origin` match with `app-origin`, including
+requests whose bearer token was supplied by the gateway. Missing, `null` and
+foreign origins are rejected. Dictionary and known-card export keep their
+separate scoped API-token authentication. `/api/environment` still supplies live
+AI settings and voices and supports the loopback bootstrap-health check; it no
+longer supplies OAuth or telemetry settings. The public gateway must authenticate
+this endpoint along with the other browser APIs.
+
+CI builds a static Angular artifact, tests it behind Traefik with stock nginx,
+and publishes the same files to Azure Blob `assets` before publishing index HTML
+to `$web`. Old bundles are retained. Documents are no-store; assets revalidate.
+The `static-client-app` chart authenticates documents, rewrites deep links, and
+strips credentials before contacting the verified HTTPS storage website origin.
+Browser assets load directly from Blob storage with anonymous CORS. Manifest
+navigation remains on the app origin; Roboto and Material Icons are bundled.
+Faro's `learn-language-client` name and same-origin `/_telemetry/collect` endpoint
+are compiled into the client. Client releases contain `client-static.tar.gz`,
+not a container image.
+
+### Platform prerequisites and cutover
+
+Before merging/deploying this migration, provision the learn-language equivalents
+of [the shared platform pattern](https://github.com/mucsi96/skeleton-app/issues/105):
+
+The application infrastructure lives in
+[`p07/learn_language.tf`](https://github.com/mucsi96/p07/blob/main/learn_language.tf).
+At implementation time it still uses the SPA registration and does not provision
+the gateway session or static storage resources below.
+
+- A per-app Entra web client/oauth2-proxy with the existing API audience, scope
+  and role assignments, shared Redis, and narrow OAuth routes. Publish Key Vault
+  `forward-auth-config` with `release_name` and
+  `auth: {proxyService, proxyPort: 80, mode: "api-token"}`.
+- Preserve **exact** session-gate exclusions for `POST /api/dictionary` and
+  `GET /api/known-cards`, routing directly to the backend and retaining their
+  caller bearer headers. These endpoints validate their own scoped tokens.
+  Do not exclude `/api/environment` or the whole API prefix.
+- Azure static website storage and a public-read `assets` container. Publish
+  `client-storage-config` with `account_name`, website `hostname`, and
+  `assets_base_url` (`https://<account>.blob.core.windows.net/assets/`). Restrict
+  Blob CORS to the app's exact origin and GET/HEAD/OPTIONS.
+- Give the existing federated deployment identity read access to those secrets,
+  Storage Blob Data Contributor scoped to `$web` and `assets`, and namespace-only
+  permissions for chart Middleware/TraefikService resources. No storage keys or
+  SAS tokens are used.
+- Route exact same-origin telemetry POST/OPTIONS to the Faro collector with
+  credential stripping and existing origin/rate controls.
+
+Deployment pins published `spring-app` 37.0.0 and `static-client-app` 5.0.0 and
+uses `--reset-values` to remove old chart configuration. The API image, workload
+identity, persistent volume, resource limits and release names are preserved.
+Coordinate the gateway cutover with the app deployment; older browser bundles
+need a reload and a fresh gateway sign-in. Platform provisioning and production
+rollout are separate from this repository's implementation.
+
+Local verification (test pod running):
+
+```bash
+cd test
+npx playwright test gateway-auth.spec.ts profile.spec.ts sources.spec.ts dictionary.spec.ts extract-known-cards.spec.ts
+node static-assets.mjs
+```
+
+App tests supply a mock gateway identity using real JWTs from the mock issuer;
+they do not implement oauth2-proxy/Redis. Actual session redirects, cookie
+isolation and gateway policies are covered by the shared chart integration suite.
+After provisioning, smoke-test signed-out document redirects/API 401s, signed-in
+deep links, role denial, mutation origins, dictionary/export tokens, and telemetry.
+For local Angular development, provide a gateway session/proxy in front of the
+dev server; the app no longer performs a direct Entra login.
+
 ## FSRS scheduling
 
 The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
@@ -164,7 +244,7 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
 | Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |
 | UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
-| Authentication and static frontend assets | OIDC state/tokens use browser local storage. Nginx caches fingerprinted bundles as immutable and revalidates the app shell/manifest so deployments are picked up. |
+| Authentication and static frontend assets | OAuth tokens stay in gateway Redis with a host-only HttpOnly session cookie. Azure serves public Blob assets with revalidation; gateway documents are authenticated and no-store. |
 
 ## Adjective comparison forms
 

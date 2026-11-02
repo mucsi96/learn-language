@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,24 +35,6 @@ public class EnvironmentController {
   private final ImageModelSettingService imageModelSettingService;
   private final RateLimitSettingService rateLimitSettingService;
   private final AudioSettingService audioSettingService;
-
-  @Value("${tenant-id:}")
-  private String tenantId;
-
-  @Value("${api-client-id:}")
-  private String clientId;
-
-  @Value("${spa-client-id:}")
-  private String uiClientId;
-
-  @Value("${MOCK_OAUTH2_SERVER_URI:}")
-  private String mockOAuth2ServerUri;
-
-  @Value("${client-log-url:}")
-  private String clientLogUrl;
-
-  @Value("${client-app-name:}")
-  private String clientAppName;
 
   private static final List<SupportedLanguage> SUPPORTED_LANGUAGES = List.of(
       new SupportedLanguage("de", "German"),
@@ -87,12 +68,6 @@ public class EnvironmentController {
         .toList();
 
     return new ConfigResponse(
-        tenantId,
-        uiClientId,
-        clientId,
-        mockOAuth2ServerUri,
-        clientLogUrl,
-        clientAppName,
         rateLimitSettingService.getImageRateLimitPerMinute(),
         rateLimitSettingService.getAudioRateLimitPerMinute(),
         rateLimitSettingService.getImageMaxConcurrentRequests(),
@@ -137,12 +112,6 @@ public class EnvironmentController {
   }
 
   public record ConfigResponse(
-      String tenantId,
-      String clientId,
-      String apiClientId,
-      String mockOAuth2ServerUri,
-      String clientLogUrl,
-      String clientAppName,
       int imageRateLimitPerMinute,
       int audioRateLimitPerMinute,
       int imageMaxConcurrentRequests,

@@ -6,20 +6,12 @@ const wordsByPage = [
 ];
 
 async function mockPages(page: Page, options: { mixedWidths?: boolean; multipleCardTypes?: boolean } = {}) {
-  await page.addInitScript(() => {
-    localStorage.setItem('oidc.user:http://page-selection.test/default:mock-client-id', JSON.stringify({
-      access_token: 'page-selection-test',
-      token_type: 'Bearer',
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      profile: { sub: 'page-selection', name: 'Page Selection', roles: ['readDecks', 'createDeck'] },
-    }));
-  });
+  await page.route('**/oauth2/userinfo', route => route.fulfill({ json: { email: 'page-selection@example.test' } }));
+  await page.route('**/_telemetry/collect', route => route.fulfill({ status: 202, body: 'ok' }));
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/environment') {
       await route.fulfill({ json: {
-        mockOAuth2ServerUri: 'http://page-selection.test',
-        clientAppName: 'page-selection-test',
         chatModels: [{ modelName: 'test-model', provider: 'google' }],
         imageModels: [], audioModels: [], voices: [], supportedLanguages: [],
         enabledModelsByOperation: { extraction: ['test-model'], translation: ['test-model'] },

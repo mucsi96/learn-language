@@ -1,3 +1,4 @@
+app-origin: http://localhost:4270
 storage:
   directory: ./storage
 spring:

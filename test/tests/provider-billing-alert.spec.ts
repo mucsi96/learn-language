@@ -65,14 +65,12 @@ async function prepareImageCard() {
   });
 });
 
-test('failed card translation records billing trouble, and a later success does not hide it', async ({ page, baseURL }) => {
+test('failed card translation records billing trouble, and a later success does not hide it', async ({ page, baseURL, apiHeaders }) => {
   await failOpenAi('/chat/completions');
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   const request = () => fetch(`${baseURL}/api/translate/hu?model=gpt-5.6-sol`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: authorization },
+    headers: { 'Content-Type': 'application/json', ...apiHeaders },
     body: JSON.stringify({ word: 'abfahren', examples: ['Wann fährt der Zug ab?'] }),
   });
 
@@ -89,18 +87,16 @@ test('failed card translation records billing trouble, and a later success does 
   await expect(alert).toBeVisible();
 });
 
-test('temporary rate limiting is not reported as exhausted credits', async ({ page, baseURL }) => {
+test('temporary rate limiting is not reported as exhausted credits', async ({ page, baseURL, apiHeaders }) => {
   await failOpenAi('/chat/completions', 'rate_limit_exceeded');
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   const response = await fetch(`${baseURL}/api/translate/hu?model=gpt-5.6-sol`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: authorization },
+    headers: { 'Content-Type': 'application/json', ...apiHeaders },
     body: JSON.stringify({ word: 'abfahren', examples: [] }),
   });
   expect(response.status).toBe(500);
-  const issues = await fetch(`${baseURL}/api/provider-billing-issues`, { headers: { Authorization: authorization } });
+  const issues = await fetch(`${baseURL}/api/provider-billing-issues`, { headers: apiHeaders });
   expect(await issues.json()).toEqual([]);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Sources', exact: true })).toBeVisible();
@@ -128,20 +124,18 @@ test('card creation explains the credit problem in its progress dialog and the a
   await expect(page.getByRole('alert', { name: 'OpenAI billing needs attention' })).toBeVisible();
 });
 
-test('resolving an older occurrence does not erase a newly reported failure', async ({ page, baseURL }) => {
+test('resolving an older occurrence does not erase a newly reported failure', async ({ page, baseURL, apiHeaders }) => {
   const occurrenceId = crypto.randomUUID();
   await withDbConnection(client => client.query(
     `INSERT INTO learn_language.provider_billing_issues VALUES ('openai', $1, now(), now())`, [occurrenceId]
   ));
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   await expect(page.getByRole('alert', { name: 'OpenAI billing needs attention' })).toBeVisible();
   await withDbConnection(client => client.query(
     `UPDATE learn_language.provider_billing_issues SET occurrence_id = $1, last_detected_at = now()`, [crypto.randomUUID()]
   ));
   const response = await fetch(`${baseURL}/api/provider-billing-issues/${occurrenceId}`, {
-    method: 'DELETE', headers: { Authorization: authorization },
+    method: 'DELETE', headers: apiHeaders,
   });
   expect(response.ok).toBe(true);
   await page.reload();
