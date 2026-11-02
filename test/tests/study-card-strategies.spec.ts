@@ -71,6 +71,27 @@ const strategies = [
       await expect(correct).toBeInViewport({ ratio: 1 });
       const gradeBounds = await correct.boundingBox();
       expect(gradeBounds!.y + gradeBounds!.height).toBeLessThanOrEqual(height - 20);
+      const incorrectBounds = await page.getByRole('button', { name: 'Incorrect', exact: true }).boundingBox();
+      const cardBounds = await card.evaluate(element => element.parentElement!.getBoundingClientRect().toJSON());
+      expect(incorrectBounds!.x).toBe(cardBounds!.x);
+      expect(incorrectBounds!.y).toBe(gradeBounds!.y);
+      expect(incorrectBounds!.height).toBe(gradeBounds!.height);
+      expect(Math.abs(incorrectBounds!.width - gradeBounds!.width)).toBeLessThan(1);
+      expect(gradeBounds!.height).toBeGreaterThanOrEqual(width >= 768 ? 48 : 44);
+      expect(gradeBounds!.y - cardBounds!.y - cardBounds!.height).toBeCloseTo(16, 0);
+      expect(cardBounds!.x).toBe(16);
+      expect(width - cardBounds!.x - cardBounds!.width).toBe(16);
+      if (width >= 768 && (type === 'VOCABULARY' || type === 'SPEECH')) {
+        const image = card.getByRole('img');
+        const imageBounds = await image.boundingBox();
+        expect(imageBounds!.x).toBe(cardBounds!.x);
+        expect(imageBounds!.y).toBe(cardBounds!.y);
+        expect(imageBounds!.height).toBe(cardBounds!.height);
+        expect(imageBounds!.width).toBeCloseTo(cardBounds!.width * 0.55, 0);
+        await expect(image).toHaveCSS('object-fit', 'cover');
+        expect(await card.evaluate(element => [...element.querySelectorAll('*'), element.parentElement!]
+          .every(child => child.scrollHeight <= child.clientHeight))).toBe(true);
+      }
       await page.screenshot({ path: testInfo.outputPath('top.png') });
       await page.mouse.move(width / 2, height / 2);
       await page.mouse.wheel(0, 2000);

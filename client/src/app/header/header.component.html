@@ -1,5 +1,5 @@
 @if (pomodoro.time(); as time) {
-  <button mat-button aria-label="Restart Pomodoro" matTooltip="Restart Pomodoro" (click)="pomodoro.start()">
+  <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">
     <span role="timer" aria-label="Study Pomodoro" class="pomodoro"
       [class.expired]="pomodoro.seconds() === 0">
       {{ time }}
@@ -9,17 +9,12 @@
     <span role="status" class="break-status">Time for a break!</span>
   }
 } @else {
-  <button mat-button aria-label="Start Pomodoro" matTooltip="Start a 25-minute Pomodoro" (click)="pomodoro.start()">25:00</button>
+  <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">25:00</button>
 }
 <button class="avatar" aria-label="Profile menu" [matMenuTriggerFor]="menu">
   {{ profile()?.initials }}
 </button>
 <mat-menu #menu="matMenu">
-  @if (studySession.hasSession()) {
-    @if (studySession.restartControl(); as restart) {
-      <button mat-menu-item [disabled]="restart.disabled()" (click)="restart.start()">Start new study session</button>
-    }
-  }
   <span class="profile-name">
     {{ profile()?.name }}
   </span>

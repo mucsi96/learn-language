@@ -48,7 +48,7 @@ and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/ca
 
 ## Study Pomodoro
 
-Starting, continuing, or restarting a study session automatically starts a
+Starting or continuing a study session automatically starts a
 25-minute Pomodoro if there is no active countdown, including when the previous
 timer has expired. An already-running timer keeps its deadline. You can also click
 **Start Pomodoro** in the header to start it independently. Switching sources,
@@ -57,9 +57,10 @@ stored for the current browser tab. At zero, the
 timer blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
-Click the header timer (or focus it and press Enter/Space) to restart only the
-countdown. To **start a new study session**, use the profile menu while studying.
-This replaces that source's current queue with currently due
+Click the header timer (or focus it and press Enter/Space) while studying to
+**start a new study session** and reset the countdown to 25 minutes.
+Outside study mode it restarts only the countdown. A failed session restart keeps
+the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
@@ -72,7 +73,7 @@ up the status-bar setting.
 Study pages keep the header outside the scrolling content. All card types use
 the remaining viewport height, including safe-area insets, with grading controls
 below the card. Vocabulary and speech images share responsive sizing with a
-minimum mobile height. Images scale to fit in both iPad orientations; unusually long
+minimum mobile height. Images fill their panel in both iPad orientations; unusually long
 content remains scrollable without moving the header into the system status bar.
 
 Cross-card layout coverage: `cd test && npx playwright test study-card-strategies.spec.ts`.
