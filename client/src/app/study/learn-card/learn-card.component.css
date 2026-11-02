@@ -4,7 +4,7 @@
 }
 
 .learn-card-container {
-  padding: 0.5rem;
+  padding: 1rem;
   margin: 0 auto;
   box-sizing: border-box;
   max-width: 1200px;
@@ -12,7 +12,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .learn-card {
@@ -118,7 +118,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
 }
 
 .grading-buttons-container.hidden {
