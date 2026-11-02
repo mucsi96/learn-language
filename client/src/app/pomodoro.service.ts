@@ -26,6 +26,13 @@ export class PomodoroService {
     });
   }
 
+  startIfInactive() {
+    const endsAt = this.endsAt();
+    if (endsAt === null || endsAt <= Date.now()) {
+      this.start();
+    }
+  }
+
   start() {
     const now = Date.now();
     const endsAt = now + 25 * 60_000;

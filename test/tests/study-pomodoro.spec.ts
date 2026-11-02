@@ -1,6 +1,42 @@
 import { test, expect } from '../fixtures';
 import { createCard, createSource, getReviewLogsByCardId, getStudySessionCardsBySource, withDbConnection } from '../utils';
 
+test('starting and continuing study automatically starts an inactive Pomodoro', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/sources/goethe-a1/study');
+  const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
+  await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  await expect(timer).toHaveText('25:00');
+  await page.clock.fastForward(25 * 60_000);
+  await expect(timer).toHaveText('00:00');
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Start new study session' }).click();
+  await expect(timer).toHaveText('25:00');
+  await expect(page.getByRole('status')).not.toBeVisible();
+
+  await page.evaluate(() => sessionStorage.removeItem('pomodoroEndsAt'));
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue study session' }).click();
+  await expect(timer).toHaveText('25:00');
+});
+
+test('a failed study session start does not start the Pomodoro', async ({ page }) => {
+  await page.goto('/sources/goethe-a1/study');
+  await page.route('**/api/source/goethe-a1/study-session', route =>
+    route.request().method() === 'POST'
+      ? route.fulfill({ status: 500, body: 'Session creation failed' })
+      : route.continue());
+  const failed = page.waitForResponse(response =>
+    response.url().endsWith('/study-session') && response.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  expect((await failed).status()).toBe(500);
+  await expect(page.getByRole('button', { name: 'Start study session', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
+  await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).not.toBeVisible();
+});
+
 test('Pomodoro runs independently of sources, sessions and navigation', async ({ page }) => {
   await createSource({ id: 'other', name: 'Other', languageLevel: 'A1', cardTypes: ['VOCABULARY'] });
   await createCard({
@@ -41,6 +77,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
 
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Continue study session' }).click();
+  await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
   await page.clock.fastForward(25 * 60_000);
   await expect(timer).toHaveText('00:00');
   await expect(timer).toHaveCSS('animation-name', /pomodoro-blink$/);
@@ -77,8 +114,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     await page.goto('/sources/goethe-a1/study');
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
     const navigation = page.getByRole('navigation');
-    await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).not.toBeVisible();
-    await navigation.getByRole('button', { name: 'Start Pomodoro', exact: true }).click();
+    await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).toBeVisible();
     const restart = navigation.getByRole('button', { name: 'Restart Pomodoro' });
     await expect(restart).toBeEnabled();
     expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');
