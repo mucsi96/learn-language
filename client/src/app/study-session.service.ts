@@ -6,6 +6,7 @@ import { fetchJson } from './utils/fetchJson';
 import { SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 import { DueCardsService } from './due-cards.service';
+import { PomodoroService } from './pomodoro.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +16,7 @@ export class StudySessionService {
   private readonly injector = inject(Injector);
   private readonly dueCardsService = inject(DueCardsService);
   private readonly sourcesService = inject(SourcesService);
+  private readonly pomodoro = inject(PomodoroService);
 
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
@@ -80,6 +82,7 @@ export class StudySessionService {
       { method: 'POST' }
     );
     if (session) {
+      this.pomodoro.startIfInactive();
       this.sourceId.set(sourceId);
       this.hasSession.set(true);
       this.refreshSession();

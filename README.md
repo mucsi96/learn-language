@@ -48,9 +48,11 @@ and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/ca
 
 ## Study Pomodoro
 
-Click **Start Pomodoro** in the header to start a 25-minute countdown independently
-of study sessions. Switching sources, returning home, starting or continuing a
-study session, and reloading the page all keep its deadline. The countdown is
+Starting, continuing, or restarting a study session automatically starts a
+25-minute Pomodoro if there is no active countdown, including when the previous
+timer has expired. An already-running timer keeps its deadline. You can also click
+**Start Pomodoro** in the header to start it independently. Switching sources,
+returning home, and reloading the page all keep its deadline. The countdown is
 stored for the current browser tab. At zero, the
 timer blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
