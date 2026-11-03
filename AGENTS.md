@@ -339,8 +339,9 @@ version output directly to deployment without a consumer-side tag lookup.
 The workflow serializes publication and rollout; require numbered GHCR tags or
 digests.
 The server Dockerfile carries a GHCR source label and its package must be public
-for anonymous Kubernetes pulls. Client deployment uploads assets before index to
-Azure, retaining old bundles. Both charts consume `forward-auth-config.auth` and
+for anonymous Kubernetes pulls. Client deployment empties `$web` and `assets`, then
+uploads only the latest assets before index to Azure. Downtime is intentional;
+assets cache for one year and index uses `no-store`. Both charts consume `forward-auth-config.auth` and
 reset former Helm values. See README for platform prerequisites and cutover.
 
 ## Core Entities
