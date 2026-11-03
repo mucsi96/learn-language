@@ -20,7 +20,12 @@ this endpoint along with the other browser APIs.
 
 CI builds a static Angular artifact, tests it behind Traefik with stock nginx,
 and publishes the same files to Azure Blob `assets` before publishing index HTML
-to `$web`. Old bundles are retained. Documents are no-store; assets revalidate.
+to `$web`. Before uploading, deployment empties `$web` and `assets`, including any
+old release directories. Only the latest build is published, without a release
+prefix; downtime during deployment is intentional. Assets, including the manifest,
+use `public, max-age=31536000, immutable`; index uploads last with `no-store`.
+A failed deletion or upload stops deployment. Deleting blobs does not clear
+browser caches for unchanged asset URLs.
 The `static-client-app` chart authenticates documents, rewrites deep links, and
 strips credentials before contacting the verified HTTPS storage website origin.
 Browser assets load directly from Blob storage with anonymous CORS. Manifest
@@ -244,7 +249,7 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
 | Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |
 | UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
-| Authentication and static frontend assets | OAuth tokens stay in gateway Redis with a host-only HttpOnly session cookie. Azure serves public Blob assets with revalidation; gateway documents are authenticated and no-store. |
+| Authentication and static frontend assets | OAuth tokens stay in gateway Redis with a host-only HttpOnly session cookie. Azure serves public Blob assets with one-year immutable caching; gateway documents are authenticated and no-store. Deployment deletes old static files before publishing the latest build. |
 
 ## Adjective comparison forms
 
