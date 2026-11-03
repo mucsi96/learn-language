@@ -2,6 +2,7 @@
   "name": "Learn Language",
   "short_name": "Learn",
   "description": "Spaced-repetition flashcards built from PDF sources with AI translations, audio, and contextual examples.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

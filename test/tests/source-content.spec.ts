@@ -300,7 +300,7 @@ test('upgrading initializes the new operation from the existing extraction setti
   });
 });
 
-test('filters group cards and requires every vocabulary prerequisite to be ready and reviewed twice', async ({ page }) => {
+test('filters group cards and requires every vocabulary prerequisite to be ready and reviewed twice', async ({ page, apiHeaders }) => {
   await addSource(page);
   const group = await createSourceGroup({ name: 'Shared vocabulary' });
   await setSourceGroup(SOURCE, group);
@@ -319,7 +319,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
   const request = await draftRequest;
   expect((await page.request.post(request.url(), {
-    headers: { authorization: request.headers()['authorization'] }, data: request.postDataJSON(),
+    headers: apiHeaders, data: request.postDataJSON(),
   })).ok()).toBe(true);
   expect(await withDbConnection(async db =>
     (await db.query('SELECT id, data FROM learn_language.cards WHERE source_id = $1', [SOURCE])).rows))
@@ -775,10 +775,9 @@ test('concurrent tabs prepare once and cached vocabulary survives a server resta
   expect(await stats()).toEqual(before);
 });
 
-test('rejects locked sessions and stale progress writes on the server', async ({ page }) => {
-  const authRequest = page.waitForRequest(request => request.url().endsWith('/api/sources') && !!request.headers()['authorization']);
+test('rejects locked sessions and stale progress writes on the server', async ({ page, apiHeaders }) => {
   await addSource(page);
-  const headers = { authorization: (await authRequest).headers()['authorization'] };
+  const headers = apiHeaders;
   await prepare(page);
   const contentId = page.url().split('/').slice(-1)[0];
   const api = `/api/source/${SOURCE}/content/${contentId}`;

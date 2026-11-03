@@ -1077,17 +1077,14 @@ test('sources with a single card type do not show a card type selector', async (
   await expect(page.getByRole('button', { name: 'Confirm selection' })).toBeEnabled();
 });
 
-test('card creation rejects a card type not allowed by the source', async ({ page, baseURL }) => {
-  const sourcesRequest = page.waitForRequest((request) => request.url().includes('/api/sources'));
+test('card creation rejects a card type not allowed by the source', async ({ page, baseURL, apiHeaders }) => {
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
-  expect(authorization).toBeTruthy();
 
   const response = await fetch(`${baseURL}/api/card`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: authorization,
+      ...apiHeaders,
     },
     body: JSON.stringify({
       id: 'rejected-grammar-card',

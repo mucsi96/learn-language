@@ -71,7 +71,7 @@ This is a language learning application that uses spaced repetition to help user
 ## Architecture
 
 **Backend**: Spring Boot 4 with Java 21 (built into a GraalVM native image), PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
-**Frontend**: Angular 20 with Material UI, Azure MSAL authentication, TypeScript
+**Frontend**: Angular with Material UI, gateway-managed Entra sessions, TypeScript
 
 ### Key Technologies
 - **Spaced Repetition**: Uses FSRS (Free Spaced Repetition Scheduler) algorithm via ts-fsrs library
@@ -327,18 +327,21 @@ what `JavaBeanBinder` looks for over the whole class hierarchy - see
 
 ### Release and image publishing
 
-`publish-server` and `publish-client` publish numbered GHCR images only when
+`publish-server` publishes numbered GHCR images only when
 `get_next_version.outputs.hasNextVersion == 'true'`, tagging them with
 `get_next_version.outputs.version`. Authentication uses `GITHUB_TOKEN` with
-job-scoped `packages: write`. Release tags use `target_commitish: ${{ github.sha }}`.
+job-scoped `packages: write`. `publish-client` attaches the tested static artifact
+to new client releases; it does not publish an image. Release tags use
+`target_commitish: ${{ github.sha }}`.
 The action always returns `version` and `tag`, including the current reachable
 release when unchanged; `hasNextVersion` alone controls publication. Forward its
 version output directly to deployment without a consumer-side tag lookup.
 The workflow serializes publication and rollout; require numbered GHCR tags or
 digests.
-The production Dockerfiles carry GHCR source labels, triggering both initial
-publications through normal component version detection.
-Both packages must be public for anonymous Kubernetes pulls.
+The server Dockerfile carries a GHCR source label and its package must be public
+for anonymous Kubernetes pulls. Client deployment uploads assets before index to
+Azure, retaining old bundles. Both charts consume `forward-auth-config.auth` and
+reset former Helm values. See README for platform prerequisites and cutover.
 
 ## Core Entities
 
@@ -403,7 +406,10 @@ Tracks review history and performance metrics for spaced repetition
 - Batch operations for bulk card and audio creation
 
 ### Authentication
-- Azure Active Directory integration with role-based access control
+- Per-app gateway-managed Entra sessions; OAuth tokens stay server-side
+- Browser profile comes from `/oauth2/userinfo`; no browser OAuth library or tokens
+- JWT validation remains in Spring; authenticated mutations require exact `app-origin`
+- Dictionary/export retain their separately scoped API tokens and exact gateway exclusions
 - API scope: `api-access`
 - Roles: `readDecks`, `createDeck`
 

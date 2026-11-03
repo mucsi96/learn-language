@@ -1,3 +1,4 @@
+app-origin: http://localhost:8170
 token-encryption-key: ${TOKEN_ENCRYPTION_KEY}
 extensions:
   einfach-deutsch-lernen:

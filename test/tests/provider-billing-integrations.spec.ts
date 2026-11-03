@@ -71,16 +71,14 @@ async function configureFailure(scenario: { mockUrl: string; path: string; statu
 }
 
 scenarios.map(scenario => {
-  test(`${scenario.name} persists a correctly attributed billing alert`, async ({ page, baseURL }) => {
+  test(`${scenario.name} persists a correctly attributed billing alert`, async ({ page, baseURL, apiHeaders }) => {
     await createChatModelSetting({
       modelName: 'gpt-5.6-sol', operationType: 'IMAGE_DESCRIPTION', isEnabled: true, isPrimary: true,
     });
     await configureFailure(scenario);
-    const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
     await page.goto('/sources');
-    const authorization = (await sourcesRequest).headers()['authorization'];
     const response = await fetch(`${baseURL}/api${scenario.endpoint}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authorization },
+      method: 'POST', headers: { 'Content-Type': 'application/json', ...apiHeaders },
       body: JSON.stringify(scenario.request),
     });
 
@@ -88,7 +86,7 @@ scenarios.map(scenario => {
       expect(response.ok).toBe(true);
       const { id } = await response.json();
       await expect.poll(async () => {
-        const status = await fetch(`${baseURL}/api/image/${id}/status`, { headers: { Authorization: authorization } });
+        const status = await fetch(`${baseURL}/api/image/${id}/status`, { headers: apiHeaders });
         return status.json();
       }).toMatchObject({ status: 'failed', error: expect.stringContaining(scenario.providerName) });
     } else {
@@ -110,15 +108,13 @@ scenarios.map(scenario => {
   });
 });
 
-test('multiple providers remain independently visible and independently resolvable', async ({ page, baseURL }) => {
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
+test('multiple providers remain independently visible and independently resolvable', async ({ page, baseURL, apiHeaders }) => {
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   await Promise.all(scenarios.filter(scenario => ['Anthropic chat', 'ElevenLabs audio legacy quota'].includes(scenario.name))
     .map(async scenario => {
       await configureFailure(scenario);
       const response = await fetch(`${baseURL}/api${scenario.endpoint}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authorization },
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...apiHeaders },
         body: JSON.stringify(scenario.request),
       });
       expect(response.status).toBe(503);
@@ -136,38 +132,34 @@ test('multiple providers remain independently visible and independently resolvab
   await expect(anthropic).not.toBeVisible();
 });
 
-test('OpenAI transcription failures also persist a billing alert', async ({ page, baseURL }) => {
+test('OpenAI transcription failures also persist a billing alert', async ({ page, baseURL, apiHeaders }) => {
   await configureFailure({ mockUrl: openaiMock, path: '/audio/transcriptions', status: 429,
     body: { error: { code: 'insufficient_quota', message: 'You have no credits remaining.' } } });
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   const body = new FormData();
   body.set('file', new Blob(['mock audio'], { type: 'audio/webm' }), 'speech.webm');
   const response = await fetch(`${baseURL}/api/transcribe`, {
-    method: 'POST', headers: { Authorization: authorization }, body,
+    method: 'POST', headers: apiHeaders, body,
   });
   expect(response.status).toBe(503);
   await page.reload();
   await expect(page.getByRole('alert', { name: 'OpenAI billing needs attention' })).toBeVisible();
 });
 
-test('Gemini temporary quota errors do not create a billing alert', async ({ page, baseURL }) => {
+test('Gemini temporary quota errors do not create a billing alert', async ({ page, baseURL, apiHeaders }) => {
   test.setTimeout(120_000);
   await configureFailure({ mockUrl: 'http://localhost:3071',
     path: '/v1beta/models/gemini-3.1-pro-preview:generateContent', status: 429,
     body: { error: { code: 429, status: 'RESOURCE_EXHAUSTED',
       message: 'You exceeded your current quota, please check your plan and billing details. Retry in 30 seconds.' } } });
-  const sourcesRequest = page.waitForRequest(request => request.url().includes('/api/sources'));
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
   const response = await page.request.post(`${baseURL}/api/translate/hu?model=gemini-3.1-pro-preview`, {
-    headers: { Authorization: authorization },
+    headers: apiHeaders,
     data: translation,
     timeout: 90_000,
   });
   expect(response.status()).toBe(500);
-  const issues = await page.request.get(`${baseURL}/api/provider-billing-issues`, { headers: { Authorization: authorization } });
+  const issues = await page.request.get(`${baseURL}/api/provider-billing-issues`, { headers: apiHeaders });
   expect(issues.ok()).toBe(true);
   expect(await issues.json()).toEqual([]);
 });

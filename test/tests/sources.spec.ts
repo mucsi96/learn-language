@@ -809,15 +809,12 @@ test('can remove a learning partner from a source', async ({ page }) => {
 });
 
 
-test('source creation and update reject empty card types', async ({ page, baseURL }) => {
-  const sourcesRequest = page.waitForRequest((request) => request.url().includes('/api/sources'));
+test('source creation and update reject empty card types', async ({ page, baseURL, apiHeaders }) => {
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
-  expect(authorization).toBeTruthy();
 
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: authorization,
+    ...apiHeaders,
   };
 
   const createResponse = await fetch(`${baseURL}/api/source`, {

@@ -1,19 +1,16 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './utils/auth.guard';
 
 export const routes: Routes = [
   ...['content', 'listen'].flatMap(mode => [
     {
       path: `sources/:sourceId/${mode}`,
       loadComponent: () => import('./content/source-content.component').then(m => m.SourceContentComponent),
-      canActivate: [authGuard],
       data: { contentMode: mode },
       title: mode === 'listen' ? 'Listen' : 'Source Content',
     },
     {
       path: `sources/:sourceId/${mode}/:contentId`,
       loadComponent: () => import('./content/source-content.component').then(m => m.SourceContentComponent),
-      canActivate: [authGuard],
       data: { contentMode: mode },
       title: mode === 'listen' ? 'Listen' : 'Source Content',
     },
@@ -23,27 +20,23 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () =>
       import('./home/home.component').then((m) => m.HomeComponent),
-    canActivate: [authGuard],
   },
   {
     path: 'in-review-cards',
     loadComponent: () =>
       import('./in-review-cards/in-review-cards.component').then((m) => m.InReviewCardsComponent),
-    canActivate: [authGuard],
     title: 'Cards In Review',
   },
   {
     path: 'model-usage',
     loadComponent: () =>
       import('./model-usage-logs/model-usage-logs.component').then((m) => m.ModelUsageLogsComponent),
-    canActivate: [authGuard],
     title: 'Model Usage',
   },
   {
     path: 'settings',
     loadComponent: () =>
       import('./settings/settings.component').then((m) => m.SettingsComponent),
-    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -108,7 +101,6 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/study',
-    canActivate: [authGuard],
     title: 'Study',
     children: [
       {
@@ -133,12 +125,10 @@ export const routes: Routes = [
     path: 'sources',
     loadComponent: () =>
       import('./admin/admin.component').then((m) => m.AdminComponent),
-    canActivate: [authGuard],
     title: 'Sources',
   },
   {
     path: 'sources/:sourceId/page/:pageNumber',
-    canActivate: [authGuard],
     title: (route) => {
       const sourceId = route.params['sourceId'];
       const pageNumber = route.params['pageNumber'];
@@ -163,7 +153,6 @@ export const routes: Routes = [
   },
   {
     path: 'sources/:sourceId/json',
-    canActivate: [authGuard],
     title: (route) => `JSON / ${route.params['sourceId']}`,
     children: [
       {
@@ -190,12 +179,10 @@ export const routes: Routes = [
       import('./word-import/word-import.component').then(
         (m) => m.WordImportComponent
       ),
-    canActivate: [authGuard],
     title: 'Word Triage',
   },
   {
     path: 'sources/:sourceId/cards',
-    canActivate: [authGuard],
     title: 'Cards',
     children: [
       {
@@ -220,7 +207,6 @@ export const routes: Routes = [
     path: 'sources/:sourceId/page/:pageNumber/cards/:cardId',
     loadComponent: () =>
       import('./parser/edit-card/edit-card.component').then((m) => m.EditCardComponent),
-    canActivate: [authGuard],
     title: 'Edit Card',
   },
 ];

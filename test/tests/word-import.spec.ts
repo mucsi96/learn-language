@@ -440,16 +440,13 @@ test('word import is only offered for word triage sources', async ({ page }) => 
 test('word import endpoints reject sources that are not word triage sources', async ({
   page,
   baseURL,
+  apiHeaders,
 }) => {
-  const sourcesRequest = page.waitForRequest((request) =>
-    request.url().includes('/api/sources')
-  );
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
 
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: authorization,
+    ...apiHeaders,
   };
 
   const queueResponse = await fetch(
@@ -475,16 +472,13 @@ test('word import endpoints reject sources that are not word triage sources', as
 test('word triage sources accept vocabulary cards only', async ({
   page,
   baseURL,
+  apiHeaders,
 }) => {
-  const sourcesRequest = page.waitForRequest((request) =>
-    request.url().includes('/api/sources')
-  );
   await page.goto('/sources');
-  const authorization = (await sourcesRequest).headers()['authorization'];
 
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: authorization,
+    ...apiHeaders,
   };
 
   const createResponse = await fetch(`${baseURL}/api/source`, {
