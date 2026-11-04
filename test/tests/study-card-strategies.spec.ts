@@ -73,7 +73,17 @@ const strategies = [
       expect(gradeBounds!.y + gradeBounds!.height).toBeLessThanOrEqual(height - 20);
       const incorrectBounds = await page.getByRole('button', { name: 'Incorrect', exact: true }).boundingBox();
       const cardBounds = await card.evaluate(element => element.parentElement!.getBoundingClientRect().toJSON());
-      expect(incorrectBounds!.x).toBe(cardBounds!.x);
+      const actions = page.getByRole('button', { name: 'Card actions', exact: true });
+      await expect(actions).toBeInViewport({ ratio: 1 });
+      const actionBounds = await actions.boundingBox();
+      expect(actionBounds!.x + actionBounds!.width).toBeCloseTo(cardBounds!.x + cardBounds!.width, 0);
+      expect(actionBounds!.x).toBeGreaterThan(gradeBounds!.x + gradeBounds!.width);
+      if (width >= 768) {
+        expect(incorrectBounds!.x).toBeGreaterThan(cardBounds!.x + cardBounds!.width / 3);
+        expect(gradeBounds!.x + gradeBounds!.width - incorrectBounds!.x).toBeCloseTo(420, 0);
+      } else {
+        expect(incorrectBounds!.x).toBe(cardBounds!.x);
+      }
       expect(incorrectBounds!.y).toBe(gradeBounds!.y);
       expect(incorrectBounds!.height).toBe(gradeBounds!.height);
       expect(Math.abs(incorrectBounds!.width - gradeBounds!.width)).toBeLessThan(1);

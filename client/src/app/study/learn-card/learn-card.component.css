@@ -131,3 +131,13 @@
 .grading-row-actions {
   flex-shrink: 0;
 }
+
+@media (min-width: 768px) {
+  .grading-buttons-container {
+    justify-content: flex-end;
+  }
+
+  .grading-buttons-container app-card-grading-buttons {
+    flex: 0 1 420px;
+  }
+}
