@@ -131,3 +131,11 @@
 .grading-row-actions {
   flex-shrink: 0;
 }
+
+@media (min-width: 768px) {
+  .grading-buttons-container {
+    justify-content: flex-end;
+    margin-left: calc(55% + 1rem);
+    width: calc(45% - 1rem);
+  }
+}
