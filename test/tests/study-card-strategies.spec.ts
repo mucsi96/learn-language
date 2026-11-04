@@ -79,8 +79,7 @@ const strategies = [
       expect(actionBounds!.x + actionBounds!.width).toBeCloseTo(cardBounds!.x + cardBounds!.width, 0);
       expect(actionBounds!.x).toBeGreaterThan(gradeBounds!.x + gradeBounds!.width);
       if (width >= 768) {
-        expect(incorrectBounds!.x).toBeGreaterThan(cardBounds!.x + cardBounds!.width / 3);
-        expect(gradeBounds!.x + gradeBounds!.width - incorrectBounds!.x).toBeCloseTo(420, 0);
+        expect(incorrectBounds!.x).toBeCloseTo(cardBounds!.x + cardBounds!.width * 0.55, 0);
       } else {
         expect(incorrectBounds!.x).toBe(cardBounds!.x);
       }
@@ -98,6 +97,7 @@ const strategies = [
         expect(imageBounds!.y).toBe(cardBounds!.y);
         expect(imageBounds!.height).toBe(cardBounds!.height);
         expect(imageBounds!.width).toBeCloseTo(cardBounds!.width * 0.55, 0);
+        expect(incorrectBounds!.x).toBeCloseTo(imageBounds!.x + imageBounds!.width, 0);
         await expect(image).toHaveCSS('object-fit', 'cover');
         expect(await card.evaluate(element => [...element.querySelectorAll('*'), element.parentElement!]
           .every(child => child.scrollHeight <= child.clientHeight))).toBe(true);
