@@ -75,7 +75,6 @@ Local verification (test pod running):
 ```bash
 cd test
 npx playwright test gateway-auth.spec.ts profile.spec.ts sources.spec.ts dictionary.spec.ts extract-known-cards.spec.ts
-node static-assets.mjs
 ```
 
 App tests supply a mock gateway identity using real JWTs from the mock issuer;
