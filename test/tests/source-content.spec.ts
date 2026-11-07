@@ -495,7 +495,7 @@ test('matches optional reflexive cards and explicit dictionary aliases without m
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
 });
 
-test('re-extracts cached vocabulary using transcript exclusions without fetching the story again', async ({ page }) => {
+test('re-extracts vocabulary from the saved transcript using updated exclusions', async ({ page }) => {
   test.setTimeout(150000);
   await addSource(page);
   await readyWords(SOURCE, ['sehen']);
@@ -520,7 +520,10 @@ test('re-extracts cached vocabulary using transcript exclusions without fetching
   expect(preparation.version).toBe('3');
   expect(preparation.words.map((word: { lemma: string }) => word.lemma)).toEqual(['sehen', 'Haus']);
   const extraction = await stats();
-  expect(extraction.requests.filter(request => request === 'text:209-brezel')).toHaveLength(1);
+  expect(extraction.vocabularyInputs).toEqual([
+    'Wir sehen ein Haus. Wir sehen ein Haus.',
+    'Wir sehen ein Haus. Wir sehen ein Haus.',
+  ]);
   expect(extraction.requests.filter(request => request === 'vocabulary')).toHaveLength(2);
   const prompt = extraction.vocabularyPrompts[1];
   expect(prompt).toContain('Ignore — do not return:');
@@ -573,7 +576,10 @@ test('upgrades cached vocabulary and matches feminine occurrences to masculine c
   expect(words.map((word: { lemma: string }) => word.lemma)).toEqual(['Freund', 'Arzt', 'Lehrer']);
   expect(words[0].surfaceForms).toEqual(['Freundin', 'Freund']);
   expect(words[0].examples).toEqual(['Meine Freundin ist Ärztin.', 'Mein Freund ist Lehrer.']);
-  expect((await stats()).requests.filter(request => request === 'text:209-brezel')).toHaveLength(1);
+  expect((await stats()).vocabularyInputs).toEqual([
+    'Wir sehen ein Haus. Wir sehen ein Haus.',
+    'Meine Freundin ist Ärztin. Mein Freund ist Lehrer.',
+  ]);
 });
 
 test('known cards satisfy prerequisites even without study repetitions', async ({ page }) => {
@@ -797,7 +803,9 @@ test('sources sharing a collection reuse prepared content', async ({ page, apiHe
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   await expect(page.getByText('B1', { exact: true })).toBeVisible();
-  expect(await stats()).toEqual(before);
+  const after = await stats();
+  expect(after.vocabularyInputs).toEqual(before.vocabularyInputs);
+  expect(after.requests.filter(request => request === 'vocabulary')).toHaveLength(1);
 });
 
 test('another collection uses the same workflow and isolates stories with identical folder names', async ({ page, apiHeaders }) => {
