@@ -13,7 +13,7 @@ const bold = (s: string) => PTF_BOLD_START + s + PTF_BOLD_END;
 async function createTokenViaUI(page: Page, name: string): Promise<string> {
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill(name);
-  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('button', { name: /Purpose/ }).click();
   await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
@@ -109,8 +109,8 @@ test('ebook lookup creates an A2 source and uses the user-adjusted source level 
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Actions for Level Book', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
-  await expect(page.getByRole('combobox', { name: 'Language Level', exact: true })).toHaveText('A2 - Elementary');
-  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Language Level$/ })).toHaveText('A2 - Elementary');
+  await page.getByRole('button', { name: /Language Level$/ }).click();
   await page.getByRole('option', { name: 'B1 - Intermediate', exact: true }).click();
   await page.getByRole('button', { name: 'Update', exact: true }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
@@ -213,7 +213,7 @@ test('token generation requires an explicitly selected purpose', async ({
   const generateButton = page.getByRole('button', { name: 'Generate token' });
   await expect(generateButton).toBeDisabled();
 
-  await page.getByRole('combobox', { name: 'Purpose' }).click();
+  await page.getByRole('button', { name: /Purpose/ }).click();
   await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   await expect(generateButton).toBeEnabled();

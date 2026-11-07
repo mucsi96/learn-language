@@ -75,6 +75,19 @@ async function openWordImport(page: Page) {
   await expect(page).toHaveURL(new RegExp(`/sources/${SOURCE_ID}/word-import`));
 }
 
+test('can undo the final optimistic decision from the completion screen', async ({ page }) => {
+  await openWordImport(page);
+  await dropWordList(page, { words: [WORD_LIST.words[0]] });
+  await page.getByRole('button', { name: 'I know this word' }).click();
+  await expect(page.getByRole('heading', { name: 'Triage complete' })).toBeVisible();
+  await page.getByRole('button', { name: 'Undo last decision' }).click();
+  await expect(page.getByRole('heading', { name: 'sehen', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Known: 0')).toBeVisible();
+  await expect(page.getByText('All decisions saved')).toBeVisible();
+  expect(await getKnownWords()).toEqual([]);
+  expect((await getWordImportCandidates(SOURCE_ID)).map(candidate => candidate.status)).toEqual(['PENDING']);
+});
+
 test('triages an imported word list into known words and draft cards', async ({
   page,
 }) => {
@@ -246,6 +259,7 @@ test('keyboard shortcuts decide candidates', async ({ page }) => {
   await dropWordList(page);
 
   await expect(page.getByRole('heading', { name: 'sehen' })).toBeVisible();
+  await page.getByRole('button', { name: 'Flashcard', exact: true }).focus();
 
   await page.keyboard.press('ArrowLeft');
   await expect(page.getByRole('heading', { name: 'denken' })).toBeVisible();
@@ -378,9 +392,9 @@ test('creates a word triage source restricted to vocabulary cards', async ({
   await page
     .getByRole('textbox', { name: 'Name', exact: true })
     .fill('Roman B1');
-  await page.getByLabel('Source Type').click();
+  await page.getByRole('button', { name: /Source Type$/ }).click();
   await page.getByRole('option', { name: 'Word Triage' }).click();
-  await page.getByLabel('Language Level').click();
+  await page.getByRole('button', { name: /Language Level$/ }).click();
   await page.getByRole('option', { name: 'B1' }).click();
 
   await expect(
@@ -388,7 +402,7 @@ test('creates a word triage source restricted to vocabulary cards', async ({
       'Cards are added by importing a word list JSON after creating the source.'
     )
   ).toBeVisible();
-  await expect(page.getByLabel('Format Type')).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Format Type$/ })).not.toBeVisible();
 
   await page.getByRole('button', { name: 'Create' }).click();
 

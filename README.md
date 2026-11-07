@@ -3,7 +3,7 @@ Tools for language learning
 
 ## Gateway authentication and static hosting
 
-The gateway signs users in before serving Angular documents. A per-app
+The gateway signs users in before serving React application documents. A per-app
 oauth2-proxy keeps OAuth tokens in shared Redis and uses a Secure, HttpOnly,
 host-only `__Host-session` cookie. The browser reads its display profile from
 `/oauth2/userinfo`; it neither stores nor refreshes OAuth tokens. Legacy `oidc.*`
@@ -18,7 +18,7 @@ AI settings and voices and supports the loopback bootstrap-health check; it no
 longer supplies OAuth or telemetry settings. The public gateway must authenticate
 this endpoint along with the other browser APIs.
 
-CI builds a static Angular artifact, tests it behind Traefik with stock nginx,
+CI lints, type-checks, and builds a static React/Vite artifact, tests it behind Traefik with stock nginx,
 and publishes the same files to Azure Blob `assets` before publishing index HTML
 to `$web`. Before uploading, deployment empties `$web` and `assets`, including any
 old release directories. Only the latest build is published, without a release
@@ -70,6 +70,8 @@ Coordinate the gateway cutover with the app deployment; older browser bundles
 need a reload and a fresh gateway sign-in. Platform provisioning and production
 rollout are separate from this repository's implementation.
 
+Frontend development and build instructions: [client/README.md](client/README.md).
+
 Local verification (test pod running):
 
 ```bash
@@ -82,7 +84,7 @@ they do not implement oauth2-proxy/Redis. Actual session redirects, cookie
 isolation and gateway policies are covered by the shared chart integration suite.
 After provisioning, smoke-test signed-out document redirects/API 401s, signed-in
 deep links, role denial, mutation origins, dictionary/export tokens, and telemetry.
-For local Angular development, provide a gateway session/proxy in front of the
+For local Vite development, provide a gateway session/proxy in front of the
 dev server; the app no longer performs a direct Entra login.
 
 ## FSRS scheduling

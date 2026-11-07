@@ -1,0 +1,17 @@
+.markdown {
+  overflow-wrap: anywhere;
+}
+.markdown pre {
+  overflow-x: auto;
+  padding: 1rem;
+  background: var(--bt-surface-0);
+  border-radius: var(--bt-radius);
+}
+.markdown table {
+  border-collapse: collapse;
+}
+.markdown td,
+.markdown th {
+  padding: 0.5rem;
+  border: 1px solid var(--bt-outline);
+}

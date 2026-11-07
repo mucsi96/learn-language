@@ -1,5 +1,26 @@
 import { test, expect } from '../fixtures';
-import { createRateLimitSetting, getRateLimitSettings, createModelUsageLog } from '../utils';
+import { createRateLimitSetting, getRateLimitSettings } from '../utils';
+
+test('does not save blank or negative limits and saves valid zero on blur', async ({ page }) => {
+  await createRateLimitSetting({ key: 'audio-daily-limit', value: 12 });
+  await page.goto('/settings/voices');
+  const input = page.getByRole('spinbutton', { name: 'Audio daily limit' });
+  await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+  await input.fill('');
+  await input.press('Tab');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  expect((await getRateLimitSettings()).find(setting => setting.key === 'audio-daily-limit')?.value).toBe(12);
+  await input.fill('-1');
+  await input.press('Tab');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  expect((await getRateLimitSettings()).find(setting => setting.key === 'audio-daily-limit')?.value).toBe(12);
+  await input.fill('0');
+  await input.press('Tab');
+  await expect.poll(async () => (await getRateLimitSettings()).find(setting => setting.key === 'audio-daily-limit')?.value).toBe(0);
+  await page.reload();
+  await expect(input).toHaveValue('0');
+  await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+});
 
 test('displays image rate limit from database on image models settings page', async ({ page }) => {
   await createRateLimitSetting({ key: 'image-per-minute', value: 10 });
@@ -18,7 +39,7 @@ test('can update image rate limit', async ({ page }) => {
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Image rate limit per minute' });
   await rateLimitInput.fill('15');
-  await rateLimitInput.dispatchEvent('change');
+  await rateLimitInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();
@@ -45,7 +66,7 @@ test('can update audio rate limit', async ({ page }) => {
 
   const rateLimitInput = page.getByRole('spinbutton', { name: 'Audio rate limit per minute' });
   await rateLimitInput.fill('25');
-  await rateLimitInput.dispatchEvent('change');
+  await rateLimitInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();
@@ -72,7 +93,7 @@ test('can update image max concurrent requests', async ({ page }) => {
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Image max concurrent requests' });
   await maxConcurrentInput.fill('4');
-  await maxConcurrentInput.dispatchEvent('change');
+  await maxConcurrentInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();
@@ -99,7 +120,7 @@ test('can update audio max concurrent requests', async ({ page }) => {
 
   const maxConcurrentInput = page.getByRole('spinbutton', { name: 'Audio max concurrent requests' });
   await maxConcurrentInput.fill('6');
-  await maxConcurrentInput.dispatchEvent('change');
+  await maxConcurrentInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();
@@ -126,7 +147,7 @@ test('can update image daily limit', async ({ page }) => {
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Image daily limit' });
   await dailyLimitInput.fill('30');
-  await dailyLimitInput.dispatchEvent('change');
+  await dailyLimitInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();
@@ -153,7 +174,7 @@ test('can update audio daily limit', async ({ page }) => {
 
   const dailyLimitInput = page.getByRole('spinbutton', { name: 'Audio daily limit' });
   await dailyLimitInput.fill('75');
-  await dailyLimitInput.dispatchEvent('change');
+  await dailyLimitInput.press('Tab');
 
   await expect(async () => {
     const settings = await getRateLimitSettings();

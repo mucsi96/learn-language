@@ -1,5 +1,21 @@
 import { test, expect } from '../fixtures';
+import type { Route } from '@playwright/test';
 import { createChatModelSetting, getChatModelSettings } from '../utils';
+
+test('rolls back an optimistic model change when saving fails', async ({ page }) => {
+  const pending = Promise.withResolvers<Route>();
+  await page.route('**/api/chat-model-settings', route => pending.resolve(route));
+  await page.goto('/settings/data-models');
+  const toggle = page.getByRole('row', { name: 'gpt-5.6-sol' }).getByRole('switch').first();
+  await expect(toggle).not.toBeChecked();
+  await toggle.press('Space');
+  const saving = await pending.promise;
+  await expect(toggle).toBeChecked();
+  await saving.fulfill({ status: 503, json: { message: 'Model settings unavailable' } });
+  await expect(toggle).not.toBeChecked();
+  await expect(page.getByText('Model settings unavailable', { exact: true })).toBeVisible();
+  expect(await getChatModelSettings()).toEqual([]);
+});
 
 test('navigates to data model settings from settings page', async ({ page }) => {
   await page.goto('/settings');
@@ -40,7 +56,7 @@ test('displays matrix with all chat models and operation types', async ({ page }
     await page.goto('/settings/data-models');
 
     const modelRow = page.getByRole('row', { name: modelName });
-    await modelRow.getByRole('switch').first().click();
+    await modelRow.getByRole('switch').first().press('Space');
     await modelRow.getByRole('radio').first().click();
 
     await expect(async () => {
@@ -132,10 +148,8 @@ test('can toggle model setting', async ({ page }) => {
 
   const isCheckedBefore = await toggleInGptRow.isChecked();
 
-  await toggleInGptRow.click();
-
-  const isCheckedAfter = await toggleInGptRow.isChecked();
-  expect(isCheckedAfter).toBe(!isCheckedBefore);
+  await toggleInGptRow.press('Space');
+  await expect(toggleInGptRow).toBeChecked({ checked: !isCheckedBefore });
 
   await expect(async () => {
     const settings = await getChatModelSettings();
@@ -195,7 +209,7 @@ test('toggle performs optimistic update', async ({ page }) => {
 
   await expect(toggle).not.toBeChecked();
 
-  await toggle.click();
+  await toggle.press('Space');
 
   await expect(toggle).toBeChecked();
 });

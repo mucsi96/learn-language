@@ -1,0 +1,86 @@
+.page,
+.list,
+.editor,
+.example {
+  display: grid;
+  gap: 1rem;
+}
+.card {
+  border: 1px solid #748094;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+.reviewed {
+  border-color: #8fdf9d;
+}
+.header,
+.fields,
+.actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.header {
+  justify-content: space-between;
+}
+.fields > * {
+  flex: 1;
+  min-width: 180px;
+}
+.images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+.image {
+  position: relative;
+  max-width: 400px;
+  margin: 0;
+}
+.image img {
+  width: 100%;
+  border-radius: 0.75rem;
+}
+.image button {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 2rem;
+}
+.image figcaption {
+  font-size: 0.8rem;
+}
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+.field textarea {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #748094;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  min-height: 6rem;
+}
+.example {
+  padding: 1rem;
+  border: 1px solid #748094;
+  border-radius: 0.75rem;
+}
+.progress {
+  position: sticky;
+  bottom: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: end;
+  background: var(--surface, #182332);
+  padding: 1rem;
+  border-radius: 1rem;
+}
+.disabled {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}

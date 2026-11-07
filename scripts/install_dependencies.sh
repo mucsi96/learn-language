@@ -92,13 +92,6 @@ if [ "$(uname -s)" = "Linux" ] && [ -f /etc/os-release ]; then
             echo "Maven is already installed."
         fi
 
-        # Check and install angular-cli
-        if ! command -v ng >/dev/null 2>&1; then
-            echo "Installing Angular CLI..."
-            sudo npm install -g @angular/cli
-        else
-            echo "Angular CLI is already installed."
-        fi
     fi
 fi
 

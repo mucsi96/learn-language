@@ -74,7 +74,7 @@ test('export struggled cards button appears on celebration page when there are s
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Export struggled cards as PDF' })).toBeVisible();
 });
 
 test('export struggled cards button does not appear when all cards answered correctly', async ({ page }) => {
@@ -115,7 +115,7 @@ test('export struggled cards button does not appear when all cards answered corr
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
-  await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
+  await expect(page.getByRole('link', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
 });
 
 test('export struggled cards button triggers PDF download', async ({ page }) => {
@@ -160,7 +160,7 @@ test('export struggled cards button triggers PDF download', async ({ page }) => 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export struggled cards as PDF' }).click();
+  await page.getByRole('link', { name: 'Export struggled cards as PDF' }).click();
   const download = await downloadPromise;
 
   expect(download.suggestedFilename()).toBe('struggled-cards.pdf');
@@ -211,7 +211,7 @@ test('export struggled cards button visible on study page when returning after s
   await page.goto('/sources/goethe-a1/study');
 
   await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Export struggled cards as PDF' })).toBeVisible();
 });
 
 test('export button not visible on study page return when no struggled cards', async ({ page }) => {
@@ -255,7 +255,7 @@ test('export button not visible on study page return when no struggled cards', a
   await page.goto('/sources/goethe-a1/study');
 
   await expect(page.getByRole('heading', { name: 'Welcome back!' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
+  await expect(page.getByRole('link', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
 });
 
 test('export struggled cards with partner mode triggers PDF download', async ({ page }) => {
@@ -341,7 +341,7 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export struggled cards as PDF' }).click();
+  await page.getByRole('link', { name: 'Export struggled cards as PDF' }).click();
   const download = await downloadPromise;
 
   expect(download.suggestedFilename()).toBe('struggled-cards.pdf');

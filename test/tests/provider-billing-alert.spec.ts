@@ -120,7 +120,7 @@ test('card creation explains the credit problem in its progress dialog and the a
   await page.getByRole('button', { name: 'Complete draft cards' }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('OpenAI reported an API credit or billing problem', { timeout: 20_000 });
-  await dialog.getByRole('button', { name: 'Close' }).click();
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(page.getByRole('alert', { name: 'OpenAI billing needs attention' })).toBeVisible();
 });
 

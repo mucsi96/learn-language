@@ -59,14 +59,16 @@ const strategies = [
       const card = page.getByRole('article', { name: 'Flashcard' });
       const prompt = card.getByText(front, { exact: type !== 'SIMPLE' });
       await expect(prompt).toBeVisible();
+      await expect(card).toHaveScreenshot(`${type.toLowerCase()}-${width}x${height}-front.png`, { animations: 'disabled' });
       await expect(card).toBeInViewport({ ratio: 1 });
       if (type === 'VOCABULARY' || type === 'SPEECH') {
-        await expect(card.getByRole('img')).toBeInViewport({ ratio: 1 });
+        await expect(card.getByRole('img', { name: examples[0].hu, exact: true })).toBeInViewport({ ratio: 1 });
       }
       const profile = page.getByRole('button', { name: 'Profile menu' });
       const headerBounds = await profile.boundingBox();
       await prompt.click();
       await expect(card.getByText(back, { exact: true })).toBeVisible();
+      await expect(card).toHaveScreenshot(`${type.toLowerCase()}-${width}x${height}-back.png`, { animations: 'disabled' });
       const correct = page.getByRole('button', { name: 'Correct', exact: true });
       await expect(correct).toBeInViewport({ ratio: 1 });
       const gradeBounds = await correct.boundingBox();
@@ -91,7 +93,7 @@ const strategies = [
       expect(cardBounds!.x).toBe(16);
       expect(width - cardBounds!.x - cardBounds!.width).toBe(16);
       if (width >= 768 && (type === 'VOCABULARY' || type === 'SPEECH')) {
-        const image = card.getByRole('img');
+        const image = card.getByRole('img', { name: examples[0].de, exact: true });
         const imageBounds = await image.boundingBox();
         expect(imageBounds!.x).toBe(cardBounds!.x);
         expect(imageBounds!.y).toBe(cardBounds!.y);
@@ -142,7 +144,7 @@ strategies.forEach(({ type, front, data }) => {
     await expect(correct).toBeInViewport({ ratio: 1 });
     const gradeBounds = await correct.boundingBox();
     if (type === 'VOCABULARY' || type === 'SPEECH') {
-      expect((await card.getByRole('img').boundingBox())!.height).toBeGreaterThan(100);
+      expect((await card.getByRole('img', { name: longText, exact: true }).boundingBox())!.height).toBeGreaterThan(100);
     }
     await page.mouse.move(200, 400);
     await page.mouse.wheel(0, 10000);

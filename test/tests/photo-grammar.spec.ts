@@ -77,7 +77,7 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
     page.getByAltText('Pending grammar lesson photo')
   ).toBeVisible();
 
-  await page.getByRole('combobox', { name: 'How many cards?' }).click();
+  await page.getByLabel('How many cards?').click();
   await page.getByRole('option', { name: '5 cards', exact: true }).click();
 
   await page
@@ -93,9 +93,9 @@ test('pending photo banner consumes photo and creates grammar cards', async ({ p
   await topicDialog.getByRole('button', { name: 'Continue' }).click();
 
   await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close' })
+    page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
 
   const cards = await withDbConnection(async (client) => {
     const result = await client.query(

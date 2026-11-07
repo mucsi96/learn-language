@@ -1,0 +1,16 @@
+.layout {
+  min-height: 100dvh;
+  --bt-app-content-gap: 2rem;
+}
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bt-surface-1);
+  border-bottom: 1px solid var(--bt-outline);
+}
+.brand {
+  color: var(--bt-text-strong);
+  text-decoration: none;
+  font-size: 1.25rem;
+}

@@ -44,24 +44,18 @@ Skeleton sync: follow `.github/prompts/sync-skeleton.md` in a weekly scheduled t
 - Don't use assertion messages
 - Test every feature using E2E tests with playwright inline with existing tests
 
-## Angular Code style
-- Make sure the UI is testable using role based selectors and selectors based on accesibility
-- Follow functional programming patterns from TypeScript Code style section
-- Prefer using Angular Material components
-- Prefer using Angular signal / resource for state management
-- Follow `@mucsi96/angular-material-theme`'s documented button-color API: use `bt-color="primary|success|warn|error"` on `mat-flat-button`, `mat-raised-button`, `mat-fab` (including extended FABs), and `mat-mini-fab`, including anchor buttons. Use `[attr.bt-color]` for dynamic tones; no directive import is needed.
-- Solid buttons default to primary. Use `error` for destructive actions, `warn` for caution, and `success` for positive outcomes. Material's legacy `color="warn"` means error/red, not the theme's orange `bt-color="warn"`; migrate solid buttons accordingly.
-- For an arbitrary solid-button color, set only `--bt-button-bg` without `bt-color`. Let the theme derive label contrast and hover colors; do not override Material container/label/state-layer color tokens, `--mat-sys-primary`, or button `background`, `color`, and `:hover` separately. Keep the intended button variant; raised buttons support the same API and retain elevation.
-- The `bt-color` API does not cover text, outlined, icon, or menu buttons. Use their documented Material APIs instead; do not apply solid-button color workarounds to them. Check the installed theme README when upgrading or changing component styles.
-- Prefer putting styles and templates to separate files
-- Use angular resources core method when necessary
-- Do  not use ::ng-deep
-- Avoid using enum in TS. Prefer using string literals
-- Always using new Angular templates
-- Using rxjs is not allowed
+## React Code style
+- Use function components and hooks, with coherent domain boundaries under `src/features`.
+- Use TanStack Query for server state and Zod at API boundaries. Preserve unknown persisted card-data fields when updating a card.
+- Use `@mucsi96/react-ui` components and colocated CSS Modules. Read the installed library README before changing component styles.
+- Use semantic markup and accessible labels for role-based Playwright selectors.
+- Use button `tone="error"` for destructive actions, `warn` for caution, and `success` for positive outcomes. Preserve the intended button variant.
+- Use React state for forms and temporary UI state; effects synchronize external systems and clean up subscriptions, audio, and object URLs.
+- Prefer string literal unions over TypeScript enums. Do not introduce RxJS or framework compatibility layers.
+- Keep business algorithms independent of React. Add behavioral coverage in Playwright rather than React unit/component tests.
 
 ## Design guidelines
-- Prefer using Angular Material components
+- Prefer using `@mucsi96/react-ui` components
 - Avoid using "Loading..." in favor of skeleton loaders
 
 ## Project Overview
@@ -71,7 +65,7 @@ This is a language learning application that uses spaced repetition to help user
 ## Architecture
 
 **Backend**: Spring Boot 4 with Java 21 (built into a GraalVM native image), PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
-**Frontend**: Angular with Material UI, gateway-managed Entra sessions, TypeScript
+**Frontend**: React/Vite with `@mucsi96/react-ui`, TanStack Query, Zod, gateway-managed Entra sessions, TypeScript
 
 ### Key Technologies
 - **Spaced Repetition**: Uses FSRS (Free Spaced Repetition Scheduler) algorithm via ts-fsrs library
@@ -81,12 +75,13 @@ This is a language learning application that uses spaced repetition to help user
 
 ## Development Commands
 
-### Frontend (Angular)
+### Frontend (React/Vite)
 ```bash
 cd client/
 npm run start       # Development server
 npm run build       # Production build
-npm run watch       # Development build with watch mode
+npm run lint        # ESLint, including React hook rules
+npm run typecheck   # TypeScript project checks
 ```
 
 ### Backend (Spring Boot)
@@ -369,10 +364,10 @@ Tracks review history and performance metrics for spaced repetition
 - **FileStorageService**: Local file system storage for PDFs and assets
 
 ### Frontend Services
-- **CardService**: Angular service for card state management and API interactions
-- **SourcesService**: PDF source management and page navigation
-- **BatchAudioCreationService**: Bulk audio generation with progress tracking
-- **BulkCardCreationService**: Batch card creation workflows
+- **API queries and mutations**: Validated server state with TanStack Query
+- **Source features**: PDF source management and page navigation
+- **Creation workflows**: Bulk audio and card generation with progress tracking
+- **Study domain**: FSRS scheduling and session/Pomodoro management
 
 ## API Routes
 
@@ -403,7 +398,7 @@ Tracks review history and performance metrics for spaced repetition
 
 ### Data Storage
 - Uses JSONB for flexible card data structure in PostgreSQL
-- Resource-based reactive patterns in Angular for efficient data loading
+- TanStack Query for cached server state and explicit invalidation
 - Batch operations for bulk card and audio creation
 
 ### Authentication
