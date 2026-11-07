@@ -13,6 +13,14 @@ import { CardState } from './card-state';
 export class StateComponent {
   state = input<CardState>();
   count = input<number | undefined>();
+  display = input<'badge' | 'dots'>('badge');
+  readonly dots = computed(() => {
+    const count = this.count();
+    if (count === undefined) {
+      throw new Error('Dot progress requires a card count');
+    }
+    return Array.from({ length: count }, (_, index) => index);
+  });
 
   private readonly stateNames: Record<CardState, string> = {
     'NEW': 'New',

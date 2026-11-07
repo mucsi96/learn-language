@@ -1,4 +1,14 @@
-@if (count() !== undefined) {
+@if (display() === 'dots') {
+  @for (dot of dots(); track dot) {
+    <span
+      class="state-dot"
+      [ngStyle]="stateStyle()"
+      role="img"
+      [attr.aria-label]="'State: ' + stateName()"
+      [attr.title]="stateName()"
+    ></span>
+  }
+} @else if (count() !== undefined) {
 <span [ngStyle]="stateStyle()" [attr.title]="stateName()" class="state-chip">
   {{ count() }}
 </span>
