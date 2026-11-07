@@ -135,7 +135,8 @@ and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/ca
 Starting or continuing a study session automatically starts a
 25-minute Pomodoro if there is no active countdown, including when the previous
 timer has expired. An already-running timer keeps its deadline. You can also click
-**Start Pomodoro** in the header to start it independently. Switching sources,
+**Start Pomodoro** in the study header to start it independently. The timer,
+its controls, and the break announcement appear only on study routes. Switching sources,
 returning home, and reloading the page all keep its deadline. The countdown is
 stored for the current browser tab. At zero, the
 timer blinks and announces that it is time for a break; studying can continue.
@@ -143,7 +144,7 @@ Reduced-motion settings disable the blinking.
 
 Click the header timer (or focus it and press Enter/Space) while studying to
 **start a new study session** and reset the countdown to 25 minutes.
-Outside study mode it restarts only the countdown. A failed session restart keeps
+A failed session restart keeps
 the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are

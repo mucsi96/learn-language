@@ -442,7 +442,7 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Sessions automatically resume when returning to the study page on the same day
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
-- Starting or continuing a study session starts the 25-minute header Pomodoro only if no countdown is active. Clicking the timer while studying restarts the source's session and countdown; outside study it starts/restarts only the timer. It persists across navigation and reloads in the current browser tab; expiry blinks (static with reduced motion) without interrupting study
+- Starting or continuing a study session starts the 25-minute header Pomodoro only if no countdown is active. The timer, its controls, and break announcement appear only on study routes. Clicking the timer during an active session restarts the source's session and countdown. It persists across navigation and reloads in the current browser tab; expiry blinks (static with reduced motion) without interrupting study
 - Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support

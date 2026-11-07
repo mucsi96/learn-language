@@ -4,7 +4,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserProfileService } from '../user-profile.service';
 import { MatMenuModule } from '@angular/material/menu';
-import { RouterLink } from '@angular/router';
+import { PRIMARY_OUTLET, Router, RouterLink } from '@angular/router';
 import { StudySessionService } from '../study-session.service';
 import { PomodoroService } from '../pomodoro.service';
 
@@ -21,6 +21,11 @@ import { PomodoroService } from '../pomodoro.service';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
+  private readonly router = inject(Router);
+  readonly isStudyRoute = computed(() => {
+    const segments = this.router.lastSuccessfulNavigation()?.finalUrl?.root.children[PRIMARY_OUTLET]?.segments;
+    return segments?.length === 3 && segments[0].path === 'sources' && segments[2].path === 'study';
+  });
   readonly pomodoro = inject(PomodoroService);
   readonly studySession = inject(StudySessionService);
   readonly restart = computed(() => this.studySession.hasSession() ? this.studySession.restartControl() : null);
