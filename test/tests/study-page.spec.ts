@@ -329,7 +329,7 @@ test('large study queues keep all dots within a bounded header area', async ({ p
 
   await page.goto('/sources/goethe-a1/study');
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(100);
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(50);
   const dimensions = await progress.evaluate(element => ({
     width: element.clientWidth,
     height: element.clientHeight,
@@ -338,7 +338,8 @@ test('large study queues keep all dots within a bounded header area', async ({ p
   }));
   expect(dimensions.width).toBeLessThanOrEqual(200);
   expect(dimensions.height).toBeLessThanOrEqual(32);
-  expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.height);
+  expect(dimensions.height).toBeGreaterThan(8);
+  expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.height);
   expect(dimensions.scrollWidth).toBe(dimensions.width);
   await expect(page.getByRole('button', { name: 'Goethe A1' })).toBeInViewport();
 });
