@@ -170,7 +170,7 @@ speech examples with a realistic illustration instead of the test image.
 In **Sources → Add Source**, choose **Audio Collection**, enter a name, language
 level, and **Collection folder** within the private Azure container
 `ibari/learn-language`. For example, name a source **Deutsch lernen durch Hören
-A1–A2** and set its folder to `deutsch-lernen-durch-hoeren-a1-a2/`.
+A1–A2** and set its folder to `stories/deutsch-lernen-durch-hoeren-a1-a2/`.
 Collection paths use lowercase slug folders and a trailing slash; nested folders
 are supported. A source's collection is fixed after creation. Additional
 collections require only uploaded files and a new source, with no provider code.

@@ -18,7 +18,7 @@ async function addSource(page: Page, languageLevel = 'A2 - Elementary') {
   await page.getByRole('combobox', { name: 'Source Type', exact: true }).click();
   await page.getByRole('option', { name: 'Audio Collection', exact: true }).click();
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill(NAME);
-  await page.getByRole('textbox', { name: 'Collection folder', exact: true }).fill('deutsch-lernen-durch-hoeren-a1-a2/');
+  await page.getByRole('textbox', { name: 'Collection folder', exact: true }).fill('stories/deutsch-lernen-durch-hoeren-a1-a2/');
   await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
   await page.getByRole('option', { name: languageLevel, exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue(NAME);
@@ -248,7 +248,7 @@ test('migrates existing story identities, vocabulary and listening progress to A
       ALTER TABLE learn_language.content_items RENAME COLUMN collection_path TO extension_id;
       ALTER TABLE learn_language.collection_discovery RENAME COLUMN collection_path TO extension_id;
       ALTER TABLE learn_language.collection_discovery RENAME TO extension_discovery;
-      DELETE FROM learn_language.databasechangelog WHERE id IN ('61-azure-story-assets', '62-audio-collections');
+       DELETE FROM learn_language.databasechangelog WHERE id IN ('61-azure-story-assets', '62-audio-collections', '63-story-folders');
     `);
   });
   await restartServer(page);
@@ -257,12 +257,12 @@ test('migrates existing story identities, vocabulary and listening progress to A
   const migrated = await withDbConnection(async db => (await db.query(
     'SELECT external_id, descriptor, preparation FROM learn_language.content_items WHERE id = $1', [id])).rows[0]);
   expect(migrated.external_id).toBe('209-brezel');
-  expect(migrated.descriptor.audioUrl).toBe('deutsch-lernen-durch-hoeren-a1-a2/209-brezel/audio.mp3');
+  expect(migrated.descriptor.audioUrl).toBe('stories/deutsch-lernen-durch-hoeren-a1-a2/209-brezel/audio.mp3');
   expect(migrated.descriptor.youtubeVideoId).toBeUndefined();
   expect(migrated.preparation).toEqual(before);
   const sources = await (await page.request.get('/api/sources', { headers: apiHeaders })).json();
   expect(sources.find((source: { id: string }) => source.id === SOURCE)).toMatchObject({
-    sourceType: 'audioCollection', collectionPath: 'deutsch-lernen-durch-hoeren-a1-a2/',
+    sourceType: 'audioCollection', collectionPath: 'stories/deutsch-lernen-durch-hoeren-a1-a2/',
   });
   const response = await page.request.post(`${api}/playback`, { headers: apiHeaders });
   expect(response.ok()).toBe(true);
@@ -789,7 +789,7 @@ test('sources sharing a collection reuse prepared content', async ({ page, apiHe
   const before = await stats();
   const response = await page.request.post('/api/source', { headers: apiHeaders, data: {
     id: 'shared-collection', name: 'Shared collection', sourceType: 'audioCollection',
-    collectionPath: 'deutsch-lernen-durch-hoeren-a1-a2/', cardTypes: ['vocabulary'], languageLevel: 'B1',
+    collectionPath: 'stories/deutsch-lernen-durch-hoeren-a1-a2/', cardTypes: ['vocabulary'], languageLevel: 'B1',
   } });
   expect(response.ok()).toBe(true);
   await page.goto('/sources/shared-collection/content');

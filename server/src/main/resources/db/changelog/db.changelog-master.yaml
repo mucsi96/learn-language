@@ -1515,3 +1515,5 @@ databaseChangeLog:
       file: db/changelog/azure-stories.yaml
   - include:
       file: db/changelog/audio-collections.yaml
+  - include:
+      file: db/changelog/story-folders.yaml

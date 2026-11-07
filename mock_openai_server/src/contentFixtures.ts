@@ -24,7 +24,7 @@ export const resetContentFixtures = () => {
 };
 
 const collections: Record<string, Record<string, string>> = {
-  'deutsch-lernen-durch-hoeren-a1-a2/': { '209-brezel': 'Brezel', '294-zwillinge': 'Zwillinge', '007-neue-geschichte': 'Neue Geschichte' },
+  'stories/deutsch-lernen-durch-hoeren-a1-a2/': { '209-brezel': 'Brezel', '294-zwillinge': 'Zwillinge', '007-neue-geschichte': 'Neue Geschichte' },
   'other-stories/': { '209-brezel': 'Ein gutes Haus' },
 };
 const audio = readFileSync(join(__dirname, 'story.mp3'));
@@ -46,14 +46,16 @@ contentFixtures.get('/learn-language', (req, res) => {
     <EnumerationResults ServiceEndpoint="http://localhost:3070/content-fixtures" ContainerName="learn-language">
       <Prefix>${prefix}</Prefix><Blobs>${names.map(name => `<Blob><Name>${name}</Name><Properties>
       <Last-Modified>Sat, 07 Nov 2026 00:00:00 GMT</Last-Modified><Etag>"fixture"</Etag>
-      <Content-Length>${name.endsWith('.mp3') ? audio.length : transcript(prefix, name.split('/')[1]).length}</Content-Length>
+       <Content-Length>${name.endsWith('.mp3') ? audio.length : transcript(prefix, name.slice(prefix.length).split('/')[0]).length}</Content-Length>
       <BlobType>BlockBlob</BlobType></Properties></Blob>`).join('')}</Blobs>
       <NextMarker>${req.query.marker ? '' : 'page2'}</NextMarker></EnumerationResults>`);
 });
 
 contentFixtures.get(/^\/learn-language\/(.+)$/, (req, res) => {
-  const [collection, folder, file] = req.params[0].split('/');
-  const prefix = `${collection}/`;
+  const parts = req.params[0].split('/');
+  const folder = parts.at(-2)!;
+  const file = parts.at(-1)!;
+  const prefix = `${parts.slice(0, -2).join('/')}/`;
   if (!collections[prefix]?.[folder] || !['text.txt', 'audio.mp3'].includes(file)) {
     res.sendStatus(404); return;
   }
