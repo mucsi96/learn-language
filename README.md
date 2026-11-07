@@ -165,66 +165,62 @@ The tests save top/scrolled screenshots for each card type and viewport. Set
 `STUDY_SCREENSHOT_IMAGE` to an absolute image path to capture the vocabulary and
 speech examples with a realistic illustration instead of the test image.
 
-## Source extensions
+## Audio collections
 
-In **Sources → Add Source**, choose **Source Extension**, then select
-**Deutsch lernen durch Hören A1–A2**. The extension discovers the 24 stories in
-the publisher's [A1–A2 index](https://www.einfachdeutschlernen.com/en/niveau-a1-a2);
-no URLs or file uploads are needed.
+In **Sources → Add Source**, choose **Audio Collection**, enter a name, language
+level, and **Collection folder** within the private Azure container
+`ibari/learn-language`. For example, name a source **Deutsch lernen durch Hören
+A1–A2** and set its folder to `deutsch-lernen-durch-hoeren-a1-a2/`.
+Collection paths use lowercase slug folders and a trailing slash; nested folders
+are supported. A source's collection is fixed after creation. Additional
+collections require only uploaded files and a new source, with no provider code.
+Each story is a numbered folder such as `209-brezel/` containing `audio.mp3` and
+UTF-8 `text.txt` (title on the first line, followed by the story).
+Stories sort by their three-digit folder number. Incomplete pairs fail discovery.
 
-Choose its data model under **Settings → Data Models → Source Content Extraction**.
-This operation discovers catalogue entries and extracts the requested story from
-cleaned page HTML, independently of the model used for vocabulary extraction.
-It does not depend on heading tags, Wix player classes, or story-page URL patterns.
-Returned links and verbatim story paragraphs are validated against the page.
-Upgrading initially copies the existing Extraction model settings into this new
-operation; subsequent changes are independent. Without a configured primary
-model, extraction fails explicitly rather than falling back to another operation.
+The backend uses `DefaultAzureCredential`: its workload identity needs **Storage
+Blob Data Reader** on this container. Local development uses `az login`.
+Storage remains private; credentials and direct storage URLs never reach the
+browser. The app performs no website scraping, source-extraction AI calls, or
+YouTube requests. Only vocabulary generation uses the **Extraction** data model.
 
 - Open **Stories** from the source's actions menu to browse the catalogue.
-- Opening a story retrieves its German HTML text and prepares vocabulary in the
-  background. Vocabulary sections, exercises, other stories, and promotional
-  content are excluded. Extracted text and successful AI results are cached
-  persistently. Reopening a story does not repeat preparation. Failed jobs
-  can be retried from their last successful stage.
+- Opening a story prepares vocabulary directly from its stored text in the
+  background. Text and successful AI results are cached persistently. Reopening
+  a story does not repeat preparation. Failed vocabulary jobs resume from the
+  cached transcript, without another download or text-isolation AI call.
 - The catalogue is stored in PostgreSQL and reused across restarts without an
   expiry. Only **Refresh catalogue** repeats discovery after the first successful
-  extraction; a failed refresh preserves the saved catalogue for subsequent visits.
-  Changing the source-extraction model does not regenerate already prepared
-  stories. Extracted story text is checkpointed before vocabulary generation, so
-  a vocabulary retry does not repeat the source AI call.
+  listing; a failed refresh preserves the saved catalogue for subsequent visits.
 - Select missing words to create drafts, then use the existing draft-card
   workflow to enrich and review them. Cards in the same source group are reused.
   Noun cards include their definite article (for example, `das Haus`).
 - The home page's **Listen** action unlocks a story only when every extracted
   word is known or has a `READY` card reviewed at least twice. Listening progress is saved per
-  user, including backward seeks, and restored on return. Recordings play in a
-  YouTube embed using the official IFrame Player API; the server does not download
-  or convert YouTube audio.
+  user, including backward seeks, and restored on return. Recordings use native
+  HTML audio through a same-origin, session-protected endpoint with byte-range
+  support. Audio downloads once to persistent server storage, when first played.
+  Playback duration comes from the audio file rather than an external catalogue.
 
-The provider's shortcut buttons and static player labels sometimes refer to
-unrelated recordings. `server/src/main/resources/source-extensions/einfach-deutsch-a1-a2.json`
-therefore records the 24 actual embedded video IDs, recording numbers, and
-durations verified on September 25, 2026. New index entries without verified
-recordings remain visible with an explicit issue. The publisher's **Zwillinge**
-section currently contains a birthday story; preparation is blocked until its
-transcript is corrected or verified. **Refresh catalogue** checks the index
-without reprocessing prepared stories.
+The upgrade migrates existing numbered story IDs in place, preserving content
+UUIDs, prepared vocabulary, cards, and listening positions. It retires the source
+extraction model setting while retaining historical usage logs.
+Existing extension sources become `audioCollection` sources with a
+`collectionPath`. The extension registry, descriptors, capability API, and
+provider implementations have been removed. Vocabulary uses ordinary vocabulary
+cards; listening progress remains separate from spaced-repetition reviews.
 
 Progress is saved every five seconds during playback, on pause/completion and
 detected seeks, and best-effort when leaving the page. A local pending-write
 buffer retries unsent updates. The player can resume a saved position without
-autoplaying. YouTube availability and browser shutdown can affect playback and
-the final save; abrupt termination may lose the last unsaved interval. Locked
-stories do not load the YouTube API or iframe. Progress writes recheck card
+autoplaying. Abrupt browser termination may lose the last unsaved interval. Locked
+stories do not download audio. Progress writes recheck card
 eligibility and stale playback sessions cannot overwrite newer progress.
 
-Implement `SourceExtension` to add another provider. Discovery, RSS parsing,
-metadata interpretation, and catalogue matching belong to the extension.
-Core services handle persistent assets, preparation jobs, PDF/plain-text
-extraction, vocabulary, group-wide card coverage, media delivery, and progress.
-The test profile includes a text-only extension exercising the same core without
-the publisher website or YouTube.
+`AudioCollectionService` reads catalogue metadata and plain story text. Core services
+handle vocabulary jobs, group-wide card coverage, media delivery, and progress.
+The test profile exercises the Azure SDK against a paginated local Blob REST
+fixture with real MP3 audio and two independent collections.
 
 Focused E2E coverage:
 
@@ -241,9 +237,9 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 
 | Data | Storage and lifetime |
 |------|----------------------|
-| Story catalogue | `ExtensionDiscovery` and `SourceContent` entities map the existing `extension_discovery` and `content_items` tables. Shared by extension, retained until explicitly refreshed; existing rows need no migration. |
+| Story catalogue | `CollectionDiscovery` and `SourceContent` map `collection_discovery` and `content_items`. Shared by collection path, retained until explicitly refreshed. |
 | Story text and AI vocabulary | Checkpoints in `content_items.preparation`, retained across restarts and catalogue refreshes. Versioned migrations deliberately invalidate vocabulary when extraction rules change. Atomic SQL upserts and lease updates preserve preparation during concurrent discovery and background work. |
-| Downloaded transcript/audio assets | URL-hashed files under `STORAGE_DIRECTORY/content-assets`, written by atomic rename and reused without expiry. The storage volume must persist across deployments. Website HTML is fetched only when discovery or story extraction is requested; the extracted result is saved in PostgreSQL. |
+| Downloaded transcript/audio assets | Container-and-blob-name-hashed files under `STORAGE_DIRECTORY/content-assets`, written by atomic rename and reused without expiry. Treat published story files as immutable; the storage volume must persist across deployments. |
 | Listening progress | PostgreSQL `listening_progress`, scoped to source, story, and user. The four-hour expiry applies to write sessions, not saved positions. Browser local storage buffers unsent writes until acknowledged. |
 | Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
 | Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |

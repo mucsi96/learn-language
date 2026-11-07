@@ -10,13 +10,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "extension_discovery", schema = "learn_language")
+@Table(name = "collection_discovery", schema = "learn_language")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExtensionDiscovery {
+public class CollectionDiscovery {
     @Id
-    private String extensionId;
+    private String collectionPath;
     private Instant refreshedAt;
 }

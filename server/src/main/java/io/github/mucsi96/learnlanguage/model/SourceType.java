@@ -14,7 +14,7 @@ public enum SourceType {
     EBOOK_DICTIONARY("ebookDictionary", "Ebook Dictionary"),
     JSON("json", "JSON"),
     WORD_TRIAGE("wordTriage", "Word Triage"),
-    EXTENSION("extension", "Source Extension");
+    AUDIO_COLLECTION("audioCollection", "Audio Collection");
 
     private final String code;
     private final String displayName;

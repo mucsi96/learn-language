@@ -1,9 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +7,10 @@ import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.HexFormat;
+import java.util.List;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.models.ListBlobsOptions;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,26 +19,27 @@ import lombok.SneakyThrows;
 @RequiredArgsConstructor
 public class ContentAssetService {
     private final FileStorageService storage;
-    private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL)
-            .connectTimeout(Duration.ofSeconds(20)).build();
+    private final BlobContainerClient storyContainer;
 
-    @SneakyThrows
-    public String text(String url) {
-        final var response = client.send(request(url), HttpResponse.BodyHandlers.ofString());
-        requireSuccess(response.statusCode());
-        return response.body();
+    public List<BlobItem> list(String prefix) {
+        return storyContainer.listBlobs(new ListBlobsOptions().setPrefix(prefix), Duration.ofSeconds(30))
+                .stream().toList();
     }
 
     @SneakyThrows
-    public Path cached(String url) {
-        final Path target = storage.resolveFilePath("content-assets/" + key(url));
+    public Path cached(String name) {
+        if (!name.matches("(?:[a-z0-9]+(?:-[a-z0-9]+)*/)+[0-9]{3}-[a-z0-9]+(?:-[a-z0-9]+)*/(?:text\\.txt|audio\\.mp3)")) {
+            throw new IllegalArgumentException("Invalid story blob name");
+        }
+        final Path target = storage.resolveFilePath("content-assets/" + key(storyContainer.getBlobContainerUrl() + "/" + name));
         if (Files.isRegularFile(target)) return target;
         Files.createDirectories(target.getParent());
         final Path temporary = Files.createTempFile(target.getParent(), "download-", ".tmp");
         try {
-            final var response = client.send(request(url), HttpResponse.BodyHandlers.ofFile(temporary));
-            requireSuccess(response.statusCode());
-            if (Files.size(temporary) == 0) throw new IllegalStateException("Downloaded asset is empty");
+            try (final var output = Files.newOutputStream(temporary)) {
+                storyContainer.getBlobClient(name).downloadStream(output);
+            }
+            if (Files.size(temporary) == 0) throw new IllegalStateException("Story asset is empty");
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             return target;
         } finally {
@@ -46,21 +47,8 @@ public class ContentAssetService {
         }
     }
 
-    private HttpRequest request(String url) {
-        final URI uri = URI.create(url);
-        if (!java.util.Set.of("https", "http").contains(uri.getScheme())) {
-            throw new IllegalArgumentException("Unsupported asset scheme");
-        }
-        return HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(3))
-                .header("User-Agent", "LearnLanguage/1.0").GET().build();
-    }
-
-    private void requireSuccess(int status) {
-        if (status < 200 || status >= 300) throw new IllegalStateException("Content provider returned HTTP " + status);
-    }
-
     @SneakyThrows
-    public static String key(String value) {
+    private static String key(String value) {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
     }
 

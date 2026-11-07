@@ -12,9 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.json.JsonMapper;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
-import io.github.mucsi96.learnlanguage.entity.ExtensionDiscovery;
+import io.github.mucsi96.learnlanguage.entity.CollectionDiscovery;
 import io.github.mucsi96.learnlanguage.entity.SourceContent;
-import io.github.mucsi96.learnlanguage.repository.ExtensionDiscoveryRepository;
+import io.github.mucsi96.learnlanguage.repository.CollectionDiscoveryRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceContentRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -23,30 +23,29 @@ import lombok.RequiredArgsConstructor;
 public class ContentStore {
     private final JdbcClient jdbc;
     private final JsonMapper json;
-    private final ExtensionDiscoveryRepository discoveries;
+    private final CollectionDiscoveryRepository discoveries;
     private final SourceContentRepository content;
 
-    public boolean discovered(String extensionId) {
-        return discoveries.existsById(extensionId);
+    public boolean discovered(String collectionPath) {
+        return discoveries.existsById(collectionPath);
     }
 
     @Transactional
-    public void discovered(String extensionId, List<ContentDescriptor> descriptors) {
+    public void discovered(String collectionPath, List<ContentDescriptor> descriptors) {
         descriptors.forEach(descriptor -> jdbc.sql("""
-                INSERT INTO learn_language.content_items(id, extension_id, external_id, descriptor)
-                VALUES (:id, :extension, :external, CAST(:descriptor AS jsonb))
-                ON CONFLICT(extension_id, external_id) DO UPDATE SET descriptor = CASE
-                  WHEN content_items.preparation IS NULL THEN excluded.descriptor ELSE content_items.descriptor END
+                INSERT INTO learn_language.content_items(id, collection_path, external_id, descriptor)
+                VALUES (:id, :collection, :external, CAST(:descriptor AS jsonb))
+                ON CONFLICT(collection_path, external_id) DO UPDATE SET descriptor = excluded.descriptor
                 """)
-                .param("id", UUID.randomUUID()).param("extension", extensionId).param("external", descriptor.externalId())
+                .param("id", UUID.randomUUID()).param("collection", collectionPath).param("external", descriptor.externalId())
                 .param("descriptor", json.writeValueAsString(descriptor)).update());
-        discoveries.save(ExtensionDiscovery.builder().extensionId(extensionId)
+        discoveries.save(CollectionDiscovery.builder().collectionPath(collectionPath)
                 .refreshedAt(java.time.Instant.now()).build());
     }
 
     @Transactional(readOnly = true)
-    public List<ContentItem> list(String extensionId) {
-        return content.findCatalogue(extensionId).stream().map(SourceContent::toContentItem).toList();
+    public List<ContentItem> list(String collectionPath) {
+        return content.findCatalogue(collectionPath).stream().map(SourceContent::toContentItem).toList();
     }
 
     @Transactional(readOnly = true)
@@ -88,7 +87,7 @@ public class ContentStore {
 
     private ContentItem item(ResultSet row, int index) throws SQLException {
         final String preparation = row.getString("preparation");
-        return new ContentItem(row.getObject("id", UUID.class), row.getString("extension_id"),
+        return new ContentItem(row.getObject("id", UUID.class), row.getString("collection_path"),
                 json.readValue(row.getString("descriptor"), ContentDescriptor.class),
                 preparation == null ? null : json.readValue(preparation, Preparation.class),
                 row.getString("status"), row.getString("error"), row.getObject("lease_token", UUID.class));

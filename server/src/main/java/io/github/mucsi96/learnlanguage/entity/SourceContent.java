@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 public class SourceContent {
     @Id
     private UUID id;
-    private String extensionId;
+    private String collectionPath;
     private String externalId;
 
     @Type(JsonBinaryType.class)
@@ -44,6 +44,6 @@ public class SourceContent {
     private Instant leaseUntil;
 
     public ContentItem toContentItem() {
-        return new ContentItem(id, extensionId, descriptor, preparation, status, error, leaseToken);
+        return new ContentItem(id, collectionPath, descriptor, preparation, status, error, leaseToken);
     }
 }

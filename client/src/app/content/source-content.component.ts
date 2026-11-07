@@ -8,7 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { BarLoaderComponent } from '@mucsi96/angular-material-theme';
 import { injectParams, injectRouteData } from '../utils/inject-params';
 import { SourcesService } from '../sources.service';
-import { SourceExtensionsService } from './source-extensions.service';
 import { ContentService, contentError } from './content.service';
 import { ContentPlayerComponent } from './content-player.component';
 import { formatPosition } from './content.types';
@@ -23,7 +22,6 @@ import { formatPosition } from './content.types';
 export class SourceContentComponent {
   private readonly service = inject(ContentService);
   private readonly sources = inject(SourcesService);
-  private readonly extensions = inject(SourceExtensionsService);
   private readonly sourceParam = injectParams('sourceId');
   private readonly contentParam = injectParams('contentId');
   private readonly mode = injectRouteData('contentMode');
@@ -32,7 +30,6 @@ export class SourceContentComponent {
   readonly admin = computed(() => this.mode() === 'content');
   readonly route = computed(() => this.admin() ? 'content' : 'listen');
   readonly source = computed(() => this.sources.sources.value()?.find(source => source.id === this.sourceId()));
-  readonly descriptor = computed(() => this.extensions.descriptor(this.source()));
   readonly listing = resource({ params: () => this.sourceId(), loader: ({ params }) => this.service.list(params) });
   readonly detail = resource({
     params: () => this.contentId() ? { source: this.sourceId(), content: this.contentId()! } : undefined,
@@ -45,7 +42,7 @@ export class SourceContentComponent {
   private readonly preparedRequest = signal<string | null>(null);
   readonly items = computed(() => {
     const items = (this.listing.hasValue() ? this.listing.value() : []).filter(item =>
-      `${item.metadata.title} ${item.metadata.number} ${item.metadata.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
+      `${item.metadata.title} ${item.metadata.number} ${this.source()?.languageLevel}`.toLocaleLowerCase().includes(this.search().toLocaleLowerCase()));
     return items;
   });
   private readonly alphabeticalWords = computed(() =>

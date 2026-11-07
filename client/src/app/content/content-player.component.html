@@ -12,16 +12,13 @@
     }
   </div>
 } @else {
-  @if (playback()!.kind === 'youtube') {
-    <app-youtube-player [videoId]="playback()!.youtubeVideoId!" [startPosition]="playback()!.progress.position"
-      (changed)="videoChanged($event)" (checkpoint)="save()" />
-  } @else {
   <audio #audio [src]="playback()!.mediaUrl" preload="metadata" aria-label="Episode audio"
     (loadedmetadata)="loaded()" (timeupdate)="updatePosition()" (play)="paused.set(false)"
     (pause)="paused.set(true); save()" (ended)="save()"
-    (error)="error.set('Audio could not be played. Reopen the player to retry.')"></audio>
-  <input type="range" aria-label="Playback position" min="0" [max]="duration()" step="1"
-    [value]="position()" (input)="seek($event)" />
+    (error)="audioFailed()"></audio>
+  @if (duration() > 0) {
+    <input type="range" aria-label="Playback position" min="0" [max]="duration()" step="1"
+      [value]="position()" (input)="seek($event)" />
   }
   <div class="actions">
     <button mat-flat-button [disabled]="!canPlay()" (click)="toggle()">{{ paused() ? 'Play' : 'Pause' }}</button>

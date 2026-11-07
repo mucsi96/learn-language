@@ -166,10 +166,10 @@
       <span>Import Words</span>
     </button>
     }
-    @if (extensions.supports(source, 'browse')) {
+    @if (source.sourceType === 'audioCollection') {
     <a mat-menu-item [routerLink]="['/sources', source.id, 'content']">
       <mat-icon>library_music</mat-icon>
-      <span>{{ extensions.descriptor(source)?.itemLabel }}</span>
+      <span>Stories</span>
     </a>
     }
     <button mat-menu-item (click)="openEditSourceDialog(source)">

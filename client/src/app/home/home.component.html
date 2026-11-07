@@ -37,7 +37,7 @@
   <mat-card
     role="group"
     [attr.aria-label]="source.name"
-    [class.disabled]="!hasDueCards(source.id) && !extensions.supports(source, 'listen')"
+    [class.disabled]="!hasDueCards(source.id) && source.sourceType !== 'audioCollection'"
   >
     <a
       [routerLink]="hasDueCards(source.id) ? ['/sources', source.id, 'study'] : null"
@@ -55,7 +55,7 @@
         </h2>
       </mat-card-content>
     </a>
-    @if (extensions.supports(source, 'listen')) {
+    @if (source.sourceType === 'audioCollection') {
     <mat-card-actions>
       <a
         mat-button

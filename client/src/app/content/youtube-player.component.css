@@ -1,3 +1,0 @@
-:host { display: block; }
-.player { width: 100%; min-height: 240px; aspect-ratio: 16 / 9; }
-[role='alert'] { color: var(--mat-sys-error); }

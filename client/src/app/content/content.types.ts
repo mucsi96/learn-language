@@ -1,10 +1,3 @@
-export interface SourceExtension {
-  id: string;
-  name: string;
-  itemLabel: string;
-  capabilities: string[];
-}
-
 export interface VocabularyWord {
   lemma: string;
   wordType: string;
@@ -47,9 +40,7 @@ export interface ContentItem {
 
 export interface Playback {
   sessionId: string;
-  kind: 'audio' | 'youtube';
   mediaUrl: string | null;
-  youtubeVideoId: string | null;
   audioRevision: string;
   progress: ListeningProgress;
 }
