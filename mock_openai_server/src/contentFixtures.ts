@@ -28,7 +28,7 @@ const collections: Record<string, Record<string, string>> = {
   'other-stories/': { '209-brezel': 'Ein gutes Haus' },
 };
 const audio = readFileSync(join(__dirname, 'story.mp3'));
-const transcript = (prefix: string, folder: string) => Buffer.from(`${collections[prefix][folder]}\n\nWir sehen ein Haus. Wir sehen ein Haus.\n`);
+const transcript = (prefix: string, folder: string) => Buffer.from(`${state.sourceFailure === 'changed' && folder === '209-brezel' ? 'Frische Brezel' : collections[prefix][folder]}\n\nWir sehen ein Haus. Wir sehen ein Haus.\n`);
 
 contentFixtures.get('/learn-language', (req, res) => {
   const prefix = String(req.query.prefix);
@@ -40,6 +40,7 @@ contentFixtures.get('/learn-language', (req, res) => {
   }
   const folders = Object.keys(titles).filter(folder => req.query.marker ? folder === '007-neue-geschichte' : folder !== '007-neue-geschichte');
   const names = folders.flatMap(folder => ['text.txt', 'audio.mp3'].map(file => `${prefix}${folder}/${file}`))
+    .filter(name => state.sourceFailure !== 'empty' && !(state.sourceFailure === 'changed' && name.includes('/294-zwillinge/')))
     .filter(name => !(state.sourceFailure === 'missing-audio' && name.endsWith('209-brezel/audio.mp3')));
   res.type('application/xml').send(`<?xml version="1.0" encoding="utf-8"?>
     <EnumerationResults ServiceEndpoint="http://localhost:3070/content-fixtures" ContainerName="learn-language">

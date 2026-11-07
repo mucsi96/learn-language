@@ -26,6 +26,10 @@ public class ContentAssetService {
                 .stream().toList();
     }
 
+    public String text(String name) {
+        return storyContainer.getBlobClient(name).downloadContent().toString();
+    }
+
     @SneakyThrows
     public Path cached(String name) {
         if (!name.matches("(?:[a-z0-9]+(?:-[a-z0-9]+)*/)+[0-9]{3}-[a-z0-9]+(?:-[a-z0-9]+)*/(?:text\\.txt|audio\\.mp3)")) {

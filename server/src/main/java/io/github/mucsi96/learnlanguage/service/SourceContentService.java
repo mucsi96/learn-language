@@ -38,12 +38,9 @@ public class SourceContentService {
         return source;
     }
 
-    public synchronized List<ContentItem> list(String sourceId, boolean refresh) {
+    public synchronized List<ContentItem> list(String sourceId) {
         final Source source = source(sourceId);
-        if (refresh || !store.discovered(source.getCollectionPath())) {
-            store.discovered(source.getCollectionPath(), collections.discoverContent(source.getCollectionPath()));
-        }
-        return store.list(source.getCollectionPath());
+        return store.synchronize(source.getCollectionPath(), collections.discoverContent(source.getCollectionPath()));
     }
 
     public ContentItem require(String sourceId, UUID contentId) {

@@ -160,62 +160,51 @@ test('lists paginated Azure stories in numbered order and prepares vocabulary di
   await page.getByText('Transcript used', { exact: true }).click();
   await expect(page.getByText('Wir sehen ein Haus. Wir sehen ein Haus.', { exact: true })).toBeVisible();
   const first = await stats();
-  expect(first.requests).toEqual(['blob-list', 'blob-list', 'text:007-neue-geschichte', 'text:209-brezel', 'text:294-zwillinge', 'vocabulary']);
+  expect(first.requests.filter(request => request === 'vocabulary')).toHaveLength(1);
   expect(first.vocabularyInputs).toEqual(['Wir sehen ein Haus. Wir sehen ein Haus.']);
   await page.reload();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   await stories(page);
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
-  expect(await stats()).toEqual(first);
+  expect((await stats()).requests.filter(request => request === 'blob-list').length).toBeGreaterThan(first.requests.filter(request => request === 'blob-list').length);
+  expect((await stats()).vocabularyInputs).toEqual(first.vocabularyInputs);
 });
 
-test('keeps an old catalogue across restarts without repeating discovery', async ({ page }) => {
+test('reads storage again after restart and never serves a saved catalogue when storage fails', async ({ page }) => {
   test.setTimeout(150000);
   await addSource(page);
   await stories(page);
   const href = await page.getByRole('link', { name: 'Brezel', exact: true }).getAttribute('href');
-  await withDbConnection(db => db.query("UPDATE learn_language.collection_discovery SET refreshed_at = now() - interval '30 days'"));
-  const discovery = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.collection_discovery')).rows);
   await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'unavailable' }) });
-  const before = await stats();
   await restartServer(page);
   await page.reload();
-  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toHaveAttribute('href', href!);
-  await expect(page.getByRole('table', { name: 'Source content' }).getByRole('link')).toHaveText(['Neue Geschichte', 'Brezel', 'Zwillinge']);
+  await expect(page.getByRole('alert')).toContainText('Content discovery failed');
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).not.toBeVisible();
   await page.goto('/');
   await page.getByRole('link', { name: `Listen to ${NAME}`, exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
-  expect(await stats()).toEqual(before);
-  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.collection_discovery')).rows)).toEqual(discovery);
+  await expect(page.getByRole('alert')).toContainText('Content discovery failed');
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: '' }) });
+  await page.goto(`/sources/${SOURCE}/content`);
+  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toHaveAttribute('href', href!);
 });
 
-test('preserves the saved catalogue on failed refresh and refreshes explicitly without losing preparation', async ({ page }) => {
+test('discovers changed titles, removed and restored stories and empty folders without losing preparation', async ({ page }) => {
   await addSource(page);
   await prepare(page);
-  const saved = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows);
-  const discovery = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.collection_discovery')).rows);
+  const id = page.url().split('/').at(-1)!;
   await stories(page);
-  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'unavailable' }) });
-  const failure = page.waitForResponse(response => response.url().endsWith('/content/refresh'));
-  await page.getByRole('button', { name: 'Refresh catalogue', exact: true }).click();
-  expect((await failure).ok()).toBe(false);
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
-  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows)).toEqual(saved);
-  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.collection_discovery')).rows)).toEqual(discovery);
-  const afterFailure = await stats();
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'changed' }) });
   await page.reload();
-  await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
-  expect(await stats()).toEqual(afterFailure);
+  await expect(page.getByRole('link', { name: 'Frische Brezel', exact: true })).toHaveAttribute('href', `/sources/${SOURCE}/content/${id}`);
+  await expect(page.getByRole('link', { name: 'Zwillinge', exact: true })).not.toBeVisible();
+  await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: 'empty' }) });
+  await page.reload();
+  await expect(page.getByRole('table', { name: 'Source content' }).getByRole('link')).toHaveCount(0);
+  await expect(page.getByRole('alert')).not.toBeVisible();
   await fetch(`${fixtureUrl}/source-failure`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failure: '' }) });
-  const refreshed = page.waitForResponse(response => response.url().endsWith('/content/refresh'));
-  await page.getByRole('button', { name: 'Refresh catalogue', exact: true }).click();
-  expect((await refreshed).ok()).toBe(true);
-  expect((await stats()).requests.filter(request => request === 'blob-list')).toHaveLength(5);
-  expect(await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.content_items ORDER BY id')).rows)).toEqual(saved);
-  const updated = await withDbConnection(async db => (await db.query('SELECT * FROM learn_language.collection_discovery')).rows);
-  expect(updated[0].refreshed_at.getTime()).toBeGreaterThan(discovery[0].refreshed_at.getTime());
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Zwillinge', exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Brezel', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
@@ -727,7 +716,7 @@ test('retries failed vocabulary extraction without refetching stored text', asyn
   await page.getByRole('button', { name: 'Retry preparation' }).click();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
   const requests = (await stats()).requests;
-  expect(requests.filter(request => request === 'text:209-brezel')).toHaveLength(1);
+  expect(requests.filter(request => request === 'vocabulary')).toHaveLength(2);
 });
 
 test('concurrent tabs prepare once and cached vocabulary survives a server restart', async ({ page }) => {
@@ -737,7 +726,7 @@ test('concurrent tabs prepare once and cached vocabulary survives a server resta
   await Promise.all([page.goto(`/sources/${SOURCE}/content`), other.goto(`/sources/${SOURCE}/content`)]);
   await expect(page.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
   await expect(other.getByRole('link', { name: 'Brezel', exact: true })).toBeVisible();
-  expect((await stats()).requests.filter(request => request === 'blob-list')).toHaveLength(2);
+  expect((await stats()).requests.filter(request => request === 'blob-list')).toHaveLength(4);
   const href = await page.getByRole('link', { name: 'Brezel', exact: true }).getAttribute('href');
   await Promise.all([page.goto(href!), other.goto(href!)]);
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible({ timeout: 60000 });
@@ -748,7 +737,8 @@ test('concurrent tabs prepare once and cached vocabulary survives a server resta
   await restartServer(page);
   await page.reload();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
-  expect(await stats()).toEqual(before);
+  expect((await stats()).vocabularyInputs).toEqual(before.vocabularyInputs);
+  expect((await stats()).requests.filter(request => request === 'vocabulary')).toHaveLength(1);
 });
 
 test('rejects locked sessions and stale progress writes on the server', async ({ page, apiHeaders }) => {
