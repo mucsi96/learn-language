@@ -172,7 +172,90 @@ test('displays card preview section', async ({ page }) => {
   await page.goto('/settings/voices');
 
   await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible();
-  await expect(page.getByText('1 / 1')).toBeVisible();
+  await expect(page.getByText('1 / 1', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Haus', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ház', exact: true })).toBeVisible();
+  await expect(page.getByText('Das Haus ist groß.', { exact: true })).toBeVisible();
+});
+
+test('previews vocabulary audio when newer cards cannot be used for voice previews', async ({ page }) => {
+  await Promise.all(Array.from({ length: 11 }, (_, index) => createCard({
+    cardId: `simple-${index}`,
+    sourceId: 'goethe-a1',
+    cardType: 'SIMPLE',
+    lastReview: new Date('2026-11-06'),
+    data: { frontText: 'Question', backText: 'Answer' },
+  })));
+  await createCard({
+    cardId: 'empty-vocabulary', sourceId: 'goethe-a1', data: { word: '   ' },
+  });
+  await createCard({
+    cardId: 'missing-word', sourceId: 'goethe-a1', data: {},
+  });
+  await createCard({
+    cardId: 'preview-vocabulary', sourceId: 'goethe-a1',
+    lastReview: new Date('2026-11-01'),
+    data: {
+      word: 'Haus', translation: { hu: 'ház' },
+      examples: [{ de: 'Das Haus ist groß.', hu: 'A ház nagy.', isSelected: true }],
+    },
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-de', model: 'eleven_v4', language: 'de', displayName: 'German preview',
+  });
+  await createVoiceConfiguration({
+    voiceId: 'test-voice-hu', model: 'eleven_v3', language: 'hu', displayName: 'Hungarian preview',
+  });
+  await page.goto('/settings/voices');
+  await expect(page.getByText('1 / 1', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Haus', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ház', exact: true })).toBeVisible();
+
+  const preview = async (voiceName: string, language: string, texts: string[]) => {
+    const responses = Promise.all(texts.map(input => page.waitForResponse(response =>
+      response.url().endsWith('/api/audio') && response.request().method() === 'POST'
+      && response.request().postDataJSON().input === input
+    )));
+    const playback = page.waitForResponse(response =>
+      /\/api\/audio\/.+/.test(response.url()) && response.request().method() === 'GET'
+    );
+    await page.getByRole('row').filter({ hasText: voiceName })
+      .getByRole('button', { name: 'Preview voice' }).click();
+    const generated = await responses;
+    generated.forEach(response => {
+      expect(response.ok()).toBe(true);
+      expect(response.request().postDataJSON().language).toBe(language);
+    });
+    expect((await playback).ok()).toBe(true);
+  };
+
+  await preview('German preview', 'de', ['Haus', 'Das Haus ist groß.']);
+  await page.reload();
+  await preview('Hungarian preview', 'hu', ['ház', 'A ház nagy.']);
+  await page.getByRole('button', { name: 'Load new cards' }).click();
+  await expect(page.getByRole('heading', { name: 'Haus', exact: true })).toBeVisible();
+});
+
+test('shows an actionable empty preview for decks without vocabulary text', async ({ page }) => {
+  await createCard({
+    cardId: 'simple-only', sourceId: 'goethe-a1', cardType: 'SIMPLE',
+    data: { frontText: 'Question', backText: 'Answer' },
+  });
+  await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v4', language: 'de' });
+  await page.goto('/settings/voices');
+  await expect(page.getByText('No vocabulary cards with text available for preview')).toBeVisible();
+  await expect(page.getByText('0 / 0')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Preview voice' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Next card' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Previous card' })).toBeDisabled();
+});
+
+test('disables voice preview when the card has no text in that language', async ({ page }) => {
+  await createCard({ cardId: 'german-only', sourceId: 'goethe-a1', data: { word: 'Haus' } });
+  await createVoiceConfiguration({ voiceId: 'test-voice-hu', model: 'eleven_v3', language: 'hu' });
+  await page.goto('/settings/voices');
+  await expect(page.getByRole('heading', { name: 'Haus', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Preview voice' })).toBeDisabled();
 });
 
 test('can navigate between preview cards', async ({ page }) => {

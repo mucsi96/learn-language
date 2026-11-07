@@ -130,6 +130,12 @@ v3-specific language prompting workaround. No SSML or speed/style overrides are
 added. Compare your chosen voices in Preview: v4's cross-language accent handling
 and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/capabilities/text-to-speech/eleven-v4)).
 
+Voice previews use up to ten vocabulary cards with nonblank words, prioritizing
+recently reviewed cards over unreviewed cards. Other card types do not displace
+these samples. The preview reads the word/translation and selected example in the
+voice's language; Play is disabled when that language has no text. If there are
+no eligible vocabulary cards, the preview explains why it is empty.
+
 ## Study progress
 
 The study header reports due cards as colored dots, one per card: blue for New,

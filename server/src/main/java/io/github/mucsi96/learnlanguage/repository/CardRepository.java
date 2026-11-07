@@ -25,8 +25,12 @@ public interface CardRepository
 
     List<Card> findByReadinessIn(List<CardReadiness> readinessList);
 
-    @Query("SELECT c FROM Card c ORDER BY c.lastReview DESC")
-    List<Card> findTopByOrderByLastReviewDesc(Pageable pageable);
+    @Query(value = """
+        SELECT c.* FROM learn_language.cards c
+        WHERE c.type = 'VOCABULARY' AND btrim(c.data->>'word') <> ''
+        ORDER BY c.last_review DESC NULLS LAST, c.id
+        """, nativeQuery = true)
+    List<Card> findVoicePreviewCards(Pageable pageable);
 
     List<Card> findByFlaggedTrueOrderByDueAsc();
 
