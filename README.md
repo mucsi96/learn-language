@@ -130,6 +130,13 @@ v3-specific language prompting workaround. No SSML or speed/style overrides are
 added. Compare your chosen voices in Preview: v4's cross-language accent handling
 and cloning differ from v3 ([model guide](https://elevenlabs.io/docs/overview/capabilities/text-to-speech/eleven-v4)).
 
+## Study progress
+
+The study header reports due cards as colored dots, one per card: blue for New,
+green for Learning, amber for Review, and red for Relearning. Each dot has a state
+label for assistive technology and a hover title. Dots update after grading and
+switching sources; large queues wrap within a scrollable area in the header.
+
 ## Study Pomodoro
 
 Starting or continuing a study session automatically starts a

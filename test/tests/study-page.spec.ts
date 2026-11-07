@@ -299,20 +299,48 @@ test('source selector routing works', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });
 
-test('source selector shows proper stats', async ({ page }) => {
+test('source selector shows one labeled dot per due card in each state', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
   await createCardsWithStates('goethe-a1', [
     { state: 'NEW', count: 3, due_date: yesterday },
     { state: 'LEARNING', count: 2, due_date: yesterday },
+    { state: 'REVIEW', count: 1, due_date: yesterday },
+    { state: 'RELEARNING', count: 4, due_date: yesterday },
   ]);
 
   // Navigate to the study page
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
-  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(3);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(2);
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: Relearning', exact: true })).toHaveCount(4);
+  await expect(progress).toHaveText('');
+});
+
+test('large study queues keep all dots within a bounded header area', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await createCardsWithStates('goethe-a1', [
+    { state: 'NEW', count: 100, due_date: new Date(Date.now() - 86400000) },
+  ]);
+
+  await page.goto('/sources/goethe-a1/study');
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(100);
+  const dimensions = await progress.evaluate(element => ({
+    width: element.clientWidth,
+    height: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(dimensions.width).toBeLessThanOrEqual(200);
+  expect(dimensions.height).toBeLessThanOrEqual(32);
+  expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.height);
+  expect(dimensions.scrollWidth).toBe(dimensions.width);
+  await expect(page.getByRole('button', { name: 'Goethe A1' })).toBeInViewport();
 });
 
 test('source selector stats update after changing source', async ({ page }) => {
@@ -333,8 +361,9 @@ test('source selector stats update after changing source', async ({ page }) => {
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('3');
-  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('2');
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(3);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(2);
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -345,8 +374,35 @@ test('source selector stats update after changing source', async ({ page }) => {
   // Click start button for new source
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).toHaveText('1');
-  await expect(page.getByRole('navigation').getByTitle('Learning', { exact: true })).toHaveText('4');
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(4);
+});
+
+test('study progress dots disappear when the last review card is completed', async ({ page }) => {
+  await createCard({
+    cardId: 'dot-progress-review',
+    sourceId: 'goethe-a1',
+    state: 'REVIEW',
+    stability: 10,
+    difficulty: 5,
+    reps: 3,
+    lastReview: new Date(Date.now() - 3 * 86400000),
+    data: {
+      word: 'lernen',
+      type: 'VERB',
+      translation: { en: 'learn', hu: 'tanulni', ch: 'lerne' },
+    },
+  });
+
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
+  await page.getByRole('article', { name: 'Flashcard' })
+    .getByRole('heading', { name: 'tanulni' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(progress).toHaveCount(1);
+  await expect(progress.getByRole('img')).toHaveCount(0);
 });
 
 test('source selector dropdown shows stats', async ({ page }) => {
@@ -414,8 +470,9 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  await expect(page.getByRole('navigation').getByTitle('Review', { exact: true })).toHaveText('1');
-  await expect(page.getByRole('navigation').getByTitle('New', { exact: true })).not.toBeVisible();
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(0);
   await expect(flashcard.getByLabel('State: Review')).toBeVisible();
 });
 
