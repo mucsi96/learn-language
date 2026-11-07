@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 
 const STORAGE_KEY = 'pomodoroEndsAt';
+const DURATION_SECONDS = 25 * 60;
 
 @Injectable({ providedIn: 'root' })
 export class PomodoroService {
@@ -10,12 +11,9 @@ export class PomodoroService {
     const endsAt = this.endsAt();
     return endsAt === null ? null : Math.max(0, Math.ceil((endsAt - this.now()) / 1000));
   });
-  readonly time = computed(() => {
+  readonly progress = computed(() => {
     const seconds = this.seconds();
-    if (seconds === null) return null;
-    const minutesPart = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secondsPart = (seconds % 60).toString().padStart(2, '0');
-    return `${minutesPart}:${secondsPart}`;
+    return seconds === null ? null : Math.max(0, (1 - seconds / DURATION_SECONDS) * 100);
   });
 
   constructor() {
@@ -35,7 +33,7 @@ export class PomodoroService {
 
   start() {
     const now = Date.now();
-    const endsAt = now + 25 * 60_000;
+    const endsAt = now + DURATION_SECONDS * 1000;
     sessionStorage.setItem(STORAGE_KEY, endsAt.toString());
     this.now.set(now);
     this.endsAt.set(endsAt);

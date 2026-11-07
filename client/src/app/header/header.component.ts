@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { PRIMARY_OUTLET, Router, RouterLink } from '@angular/router';
 import { StudySessionService } from '../study-session.service';
 import { PomodoroService } from '../pomodoro.service';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,7 @@ import { PomodoroService } from '../pomodoro.service';
     MatButtonModule,
     MatTooltipModule,
     MatMenuModule,
+    MatProgressBarModule,
     RouterLink,
   ],
   templateUrl: './header.component.html',
@@ -29,7 +31,7 @@ export class HeaderComponent {
   readonly pomodoro = inject(PomodoroService);
   readonly studySession = inject(StudySessionService);
   readonly restart = computed(() => this.studySession.hasSession() ? this.studySession.restartControl() : null);
-  readonly timerLabel = computed(() => this.restart() ? 'Start new study session' : this.pomodoro.time() ? 'Restart Pomodoro' : 'Start Pomodoro');
+  readonly timerLabel = computed(() => this.restart() ? 'Start new study session' : this.pomodoro.seconds() !== null ? 'Restart Pomodoro' : 'Start Pomodoro');
   profile = inject(UserProfileService).profile;
 
   async startTimer() {
