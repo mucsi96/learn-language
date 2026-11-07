@@ -161,9 +161,9 @@
                   mat-icon-button
                   (click)="previewVoice(config)"
                   [disabled]="
-                    !selectedCard() || generatingConfigId() === config.id
+                    !canPreviewLanguage(config.language) || generatingConfigId() === config.id
                   "
-                  matTooltip="Preview voice"
+                  [matTooltip]="canPreviewLanguage(config.language) ? 'Preview voice' : 'No preview text for this language'"
                   aria-label="Preview voice"
                 >
                   @if (generatingConfigId() === config.id) {
@@ -208,7 +208,7 @@
             <mat-icon>chevron_left</mat-icon>
           </button>
           <span class="card-index">
-            {{ selectedCardIndex() + 1 }} /
+            {{ sampleCards.value()?.length ? selectedCardIndex() + 1 : 0 }} /
             {{ sampleCards.value()?.length || 0 }}
           </span>
           <button
@@ -222,6 +222,7 @@
           <button
             mat-icon-button
             (click)="refreshCards()"
+            aria-label="Load new cards"
             matTooltip="Load new cards"
           >
             <mat-icon>refresh</mat-icon>
@@ -236,7 +237,7 @@
         } @else {
         <div class="empty-state">
           <mat-icon>style</mat-icon>
-          <p>No cards available for preview</p>
+          <p>No vocabulary cards with text available for preview</p>
         </div>
         }
       </mat-card-content>

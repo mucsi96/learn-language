@@ -131,8 +131,8 @@ public class CardService {
         .toList();
   }
 
-  public List<Card> getRecentlyReviewedCards(int limit) {
-    return cardRepository.findTopByOrderByLastReviewDesc(PageRequest.of(0, limit));
+  public List<Card> getVoicePreviewCards(int limit) {
+    return cardRepository.findVoicePreviewCards(PageRequest.of(0, limit));
   }
 
   public Map<String, SourceStats> getSourceStats() {

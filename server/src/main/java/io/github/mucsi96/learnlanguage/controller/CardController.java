@@ -328,7 +328,7 @@ public class CardController {
   @GetMapping("/cards/sample")
   @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ResponseEntity<List<CardResponse>> getSampleCards() {
-    final List<CardResponse> cards = cardService.getRecentlyReviewedCards(10).stream()
+    final List<CardResponse> cards = cardService.getVoicePreviewCards(10).stream()
         .map(CardResponse::from)
         .toList();
     return ResponseEntity.ok(cards);

@@ -21,6 +21,7 @@ import { ConfirmDialogComponent } from '../parser/edit-card/confirm-dialog/confi
 import { AudioPlaybackService } from '../shared/services/audio-playback.service';
 import { fetchJson } from '../utils/fetchJson';
 import { AudioData, AudioResponse } from '../shared/types/audio-generation.types';
+import { Card } from '../parser/types';
 
 @Component({
   selector: 'app-voice-config',
@@ -246,32 +247,30 @@ export class VoiceConfigComponent {
     return `${text}|${config.voiceId}|${config.model}|${config.language}`;
   }
 
-  private getTextsForLanguage(card: any, language: string): string[] {
-    const texts: string[] = [];
-    const selectedExample = card.data?.examples?.find(
-      (ex: any) => ex.isSelected
-    );
+  canPreviewLanguage(language: string): boolean {
+    const card = this.selectedCard();
+    return !!card && this.getTextsForLanguage(card, language).length > 0;
+  }
 
-    if (language === 'de') {
-      if (card.data?.word) texts.push(card.data.word);
-      if (selectedExample?.de) texts.push(selectedExample.de);
-    } else if (language === 'hu') {
-      if (card.data?.translation?.hu) texts.push(card.data.translation.hu);
-      if (selectedExample?.hu) texts.push(selectedExample.hu);
-    }
-
-    return texts;
+  private getTextsForLanguage(card: Card, language: string): string[] {
+    const selectedExample = card.data.examples?.find((example) => example.isSelected);
+    const texts = language === 'de'
+      ? [card.data.word, selectedExample?.de]
+      : language === 'hu'
+        ? [card.data.translation?.['hu'], selectedExample?.hu]
+        : [];
+    return texts.filter((text): text is string => !!text?.trim());
   }
 
   nextCard(): void {
     const cards = this.sampleCards.value();
-    if (!cards) return;
+    if (!cards?.length) return;
     this.selectedCardIndex.update((i) => (i + 1) % cards.length);
   }
 
   prevCard(): void {
     const cards = this.sampleCards.value();
-    if (!cards) return;
+    if (!cards?.length) return;
     this.selectedCardIndex.update((i) => (i - 1 + cards.length) % cards.length);
   }
 
