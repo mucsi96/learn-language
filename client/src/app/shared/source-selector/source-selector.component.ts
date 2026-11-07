@@ -51,6 +51,13 @@ export class SourceSelectorComponent {
   readonly sources = this.sourcesService.sources.value;
   readonly dueCounts = this.dueCardsService.dueCounts.value;
   readonly currentTurn = this.studySessionService.currentTurn;
+  readonly currentState = computed(() =>
+    this.studySessionService.sourceId() === this.selectedSourceId() &&
+    this.studySessionService.hasSession() &&
+    !this.studySessionService.currentCard.isLoading()
+      ? this.studySessionService.currentCard.value()?.card?.state
+      : undefined
+  );
   readonly isStudyingWithPartner = computed(
     () => this.studySessionService.currentCard.value()?.studyMode === 'WITH_PARTNER'
   );

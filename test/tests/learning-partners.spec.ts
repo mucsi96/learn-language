@@ -207,7 +207,7 @@ test('review log records learning partner when grading', async ({ page }) => {
   await flashcard.getByRole('heading', { name: /^(első|második)$/ }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByTitle('Current card: Learning', { exact: true })).toHaveAttribute('aria-current', 'true');
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(2);
@@ -234,7 +234,7 @@ test('review log has null learning partner when source has no partner', async ({
   await flashcard.getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByTitle('Current card: Learning', { exact: true })).toHaveAttribute('aria-current', 'true');
 
   const reviewLogs = await getReviewLogs();
   expect(reviewLogs.length).toBe(1);

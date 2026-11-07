@@ -14,6 +14,7 @@ export class StateComponent {
   state = input<CardState>();
   count = input<number | undefined>();
   display = input<'badge' | 'dots'>('badge');
+  current = input(false);
   readonly dots = computed(() => {
     const count = this.count();
     if (count === undefined) {

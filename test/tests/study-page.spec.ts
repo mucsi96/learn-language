@@ -169,7 +169,8 @@ test('study page initial state', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
   await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(page.getByRole('img', { name: 'State: New', exact: true })).toHaveAttribute('aria-current', 'true');
   await expect(flashcard.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
   await expect(flashcard.getByText('fährt ab')).not.toBeVisible();
   await expect(flashcard.getByText('fuhr ab')).not.toBeVisible();
@@ -227,7 +228,8 @@ test('study page revealed state', async ({ page }) => {
   await expect(flashcard.getByText('elindulni, elhagyni')).not.toBeVisible();
   await expect(flashcard.getByText('abfahra, verlah')).not.toBeVisible();
   await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(page.getByRole('img', { name: 'State: Learning', exact: true })).toHaveAttribute('aria-current', 'true');
   await expect(flashcard.getByText('Gender: Neuter', { exact: true })).toBeVisible();
   await expect(flashcard.getByText('fährt ab')).toBeVisible();
   await expect(flashcard.getByText('fuhr ab')).toBeVisible();
@@ -336,12 +338,49 @@ test('large study queues keep all dots within a bounded header area', async ({ p
     scrollHeight: element.scrollHeight,
     scrollWidth: element.scrollWidth,
   }));
-  expect(dimensions.width).toBeLessThanOrEqual(200);
-  expect(dimensions.height).toBeLessThanOrEqual(32);
+  expect(dimensions.width).toBeLessThanOrEqual(206);
+  expect(dimensions.height).toBeLessThanOrEqual(38);
   expect(dimensions.height).toBeGreaterThan(8);
   expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.height);
   expect(dimensions.scrollWidth).toBe(dimensions.width);
   await expect(page.getByRole('button', { name: 'Goethe A1' })).toBeInViewport();
+});
+
+test('current-card dot follows skipping and grading without a card badge', async ({ page }) => {
+  await createCard({
+    cardId: 'current-dot-new', sourceId: 'goethe-a1', state: 'NEW',
+    due: new Date(Date.now() - 2 * 86400000),
+    data: { word: 'lernen', type: 'VERB', translation: { hu: 'tanulni' } },
+  });
+  await createCard({
+    cardId: 'current-dot-review', sourceId: 'goethe-a1', state: 'REVIEW',
+    due: new Date(Date.now() - 86400000), stability: 10, difficulty: 5,
+    data: { word: 'lesen', type: 'VERB', translation: { hu: 'olvasni' } },
+  });
+  await page.goto('/sources/goethe-a1/study');
+  const progress = page.getByRole('group', { name: 'Due cards', exact: true });
+  const currentDot = progress.getByTitle(/^Current card:/);
+  await expect(page.getByRole('button', { name: 'Start study session' })).toBeVisible();
+  await expect(currentDot).toHaveCount(0);
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(currentDot).toHaveCount(1);
+  await expect(currentDot).toHaveAttribute('aria-label', 'State: New');
+  await expect(currentDot).toHaveAttribute('aria-current', 'true');
+  const flashcard = page.getByRole('article', { name: 'Flashcard' });
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await flashcard.getByRole('heading', { name: 'tanulni' }).click();
+  await page.getByRole('button', { name: 'Card actions' }).click();
+  await page.getByRole('menuitem', { name: 'Skip Card' }).click();
+  await expect(currentDot).toHaveAttribute('aria-label', 'State: Review');
+  await flashcard.getByRole('heading', { name: 'olvasni' }).click();
+  await page.getByRole('button', { name: 'Correct', exact: true }).click();
+  await expect(currentDot).toHaveCount(1);
+  await expect(currentDot).toHaveAttribute('aria-label', 'State: New');
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Continue study session' })).toBeVisible();
+  await expect(currentDot).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continue study session' }).click();
+  await expect(currentDot).toHaveAttribute('aria-label', 'State: New');
 });
 
 test('source selector stats update after changing source', async ({ page }) => {
@@ -474,7 +513,8 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
   await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
   await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(0);
-  await expect(flashcard.getByLabel('State: Review')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveAttribute('aria-current', 'true');
 });
 
 test('flag card menu item visible in context menu', async ({ page }) => {
@@ -998,11 +1038,11 @@ test('grading with no next card shows empty state', async ({ page }) => {
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'State: New', exact: true })).toHaveAttribute('aria-current', 'true');
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'State: Learning', exact: true })).toHaveAttribute('aria-current', 'true');
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
@@ -1320,7 +1360,8 @@ test('speech card study page initial state shows Hungarian translation', async (
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText('Jó reggelt, hogy van?')).toBeVisible();
   await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?')).not.toBeVisible();
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(page.getByRole('img', { name: 'State: New', exact: true })).toHaveAttribute('aria-current', 'true');
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Jó reggelt, hogy van?' }));
   expect(await getImageColor(page, imageContent)).toBe('yellow');
 });
@@ -1354,7 +1395,8 @@ test('speech card study page revealed state shows German sentence', async ({ pag
 
   await expect(flashcard.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
   await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(page.getByRole('img', { name: 'State: Learning', exact: true })).toHaveAttribute('aria-current', 'true');
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
   expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
@@ -1390,7 +1432,7 @@ test('speech card grading functionality', async ({ page }) => {
   await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'State: Learning', exact: true })).toHaveAttribute('aria-current', 'true');
   await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
@@ -1553,7 +1595,8 @@ test('grammar card grading functionality', async ({ page }) => {
   await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(flashcard.getByLabel(/^State:/)).toHaveCount(0);
+  await expect(page.getByRole('img', { name: 'State: Learning', exact: true })).toHaveAttribute('aria-current', 'true');
   await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 

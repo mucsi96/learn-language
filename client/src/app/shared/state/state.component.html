@@ -2,10 +2,12 @@
   @for (dot of dots(); track dot) {
     <span
       class="state-dot"
+      [class.current]="current() && $first"
+      [attr.aria-current]="current() && $first ? 'true' : null"
       [ngStyle]="stateStyle()"
       role="img"
       [attr.aria-label]="'State: ' + stateName()"
-      [attr.title]="stateName()"
+      [attr.title]="current() && $first ? 'Current card: ' + stateName() : stateName()"
     ></span>
   }
 } @else if (count() !== undefined) {

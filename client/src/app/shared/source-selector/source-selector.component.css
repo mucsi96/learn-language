@@ -18,6 +18,7 @@
   align-items: center;
   max-width: 200px;
   max-height: 32px;
+  padding: 3px;
   overflow-y: auto;
 }
 

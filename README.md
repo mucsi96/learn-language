@@ -136,6 +136,9 @@ The study header reports due cards as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
 label for assistive technology and a hover title. Dots update after grading and
 switching sources; large queues wrap within a scrollable area in the header.
+A subtle ring marks one dot in the current card's state group, replacing the state
+badge on the card itself. The ring follows the active card and disappears outside
+an active session.
 
 ## Study Pomodoro
 

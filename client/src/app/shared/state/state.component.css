@@ -18,3 +18,8 @@
   font-weight: 500;
   transition: transform 0.2s ease;
 }
+
+.state-dot.current {
+  outline: 1.5px solid var(--mat-sys-on-surface);
+  outline-offset: 1px;
+}
