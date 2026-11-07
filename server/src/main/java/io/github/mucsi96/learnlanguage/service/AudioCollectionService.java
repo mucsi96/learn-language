@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,7 +28,6 @@ public class AudioCollectionService {
         final List<String> folders = names.stream().map(name -> name.substring(collectionPath.length()))
                 .filter(name -> name.matches("[0-9]{3}-[a-z0-9]+(?:-[a-z0-9]+)*/(?:text\\.txt|audio\\.mp3)"))
                 .map(name -> name.substring(0, name.indexOf('/'))).distinct().sorted().toList();
-        if (folders.isEmpty()) throw new IllegalStateException("Azure story collection is empty");
         return folders.stream().map(folder -> {
             final String text = collectionPath + folder + "/text.txt";
             final String audio = collectionPath + folder + "/audio.mp3";
@@ -56,6 +54,6 @@ public class AudioCollectionService {
 
     @SneakyThrows
     private String document(String blob) {
-        return Files.readString(assets.cached(blob));
+        return assets.text(blob);
     }
 }

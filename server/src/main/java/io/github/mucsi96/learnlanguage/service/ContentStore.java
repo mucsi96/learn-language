@@ -12,9 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.json.JsonMapper;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
-import io.github.mucsi96.learnlanguage.entity.CollectionDiscovery;
 import io.github.mucsi96.learnlanguage.entity.SourceContent;
-import io.github.mucsi96.learnlanguage.repository.CollectionDiscoveryRepository;
 import io.github.mucsi96.learnlanguage.repository.SourceContentRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -23,15 +21,10 @@ import lombok.RequiredArgsConstructor;
 public class ContentStore {
     private final JdbcClient jdbc;
     private final JsonMapper json;
-    private final CollectionDiscoveryRepository discoveries;
     private final SourceContentRepository content;
 
-    public boolean discovered(String collectionPath) {
-        return discoveries.existsById(collectionPath);
-    }
-
     @Transactional
-    public void discovered(String collectionPath, List<ContentDescriptor> descriptors) {
+    public List<ContentItem> synchronize(String collectionPath, List<ContentDescriptor> descriptors) {
         descriptors.forEach(descriptor -> jdbc.sql("""
                 INSERT INTO learn_language.content_items(id, collection_path, external_id, descriptor)
                 VALUES (:id, :collection, :external, CAST(:descriptor AS jsonb))
@@ -39,13 +32,10 @@ public class ContentStore {
                 """)
                 .param("id", UUID.randomUUID()).param("collection", collectionPath).param("external", descriptor.externalId())
                 .param("descriptor", json.writeValueAsString(descriptor)).update());
-        discoveries.save(CollectionDiscovery.builder().collectionPath(collectionPath)
-                .refreshedAt(java.time.Instant.now()).build());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ContentItem> list(String collectionPath) {
-        return content.findCatalogue(collectionPath).stream().map(SourceContent::toContentItem).toList();
+        final var currentIds = descriptors.stream().map(ContentDescriptor::externalId)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        return content.findCatalogue(collectionPath).stream().map(SourceContent::toContentItem)
+                .filter(item -> currentIds.contains(item.descriptor().externalId())).toList();
     }
 
     @Transactional(readOnly = true)

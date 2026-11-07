@@ -24,11 +24,11 @@ export const resetContentFixtures = () => {
 };
 
 const collections: Record<string, Record<string, string>> = {
-  'deutsch-lernen-durch-hoeren-a1-a2/': { '209-brezel': 'Brezel', '294-zwillinge': 'Zwillinge', '007-neue-geschichte': 'Neue Geschichte' },
+  'stories/deutsch-lernen-durch-hoeren-a1-a2/': { '209-brezel': 'Brezel', '294-zwillinge': 'Zwillinge', '007-neue-geschichte': 'Neue Geschichte' },
   'other-stories/': { '209-brezel': 'Ein gutes Haus' },
 };
 const audio = readFileSync(join(__dirname, 'story.mp3'));
-const transcript = (prefix: string, folder: string) => Buffer.from(`${collections[prefix][folder]}\n\nWir sehen ein Haus. Wir sehen ein Haus.\n`);
+const transcript = (prefix: string, folder: string) => Buffer.from(`${state.sourceFailure === 'changed' && folder === '209-brezel' ? 'Frische Brezel' : collections[prefix][folder]}\n\nWir sehen ein Haus. Wir sehen ein Haus.\n`);
 
 contentFixtures.get('/learn-language', (req, res) => {
   const prefix = String(req.query.prefix);
@@ -40,19 +40,22 @@ contentFixtures.get('/learn-language', (req, res) => {
   }
   const folders = Object.keys(titles).filter(folder => req.query.marker ? folder === '007-neue-geschichte' : folder !== '007-neue-geschichte');
   const names = folders.flatMap(folder => ['text.txt', 'audio.mp3'].map(file => `${prefix}${folder}/${file}`))
+    .filter(name => state.sourceFailure !== 'empty' && !(state.sourceFailure === 'changed' && name.includes('/294-zwillinge/')))
     .filter(name => !(state.sourceFailure === 'missing-audio' && name.endsWith('209-brezel/audio.mp3')));
   res.type('application/xml').send(`<?xml version="1.0" encoding="utf-8"?>
     <EnumerationResults ServiceEndpoint="http://localhost:3070/content-fixtures" ContainerName="learn-language">
       <Prefix>${prefix}</Prefix><Blobs>${names.map(name => `<Blob><Name>${name}</Name><Properties>
       <Last-Modified>Sat, 07 Nov 2026 00:00:00 GMT</Last-Modified><Etag>"fixture"</Etag>
-      <Content-Length>${name.endsWith('.mp3') ? audio.length : transcript(prefix, name.split('/')[1]).length}</Content-Length>
+       <Content-Length>${name.endsWith('.mp3') ? audio.length : transcript(prefix, name.slice(prefix.length).split('/')[0]).length}</Content-Length>
       <BlobType>BlockBlob</BlobType></Properties></Blob>`).join('')}</Blobs>
       <NextMarker>${req.query.marker ? '' : 'page2'}</NextMarker></EnumerationResults>`);
 });
 
 contentFixtures.get(/^\/learn-language\/(.+)$/, (req, res) => {
-  const [collection, folder, file] = req.params[0].split('/');
-  const prefix = `${collection}/`;
+  const parts = req.params[0].split('/');
+  const folder = parts.at(-2)!;
+  const file = parts.at(-1)!;
+  const prefix = `${parts.slice(0, -2).join('/')}/`;
   if (!collections[prefix]?.[folder] || !['text.txt', 'audio.mp3'].includes(file)) {
     res.sendStatus(404); return;
   }

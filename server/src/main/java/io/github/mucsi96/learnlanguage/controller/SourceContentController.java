@@ -27,7 +27,7 @@ public class SourceContentController {
     @GetMapping("/source/{sourceId}/content")
     @PreAuthorize("hasAuthority('APPROLE_readDecks')")
     public List<ContentView> list(@PathVariable String sourceId, @AuthenticationPrincipal Jwt jwt) {
-        final var items = content.list(sourceId, false);
+        final var items = content.list(sourceId);
         final var matching = coverage.cards(sourceId);
         final var progress = listening.progress(sourceId, user(jwt));
         return items.stream().map(item -> content.view(item, matching, progress.get(item.id()))).toList();
@@ -36,7 +36,7 @@ public class SourceContentController {
     @PostMapping("/source/{sourceId}/content/refresh")
     @PreAuthorize("hasAuthority('APPROLE_createDeck')")
     public Map<String, String> refresh(@PathVariable String sourceId) {
-        content.list(sourceId, true);
+        content.list(sourceId);
         return Map.of();
     }
 

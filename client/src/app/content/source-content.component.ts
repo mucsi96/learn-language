@@ -81,8 +81,8 @@ export class SourceContentComponent {
     await this.run(() => this.service.action(this.sourceId(), this.contentId(), 'prepare'));
   }
 
-  async refresh(): Promise<void> {
-    await this.run(() => this.service.action(this.sourceId(), undefined, 'refresh'));
+  refresh(): void {
+    this.listing.reload();
   }
 
   async drafts(): Promise<void> {

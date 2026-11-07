@@ -171,7 +171,7 @@ speech examples with a realistic illustration instead of the test image.
 In **Sources → Add Source**, choose **Audio Collection**, enter a name, language
 level, and **Collection folder** within the private Azure container
 `ibari/learn-language`. For example, name a source **Deutsch lernen durch Hören
-A1–A2** and set its folder to `deutsch-lernen-durch-hoeren-a1-a2/`.
+A1–A2** and set its folder to `stories/deutsch-lernen-durch-hoeren-a1-a2/`.
 Collection paths use lowercase slug folders and a trailing slash; nested folders
 are supported. A source's collection is fixed after creation. Additional
 collections require only uploaded files and a new source, with no provider code.
@@ -190,9 +190,11 @@ YouTube requests. Only vocabulary generation uses the **Extraction** data model.
   background. Text and successful AI results are cached persistently. Reopening
   a story does not repeat preparation. Failed vocabulary jobs resume from the
   cached transcript, without another download or text-isolation AI call.
-- The catalogue is stored in PostgreSQL and reused across restarts without an
-  expiry. Only **Refresh catalogue** repeats discovery after the first successful
-  listing; a failed refresh preserves the saved catalogue for subsequent visits.
+- Every catalogue request lists the Azure container under the source's collection
+  folder and reads current story titles directly from storage. New and removed
+  stories appear on the next visit or **Refresh catalogue**; storage failures are
+  reported instead of serving a saved catalogue. Stable story IDs, preparation,
+  and listening progress remain persisted, including for temporarily removed stories.
 - Select missing words to create drafts, then use the existing draft-card
   workflow to enrich and review them. Cards in the same source group are reused.
   Noun cards include their definite article (for example, `das Haus`).
@@ -238,7 +240,7 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 
 | Data | Storage and lifetime |
 |------|----------------------|
-| Story catalogue | `CollectionDiscovery` and `SourceContent` map `collection_discovery` and `content_items`. Shared by collection path, retained until explicitly refreshed. |
+| Story catalogue | Discovered live from the Azure container and collection folder on every listing, including current titles. `content_items` preserves stable identities and preparation, but saved rows do not determine catalogue membership. |
 | Story text and AI vocabulary | Checkpoints in `content_items.preparation`, retained across restarts and catalogue refreshes. Versioned migrations deliberately invalidate vocabulary when extraction rules change. Atomic SQL upserts and lease updates preserve preparation during concurrent discovery and background work. |
 | Downloaded transcript/audio assets | Container-and-blob-name-hashed files under `STORAGE_DIRECTORY/content-assets`, written by atomic rename and reused without expiry. Treat published story files as immutable; the storage volume must persist across deployments. |
 | Listening progress | PostgreSQL `listening_progress`, scoped to source, story, and user. The four-hour expiry applies to write sessions, not saved positions. Browser local storage buffers unsent writes until acknowledged. |
