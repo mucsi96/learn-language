@@ -1,24 +1,31 @@
 import { test, expect } from '../fixtures';
+import { Locator } from '@playwright/test';
 import { createCard, createSource, getReviewLogsByCardId, getStudySessionCardsBySource, withDbConnection } from '../utils';
+
+const expectProgress = async (progress: Locator, percent: number) => {
+  await expect(progress).toBeVisible();
+  await expect.poll(async () => Number(await progress.getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(percent);
+  await expect.poll(async () => Number(await progress.getAttribute('aria-valuenow'))).toBeLessThan(percent + 1);
+};
 
 test('starting and continuing study automatically starts an inactive Pomodoro', async ({ page }) => {
   await page.clock.install();
   await page.goto('/sources/goethe-a1/study');
-  const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
+  const timer = page.getByRole('progressbar', { name: 'Study Pomodoro' });
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-  await expect(timer).toHaveText('25:00');
+  await expectProgress(timer, 0);
   await page.clock.fastForward(25 * 60_000);
-  await expect(timer).toHaveText('00:00');
+  await expectProgress(timer, 100);
   await page.getByRole('button', { name: 'Start new study session' }).click();
-  await expect(timer).toHaveText('25:00');
+  await expectProgress(timer, 0);
   await expect(page.getByRole('status')).not.toBeVisible();
 
   await page.evaluate(() => sessionStorage.removeItem('pomodoroEndsAt'));
   await page.reload();
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Continue study session' }).click();
-  await expect(timer).toHaveText('25:00');
+  await expectProgress(timer, 0);
 });
 
 test('failed timer restart preserves the countdown and study queue', async ({ page }) => {
@@ -29,7 +36,7 @@ test('failed timer restart preserves the countdown and study queue', async ({ pa
   await page.clock.install();
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-  await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).toHaveText('25:00');
+  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 0);
   await page.clock.fastForward(60_000);
   const queue = await getStudySessionCardsBySource('goethe-a1');
   await page.route('**/study-session/restart', route => route.fulfill({ status: 500, body: 'Restart failed' }));
@@ -38,7 +45,7 @@ test('failed timer restart preserves the countdown and study queue', async ({ pa
   await restart.click();
   expect((await failed).status()).toBe(500);
   await expect(restart).toBeEnabled();
-  await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).toHaveText(/^\s*(24:00|23:5\d)\s*$/);
+  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 4);
   expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Start new study session' })).toHaveCount(0);
@@ -56,7 +63,7 @@ test('a failed study session start does not start the Pomodoro', async ({ page }
   expect((await failed).status()).toBe(500);
   await expect(page.getByRole('button', { name: 'Start study session', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
-  await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).not.toBeVisible();
+  await expect(page.getByRole('progressbar', { name: 'Study Pomodoro' })).not.toBeVisible();
 });
 
 test('Pomodoro runs independently of sources, sessions and navigation', async ({ page }) => {
@@ -67,21 +74,21 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   });
   await page.clock.install();
   await page.goto('/');
-  const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
+  const timer = page.getByRole('progressbar', { name: 'Study Pomodoro' });
   const restart = page.getByRole('button', { name: 'Restart Pomodoro' });
   await expect(timer).not.toBeVisible();
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toHaveCount(0);
   await page.goto('/sources/goethe-a1/study?view=cards#study');
   await page.getByRole('button', { name: 'Start Pomodoro', exact: true }).click();
-  await expect(timer).toHaveText('25:00');
+  await expectProgress(timer, 0);
   await page.clock.fastForward(60_000);
-  await expect(timer).toHaveText('24:00');
+  await expectProgress(timer, 4);
   await page.goto('/sources/goethe-a1/study');
   const started = page.waitForResponse(response =>
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   const original = await (await started).json();
-  await expect(timer).toHaveText(/^\s*(24:00|23:5\d)\s*$/);
+  await expectProgress(timer, 4);
   await expect(page.getByRole('main').getByRole('button', { name: 'Start new study session' })).toHaveCount(0);
 
   await page.reload();
@@ -89,30 +96,30 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     response.url().endsWith('/study-session') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Continue study session' }).click();
   expect(await (await continued).json()).toEqual(original);
-  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
+  await expectProgress(timer, 4);
 
   await page.goto('/sources/other/study');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
+  await expectProgress(timer, 4);
   await page.getByRole('button', { name: 'Start new study session' }).click();
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
-  await expect(timer).toHaveText(/^\s*(24:5\d|25:00)\s*$/);
+  await expectProgress(timer, 0);
 
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Continue study session' }).click();
   await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
   await page.clock.fastForward(25 * 60_000);
-  await expect(timer).toHaveText('00:00');
+  await expectProgress(timer, 100);
   await expect(timer).toHaveCSS('animation-name', /pomodoro-blink$/);
   await expect(page.getByRole('status')).toHaveText('Time for a break!');
   await page.clock.fastForward(60_000);
-  await expect(timer).toHaveText('00:00');
+  await expectProgress(timer, 100);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(timer).toHaveCSS('animation-name', 'none');
 
   await page.getByRole('button', { name: 'Start new study session' }).focus();
   await page.keyboard.press('Enter');
-  await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
+  await expectProgress(timer, 0);
   await expect(timer).toHaveCSS('animation-name', 'none');
   await expect(page.getByRole('status')).not.toBeVisible();
   expect(await getStudySessionCardsBySource('goethe-a1')).toHaveLength(1);
@@ -123,10 +130,10 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await page.clock.fastForward(60_000);
   const queue = await getStudySessionCardsBySource('goethe-a1');
   await page.goto('/sources/goethe-a1/study');
-  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
+  await expectProgress(timer, 4);
   await restart.focus();
   await page.keyboard.press('Space');
-  await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
+  await expectProgress(timer, 0);
   expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await page.getByRole('menuitem', { name: 'Sources', exact: true }).click();
@@ -144,7 +151,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await page.goBack();
   await page.goBack();
   await expect(page).toHaveURL('/sources/goethe-a1/study');
-  await expect(timer).toHaveText('00:00');
+  await expectProgress(timer, 100);
   await expect(page.getByRole('status')).toHaveText('Time for a break!');
 });
 
@@ -160,7 +167,13 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     await page.goto('/sources/goethe-a1/study');
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
     const navigation = page.getByRole('navigation');
-    await expect(page.getByRole('timer', { name: 'Study Pomodoro' })).toBeVisible();
+    const progress = page.getByRole('progressbar', { name: 'Study Pomodoro' });
+    await expect(progress).toBeVisible();
+    const progressBounds = await progress.boundingBox();
+    expect(progressBounds!.x).toBe(0);
+    expect(progressBounds!.width).toBe(width);
+    expect(progressBounds!.y + progressBounds!.height).toBe(height);
+    await expect(page.getByRole('timer')).toHaveCount(0);
     const restart = navigation.getByRole('button', { name: 'Start new study session' });
     await expect(restart).toBeEnabled();
     expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');

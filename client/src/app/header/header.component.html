@@ -1,16 +1,15 @@
 @if (isStudyRoute()) {
-  @if (pomodoro.time(); as time) {
+  @if (pomodoro.seconds() !== null) {
+    <mat-progress-bar class="pomodoro" mode="determinate" aria-label="Study Pomodoro"
+      [value]="pomodoro.progress()!" [class.expired]="pomodoro.seconds() === 0" />
     <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">
-      <span role="timer" aria-label="Study Pomodoro" class="pomodoro"
-        [class.expired]="pomodoro.seconds() === 0">
-        {{ time }}
-      </span>
+      Restart
     </button>
     @if (pomodoro.seconds() === 0) {
       <span role="status" class="break-status">Time for a break!</span>
     }
   } @else {
-    <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">25:00</button>
+    <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">Start Pomodoro</button>
   }
 }
 <button class="avatar" aria-label="Profile menu" [matMenuTriggerFor]="menu">
