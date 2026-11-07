@@ -70,6 +70,8 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   const timer = page.getByRole('timer', { name: 'Study Pomodoro' });
   const restart = page.getByRole('button', { name: 'Restart Pomodoro' });
   await expect(timer).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toHaveCount(0);
+  await page.goto('/sources/goethe-a1/study?view=cards#study');
   await page.getByRole('button', { name: 'Start Pomodoro', exact: true }).click();
   await expect(timer).toHaveText('25:00');
   await page.clock.fastForward(60_000);
@@ -116,15 +118,34 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   expect(await getStudySessionCardsBySource('goethe-a1')).toHaveLength(1);
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' })).toBeVisible();
   await page.getByRole('link', { name: 'Learn language', exact: true }).click();
-  await expect(timer).toBeVisible();
-  await expect(restart).toBeVisible();
+  await expect(timer).toHaveCount(0);
+  await expect(restart).toHaveCount(0);
   await page.clock.fastForward(60_000);
-  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
   const queue = await getStudySessionCardsBySource('goethe-a1');
+  await page.goto('/sources/goethe-a1/study');
+  await expect(timer).toHaveText(/^\s*(23:5\d|24:00)\s*$/);
   await restart.focus();
   await page.keyboard.press('Space');
   await expect(timer).toHaveText(/^\s*(25:00|24:5\d)\s*$/);
   expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Sources', exact: true }).click();
+  await expect(page).toHaveURL('/sources');
+  await expect(timer).toHaveCount(0);
+  await expect(restart).toHaveCount(0);
+  await page.clock.fastForward(25 * 60_000);
+  await expect(page.getByText('Time for a break!', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Settings', exact: true }).click();
+  await expect(page).toHaveURL('/settings/voices');
+  await expect(timer).toHaveCount(0);
+  await expect(restart).toHaveCount(0);
+  await expect(page.getByText('Time for a break!', { exact: true })).toHaveCount(0);
+  await page.goBack();
+  await page.goBack();
+  await expect(page).toHaveURL('/sources/goethe-a1/study');
+  await expect(timer).toHaveText('00:00');
+  await expect(page.getByRole('status')).toHaveText('Time for a break!');
 });
 
 [
