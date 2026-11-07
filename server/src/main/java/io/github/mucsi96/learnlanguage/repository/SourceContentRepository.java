@@ -10,8 +10,8 @@ public interface SourceContentRepository extends Repository<SourceContent, UUID>
     java.util.Optional<SourceContent> findById(UUID id);
 
     @Query(value = """
-            SELECT * FROM learn_language.content_items WHERE extension_id = :extensionId
+            SELECT * FROM learn_language.content_items WHERE collection_path = :collectionPath
             ORDER BY (descriptor->>'number')::int ASC NULLS LAST, descriptor->>'title'
             """, nativeQuery = true)
-    List<SourceContent> findCatalogue(String extensionId);
+    List<SourceContent> findCatalogue(String collectionPath);
 }

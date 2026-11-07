@@ -35,7 +35,7 @@
             <mat-option [value]="level.code">{{ level.displayName }}</mat-option>
             }
           </mat-select>
-          @if (isExtension()) {
+          @if (isAudioCollection()) {
             <mat-hint>Used for AI-generated vocabulary examples.</mat-hint>
           }
         </mat-form-field>
@@ -51,21 +51,17 @@
           </mat-select>
         </mat-form-field>
 
-        @if (isExtension()) {
+        @if (isAudioCollection()) {
         <mat-form-field appearance="fill">
-          <mat-label>Source Extension</mat-label>
-          <mat-select [formField]="sourceForm.extensionId">
-            @for (extension of extensionsService.descriptors(); track extension.id) {
-              <mat-option [value]="extension.id">{{ extension.name }}</mat-option>
-            }
-          </mat-select>
+          <mat-label>Collection folder</mat-label>
+          <input matInput [formField]="sourceForm.collectionPath" placeholder="my-audio-collection/" />
+          <mat-hint>Folder in ibari/learn-language, ending with /</mat-hint>
+          @if (sourceForm.collectionPath().invalid() && sourceForm.collectionPath().touched()) {
+            <mat-error>Use lowercase slug folders ending with /</mat-error>
+          }
         </mat-form-field>
-        @if (extensionsService.extensions.error()) {
-          <p role="alert">Source extensions could not be retrieved.</p>
-          <button mat-button type="button" (click)="extensionsService.extensions.reload()">Retry extensions</button>
         }
-        }
-        @if (formModel().cardTypes.includes('vocabulary') && !isWordTriage() && !isExtension()) {
+        @if (formModel().cardTypes.includes('vocabulary') && !isWordTriage() && !isAudioCollection()) {
         <mat-form-field appearance="fill">
           <mat-label>Format Type</mat-label>
           <mat-select
@@ -82,8 +78,8 @@
 
     <section class="form-section">
       <h3 class="section-title">Content</h3>
-      @if (isExtension()) {
-      <p class="hint-text">Content is discovered by the extension. Transcripts and vocabulary are prepared only when you open an item.</p>
+      @if (isAudioCollection()) {
+      <p class="hint-text">Each numbered story folder contains audio.mp3 and text.txt. Vocabulary is prepared when you open a story.</p>
       } @else if (isJson()) {
       <p class="hint-text">Cards are added by importing a JSON array after creating the source.</p>
       } @else if (isWordTriage()) {

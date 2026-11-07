@@ -11,18 +11,18 @@
 </header>
 @if (error()) { <p role="alert">{{ error() }}</p> }
 @if (contentId()) {
-  <a class="back-link" mat-button [routerLink]="['/sources', sourceId(), route()]"><mat-icon>arrow_back</mat-icon>Back to {{ descriptor()?.itemLabel }}</a>
+  <a class="back-link" mat-button [routerLink]="['/sources', sourceId(), route()]"><mat-icon>arrow_back</mat-icon>Back to Stories</a>
   @if (detail.error()) {
     <p role="alert">Content could not be retrieved.</p>
     <button mat-button (click)="detail.reload()">Retry</button>
   } @else if (detail.value(); as item) {
     <article class="story-panel" aria-labelledby="story-title">
     <header class="story-header">
-      <div class="story-symbol" aria-hidden="true"><mat-icon>{{ descriptor()?.capabilities?.includes('listen') ? 'headphones' : 'menu_book' }}</mat-icon></div>
+      <div class="story-symbol" aria-hidden="true"><mat-icon>headphones</mat-icon></div>
       <div>
         <h2 id="story-title">{{ item.metadata.title }}</h2>
         <div class="story-meta">
-          <span class="level-badge">{{ item.metadata.languageLevel ?? 'Level unavailable' }}</span>
+          <span class="level-badge">{{ source()?.languageLevel ?? 'Level unavailable' }}</span>
           <span class="duration"><mat-icon aria-hidden="true">schedule</mat-icon><span>{{ item.metadata.durationSeconds === null ? 'Duration unavailable' : formatPosition(item.metadata.durationSeconds) }}</span></span>
         </div>
       </div>
@@ -62,10 +62,8 @@
         </section>
       }
       <section class="prerequisites" [class.ready]="item.unlocked">
-      <h3>{{ descriptor()?.capabilities?.includes('listen') ? 'Listening prerequisites' : 'Vocabulary coverage' }}</h3>
-      @if (descriptor()?.capabilities?.includes('listen')) {
-        <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon><span>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</span></p>
-      }
+      <h3>Listening prerequisites</h3>
+       <p class="readiness" role="status"><mat-icon aria-hidden="true">{{ item.unlocked ? 'check_circle' : 'lock_outline' }}</mat-icon><span>{{ item.unlocked ? 'Ready to listen' : 'Listening locked' }}</span></p>
       @for (group of prerequisiteGroups(); track group.status) {
         <h4>{{ labels[group.status] }}</h4>
         <ul [attr.aria-label]="'Vocabulary prerequisites: ' + labels[group.status]">
@@ -76,7 +74,7 @@
       }
       <button mat-button (click)="detail.reload()">Refresh prerequisites</button>
       </section>
-      @if (!admin() && item.unlocked && descriptor()?.capabilities?.includes('listen')) {
+      @if (!admin() && item.unlocked) {
         <app-content-player [sourceId]="sourceId()" [item]="item" />
       }
     } @else if (!admin() && item.status === 'unprepared') {
@@ -91,7 +89,7 @@
   }
 } @else {
   <div class="catalogue-heading">
-    <h2>{{ descriptor()?.itemLabel }}</h2>
+    <h2>Stories</h2>
     @if (admin()) { <button mat-button [disabled]="busy()" (click)="refresh()">Refresh catalogue</button> }
   </div>
   <mat-form-field appearance="outline"><mat-label>Search content</mat-label><mat-icon matPrefix>search</mat-icon><input matInput [value]="search()" (input)="search.set($any($event.target).value)" /></mat-form-field>
@@ -108,7 +106,7 @@
             <td>{{ item.metadata.number ?? '—' }}</td>
             <td><a [routerLink]="['/sources', sourceId(), route(), item.id]">{{ item.metadata.title }}</a></td>
             <td>{{ item.metadata.durationSeconds === null ? 'Unavailable' : formatPosition(item.metadata.durationSeconds) }}</td>
-            <td>{{ item.metadata.languageLevel ?? 'Unavailable' }}</td>
+            <td>{{ source()?.languageLevel ?? 'Unavailable' }}</td>
             <td>
               @if (item.progress?.completed) { Completed }
               @else if (item.progress && item.progress.position > 0) { Continue from {{ formatPosition(item.progress.position) }} }

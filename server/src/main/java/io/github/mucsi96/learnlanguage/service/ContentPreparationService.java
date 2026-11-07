@@ -2,7 +2,6 @@ package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import io.github.mucsi96.learnlanguage.extension.SourceExtensionRegistry;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ContentPreparationService {
     private final ContentStore store;
-    private final ContentAssetService assets;
     private final ContentTextService text;
-    private final SourceExtensionRegistry extensions;
+    private final AudioCollectionService collections;
 
     @Scheduled(fixedDelay = 1000, scheduler = "contentScheduler")
     public void processNext() {
@@ -26,11 +24,8 @@ public class ContentPreparationService {
             final Preparation previous = item.preparation() == null
                     ? Preparation.builder().version("3").model(text.model().getModelName()).build() : item.preparation();
             final var model = io.github.mucsi96.learnlanguage.model.ChatModel.fromString(previous.model());
-            final Preparation extracted = previous.blocks() != null ? previous : extract(item, previous);
-            store.checkpoint(item, extracted, "processing");
-            final Preparation isolated = extracted.transcript() != null ? extracted : extracted.toBuilder()
-                    .transcript(text.isolate(extracted.blocks(), extensions.require(item.extensionId()).isolationPolicy(),
-                            item.descriptor().title(), model)).build();
+            final Preparation isolated = previous.transcript() != null ? previous : previous.toBuilder()
+                    .transcript(collections.resolveTranscript(item.descriptor())).build();
             store.checkpoint(item, isolated, "processing");
             final Preparation complete = isolated.toBuilder().version("3").words(text.vocabulary(isolated.transcript(), model)).build();
             store.checkpoint(item, complete, "prepared");
@@ -40,10 +35,4 @@ public class ContentPreparationService {
         }
     }
 
-    private Preparation extract(ContentItem item, Preparation previous) {
-        final var transcript = extensions.require(item.extensionId()).resolveTranscript(item.descriptor());
-        return transcript.isolatedText() == null
-                ? previous.toBuilder().blocks(text.blocks(assets.cached(transcript.url()), transcript.mediaType())).build()
-                : previous.toBuilder().blocks(text.textBlocks(transcript.isolatedText())).transcript(transcript.isolatedText()).build();
-    }
 }

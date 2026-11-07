@@ -23,7 +23,7 @@ public enum OperationType {
     TRANSCRIPTION("transcription", "Transcription", false),
     LESSON_DESCRIPTION("lesson_description", "Lesson Description", true),
     CARD_GENERATION("card_generation", "Card Generation", true),
-    SOURCE_CONTENT_EXTRACTION("source_content_extraction", "Source Content Extraction", true);
+    SOURCE_CONTENT_EXTRACTION("source_content_extraction", "Source Content Extraction (retired)", false);
 
     private final String code;
     private final String displayName;

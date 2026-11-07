@@ -3,11 +3,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ContentItem, Playback, PlaybackSnapshot, formatPosition } from './content.types';
 import { ContentService, ProgressWrite, contentError } from './content.service';
-import { YouTubePlayerComponent } from './youtube-player.component';
 
 @Component({
   selector: 'app-content-player',
-  imports: [MatButtonModule, YouTubePlayerComponent],
+  imports: [MatButtonModule],
   templateUrl: './content-player.component.html',
   styleUrl: './content-player.component.css',
 })
@@ -16,7 +15,6 @@ export class ContentPlayerComponent implements OnDestroy {
   readonly item = input.required<ContentItem>();
   private readonly service = inject(ContentService);
   private readonly audio = viewChild<ElementRef<HTMLAudioElement>>('audio');
-  private readonly youtube = viewChild(YouTubePlayerComponent);
   private readonly sequence = signal(0);
   private readonly writes = signal<Promise<void>>(Promise.resolve());
   private readonly lastSnapshot = signal<PlaybackSnapshot | undefined>(undefined);
@@ -29,8 +27,7 @@ export class ContentPlayerComponent implements OnDestroy {
   readonly error = signal<string | null>(null);
   readonly saved = signal(false);
   readonly formatPosition = formatPosition;
-  readonly canPlay = computed(() => this.playback()?.kind === 'youtube'
-    ? this.youtube()?.ready() === true : this.duration() > 0);
+  readonly canPlay = computed(() => this.duration() > 0);
 
   constructor() {
     effect(onCleanup => {
@@ -57,7 +54,7 @@ export class ContentPlayerComponent implements OnDestroy {
       this.sequence.set(0);
       this.lastSnapshot.set(undefined);
       this.position.set(restart ? 0 : playback.progress.position);
-      this.duration.set(playback.progress.duration);
+      this.duration.set(0);
       this.paused.set(true);
       this.playback.set(restart ? { ...playback, progress: { ...playback.progress, position: 0, completed: false } } : playback);
     } catch (error) {
@@ -75,12 +72,13 @@ export class ContentPlayerComponent implements OnDestroy {
     this.position.set(audio.currentTime);
   }
 
+  audioFailed(): void {
+    this.audio()?.nativeElement.pause();
+    this.playback.set(null);
+    this.error.set('Audio could not be played. Try opening the player again.');
+  }
+
   async toggle(): Promise<void> {
-    if (this.playback()?.kind === 'youtube') {
-      if (this.paused()) this.youtube()?.play();
-      else this.youtube()?.pause();
-      return;
-    }
     const audio = this.audio()!.nativeElement;
     if (audio.paused) {
       await audio.play().catch(error => this.error.set(contentError(error)));
@@ -91,7 +89,7 @@ export class ContentPlayerComponent implements OnDestroy {
 
   updatePosition(): void {
     const snapshot = this.snapshot();
-    if (snapshot) this.videoChanged(snapshot);
+    if (snapshot) this.audioChanged(snapshot);
   }
 
   seek(event: Event): void {
@@ -126,7 +124,6 @@ export class ContentPlayerComponent implements OnDestroy {
         if (this.playback()?.sessionId !== body.sessionId) return;
         this.error.set(`Progress could not be saved: ${contentError(error)}`);
         if (error instanceof HttpErrorResponse && [401, 403, 409, 423].includes(error.status)) {
-          this.youtube()?.pause();
           this.audio()?.nativeElement.pause();
           this.playback.set(null);
         }
@@ -135,7 +132,7 @@ export class ContentPlayerComponent implements OnDestroy {
     this.writes.set(next);
   }
 
-  videoChanged(snapshot: PlaybackSnapshot): void {
+  audioChanged(snapshot: PlaybackSnapshot): void {
     this.lastSnapshot.set(snapshot);
     this.position.set(snapshot.position);
     this.duration.set(snapshot.duration);
@@ -143,7 +140,6 @@ export class ContentPlayerComponent implements OnDestroy {
   }
 
   private snapshot(): PlaybackSnapshot | undefined {
-    if (this.playback()?.kind === 'youtube') return this.youtube()?.snapshot();
     const audio = this.audio()?.nativeElement;
     return audio ? { position: audio.currentTime, duration: audio.duration, paused: audio.paused, completed: audio.ended } : undefined;
   }
@@ -154,7 +150,6 @@ export class ContentPlayerComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.save(this.snapshot() ?? this.lastSnapshot());
-    this.youtube()?.pause();
     this.audio()?.nativeElement.pause();
   }
 }

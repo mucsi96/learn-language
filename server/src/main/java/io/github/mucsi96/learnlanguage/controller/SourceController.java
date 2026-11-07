@@ -84,7 +84,7 @@ public class SourceController {
   private static final long MAX_PENDING_PHOTO_BYTES = 10L * 1024 * 1024;
 
   private final SourceService sourceService;
-  private final io.github.mucsi96.learnlanguage.extension.SourceExtensionRegistry sourceExtensions;
+  private final io.github.mucsi96.learnlanguage.service.AudioCollectionService audioCollections;
   private final CardService cardService;
   private final DocumentProcessorService documentProcessorService;
   private final AreaWordsService areaWordsService;
@@ -126,7 +126,7 @@ public class SourceController {
           .id(sourceId)
           .name(source.getName())
           .sourceType(source.getSourceType())
-          .extensionId(source.getExtensionId())
+          .collectionPath(source.getCollectionPath())
           .cardTypes(source.getCardTypes())
           .startPage(source.getBookmarkedPage() != null ? source.getBookmarkedPage() : source.getStartPage())
           .pageCount(pageCount)
@@ -328,15 +328,17 @@ public class SourceController {
     }
 
     validateCardTypesForSourceType(request.getSourceType(), request.getCardTypes());
-    if (request.getSourceType() == SourceType.EXTENSION) {
-      sourceExtensions.require(request.getExtensionId());
+    if (request.getSourceType() == SourceType.AUDIO_COLLECTION) {
+      audioCollections.validatePath(request.getCollectionPath());
+    } else if (request.getCollectionPath() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Collection path requires an audio collection source");
     }
 
     Source source = Source.builder()
         .id(request.getId())
         .name(request.getName())
         .sourceType(request.getSourceType())
-        .extensionId(request.getExtensionId())
+        .collectionPath(request.getCollectionPath())
         .startPage(request.getStartPage() != null ? request.getStartPage() : 1)
         .languageLevel(request.getLanguageLevel())
         .cardTypes(request.getCardTypes())
@@ -380,8 +382,8 @@ public class SourceController {
         .orElseThrow(() -> new ResourceNotFoundException("Source not found with id: " + sourceId));
 
     if ((request.getSourceType() != null && request.getSourceType() != existingSource.getSourceType())
-        || (request.getExtensionId() != null && !request.getExtensionId().equals(existingSource.getExtensionId()))) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source type and extension cannot be changed");
+        || (request.getCollectionPath() != null && !request.getCollectionPath().equals(existingSource.getCollectionPath()))) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source type and collection cannot be changed");
     }
 
     validateCardTypesForSourceType(
@@ -701,9 +703,9 @@ public class SourceController {
   }
 
   private static void validateCardTypesForSourceType(SourceType sourceType, List<CardType> cardTypes) {
-    if ((sourceType == SourceType.WORD_TRIAGE || sourceType == SourceType.EXTENSION) && !List.of(CardType.VOCABULARY).equals(cardTypes)) {
+    if ((sourceType == SourceType.WORD_TRIAGE || sourceType == SourceType.AUDIO_COLLECTION) && !List.of(CardType.VOCABULARY).equals(cardTypes)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Word triage sources support vocabulary cards only");
+          "Word triage and audio collection sources support vocabulary cards only");
     }
   }
 

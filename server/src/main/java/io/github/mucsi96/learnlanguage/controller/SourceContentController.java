@@ -12,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import io.github.mucsi96.learnlanguage.extension.SourceExtensionRegistry;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
 import io.github.mucsi96.learnlanguage.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,14 +20,9 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class SourceContentController {
-    private final SourceExtensionRegistry extensions;
     private final SourceContentService content;
     private final ContentCoverageService coverage;
     private final ContentListeningService listening;
-
-    @GetMapping("/source-extensions")
-    @PreAuthorize("hasAuthority('APPROLE_readDecks')")
-    public List<ExtensionDescriptor> extensions() { return extensions.descriptors(); }
 
     @GetMapping("/source/{sourceId}/content")
     @PreAuthorize("hasAuthority('APPROLE_readDecks')")
@@ -78,7 +72,6 @@ public class SourceContentController {
     public ResponseEntity<Playback> playback(@PathVariable String sourceId, @PathVariable UUID contentId,
             @AuthenticationPrincipal Jwt jwt, HttpServletRequest request) {
         final Playback playback = listening.start(sourceId, contentId, user(jwt));
-        if (playback.kind().equals("youtube")) return ResponseEntity.ok(playback);
         final var cookie = ResponseCookie.from("contentPlayback", playback.sessionId().toString()).httpOnly(true)
                 .secure(request.isSecure()).sameSite("Strict").path(playback.mediaUrl()).maxAge(14400).build();
         return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body(playback);

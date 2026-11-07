@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import io.github.mucsi96.learnlanguage.entity.Card;
 import io.github.mucsi96.learnlanguage.entity.Source;
-import io.github.mucsi96.learnlanguage.extension.SourceExtensionRegistry;
 import io.github.mucsi96.learnlanguage.model.*;
 import io.github.mucsi96.learnlanguage.model.ContentModels.*;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SourceContentService {
     private final SourceService sources;
-    private final SourceExtensionRegistry extensions;
+    private final AudioCollectionService collections;
     private final ContentStore store;
     private final ContentCoverageService coverage;
     private final CardService cards;
@@ -32,24 +31,24 @@ public class SourceContentService {
     public Source source(String id) {
         final Source source = sources.getSourceById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Source not found"));
-        if (source.getSourceType() != SourceType.EXTENSION) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source does not use an extension");
+        if (source.getSourceType() != SourceType.AUDIO_COLLECTION) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source is not an audio collection");
         }
-        extensions.require(source.getExtensionId());
+        collections.validatePath(source.getCollectionPath());
         return source;
     }
 
     public synchronized List<ContentItem> list(String sourceId, boolean refresh) {
         final Source source = source(sourceId);
-        if (refresh || !store.discovered(source.getExtensionId())) {
-            store.discovered(source.getExtensionId(), extensions.require(source.getExtensionId()).discoverContent());
+        if (refresh || !store.discovered(source.getCollectionPath())) {
+            store.discovered(source.getCollectionPath(), collections.discoverContent(source.getCollectionPath()));
         }
-        return store.list(source.getExtensionId());
+        return store.list(source.getCollectionPath());
     }
 
     public ContentItem require(String sourceId, UUID contentId) {
         final ContentItem item = store.require(contentId);
-        if (!item.extensionId().equals(source(sourceId).getExtensionId())) {
+        if (!item.collectionPath().equals(source(sourceId).getCollectionPath())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found in this source");
         }
         return item;
@@ -67,7 +66,7 @@ public class SourceContentService {
         final var words = coverage.coverage(item, matching);
         final var descriptor = item.descriptor();
         final var publicMetadata = new ContentDescriptor(descriptor.externalId(), descriptor.title(), descriptor.number(),
-                descriptor.durationSeconds(), descriptor.languageLevel(), null, descriptor.transcriptUrl(), descriptor.transcriptMediaType(), descriptor.matchError(), null);
+                descriptor.durationSeconds(), descriptor.languageLevel(), null, null, descriptor.transcriptMediaType(), descriptor.matchError());
         return new ContentView(item.id(), publicMetadata, item.status(), item.error(),
                 item.preparation() == null ? null : item.preparation().transcript(), words, coverage.unlocked(item, words), progress);
     }

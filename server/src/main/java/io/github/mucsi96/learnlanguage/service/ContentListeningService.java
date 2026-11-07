@@ -29,22 +29,20 @@ public class ContentListeningService {
 
     public Playback start(String sourceId, UUID contentId, String userId) {
         final var item = eligible(sourceId, contentId);
-        final String videoId = item.descriptor().youtubeVideoId();
-        final String revision = videoId == null ? assets.revision(assets.cached(item.descriptor().audioUrl())) : "youtube:" + videoId;
+        final String revision = assets.revision(assets.cached(item.descriptor().audioUrl()));
         final UUID session = UUID.randomUUID();
         jdbc.sql("""
                 INSERT INTO learn_language.listening_progress(source_id, content_id, user_id, audio_revision, session_id, expires_at)
                 VALUES (:source, :content, :user, :revision, :session, now() + interval '4 hours')
                 ON CONFLICT(source_id, content_id, user_id) DO UPDATE SET
                   session_id = excluded.session_id, sequence = 0, expires_at = excluded.expires_at,
-                  position = CASE WHEN listening_progress.audio_revision = excluded.audio_revision THEN listening_progress.position ELSE 0 END,
-                  duration = CASE WHEN listening_progress.audio_revision = excluded.audio_revision THEN listening_progress.duration ELSE 0 END,
-                  completed = CASE WHEN listening_progress.audio_revision = excluded.audio_revision THEN listening_progress.completed ELSE false END,
+                  position = CASE WHEN listening_progress.audio_revision IN (excluded.audio_revision, 'azure-migration') THEN listening_progress.position ELSE 0 END,
+                  duration = CASE WHEN listening_progress.audio_revision IN (excluded.audio_revision, 'azure-migration') THEN listening_progress.duration ELSE 0 END,
+                  completed = CASE WHEN listening_progress.audio_revision IN (excluded.audio_revision, 'azure-migration') THEN listening_progress.completed ELSE false END,
                   audio_revision = excluded.audio_revision
                 """).param("source", sourceId).param("content", contentId).param("user", userId)
                 .param("revision", revision).param("session", session).update();
-        return new Playback(session, videoId == null ? "audio" : "youtube",
-                videoId == null ? "/api/source/" + sourceId + "/content/" + contentId + "/media" : null, videoId, revision,
+        return new Playback(session, "/api/source/" + sourceId + "/content/" + contentId + "/media", revision,
                 progress(sourceId, userId).get(contentId));
     }
 
@@ -79,7 +77,7 @@ public class ContentListeningService {
 
     private ContentItem eligible(String sourceId, UUID contentId) {
         final var item = content.require(sourceId, contentId);
-        if ((item.descriptor().audioUrl() == null && item.descriptor().youtubeVideoId() == null)
+        if (item.descriptor().audioUrl() == null
                 || !coverage.unlocked(item, coverage.coverage(item, coverage.cards(sourceId)))) {
             throw new ResponseStatusException(HttpStatus.LOCKED, "Every vocabulary prerequisite must be known or have a ready card reviewed at least twice");
         }

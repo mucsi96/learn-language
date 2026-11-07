@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 61-azure-story-assets
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              UPDATE learn_language.listening_progress p
+              SET audio_revision = 'azure-migration', expires_at = now()
+              FROM learn_language.content_items c
+              WHERE p.content_id = c.id AND c.extension_id = 'einfach-deutsch-a1-a2'
+                AND c.descriptor->>'youtubeVideoId' IS NOT NULL;
+
+              UPDATE learn_language.content_items
+              SET external_id = lpad(descriptor->>'number', 3, '0') || '-' ||
+                  trim(both '-' from regexp_replace(
+                    replace(replace(replace(replace(lower(descriptor->>'title'),
+                      'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue'), 'ß', 'ss'), '[^a-z0-9]+', '-', 'g'))
+              WHERE extension_id = 'einfach-deutsch-a1-a2' AND descriptor->>'number' IS NOT NULL;
+
+              UPDATE learn_language.content_items
+              SET descriptor = (descriptor - 'youtubeVideoId') || jsonb_build_object(
+                    'externalId', external_id,
+                    'audioUrl', 'deutsch-lernen-durch-hoeren-a1-a2/' || external_id || '/audio.mp3',
+                    'transcriptUrl', 'deutsch-lernen-durch-hoeren-a1-a2/' || external_id || '/text.txt',
+                    'transcriptMediaType', 'text/plain', 'matchError', NULL),
+                  preparation = preparation - 'blocks'
+              WHERE extension_id = 'einfach-deutsch-a1-a2' AND descriptor->>'number' IS NOT NULL;
+
+              UPDATE learn_language.content_items SET preparation = preparation - 'blocks';
+              DELETE FROM learn_language.extension_discovery WHERE extension_id = 'einfach-deutsch-a1-a2';
+              DELETE FROM learn_language.chat_model_settings WHERE operation_type = 'SOURCE_CONTENT_EXTRACTION';

@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 62-audio-collections
+      author: mucsi96
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE learn_language.sources RENAME COLUMN extension_id TO collection_path;
+              ALTER TABLE learn_language.content_items RENAME COLUMN extension_id TO collection_path;
+              ALTER TABLE learn_language.extension_discovery RENAME TO collection_discovery;
+              ALTER TABLE learn_language.collection_discovery RENAME COLUMN extension_id TO collection_path;
+
+              UPDATE learn_language.sources
+              SET source_type = 'AUDIO_COLLECTION', collection_path = 'deutsch-lernen-durch-hoeren-a1-a2/'
+              WHERE source_type = 'EXTENSION' AND collection_path = 'einfach-deutsch-a1-a2';
+              UPDATE learn_language.content_items
+              SET collection_path = 'deutsch-lernen-durch-hoeren-a1-a2/'
+              WHERE collection_path = 'einfach-deutsch-a1-a2';
+              UPDATE learn_language.collection_discovery
+              SET collection_path = 'deutsch-lernen-durch-hoeren-a1-a2/'
+              WHERE collection_path = 'einfach-deutsch-a1-a2';
