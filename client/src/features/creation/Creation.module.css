@@ -21,12 +21,12 @@
   display: grid;
   gap: 1rem;
 }
-.fields > label,
+.fields > label:not(.actions),
 .field {
   display: grid;
   gap: 0.4rem;
 }
-.fields > label > input,
+.fields > label > input:not([type='radio']),
 .fields > label > textarea,
 .fields > label > select,
 .field input,
