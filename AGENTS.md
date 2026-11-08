@@ -56,7 +56,7 @@ Skeleton sync: follow `.github/prompts/sync-skeleton.md` in a weekly scheduled t
 
 ## Design guidelines
 - Prefer using `@mucsi96/react-ui` components
-- Avoid using "Loading..." in favor of skeleton loaders
+- Use the shared LoadingArea component with accessible labels, centered in its page or section, instead of skeletons or visible "Loading..." text
 
 ## Project Overview
 

@@ -1,6 +1,7 @@
 .page {
   max-width: 58rem;
-  margin: auto;
+  width: 100%;
+  margin-inline: auto;
   padding: 1rem;
 }
 .header,

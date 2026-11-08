@@ -42,10 +42,6 @@ changes to `react-ui`.
 
 ## Useful follow-ups
 
-- **Skeleton primitives** (text, image, table rows): the BarLoader is useful for
-  indeterminate requests, but study cards and content pages need stable-sized
-  placeholders. Respect reduced motion and hide decorative skeletons from
-  assistive technology while exposing one status label.
 - **EmptyState**: source lists, known words, voices, and completed queues repeat
   a heading, explanatory text, and optional action. A composable primitive should
   leave all business wording and actions to the consumer.
@@ -54,6 +50,9 @@ changes to `react-ui`.
 
 ## Findings addressed in this application
 
+- React UI 0.9.0's `LoadingArea` replaces skeletons and standalone loaders.
+  Page layouts allocate the available space for `fill`; section and dialog
+  loaders use the compact area with an accessible label and reduced-motion support.
 - The first mobile source-table screenshot wrapped headings and names into single
   characters. A minimum table width and a local horizontal scroll container fix
   this; it is application table sizing, not a library defect.
