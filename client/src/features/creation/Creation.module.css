@@ -102,6 +102,17 @@
   user-select: none;
   overflow: hidden;
 }
+.viewer[data-source-type='pdf'] {
+  background: transparent;
+  color: var(--bt-text-default);
+  outline: 1px solid var(--bt-outline);
+}
+.viewer[data-source-type='pdf'] .span {
+  outline: 1px solid var(--bt-outline);
+  outline-offset: 2px;
+  display: flex;
+  align-items: center;
+}
 .dropzone {
   display: grid;
   place-content: center;
@@ -111,13 +122,6 @@
   border-radius: var(--bt-radius);
   background: var(--bt-surface-1);
   text-align: center;
-}
-.pageNumber {
-  width: 5rem;
-}
-.pageNumber input {
-  width: 100%;
-  min-width: 0;
 }
 .viewer img {
   width: 100%;

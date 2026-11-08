@@ -1,4 +1,6 @@
 .overview {
+  width: 100%;
+  min-width: 0;
   max-width: 75rem;
   margin-inline: auto;
   padding-inline: clamp(0rem, 2vw, 2rem);

@@ -2,13 +2,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 0.6rem;
-  min-height: 0.6rem;
   border-radius: 50%;
   padding: 0.25rem;
-  color: #111;
+  background: var(--state-color);
+  color: var(--state-foreground);
   font-size: 0.8rem;
   margin-inline: 0.15rem;
+}
+.badge:empty {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--state-color) 15%, transparent);
 }
 .badge:not(:empty) {
   min-width: 1.5rem;
@@ -17,14 +24,18 @@
   border-radius: 999px;
 }
 .badge[data-state='NEW'] {
-  background: #82b1ff;
+  --state-color: var(--bt-link-hint);
+  --state-foreground: var(--bt-surface-0);
 }
 .badge[data-state='LEARNING'] {
-  background: #69d68a;
+  --state-color: var(--bt-success-soft);
+  --state-foreground: var(--bt-success-on);
 }
 .badge[data-state='REVIEW'] {
-  background: #ffce65;
+  --state-color: var(--bt-warn-soft);
+  --state-foreground: var(--bt-surface-0);
 }
 .badge[data-state='RELEARNING'] {
-  background: #ff8585;
+  --state-color: var(--bt-error-soft);
+  --state-foreground: var(--bt-error-on);
 }

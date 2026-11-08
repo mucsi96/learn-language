@@ -9,6 +9,7 @@ import type { Source } from '../../api/schemas';
 import { useAction } from '../../api/mutations';
 import { QueryState } from '../../components/QueryState';
 import { StateBadge } from '../../components/StateBadge';
+import { Icon } from '../../components/Icon';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { SourceDialog } from './SourceDialog';
 import styles from '../../components/Forms.module.css';
@@ -65,7 +66,7 @@ export default function Sources() {
                       members.length > 0 && (
                         <section key={group.id ?? 'ungrouped'} aria-label={`${group.name} sources`}>
                           {(group.id !== null || groupList.length > 0) && <h2>{group.name}</h2>}
-                          <div className={styles.scroll}>
+                          <div className={`${styles.scroll} ${sourceStyles.surface}`}>
                             <table
                               className={`${styles.table} ${sourceStyles.table}`}
                               aria-label={`${group.name} sources`}
@@ -86,19 +87,23 @@ export default function Sources() {
                                     <td>{source.languageLevel}</td>
                                     <td>{source.cardCount}</td>
                                     <td>
-                                      {Object.entries(source.stateCounts).map(([state, count]) => (
-                                        <StateBadge key={state} state={stateSchema.parse(state)} count={count} />
-                                      ))}
+                                      <div className={sourceStyles.badges}>
+                                        {Object.entries(source.stateCounts).map(([state, count]) => (
+                                          <StateBadge key={state} state={stateSchema.parse(state)} count={count} />
+                                        ))}
+                                      </div>
                                     </td>
                                     <td>
-                                      {Object.entries(source.readinessCounts).map(([readiness, count]) => (
-                                        <Badge key={readiness} aria-label={`${readiness}: ${count}`}>
-                                          {readiness === 'IN_REVIEW'
-                                            ? 'In Review'
-                                            : readiness[0] + readiness.slice(1).toLowerCase()}{' '}
-                                          {count}
-                                        </Badge>
-                                      ))}
+                                      <div className={sourceStyles.badges}>
+                                        {Object.entries(source.readinessCounts).map(([readiness, count]) => (
+                                          <Badge key={readiness} aria-label={`${readiness}: ${count}`}>
+                                            {readiness === 'IN_REVIEW'
+                                              ? 'In Review'
+                                              : readiness[0] + readiness.slice(1).toLowerCase()}{' '}
+                                            {count}
+                                          </Badge>
+                                        ))}
+                                      </div>
                                     </td>
                                     <td>
                                       {attention(source).length === 0
@@ -119,10 +124,14 @@ export default function Sources() {
                                     </td>
                                     <td>
                                       <MenuTrigger>
-                                        <Button variant="icon" aria-label={`Actions for ${source.name}`}>
-                                          ⋮
+                                        <Button
+                                          variant="icon"
+                                          className={sourceStyles.actionButton}
+                                          aria-label={`Actions for ${source.name}`}
+                                        >
+                                          <Icon name="more" />
                                         </Button>
-                                        <MenuPopover>
+                                        <MenuPopover placement="bottom end" className={sourceStyles.actionMenu}>
                                           <Menu aria-label={`Actions for ${source.name}`}>
                                             {source.sourceType === 'audioCollection' ? (
                                               <MenuItem

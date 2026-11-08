@@ -1,9 +1,53 @@
+.surface {
+  border: 1px solid var(--bt-outline);
+  border-radius: var(--bt-radius-lg);
+  background: var(--bt-surface-1);
+  margin-bottom: 1.5rem;
+}
 .table {
   min-width: 60rem;
+  font-size: 0.875rem;
 }
-.table th {
-  white-space: nowrap;
+.table thead th {
+  color: var(--bt-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .table th[scope='row'] {
   font-weight: 400;
+  min-width: 12rem;
+  max-width: 24rem;
+  overflow-wrap: anywhere;
+  color: var(--bt-text-strong);
+}
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom-color: var(--bt-surface-2);
+}
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.table tbody tr:hover {
+  background: var(--bt-surface-2);
+}
+.table th:last-child,
+.table td:last-child {
+  text-align: center;
+  width: 5rem;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-items: center;
+}
+.actionButton {
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+.actionMenu {
+  min-width: 10rem;
 }

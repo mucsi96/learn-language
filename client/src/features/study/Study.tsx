@@ -79,16 +79,17 @@ function StudySession({ sourceId }: { sourceId: string }) {
     }
   });
   const controls = (
-    <div className={styles.headerControls}>
+    <>
       <div role="group" aria-label="Due cards" className={styles.dots}>
         {due.data
-          ?.filter((count) => count.sourceId === sourceId)
+          ?.filter((count) => count.sourceId === sourceId && count.count > 0)
           .flatMap((count) =>
             Array.from({ length: count.count }, (_, index) => (
               <StateBadge key={`${count.state}-${index}`} state={count.state} />
             ))
           )}
       </div>
+      <div className={styles.headerActions}>
       {active && current.data?.studyMode === 'WITH_PARTNER' && (
         <span role="status" aria-label="Current turn">
           {current.data.turnName}
@@ -123,7 +124,8 @@ function StudySession({ sourceId }: { sourceId: string }) {
         </MenuTrigger>
       )}
       <Pomodoro active={active} onRestart={() => start.mutate(true)} pending={mutations > 0 || current.isFetching} />
-    </div>
+      </div>
+    </>
   );
   const header = document.getElementById('study-header-controls');
   return (

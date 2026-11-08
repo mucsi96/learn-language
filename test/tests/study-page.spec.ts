@@ -404,7 +404,7 @@ test('source selector shows one labeled dot per due card in each state', async (
   await expect(progress).toHaveText('');
 });
 
-test('large study queues keep all dots within a bounded header area', async ({ page }) => {
+test('large study queues show compact dots without header scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await createCardsWithStates('goethe-a1', [
     { state: 'NEW', count: 100, due_date: new Date(Date.now() - 86400000) },
@@ -419,10 +419,10 @@ test('large study queues keep all dots within a bounded header area', async ({ p
     scrollHeight: element.scrollHeight,
     scrollWidth: element.scrollWidth,
   }));
-  expect(dimensions.width).toBeLessThanOrEqual(200);
+  expect(dimensions.width).toBeGreaterThan(200);
   expect(dimensions.height).toBeLessThanOrEqual(32);
   expect(dimensions.height).toBeGreaterThan(8);
-  expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.height);
+  expect(dimensions.scrollHeight).toBe(dimensions.height);
   expect(dimensions.scrollWidth).toBe(dimensions.width);
   await expect(page.getByRole('button', { name: 'Goethe A1' })).toBeInViewport();
 });

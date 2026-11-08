@@ -67,6 +67,7 @@ export function PageCanvas({
   return (
     <div
       className={styles.viewer}
+      data-source-type={page.sourceType}
       role="region"
       aria-label="Page content"
       style={{ aspectRatio: `${page.width} / ${page.height}`, containerType: 'inline-size' }}
@@ -119,8 +120,8 @@ export function PageCanvas({
         const match = matches[0];
         const spanStyle = {
           ...style(span.bbox),
-          fontFamily: span.font,
-          color: span.color,
+          fontFamily: page.sourceType === 'pdf' ? 'inherit' : span.font,
+          color: page.sourceType === 'pdf' ? 'inherit' : span.color,
           fontSize: `${(span.bbox.height / page.width) * 100}cqw`,
         };
         if (matches.length > 1 || (match?.warning && !match.exists))
