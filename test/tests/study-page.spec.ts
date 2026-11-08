@@ -382,7 +382,7 @@ test('source selector routing works', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });
 
-test('source selector shows a labeled count for each due card state', async ({ page }) => {
+test('source selector shows one labeled dot per due card in each state', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
   await createCardsWithStates('goethe-a1', [
@@ -397,14 +397,14 @@ test('source selector shows a labeled count for each due card state', async ({ p
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'New: 3', exact: true })).toHaveText('3');
-  await expect(progress.getByRole('img', { name: 'Learning: 2', exact: true })).toHaveText('2');
-  await expect(progress.getByRole('img', { name: 'Review: 1', exact: true })).toHaveText('1');
-  await expect(progress.getByRole('img', { name: 'Relearning: 4', exact: true })).toHaveText('4');
-  await expect(progress.getByRole('img')).toHaveCount(4);
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(3);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(2);
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: Relearning', exact: true })).toHaveCount(4);
+  await expect(progress).toHaveText('');
 });
 
-test('large study queues show compact counts without header scrolling', async ({ page }) => {
+test('large study queues show compact dots without header scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await createCardsWithStates('goethe-a1', [
     { state: 'NEW', count: 100, due_date: new Date(Date.now() - 86400000) },
@@ -412,7 +412,7 @@ test('large study queues show compact counts without header scrolling', async ({
 
   await page.goto('/sources/goethe-a1/study');
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'New: 50', exact: true })).toHaveText('50');
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(50);
   const dimensions = await progress.evaluate(element => ({
     width: element.clientWidth,
     height: element.clientHeight,
@@ -446,8 +446,8 @@ test('source selector stats update after changing source', async ({ page }) => {
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'New: 3', exact: true })).toHaveText('3');
-  await expect(progress.getByRole('img', { name: 'Learning: 2', exact: true })).toHaveText('2');
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(3);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(2);
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();
@@ -458,11 +458,11 @@ test('source selector stats update after changing source', async ({ page }) => {
   // Click start button for new source
   await page.getByRole('button', { name: 'Start study session' }).click();
 
-  await expect(progress.getByRole('img', { name: 'New: 1', exact: true })).toHaveText('1');
-  await expect(progress.getByRole('img', { name: 'Learning: 4', exact: true })).toHaveText('4');
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: Learning', exact: true })).toHaveCount(4);
 });
 
-test('study progress counts disappear when the last review card is completed', async ({ page }) => {
+test('study progress dots disappear when the last review card is completed', async ({ page }) => {
   await createCard({
     cardId: 'dot-progress-review',
     sourceId: 'goethe-a1',
@@ -481,7 +481,7 @@ test('study progress counts disappear when the last review card is completed', a
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'Review: 1', exact: true })).toHaveText('1');
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
   await page.getByRole('article', { name: 'Flashcard' })
     .getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
@@ -555,8 +555,8 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
-  await expect(progress.getByRole('img', { name: 'Review: 1', exact: true })).toHaveText('1');
-  await expect(progress.getByRole('img', { name: /^New:/ })).toHaveCount(0);
+  await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
+  await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(0);
   await expect(flashcard.getByLabel('State: Review')).toBeVisible();
 });
 

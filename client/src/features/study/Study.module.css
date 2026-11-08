@@ -104,17 +104,24 @@
 .masked {
   border-bottom: 2px solid var(--bt-text-muted);
 }
-.dueCounts {
+.dots {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem;
-  font-variant-numeric: tabular-nums;
+  align-content: center;
+  gap: 3px;
+  max-width: 197px;
+  padding-block: 2px;
 }
 .sourceOption {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+@media (max-width: 600px) {
+  .dots {
+    max-width: 137px;
+  }
 }
 .pomodoro {
   position: fixed;

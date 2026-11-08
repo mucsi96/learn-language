@@ -80,12 +80,14 @@ function StudySession({ sourceId }: { sourceId: string }) {
   });
   const controls = (
     <div className={styles.headerControls}>
-      <div role="group" aria-label="Due cards" className={styles.dueCounts}>
+      <div role="group" aria-label="Due cards" className={styles.dots}>
         {due.data
           ?.filter((count) => count.sourceId === sourceId && count.count > 0)
-          .map((count) => (
-            <StateBadge key={count.state} state={count.state} count={count.count} />
-          ))}
+          .flatMap((count) =>
+            Array.from({ length: count.count }, (_, index) => (
+              <StateBadge key={`${count.state}-${index}`} state={count.state} />
+            ))
+          )}
       </div>
       {active && current.data?.studyMode === 'WITH_PARTNER' && (
         <span role="status" aria-label="Current turn">

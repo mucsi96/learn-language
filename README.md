@@ -140,10 +140,12 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 ## Study progress
 
-The study header reports due cards as compact colored counts: blue for New,
-green for Learning, amber for Review, and red for Relearning. Each count has a state
-label for assistive technology and a hover title. Counts update after grading and
-switching sources; even large queues remain readable without scrolling the header.
+The study header reports one dot per due card in a compact, Jasmine-style strip.
+Uniform dots wrap into evenly spaced rows without a nested scrollbar or clipping.
+State colors use the React UI palette: link blue for New, success green for Learning,
+warning yellow for Review, and error red for Relearning. The same palette colors the
+state badges throughout the app. Each dot has an accessible state label and hover
+title; dots update after grading and switching sources.
 
 ## Study Pomodoro
 

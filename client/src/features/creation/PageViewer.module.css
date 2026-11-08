@@ -48,6 +48,8 @@
 .page > [aria-label='Page content'] {
   max-width: 60rem;
   margin-inline: auto;
+}
+.page > [data-source-type='images'] {
   border-radius: var(--bt-radius);
   box-shadow: var(--bt-shadow);
 }

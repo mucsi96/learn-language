@@ -53,6 +53,14 @@ import { createCardsWithStates } from '../utils';
     const input = (await pageNumber.boundingBox())!;
     expect(Math.abs(previous.y + previous.height / 2 - input.y - input.height / 2)).toBeLessThan(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    const canvas = page.getByRole('region', { name: 'Page content', exact: true });
+    await expect(canvas).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(canvas).toHaveCSS('box-shadow', 'none');
+    expect(await canvas.getByText('die Abfahrt', { exact: true }).evaluate(element => {
+      const canvas = element.closest('[data-source-type="pdf"]')!;
+      return getComputedStyle(element).color === getComputedStyle(canvas).color
+        && getComputedStyle(element).outlineStyle === 'solid';
+    })).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('document.png') });
     await pageNumber.fill('10');
     await pageNumber.press('Enter');
@@ -62,7 +70,7 @@ import { createCardsWithStates } from '../utils';
     await expect(pageNumber).toHaveValue('9');
   });
 
-  test(`all study state counts fit without scrolling at ${width}px`, async ({ page }, testInfo) => {
+  test(`all study dots fit without scrolling at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height });
     await createCardsWithStates('goethe-a1', [
       { state: 'NEW', count: 20, due_date: new Date(Date.now() - 86400000) },
@@ -72,12 +80,34 @@ import { createCardsWithStates } from '../utils';
     ]);
     await page.goto('/sources/goethe-a1/study');
     const counts = page.getByRole('group', { name: 'Due cards', exact: true });
-    await expect(counts.getByRole('img')).toHaveCount(4);
-    await expect(counts.getByRole('img', { name: 'New: 20', exact: true })).toBeInViewport({ ratio: 1 });
-    await expect(counts.getByRole('img', { name: 'Relearning: 10', exact: true })).toBeInViewport({ ratio: 1 });
+    await expect(counts.getByRole('img')).toHaveCount(50);
+    await expect(counts).toHaveText('');
+    await expect(counts.getByRole('img').first()).toBeInViewport({ ratio: 1 });
+    await expect(counts.getByRole('img').last()).toBeInViewport({ ratio: 1 });
+    expect(await counts.getByRole('img').evaluateAll(elements => elements.every(element => {
+      const bounds = element.getBoundingClientRect();
+      return bounds.width === 7 && bounds.height === 7;
+    }))).toBe(true);
+    await Promise.all([
+      ['New', '--bt-link-hint'], ['Learning', '--bt-success-soft'],
+      ['Review', '--bt-warn-soft'], ['Relearning', '--bt-error-soft'],
+    ].map(async ([state, token]) => {
+      const dot = counts.getByRole('img', { name: `State: ${state}`, exact: true }).first();
+      expect(await dot.evaluate((element, name) => {
+        const reference = document.createElement('span');
+        reference.style.backgroundColor = `var(${name})`;
+        element.append(reference);
+        const matches = getComputedStyle(element).backgroundColor === getComputedStyle(reference).backgroundColor;
+        reference.remove();
+        return matches;
+      }, token)).toBe(true);
+    }));
     expect(await counts.evaluate(element => element.scrollHeight === element.clientHeight
       && element.scrollWidth === element.clientWidth)).toBe(true);
     await expect(page.getByRole('button', { name: 'Profile menu' })).toBeInViewport({ ratio: 1 });
+    const sourceButton = (await page.getByRole('button', { name: 'Goethe A1', exact: true }).boundingBox())!;
+    const profile = (await page.getByRole('button', { name: 'Profile menu' }).boundingBox())!;
+    expect(Math.abs(sourceButton.y - profile.y)).toBeLessThan(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     await page.screenshot({ path: testInfo.outputPath('study-header.png') });
   });
