@@ -1,0 +1,58 @@
+.page {
+  max-width: 75rem;
+  padding: 0;
+}
+.page > h1 {
+  margin: 0;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--bt-outline);
+  border-radius: var(--bt-radius-lg);
+  background: var(--bt-surface-1);
+}
+.pagination,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pagination {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+.actions {
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+.pageNumber {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pageNumber input {
+  width: 4rem;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--bt-outline);
+  border-radius: var(--bt-radius);
+  background: var(--bt-surface-0);
+  color: var(--bt-text-strong);
+  text-align: center;
+}
+.page > [aria-label='Page content'] {
+  max-width: 60rem;
+  margin-inline: auto;
+  border-radius: var(--bt-radius);
+  box-shadow: var(--bt-shadow);
+}
+@media (max-width: 600px) {
+  .actions {
+    margin-inline-start: 0;
+  }
+}

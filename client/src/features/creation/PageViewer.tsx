@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod';
 import { apiQuery, sendJson } from '../../api/http';
 import { QueryState } from '../../components/QueryState';
+import { Icon } from '../../components/Icon';
 import {
   pageSchema,
   extractCandidates,
@@ -22,6 +23,7 @@ import { PendingPhoto } from './PendingPhoto';
 import { PageCanvas } from './PageCanvas';
 import { mergeCandidates, useViewerState } from './viewerState';
 import styles from './Creation.module.css';
+import viewerStyles from './PageViewer.module.css';
 
 export function PageViewer() {
   const { sourceId, pageNumber } = useParams();
@@ -128,7 +130,7 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
       else await query.refetch();
     });
   return (
-    <section className={styles.page}>
+    <section className={`${styles.page} ${viewerStyles.page}`}>
       <input
         ref={uploadInput}
         hidden
@@ -145,17 +147,17 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
         {(loaded) => (
           <>
             <h1>{loaded.sourceName}</h1>
-            <div className={styles.toolbar}>
-              <div className={styles.actions}>
+            <div className={viewerStyles.toolbar} role="region" aria-label="Document controls">
+              <nav className={viewerStyles.pagination} aria-label="Page navigation">
                 <LinkButton
                   variant="icon"
                   aria-label="Previous page"
                   isDisabled={pageNumber <= 1}
                   href={href(pageNumber - 1)}
                 >
-                  ‹
+                  <Icon name="previous" />
                 </LinkButton>
-                <label className={`${styles.field} ${styles.pageNumber}`}>
+                <label className={viewerStyles.pageNumber}>
                   Page
                   <input
                     aria-label="Page"
@@ -180,10 +182,9 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
                   isDisabled={loaded.pageCount != null && pageNumber >= loaded.pageCount}
                   href={href(pageNumber + 1)}
                 >
-                  ›
+                  <Icon name="next" />
                 </LinkButton>
-                <Link to={`/sources/${sourceId}/cards`}>Cards</Link>
-              </div>
+              </nav>
               {loaded.documents && loaded.documents.length > 1 && (
                 <Select
                   label="Document"
@@ -195,13 +196,18 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
                   }}
                 />
               )}
-              <div className={styles.actions}>
+              <div className={viewerStyles.actions}>
+                <LinkButton href={`/sources/${sourceId}/cards`} variant="outlined">
+                  <Icon name="cards" />
+                  Cards
+                </LinkButton>
                 <Button
                   variant="outlined"
                   isDisabled={action.isPending}
                   aria-label={loaded.sourceType === 'images' ? 'Upload image' : 'Add PDF document'}
                   onPress={() => uploadInput.current?.click()}
                 >
+                  <Icon name="upload" />
                   {loaded.sourceType === 'images' ? 'Upload image' : 'Add PDF'}
                 </Button>
                 {loaded.sourceType === 'images' && loaded.hasImage && (

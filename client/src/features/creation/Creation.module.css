@@ -112,13 +112,6 @@
   background: var(--bt-surface-1);
   text-align: center;
 }
-.pageNumber {
-  width: 5rem;
-}
-.pageNumber input {
-  width: 100%;
-  min-width: 0;
-}
 .viewer img {
   width: 100%;
   height: 100%;
