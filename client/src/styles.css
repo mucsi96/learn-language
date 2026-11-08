@@ -6,7 +6,7 @@ body {
 * {
   box-sizing: border-box;
 }
-a {
+:where(a) {
   color: var(--bt-link);
 }
 h1 {
@@ -27,7 +27,7 @@ textarea,
 select {
   font: inherit;
 }
-:focus-visible {
+:where(:focus-visible) {
   outline: 2px solid var(--bt-primary);
   outline-offset: 3px;
 }

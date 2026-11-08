@@ -16,7 +16,7 @@
 }
 .navigation a[aria-current='page'] {
   background: var(--bt-surface-3);
-  color: var(--bt-primary);
+  color: var(--bt-link-hint);
 }
 .content {
   min-width: 0;

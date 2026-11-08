@@ -7,7 +7,15 @@ import {
 } from 'ag-grid-community';
 
 ModuleRegistry.registerModules([InfiniteRowModelModule, ColumnAutoSizeModule]);
-export const gridTheme = themeQuartz.withPart(colorSchemeDark);
+export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
+  backgroundColor: 'var(--bt-surface-1)',
+  foregroundColor: 'var(--bt-text-default)',
+  headerBackgroundColor: 'var(--bt-surface-2)',
+  headerTextColor: 'var(--bt-text-strong)',
+  borderColor: 'var(--bt-outline)',
+  accentColor: 'var(--bt-primary)',
+  fontFamily: 'var(--bt-font)',
+});
 export const queryString = (values: Record<string, string | number | boolean | undefined>) =>
   new URLSearchParams(
     Object.entries(values)

@@ -233,6 +233,7 @@ function CardsTable({ sourceId, quickFilter }: { sourceId: string; quickFilter: 
           ))}
         </fieldset>
         <Select
+          className={styles.filterField}
           label="State"
           aria-label="Filter by state"
           selectedKey={state}
@@ -240,6 +241,7 @@ function CardsTable({ sourceId, quickFilter }: { sourceId: string; quickFilter: 
           options={['', 'NEW', 'LEARNING', 'REVIEW', 'RELEARNING'].map((id) => ({ id, label: id || 'All' }))}
         />
         <Select
+          className={styles.filterField}
           label="Last review"
           aria-label="Filter by last review time"
           selectedKey={lastReview}
@@ -254,6 +256,7 @@ function CardsTable({ sourceId, quickFilter }: { sourceId: string; quickFilter: 
           ].map(([id, label]) => ({ id, label }))}
         />
         <Select
+          className={styles.filterField}
           label="Review score"
           aria-label="Filter by review score"
           selectedKey={score}

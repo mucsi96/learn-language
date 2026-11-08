@@ -22,6 +22,9 @@
 .drop {
   border-style: dashed;
 }
+.drop input[type='file'] {
+  max-width: 100%;
+}
 .deck {
   max-width: 34rem;
   margin: 2rem auto;

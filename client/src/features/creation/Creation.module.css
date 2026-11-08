@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   max-width: 1100px;
   margin: auto;
@@ -19,14 +20,16 @@
 }
 .fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 1rem;
 }
-.fields > label,
+.fields > label:not(.actions),
 .field {
   display: grid;
   gap: 0.4rem;
 }
-.fields > label > input,
+.fields > label > input:not([type='radio']),
 .fields > label > textarea,
 .fields > label > select,
 .field input,
@@ -62,6 +65,7 @@
 }
 .span {
   position: absolute;
+  line-height: 1;
   white-space: pre;
   pointer-events: none;
   transform-origin: left top;

@@ -19,7 +19,7 @@ export default function Home() {
           {(groupList) => (
             <QueryState query={due} label="Loading due counts">
               {(counts) => (
-                <>
+                <div className={styles.overview}>
                   <h1>Welcome to Learn Language</h1>
                   <p>Select a source to start learning:</p>
                   {sourceList.length === 0 && (
@@ -50,21 +50,23 @@ export default function Home() {
                                     }}
                                     className={styles.link}
                                   >
-                                    <h2>
-                                      {source.name}{' '}
+                                    <h2 className={styles.title}>
+                                      <span>{source.name}</span>
                                       {sourceCounts.map((count) => (
                                         <StateBadge key={count.state} state={count.state} count={count.count} />
                                       ))}
                                     </h2>
                                   </Link>
                                   {source.sourceType === 'audioCollection' && (
-                                    <LinkButton
-                                      href={`/sources/${source.id}/listen`}
-                                      variant="text"
-                                      aria-label={`Listen to ${source.name}`}
-                                    >
-                                      Listen
-                                    </LinkButton>
+                                    <div className={styles.actions}>
+                                      <LinkButton
+                                        href={`/sources/${source.id}/listen`}
+                                        variant="text"
+                                        aria-label={`Listen to ${source.name}`}
+                                      >
+                                        Listen
+                                      </LinkButton>
+                                    </div>
                                   )}
                                 </Card>
                               );
@@ -74,7 +76,7 @@ export default function Home() {
                       )
                     );
                   })}
-                </>
+                </div>
               )}
             </QueryState>
           )}
