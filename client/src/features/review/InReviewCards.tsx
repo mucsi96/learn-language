@@ -23,15 +23,26 @@ export default function InReviewCards() {
       <title>Cards In Review | Learn language</title>
       <h1>Cards In Review</h1>
       <QueryState query={cards} label="Cards in review">
-        {(items) => <ReviewSession initialCards={items} />}
+        {(items) => <ReviewSession serverCards={items} />}
       </QueryState>
     </div>
   );
 }
 
-function ReviewSession({ initialCards }: { initialCards: Card[] }) {
-  const [cards, setCards] = useState(initialCards);
+function ReviewSession({ serverCards }: { serverCards: Card[] }) {
+  const [list, setList] = useState({ serverCards, cards: serverCards });
   const [reviewed, setReviewed] = useState<readonly string[]>([]);
+  if (list.serverCards !== serverCards) {
+    const retained = list.cards.flatMap((card) => {
+      const refreshed = serverCards.find((item) => item.id === card.id);
+      return refreshed ? [refreshed] : reviewed.includes(card.id) ? [card] : [];
+    });
+    setList({
+      serverCards,
+      cards: [...retained, ...serverCards.filter((card) => !retained.some((item) => item.id === card.id))],
+    });
+  }
+  const { cards } = list;
   const remaining = cards.filter((card) => !reviewed.includes(card.id)).length;
   return (
     <>
@@ -42,7 +53,12 @@ function ReviewSession({ initialCards }: { initialCards: Card[] }) {
               key={card.id}
               card={card}
               onReviewed={() => setReviewed((ids) => (ids.includes(card.id) ? ids : [...ids, card.id]))}
-              onDeleted={() => setCards((items) => items.filter((item) => item.id !== card.id))}
+              onDeleted={() =>
+                setList((current) => ({
+                  ...current,
+                  cards: current.cards.filter((item) => item.id !== card.id),
+                }))
+              }
             />
           ))
         ) : (

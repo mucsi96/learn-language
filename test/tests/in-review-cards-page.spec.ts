@@ -1,6 +1,43 @@
 import { test, expect } from '../fixtures';
 import { createCard, uploadMockImage, yellowImage, redImage, withDbConnection } from '../utils';
 
+test('refreshes a cached review list without discarding edits', async ({ page }) => {
+  await Promise.all(['retained', 'removed'].map(word => createCard({
+    cardId: word,
+    sourceId: 'goethe-a1',
+    readiness: 'IN_REVIEW',
+    data: { word, type: 'VERB', translation: { en: word } },
+  })));
+  await page.goto('/in-review-cards');
+  await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Learn Language', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await withDbConnection(client => client.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE id = 'removed'"));
+  await createCard({
+    cardId: 'added', sourceId: 'goethe-a1', readiness: 'IN_REVIEW',
+    data: { word: 'added', type: 'VERB', translation: { en: 'added' } },
+  });
+  const requested = Promise.withResolvers<void>();
+  const released = Promise.withResolvers<void>();
+  await page.route('**/api/cards/readiness/IN_REVIEW', async route => {
+    requested.resolve();
+    await released.promise;
+    await route.fallback();
+  });
+  await page.goBack();
+  await requested.promise;
+  const retained = page.getByRole('article', { name: 'Review retained', exact: true });
+  try {
+    await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toBeVisible();
+    await retained.getByLabel('German translation', { exact: true }).fill('unsaved edit');
+  } finally {
+    released.resolve();
+  }
+  await expect(page.getByRole('article', { name: 'Review added', exact: true })).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toHaveCount(0);
+  await expect(retained.getByLabel('German translation', { exact: true })).toHaveValue('unsaved edit');
+});
+
 test('displays in review cards inline with edit forms', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 

@@ -263,7 +263,7 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | Listening progress | PostgreSQL `listening_progress`, scoped to source, story, and user. The four-hour expiry applies to write sessions, not saved positions. Browser local storage buffers unsent writes until acknowledged. |
 | Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
 | Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |
-| UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
+| UI lists and table pages | TanStack Query and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
 | Authentication and static frontend assets | OAuth tokens stay in gateway Redis with a host-only HttpOnly session cookie. Azure serves public Blob assets with one-year immutable caching; gateway documents are authenticated and no-store. Deployment deletes old static files before publishing the latest build. |
 
 ## Adjective comparison forms
@@ -289,7 +289,7 @@ All host-bound ports use the 70-79 range to avoid conflicts.
 | 3071 | Mock Google AI API | Test pod |
 | 3072 | Mock ElevenLabs API | Test pod |
 | 3073 | Mock Anthropic API | Test pod |
-| 4270 | Angular dev server | Local dev |
+| 4270 | Vite dev server | Local dev |
 | 5470 | PostgreSQL | Test pod |
 | 5471 | PostgreSQL | Dev pod |
 | 8073 | Spring Boot server | Local dev |

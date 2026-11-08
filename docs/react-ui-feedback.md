@@ -48,6 +48,5 @@ changes to `react-ui`.
   tests use semantic keyboard activation where appropriate instead of trying to
   click that hidden input. This is not a reason to replace accessible controls.
 
-Visual coverage lives in `test/tests/frontend-visual.spec.ts`. Review both the
-screenshots and behavior before proposing upstream changes; source-specific
+Review appearance and behavior before proposing upstream changes; source-specific
 flashcards, triage decks, and vocabulary progress belong in this application.

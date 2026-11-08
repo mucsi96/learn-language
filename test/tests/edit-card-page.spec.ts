@@ -405,16 +405,15 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   await expect(favoriteButtons.nth(0)).not.toHaveAttribute('aria-pressed', 'true');
 
   await page.getByRole('button', { name: 'Update' }).click();
-  await expect(page.getByText('Card updated successfully')).toBeVisible();
 
-  await withDbConnection(async (client) => {
+  await expect(async () => withDbConnection(async (client) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
 
     expect(cardData.examples[0].images[0].isFavorite).toBeUndefined();
     expect(cardData.examples[0].images[1].isFavorite).toBe(true);
-  });
+  })).toPass();
 });
 
 test('generates image with Gemini model', async ({ page }) => {

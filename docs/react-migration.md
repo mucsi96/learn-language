@@ -18,17 +18,10 @@ settings, word triage, and listening.
   Timezone-less server card timestamps are interpreted as UTC, including in
   non-UTC browsers. Pomodoro state remains scoped to the browser tab.
 
-## Visual review
+## Responsive layout coverage
 
-`frontend-visual.spec.ts` covers desktop, tablet, and mobile overview, profile
-menu, source list, empty states, source dialog, settings, API errors/retry, and a
-deterministically held request. `study-card-strategies.spec.ts` covers the front
-and back of all four card types at three viewport sizes, alongside geometry and
-safe-area assertions.
-
-The Angular baseline was captured before replacing the frontend. React snapshots
-are reviewed as new baselines because the component library and theme changed;
-behavioral assertions continue to check the application's contracts.
+`study-card-strategies.spec.ts` checks all four card types at three viewport
+sizes, including geometry, safe-area, and long-content scrolling assertions.
 
 Observed improvements and library proposals are recorded in
 [react-ui-feedback.md](react-ui-feedback.md).
@@ -47,17 +40,3 @@ npm run build
 cd ../test
 npm test
 ```
-
-After intentionally changing a visual baseline, inspect the generated images and
-rerun the affected suites without `--update-snapshots`.
-
-## Migration verification results
-
-- Lint, TypeScript, production build, static Blob artifact preparation, and diff
-  whitespace checks passed.
-- The complete 635-test behavioral run passed 597 tests and exposed 38 failures.
-  After fixes, the affected-suite run passed 127 of 129 tests, including all 37
-  visual/geometry tests without updating snapshots. The final regression run
-  passed all 16 tests, covering the last two failures and the entire triage suite.
-- Every full-run failure passed on retest. These are cumulative results across
-  the full run and targeted verification, not a single green full-suite run.

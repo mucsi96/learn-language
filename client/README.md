@@ -28,13 +28,11 @@ rewrites document asset references to the public Blob origin for deployment.
 The build output and release artifact contracts remain `client/dist` and
 `client-static.tar.gz`.
 
-Behavior and visual regression tests are Playwright E2E tests in `../test`.
+Behavior and responsive layout tests are Playwright E2E tests in `../test`.
 With the test pod running and this client built:
 
 ```sh
 cd ../test
 npm test
-npx playwright test frontend-visual.spec.ts
+npx playwright test study-card-strategies.spec.ts
 ```
-
-Review visual changes before updating snapshots with `--update-snapshots`.

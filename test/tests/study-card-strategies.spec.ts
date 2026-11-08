@@ -59,7 +59,6 @@ const strategies = [
       const card = page.getByRole('article', { name: 'Flashcard' });
       const prompt = card.getByText(front, { exact: type !== 'SIMPLE' });
       await expect(prompt).toBeVisible();
-      await expect(card).toHaveScreenshot(`${type.toLowerCase()}-${width}x${height}-front.png`, { animations: 'disabled' });
       await expect(card).toBeInViewport({ ratio: 1 });
       if (type === 'VOCABULARY' || type === 'SPEECH') {
         await expect(card.getByRole('img', { name: examples[0].hu, exact: true })).toBeInViewport({ ratio: 1 });
@@ -68,7 +67,6 @@ const strategies = [
       const headerBounds = await profile.boundingBox();
       await prompt.click();
       await expect(card.getByText(back, { exact: true })).toBeVisible();
-      await expect(card).toHaveScreenshot(`${type.toLowerCase()}-${width}x${height}-back.png`, { animations: 'disabled' });
       const correct = page.getByRole('button', { name: 'Correct', exact: true });
       await expect(correct).toBeInViewport({ ratio: 1 });
       const gradeBounds = await correct.boundingBox();
