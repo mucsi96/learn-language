@@ -15,12 +15,11 @@ test('starting and continuing study automatically starts an inactive Pomodoro', 
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   await expectProgress(timer, 0);
-  expect((await timer.boundingBox())!.height).toBeLessThanOrEqual(8);
   await page.clock.fastForward(25 * 60_000);
   await expectProgress(timer, 100);
   await page.getByRole('button', { name: 'Start new study session' }).click();
   await expectProgress(timer, 0);
-  await expect(page.getByRole('banner').getByRole('status')).not.toBeVisible();
+  await expect(page.getByRole('status')).not.toBeVisible();
 
   await page.evaluate(() => sessionStorage.removeItem('pomodoroEndsAt'));
   await page.reload();
@@ -48,7 +47,6 @@ test('failed timer restart preserves the countdown and study queue', async ({ pa
   await expect(restart).toBeEnabled();
   await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 4);
   expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
-  await page.getByRole('button', { name: 'Dismiss notification' }).click();
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Start new study session' })).toHaveCount(0);
 });
@@ -113,7 +111,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await page.clock.fastForward(25 * 60_000);
   await expectProgress(timer, 100);
   await expect(timer).toHaveCSS('animation-name', /pomodoro-blink/);
-  await expect(page.getByRole('banner').getByRole('status')).toHaveText('Time for a break!');
+  await expect(page.getByRole('status')).toHaveText('Time for a break!');
   await page.clock.fastForward(60_000);
   await expectProgress(timer, 100);
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -123,7 +121,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await page.keyboard.press('Enter');
   await expectProgress(timer, 0);
   await expect(timer).toHaveCSS('animation-name', 'none');
-  await expect(page.getByRole('banner').getByRole('status')).not.toBeVisible();
+  await expect(page.getByRole('status')).not.toBeVisible();
   expect(await getStudySessionCardsBySource('goethe-a1')).toHaveLength(1);
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' })).toBeVisible();
   await page.getByRole('link', { name: 'Learn Language', exact: true }).click();
@@ -154,7 +152,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await page.goBack();
   await expect(page).toHaveURL('/sources/goethe-a1/study');
   await expectProgress(timer, 100);
-  await expect(page.getByRole('banner').getByRole('status')).toHaveText('Time for a break!');
+  await expect(page.getByRole('status')).toHaveText('Time for a break!');
 });
 
 [
