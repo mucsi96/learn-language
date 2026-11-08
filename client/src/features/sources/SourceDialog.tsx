@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Checkbox, Dialog, Select, TextField } from '@mucsi96/react-ui';
+import { Button, Checkbox, CheckboxGroup, Dialog, NumberField, Select, TextField } from '@mucsi96/react-ui';
 import { z } from 'zod';
 import { apiQuery, request, sendJson } from '../../api/http';
 import { environmentSchema, namedSchema, partnerSchema } from '../../api/schemas';
@@ -28,6 +28,7 @@ const slugify = (name: string) =>
     .replace(/-+$/g, '');
 
 export function SourceDialog({ source, onClose }: { source?: Source; onClose: () => void }) {
+  const formId = useId();
   const environment = useQuery(apiQuery('/api/environment', environmentSchema));
   const partners = useQuery(apiQuery('/api/learning-partners', z.array(partnerSchema)));
   const groups = useQuery(apiQuery('/api/source-groups', z.array(namedSchema)));
@@ -37,9 +38,9 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
   const [languageLevel, setLanguageLevel] = useState(source?.languageLevel ?? '');
   const [formatType, setFormatType] = useState(source?.formatType ?? '');
   const [collectionPath, setCollectionPath] = useState(source?.collectionPath ?? '');
-  const [startPage, setStartPage] = useState(String(source?.startPage ?? 1));
-  const [cardLimit, setCardLimit] = useState(String(source?.cardLimit ?? 50));
-  const [newCardLimit, setNewCardLimit] = useState(String(source?.newCardLimit ?? 50));
+  const [startPage, setStartPage] = useState(source?.startPage ?? 1);
+  const [cardLimit, setCardLimit] = useState(source?.cardLimit ?? 50);
+  const [newCardLimit, setNewCardLimit] = useState(source?.newCardLimit ?? 50);
   const [typingPractice, setTypingPractice] = useState(source?.typingPractice ?? false);
   const [aiLanguage, setAiLanguage] = useState<string>(source?.aiLanguage ?? 'hungarian');
   const [partnerId, setPartnerId] = useState(String(source?.learningPartnerId ?? ''));
@@ -59,9 +60,7 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
     sourceType &&
     selectedTypes.length > 0 &&
     (!needsFormat || formatType) &&
-    Number(startPage) >= 1 &&
-    Number(cardLimit) >= 1 &&
-    Number(newCardLimit) >= 1 &&
+    [startPage, cardLimit, newCardLimit].every((value) => Number.isInteger(value) && value >= 1) &&
     (sourceType !== 'audioCollection' || /^(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)+$/.test(collectionPath)) &&
     (source || !['pdf', 'ebookDictionary'].includes(sourceType) || file?.name.toLowerCase().endsWith('.pdf'));
   const save = useAction(async () => {
@@ -78,7 +77,7 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
       sourceType,
       collectionPath: sourceType === 'audioCollection' ? collectionPath : undefined,
       fileName: await upload(),
-      startPage: Number(startPage),
+      startPage,
       languageLevel,
       cardTypes: selectedTypes,
       formatType:
@@ -91,8 +90,8 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
               : selectedTypes.some((type) => ['speech', 'grammar'].includes(type))
                 ? 'flowingText'
                 : undefined,
-      cardLimit: Number(cardLimit),
-      newCardLimit: Number(newCardLimit),
+      cardLimit,
+      newCardLimit,
       typingPractice: sourceType === 'json' && typingPractice,
       aiLanguage,
       learningPartnerId: partnerId ? Number(partnerId) : source ? 0 : null,
@@ -107,6 +106,17 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
         if (!open && !save.isPending) onClose();
       }}
       className={styles.dialog}
+      size="large"
+      footer={
+        <>
+          <Button variant="text" onPress={onClose} isDisabled={save.isPending}>
+            Cancel
+          </Button>
+          <Button type="submit" form={formId} isDisabled={!valid || save.isPending}>
+            {source ? 'Update' : 'Create'}
+          </Button>
+        </>
+      }
     >
       <QueryState query={environment} label="Loading source options">
         {(config) => (
@@ -115,6 +125,7 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
               <QueryState query={groups} label="Loading source groups">
                 {(groupList) => (
                   <form
+                    id={formId}
                     className={styles.form}
                     onSubmit={(event) => {
                       event.preventDefault();
@@ -125,25 +136,23 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
                     <TextField label="Name" value={name} onChange={setName} isRequired />
                     <h3>Classification</h3>
                     <div className={styles.grid}>
-                      <fieldset className={dialogStyles.cardTypes}>
-                        <legend>Card Types</legend>
-                        {cardTypes
-                          .filter((type) => !forcedType || forcedType === type.id)
-                          .map((type) => (
-                            <Checkbox
-                              key={type.id}
-                              isSelected={selectedTypes.includes(type.id)}
-                              isDisabled={!!forcedType}
-                              onChange={(checked) =>
-                                setTypes((previous) =>
-                                  checked ? [...previous, type.id] : previous.filter((id) => id !== type.id)
-                                )
-                              }
-                            >
-                              {type.label}
-                            </Checkbox>
-                          ))}
-                      </fieldset>
+                      <CheckboxGroup
+                        label="Card Types"
+                        value={selectedTypes}
+                        onChange={setTypes}
+                        isDisabled={!!forcedType}
+                        isRequired
+                      >
+                        <div className={dialogStyles.cardTypes}>
+                          {cardTypes
+                            .filter((type) => !forcedType || forcedType === type.id)
+                            .map((type) => (
+                              <Checkbox key={type.id} value={type.id}>
+                                {type.label}
+                              </Checkbox>
+                            ))}
+                        </div>
+                      </CheckboxGroup>
                       <Select
                         label="Language Level"
                         selectedKey={languageLevel}
@@ -203,7 +212,14 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
                             </p>
                           )}
                         </div>
-                        <TextField label="Start Page" type="number" value={startPage} onChange={setStartPage} />
+                        <NumberField
+                          label="Start Page"
+                          minValue={1}
+                          step={1}
+                          isRequired
+                          value={startPage}
+                          onChange={setStartPage}
+                        />
                       </>
                     )}
                     {sourceType === 'images' && <p>Images will be added from the page view</p>}
@@ -221,8 +237,22 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
                     )}
                     <h3>Study Settings</h3>
                     <div className={styles.grid}>
-                      <TextField label="Card Limit" type="number" value={cardLimit} onChange={setCardLimit} />
-                      <TextField label="New Card Limit" type="number" value={newCardLimit} onChange={setNewCardLimit} />
+                      <NumberField
+                        label="Card Limit"
+                        minValue={1}
+                        step={1}
+                        isRequired
+                        value={cardLimit}
+                        onChange={setCardLimit}
+                      />
+                      <NumberField
+                        label="New Card Limit"
+                        minValue={1}
+                        step={1}
+                        isRequired
+                        value={newCardLimit}
+                        onChange={setNewCardLimit}
+                      />
                       <Select
                         label="Learning Partner"
                         selectedKey={partnerId}
@@ -256,14 +286,6 @@ export function SourceDialog({ source, onClose }: { source?: Source; onClose: ()
                         Practice typing the answer
                       </Checkbox>
                     )}
-                    <div className={styles.actions}>
-                      <Button variant="text" onPress={onClose} isDisabled={save.isPending}>
-                        Cancel
-                      </Button>
-                      <Button type="submit" isDisabled={!valid || save.isPending}>
-                        {source ? 'Update' : 'Create'}
-                      </Button>
-                    </div>
                   </form>
                 )}
               </QueryState>

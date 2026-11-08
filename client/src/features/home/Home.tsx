@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, LinkButton } from '@mucsi96/react-ui';
+import { Card, EmptyState, LinkButton } from '@mucsi96/react-ui';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { apiQuery } from '../../api/http';
@@ -23,9 +23,11 @@ export default function Home() {
                   <h1>Welcome to Learn Language</h1>
                   <p>Select a source to start learning:</p>
                   {sourceList.length === 0 && (
-                    <p>
-                      No sources yet. <Link to="/sources">Add a source</Link> to start learning.
-                    </p>
+                    <EmptyState
+                      title="No sources yet"
+                      description="Add a source to start learning."
+                      action={<Link to="/sources">Add a source</Link>}
+                    />
                   )}
                   {[...groupList, { id: null, name: 'Ungrouped' }].map((group) => {
                     const members = sourceList.filter((source) => source.groupId === group.id);

@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Button, Dialog, Menu, MenuItem, MenuPopover, MenuTrigger, TextField } from '@mucsi96/react-ui';
+import {
+  Button,
+  Dialog,
+  Menu,
+  MenuItem,
+  MenuPopover,
+  MenuTrigger,
+  Skeleton,
+  SkeletonGroup,
+  TextField,
+} from '@mucsi96/react-ui';
 import { z } from 'zod';
 import { apiQuery, request, sendJson } from '../../api/http';
 import { audioSchema, type Card } from '../../api/cards';
@@ -132,7 +142,11 @@ function Chat({ card, close }: { card: Card; close: () => void }) {
         ))}
       </div>
       {(submit.error || microphone.error) && <p role="alert">{(submit.error ?? microphone.error)?.message}</p>}
-      {busy && !recording && <div className={styles.skeleton} aria-label="Generating answer" />}
+      {busy && !recording && (
+        <SkeletonGroup label="Generating answer">
+          <Skeleton height="2rem" />
+        </SkeletonGroup>
+      )}
       <form
         onSubmit={(event) => {
           event.preventDefault();

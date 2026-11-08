@@ -56,6 +56,8 @@ test('page title', async ({ page }) => {
 
 test('model usage tabs support keyboard navigation', async ({ page }) => {
   await page.goto('/model-usage');
+  await page.getByRole('button', { name: 'Filter by type' }).click();
+  await page.getByRole('option', { name: 'AUDIO', exact: true }).click();
   await page.getByRole('tab', { name: 'Usage Logs', exact: true }).focus();
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: 'Model Summary', exact: true })).toBeFocused();
@@ -63,6 +65,7 @@ test('model usage tabs support keyboard navigation', async ({ page }) => {
   await page.keyboard.press('Home');
   await expect(page.getByRole('tab', { name: 'Usage Logs', exact: true })).toBeFocused();
   await expect(page.getByRole('tabpanel', { name: 'Usage Logs', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Filter by type' })).toContainText('AUDIO');
 });
 
 test('navigates to model usage from profile menu', async ({ page }) => {

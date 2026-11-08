@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Select, useNotifications } from '@mucsi96/react-ui';
+import { Button, EmptyState, Select, Tab, TabList, TabPanel, Tabs, useNotifications } from '@mucsi96/react-ui';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, ICellRendererParams, IDatasource } from 'ag-grid-community';
 import { z } from 'zod';
@@ -46,7 +46,6 @@ export default function ModelUsage() {
   const notifications = useNotifications();
   const environment = useQuery(apiQuery('/api/environment', environmentSchema));
   const summary = useQuery(apiQuery('/api/model-usage-logs/summary', summarySchema));
-  const [tab, setTab] = useState('Usage Logs');
   const [today] = useState(() => Date.now());
   const [date, setDate] = useState(() => new Date(today).toISOString().split('T')[0]);
   const [modelType, setModelType] = useState('');
@@ -234,193 +233,163 @@ export default function ModelUsage() {
       <title>Model Usage | Learn language</title>
       <h1>Model Usage Logs</h1>
       <p>Track AI model usage and costs across chat, image, and audio services.</p>
-      <div role="tablist" aria-label="Model usage" className={styles.tabs}>
-        {['Usage Logs', 'Model Summary'].map((label, index, labels) => (
-          <button
-            key={label}
-            type="button"
-            role="tab"
-            id={`tab-${label.replaceAll(' ', '-')}`}
-            aria-controls={`panel-${label.replaceAll(' ', '-')}`}
-            aria-selected={tab === label}
-            tabIndex={tab === label ? 0 : -1}
-            onClick={() => setTab(label)}
-            onKeyDown={(event) => {
-              const next =
-                event.key === 'Home'
-                  ? labels[0]
-                  : event.key === 'End'
-                    ? labels.at(-1)
-                    : event.key === 'ArrowRight'
-                      ? labels[(index + 1) % labels.length]
-                      : event.key === 'ArrowLeft'
-                        ? labels[(index + labels.length - 1) % labels.length]
-                        : undefined;
-              if (next) {
-                event.preventDefault();
-                setTab(next);
-                document.getElementById(`tab-${next.replaceAll(' ', '-')}`)?.focus();
-              }
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <section role="tabpanel" id="panel-Usage-Logs" aria-labelledby="tab-Usage-Logs" hidden={tab !== 'Usage Logs'}>
-        <div className={styles.filters}>
-          <Select
-            label="Date"
-            aria-label="Filter by date"
-            selectedKey={date}
-            onSelectionChange={(key) => {
-              setDate(String(key));
-              setExpanded(undefined);
-            }}
-            options={[{ id: '', label: 'All dates' }, ...dateOptions]}
-          />
-          <Select
-            label="Type"
-            aria-label="Filter by type"
-            selectedKey={modelType}
-            onSelectionChange={(key) => {
-              setModelType(String(key));
-              setExpanded(undefined);
-            }}
-            options={[{ id: '', label: 'All types' }, ...['CHAT', 'IMAGE', 'AUDIO'].map((id) => ({ id, label: id }))]}
-          />
-          <QueryState query={environment} label="Model filters">
-            {(config) => (
-              <Select
-                label="Operation"
-                aria-label="Filter by operation"
-                selectedKey={operationType}
-                onSelectionChange={(key) => {
-                  setOperationType(String(key));
-                  setExpanded(undefined);
-                }}
-                options={[
-                  { id: '', label: 'All operations' },
-                  ...config.allOperationTypes.map((item) => ({ id: item.code, label: item.displayName })),
-                ]}
-              />
-            )}
-          </QueryState>
-          <Select
-            label="Model"
-            aria-label="Filter by model"
-            selectedKey={modelName}
-            onSelectionChange={(key) => {
-              setModelName(String(key));
-              setExpanded(undefined);
-            }}
-            options={[
-              { id: '', label: 'All models' },
-              ...Array.from(new Set(summary.data?.map((item) => item.modelName))).map((id) => ({ id, label: id })),
-            ]}
-          />
-          {date && (
-            <Button aria-label="Clear logs" tone="error" isDisabled={clear.isPending} onPress={() => clear.mutate()}>
-              Clear logs
-            </Button>
-          )}
-        </div>
-        {error && (
-          <p role="alert">
-            {error}
-            <Button onPress={refresh}>Retry</Button>
-          </p>
-        )}
-        <div className={styles.grid}>
-          <AgGridReact<Log>
-            theme={gridTheme}
-            columnDefs={columns}
-            defaultColDef={{ sortable: true, resizable: true }}
-            rowModelType="infinite"
-            cacheBlockSize={100}
-            maxBlocksInCache={10}
-            datasource={datasource}
-            getRowId={({ data }) => String(data.id)}
-            onRowClicked={({ data }) => {
-              if (data?.modelType === 'CHAT' && data.responseContent)
-                setExpanded((current) => (current === data.id ? undefined : data.id));
-            }}
-          />
-        </div>
-        {expandedLog?.responseContent && (
-          <section className={styles.response}>
-            <h3>{diff(expandedLog).length ? 'Diff vs Primary' : 'Response'}</h3>
-            <Button
-              aria-label="Copy to clipboard"
-              onPress={() => {
-                void navigator.clipboard
-                  .writeText(expandedLog.responseContent!)
-                  .catch((error: Error) => notifications.error(error.message));
+      <Tabs defaultSelectedKey="logs">
+        <TabList aria-label="Model usage">
+          <Tab id="logs">Usage Logs</Tab>
+          <Tab id="summary">Model Summary</Tab>
+        </TabList>
+        <TabPanel id="logs" shouldForceMount>
+          <div className={styles.filters}>
+            <Select
+              label="Date"
+              aria-label="Filter by date"
+              selectedKey={date}
+              onSelectionChange={(key) => {
+                setDate(String(key));
+                setExpanded(undefined);
               }}
-            >
-              Copy to clipboard
-            </Button>
-            {diff(expandedLog).length ? (
-              <pre>
-                {diff(expandedLog).map((line, index) => (
-                  <div key={index} className={styles[line.type]}>
-                    {line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' '} {line.content}
-                  </div>
-                ))}
-              </pre>
-            ) : (
-              <pre>{expandedLog.responseContent}</pre>
+              options={[{ id: '', label: 'All dates' }, ...dateOptions]}
+            />
+            <Select
+              label="Type"
+              aria-label="Filter by type"
+              selectedKey={modelType}
+              onSelectionChange={(key) => {
+                setModelType(String(key));
+                setExpanded(undefined);
+              }}
+              options={[{ id: '', label: 'All types' }, ...['CHAT', 'IMAGE', 'AUDIO'].map((id) => ({ id, label: id }))]}
+            />
+            <QueryState query={environment} label="Model filters">
+              {(config) => (
+                <Select
+                  label="Operation"
+                  aria-label="Filter by operation"
+                  selectedKey={operationType}
+                  onSelectionChange={(key) => {
+                    setOperationType(String(key));
+                    setExpanded(undefined);
+                  }}
+                  options={[
+                    { id: '', label: 'All operations' },
+                    ...config.allOperationTypes.map((item) => ({ id: item.code, label: item.displayName })),
+                  ]}
+                />
+              )}
+            </QueryState>
+            <Select
+              label="Model"
+              aria-label="Filter by model"
+              selectedKey={modelName}
+              onSelectionChange={(key) => {
+                setModelName(String(key));
+                setExpanded(undefined);
+              }}
+              options={[
+                { id: '', label: 'All models' },
+                ...Array.from(new Set(summary.data?.map((item) => item.modelName))).map((id) => ({ id, label: id })),
+              ]}
+            />
+            {date && (
+              <Button aria-label="Clear logs" tone="error" isDisabled={clear.isPending} onPress={() => clear.mutate()}>
+                Clear logs
+              </Button>
             )}
-          </section>
-        )}
-      </section>
-      <section
-        role="tabpanel"
-        id="panel-Model-Summary"
-        aria-labelledby="tab-Model-Summary"
-        hidden={tab !== 'Model Summary'}
-      >
-        <QueryState query={summary} label="Model summaries">
-          {(items) =>
-            items.length ? (
-              Array.from(new Set(items.map((item) => item.operationType))).map((operation) => (
-                <section key={operation}>
-                  <h3>{operation}</h3>
-                  <table className={styles.table} aria-label={`${operation} summary`}>
-                    <thead>
-                      <tr>
-                        {['Model', 'Total Calls', 'Rated Calls', 'Avg Rating', 'Total Cost'].map((label) => (
-                          <th key={label}>{label}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items
-                        .filter((item) => item.operationType === operation)
-                        .map((item) => (
-                          <tr key={item.modelName}>
-                            <td>{item.modelName}</td>
-                            <td>{item.totalCalls}</td>
-                            <td>{item.ratedCalls}</td>
-                            <td>
-                              {item.ratedCalls > 0 && item.averageRating !== null ? item.averageRating.toFixed(2) : '-'}
-                            </td>
-                            <td>${item.totalCost.toFixed(4)}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </section>
-              ))
-            ) : (
-              <>
-                <h2>No model data yet</h2>
-                <p>Model summaries will appear here once AI models are used and rated.</p>
-              </>
-            )
-          }
-        </QueryState>
-      </section>
+          </div>
+          {error && (
+            <p role="alert">
+              {error}
+              <Button onPress={refresh}>Retry</Button>
+            </p>
+          )}
+          <div className={styles.grid}>
+            <AgGridReact<Log>
+              theme={gridTheme}
+              columnDefs={columns}
+              defaultColDef={{ sortable: true, resizable: true }}
+              rowModelType="infinite"
+              cacheBlockSize={100}
+              maxBlocksInCache={10}
+              datasource={datasource}
+              getRowId={({ data }) => String(data.id)}
+              onRowClicked={({ data }) => {
+                if (data?.modelType === 'CHAT' && data.responseContent)
+                  setExpanded((current) => (current === data.id ? undefined : data.id));
+              }}
+            />
+          </div>
+          {expandedLog?.responseContent && (
+            <section className={styles.response}>
+              <h3>{diff(expandedLog).length ? 'Diff vs Primary' : 'Response'}</h3>
+              <Button
+                aria-label="Copy to clipboard"
+                onPress={() => {
+                  void navigator.clipboard
+                    .writeText(expandedLog.responseContent!)
+                    .catch((error: Error) => notifications.error(error.message));
+                }}
+              >
+                Copy to clipboard
+              </Button>
+              {diff(expandedLog).length ? (
+                <pre>
+                  {diff(expandedLog).map((line, index) => (
+                    <div key={index} className={styles[line.type]}>
+                      {line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' '} {line.content}
+                    </div>
+                  ))}
+                </pre>
+              ) : (
+                <pre>{expandedLog.responseContent}</pre>
+              )}
+            </section>
+          )}
+        </TabPanel>
+        <TabPanel id="summary">
+          <QueryState query={summary} label="Model summaries">
+            {(items) =>
+              items.length ? (
+                Array.from(new Set(items.map((item) => item.operationType))).map((operation) => (
+                  <section key={operation}>
+                    <h3>{operation}</h3>
+                    <table className={styles.table} aria-label={`${operation} summary`}>
+                      <thead>
+                        <tr>
+                          {['Model', 'Total Calls', 'Rated Calls', 'Avg Rating', 'Total Cost'].map((label) => (
+                            <th key={label}>{label}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items
+                          .filter((item) => item.operationType === operation)
+                          .map((item) => (
+                            <tr key={item.modelName}>
+                              <td>{item.modelName}</td>
+                              <td>{item.totalCalls}</td>
+                              <td>{item.ratedCalls}</td>
+                              <td>
+                                {item.ratedCalls > 0 && item.averageRating !== null
+                                  ? item.averageRating.toFixed(2)
+                                  : '-'}
+                              </td>
+                              <td>${item.totalCost.toFixed(4)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </section>
+                ))
+              ) : (
+                <EmptyState
+                  title="No model data yet"
+                  description="Model summaries will appear here once AI models are used and rated."
+                />
+              )
+            }
+          </QueryState>
+        </TabPanel>
+      </Tabs>
     </div>
   );
 }

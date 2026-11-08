@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, BarLoader, Checkbox, TextField } from '@mucsi96/react-ui';
+import { Button, BarLoader, Checkbox, Skeleton, SkeletonGroup, TextField } from '@mucsi96/react-ui';
 import { apiQuery, sendJson } from '../../api/http';
 import { sourceSchema } from '../../api/schemas';
 import { QueryState } from '../../components/QueryState';
@@ -95,7 +95,11 @@ function Catalogue({ sourceId, mode, level }: { sourceId: string; mode: ContentM
         <TextField label="Search content" type="search" value={search} onChange={setSearch} />
       </div>
       {query.isPending ? (
-        <BarLoader label="Discovering content" />
+        <SkeletonGroup label="Discovering content">
+          {[0, 1, 2, 3].map((row) => (
+            <Skeleton key={row} variant="row" />
+          ))}
+        </SkeletonGroup>
       ) : query.isError ? (
         <div role="alert">
           <p>Content discovery failed. Please retry.</p>

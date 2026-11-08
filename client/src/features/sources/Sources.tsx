@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge, Button, Menu, MenuItem, MenuPopover, MenuTrigger, Switch } from '@mucsi96/react-ui';
+import { Badge, Button, EmptyState, Menu, MenuItem, MenuPopover, MenuTrigger, Switch } from '@mucsi96/react-ui';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { apiQuery, sendJson } from '../../api/http';
@@ -52,12 +52,12 @@ export default function Sources() {
                 <>
                   {visible.length === 0 &&
                     (attentionOnly ? (
-                      <p>No sources need attention.</p>
+                      <EmptyState title="No sources need attention." />
                     ) : (
-                      <section>
-                        <h2>No sources yet</h2>
-                        <p>Create your first source to start adding cards.</p>
-                      </section>
+                      <EmptyState
+                        title="No sources yet"
+                        description="Create your first source to start adding cards."
+                      />
                     ))}
                   {[...groupList, { id: null, name: 'Ungrouped' }].map((group) => {
                     const members = visible.filter((source) => source.groupId === group.id);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Dialog, Select, Switch, TextField } from '@mucsi96/react-ui';
+import { Button, Card, Dialog, EmptyState, Select, Switch, TextField } from '@mucsi96/react-ui';
 import { z } from 'zod';
 import { apiQuery, sendJson } from '../../api/http';
 import { environmentSchema } from '../../api/schemas';
@@ -82,7 +82,7 @@ export default function Voices() {
             <QueryState query={voices} label="Loading voices">
               {(items) =>
                 items.length === 0 ? (
-                  <p>No voice configurations yet</p>
+                  <EmptyState title="No voice configurations yet" headingLevel={3} />
                 ) : (
                   config.supportedLanguages
                     .filter((language) => items.some((voice) => voice.language === language.code))
