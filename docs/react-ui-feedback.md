@@ -1,6 +1,22 @@
 # React UI integration findings
 
-The frontend migration uses `@mucsi96/react-ui` 0.5.0. These suggestions come from
+## Adopted in 0.6.0
+
+The library proposals below shipped in `@mucsi96/react-ui` 0.6.0 and the application
+now uses its `NumberField` for source and provider limits, `CheckboxGroup` for
+source card types, and the large dialog's fixed footer for source creation/editing.
+Numeric settings save committed values; empty inputs remain invalid rather than
+being converted to zero. Source limits use positive integer bounds.
+
+Model usage uses library tabs, keeping the logs panel mounted to preserve its grid
+while switching views. Shared query placeholders, answer generation, and content
+discovery use skeleton primitives. Sources, the home dashboard, voices, and model
+summaries use `EmptyState`. The small source card-type set uses visible checkboxes;
+the new `MultiSelect` remains available for future larger selection fields.
+
+The original migration findings follow for context.
+
+The frontend migration used `@mucsi96/react-ui` 0.5.0. These suggestions came from
 the source form, settings, and responsive screenshots, rather than hypothetical
 components. They are proposals for the library; this repository does not publish
 changes to `react-ui`.

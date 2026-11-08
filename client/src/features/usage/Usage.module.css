@@ -2,8 +2,7 @@
   display: grid;
   gap: 1rem;
 }
-.filters,
-.tabs {
+.filters {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -56,16 +55,4 @@
 .primary {
   font-size: 0.7rem;
   margin-left: 0.5rem;
-}
-.tabs button {
-  font: inherit;
-  padding: 0.75rem 1rem;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-}
-.tabs button[aria-selected='true'] {
-  border-bottom-color: #b8caff;
 }

@@ -54,7 +54,7 @@ test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Settings' }).click();
-  await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice', exact: true })).toBeVisible();
 });
 
 test('displays empty state when no configurations exist', async ({ page }) => {
@@ -372,10 +372,10 @@ test('displays model name in configuration list', async ({ page }) => {
   await expect(page.getByText('Eleven v3')).toBeVisible();
 });
 
-test('shows skeleton loader while loading configurations', async ({ page }) => {
+test('shows voice settings after loading configurations', async ({ page }) => {
   await page.goto('/settings/voices');
 
-  await expect(page.getByRole('heading', { name: 'Voice' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Voice', exact: true })).toBeVisible();
 });
 
 test('settings page has left navigation with voices and data models links', async ({ page }) => {

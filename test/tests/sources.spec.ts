@@ -313,7 +313,7 @@ test('can create a new source', async ({ page }) => {
     buffer: Buffer.from('PDF content'),
   });
 
-  await page.getByLabel('Start Page').fill('1');
+  await page.getByRole('textbox', { name: 'Start Page', exact: true }).fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
   await page.getByLabel('Format Type').click();
@@ -560,7 +560,7 @@ test('validates required fields when creating source', async ({ page }) => {
     buffer: Buffer.from('PDF content'),
   });
 
-  await page.getByLabel('Start Page').fill('1');
+  await page.getByRole('textbox', { name: 'Start Page', exact: true }).fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
   await page.getByLabel('Format Type').click();
@@ -706,8 +706,8 @@ test('edit dialog shows card limit and new card limit fields with defaults', asy
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  const cardLimitField = page.getByRole('spinbutton', { name: 'Card Limit', exact: true });
-  const newCardLimitField = page.getByRole('spinbutton', { name: 'New Card Limit', exact: true });
+  const cardLimitField = page.getByRole('textbox', { name: 'Card Limit', exact: true });
+  const newCardLimitField = page.getByRole('textbox', { name: 'New Card Limit', exact: true });
 
   await expect(cardLimitField).toBeVisible();
   await expect(newCardLimitField).toBeVisible();
@@ -723,8 +723,8 @@ test('can edit card limit and new card limit', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByRole('spinbutton', { name: 'Card Limit', exact: true }).fill('30');
-  await page.getByRole('spinbutton', { name: 'New Card Limit', exact: true }).fill('10');
+  await page.getByRole('textbox', { name: 'Card Limit', exact: true }).fill('30');
+  await page.getByRole('textbox', { name: 'New Card Limit', exact: true }).fill('10');
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
@@ -735,6 +735,33 @@ test('can edit card limit and new card limit', async ({ page }) => {
     expect(updatedSource?.newCardLimit).toBe(10);
   }).toPass();
 
+});
+
+test('mobile source form keeps actions visible and saves bounded numeric limits', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 400 });
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Edit Source' });
+  const update = dialog.getByRole('button', { name: 'Update', exact: true });
+  await expect(dialog.getByRole('textbox', { name: 'Name', exact: true })).toBeInViewport();
+  await expect(update).toBeInViewport();
+  const limit = dialog.getByRole('textbox', { name: 'Card Limit', exact: true });
+  await limit.fill('');
+  await limit.press('Tab');
+  await expect(update).toBeDisabled();
+  expect((await getSource('goethe-a1'))?.cardLimit).toBe(50);
+  await limit.fill('0');
+  await limit.press('Tab');
+  await expect(limit).toHaveValue('1');
+  await dialog.getByRole('textbox', { name: 'New Card Limit', exact: true }).fill('12');
+  await expect(update).toBeInViewport();
+  await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeInViewport();
+  await update.click();
+  await expect(dialog).toBeHidden();
+  const source = await getSource('goethe-a1');
+  expect(source?.cardLimit).toBe(1);
+  expect(source?.newCardLimit).toBe(12);
 });
 
 test('can assign a learning partner to a source', async ({ page }) => {

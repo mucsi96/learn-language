@@ -162,10 +162,6 @@
   margin-block: 0.5rem;
   flex-wrap: wrap;
 }
-.skeleton {
-  min-height: 2rem;
-  background: var(--bt-surface);
-}
 .srOnly {
   position: absolute;
   width: 1px;
