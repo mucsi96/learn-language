@@ -65,7 +65,7 @@ test('cancelling the confirmation dialog keeps sessions intact', async ({ page }
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'No' }).click();
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
 
   await expect(page.getByRole('dialog')).not.toBeVisible();
 

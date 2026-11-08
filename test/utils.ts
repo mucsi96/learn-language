@@ -413,8 +413,8 @@ export async function createCard(params: {
         learningSteps,
         stability,
         difficulty,
-        due,
-        lastReview,
+        due.toISOString(),
+        lastReview?.toISOString() ?? null,
         elapsedDays,
         scheduledDays,
         reps,
@@ -515,36 +515,13 @@ export const hungarianAudioSample = Buffer.from(
 export async function getImageContent(imageElement: Locator): Promise<Buffer> {
   await expect(imageElement).toBeVisible();
   await expect(imageElement).toHaveJSProperty('complete', true);
-  await expect(imageElement).toHaveAttribute('src', /blob:/);
-
-  const imageSrc = await imageElement.getAttribute('src');
-
-  if (!imageSrc) {
-    throw new Error('Image src attribute is null');
-  }
-
-  if (imageSrc.startsWith('blob:')) {
-    // Use browser context to fetch blob and return as base64
-    const base64Data = await imageElement.evaluate(async (el: HTMLImageElement) => {
-      const response = await fetch(el.src);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    });
-    return Buffer.from(base64Data, 'base64');
-  } else {
-    const response = await fetch(imageSrc);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-  }
+  const bytes = await imageElement.evaluate(async (element: HTMLImageElement) => {
+    if (!element.getAttribute('src')) throw new Error('Image src attribute is empty');
+    const response = await fetch(element.src);
+    if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`);
+    return Array.from(new Uint8Array(await response.arrayBuffer()));
+  });
+  return Buffer.from(bytes);
 }
 
 export function getColorImageBytes(color: string, size: number = 600): Buffer {

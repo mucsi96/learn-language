@@ -1,0 +1,24 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.6rem;
+  min-height: 0.6rem;
+  border-radius: 50%;
+  padding: 0.25rem;
+  color: #111;
+  font-size: 0.8rem;
+  margin-inline: 0.15rem;
+}
+.badge[data-state='NEW'] {
+  background: #82b1ff;
+}
+.badge[data-state='LEARNING'] {
+  background: #69d68a;
+}
+.badge[data-state='REVIEW'] {
+  background: #ffce65;
+}
+.badge[data-state='RELEARNING'] {
+  background: #ff8585;
+}

@@ -1,0 +1,9 @@
+.table {
+  min-width: 60rem;
+}
+.table th {
+  white-space: nowrap;
+}
+.table th[scope='row'] {
+  font-weight: 400;
+}

@@ -1,2 +1,0 @@
-export const CARD_READINESS_VALUES = ['DRAFT', 'READY', 'IN_REVIEW', 'REVIEWED', 'KNOWN'] as const;
-export type CardReadiness = (typeof CARD_READINESS_VALUES)[number];

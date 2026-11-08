@@ -1,0 +1,23 @@
+.sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+  margin-block: 1rem 2rem;
+}
+.source {
+  padding: 0;
+}
+.link {
+  display: block;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+.link[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: default;
+}
+.link h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}

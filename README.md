@@ -3,7 +3,7 @@ Tools for language learning
 
 ## Gateway authentication and static hosting
 
-The gateway signs users in before serving Angular documents. A per-app
+The gateway signs users in before serving React application documents. A per-app
 oauth2-proxy keeps OAuth tokens in shared Redis and uses a Secure, HttpOnly,
 host-only `__Host-session` cookie. The browser reads its display profile from
 `/oauth2/userinfo`; it neither stores nor refreshes OAuth tokens. Legacy `oidc.*`
@@ -18,7 +18,7 @@ AI settings and voices and supports the loopback bootstrap-health check; it no
 longer supplies OAuth or telemetry settings. The public gateway must authenticate
 this endpoint along with the other browser APIs.
 
-CI builds a static Angular artifact, tests it behind Traefik with stock nginx,
+CI lints, type-checks, and builds a static React/Vite artifact, tests it behind Traefik with stock nginx,
 and publishes the same files to Azure Blob `assets` before publishing index HTML
 to `$web`. Before uploading, deployment empties `$web` and `assets`, including any
 old release directories. Only the latest build is published, without a release
@@ -70,6 +70,8 @@ Coordinate the gateway cutover with the app deployment; older browser bundles
 need a reload and a fresh gateway sign-in. Platform provisioning and production
 rollout are separate from this repository's implementation.
 
+Frontend development and build instructions: [client/README.md](client/README.md).
+
 Local verification (test pod running):
 
 ```bash
@@ -82,7 +84,7 @@ they do not implement oauth2-proxy/Redis. Actual session redirects, cookie
 isolation and gateway policies are covered by the shared chart integration suite.
 After provisioning, smoke-test signed-out document redirects/API 401s, signed-in
 deep links, role denial, mutation origins, dictionary/export tokens, and telemetry.
-For local Angular development, provide a gateway session/proxy in front of the
+For local Vite development, provide a gateway session/proxy in front of the
 dev server; the app no longer performs a direct Entra login.
 
 ## FSRS scheduling
@@ -261,7 +263,7 @@ Application cache audit for [#454](https://github.com/mucsi96/learn-language/iss
 | Listening progress | PostgreSQL `listening_progress`, scoped to source, story, and user. The four-hour expiry applies to write sessions, not saved positions. Browser local storage buffers unsent writes until acknowledged. |
 | Documents and saved card content | PostgreSQL document metadata/card entities; audio, images, and PDFs use the persistent storage volume. Audio/image responses advertise immutable caching. PDF page spans are extracted on request, not cached. Pending-photo previews use `no-store`. |
 | Voice-setting previews | Component-local `audioCache`, keyed by text, voice, model, and language. It avoids repeat generation while the settings page is open; revisiting can generate a new preview. This is a disposable preview cache, not the storage for saved card audio. |
-| UI lists and table pages | Angular resources and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
+| UI lists and table pages | TanStack Query and AG Grid's bounded row cache are transient views of backend data. Reloading fetches persisted data again. |
 | Authentication and static frontend assets | OAuth tokens stay in gateway Redis with a host-only HttpOnly session cookie. Azure serves public Blob assets with one-year immutable caching; gateway documents are authenticated and no-store. Deployment deletes old static files before publishing the latest build. |
 
 ## Adjective comparison forms
@@ -287,7 +289,7 @@ All host-bound ports use the 70-79 range to avoid conflicts.
 | 3071 | Mock Google AI API | Test pod |
 | 3072 | Mock ElevenLabs API | Test pod |
 | 3073 | Mock Anthropic API | Test pod |
-| 4270 | Angular dev server | Local dev |
+| 4270 | Vite dev server | Local dev |
 | 5470 | PostgreSQL | Test pod |
 | 5471 | PostgreSQL | Dev pod |
 | 8073 | Spring Boot server | Local dev |

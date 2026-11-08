@@ -1,5 +1,53 @@
 import { test, expect } from '../fixtures';
+import type { Route } from '@playwright/test';
 import { createVoiceConfiguration, getVoiceConfigurations, createCard, createAudioSetting, withDbConnection, assertAudioExists } from '../utils';
+
+test('caches generated preview clips and plays both selected texts', async ({ page }) => {
+  await createCard({
+    cardId: 'cached-preview', sourceId: 'goethe-a1',
+    data: { word: 'Haus', examples: [{ de: 'Das Haus ist groß.', isSelected: true }] },
+  });
+  await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v4', language: 'de' });
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.play = function () {
+      queueMicrotask(() => this.dispatchEvent(new Event('ended')));
+      return Promise.resolve();
+    };
+  });
+  await page.route('**/api/audio', route => route.fulfill({ json: { id: 'preview-clip' } }));
+  await page.route('**/api/audio/preview-clip', route => route.fulfill({ contentType: 'audio/mpeg', body: 'preview' }));
+  await page.goto('/settings/voices');
+  const preview = page.getByRole('button', { name: 'Preview voice' });
+  await preview.click();
+  await expect(preview).toHaveText('Play');
+  const generations = async () => (await page.requests()).filter(request => request.url().endsWith('/api/audio') && request.method() === 'POST');
+  expect((await generations()).map(request => request.postDataJSON().input)).toEqual(['Haus', 'Das Haus ist groß.']);
+  await preview.click();
+  await expect(preview).toHaveText('Play');
+  expect(await generations()).toHaveLength(2);
+});
+
+test('stops an in-flight preview before generating or playing further clips', async ({ page }) => {
+  await createCard({
+    cardId: 'cancelled-preview', sourceId: 'goethe-a1',
+    data: { word: 'Haus', examples: [{ de: 'Das Haus ist groß.', isSelected: true }] },
+  });
+  await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v4', language: 'de' });
+  const pending = Promise.withResolvers<Route>();
+  await page.route('**/api/audio', route => pending.resolve(route));
+  await page.goto('/settings/voices');
+  const preview = page.getByRole('button', { name: 'Preview voice' });
+  await preview.click();
+  const generation = await pending.promise;
+  await expect(preview).toHaveText('Stop');
+  await preview.click();
+  await expect(preview).toHaveText('Play');
+  await generation.fulfill({ json: { id: 'cancelled-clip' } });
+  await page.getByRole('link', { name: 'Image Models', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Image Models', exact: true })).toBeVisible();
+  expect((await page.requests()).filter(request => request.url().endsWith('/api/audio') && request.method() === 'POST')).toHaveLength(1);
+  expect((await page.requests()).filter(request => request.url().endsWith('/api/audio/cancelled-clip'))).toHaveLength(0);
+});
 
 test('navigates to voice configuration from profile menu', async ({ page }) => {
   await page.goto('/');
@@ -51,13 +99,13 @@ test('can add a new voice configuration', async ({ page }) => {
   await page.getByRole('button', { name: 'Add voice' }).first().click();
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
 
-  await page.getByRole('combobox', { name: 'Voice' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Voice/ }).click();
   await page.getByRole('option', { name: /Test Voice DE/ }).click();
 
-  await page.getByLabel('Language').click();
+  await page.getByRole('button', { name: /Language/ }).click();
   await page.getByRole('option', { name: 'German' }).click();
 
-  await page.getByRole('button', { name: 'Add' }).click();
+  await page.getByRole('dialog', { name: 'Add Voice Configuration' }).getByRole('button', { name: 'Add', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).not.toBeVisible();
   await expect(page.getByText('Test Voice DE')).toBeVisible();
@@ -88,19 +136,19 @@ test('can add a Gemini TTS voice configuration', async ({ page }) => {
   await page.getByRole('button', { name: 'Add voice' }).first().click();
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).toBeVisible();
 
-  await page.getByRole('combobox', { name: 'Voice' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Voice/ }).click();
   await page.getByRole('option', { name: /Kore/ }).click();
 
-  await page.getByLabel('Language').click();
+  await page.getByRole('button', { name: /Language/ }).click();
   await page.getByRole('option', { name: 'German' }).click();
 
-  await page.getByLabel('Model').click();
+  await page.getByRole('button', { name: /Model/ }).click();
   await expect(page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ })).toBeVisible();
   await expect(page.getByRole('option', { name: /Eleven v3/ })).not.toBeVisible();
   await expect(page.getByRole('option', { name: /Eleven v4/ })).not.toBeVisible();
   await page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ }).click();
 
-  await page.getByRole('button', { name: 'Add' }).click();
+  await page.getByRole('dialog', { name: 'Add Voice Configuration' }).getByRole('button', { name: 'Add', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).not.toBeVisible();
   await expect(page.getByText('Kore (Firm)')).toBeVisible();
@@ -125,7 +173,7 @@ test('can toggle voice configuration enabled state', async ({ page }) => {
   await page.goto('/settings/voices');
   await expect(page.getByText('Test Voice')).toBeVisible();
 
-  await page.getByRole('switch', { name: 'Disable voice' }).click();
+  await page.getByRole('switch', { name: 'Disable voice' }).press('Space');
 
   await expect(async () => {
     const configs = await getVoiceConfigurations();
@@ -349,7 +397,7 @@ test('front audio toggle persists when disabled', async ({ page }) => {
   const toggle = page.getByRole('switch', { name: 'Front audio' });
   await expect(toggle).toBeChecked();
 
-  await toggle.click();
+  await toggle.press('Space');
   await expect(toggle).not.toBeChecked();
 
   await withDbConnection(async (client) => {

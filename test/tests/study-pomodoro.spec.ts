@@ -110,7 +110,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
   await page.clock.fastForward(25 * 60_000);
   await expectProgress(timer, 100);
-  await expect(timer).toHaveCSS('animation-name', /pomodoro-blink$/);
+  await expect(timer).toHaveCSS('animation-name', /pomodoro-blink/);
   await expect(page.getByRole('status')).toHaveText('Time for a break!');
   await page.clock.fastForward(60_000);
   await expectProgress(timer, 100);
@@ -124,7 +124,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   await expect(page.getByRole('status')).not.toBeVisible();
   expect(await getStudySessionCardsBySource('goethe-a1')).toHaveLength(1);
   await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' })).toBeVisible();
-  await page.getByRole('link', { name: 'Learn language', exact: true }).click();
+  await page.getByRole('link', { name: 'Learn Language', exact: true }).click();
   await expect(timer).toHaveCount(0);
   await expect(restart).toHaveCount(0);
   await page.clock.fastForward(60_000);
@@ -166,7 +166,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top, left: 0, right: 0, bottom: 0 } });
     await page.goto('/sources/goethe-a1/study');
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-    const navigation = page.getByRole('navigation');
+    const navigation = page.getByRole('banner');
     const progress = page.getByRole('progressbar', { name: 'Study Pomodoro' });
     await expect(progress).toBeVisible();
     const progressBounds = await progress.boundingBox();
@@ -178,7 +178,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     await expect(restart).toBeEnabled();
     expect(await page.evaluate(() => document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content'))).toBe('default');
     await Promise.all([
-      navigation.getByRole('link', { name: 'Learn language', exact: true }),
+      navigation.getByRole('link', { name: 'Learn Language', exact: true }),
       restart,
       navigation.getByRole('button', { name: 'Profile menu' }),
     ].map(async control => {

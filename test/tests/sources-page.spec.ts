@@ -46,14 +46,14 @@ test('disables previous page button on page 1', async ({ page }) => {
   await expect(page.getByRole('spinbutton', { name: 'Page' })).toHaveValue('1');
 
   const prevButton = page.getByLabel('Previous page');
-  await expect(prevButton).toHaveClass(/disabled/);
+  await expect(prevButton).toBeDisabled();
 });
 
 test('disables next page button on last page', async ({ page }) => {
   await page.goto('/sources/goethe-a1/page/999');
 
   const nextButton = page.getByLabel('Next page');
-  await expect(nextButton).toHaveClass(/disabled/);
+  await expect(nextButton).toBeDisabled();
 });
 
 test('next page', async ({ page }) => {
@@ -179,6 +179,7 @@ test('drag to select multiple regions highlights matching words', async ({ page 
   await expect(page.getByText('aber').first()).toHaveAccessibleDescription('Card does not exist');
 
   // Second region selection
+  await scrollElementToTop(page, 'abholen');
   await selectTextRange(page, 'der Absender', 'Können Sie mir seine Adresse sagen?');
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
@@ -239,7 +240,7 @@ test('removing a warning span via context menu excludes it from bulk creation', 
   await expect(warningButton).toHaveAccessibleDescription('Possible duplicate');
 
   await warningButton.click();
-  await page.getByRole('menuitem', { name: 'Remove' }).click();
+  await page.getByRole('menuitem', { name: 'Ignore abfahren', exact: true }).click();
 
   await expect(page.getByText('abfahren').first()).not.toHaveAccessibleDescription('Possible duplicate');
   await expect(page.getByText('Create 2 Cards')).toBeVisible();
@@ -309,7 +310,7 @@ test('speech source selector routing works', async ({ page }) => {
   await setupDefaultImageModelSettings();
   await navigateToSource(page, 'Speech A1');
 
-  await page.getByLabel('Upload image').setInputFiles({
+  await page.getByLabel('Upload image file', { exact: true }).setInputFiles({
     name: 'test-speech-image.png',
     mimeType: 'image/png',
     buffer: menschenA1Image,

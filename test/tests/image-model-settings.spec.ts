@@ -69,7 +69,7 @@ test('can update image count for a model variant', async ({ page }) => {
 
   const gptInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 2.5 Sunburst (XHigh)' });
   await gptInput.fill('4');
-  await gptInput.dispatchEvent('change');
+  await gptInput.press('Tab');
 
   await expect(async () => {
     const settings = await getImageModelSettings();

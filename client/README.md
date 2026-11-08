@@ -1,27 +1,38 @@
-# AdminClient
+# Learn Language frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.1.4.
+React 19, Vite, TypeScript, TanStack Query, Zod, and `@mucsi96/react-ui`.
+Use Node 24 or newer.
 
-## Development server
+```sh
+npm ci
+npm start          # http://localhost:4270
+npm run lint
+npm run typecheck
+npm run build     # static files in dist/
+npm run preview
+```
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+The development proxy forwards same-origin API, profile, and telemetry requests
+to the local test gateway on port 8170. Supply a gateway-authenticated session
+for interactive development; browser OAuth tokens are never used.
 
-## Code scaffolding
+Feature pages live under `src/features`, common UI under `src/components`, and
+validated API contracts under `src/api`. Server state belongs in TanStack Query;
+forms, selection, and transient presentation state use React hooks. Styles are
+colocated CSS Modules. The FSRS scheduler remains a domain module independent of
+React. Persisted card data keeps its existing schema.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+The Vite base is relative for Blob-hosted module imports. The document base keeps
+deep-link navigation working with the local static server; `prepare-client.mjs`
+rewrites document asset references to the public Blob origin for deployment.
+The build output and release artifact contracts remain `client/dist` and
+`client-static.tar.gz`.
 
-## Build
+Behavior and responsive layout tests are Playwright E2E tests in `../test`.
+With the test pod running and this client built:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```sh
+cd ../test
+npm test
+npx playwright test study-card-strategies.spec.ts
+```

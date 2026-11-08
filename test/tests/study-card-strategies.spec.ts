@@ -61,7 +61,7 @@ const strategies = [
       await expect(prompt).toBeVisible();
       await expect(card).toBeInViewport({ ratio: 1 });
       if (type === 'VOCABULARY' || type === 'SPEECH') {
-        await expect(card.getByRole('img')).toBeInViewport({ ratio: 1 });
+        await expect(card.getByRole('img', { name: examples[0].hu, exact: true })).toBeInViewport({ ratio: 1 });
       }
       const profile = page.getByRole('button', { name: 'Profile menu' });
       const headerBounds = await profile.boundingBox();
@@ -91,7 +91,7 @@ const strategies = [
       expect(cardBounds!.x).toBe(16);
       expect(width - cardBounds!.x - cardBounds!.width).toBe(16);
       if (width >= 768 && (type === 'VOCABULARY' || type === 'SPEECH')) {
-        const image = card.getByRole('img');
+        const image = card.getByRole('img', { name: examples[0].de, exact: true });
         const imageBounds = await image.boundingBox();
         expect(imageBounds!.x).toBe(cardBounds!.x);
         expect(imageBounds!.y).toBe(cardBounds!.y);
@@ -142,7 +142,7 @@ strategies.forEach(({ type, front, data }) => {
     await expect(correct).toBeInViewport({ ratio: 1 });
     const gradeBounds = await correct.boundingBox();
     if (type === 'VOCABULARY' || type === 'SPEECH') {
-      expect((await card.getByRole('img').boundingBox())!.height).toBeGreaterThan(100);
+      expect((await card.getByRole('img', { name: longText, exact: true }).boundingBox())!.height).toBeGreaterThan(100);
     }
     await page.mouse.move(200, 400);
     await page.mouse.wheel(0, 10000);

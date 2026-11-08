@@ -12,6 +12,9 @@ async function mockPages(page: Page, options: { mixedWidths?: boolean; multipleC
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/environment') {
       await route.fulfill({ json: {
+        imageRateLimitPerMinute: 0, audioRateLimitPerMinute: 0,
+        imageMaxConcurrentRequests: 0, audioMaxConcurrentRequests: 0,
+        imageDailyLimit: 0, audioDailyLimit: 0, frontAudioDisabled: false,
         chatModels: [{ modelName: 'test-model', provider: 'google' }],
         imageModels: [], audioModels: [], voices: [], supportedLanguages: [],
         enabledModelsByOperation: { extraction: ['test-model'], translation: ['test-model'] },
@@ -106,7 +109,7 @@ test('confirmed regions and candidate counts persist when extracting on the next
 test('page navigation preserves the chosen card type and rescales selections to the new page', async ({ page }) => {
   await mockPages(page, { mixedWidths: true, multipleCardTypes: true });
   await page.goto('/sources/selection-test/page/1');
-  await page.getByRole('combobox', { name: 'Card type', exact: true }).click();
+  await page.getByLabel('Card type').click();
   await page.getByRole('option', { name: 'Vocabulary', exact: true }).click();
   await expect(page.getByRole('listbox')).not.toBeVisible();
   await selectWords(page, wordsByPage[0]);
@@ -114,7 +117,7 @@ test('page navigation preserves the chosen card type and rescales selections to 
 
   await page.getByRole('link', { name: 'Next page' }).click();
   await expect(page.getByText('ankommen', { exact: true })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: 'Card type', exact: true })).toContainText('Vocabulary');
+  await expect(page.getByLabel('Card type')).toContainText('Vocabulary');
   await selectWords(page, wordsByPage[1]);
   await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 7 Cards');
   await expect(page.getByText('ankommen', { exact: true })).toHaveAccessibleDescription('Card does not exist');
@@ -142,4 +145,30 @@ test('existing-card word buttons keep the page text typography and dimensions', 
   await expect(existing).toHaveCSS('letter-spacing', original.letterSpacing);
   await expect(existing).toHaveCSS('width', original.width);
   await expect(existing).toHaveCSS('height', original.height);
+});
+
+test('keyboard selections on multiple pages are submitted together with original page coordinates', async ({ page }) => {
+  await mockPages(page, { mixedWidths: true });
+  await page.goto('/sources/selection-test/page/1');
+  await page.getByText('Add extraction region with keyboard', { exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'x', exact: true }).fill('40');
+  await page.getByRole('spinbutton', { name: 'y', exact: true }).fill('40');
+  await page.getByRole('spinbutton', { name: 'width', exact: true }).fill('150');
+  await page.getByRole('spinbutton', { name: 'height', exact: true }).fill('200');
+  await page.getByRole('button', { name: 'Add selection', exact: true }).click();
+  await page.getByRole('link', { name: 'Next page', exact: true }).click();
+  await expect(page.getByText('ankommen', { exact: true })).toBeVisible();
+  await page.getByText('Add extraction region with keyboard', { exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'x', exact: true }).fill('50');
+  await page.getByRole('spinbutton', { name: 'y', exact: true }).fill('50');
+  await page.getByRole('spinbutton', { name: 'width', exact: true }).fill('180');
+  await page.getByRole('spinbutton', { name: 'height', exact: true }).fill('100');
+  await page.getByRole('button', { name: 'Add selection', exact: true }).click();
+  const extraction = page.waitForRequest(request => request.url().endsWith('/extract/words'));
+  await page.getByRole('button', { name: 'Confirm selection' }).click();
+  expect((await extraction).postDataJSON().regions).toEqual([
+    { pageNumber: 1, x: 40, y: 40, width: 150, height: 200 },
+    { pageNumber: 2, x: 50, y: 50, width: 180, height: 100 },
+  ]);
+  await expect(page.getByRole('button', { name: 'Create cards in bulk' })).toContainText('Create 7 Cards');
 });

@@ -16,9 +16,7 @@ test('can create an image source', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Image Source');
 
-  await page.getByLabel('Card Type').click();
-  await page.getByRole('option', { name: 'Vocabulary' }).click();
-  await page.keyboard.press('Escape');
+  await page.getByRole('checkbox', { name: 'Vocabulary' }).press('Space');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'Image Collection' }).click();
@@ -26,7 +24,7 @@ test('can create an image source', async ({ page }) => {
   await expect(page.getByText('Images will be added from the page view')).toBeVisible();
 
   await expect(page.getByLabel('Start Page')).not.toBeVisible();
-  await page.getByLabel('Language Level').click();
+  await page.getByRole('button', { name: /Language Level$/ }).click();
   await page.getByRole('option', { name: 'A1' }).click();
   await page.getByLabel('Format Type').click();
   await page.getByRole('option', { name: 'Word list with examples' }).click();

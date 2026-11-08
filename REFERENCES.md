@@ -21,9 +21,9 @@ As an explanation:
 - to allow other application to access your own (as an application)
 -> use azuread_application_pre_authorized
 
-# Angular Material UI component library
+# UI component library
 
-Material icon library: https://fonts.google.com/icons
+- [React UI](https://github.com/mucsi96/react-ui)
 
 # Google AI
 

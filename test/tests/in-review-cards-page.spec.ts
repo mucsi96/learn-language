@@ -1,6 +1,43 @@
 import { test, expect } from '../fixtures';
 import { createCard, uploadMockImage, yellowImage, redImage, withDbConnection } from '../utils';
 
+test('refreshes a cached review list without discarding edits', async ({ page }) => {
+  await Promise.all(['retained', 'removed'].map(word => createCard({
+    cardId: word,
+    sourceId: 'goethe-a1',
+    readiness: 'IN_REVIEW',
+    data: { word, type: 'VERB', translation: { en: word } },
+  })));
+  await page.goto('/in-review-cards');
+  await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Learn Language', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await withDbConnection(client => client.query("UPDATE learn_language.cards SET readiness = 'READY' WHERE id = 'removed'"));
+  await createCard({
+    cardId: 'added', sourceId: 'goethe-a1', readiness: 'IN_REVIEW',
+    data: { word: 'added', type: 'VERB', translation: { en: 'added' } },
+  });
+  const requested = Promise.withResolvers<void>();
+  const released = Promise.withResolvers<void>();
+  await page.route('**/api/cards/readiness/IN_REVIEW', async route => {
+    requested.resolve();
+    await released.promise;
+    await route.fallback();
+  });
+  await page.goBack();
+  await requested.promise;
+  const retained = page.getByRole('article', { name: 'Review retained', exact: true });
+  try {
+    await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toBeVisible();
+    await retained.getByLabel('German translation', { exact: true }).fill('unsaved edit');
+  } finally {
+    released.resolve();
+  }
+  await expect(page.getByRole('article', { name: 'Review added', exact: true })).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Review removed', exact: true })).toHaveCount(0);
+  await expect(retained.getByLabel('German translation', { exact: true })).toHaveValue('unsaved edit');
+});
+
 test('displays in review cards inline with edit forms', async ({ page }) => {
   const image1 = uploadMockImage(yellowImage);
 
@@ -391,13 +428,12 @@ test('progress indicator shows remaining count', async ({ page }) => {
 
   await page.goto('/in-review-cards');
 
-  const progressFab = page.locator('.progress-fab');
-  await expect(progressFab).toContainText('2');
+  await expect(page.getByLabel('Remaining cards: 2', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Toggle favorite' }).first().click();
   await page.getByRole('button', { name: 'Mark as reviewed' }).first().click();
 
-  await expect(progressFab).toContainText('1');
+  await expect(page.getByLabel('Remaining cards: 1', { exact: true })).toBeVisible();
 });
 
 test('progress indicator hidden when all reviewed', async ({ page }) => {
@@ -431,7 +467,7 @@ test('progress indicator hidden when all reviewed', async ({ page }) => {
 
   await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 
-  await expect(page.locator('.progress-fab')).not.toBeVisible();
+  await expect(page.getByLabel(/^Remaining cards:/)).not.toBeVisible();
 });
 
 test('audio fab appears after reviewing all cards', async ({ page }) => {
@@ -507,4 +543,154 @@ test('delete card removes it from the page', async ({ page }) => {
 
   await expect(page.getByText('Card deleted')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'No cards in review', exact: true })).toBeVisible();
+});
+
+test('scrolling past a reviewable card saves edits and marks it reviewed', async ({ page }) => {
+  const image = uploadMockImage(yellowImage);
+  await createCard({
+    cardId: 'scroll-review-first', sourceId: 'goethe-a1', sourcePageNumber: 1,
+    readiness: 'IN_REVIEW',
+    data: {
+      word: 'erster', type: 'ADJECTIVE', translation: { hu: 'első' },
+      examples: [{ de: 'Der erste Tag.', hu: 'Az első nap.', isSelected: true, images: [{ id: image, isFavorite: true }] }],
+    },
+  });
+  await createCard({
+    cardId: 'scroll-review-second', sourceId: 'goethe-a1', sourcePageNumber: 2,
+    readiness: 'IN_REVIEW',
+    data: {
+      word: 'zweiter', type: 'ADJECTIVE', translation: { hu: 'második' },
+      examples: [{ de: 'Der zweite Tag.', hu: 'A második nap.', isSelected: true, images: [{ id: image }] }],
+    },
+  });
+  await page.goto('/in-review-cards');
+  const first = page.getByRole('article', { name: 'Review erster', exact: true });
+  await first.getByLabel('Hungarian translation', { exact: true }).fill('legelső');
+  await page.getByRole('article', { name: 'Review zweiter', exact: true }).getByRole('button', { name: 'Toggle favorite' }).scrollIntoViewIfNeeded();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
+  await withDbConnection(async client => {
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'scroll-review-first'");
+    expect(result.rows[0].readiness).toBe('REVIEWED');
+    expect(result.rows[0].data.translation.hu).toBe('legelső');
+  });
+});
+
+test('saving a simple review card removes cleared optional fields and preserves model metadata', async ({ page }) => {
+  await createCard({
+    cardId: 'review-clear-simple-fields',
+    sourceId: 'goethe-a1',
+    cardType: 'SIMPLE',
+    readiness: 'IN_REVIEW',
+    data: {
+      frontText: 'What is the capital of Germany?',
+      backText: 'Berlin',
+      topic: 'Geography',
+      category: 'Cities',
+      extractionModel: 'original-extraction-model',
+    },
+  });
+
+  await page.goto('/in-review-cards');
+  await page.getByRole('textbox', { name: 'Topic', exact: true }).fill('');
+  await page.getByRole('textbox', { name: 'Category', exact: true }).fill('   ');
+  const saved = page.waitForResponse(response =>
+    response.url().endsWith('/api/card/review-clear-simple-fields') && response.request().method() === 'PUT'
+  );
+  await page.getByRole('button', { name: 'Save card', exact: true }).click();
+  expect((await saved).ok()).toBe(true);
+
+  await withDbConnection(async client => {
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'review-clear-simple-fields'");
+    expect(result.rows[0].readiness).toBe('IN_REVIEW');
+    expect(result.rows[0].data).toEqual(expect.objectContaining({
+      frontText: 'What is the capital of Germany?',
+      backText: 'Berlin',
+      extractionModel: 'original-extraction-model',
+    }));
+    expect(result.rows[0].data).not.toHaveProperty('topic');
+    expect(result.rows[0].data).not.toHaveProperty('category');
+  });
+  await page.reload();
+  await expect(page.getByRole('textbox', { name: 'Topic', exact: true })).toHaveValue('');
+  await expect(page.getByRole('textbox', { name: 'Category', exact: true })).toHaveValue('');
+});
+
+test('reviewing a grammar card removes its cleared hint and preserves model metadata', async ({ page }) => {
+  const example = { de: 'Ich [bin] hier.', hu: 'Itt vagyok.', isSelected: true };
+  await createCard({
+    cardId: 'review-clear-grammar-hint',
+    sourceId: 'goethe-a1',
+    cardType: 'GRAMMAR',
+    readiness: 'IN_REVIEW',
+    data: {
+      grammarTopic: 'Present tense',
+      hint: 'Use the verb sein',
+      examples: [example],
+      translationModel: 'original-translation-model',
+    },
+  });
+
+  await page.goto('/in-review-cards');
+  await page.getByRole('textbox', { name: 'Hint', exact: true }).fill('   ');
+  await page.getByRole('button', { name: 'Mark as reviewed', exact: true }).click();
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
+
+  await withDbConnection(async client => {
+    const result = await client.query("SELECT readiness, data FROM learn_language.cards WHERE id = 'review-clear-grammar-hint'");
+    expect(result.rows[0].readiness).toBe('REVIEWED');
+    expect(result.rows[0].data).toEqual(expect.objectContaining({
+      grammarTopic: 'Present tense',
+      examples: [expect.objectContaining(example)],
+      translationModel: 'original-translation-model',
+    }));
+    expect(result.rows[0].data).not.toHaveProperty('hint');
+  });
+});
+
+test('review updates preserve unknown API card and example fields while clearing optional data', async ({ page, apiHeaders }) => {
+  const metadata = { importedFrom: 'future-format', revision: 7, labels: ['keep'] };
+  const exampleMetadata = { origin: 'future-example-format' };
+  await createCard({
+    cardId: 'review-unknown-api-fields',
+    sourceId: 'goethe-a1',
+    cardType: 'GRAMMAR',
+    readiness: 'IN_REVIEW',
+    data: {
+      grammarTopic: 'Present tense',
+      hint: 'Use sein',
+      examples: [{ de: 'Ich [bin] hier.', hu: 'Itt vagyok.', isSelected: true }],
+    },
+  });
+  await page.route('**/api/cards/readiness/IN_REVIEW', async route => {
+    const response = await route.fetch({ headers: { ...route.request().headers(), ...apiHeaders } });
+    expect(response.ok()).toBe(true);
+    const cards = await response.json();
+    await route.fulfill({ response, json: cards.map((card: { data: { examples: Record<string, unknown>[] } }) => ({
+      ...card,
+      data: {
+        ...card.data,
+        customMetadata: metadata,
+        examples: card.data.examples.map(example => ({ ...example, customExampleMetadata: exampleMetadata })),
+      },
+    })) });
+  });
+  await page.route('**/api/card/review-unknown-api-fields', async route => {
+    if (route.request().method() === 'PUT') await route.fulfill({ status: 204 });
+    else await route.fallback();
+  });
+  await page.goto('/in-review-cards');
+  await page.getByRole('textbox', { name: 'Hint', exact: true }).fill('   ');
+  const update = page.waitForRequest(request => request.url().endsWith('/api/card/review-unknown-api-fields') && request.method() === 'PUT');
+  await page.getByRole('button', { name: 'Mark as reviewed', exact: true }).click();
+  const body = (await update).postDataJSON();
+  expect(body.readiness).toBe('REVIEWED');
+  expect(body.data).not.toHaveProperty('hint');
+  expect(body.data.customMetadata).toEqual(metadata);
+  expect(body.data.examples[0]).toEqual(expect.objectContaining({
+    de: 'Ich [bin] hier.',
+    hu: 'Itt vagyok.',
+    isSelected: true,
+    customExampleMetadata: exampleMetadata,
+  }));
+  await expect(page.getByText('Card marked as reviewed')).toBeVisible();
 });

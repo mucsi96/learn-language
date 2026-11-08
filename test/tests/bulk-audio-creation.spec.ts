@@ -602,7 +602,7 @@ test('bulk audio creation updates ui after completion', async ({ page }) => {
   await expect(page.getByText('Audio generated successfully for 2 cards!')).toBeVisible();
 
   // Close the dialog
-  await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   // FAB should no longer be visible since cards now have audio
   await expect(fab).not.toBeVisible();
@@ -730,7 +730,7 @@ test('bulk audio creation uses only enabled voice configurations', async ({ page
 
   // Should show error because Hungarian voice is disabled
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByText('No enabled voice configurations for languages: hu')).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Creating Audio' }).getByRole('alert').filter({ hasText: 'No enabled voice configurations for languages: hu' })).toBeVisible();
 });
 
 ['eleven_v3', 'eleven_v4'].forEach((model) => {
