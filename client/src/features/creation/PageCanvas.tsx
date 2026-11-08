@@ -120,9 +120,7 @@ export function PageCanvas({
           ...style(span.bbox),
           fontFamily: span.font,
           color: span.color,
-          ...(span.fontSize !== undefined
-            ? { fontSize: `${(parseFloat(String(span.fontSize)) / page.width) * 100}cqw` }
-            : {}),
+          fontSize: `${(span.bbox.height / page.width) * 100}cqw`,
         };
         if (matches.length > 1 || (match?.warning && !match.exists))
           return (
