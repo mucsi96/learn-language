@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@grafana/faro-web-sdk": "^2.7.0",
-    "@mucsi96/react-ui": "0.7.0",
+    "@mucsi96/react-ui": "0.9.0",
     "@tanstack/react-query": "^5.104.1",
     "ag-grid-community": "^36.3.0",
     "ag-grid-react": "^36.3.0",

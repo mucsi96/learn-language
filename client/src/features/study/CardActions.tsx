@@ -7,8 +7,7 @@ import {
   MenuItem,
   MenuPopover,
   MenuTrigger,
-  Skeleton,
-  SkeletonGroup,
+  LoadingArea,
   TextField,
 } from '@mucsi96/react-ui';
 import { z } from 'zod';
@@ -143,11 +142,7 @@ function Chat({ card, close }: { card: Card; close: () => void }) {
         ))}
       </div>
       {(submit.error || microphone.error) && <p role="alert">{(submit.error ?? microphone.error)?.message}</p>}
-      {busy && !recording && (
-        <SkeletonGroup label="Generating answer">
-          <Skeleton height="2rem" />
-        </SkeletonGroup>
-      )}
+      {busy && !recording && <LoadingArea label="Generating answer" />}
       <form
         className={styles.chatForm}
         onSubmit={(event) => {

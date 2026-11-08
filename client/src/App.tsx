@@ -3,7 +3,7 @@ import {
   AppHeader,
   AppHeaderActions,
   AppMain,
-  BarLoader,
+  LoadingArea,
 } from '@mucsi96/react-ui';
 import { Link, Navigate, Route, Routes, useMatch, useNavigate } from 'react-router-dom';
 import { RouterProvider } from 'react-aria-components';
@@ -58,7 +58,7 @@ export function App() {
         </AppHeader>
         <AppMain className={styles.main}>
           <ProviderBillingAlert />
-          <Suspense fallback={<BarLoader label="Opening page" />}>
+          <Suspense fallback={<LoadingArea label="Opening page" fill />}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/sources" element={<Sources />} />
