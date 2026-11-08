@@ -350,7 +350,7 @@ export default function ModelUsage() {
             {(items) =>
               items.length ? (
                 Array.from(new Set(items.map((item) => item.operationType))).map((operation) => (
-                  <section key={operation}>
+                  <section key={operation} className={styles.summary}>
                     <h3>{operation}</h3>
                     <table className={styles.table} aria-label={`${operation} summary`}>
                       <thead>

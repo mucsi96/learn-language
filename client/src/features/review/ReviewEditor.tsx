@@ -118,7 +118,7 @@ export function ReviewEditor({
               </div>
               <h3>Forms</h3>
               {forms.map((form, index) => (
-                <div className={styles.actions} key={index}>
+                <div className={styles.formRow} key={index}>
                   <TextField
                     aria-label="Form"
                     label="Form"
@@ -126,20 +126,25 @@ export function ReviewEditor({
                     onChange={(value) => update({ forms: forms.map((item, i) => (i === index ? value : item)) })}
                   />
                   <Button
+                    variant="icon"
+                    tone="error"
                     aria-label="Remove form"
                     onPress={() => update({ forms: forms.filter((_, i) => i !== index) })}
                   >
-                    Remove form
+                    ×
                   </Button>
                   <Button
+                    variant="icon"
                     aria-label="Insert form below"
                     onPress={() => update({ forms: [...forms.slice(0, index + 1), '', ...forms.slice(index + 1)] })}
                   >
-                    Insert form below
+                    +
                   </Button>
                 </div>
               ))}
-              <Button onPress={() => update({ forms: [...forms, ''] })}>Add form</Button>
+              <Button variant="text" className={styles.inlineAction} onPress={() => update({ forms: [...forms, ''] })}>
+                Add form
+              </Button>
               <h3>Examples</h3>
             </>
           )}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Dialog } from '@mucsi96/react-ui';
+import { Button, Dialog, TextField } from '@mucsi96/react-ui';
 import { Link, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { apiQuery } from '../../api/http';
@@ -65,24 +65,47 @@ export function JsonPage() {
         <Dialog
           title="Import cards from JSON"
           isOpen
+          footer={
+            <>
+              <Button variant="text" isDisabled={importing.isPending} onPress={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button isDisabled={!parsed?.success || importing.isPending} onPress={() => importing.mutate()}>
+                {parsed?.success ? `Import ${parsed.data.length} cards` : 'Import'}
+              </Button>
+            </>
+          }
           onOpenChange={(value) => {
             if (!importing.isPending) setOpen(value);
           }}
         >
           <div className={styles.fields}>
-            <pre aria-label="Expected JSON structure">{JSON.stringify([{ id: 'Card id', frontText: 'Question (Markdown)', backText: 'Answer (Markdown)', topic: 'Optional topic', category: 'Optional category' }], null, 2)}</pre>
+            <pre className={styles.jsonExample} aria-label="Expected JSON structure">
+              {JSON.stringify(
+                [
+                  {
+                    id: 'Card id',
+                    frontText: 'Question (Markdown)',
+                    backText: 'Answer (Markdown)',
+                    topic: 'Optional topic',
+                    category: 'Optional category',
+                  },
+                ],
+                null,
+                2
+              )}
+            </pre>
             {message && <p role="status">{message}</p>}
-            <label>
-              Cards JSON
-              <textarea
-                rows={12}
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                placeholder={
-                  '[{"id":"unique-id","frontText":"Question","backText":"Answer","topic":"Optional","category":"Optional"}]'
-                }
-              />
-            </label>
+            <TextField
+              label="Cards JSON"
+              multiline
+              rows={12}
+              value={text}
+              onChange={setText}
+              placeholder={
+                '[{"id":"unique-id","frontText":"Question","backText":"Answer","topic":"Optional","category":"Optional"}]'
+              }
+            />
             <label>
               Choose JSON file
               <input
@@ -101,14 +124,6 @@ export function JsonPage() {
             )}
             {importing.error && <p role="alert">{importing.error.message}</p>}
             <p>{parsed?.success ? parsed.data.length : 0} cards</p>
-            <div className={styles.actions}>
-              <Button variant="text" isDisabled={importing.isPending} onPress={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button isDisabled={!parsed?.success || importing.isPending} onPress={() => importing.mutate()}>
-                {parsed?.success ? `Import ${parsed.data.length} cards` : 'Import'}
-              </Button>
-            </div>
           </div>
         </Dialog>
       )}

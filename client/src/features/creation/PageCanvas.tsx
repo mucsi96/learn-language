@@ -52,6 +52,7 @@ export function PageCanvas({
       <div
         role="region"
         aria-label="Image upload dropzone"
+        className={styles.dropzone}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();

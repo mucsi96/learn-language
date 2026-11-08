@@ -63,34 +63,38 @@ export function CardFields({ type, data, onChange, onGenerateImages, onPreviewIm
     <>
       {type === 'vocabulary' && (
         <>
-          {textField('German translation', 'word')}
-          <Select
-            label="Word type"
-            options={wordTypes}
-            selectedKey={data.type ?? null}
-            onSelectionChange={(key) => update({ type: String(key) })}
-          />
-          <Select
-            label="Gender"
-            options={[
-              { id: 'MASCULINE', label: 'Masculine' },
-              { id: 'FEMININE', label: 'Feminine' },
-              { id: 'NEUTER', label: 'Neuter' },
-            ]}
-            selectedKey={data.gender ?? null}
-            onSelectionChange={(key) => update({ gender: String(key) })}
-          />
-          {(['hu', 'en', 'ch'] as const).map((language) => (
-            <TextField
-              key={language}
-              label={`${languages[language]} translation`}
-              value={data.translation?.[language] ?? ''}
-              onChange={(value) => update({ translation: { ...data.translation, [language]: value } })}
+          <div className={styles.translations}>
+            {textField('German translation', 'word')}
+            <Select
+              label="Word type"
+              options={wordTypes}
+              selectedKey={data.type ?? null}
+              onSelectionChange={(key) => update({ type: String(key) })}
             />
-          ))}
+            {data.type === 'NOUN' && (
+              <Select
+                label="Gender"
+                options={[
+                  { id: 'MASCULINE', label: 'Masculine' },
+                  { id: 'FEMININE', label: 'Feminine' },
+                  { id: 'NEUTER', label: 'Neuter' },
+                ]}
+                selectedKey={data.gender ?? null}
+                onSelectionChange={(key) => update({ gender: String(key) })}
+              />
+            )}
+            {(['hu', 'en', 'ch'] as const).map((language) => (
+              <TextField
+                key={language}
+                label={`${languages[language]} translation`}
+                value={data.translation?.[language] ?? ''}
+                onChange={(value) => update({ translation: { ...data.translation, [language]: value } })}
+              />
+            ))}
+          </div>
           <h2>Forms</h2>
           {(data.forms ?? []).map((form, index) => (
-            <div className={styles.actions} key={index}>
+            <div className={styles.formRow} key={index}>
               <TextField
                 label="Form"
                 value={form}
@@ -99,19 +103,29 @@ export function CardFields({ type, data, onChange, onGenerateImages, onPreviewIm
                 }
               />
               <Button
-                variant="text"
+                variant="icon"
+                aria-label="Insert form below"
                 onPress={() =>
                   update({ forms: [...data.forms!.slice(0, index + 1), '', ...data.forms!.slice(index + 1)] })
                 }
               >
-                Insert form below
+                +
               </Button>
-              <Button variant="text" onPress={() => update({ forms: data.forms!.filter((_, i) => i !== index) })}>
-                Remove form
+              <Button
+                variant="icon"
+                tone="error"
+                aria-label="Remove form"
+                onPress={() => update({ forms: data.forms!.filter((_, i) => i !== index) })}
+              >
+                ×
               </Button>
             </div>
           ))}
-          <Button variant="outlined" onPress={() => update({ forms: [...(data.forms ?? []), ''] })}>
+          <Button
+            variant="outlined"
+            className={styles.inlineAction}
+            onPress={() => update({ forms: [...(data.forms ?? []), ''] })}
+          >
             Add form
           </Button>
         </>
@@ -134,37 +148,39 @@ export function CardFields({ type, data, onChange, onGenerateImages, onPreviewIm
               Use this example
             </label>
           )}
-          {(type === 'grammar'
-            ? (['de', 'hu'] as const)
-            : type === 'speech'
-              ? (['de', 'hu', 'en'] as const)
-              : (['de', 'hu', 'en', 'ch'] as const)
-          ).map((language) => {
-            const label =
-              type === 'vocabulary'
-                ? `Example in ${languages[language]}`
-                : language === 'de'
-                  ? 'German sentence'
-                  : `${languages[language]} translation`;
-            return language === 'de' && type === 'grammar' ? (
-              <label key={language}>
-                {label}
-                <textarea
-                  ref={sentenceRef}
-                  value={example.de ?? ''}
-                  onChange={(event) => updateExample(index, { de: event.target.value })}
+          <div className={styles.translations}>
+            {(type === 'grammar'
+              ? (['de', 'hu'] as const)
+              : type === 'speech'
+                ? (['de', 'hu', 'en'] as const)
+                : (['de', 'hu', 'en', 'ch'] as const)
+            ).map((language) => {
+              const label =
+                type === 'vocabulary'
+                  ? `Example in ${languages[language]}`
+                  : language === 'de'
+                    ? 'German sentence'
+                    : `${languages[language]} translation`;
+              return language === 'de' && type === 'grammar' ? (
+                <label key={language} className={styles.field}>
+                  {label}
+                  <textarea
+                    ref={sentenceRef}
+                    value={example.de ?? ''}
+                    onChange={(event) => updateExample(index, { de: event.target.value })}
+                  />
+                </label>
+              ) : (
+                <TextField
+                  key={language}
+                  label={label}
+                  multiline
+                  value={example[language] ?? ''}
+                  onChange={(value) => updateExample(index, { [language]: value })}
                 />
-              </label>
-            ) : (
-              <TextField
-                key={language}
-                label={label}
-                multiline
-                value={example[language] ?? ''}
-                onChange={(value) => updateExample(index, { [language]: value })}
-              />
-            );
-          })}
+              );
+            })}
+          </div>
           {type === 'grammar' && (
             <>
               <Button
@@ -210,6 +226,7 @@ export function CardFields({ type, data, onChange, onGenerateImages, onPreviewIm
                   <div key={image.id}>
                     <button
                       type="button"
+                      className={styles.imageButton}
                       onClick={() => onPreviewImage(image.id)}
                       aria-label={`View image ${imageIndex + 1}`}
                     >
@@ -257,6 +274,7 @@ export function CardFields({ type, data, onChange, onGenerateImages, onPreviewIm
       {(type === 'vocabulary' || !examples.length) && (
         <Button
           variant="outlined"
+          className={styles.inlineAction}
           onPress={() => update({ examples: [...examples, { de: '', isSelected: examples.length === 0 }] })}
         >
           Add example

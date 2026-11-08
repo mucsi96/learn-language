@@ -12,6 +12,18 @@
   gap: 0.75rem;
   align-items: center;
 }
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.editorFields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -23,6 +35,39 @@
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 1rem;
+}
+.fields input[type='file'] {
+  max-width: 100%;
+}
+.translations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+.translations > label {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.translations textarea {
+  width: 100%;
+  min-width: 0;
+}
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.formRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.formRow > button {
+  flex-shrink: 0;
+}
+.inlineAction {
+  justify-self: start;
 }
 .fields > label:not(.actions),
 .field {
@@ -37,8 +82,8 @@
 .field select {
   font: inherit;
   color: inherit;
-  background: var(--color-surface, Canvas);
-  border: 1px solid currentColor;
+  background: var(--bt-surface-2);
+  border: 1px solid var(--bt-outline);
   border-radius: 0.4rem;
   padding: 0.6rem;
 }
@@ -55,6 +100,23 @@
   touch-action: none;
   user-select: none;
   overflow: hidden;
+}
+.dropzone {
+  display: grid;
+  place-content: center;
+  min-height: 20rem;
+  padding: 1rem;
+  border: 2px dashed var(--bt-outline);
+  border-radius: var(--bt-radius);
+  background: var(--bt-surface-1);
+  text-align: center;
+}
+.pageNumber {
+  width: 5rem;
+}
+.pageNumber input {
+  width: 100%;
+  min-width: 0;
 }
 .viewer img {
   width: 100%;
@@ -99,13 +161,24 @@
 }
 .images {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
   gap: 1rem;
 }
 .images img {
+  display: block;
   width: 100%;
-  max-height: 300px;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--bt-radius);
+}
+.imageButton {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 .preview {
   width: 100%;
@@ -125,7 +198,7 @@
   border-radius: 0.5rem;
 }
 .error {
-  color: var(--color-error, #b3261e);
+  color: var(--bt-error-soft);
   white-space: pre-wrap;
 }
 .billingAlert {
@@ -137,6 +210,14 @@
 .progress {
   max-height: 60vh;
   overflow: auto;
+}
+.jsonExample {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bt-surface-2);
+  border-radius: var(--bt-radius);
+  padding: 1rem;
 }
 @media (max-width: 600px) {
   .page {

@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 .filters {
@@ -7,6 +8,12 @@
   flex-wrap: wrap;
   gap: 1rem;
   align-items: end;
+}
+.filters > * {
+  max-width: 100%;
+}
+.summary {
+  overflow-x: auto;
 }
 .grid {
   height: 65vh;
@@ -34,6 +41,8 @@
 .table {
   border-collapse: collapse;
   width: 100%;
+  min-width: 42rem;
+  overflow-wrap: normal;
 }
 .table th,
 .table td {

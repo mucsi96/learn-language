@@ -66,7 +66,7 @@ function ReviewSession({ serverCards }: { serverCards: Card[] }) {
         )}
       </div>
       <div className={styles.progress}>
-        {remaining > 0 && <span aria-label={`Remaining cards: ${remaining}`}>{remaining}</span>}
+        {remaining > 0 && <span className={styles.remaining} aria-label={`Remaining cards: ${remaining}`}>{remaining}</span>}
         <BatchAudioButton />
       </div>
     </>
@@ -219,10 +219,10 @@ export function BatchAudioButton() {
     setProgressOpen(true);
     const result = await createAudioInBatch(cards.data);
     if (result.succeeded) {
+      await sendJson('/api/study-sessions/add-cards', 'POST', { cardIds: cards.data.map((card) => card.id) });
       notifications.success(
         `Audio generated successfully for ${result.succeeded} card${result.succeeded === 1 ? '' : 's'}!`
       );
-      await sendJson('/api/study-sessions/add-cards', 'POST', { cardIds: cards.data.map((card) => card.id) });
     }
     if (result.failed)
       notifications.error(`Failed to generate audio for ${result.failed} card${result.failed === 1 ? '' : 's'}.`);

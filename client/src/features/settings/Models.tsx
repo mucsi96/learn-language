@@ -7,6 +7,7 @@ import { QueryState } from '../../components/QueryState';
 import { RateLimits } from './RateLimits';
 import { AutosaveNumber } from './AutosaveNumber';
 import styles from '../../components/Forms.module.css';
+import modelStyles from './Models.module.css';
 
 export default function Models({ kind }: { kind: 'image' | 'data' }) {
   const query = useQuery(apiQuery('/api/environment', environmentSchema));
@@ -52,7 +53,7 @@ export default function Models({ kind }: { kind: 'image' | 'data' }) {
           <Card>
             <h2>Data Models</h2>
             <div className={styles.scroll}>
-              <table className={styles.table} aria-label="Chat model settings matrix">
+              <table className={`${styles.table} ${modelStyles.matrix}`} aria-label="Chat model settings matrix">
                 <thead>
                   <tr>
                     <th>Model</th>
@@ -80,36 +81,38 @@ export default function Models({ kind }: { kind: 'image' | 'data' }) {
                           config.enabledModelsByOperation[operation.code]?.includes(model.modelName) === true;
                         return (
                           <td key={operation.code}>
-                            <Switch
-                              children={null}
-                              aria-label={`${model.modelName} for ${operation.displayName}`}
-                              isSelected={enabled}
-                              isDisabled={settings.isPending}
-                              onChange={(isEnabled) =>
-                                settings.mutate({
-                                  kind: 'model',
-                                  modelName: model.modelName,
-                                  operationType: operation.code,
-                                  isEnabled,
-                                })
-                              }
-                            />
-                            <input
-                              type="radio"
-                              name={`primary-${operation.code}`}
-                              aria-label={`Set ${model.modelName} as primary for ${operation.displayName}`}
-                              checked={config.primaryModelByOperation[operation.code] === model.modelName}
-                              disabled={!enabled || settings.isPending}
-                              onChange={() =>
-                                settings.mutate({
-                                  kind: 'model',
-                                  modelName: model.modelName,
-                                  operationType: operation.code,
-                                  isEnabled: true,
-                                  isPrimary: true,
-                                })
-                              }
-                            />
+                            <div className={modelStyles.controls}>
+                              <Switch
+                                children={null}
+                                aria-label={`${model.modelName} for ${operation.displayName}`}
+                                isSelected={enabled}
+                                isDisabled={settings.isPending}
+                                onChange={(isEnabled) =>
+                                  settings.mutate({
+                                    kind: 'model',
+                                    modelName: model.modelName,
+                                    operationType: operation.code,
+                                    isEnabled,
+                                  })
+                                }
+                              />
+                              <input
+                                type="radio"
+                                name={`primary-${operation.code}`}
+                                aria-label={`Set ${model.modelName} as primary for ${operation.displayName}`}
+                                checked={config.primaryModelByOperation[operation.code] === model.modelName}
+                                disabled={!enabled || settings.isPending}
+                                onChange={() =>
+                                  settings.mutate({
+                                    kind: 'model',
+                                    modelName: model.modelName,
+                                    operationType: operation.code,
+                                    isEnabled: true,
+                                    isPrimary: true,
+                                  })
+                                }
+                              />
+                            </div>
                           </td>
                         );
                       })}
