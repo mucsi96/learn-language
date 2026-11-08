@@ -26,6 +26,7 @@ import { useAction } from '../../api/mutations';
 import { QueryState } from '../../components/QueryState';
 import { StateBadge } from '../../components/StateBadge';
 import { Markdown } from '../../components/Markdown';
+import { ProfileMenu } from '../../components/ProfileMenu';
 import { gradeCard } from './scheduler';
 import { startPomodoro, usePomodoroDeadline } from './pomodoro';
 import styles from './Study.module.css';
@@ -79,11 +80,6 @@ function StudySession({ sourceId }: { sourceId: string }) {
   });
   const controls = (
     <div className={styles.headerControls}>
-      {active && current.data?.studyMode === 'WITH_PARTNER' && (
-        <span role="status" aria-label="Current turn">
-          {current.data.turnName}
-        </span>
-      )}
       <div role="group" aria-label="Due cards" className={styles.dots}>
         {due.data
           ?.filter((count) => count.sourceId === sourceId)
@@ -93,6 +89,11 @@ function StudySession({ sourceId }: { sourceId: string }) {
             ))
           )}
       </div>
+      {active && current.data?.studyMode === 'WITH_PARTNER' && (
+        <span role="status" aria-label="Current turn">
+          {current.data.turnName}
+        </span>
+      )}
       {sources.data && (
         <MenuTrigger>
           <Button variant="outlined" className={styles.sourceButton}>
@@ -192,14 +193,10 @@ function Pomodoro({ onRestart, pending, active }: { onRestart: () => void; pendi
   const remaining = deadline === null ? null : Math.max(0, Math.ceil((deadline - now) / 1000));
   return (
     <>
-      <Button
-        variant="text"
-        aria-label={active ? 'Start new study session' : remaining === null ? 'Start Pomodoro' : 'Restart Pomodoro'}
-        onPress={active ? onRestart : () => startPomodoro(true)}
-        isDisabled={pending}
-      >
-        {remaining === null ? 'Start Pomodoro' : 'Restart'}
-      </Button>
+      <ProfileMenu
+        onResetPomodoro={deadline === null ? undefined : active ? onRestart : () => startPomodoro(true)}
+        resetDisabled={pending}
+      />
       {remaining !== null && (
         <ProgressBar
           label="Study Pomodoro"

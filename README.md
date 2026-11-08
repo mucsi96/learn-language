@@ -149,8 +149,7 @@ switching sources; large queues wrap within a scrollable area in the header.
 
 Starting or continuing a study session automatically starts a
 25-minute Pomodoro if there is no active countdown, including when the previous
-timer has expired. An already-running timer keeps its deadline. You can also click
-**Start Pomodoro** in the study header to start it independently. A linear progress
+timer has expired. An already-running timer keeps its deadline. A linear progress
 bar fills along the bottom of the screen over 25 minutes instead of displaying
 remaining time. The bar,
 its controls, and the break announcement appear only on study routes. Switching sources,
@@ -159,8 +158,10 @@ stored for the current browser tab. At zero, the
 full bar blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
-Click **Restart** in the header (or focus it and press Enter/Space) while studying to
+Choose **Reset Pomodoro** in the avatar menu (also accessible with Enter/Space) while studying to
 **start a new study session** and reset the countdown to 25 minutes.
+This menu item appears only on study routes with a running or expired timer.
+Before continuing a session, it resets only the countdown.
 A failed session restart keeps
 the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.

@@ -4,17 +4,10 @@ import {
   AppHeaderActions,
   AppMain,
   BarLoader,
-  Button,
-  Menu,
-  MenuItem,
-  MenuPopover,
-  MenuTrigger,
 } from '@mucsi96/react-ui';
 import { Link, Navigate, Route, Routes, useMatch, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { RouterProvider } from 'react-aria-components';
-import { apiQuery } from './api/http';
-import { userSchema } from './api/schemas';
+import { ProfileMenu } from './components/ProfileMenu';
 import styles from './App.module.css';
 import { RouteTitle } from './components/RouteTitle';
 import { ProviderBillingAlert } from './features/creation/ProviderBillingAlert';
@@ -47,12 +40,8 @@ const JsonPage = lazy(() => import('./features/creation').then((module) => ({ de
 const CardEditorPage = lazy(() => import('./features/creation').then((module) => ({ default: module.CardEditorPage })));
 
 export function App() {
-  const profile = useQuery(apiQuery('/oauth2/userinfo', userSchema));
   const navigate = useNavigate();
   const studyRoute = useMatch('/sources/:sourceId/study');
-  const name =
-    profile.data &&
-    (profile.data.additionalClaims?.name ?? profile.data.preferredUsername ?? profile.data.email).trim();
   return (
     <RouterProvider navigate={navigate}>
       <RouteTitle />
@@ -64,24 +53,7 @@ export function App() {
           <AppHeaderActions>
             <SourceNavigation />
             <div id="study-header-controls" className={styles.studyControls} />
-            <MenuTrigger>
-              <Button variant="avatar" aria-label="Profile menu">
-                {name
-                  ?.split(/\s+/)
-                  .map((part) => part[0])
-                  .join('')
-                  .toUpperCase()}
-              </Button>
-              <MenuPopover>
-                <Menu aria-label="Profile menu">
-                  {name && <MenuItem isDisabled>{name}</MenuItem>}
-                  <MenuItem href="/sources">Sources</MenuItem>
-                  <MenuItem href="/in-review-cards">Review cards</MenuItem>
-                  <MenuItem href="/settings">Settings</MenuItem>
-                  <MenuItem href="/model-usage">Model usage</MenuItem>
-                </Menu>
-              </MenuPopover>
-            </MenuTrigger>
+            {!studyRoute && <ProfileMenu />}
           </AppHeaderActions>
         </AppHeader>
         <AppMain className={styles.main}>
