@@ -99,6 +99,11 @@ test('study page keeps turn indicator visible when card is revealed', async ({ p
   const turnIndicator = page.getByRole('status', { name: 'Current turn' });
 
   await expect(turnIndicator).toBeVisible();
+  const dots = page.getByRole('banner').getByRole('group', { name: 'Due cards' });
+  await expect(dots).toBeVisible();
+  const dotsBounds = await dots.boundingBox();
+  const turnBounds = await turnIndicator.boundingBox();
+  expect(turnBounds!.x).toBeGreaterThanOrEqual(dotsBounds!.x + dotsBounds!.width);
 
   await page.getByRole('heading', { name: 'tanulni' }).click();
 
