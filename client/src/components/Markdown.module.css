@@ -1,4 +1,6 @@
 .markdown {
+  min-width: 0;
+  overflow-x: auto;
   overflow-wrap: anywhere;
 }
 .markdown pre {

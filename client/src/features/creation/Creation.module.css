@@ -1,5 +1,6 @@
 .page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   max-width: 1100px;
   margin: auto;
@@ -19,6 +20,8 @@
 }
 .fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 1rem;
 }
 .fields > label:not(.actions),
