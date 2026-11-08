@@ -1,7 +1,8 @@
-import { Alert, Button, Skeleton, SkeletonGroup } from '@mucsi96/react-ui';
+import { Alert, Button } from '@mucsi96/react-ui';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import styles from './QueryState.module.css';
+import { LoadingArea } from './LoadingArea';
 
 export function QueryState<T>({
   query,
@@ -12,14 +13,7 @@ export function QueryState<T>({
   children: (data: T) => ReactNode;
   label: string;
 }) {
-  if (query.isPending)
-    return (
-      <SkeletonGroup label={label}>
-        <Skeleton width="60%" />
-        <Skeleton />
-        <Skeleton />
-      </SkeletonGroup>
-    );
+  if (query.isPending) return <LoadingArea label={label} />;
   if (query.isError)
     return (
       <Alert className={styles.error} tone="error" title="Unable to load">

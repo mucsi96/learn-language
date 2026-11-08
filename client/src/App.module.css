@@ -1,6 +1,13 @@
 .layout {
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
   --bt-app-content-gap: 2rem;
+}
+.main {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
 }
 .header {
   position: sticky;

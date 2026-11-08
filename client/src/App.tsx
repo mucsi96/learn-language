@@ -3,7 +3,6 @@ import {
   AppHeader,
   AppHeaderActions,
   AppMain,
-  BarLoader,
   Button,
   Menu,
   MenuItem,
@@ -17,6 +16,7 @@ import { apiQuery } from './api/http';
 import { userSchema } from './api/schemas';
 import styles from './App.module.css';
 import { RouteTitle } from './components/RouteTitle';
+import { LoadingArea } from './components/LoadingArea';
 import { ProviderBillingAlert } from './features/creation/ProviderBillingAlert';
 import { SourceNavigation } from './features/sources/SourceNavigation';
 
@@ -86,7 +86,7 @@ export function App() {
         </AppHeader>
         <AppMain className={styles.main}>
           <ProviderBillingAlert />
-          <Suspense fallback={<BarLoader label="Opening page" />}>
+          <Suspense fallback={<LoadingArea label="Opening page" />}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/sources" element={<Sources />} />

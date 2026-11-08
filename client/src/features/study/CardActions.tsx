@@ -7,8 +7,6 @@ import {
   MenuItem,
   MenuPopover,
   MenuTrigger,
-  Skeleton,
-  SkeletonGroup,
   TextField,
 } from '@mucsi96/react-ui';
 import { z } from 'zod';
@@ -17,6 +15,7 @@ import { audioSchema, type Card } from '../../api/cards';
 import { environmentSchema } from '../../api/schemas';
 import { useAction } from '../../api/mutations';
 import { QueryState } from '../../components/QueryState';
+import { LoadingArea } from '../../components/LoadingArea';
 import { createPlayback } from './audio';
 import { startRecording } from './recording';
 import styles from './Study.module.css';
@@ -143,11 +142,7 @@ function Chat({ card, close }: { card: Card; close: () => void }) {
         ))}
       </div>
       {(submit.error || microphone.error) && <p role="alert">{(submit.error ?? microphone.error)?.message}</p>}
-      {busy && !recording && (
-        <SkeletonGroup label="Generating answer">
-          <Skeleton height="2rem" />
-        </SkeletonGroup>
-      )}
+      {busy && !recording && <LoadingArea label="Generating answer" />}
       <form
         className={styles.chatForm}
         onSubmit={(event) => {

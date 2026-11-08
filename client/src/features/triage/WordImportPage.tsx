@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, BarLoader } from '@mucsi96/react-ui';
+import { Button } from '@mucsi96/react-ui';
+import { LoadingArea } from '../../components/LoadingArea';
 import { apiQuery, getJson, sendJson } from '../../api/http';
 import { sourceSchema } from '../../api/schemas';
 import { QueryState } from '../../components/QueryState';
@@ -329,7 +330,7 @@ function WordImport({ sourceId }: { sourceId: string }) {
                         Choose JSON file
                       </Button>
                       <p>{fileName}</p>
-                      {stage.isPending && <BarLoader label="Staging words" />}
+                      {stage.isPending && <LoadingArea label="Staging words" />}
                     </section>
                   ) : current ? (
                     <section>

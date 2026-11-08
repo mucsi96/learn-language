@@ -1,0 +1,15 @@
+main:has(> .area) {
+  display: flex;
+  flex-direction: column;
+}
+
+.area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 8rem;
+  padding: 1rem;
+}

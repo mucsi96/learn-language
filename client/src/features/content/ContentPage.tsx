@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, BarLoader, Checkbox, Skeleton, SkeletonGroup, TextField } from '@mucsi96/react-ui';
+import { Button, Checkbox, TextField } from '@mucsi96/react-ui';
 import { apiQuery, sendJson } from '../../api/http';
 import { sourceSchema } from '../../api/schemas';
 import { QueryState } from '../../components/QueryState';
+import { LoadingArea } from '../../components/LoadingArea';
 import { contentPath, contentSchema, formatPosition } from './api';
 import type { ContentItem } from './api';
 import { ContentPlayer } from './ContentPlayer';
@@ -95,11 +96,7 @@ function Catalogue({ sourceId, mode, level }: { sourceId: string; mode: ContentM
         <TextField label="Search content" type="search" value={search} onChange={setSearch} />
       </div>
       {query.isPending ? (
-        <SkeletonGroup label="Discovering content">
-          {[0, 1, 2, 3].map((row) => (
-            <Skeleton key={row} variant="row" />
-          ))}
-        </SkeletonGroup>
+        <LoadingArea label="Discovering content" />
       ) : query.isError ? (
         <div role="alert">
           <p>Content discovery failed. Please retry.</p>
@@ -238,7 +235,7 @@ function ContentDetail({
                 <section role="status" aria-label="Preparing transcript and vocabulary">
                   <h3>Preparing your story</h3>
                   <p>Checking the transcript and vocabulary before listening.</p>
-                  <BarLoader label="Preparing transcript and vocabulary" />
+                  <LoadingArea label="Preparing transcript and vocabulary" />
                 </section>
               )}
               {item.status === 'failed' && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BarLoader, Button, Dialog, Select } from '@mucsi96/react-ui';
+import { Button, Dialog, Select } from '@mucsi96/react-ui';
+import { LoadingArea } from '../../components/LoadingArea';
 import { Link } from 'react-router-dom';
 import { type Duplicate } from './api';
 import { useCreationJob } from './pipeline';
@@ -16,7 +17,7 @@ export function CreationProgress({ onClose }: { onClose: () => void }) {
       }}
     >
       <div className={styles.progress}>
-        {job.isProcessing && job.progress.length === 0 && <BarLoader label="Preparing creation job" />}
+        {job.isProcessing && job.progress.length === 0 && <LoadingArea label="Preparing creation job" />}
         <ul className={styles.list}>
           {job.progress.map((entry, index) => (
             <li key={index}>
