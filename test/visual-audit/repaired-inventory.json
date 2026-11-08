@@ -1,0 +1,2788 @@
+[
+  {
+    "width": 1440,
+    "unmatchedBaseline": [],
+    "unmatchedCurrent": [],
+    "rows": [
+      {
+        "name": "cards-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "cards-populated.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "chat-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "chat-response.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "creation-progress.png",
+        "width": 1440,
+        "heights": [
+          1083,
+          1322
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "duplicates-dialog.png",
+        "width": 1440,
+        "heights": [
+          1083,
+          1322
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-grammar.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-simple.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-speech.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-vocabulary.png",
+        "width": 1440,
+        "heights": [
+          617,
+          874
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "home-due.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "home-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "image-context-dialog.png",
+        "width": 1440,
+        "heights": [
+          617,
+          874
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "image-preview-dialog.png",
+        "width": 1440,
+        "heights": [
+          617,
+          874
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-import-dialog.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-invalid.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-page.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-valid.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "listening-locked.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "listening-player.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "model-usage-empty.png",
+        "width": 1440,
+        "heights": [
+          518,
+          519
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "pdf-extracted.png",
+        "width": 1440,
+        "heights": [
+          1083,
+          1322
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "pdf-page.png",
+        "width": 1440,
+        "heights": [
+          1083,
+          926
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "pdf-selection.png",
+        "width": 1440,
+        "heights": [
+          1083,
+          1002
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "photo-page.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "profile-menu.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "review-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "review-populated.png",
+        "width": 1440,
+        "heights": [
+          666,
+          758
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-api-tokens-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-daily-sessions-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-data-models-empty.png",
+        "width": 1440,
+        "heights": [
+          779,
+          771
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          79,
+          118
+        ]
+      },
+      {
+        "name": "settings-grammar-topics-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-grammar-topics-populated.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-image-models-empty.png",
+        "width": 1440,
+        "heights": [
+          1073,
+          1004
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-known-words-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-known-words-populated.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-learning-partners-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-learning-partners-populated.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-source-groups-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-source-groups-populated.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-voices-add.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-voices-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-add.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-delete.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-edit.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-Audio-Collection.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-Ebook-Dictionary.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-Image-Collection.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-JSON.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-PDF-Document.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-form-Word-Triage.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "source-type-options.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "sources.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "stories-catalogue.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "stories-prerequisites.png",
+        "width": 1440,
+        "heights": [
+          701,
+          577
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-complete.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-flagged-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-welcome.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-no-image-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-no-image-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-resume.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-welcome.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-welcome.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-actions.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-welcome.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-back.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-complete.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-empty.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-front.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "usage-expanded.png",
+        "width": 1440,
+        "heights": [
+          576,
+          609
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "usage-populated.png",
+        "width": 1440,
+        "heights": [
+          518,
+          519
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "usage-summary.png",
+        "width": 1440,
+        "heights": [
+          576,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "voice-options.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "voice-selection.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "voices-populated-preview.png",
+        "width": 1440,
+        "heights": [
+          500,
+          500
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "unmatchedBaseline": [],
+    "unmatchedCurrent": [
+      "creation-progress.png",
+      "duplicates-dialog.png",
+      "pdf-extracted.png"
+    ],
+    "rows": [
+      {
+        "name": "cards-empty.png",
+        "width": 390,
+        "heights": [
+          1100,
+          983
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "cards-populated.png",
+        "width": 390,
+        "heights": [
+          1100,
+          983
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "chat-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "chat-response.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-grammar.png",
+        "width": 390,
+        "heights": [
+          844,
+          1123
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-simple.png",
+        "width": 390,
+        "heights": [
+          949,
+          922
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-speech.png",
+        "width": 390,
+        "heights": [
+          844,
+          1343
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "editor-vocabulary.png",
+        "width": 390,
+        "heights": [
+          972,
+          2332
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "home-due.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "home-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "image-context-dialog.png",
+        "width": 390,
+        "heights": [
+          972,
+          2332
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "image-preview-dialog.png",
+        "width": 390,
+        "heights": [
+          972,
+          2332
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-import-dialog.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "json-invalid.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "json-page.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "json-valid.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "listening-locked.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          1
+        ]
+      },
+      {
+        "name": "listening-player.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "model-usage-empty.png",
+        "width": 390,
+        "heights": [
+          1190,
+          1086
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "pdf-page.png",
+        "width": 390,
+        "heights": [
+          844,
+          864
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "pdf-selection.png",
+        "width": 390,
+        "heights": [
+          844,
+          1035
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "photo-page.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "profile-menu.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "review-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "review-populated.png",
+        "width": 390,
+        "heights": [
+          1080,
+          2002
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-api-tokens-empty.png",
+        "width": 390,
+        "heights": [
+          686,
+          844
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "settings-daily-sessions-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-data-models-empty.png",
+        "width": 390,
+        "heights": [
+          1586,
+          1602
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          352,
+          313
+        ]
+      },
+      {
+        "name": "settings-grammar-topics-empty.png",
+        "width": 390,
+        "heights": [
+          930,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-grammar-topics-populated.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-image-models-empty.png",
+        "width": 390,
+        "heights": [
+          2231,
+          2217
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          20,
+          0
+        ]
+      },
+      {
+        "name": "settings-known-words-empty.png",
+        "width": 390,
+        "heights": [
+          786,
+          1053
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "settings-known-words-populated.png",
+        "width": 390,
+        "heights": [
+          545,
+          1026
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          4,
+          1
+        ]
+      },
+      {
+        "name": "settings-learning-partners-empty.png",
+        "width": 390,
+        "heights": [
+          868,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-learning-partners-populated.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-source-groups-empty.png",
+        "width": 390,
+        "heights": [
+          913,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-source-groups-populated.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-voices-add.png",
+        "width": 390,
+        "heights": [
+          853,
+          1055
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "settings-voices-empty.png",
+        "width": 390,
+        "heights": [
+          853,
+          1055
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          7,
+          0
+        ]
+      },
+      {
+        "name": "source-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "source-add.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "source-delete.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          1
+        ]
+      },
+      {
+        "name": "source-edit.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          1
+        ]
+      },
+      {
+        "name": "source-form-Audio-Collection.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          7,
+          6
+        ]
+      },
+      {
+        "name": "source-form-Ebook-Dictionary.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "source-form-Image-Collection.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "source-form-JSON.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          7,
+          6
+        ]
+      },
+      {
+        "name": "source-form-PDF-Document.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "source-form-Word-Triage.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "source-type-options.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          6,
+          6
+        ]
+      },
+      {
+        "name": "sources.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          5,
+          6
+        ]
+      },
+      {
+        "name": "stories-catalogue.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          1
+        ]
+      },
+      {
+        "name": "stories-prerequisites.png",
+        "width": 390,
+        "heights": [
+          1495,
+          1235
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-complete.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-flagged-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-grammar-welcome.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-no-image-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-no-image-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-resume.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-simple-welcome.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-speech-welcome.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-actions.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "study-vocabulary-welcome.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-back.png",
+        "width": 390,
+        "heights": [
+          844,
+          962
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-complete.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-empty.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "triage-front.png",
+        "width": 390,
+        "heights": [
+          844,
+          962
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "usage-expanded.png",
+        "width": 390,
+        "heights": [
+          1307,
+          1266
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          5,
+          0
+        ]
+      },
+      {
+        "name": "usage-populated.png",
+        "width": 390,
+        "heights": [
+          1190,
+          1086
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          5,
+          0
+        ]
+      },
+      {
+        "name": "usage-summary.png",
+        "width": 390,
+        "heights": [
+          1307,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          1,
+          1
+        ]
+      },
+      {
+        "name": "voice-options.png",
+        "width": 390,
+        "heights": [
+          798,
+          1386
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          2,
+          3
+        ]
+      },
+      {
+        "name": "voice-selection.png",
+        "width": 390,
+        "heights": [
+          844,
+          844
+        ],
+        "overflow": [
+          false,
+          false
+        ],
+        "controlsOutside": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "voices-populated-preview.png",
+        "width": 390,
+        "heights": [
+          798,
+          1386
+        ],
+        "overflow": [
+          true,
+          false
+        ],
+        "controlsOutside": [
+          10,
+          3
+        ]
+      }
+    ]
+  }
+]

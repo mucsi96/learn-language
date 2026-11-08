@@ -63,15 +63,25 @@ export function CardEditor({ card }: { card: Card }) {
     });
   return (
     <section className={styles.page}>
-      <h1>Edit {card.type === 'speech' ? 'sentence' : card.type} card</h1>
-      <p>{card.readiness}</p>
+      <header className={styles.editorHeader}>
+        <div>
+          <h1>Edit {card.type === 'speech' ? 'sentence' : card.type} card</h1>
+          <p>{card.readiness}</p>
+        </div>
+        <Button isDisabled={action.isPending} onPress={() => action.mutate(() => save())}>
+          Update
+        </Button>
+      </header>
       {action.error && (
         <p role="alert" className={styles.error}>
           {action.error.message}
         </p>
       )}
-      <fieldset className={styles.fields} disabled={action.isPending}>
-        <legend>Card content</legend>
+      <fieldset
+        className={`${styles.fields} ${styles.editorFields}`}
+        aria-label="Card content"
+        disabled={action.isPending}
+      >
         <CardFields
           type={card.type}
           data={data}
@@ -83,7 +93,6 @@ export function CardEditor({ card }: { card: Card }) {
           }}
         />
         <div className={styles.actions}>
-          <Button onPress={() => action.mutate(() => save())}>Update</Button>
           {card.readiness === 'IN_REVIEW' && (
             <Button
               tone="success"

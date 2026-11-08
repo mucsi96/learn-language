@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { apiQuery, sendJson } from '../../api/http';
-import { sourceSchema, type Source } from '../../api/schemas';
 import { QueryState } from '../../components/QueryState';
 import {
   pageSchema,
@@ -23,20 +22,6 @@ import { PendingPhoto } from './PendingPhoto';
 import { PageCanvas } from './PageCanvas';
 import { mergeCandidates, useViewerState } from './viewerState';
 import styles from './Creation.module.css';
-
-function sourceDestination(source: Source) {
-  const base = `/sources/${source.id}`;
-  switch (source.sourceType) {
-    case 'audioCollection': return `${base}/content`;
-    case 'ebookDictionary': return `${base}/cards?filter=draft`;
-    case 'wordTriage': return `${base}/word-import`;
-    case 'json': return `${base}/json`;
-    case 'pdf':
-    case 'images':
-      if (source.startPage === null) throw new Error(`Missing start page for source ${source.id}`);
-      return `${base}/page/${source.startPage}`;
-  }
-}
 
 export function PageViewer() {
   const { sourceId, pageNumber } = useParams();
@@ -63,7 +48,6 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
     )
   );
   const page = query.data;
-  const sources = useQuery(apiQuery('/api/sources', z.array(sourceSchema)));
   const type = cardType || (page?.cardTypes.length === 1 ? page.cardTypes[0] : undefined);
   const topics = useQuery({
     ...apiQuery('/api/grammar-topics', z.array(z.object({ id: z.number(), name: z.string() }))),
@@ -160,32 +144,18 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
       <QueryState query={query} label="Document page">
         {(loaded) => (
           <>
-            <h1>
-              <MenuTrigger onOpenChange={(open) => { if (open) void sources.refetch(); }}>
-                <Button variant="text" isDisabled={!sources.data}>{loaded.sourceName}</Button>
-                <MenuPopover>
-                  <Menu aria-label="Sources">
-                    {sources.data?.map((source) => (
-                      <MenuItem key={source.id} onAction={() => navigate(sourceDestination(source))}>
-                        {source.name}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </MenuPopover>
-              </MenuTrigger>
-            </h1>
-            {sources.error && <p role="alert">{sources.error.message}</p>}
+            <h1>{loaded.sourceName}</h1>
             <div className={styles.toolbar}>
               <div className={styles.actions}>
                 <LinkButton
-                  variant="outlined"
+                  variant="icon"
                   aria-label="Previous page"
                   isDisabled={pageNumber <= 1}
                   href={href(pageNumber - 1)}
                 >
-                  Previous page
+                  ‹
                 </LinkButton>
-                <label className={styles.field}>
+                <label className={`${styles.field} ${styles.pageNumber}`}>
                   Page
                   <input
                     aria-label="Page"
@@ -205,12 +175,12 @@ function PageViewerSource({ sourceId, pageNumber }: { sourceId: string; pageNumb
                 </label>
                 <span>of {loaded.pageCount ?? '—'}</span>
                 <LinkButton
-                  variant="outlined"
+                  variant="icon"
                   aria-label="Next page"
                   isDisabled={loaded.pageCount != null && pageNumber >= loaded.pageCount}
                   href={href(pageNumber + 1)}
                 >
-                  Next page
+                  ›
                 </LinkButton>
                 <Link to={`/sources/${sourceId}/cards`}>Cards</Link>
               </div>

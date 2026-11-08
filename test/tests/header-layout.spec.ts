@@ -43,3 +43,20 @@ import { createCard, createSource } from '../utils';
     await expect(header.getByRole('button', { name: 'Other', exact: true })).toHaveCount(0);
   });
 });
+
+test('source navigation remains in the header across pages, JSON imports, and card lists', async ({ page }) => {
+  await createSource({ id: 'json-practice', name: 'JSON practice', sourceType: 'JSON', languageLevel: 'A1', cardTypes: ['SIMPLE'] });
+  const header = page.getByRole('banner');
+  await page.goto('/sources/goethe-a1/page/9');
+  await header.getByRole('button', { name: 'Goethe A1', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'JSON practice', exact: true }).click();
+  await expect(page).toHaveURL('/sources/json-practice/json');
+  await header.getByRole('button', { name: 'JSON practice', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Goethe A2', exact: true }).click();
+  await expect(page).toHaveURL('/sources/goethe-a2/page/8');
+  await page.goto('/sources/json-practice/cards');
+  await header.getByRole('button', { name: 'JSON practice', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Goethe A1', exact: true }).click();
+  await expect(page).toHaveURL('/sources/goethe-a1/cards');
+  await expect(header.getByRole('button', { name: 'Goethe A1', exact: true })).toBeVisible();
+});

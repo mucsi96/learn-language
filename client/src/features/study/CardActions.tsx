@@ -70,6 +70,7 @@ function Chat({ card, close }: { card: Card; close: () => void }) {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [draft, setDraft] = useState('');
   const [recording, setRecording] = useState(false);
+  const question = useRef<HTMLDivElement>(null);
   const active = useRef<Awaited<ReturnType<typeof startRecording>> | null>(null);
   const lifetime = useRef<AbortController | null>(null);
   useEffect(() => {
@@ -148,27 +149,30 @@ function Chat({ card, close }: { card: Card; close: () => void }) {
         </SkeletonGroup>
       )}
       <form
+        className={styles.chatForm}
         onSubmit={(event) => {
           event.preventDefault();
           if (draft.trim() && !busy) {
+            question.current?.querySelector('input')?.focus();
             submit.mutate(draft.trim());
             setDraft('');
           }
         }}
       >
         <TextField
+          ref={question}
           label="Ask a question"
           placeholder={
             card.source.aiLanguage === 'english' ? 'Ask something about the card...' : 'Kérdezz valamit a kártyáról...'
           }
           value={draft}
           onChange={setDraft}
-          isDisabled={busy}
+          isReadOnly={busy}
         />
         <Button
           type="button"
           aria-label={recording ? 'Stop recording' : 'Speak'}
-          isDisabled={busy && !recording}
+          isPending={busy && !recording}
           onPress={() => (recording ? active.current?.stop() : microphone.mutate())}
         >
           {recording ? 'Stop recording' : 'Speak'}

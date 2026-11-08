@@ -15,6 +15,7 @@ test('starting and continuing study automatically starts an inactive Pomodoro', 
   await expect(page.getByRole('button', { name: 'Start Pomodoro', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   await expectProgress(timer, 0);
+  expect((await timer.boundingBox())!.height).toBeLessThanOrEqual(8);
   await page.clock.fastForward(25 * 60_000);
   await expectProgress(timer, 100);
   await page.getByRole('button', { name: 'Start new study session' }).click();

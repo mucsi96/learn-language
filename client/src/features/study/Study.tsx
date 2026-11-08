@@ -3,6 +3,7 @@ import { useIsMutating, useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import {
   Button,
+  Badge,
   Card as Panel,
   LinkButton,
   Menu,
@@ -311,12 +312,12 @@ function StudyCard({
             </div>
           )}
           <div className={styles.content}>
-            <StateBadge state={card.state} />
+            <StateBadge state={card.state} showLabel />
             {card.type === 'simple' ? (
               <>
                 <div className={styles.toolbar}>
-                  {card.data.category && <span aria-label="Category">{card.data.category}</span>}
-                  {card.data.topic && <span aria-label="Topic">{card.data.topic}</span>}
+                  {card.data.category && <Badge aria-label="Category" tone="primary">{card.data.category}</Badge>}
+                  {card.data.topic && <Badge aria-label="Topic">{card.data.topic}</Badge>}
                 </div>
                 {card.data.frontText && <Markdown label="Front" text={card.data.frontText} />}
                 {card.source.typingPractice && !revealed && (
@@ -344,7 +345,7 @@ function StudyCard({
               </>
             ) : card.type === 'grammar' ? (
               <>
-                {card.data.grammarTopic && <span aria-label="Grammar topic">{card.data.grammarTopic}</span>}
+                {card.data.grammarTopic && <Badge aria-label="Grammar topic">{card.data.grammarTopic}</Badge>}
                 {card.data.hint && <p aria-label="Hint">{card.data.hint}</p>}
                 <p aria-label="Hungarian translation">{example?.hu}</p>
                 <p className={styles.sentence}>
@@ -369,7 +370,7 @@ function StudyCard({
                 {card.type === 'vocabulary' && (
                   <>
                     {card.data.type && (
-                      <span aria-label="Word type">
+                      <Badge aria-label="Word type" tone="success">
                         {
                           (
                             {
@@ -389,7 +390,7 @@ function StudyCard({
                             } as Record<string, string>
                           )[card.data.type]
                         }
-                      </span>
+                      </Badge>
                     )}
                     <h2 style={{ color: gender?.color }}>{revealed ? card.data.word : card.data.translation?.hu}</h2>
                     {gender && <span className={styles.srOnly}>Gender: {gender.name}</span>}

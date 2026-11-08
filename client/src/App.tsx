@@ -10,7 +10,7 @@ import {
   MenuPopover,
   MenuTrigger,
 } from '@mucsi96/react-ui';
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useMatch, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { RouterProvider } from 'react-aria-components';
 import { apiQuery } from './api/http';
@@ -18,6 +18,7 @@ import { userSchema } from './api/schemas';
 import styles from './App.module.css';
 import { RouteTitle } from './components/RouteTitle';
 import { ProviderBillingAlert } from './features/creation/ProviderBillingAlert';
+import { SourceNavigation } from './features/sources/SourceNavigation';
 
 const Home = lazy(() => import('./features/home/Home'));
 const Sources = lazy(() => import('./features/sources/Sources'));
@@ -48,18 +49,20 @@ const CardEditorPage = lazy(() => import('./features/creation').then((module) =>
 export function App() {
   const profile = useQuery(apiQuery('/oauth2/userinfo', userSchema));
   const navigate = useNavigate();
+  const studyRoute = useMatch('/sources/:sourceId/study');
   const name =
     profile.data &&
     (profile.data.additionalClaims?.name ?? profile.data.preferredUsername ?? profile.data.email).trim();
   return (
     <RouterProvider navigate={navigate}>
       <RouteTitle />
-      <div className={styles.layout}>
+      <div className={`${styles.layout} ${studyRoute ? styles.studyLayout : ''}`}>
         <AppHeader className={styles.header}>
           <Link to="/" className={styles.brand}>
             Learn Language
           </Link>
           <AppHeaderActions>
+            <SourceNavigation />
             <div id="study-header-controls" className={styles.studyControls} />
             <MenuTrigger>
               <Button variant="avatar" aria-label="Profile menu">
@@ -81,7 +84,7 @@ export function App() {
             </MenuTrigger>
           </AppHeaderActions>
         </AppHeader>
-        <AppMain>
+        <AppMain className={styles.main}>
           <ProviderBillingAlert />
           <Suspense fallback={<BarLoader label="Opening page" />}>
             <Routes>
