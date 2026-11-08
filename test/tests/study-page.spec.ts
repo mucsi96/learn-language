@@ -419,7 +419,7 @@ test('large study queues show compact dots without header scrolling', async ({ p
     scrollHeight: element.scrollHeight,
     scrollWidth: element.scrollWidth,
   }));
-  expect(dimensions.width).toBeLessThanOrEqual(200);
+  expect(dimensions.width).toBeGreaterThan(200);
   expect(dimensions.height).toBeLessThanOrEqual(32);
   expect(dimensions.height).toBeGreaterThan(8);
   expect(dimensions.scrollHeight).toBe(dimensions.height);

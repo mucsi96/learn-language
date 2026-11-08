@@ -24,6 +24,27 @@
   font-size: 1rem;
   padding: 0.5rem 1rem;
 }
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.studyHeaderRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.studyHeaderActions,
+.studyHeaderActions .studyControls {
+  display: contents;
+}
+@media (max-width: 600px) {
+  .studyHeaderRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.5rem;
+  }
+}
 .studyControls {
   min-width: 0;
   max-width: 100%;

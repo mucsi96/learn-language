@@ -108,6 +108,19 @@ import { createCardsWithStates } from '../utils';
     const sourceButton = (await page.getByRole('button', { name: 'Goethe A1', exact: true }).boundingBox())!;
     const profile = (await page.getByRole('button', { name: 'Profile menu' }).boundingBox())!;
     expect(Math.abs(sourceButton.y - profile.y)).toBeLessThan(2);
+    const dots = (await counts.boundingBox())!;
+    const brand = (await page.getByRole('link', { name: 'Learn Language', exact: true }).boundingBox())!;
+    if (width > 600) {
+      expect(dots.x).toBeGreaterThanOrEqual(brand.x + brand.width);
+      expect(dots.width).toBeGreaterThan(200);
+      expect(sourceButton.x - dots.x - dots.width).toBeLessThanOrEqual(16);
+      const lastDot = (await counts.getByRole('img').last().boundingBox())!;
+      expect(Math.abs(lastDot.x + lastDot.width - dots.x - dots.width)).toBeLessThan(1);
+    } else {
+      expect(dots.y).toBeGreaterThanOrEqual(profile.y + profile.height);
+      expect(dots.x).toBe(16);
+      expect(dots.width).toBe(width - 32);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     await page.screenshot({ path: testInfo.outputPath('study-header.png') });
   });

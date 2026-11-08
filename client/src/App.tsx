@@ -47,14 +47,16 @@ export function App() {
       <RouteTitle />
       <div className={`${styles.layout} ${studyRoute ? styles.studyLayout : ''}`}>
         <AppHeader className={styles.header}>
-          <Link to="/" className={styles.brand}>
-            Learn Language
-          </Link>
-          <AppHeaderActions>
-            <SourceNavigation />
-            <div id="study-header-controls" className={styles.studyControls} />
-            {!studyRoute && <ProfileMenu />}
-          </AppHeaderActions>
+          <div className={`${styles.headerRow} ${studyRoute ? styles.studyHeaderRow : ''}`}>
+            <Link to="/" className={styles.brand}>
+              Learn Language
+            </Link>
+            <AppHeaderActions className={studyRoute ? styles.studyHeaderActions : undefined}>
+              <SourceNavigation />
+              <div id="study-header-controls" className={styles.studyControls} />
+              {!studyRoute && <ProfileMenu />}
+            </AppHeaderActions>
+          </div>
         </AppHeader>
         <AppMain className={styles.main}>
           <ProviderBillingAlert />

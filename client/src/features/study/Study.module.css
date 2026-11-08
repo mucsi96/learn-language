@@ -15,12 +15,15 @@
   align-items: center;
   justify-content: center;
 }
-.headerControls {
+.headerActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
 }
 .sourceButton {
   max-width: 100%;
@@ -110,7 +113,11 @@
   align-items: center;
   align-content: center;
   gap: 3px;
-  max-width: 197px;
+  justify-content: flex-end;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
   padding-block: 2px;
 }
 .sourceOption {
@@ -119,8 +126,16 @@
   gap: 1rem;
 }
 @media (max-width: 600px) {
+  .headerActions {
+    grid-column: 2;
+  }
   .dots {
-    max-width: 137px;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .dots:empty {
+    display: none;
   }
 }
 .pomodoro {

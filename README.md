@@ -142,6 +142,8 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 The study header reports one dot per due card in a compact, Jasmine-style strip.
 Uniform dots wrap into evenly spaced rows without a nested scrollbar or clipping.
+On desktop and tablet they use all remaining header space and align to the right.
+On mobile they occupy a full-width row beneath the header controls, inside the safe-area gutters.
 State colors use the React UI palette: link blue for New, success green for Learning,
 warning yellow for Review, and error red for Relearning. The same palette colors the
 state badges throughout the app. Each dot has an accessible state label and hover
