@@ -59,8 +59,8 @@ export function App() {
           <Link to="/" className={styles.brand}>
             Learn Language
           </Link>
-          <div id="study-header-controls" />
           <AppHeaderActions>
+            <div id="study-header-controls" className={styles.studyControls} />
             <MenuTrigger>
               <Button variant="avatar" aria-label="Profile menu">
                 {name

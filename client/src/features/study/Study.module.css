@@ -12,6 +12,20 @@
   align-items: center;
   justify-content: center;
 }
+.headerControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.sourceButton {
+  max-width: 100%;
+  height: auto;
+  min-height: 2.5rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .center {
   text-align: center;
   margin: auto;

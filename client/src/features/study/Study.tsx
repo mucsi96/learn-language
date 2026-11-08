@@ -77,49 +77,56 @@ function StudySession({ sourceId }: { sourceId: string }) {
     }
   });
   const controls = (
-    <Pomodoro active={active} onRestart={() => start.mutate(true)} pending={mutations > 0 || current.isFetching} />
+    <div className={styles.headerControls}>
+      {active && current.data?.studyMode === 'WITH_PARTNER' && (
+        <span role="status" aria-label="Current turn">
+          {current.data.turnName}
+        </span>
+      )}
+      <div role="group" aria-label="Due cards" className={styles.dots}>
+        {due.data
+          ?.filter((count) => count.sourceId === sourceId)
+          .flatMap((count) =>
+            Array.from({ length: count.count }, (_, index) => (
+              <StateBadge key={`${count.state}-${index}`} state={count.state} />
+            ))
+          )}
+      </div>
+      {sources.data && (
+        <MenuTrigger>
+          <Button variant="outlined" className={styles.sourceButton}>
+            {sources.data.find((source) => source.id === sourceId)?.name}
+          </Button>
+          <MenuPopover>
+            <Menu aria-label="Study source">
+              {sources.data.map((source) => (
+                <MenuItem
+                  key={source.id}
+                  textValue={source.name}
+                  aria-label={source.name}
+                  onAction={() => navigate(`/sources/${source.id}/study`)}
+                >
+                  <span className={styles.sourceOption}>
+                    {source.name}
+                    {due.data
+                      ?.filter((count) => count.sourceId === source.id)
+                      .map((count) => (
+                        <StateBadge key={count.state} state={count.state} count={count.count} />
+                      ))}
+                  </span>
+                </MenuItem>
+              ))}
+            </Menu>
+          </MenuPopover>
+        </MenuTrigger>
+      )}
+      <Pomodoro active={active} onRestart={() => start.mutate(true)} pending={mutations > 0 || current.isFetching} />
+    </div>
   );
   const header = document.getElementById('study-header-controls');
   return (
     <div className={styles.study}>
-      <div className={styles.toolbar}>
-        {sources.data && (
-          <MenuTrigger>
-            <Button variant="text">{sources.data.find((source) => source.id === sourceId)?.name}</Button>
-            <MenuPopover>
-              <Menu aria-label="Study source">
-                {sources.data.map((source) => (
-                  <MenuItem
-                    key={source.id}
-                    textValue={source.name}
-                    aria-label={source.name}
-                    onAction={() => navigate(`/sources/${source.id}/study`)}
-                  >
-                    <span className={styles.sourceOption}>
-                      {source.name}
-                      {due.data
-                        ?.filter((count) => count.sourceId === source.id)
-                        .map((count) => (
-                          <StateBadge key={count.state} state={count.state} count={count.count} />
-                        ))}
-                    </span>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </MenuPopover>
-          </MenuTrigger>
-        )}
-        <div role="group" aria-label="Due cards" className={styles.dots}>
-          {due.data
-            ?.filter((count) => count.sourceId === sourceId)
-            .flatMap((count) =>
-              Array.from({ length: count.count }, (_, index) => (
-                <StateBadge key={`${count.state}-${index}`} state={count.state} />
-              ))
-            )}
-        </div>
-        {header ? createPortal(controls, header) : controls}
-      </div>
+      {header && createPortal(controls, header)}
       <QueryState query={session} label="Checking study session">
         {(existing) =>
           !active ? (
@@ -144,11 +151,6 @@ function StudySession({ sourceId }: { sourceId: string }) {
               {(turn) =>
                 turn ? (
                   <>
-                    {turn.studyMode === 'WITH_PARTNER' && (
-                      <span role="status" aria-label="Current turn">
-                        {turn.turnName}
-                      </span>
-                    )}
                     <StudyCard
                       key={`${turn.card.id}-${turn.learningPartnerId}-${turn.card.reps}-${generation}`}
                       card={turn.card}
