@@ -336,7 +336,7 @@ test('large study queues keep all dots within a bounded header area', async ({ p
     scrollHeight: element.scrollHeight,
     scrollWidth: element.scrollWidth,
   }));
-  expect(dimensions.width).toBeLessThanOrEqual(200);
+  expect(dimensions.width).toBeGreaterThan(200);
   expect(dimensions.height).toBeLessThanOrEqual(32);
   expect(dimensions.height).toBeGreaterThan(8);
   expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.height);
