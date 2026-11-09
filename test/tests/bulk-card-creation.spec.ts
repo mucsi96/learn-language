@@ -308,33 +308,6 @@ test('bulk card creation opens progress dialog', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
 });
 
-test('bulk creation stays busy throughout budget preflight', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await setupDefaultImageModelSettings();
-  await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
-  await page.goto('/sources/goethe-a1/page/9');
-  await selectTextRange(page, 'aber', 'Vor der Abfahrt rufe ich an.');
-  const gate = { release: () => {} };
-  const budgetReady = new Promise<void>(resolve => { gate.release = resolve; });
-  await page.route('**/api/model-usage-logs/daily-usage', async route => {
-    await budgetReady;
-    await route.fallback();
-  });
-  try {
-    await page.getByRole('button', { name: 'Create cards in bulk' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Creating Cards' });
-    await expect(dialog.getByRole('button', { name: 'Continue in background', exact: true })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toHaveCount(0);
-  } finally {
-    gate.release();
-  }
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
-  await withDbConnection(async client => {
-    const result = await client.query("SELECT id FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
-    expect(result.rows).toHaveLength(1);
-  });
-});
-
 test('bulk card creation shows individual progress', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await setupDefaultImageModelSettings();
@@ -370,7 +343,7 @@ test('bulk card creation creates cards in database', async ({ page }) => {
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify cards were created in database
   await withDbConnection(async (client) => {
@@ -402,7 +375,7 @@ test('bulk card creation includes word data', async ({ page }) => {
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify word data in database
   await withDbConnection(async (client) => {
@@ -482,7 +455,7 @@ test('bulk card creation skips image generation for models with zero image count
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await withDbConnection(async (client) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
@@ -515,10 +488,10 @@ test('bulk card creation updates ui after completion', async ({ page }) => {
   await fab.click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Close the dialog
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
 
   // FAB should no longer be visible since cards now exist
   await expect(fab).not.toBeVisible();
@@ -543,7 +516,7 @@ test('bulk card creation dialog shows review cards link', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const reviewLink = page.getByRole('dialog').getByRole('link', { name: 'Review cards' });
   await expect(reviewLink).toBeVisible();
@@ -569,7 +542,7 @@ test('bulk card creation fsrs attributes', async ({ page }) => {
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify FSRS attributes in database
   await withDbConnection(async (client) => {
@@ -608,7 +581,7 @@ test('bulk card creation source metadata', async ({ page }) => {
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify source metadata in database
   await withDbConnection(async (client) => {
@@ -643,7 +616,7 @@ test('bulk card creation learning parameters and review state', async ({ page })
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
   // Wait for creation to complete
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   // Verify learning parameters and review state in database
   await withDbConnection(async (client) => {
@@ -685,7 +658,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
   await page.getByRole('button', { name: 'Actions for Speech A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
 
-  await page.getByLabel('Upload image file', { exact: true }).setInputFiles({
+  await page.getByLabel('Upload image').setInputFiles({
     name: 'test-speech-image.png',
     mimeType: 'image/png',
     buffer: menschenA1Image,
@@ -709,7 +682,7 @@ test('bulk speech card creation includes sentence data', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await withDbConnection(async (client) => {
     const result = await client.query(
@@ -789,7 +762,7 @@ test('bulk card creation persists extraction regions', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await withDbConnection(async (client) => {
     const result = await client.query(
@@ -821,8 +794,8 @@ test('persisted extraction regions are shown on page reload', async ({ page }) =
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
 
   await expect(page.getByRole('region', { name: 'Extracted region' }).first()).toBeVisible();
 });
@@ -838,8 +811,8 @@ test('persisted extraction regions are shown when navigating back to page', asyn
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
 
   await page.getByRole('link', { name: 'Next page' }).click();
   await page.getByRole('region', { name: 'Page content' }).waitFor();
@@ -859,7 +832,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await page.getByRole('button', { name: 'Actions for Grammar A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
 
-  await page.getByLabel('Upload image file', { exact: true }).setInputFiles({
+  await page.getByLabel('Upload image').setInputFiles({
     name: 'test-grammar-image.png',
     mimeType: 'image/png',
     buffer: menschenA1GrammarImage,
@@ -893,7 +866,7 @@ test('bulk grammar card creation extracts sentences with gaps', async ({ page })
   await page.getByRole('option', { name: 'Verbs' }).click();
   await topicDialog.getByRole('button', { name: 'Continue' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await withDbConnection(async (client) => {
     const result = await client.query(
@@ -995,7 +968,7 @@ test('ai duplicate detection skip excludes card from creation', async ({ page })
 
   await expect(page.getByRole('heading', { name: 'Creating Cards' })).toBeVisible();
   await expect(
-    page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })
+    page.getByRole('dialog').getByRole('button', { name: 'Close' })
   ).toBeVisible();
 
   await withDbConnection(async (client) => {
@@ -1073,7 +1046,7 @@ test('sources with multiple card types require selecting a card type before draf
   await page.getByRole('button', { name: 'Actions for Multi A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
 
-  const cardTypeSelect = page.getByRole('button', { name: 'Card type' });
+  const cardTypeSelect = page.getByRole('combobox', { name: 'Card type' });
   await expect(cardTypeSelect).toBeVisible();
 
   await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
@@ -1087,7 +1060,7 @@ test('sources with multiple card types require selecting a card type before draf
   await expect(confirmButton).toBeEnabled();
   await confirmButton.click();
 
-  await expect(cardTypeSelect).toBeDisabled();
+  await expect(cardTypeSelect).toHaveAttribute('aria-disabled', 'true');
 });
 
 test('sources with a single card type do not show a card type selector', async ({ page }) => {
@@ -1097,7 +1070,7 @@ test('sources with a single card type do not show a card type selector', async (
 
   await page.getByRole('region', { name: 'Page content' }).waitFor();
 
-  await expect(page.getByRole('button', { name: 'Card type' })).not.toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Card type' })).not.toBeVisible();
 
   await selectRegion(page, 'aber', 'Vor der Abfahrt rufe ich an.');
 

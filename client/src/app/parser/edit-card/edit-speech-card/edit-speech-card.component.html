@@ -1,0 +1,59 @@
+<div class="sentence">
+  <mat-form-field class="field">
+    <mat-label>German Sentence</mat-label>
+    <textarea
+      matInput
+      [formField]="speechForm.sentence"
+      aria-label="German sentence"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Hungarian Translation</mat-label>
+    <textarea
+      matInput
+      [formField]="speechForm.hungarianTranslation"
+      aria-label="Hungarian translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>English Translation</mat-label>
+    <textarea
+      matInput
+      [formField]="speechForm.englishTranslation"
+      aria-label="English translation"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+</div>
+
+<div class="images-section">
+  <h2>Images</h2>
+  <button
+    mat-icon-button
+    (click)="addImage()"
+    aria-label="Add image"
+    [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
+    [matTooltip]="dailyUsageService.imageLimitTooltip()"
+  >
+    <mat-icon>add_photo_alternate</mat-icon>
+  </button>
+  <button
+    mat-icon-button
+    (click)="addImageWithContext()"
+    aria-label="Add image with context"
+    [disabled]="areImagesLoading() || dailyUsageService.isImageLimitReached()"
+    [matTooltip]="dailyUsageService.imageLimitTooltip() || 'Add image with context'"
+  >
+    <mat-icon>edit_note</mat-icon>
+  </button>
+</div>
+@let imgs = images();
+@if (imgs && imgs.length) {
+  <app-image-grid
+    [images]="imgs"
+    [altText]="formModel().sentence"
+    (favoriteToggled)="onFavoriteToggled($event)"
+  />
+}

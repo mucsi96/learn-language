@@ -32,8 +32,7 @@ test('create JSON source restricted to simple cards', async ({ page }) => {
     page.getByText('Cards are added by importing a JSON array after creating the source.')
   ).toBeVisible();
 
-  await expect(page.getByRole('checkbox', { name: 'Practice typing the answer' })).not.toBeChecked();
-  await page.getByRole('checkbox', { name: 'Practice typing the answer' }).press('Space');
+  await page.getByRole('checkbox', { name: 'Practice typing the answer' }).check();
 
   await page.getByRole('button', { name: 'Create' }).click();
 
@@ -72,7 +71,7 @@ test('typing practice can be toggled off when editing a JSON source', async ({ p
   });
   await expect(checkbox).toBeChecked();
 
-  await checkbox.press('Space');
+  await checkbox.uncheck();
   await page.getByRole('button', { name: 'Update' }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
@@ -529,7 +528,7 @@ test('simple card can be edited on the card editing page', async ({ page }) => {
 
   await page.goto('/sources/ckad-edit/page/1/cards/ckad-pods-edit');
 
-  await expect(page.getByRole('heading', { name: 'Edit simple card', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Simple' })).toBeVisible();
   await expect(page.getByLabel('Front text')).toHaveValue('What is a **Pod**?');
   await expect(page.getByLabel('Back text')).toHaveValue('The smallest deployable unit.');
   await expect(page.getByLabel('Topic')).toHaveValue('Pods');

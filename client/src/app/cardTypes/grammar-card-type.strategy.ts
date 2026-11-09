@@ -1,0 +1,190 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { fetchJson } from '../utils/fetchJson';
+import { MultiModelService } from '../multi-model.service';
+import {
+  CardTypeStrategy,
+  CardType,
+  ExtractionRequest,
+  ExtractedItem,
+  SentenceList,
+  AudioGenerationItem,
+  BulkCreationContext,
+  Card,
+  CardData,
+  LanguageTexts,
+} from '../parser/types';
+import { CardReadiness } from '../shared/state/card-readiness';
+import { LANGUAGE_CODES } from '../shared/types/audio-generation.types';
+import { nonNullable } from '../utils/type-guards';
+import { createGrammarGapRegex } from '../shared/constants/grammar.constants';
+
+interface SentenceIdResponse {
+  id: string;
+  exists: boolean;
+}
+
+interface SentenceTranslationResponse {
+  translation: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class GrammarCardType implements CardTypeStrategy {
+  readonly cardType: CardType = 'grammar';
+  readonly completionReadiness: CardReadiness = 'IN_REVIEW';
+
+  private readonly http = inject(HttpClient);
+  private readonly multiModelService = inject(MultiModelService);
+
+  async extractItems(request: ExtractionRequest): Promise<ExtractedItem[]> {
+    const { sourceId, regions } = request;
+
+    const extractionResult = await this.multiModelService.callWithModel<SentenceList>(
+      'extraction',
+      (model: string, headers?: Record<string, string>) =>
+        fetchJson<SentenceList>(
+          this.http,
+          `/api/source/${sourceId}/extract/grammar`,
+          {
+            body: { regions, model },
+            method: 'POST',
+            headers,
+          }
+        )
+    );
+
+    return Promise.all(
+      extractionResult.response.sentences.map(async (sentence) => {
+        const sentenceIdResponse = await fetchJson<SentenceIdResponse>(
+          this.http,
+          '/api/sentence-id',
+          {
+            body: { germanSentence: sentence, sourceId },
+            method: 'POST',
+          }
+        );
+
+        return {
+          sentence,
+          id: sentenceIdResponse.id,
+          exists: sentenceIdResponse.exists,
+          extractionModel: extractionResult.model,
+        };
+      })
+    );
+  }
+
+  getItemLabel(item: ExtractedItem & { sentence?: string }): string {
+    return item.sentence ?? item.id;
+  }
+
+  filterItemsBySearchTerm(
+    items: (ExtractedItem & { sentence?: string })[],
+    searchTerm: string
+  ): ExtractedItem[] {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return items.filter((item) =>
+      (item.sentence ?? '').toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
+  createDraftCardData(item: ExtractedItem, context?: BulkCreationContext): CardData {
+    const sentence = item as ExtractedItem & { sentence: string; hint?: string };
+    return {
+      examples: [{ de: sentence.sentence }],
+      extractionModel: sentence.extractionModel,
+      ...(context?.grammarTopic ? { grammarTopic: context.grammarTopic } : {}),
+      ...(sentence.hint ? { hint: sentence.hint } : {}),
+    };
+  }
+
+  async createCardData(
+    cardData: CardData,
+    progressCallback: (progress: number, step: string) => void,
+    onToolsRequested: () => void
+  ): Promise<CardData> {
+    const sentence = cardData.examples?.[0]?.de;
+    if (!sentence) {
+      throw new Error('Card data is missing required sentence (examples[0].de)');
+    }
+
+    onToolsRequested();
+
+    try {
+      progressCallback(30, 'Translating to Hungarian...');
+      const hungarianResult =
+        await this.multiModelService.callWithModel<SentenceTranslationResponse>(
+          'translation',
+          (model: string, headers?: Record<string, string>) =>
+            fetchJson<SentenceTranslationResponse>(
+              this.http,
+              `/api/translate-sentence/hu?model=${model}`,
+              {
+                body: { sentence },
+                method: 'POST',
+                headers,
+              }
+            )
+        );
+
+      progressCallback(90, 'Preparing grammar card data...');
+
+      return {
+        examples: [
+          {
+            de: sentence,
+            hu: hungarianResult.response.translation,
+            isSelected: true,
+          },
+        ],
+        translationModel: hungarianResult.model,
+        extractionModel: cardData.extractionModel,
+        ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
+        ...(cardData.hint ? { hint: cardData.hint } : {}),
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to prepare grammar card data: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  requiredAudioLanguages(): string[] {
+    return [LANGUAGE_CODES.GERMAN];
+  }
+
+  getCardDisplayLabel(card: Card): string {
+    return card.data.examples?.[0]?.de ?? card.id;
+  }
+
+  getCardTypeLabel(_card: Card): string {
+    return 'Grammar';
+  }
+
+  getCardAdditionalInfo(_card: Card): string | undefined {
+    return undefined;
+  }
+
+  getAudioItems(card: Card): AudioGenerationItem[] {
+    const example = card.data.examples?.[0];
+    return [
+      example?.de
+        ? {
+            text: example.de.replace(createGrammarGapRegex(), '$1'),
+            language: LANGUAGE_CODES.GERMAN,
+          }
+        : null,
+    ].filter(nonNullable);
+  }
+
+  getLanguageTexts(card: Card): LanguageTexts[] {
+    const example = card.data.examples?.[0];
+    const germanTexts = [example?.de].filter(nonNullable);
+
+    return [
+      ...(germanTexts.length > 0 ? [{ language: 'de', texts: germanTexts }] : []),
+    ];
+  }
+}

@@ -1,0 +1,57 @@
+:root {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  width: 100%;
+}
+
+.sentence-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.gap-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.gaps-section {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.gaps-section h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.no-gaps-hint {
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+  margin: 0;
+}
+
+.preview-section {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+}
+
+.preview-section h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.sentence-preview {
+  font-family: monospace;
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+}

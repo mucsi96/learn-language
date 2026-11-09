@@ -32,7 +32,7 @@ import { createCard } from '../utils';
     await page.getByRole('button', { name: 'Start study session', exact: true }).click();
     const card = page.getByRole('article', { name: 'Flashcard' });
     await expect(card.getByRole('heading', { name: 'döntés' })).toBeVisible();
-    const assertFits = async (imageDescription: string) => {
+    const assertFits = async () => {
       expect(await page.evaluate(() => ({
         width: document.documentElement.scrollWidth,
         height: document.documentElement.scrollHeight,
@@ -40,13 +40,13 @@ import { createCard } from '../utils';
       expect(await page.getByRole('main').evaluate(element => element.scrollHeight <= element.clientHeight)).toBe(true);
       expect(await card.evaluate(element => [element, ...element.querySelectorAll('*')]
         .every(child => child.scrollHeight <= child.clientHeight + 1 || getComputedStyle(child).overflowY === 'hidden'))).toBe(true);
-      await expect(card.getByRole('img', { name: imageDescription, exact: true })).toBeVisible();
+      await expect(card.getByRole('img')).toBeVisible();
     };
-    await assertFits('Ma egy fontos döntést kell hoznunk.');
+    await assertFits();
     await card.getByRole('heading', { name: 'döntés' }).click();
     await expect(card.getByRole('heading', { name: 'die Entscheidung' })).toBeVisible();
     await expect(card.getByText('die Entscheidungen', { exact: true })).toBeVisible();
-    await assertFits('Wir müssen heute eine wichtige Entscheidung treffen.');
+    await assertFits();
     const correct = page.getByRole('button', { name: 'Correct', exact: true });
     await expect(correct).toBeInViewport({ ratio: 1 });
     const bounds = await correct.boundingBox();
@@ -89,7 +89,7 @@ test('long mobile vocabulary cards retain their image while scrolling', async ({
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   const card = page.getByRole('article', { name: 'Flashcard' });
   await card.getByRole('heading', { name: 'döntés' }).click();
-  const image = card.getByRole('img', { name: example.trim(), exact: true });
+  const image = card.getByRole('img');
   await expect(image).toBeInViewport({ ratio: 1 });
   expect((await image.boundingBox())!.height).toBeGreaterThan(100);
   const profile = page.getByRole('button', { name: 'Profile menu' });

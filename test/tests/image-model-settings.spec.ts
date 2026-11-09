@@ -42,7 +42,7 @@ test('displays all image model quality variants with default image counts', asyn
     variantLabels.map(async (label) => {
       await expect(page.getByText(label, { exact: true })).toBeVisible();
       await expect(
-        page.getByRole('textbox', { name: `Image count for ${label}`, exact: true })
+        page.getByRole('spinbutton', { name: `Image count for ${label}` })
       ).toHaveValue('0');
     })
   );
@@ -55,9 +55,9 @@ test('displays image counts from database settings', async ({ page }) => {
 
   await page.goto('/settings/image-models');
 
-  const flareMaxInput = page.getByRole('textbox', { name: 'Image count for GPT Image 2.5 Flare (Max)', exact: true });
-  const geminiInput = page.getByRole('textbox', { name: 'Image count for Gemini 3 Pro', exact: true });
-  const sunburstLowInput = page.getByRole('textbox', { name: 'Image count for GPT Image 2.5 Sunburst (Low)', exact: true });
+  const flareMaxInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 2.5 Flare (Max)' });
+  const geminiInput = page.getByRole('spinbutton', { name: 'Image count for Gemini 3 Pro' });
+  const sunburstLowInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 2.5 Sunburst (Low)' });
 
   await expect(flareMaxInput).toHaveValue('2');
   await expect(geminiInput).toHaveValue('5');
@@ -67,9 +67,9 @@ test('displays image counts from database settings', async ({ page }) => {
 test('can update image count for a model variant', async ({ page }) => {
   await page.goto('/settings/image-models');
 
-  const gptInput = page.getByRole('textbox', { name: 'Image count for GPT Image 2.5 Sunburst (XHigh)', exact: true });
+  const gptInput = page.getByRole('spinbutton', { name: 'Image count for GPT Image 2.5 Sunburst (XHigh)' });
   await gptInput.fill('4');
-  await gptInput.press('Tab');
+  await gptInput.dispatchEvent('change');
 
   await expect(async () => {
     const settings = await getImageModelSettings();

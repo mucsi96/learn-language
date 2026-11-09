@@ -1,0 +1,34 @@
+<div class="source-selector-container">
+  @if(loading()) {
+  <div class="loading-placeholder"></div>
+  } @else { @if(selectedSourceId() && mode() === 'study') {
+  @if (isStudyingWithPartner()) {
+  <span role="status" aria-label="Current turn" aria-live="polite">
+    <mat-chip>{{ currentTurn().name }}</mat-chip>
+  </span>
+  }
+  <div class="stats-container" role="group" aria-label="Due cards">
+    @for (dueCount of getDueCounts(selectedSourceId()!); track dueCount.state) {
+    <app-state [state]="dueCount.state" [count]="dueCount.count" display="dots" />
+    }
+  </div>
+  }
+  <button mat-stroked-button [matMenuTriggerFor]="menu">
+    {{ selectedSourceName() }}
+  </button>
+  <mat-menu #menu="matMenu">
+    @for (source of sources(); track source.id) {
+    <a mat-menu-item [routerLink]="getSourceLink(source)" [queryParams]="getSourceLinkQueryParams(source)">
+      <span class="source-link">
+        {{ source.name }}
+        @if (mode() === 'study') {
+          @for (dueCount of getDueCounts(source.id); track dueCount.state) {
+          <app-state [state]="dueCount.state" [count]="dueCount.count" />
+          }
+        }
+      </span>
+    </a>
+    }
+  </mat-menu>
+  }
+</div>

@@ -1,0 +1,73 @@
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { fetchJson } from '../utils/fetchJson';
+import {
+  ENVIRONMENT_CONFIG,
+  ImageModel,
+} from '../environment/environment.config';
+
+export interface ImageModelSettingRequest {
+  modelName: string;
+  imageCount: number;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ImageModelSettingsService {
+  private readonly http = inject(HttpClient);
+  private readonly environmentConfig = inject(ENVIRONMENT_CONFIG);
+  readonly imageModels = signal(this.environmentConfig.imageModels);
+  readonly imageRateLimitPerMinute = signal(this.environmentConfig.imageRateLimitPerMinute);
+  readonly imageMaxConcurrentRequests = signal(this.environmentConfig.imageMaxConcurrentRequests);
+  readonly imageDailyLimit = signal(this.environmentConfig.imageDailyLimit);
+
+  updateImageCount(modelId: string, imageCount: number): void {
+    this.imageModels.update((models) =>
+      models.map((m) => (m.id === modelId ? { ...m, imageCount } : m))
+    );
+    this.persistCounts(modelId);
+  }
+
+  private persistCounts(modelId: string): void {
+    const model = this.imageModels().find((m) => m.id === modelId);
+    if (!model) {
+      throw new Error(`Image model not found: ${modelId}`);
+    }
+
+    fetchJson<ImageModel>(this.http, '/api/image-model-settings', {
+      method: 'PUT',
+      body: {
+        modelName: modelId,
+        imageCount: model.imageCount,
+      } satisfies ImageModelSettingRequest,
+    });
+  }
+
+  updateImageRateLimit(value: number): void {
+    this.imageRateLimitPerMinute.set(value);
+
+    fetchJson(this.http, '/api/rate-limit-settings', {
+      method: 'PUT',
+      body: { type: 'image', maxPerMinute: value },
+    });
+  }
+
+  updateImageMaxConcurrent(value: number): void {
+    this.imageMaxConcurrentRequests.set(value);
+
+    fetchJson(this.http, '/api/rate-limit-settings', {
+      method: 'PUT',
+      body: { type: 'image', maxConcurrent: value },
+    });
+  }
+
+  updateImageDailyLimit(value: number): void {
+    this.imageDailyLimit.set(value);
+
+    fetchJson(this.http, '/api/rate-limit-settings', {
+      method: 'PUT',
+      body: { type: 'image', dailyLimit: value },
+    });
+  }
+}

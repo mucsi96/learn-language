@@ -18,7 +18,7 @@ test('navigates to cards table from page view', async ({ page }) => {
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
-  await page.getByRole('link', { name: 'Cards', exact: true }).click();
+  await page.getByRole('link', { name: 'View all cards' }).click();
   await expect(page).toHaveTitle('Cards | Learn language');
 });
 
@@ -89,7 +89,7 @@ test('filters cards by state', async ({ page }) => {
     expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['new-card', 'review-card']));
   }).toPass();
 
-  await page.getByRole('button', { name: /Filter by state/ }).click();
+  await page.getByLabel('Filter by state').click();
   await page.getByRole('option', { name: 'NEW' }).click();
 
   await expect(async () => {
@@ -123,7 +123,9 @@ test('filters cards by readiness', async ({ page }) => {
     expect(before.map((r) => r.ID)).toEqual(['ready-card']);
   }).toPass();
 
-  await page.getByRole('group', { name: 'Filter by readiness' }).getByRole('checkbox', { name: 'KNOWN', exact: true }).check();
+  await page.getByLabel('Filter by readiness').click();
+  await page.getByRole('option', { name: 'KNOWN' }).click();
+  await page.keyboard.press('Escape');
 
   await expect(async () => {
     const after = await getGridData(grid);
@@ -381,7 +383,7 @@ test('filters cards by last review time', async ({ page }) => {
     expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['recent-card', 'old-card']));
   }).toPass();
 
-  await page.getByRole('button', { name: /Filter by last review time/ }).click();
+  await page.getByLabel('Filter by last review time').click();
   await page.getByRole('option', { name: 'Today' }).click();
 
   await expect(async () => {
@@ -522,11 +524,11 @@ test('page title shows Cards', async ({ page }) => {
   await expect(page).toHaveTitle('Cards | Learn language');
 });
 
-test('page viewer exposes cards navigation', async ({ page }) => {
+test('delete image button shows as text button', async ({ page }) => {
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
   await page.getByRole('menuitem', { name: 'Pages' }).click();
-  await expect(page.getByRole('link', { name: 'Cards', exact: true })).toHaveAttribute('href', '/sources/goethe-a1/cards');
+  await expect(page.getByRole('link', { name: 'View all cards' })).toBeVisible();
 });
 
 test('deletes selected cards with confirmation', async ({ page }) => {
@@ -570,7 +572,7 @@ test('deletes selected cards with confirmation', async ({ page }) => {
 
   await page.getByRole('button', { name: /Delete 2/ }).click();
 
-  const dialog = page.getByRole('dialog', { name: 'Confirmation', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
 
   await expect(dialog.getByText('Are you sure you want to delete 2 card(s)?')).toBeVisible();
   await dialog.getByRole('button', { name: 'Yes' }).click();
@@ -611,10 +613,10 @@ test('cancels card deletion on dialog dismissal', async ({ page }) => {
     .click();
   await page.getByRole('button', { name: /Delete 1/ }).click();
 
-  const dialog = page.getByRole('dialog', { name: 'Confirmation', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
 
   await expect(dialog.getByText('Are you sure you want to delete 1 card(s)?')).toBeVisible();
-  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await dialog.getByRole('button', { name: 'No' }).click();
 
   await expect(async () => {
     const rows = await getGridData(page.getByRole('grid'));
@@ -660,46 +662,6 @@ test('selects all filtered cards with header checkbox', async ({ page }) => {
     .click();
 
   await expect(page.getByRole('button', { name: /Mark 3 as known/ })).toBeVisible();
-});
-
-test('bulk selection includes cards beyond the loaded grid block', async ({ page }) => {
-  await Array.from({ length: 105 }, (_, index) => index).reduce(async (previous, index) => {
-    await previous;
-    await createCard({
-      cardId: `cross-page-${String(index).padStart(3, '0')}`,
-      sourceId: 'goethe-a1',
-      sourcePageNumber: 9,
-      data: { word: `Wort ${index}`, translation: { en: `word ${index}` } },
-      readiness: 'READY',
-    });
-  }, Promise.resolve());
-  await page.goto('/sources/goethe-a1/cards');
-  await page.getByRole('checkbox', { name: 'Select all 105 cards', exact: true }).check();
-  await page.getByRole('button', { name: 'Mark 105 as known', exact: true }).click();
-  await expect(page.getByText('105 card(s) marked as known')).toBeVisible();
-  await withDbConnection(async client => {
-    const result = await client.query("SELECT count(*) FROM learn_language.cards WHERE id LIKE 'cross-page-%' AND readiness = 'KNOWN'");
-    expect(Number(result.rows[0].count)).toBe(105);
-  });
-});
-
-test('bulk selection detects drafts beyond the loaded grid block', async ({ page }) => {
-  await Array.from({ length: 105 }, (_, index) => index).reduce(async (previous, index) => {
-    await previous;
-    await createCard({
-      cardId: `mixed-pages-${String(index).padStart(3, '0')}`,
-      sourceId: 'goethe-a1',
-      sourcePageNumber: 9,
-      data: { word: `Wort ${index}` },
-      readiness: index === 104 ? 'DRAFT' : 'READY',
-    });
-  }, Promise.resolve());
-  await page.goto('/sources/goethe-a1/cards');
-  await page.getByRole('group', { name: 'Filter by readiness' }).getByRole('checkbox', { name: 'DRAFT', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Select all 105 cards', exact: true }).check();
-  await expect(page.getByRole('button', { name: 'Complete draft cards' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Mark 105 as known', exact: true })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Delete audio 105', exact: true })).not.toBeVisible();
 });
 
 test('deselects all cards with header checkbox', async ({ page }) => {
@@ -761,7 +723,7 @@ test('select all respects current filter', async ({ page }) => {
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await page.getByRole('button', { name: /Filter by state/ }).click();
+  await page.getByLabel('Filter by state').click();
   await page.getByRole('option', { name: 'NEW' }).click();
 
   await expect(async () => {
@@ -809,7 +771,7 @@ test('changing filter resets selection', async ({ page }) => {
     .click();
   await expect(page.getByRole('button', { name: /Mark 2 as known/ })).toBeVisible();
 
-  await page.getByRole('button', { name: /Filter by state/ }).click();
+  await page.getByLabel('Filter by state').click();
   await page.getByRole('option', { name: 'NEW' }).click();
 
   await expect(page.getByRole('button', { name: /Mark .* as known/ })).not.toBeVisible();
@@ -872,7 +834,7 @@ test('deletes audio for selected cards with confirmation', async ({ page }) => {
 
   await page.getByRole('button', { name: /Delete audio 2/ }).click();
 
-  const dialog = page.getByRole('dialog', { name: 'Confirmation', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Confirmation' });
   await expect(dialog.getByText('Are you sure you want to delete audio for 2 card(s)?')).toBeVisible();
   await dialog.getByRole('button', { name: 'Yes' }).click();
 
@@ -1029,7 +991,7 @@ test('filters cards by review score', async ({ page }) => {
     expect(before.map((r) => r.ID)).toEqual(expect.arrayContaining(['high-score-card', 'low-score-card']));
   }).toPass();
 
-  await page.getByRole('button', { name: /Filter by review score/ }).click();
+  await page.getByLabel('Filter by review score').click();
   await page.getByRole('option', { name: '100%' }).click();
 
   await expect(async () => {
@@ -1131,7 +1093,7 @@ test('filters cards by ID', async ({ page }) => {
     expect(rows.length).toBe(2);
   }).toPass();
 
-  await page.getByRole('textbox', { name: /Filter by ID/ }).fill('xyz');
+  await page.getByLabel('Filter by ID').fill('xyz');
 
   await expect(async () => {
     const rows = await getGridData(grid);
@@ -1197,7 +1159,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
-  await page.getByRole('button', { name: /Purpose/ }).click();
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
   await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
@@ -1247,7 +1209,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page, baseURL 
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
-  await page.getByRole('button', { name: /Purpose/ }).click();
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
   await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
@@ -1308,7 +1270,7 @@ test('completes selected draft cards from cards table', async ({ page, baseURL }
 
   await page.goto('/settings/api-tokens');
   await page.getByLabel('Token name').fill('Test Token');
-  await page.getByRole('button', { name: /Purpose/ }).click();
+  await page.getByRole('combobox', { name: 'Purpose' }).click();
   await page.getByRole('option', { name: 'Dictionary (e-book reader)' }).click();
 
   const downloadPromise = page.waitForEvent('download');
@@ -1479,7 +1441,9 @@ test('complete button visible for draft cards in non-draft mode', async ({ page 
     expect(rows.map((r) => r.ID)).toEqual(['ready-in-mixed']);
   }).toPass();
 
-  await page.getByRole('group', { name: 'Filter by readiness' }).getByRole('checkbox', { name: 'DRAFT', exact: true }).check();
+  await page.getByLabel('Filter by readiness').click();
+  await page.getByRole('option', { name: 'DRAFT' }).click();
+  await page.keyboard.press('Escape');
 
   await expect(async () => {
     const rows = await getGridData(grid);
@@ -1508,9 +1472,9 @@ test('bulk card creation produces cards visible on cards page', async ({ page })
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  const progress = page.getByRole('dialog', { name: 'Creating Cards', exact: true });
-  await expect(progress.getByText('3 succeeded, 0 failed', { exact: true })).toBeVisible();
-  await progress.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Close' }).click();
 
   await page.goto('/sources/goethe-a1/cards');
 

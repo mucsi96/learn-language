@@ -1,0 +1,17 @@
+.word {
+  position: absolute;
+  display: flex;
+  text-align: initial;
+  justify-content: flex-start;
+  align-items: center;
+  padding: initial !important;
+  border-radius: initial !important;
+  outline: 1px solid var(--outline, darkslategray);
+  outline-offset: 2px;
+}
+
+.word[mat-flat-button] {
+  min-width: 0;
+  font: inherit;
+  letter-spacing: inherit;
+}

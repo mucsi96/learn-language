@@ -1,0 +1,37 @@
+<div class="stats-grid">
+  <mat-card class="stat-card" role="group" aria-label="Total time">
+    <mat-icon class="stat-icon">timer</mat-icon>
+    <span class="stat-value" aria-label="value">{{ formatDuration(totalDurationMs()) }}</span>
+    <span class="stat-label">Total time</span>
+  </mat-card>
+
+  <mat-card class="stat-card" role="group" aria-label="Average per card">
+    <mat-icon class="stat-icon">speed</mat-icon>
+    <span class="stat-value" aria-label="value">{{ formatDuration(averageDurationMs()) }}</span>
+    <span class="stat-label">Avg per card</span>
+  </mat-card>
+
+  <mat-card class="stat-card good" role="group" aria-label="Good reviews">
+    <mat-icon class="stat-icon">check_circle</mat-icon>
+    <span class="stat-value" aria-label="value">{{ goodCount() }}</span>
+    <span class="stat-label">Good</span>
+  </mat-card>
+
+  <mat-card class="stat-card bad" role="group" aria-label="Struggled reviews">
+    <mat-icon class="stat-icon">replay</mat-icon>
+    <span class="stat-value" aria-label="value">{{ badCount() }}</span>
+    <span class="stat-label">Struggled</span>
+  </mat-card>
+</div>
+
+<div class="accuracy-section" role="group" aria-label="Accuracy">
+  <div class="accuracy-header">
+    <span class="stat-label">Accuracy</span>
+    <span class="stat-value" aria-label="value">{{ accuracy() }}%</span>
+  </div>
+  <mat-progress-bar
+    mode="determinate"
+    [value]="accuracy()"
+    [attr.aria-label]="accuracyLabel() ?? 'Accuracy'"
+  />
+</div>

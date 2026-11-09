@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>Add Voice Configuration</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline">
+    <mat-label>Voice</mat-label>
+    <mat-select
+      [formField]="voiceForm.voice"
+      (selectionChange)="onVoiceChange()"
+    >
+      @for (voice of filteredVoices(); track voice.id) {
+        <mat-option [value]="voice">
+          {{ voice.displayName }}
+          @if (voice.category === 'premade') {
+            <span class="voice-tag default-tag">default</span>
+          }
+          @if (voice.category === 'cloned') {
+            <span class="voice-tag favorite-tag">favorite</span>
+          }
+          <span class="voice-languages">
+            ({{ getVoiceLanguages(voice) }})
+          </span>
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (formModel().voice) {
+    <mat-form-field appearance="outline">
+      <mat-label>Language</mat-label>
+      <mat-select
+        [formField]="voiceForm.language"
+      >
+        @for (lang of availableLanguages(); track lang) {
+          <mat-option [value]="lang">
+            {{ getLanguageLabel(lang) }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Model</mat-label>
+      <mat-select
+        [formField]="voiceForm.model"
+      >
+        @for (model of availableModels(); track model.id) {
+          <mat-option [value]="model.id">
+            {{ model.displayName }}
+            @if (model.isDefault) {
+              <span class="default-badge">(default)</span>
+            }
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Display Name (optional)</mat-label>
+      <input
+        matInput
+        [formField]="voiceForm.displayName"
+      />
+    </mat-form-field>
+
+    <mat-slide-toggle
+      [formField]="voiceForm.isEnabled"
+    >
+      Enabled
+    </mat-slide-toggle>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button bt-color="primary" (click)="save()" [disabled]="!isValid()">
+    Add
+  </button>
+</mat-dialog-actions>

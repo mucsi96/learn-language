@@ -15,6 +15,11 @@ Skeleton sync: follow `.github/prompts/sync-skeleton.md` in a weekly scheduled t
 !IMPORTANT: Avoid using comments which are trivial or obvious. If comment is needed means the code is not clear enough.
 
 ## General Code style
+
+The target stack is Angular and Java/Spring Boot (GraalVM native). The November
+2026 React migration is reverted; do not introduce React or Rust through skeleton
+alignment or dependency maintenance. See `docs/stack-rollback.md`.
+
 - Avoid fallback values that hide missing data - prefer crashes over silent incorrect behavior
 - Prefer functional programming over procedural
 - Avoid variable mutations - create new values instead of modifying existing ones
@@ -44,19 +49,25 @@ Skeleton sync: follow `.github/prompts/sync-skeleton.md` in a weekly scheduled t
 - Don't use assertion messages
 - Test every feature using E2E tests with playwright inline with existing tests
 
-## React Code style
-- Use function components and hooks, with coherent domain boundaries under `src/features`.
-- Use TanStack Query for server state and Zod at API boundaries. Preserve unknown persisted card-data fields when updating a card.
-- Use `@mucsi96/react-ui` components and colocated CSS Modules. Read the installed library README before changing component styles.
-- Use semantic markup and accessible labels for role-based Playwright selectors.
-- Use button `tone="error"` for destructive actions, `warn` for caution, and `success` for positive outcomes. Preserve the intended button variant.
-- Use React state for forms and temporary UI state; effects synchronize external systems and clean up subscriptions, audio, and object URLs.
-- Prefer string literal unions over TypeScript enums. Do not introduce RxJS or framework compatibility layers.
-- Keep business algorithms independent of React. Add behavioral coverage in Playwright rather than React unit/component tests.
+## Angular Code style
+- Make sure the UI is testable using role based selectors and selectors based on accesibility
+- Follow functional programming patterns from TypeScript Code style section
+- Prefer using Angular Material components
+- Prefer using Angular signal / resource for state management
+- Follow `@mucsi96/angular-material-theme`'s documented button-color API: use `bt-color="primary|success|warn|error"` on `mat-flat-button`, `mat-raised-button`, `mat-fab` (including extended FABs), and `mat-mini-fab`, including anchor buttons. Use `[attr.bt-color]` for dynamic tones; no directive import is needed.
+- Solid buttons default to primary. Use `error` for destructive actions, `warn` for caution, and `success` for positive outcomes. Material's legacy `color="warn"` means error/red, not the theme's orange `bt-color="warn"`; migrate solid buttons accordingly.
+- For an arbitrary solid-button color, set only `--bt-button-bg` without `bt-color`. Let the theme derive label contrast and hover colors; do not override Material container/label/state-layer color tokens, `--mat-sys-primary`, or button `background`, `color`, and `:hover` separately. Keep the intended button variant; raised buttons support the same API and retain elevation.
+- The `bt-color` API does not cover text, outlined, icon, or menu buttons. Use their documented Material APIs instead; do not apply solid-button color workarounds to them. Check the installed theme README when upgrading or changing component styles.
+- Prefer putting styles and templates to separate files
+- Use angular resources core method when necessary
+- Do  not use ::ng-deep
+- Avoid using enum in TS. Prefer using string literals
+- Always using new Angular templates
+- Using rxjs is not allowed
 
 ## Design guidelines
-- Prefer using `@mucsi96/react-ui` components
-- Use the shared LoadingArea component with accessible labels, centered in its page or section, instead of skeletons or visible "Loading..." text
+- Prefer using Angular Material components
+- Avoid using "Loading..." in favor of skeleton loaders
 
 ## Project Overview
 
@@ -65,7 +76,7 @@ This is a language learning application that uses spaced repetition to help user
 ## Architecture
 
 **Backend**: Spring Boot 4 with Java 21 (built into a GraalVM native image), PostgreSQL database, local file storage, Azure cloud services, OpenAI API integration, Google Gemini API integration, ElevenLabs Voices integration
-**Frontend**: React/Vite with `@mucsi96/react-ui`, TanStack Query, Zod, gateway-managed Entra sessions, TypeScript
+**Frontend**: Angular with Material UI, gateway-managed Entra sessions, TypeScript
 
 ### Key Technologies
 - **Spaced Repetition**: Uses FSRS (Free Spaced Repetition Scheduler) algorithm via ts-fsrs library
@@ -75,13 +86,12 @@ This is a language learning application that uses spaced repetition to help user
 
 ## Development Commands
 
-### Frontend (React/Vite)
+### Frontend (Angular)
 ```bash
 cd client/
 npm run start       # Development server
 npm run build       # Production build
-npm run lint        # ESLint, including React hook rules
-npm run typecheck   # TypeScript project checks
+npm run watch       # Development build with watch mode
 ```
 
 ### Backend (Spring Boot)
@@ -364,10 +374,10 @@ Tracks review history and performance metrics for spaced repetition
 - **FileStorageService**: Local file system storage for PDFs and assets
 
 ### Frontend Services
-- **API queries and mutations**: Validated server state with TanStack Query
-- **Source features**: PDF source management and page navigation
-- **Creation workflows**: Bulk audio and card generation with progress tracking
-- **Study domain**: FSRS scheduling and session/Pomodoro management
+- **CardService**: Angular service for card state management and API interactions
+- **SourcesService**: PDF source management and page navigation
+- **BatchAudioCreationService**: Bulk audio generation with progress tracking
+- **BulkCardCreationService**: Batch card creation workflows
 
 ## API Routes
 
@@ -398,7 +408,7 @@ Tracks review history and performance metrics for spaced repetition
 
 ### Data Storage
 - Uses JSONB for flexible card data structure in PostgreSQL
-- TanStack Query for cached server state and explicit invalidation
+- Resource-based reactive patterns in Angular for efficient data loading
 - Batch operations for bulk card and audio creation
 
 ### Authentication
@@ -437,7 +447,7 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Sessions automatically resume when returning to the study page on the same day
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
-- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active. Its bottom progress bar and break announcement appear only on study routes. Reset Pomodoro appears in the avatar menu only on study routes with a running or expired timer; during an active session it restarts the source's session and countdown, otherwise only the countdown. It persists across navigation and reloads in the current browser tab; the full bar blinks on expiry (static with reduced motion) without interrupting study
+- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active. Its bottom progress bar, header controls, and break announcement appear only on study routes. Clicking Restart during an active session restarts the source's session and countdown. It persists across navigation and reloads in the current browser tab; the full bar blinks on expiry (static with reduced motion) without interrupting study
 - Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support

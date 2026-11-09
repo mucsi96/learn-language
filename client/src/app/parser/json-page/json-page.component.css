@@ -1,0 +1,46 @@
+.json-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.panel {
+  border: 1px solid var(--mat-sys-outline-variant, #ddd);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant, #555);
+}
+
+.card-count {
+  margin: 0;
+}

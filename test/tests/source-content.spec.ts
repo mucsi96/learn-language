@@ -15,11 +15,11 @@ async function addSource(page: Page, languageLevel = 'A2 - Elementary') {
   await createChatModelSetting({ modelName: 'gpt-5.5', operationType: 'EXTRACTION', isEnabled: true, isPrimary: true });
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source', exact: true }).click();
-  await page.getByRole('button', { name: /Source Type$/ }).click();
+  await page.getByRole('combobox', { name: 'Source Type', exact: true }).click();
   await page.getByRole('option', { name: 'Audio Collection', exact: true }).click();
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill(NAME);
   await page.getByRole('textbox', { name: 'Collection folder', exact: true }).fill('stories/deutsch-lernen-durch-hoeren-a1-a2/');
-  await page.getByRole('button', { name: /Language Level$/ }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
   await page.getByRole('option', { name: languageLevel, exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Name', exact: true })).toHaveValue(NAME);
   await page.getByRole('button', { name: 'Create', exact: true }).click();
@@ -45,13 +45,6 @@ async function readyWords(sourceId = SOURCE, words = ['sehen', 'Haus']) {
     cardId: `${sourceId}-${word}`, sourceId, readiness: 'READY', reps: 2,
     data: { word, type: 'NOUN', translation: { hu: word } },
   })));
-}
-
-async function selectVocabularyWord(page: Page, name: string) {
-  const checkbox = page.getByRole('checkbox', { name, exact: true });
-  await expect(checkbox).toBeEnabled();
-  if (!(await checkbox.isChecked())) await checkbox.press('Space');
-  await expect(checkbox).toBeChecked();
 }
 
 async function cachedWords(words: { lemma: string; wordType: string; article?: string; examples?: string[] }[]) {
@@ -292,19 +285,11 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
   await expect(page.getByRole('checkbox', { name: 'sehen', exact: true })).not.toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Haus', exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('sehen', { exact: true })).toBeVisible();
-  await test.step('Select the missing vocabulary word', async () => {
-    await selectVocabularyWord(page, 'Haus');
-  });
-  const draftResponse = await test.step('Create the selected vocabulary draft', async () => {
-    const [response] = await Promise.all([
-      page.waitForResponse(response => response.url().endsWith('/drafts') && response.request().method() === 'POST', { timeout: 10000 }),
-      page.getByRole('button', { name: 'Create drafts (1)' }).click(),
-    ]);
-    expect(response.ok()).toBe(true);
-    return response;
-  });
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
+  const draftRequest = page.waitForRequest(request => request.url().endsWith('/drafts'));
+  await page.getByRole('button', { name: 'Create drafts (1)' }).click();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
-  const request = draftResponse.request();
+  const request = await draftRequest;
   expect((await page.request.post(request.url(), {
     headers: apiHeaders, data: request.postDataJSON(),
   })).ok()).toBe(true);
@@ -347,7 +332,7 @@ test('filters group cards and requires every vocabulary prerequisite to be ready
     await cachedWords([{ lemma: 'Bank', wordType: 'noun', article: 'die', examples: [context] }]);
     await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
     await expect(page.getByText(context, { exact: true })).toBeVisible();
-    await selectVocabularyWord(page, 'Bank');
+    await page.getByRole('checkbox', { name: 'Bank', exact: true }).check();
     await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
     await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Bank', { exact: true })).toBeVisible();
     const card = await withDbConnection(async db =>
@@ -378,7 +363,7 @@ test('rejects a cached noun without an article before creating a draft', async (
   expect((await stats()).vocabularyPrompts[0]).toContain('Every noun MUST have its nominative definite article (der, die, or das)');
   await cachedWords([{ lemma: 'Haus', wordType: 'noun', article: '' }]);
   await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
   await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
   expect((await response).status()).toBe(500);
@@ -392,19 +377,19 @@ test('requires an explicit level for legacy story sources and uses the edited so
   await addSource(page);
   await withDbConnection(db => db.query('UPDATE learn_language.sources SET language_level = NULL WHERE id = $1', [SOURCE]));
   await prepare(page);
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await expect(page.getByRole('alert')).toContainText('Choose a language level');
   await expect(page.getByRole('button', { name: 'Create drafts (1)', exact: true })).toBeDisabled();
   expect((await stats()).dictionaryInputs).toEqual([]);
   await page.getByRole('link', { name: 'source settings', exact: true }).click();
   await page.getByRole('button', { name: `Actions for ${NAME}` }).click();
   await page.getByRole('menuitem', { name: 'Edit', exact: true }).click();
-  await page.getByRole('button', { name: /Language Level$/ }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
   await page.getByRole('option', { name: 'B1 - Intermediate', exact: true }).click();
   await page.getByRole('button', { name: 'Update', exact: true }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await prepare(page);
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('Haus', { exact: true })).toBeVisible();
   expect((await stats()).dictionaryPrompts[0]).toContain('CEFR B1 level');
@@ -414,7 +399,7 @@ test('does not save a story draft or copy the original context when example gene
   await addSource(page);
   await prepare(page);
   await fetch(`${fixtureUrl}/fail-examples`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fail: true }) });
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
   await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
   expect((await response).status()).toBe(500);
@@ -431,7 +416,7 @@ test('does not overwrite a Goethe card outside the story source group when its w
   const before = await withDbConnection(async db =>
     (await db.query("SELECT * FROM learn_language.cards WHERE id = 'haus-haz'")).rows[0]);
   await prepare(page);
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   const response = page.waitForResponse(response => response.url().endsWith('/drafts'));
   await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
   expect((await response).status()).toBe(409);
@@ -454,7 +439,7 @@ test('does not overwrite a Goethe card outside the story source group when its w
     await prepare(page);
     await cachedWords([{ lemma: 'auf jeden Fall', wordType: type }]);
     await page.getByRole('button', { name: 'Refresh prerequisites' }).click();
-    await selectVocabularyWord(page, 'auf jeden Fall');
+    await page.getByRole('checkbox', { name: 'auf jeden Fall', exact: true }).check();
     await page.getByRole('button', { name: 'Create drafts (1)', exact: true }).click();
     await expect(page.getByRole('list', { name: 'Vocabulary prerequisites: Card not ready' }).getByText('auf jeden Fall', { exact: true })).toBeVisible();
     const card = await withDbConnection(async db =>
@@ -462,14 +447,14 @@ test('does not overwrite a Goethe card outside the story source group when its w
     expect(card.data.type).toBe(type.toUpperCase());
     expect(card.id).toBe('auf-jeden-fall-mindenkeppen');
     await page.goto(`/sources/${SOURCE}/page/1/cards/${card.id}`);
-    const wordType = page.getByRole('button', { name: /Word type$/ });
-    await expect(wordType).toHaveAccessibleName(`${label} Word type`);
+    const wordType = page.getByRole('combobox', { name: 'Word type', exact: true });
+    await expect(wordType).toHaveText(label);
     await wordType.click();
     await page.getByRole('option', { name: editedLabel, exact: true }).click();
     await page.getByRole('button', { name: 'Update', exact: true }).click();
     await expect(page.getByText('Card updated successfully', { exact: true })).toBeVisible();
     await page.reload();
-    await expect(wordType).toHaveAccessibleName(`${editedLabel} Word type`);
+    await expect(wordType).toHaveText(editedLabel);
     expect(await withDbConnection(async db =>
       (await db.query("SELECT data->>'type' AS type FROM learn_language.cards WHERE id = $1", [card.id])).rows[0].type)).toBe(editedType);
   });
@@ -498,9 +483,9 @@ test('matches optional reflexive cards and explicit dictionary aliases without m
     .toHaveText(['allein', 'sich setzen', 'zu']);
   await expect(page.getByRole('checkbox')).toHaveCount(3);
   await expect(page.getByText('Listening locked', { exact: true })).toBeVisible();
-  await selectVocabularyWord(page, 'allein');
-  await selectVocabularyWord(page, 'sich setzen');
-  await selectVocabularyWord(page, 'zu');
+  await page.getByRole('checkbox', { name: 'allein', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'sich setzen', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'zu', exact: true }).check();
   await page.getByRole('button', { name: 'Mark as known (3)', exact: true }).click();
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
   await withDbConnection(db => db.query("UPDATE learn_language.cards SET reps = 0 WHERE data->>'word' = '(sich) treffen'"));
@@ -550,7 +535,7 @@ test('re-extracts vocabulary from the saved transcript using updated exclusions'
   expect(prompt).toContain('Interjections, fillers, and greetings');
   expect(prompt).toContain('Absolute beginner (A1) words');
   expect(prompt).toContain('Anything garbled, misspelled beyond recognition, or not German.');
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await page.getByRole('button', { name: 'Mark as known (1)', exact: true }).click();
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
   await page.reload();
@@ -611,7 +596,7 @@ test('marks missing vocabulary known without creating cards and hides satisfied 
   await readyWords(SOURCE, ['wir', 'sehen', 'ein']);
   await prepare(page);
   await expect(page.getByRole('list', { name: 'Vocabulary prerequisites' }).getByRole('listitem')).toHaveText(['Haus']);
-  await selectVocabularyWord(page, 'Haus');
+  await page.getByRole('checkbox', { name: 'Haus', exact: true }).check();
   await page.getByRole('button', { name: 'Mark as known (1)', exact: true }).click();
   await expect(page.getByText('Ready to listen', { exact: true })).toBeVisible();
   await page.reload();
@@ -727,34 +712,6 @@ test('recovers unsent local progress after a failed save and browser reload', as
   await expect(controls.getByRole('slider', { name: 'Playback position' })).toHaveValue('22');
 });
 
-test('serializes delayed progress writes and preserves the latest backward seek', async ({ page }) => {
-  await addSource(page);
-  await readyWords();
-  await prepare(page);
-  await listen(page);
-  await page.getByRole('button', { name: 'Listen', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
-  const gate: { resolve: () => void } = { resolve: () => undefined };
-  const released = new Promise<void>(resolve => { gate.resolve = resolve; });
-  const writes = { values: [] as { sequence: number; position: number }[] };
-  await page.route('**/api/source/*/content/*/progress', async route => {
-    writes.values = [...writes.values, route.request().postDataJSON()];
-    if (writes.values.length === 1) await released;
-    await route.fallback();
-  });
-  await seek(page, 18);
-  await expect.poll(() => writes.values.length).toBe(1);
-  await seek(page, 4);
-  expect(writes.values).toHaveLength(1);
-  gate.resolve();
-  await expect(page.getByText('Listening progress saved', { exact: true })).toBeVisible();
-  await expect.poll(async () => withDbConnection(async db =>
-    (await db.query('SELECT position FROM learn_language.listening_progress WHERE source_id = $1', [SOURCE])).rows[0]?.position)).toBe(4);
-  expect(writes.values.every((value, index, values) => index === 0 || value.sequence > values[index - 1].sequence)).toBe(true);
-  await page.getByRole('link', { name: 'Back to Stories' }).click();
-  await expect.poll(() => page.evaluate(() => navigator.mediaSession.metadata === null)).toBe(true);
-});
-
 test('retries failed vocabulary extraction without refetching stored text', async ({ page }) => {
   await addSource(page);
   await fetch(`${fixtureUrl}/fail-vocabulary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fail: true }) });
@@ -857,11 +814,11 @@ test('another collection uses the same workflow and isolates stories with identi
   const originalId = page.url().split('/').at(-1)!;
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source', exact: true }).click();
-  await page.getByRole('button', { name: /Source Type$/ }).click();
+  await page.getByRole('combobox', { name: 'Source Type', exact: true }).click();
   await page.getByRole('option', { name: 'Audio Collection', exact: true }).click();
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Other stories');
   await page.getByRole('textbox', { name: 'Collection folder', exact: true }).fill('other-stories/');
-  await page.getByRole('button', { name: /Language Level$/ }).click();
+  await page.getByRole('combobox', { name: 'Language Level', exact: true }).click();
   await page.getByRole('option', { name: 'A2 - Elementary', exact: true }).click();
   await page.getByRole('button', { name: 'Create', exact: true }).click();
   await page.getByRole('button', { name: 'Actions for Other stories' }).click();

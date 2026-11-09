@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 60vw;
+  max-width: 520px;
+  min-height: 200px;
+}
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  max-width: 85%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--mat-sys-primary-container, #d6e3ff);
+  color: var(--mat-sys-on-primary-container, #001b3f);
+  border-bottom-right-radius: 4px;
+}
+
+.bubble.assistant {
+  align-self: flex-start;
+  background: var(--mat-sys-surface-container-high, #eceef3);
+  color: var(--mat-sys-on-surface, #1a1c1e);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble.loading {
+  display: inline-flex;
+  align-items: center;
+}
+
+.german {
+  font-weight: 600;
+  color: var(--mat-sys-primary, #1f5edb);
+  background: var(--mat-sys-primary-container, #d6e3ff);
+  border-radius: 4px;
+  padding: 0 3px;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.question-field {
+  flex: 1;
+}

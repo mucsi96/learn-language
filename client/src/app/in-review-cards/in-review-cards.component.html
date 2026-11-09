@@ -1,0 +1,46 @@
+@if (loading()) {
+<div class="container">
+  <h1>Cards In Review</h1>
+  <div class="skeleton-list">
+    @for (item of [1, 2, 3]; track item) {
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-header"></div>
+        <div class="skeleton skeleton-body"></div>
+      </div>
+    }
+  </div>
+</div>
+} @else {
+<div class="container">
+  <h1>Cards In Review</h1>
+
+  @let cardsList = cards() || [];
+  @if (cardsList.length > 0) {
+    <div class="cards-list">
+      @for (card of cardsList; track card.id) {
+        <app-review-card-item
+          [card]="card"
+          (reviewed)="onCardReviewed($event)"
+          (deleted)="onCardDeleted($event)"
+        />
+      }
+    </div>
+  } @else {
+    <mat-card class="empty-state">
+      <mat-card-content>
+        <mat-icon class="empty-icon">check_circle</mat-icon>
+        <h2>No cards in review</h2>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
+}
+
+<div class="fabs-container">
+  @if (remainingCount() > 0) {
+    <div class="progress-fab" [attr.aria-label]="'Remaining cards: ' + remainingCount()">
+      <span class="progress-count">{{ remainingCount() }}</span>
+    </div>
+  }
+  <app-batch-audio-creation-fab [refreshTrigger]="allReviewed()" />
+</div>

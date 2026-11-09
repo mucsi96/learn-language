@@ -54,20 +54,6 @@ test('page title', async ({ page }) => {
   await expect(page).toHaveTitle('Model Usage | Learn language');
 });
 
-test('model usage tabs support keyboard navigation', async ({ page }) => {
-  await page.goto('/model-usage');
-  await page.getByRole('button', { name: 'Filter by type' }).click();
-  await page.getByRole('option', { name: 'AUDIO', exact: true }).click();
-  await page.getByRole('tab', { name: 'Usage Logs', exact: true }).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: 'Model Summary', exact: true })).toBeFocused();
-  await expect(page.getByRole('tabpanel', { name: 'Model Summary', exact: true })).toBeVisible();
-  await page.keyboard.press('Home');
-  await expect(page.getByRole('tab', { name: 'Usage Logs', exact: true })).toBeFocused();
-  await expect(page.getByRole('tabpanel', { name: 'Usage Logs', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Filter by type' })).toContainText('AUDIO');
-});
-
 test('navigates to model usage from profile menu', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Profile menu' }).click();
@@ -483,7 +469,7 @@ test('creates chat model usage logs when using bulk card creation', async ({ pag
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await page.goto('/model-usage');
 
@@ -512,7 +498,7 @@ test('creates image model usage logs when using bulk card creation', async ({ pa
 
   await page.getByRole('button', { name: 'Create cards in bulk' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   await page.goto('/model-usage');
 

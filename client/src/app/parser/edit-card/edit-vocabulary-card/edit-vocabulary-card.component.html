@@ -1,0 +1,169 @@
+<div class="word">
+  <mat-form-field class="field">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="wordType" aria-label="Word type">
+      @for (option of wordTypeOptions; track option.type) {
+      <mat-option [value]="option.type">
+        <span class="word-type-option" [style.background-color]="option.color">
+          {{ option.translation }}
+        </span>
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  @if (wordType() === 'NOUN') {
+  <mat-form-field class="field">
+    <mat-label>Gender</mat-label>
+    <mat-select [(ngModel)]="gender" aria-label="Gender">
+      @for (option of genderOptions; track option.gender) {
+      <mat-option [value]="option.gender">
+        <span class="word-type-option" [style.background-color]="option.color">
+          {{ option.translation }}
+        </span>
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
+</div>
+<div class="word">
+  <mat-form-field class="field">
+    <mat-label>German</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="word"
+      aria-label="German translation"
+    />
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Hungarian</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['hu']"
+      aria-label="Hungarian translation"
+    />
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>Swiss German</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['ch']"
+      aria-label="Swiss German translation"
+    />
+  </mat-form-field>
+  <mat-form-field class="field">
+    <mat-label>English</mat-label>
+    <input
+      matInput
+      type="text"
+      [(ngModel)]="translation['en']"
+      aria-label="English translation"
+    />
+  </mat-form-field>
+</div>
+<h2>Forms</h2>
+<div class="forms">
+  @for (form of forms(); track $index) {
+  <div class="form-row">
+    <mat-form-field class="field">
+      <input matInput type="text" [(ngModel)]="form" aria-label="Form" />
+    </mat-form-field>
+    <button
+      mat-icon-button
+      (click)="removeForm($index)"
+      aria-label="Remove form"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      (click)="insertFormAfter($index)"
+      aria-label="Insert form below"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+  }
+  <button mat-stroked-button (click)="addForm()" aria-label="Add form">
+    <mat-icon>add</mat-icon> Add form
+  </button>
+</div>
+<h2>Examples</h2>
+<mat-radio-group [(ngModel)]="selectedExampleIndex">
+  @for (example of examples(); track $index) { @let images =
+  exampleImages()[$index];
+  <div class="example">
+    <div class="example-actions">
+      <mat-radio-button [value]="$index"></mat-radio-button>
+      <button
+        mat-icon-button
+        (click)="addImage($index)"
+        aria-label="Add example image"
+        [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
+        [matTooltip]="dailyUsageService.imageLimitTooltip()"
+      >
+        <mat-icon>add_photo_alternate</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        (click)="addImageWithContext($index)"
+        aria-label="Add image with context"
+        [disabled]="areImagesLoading($index) || dailyUsageService.isImageLimitReached()"
+        [matTooltip]="dailyUsageService.imageLimitTooltip() || 'Add image with context'"
+      >
+        <mat-icon>edit_note</mat-icon>
+      </button>
+    </div>
+    <div class="example-fields">
+      <mat-form-field class="field">
+        <mat-label>German</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="example"
+          aria-label="Example in German"
+        />
+      </mat-form-field>
+      @if(examplesTranslations(); as examplesTranslations) {
+      <mat-form-field class="field">
+        <mat-label>Hungarian</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['hu'][$index]"
+          aria-label="Example in Hungarian"
+        />
+      </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>Swiss German</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['ch'][$index]"
+          aria-label="Example in Swiss German"
+        />
+      </mat-form-field>
+      <mat-form-field class="field">
+        <mat-label>English</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="examplesTranslations['en'][$index]"
+          aria-label="Example in English"
+        />
+      </mat-form-field>
+      }
+    </div>
+    @if (images && images.length) {
+      <app-image-grid
+        [images]="images"
+        [altText]="example() ?? ''"
+        (favoriteToggled)="onFavoriteToggled($index, $event)"
+      />
+    }
+  </div>
+  }
+</mat-radio-group>
