@@ -1,0 +1,55 @@
+@if (matches().length === 0) {
+<div
+  class="word"
+  exclude-selection
+  [style.left]="left"
+  [style.top]="top"
+  [style.width]="width"
+  [style.height]="height"
+>
+  {{ text() }}
+</div>
+} @else if (matches().length === 1) {
+<app-span-match
+  [inline]="true"
+  [sourceId]="sourceId()"
+  [pageNumber]="pageNumber()"
+  [cardId]="matches()[0].id"
+  [exists]="matches()[0].exists"
+  [warning]="matches()[0].warning ?? false"
+  [error]="matches()[0].error"
+  [label]="text() ?? ''"
+  [left]="left"
+  [top]="top"
+  [width]="width"
+  [height]="height"
+  (removed)="removeItem(matches()[0].id)"
+/>
+} @else {
+<button
+  class="word"
+  mat-flat-button
+  type="button"
+  [matMenuTriggerFor]="menu"
+  [style.left]="left"
+  [style.top]="top"
+  [style.width]="width"
+  [style.height]="height"
+>
+  {{ text() }}
+</button>
+<mat-menu #menu="matMenu">
+  @for (match of matches(); track match.id) {
+  <app-span-match
+    [sourceId]="sourceId()"
+    [pageNumber]="pageNumber()"
+    [cardId]="match.id"
+    [exists]="match.exists"
+    [warning]="match.warning ?? false"
+    [error]="match.error"
+    [label]="getItemLabel(match)"
+    (removed)="removeItem(match.id)"
+  />
+  }
+</mat-menu>
+}

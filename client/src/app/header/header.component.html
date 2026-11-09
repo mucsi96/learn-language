@@ -1,0 +1,26 @@
+@if (isStudyRoute()) {
+  @if (pomodoro.seconds() !== null) {
+    <mat-progress-bar class="pomodoro" mode="determinate" aria-label="Study Pomodoro"
+      [value]="pomodoro.progress()!" [class.expired]="pomodoro.seconds() === 0" />
+    <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">
+      Restart
+    </button>
+    @if (pomodoro.seconds() === 0) {
+      <span role="status" class="break-status">Time for a break!</span>
+    }
+  } @else {
+    <button mat-button [attr.aria-label]="timerLabel()" [matTooltip]="timerLabel()" [disabled]="restart()?.disabled() === true" (click)="startTimer()">Start Pomodoro</button>
+  }
+}
+<button class="avatar" aria-label="Profile menu" [matMenuTriggerFor]="menu">
+  {{ profile()?.initials }}
+</button>
+<mat-menu #menu="matMenu">
+  <span class="profile-name">
+    {{ profile()?.name }}
+  </span>
+  <a mat-menu-item [routerLink]="['/sources']">Sources</a>
+  <a mat-menu-item [routerLink]="['/in-review-cards']">Review cards</a>
+  <a mat-menu-item [routerLink]="['/settings']">Settings</a>
+  <a mat-menu-item [routerLink]="['/model-usage']">Model usage</a>
+</mat-menu>

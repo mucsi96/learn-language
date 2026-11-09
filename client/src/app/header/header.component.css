@@ -1,0 +1,68 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pomodoro {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+  --mat-progress-bar-active-indicator-height: 6px;
+  --mat-progress-bar-track-height: 6px;
+}
+
+.break-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pomodoro.expired {
+  animation: pomodoro-blink 1s step-end infinite;
+}
+
+@keyframes pomodoro-blink {
+  50% { opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pomodoro.expired {
+    animation: none;
+  }
+}
+
+.avatar {
+  display: inline-flex;
+  user-select: none;
+  background-color: var(--bt-outline);
+  border-radius: 50%;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+  color: var(--bt-text-on-brand);
+  font-size: 18px;
+  border: unset;
+}
+
+.profile-menu {
+  margin: 10px;
+}
+
+.profile-name {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: var(--mat-menu-item-leading-spacing);
+  padding-right: var(--mat-menu-item-trailing-spacing);
+  min-height: 36px;
+  color: var(--bt-text-default);
+}

@@ -76,6 +76,10 @@ if command -v az >/dev/null 2>&1; then
 fi
 
 if command -v npm >/dev/null 2>&1; then
+    echo "Updating global Angular CLI..."
+    npm_cmd=$(command -v npm)
+    sudo env "PATH=$PATH" "$npm_cmd" install -g @angular/cli@latest
+
     if [ -d "client" ]; then
         echo "Updating client workspace dependencies..."
         (cd client && npm update)

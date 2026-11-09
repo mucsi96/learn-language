@@ -1,0 +1,70 @@
+.dialog-content {
+  min-width: 28rem;
+  max-width: 36rem;
+}
+
+.intro {
+  margin: 0 0 1rem 0;
+}
+
+.duplicate-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.duplicate-entry {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.duplicate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.new-id {
+  font-weight: 600;
+  font-family: var(--mat-sys-body-medium-font, monospace);
+}
+
+.match-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-entry {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.25rem 0 0.25rem 0.5rem;
+  border-left: 2px solid var(--mat-sys-outline-variant);
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.existing-id {
+  font-family: var(--mat-sys-body-medium-font, monospace);
+  font-size: 0.9rem;
+}
+
+.reason {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}

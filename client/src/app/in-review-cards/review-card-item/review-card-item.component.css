@@ -1,0 +1,46 @@
+mat-card {
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+mat-card.reviewed {
+  opacity: 0.6;
+  border-color: var(--mat-sys-primary);
+}
+
+mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.card-type {
+  font-size: 0.875rem;
+  color: var(--mat-app-text-color);
+  font-style: italic;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.reviewed-icon {
+  color: var(--mat-sys-primary);
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}

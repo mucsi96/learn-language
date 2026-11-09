@@ -1,0 +1,128 @@
+import { Component, computed, HostBinding, inject, input, ResourceRef } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { BBox } from '../types';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { RouterModule } from '@angular/router';
+import { ExtractionRegion, ExtractedItem } from '../types';
+import { CardTypeRegistry } from '../../cardTypes/card-type.registry';
+import { PageService } from '../../page.service';
+import { CardCandidatesService } from '../../card-candidates.service';
+import { SpanMatchComponent } from './span-match.component';
+
+@Component({
+  selector: 'app-span',
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatMenuModule,
+    RouterModule,
+    SpanMatchComponent,
+  ],
+  templateUrl: './span.component.html',
+  styleUrl: './span.component.css',
+})
+export class SpanComponent {
+  readonly sourceId = input<string>();
+  readonly pageNumber = input<number>();
+  readonly text = input<string>();
+  readonly font = input<string>();
+  readonly fontSize = input<string>();
+  readonly color = input<string>();
+  readonly bbox = input<BBox>();
+  readonly searchTerm = input<string>();
+  readonly selectionRegions = input<ResourceRef<ExtractionRegion | undefined>[]>();
+  private readonly strategyRegistry = inject(CardTypeRegistry);
+  private readonly pageService = inject(PageService);
+  private readonly candidatesService = inject(CardCandidatesService);
+
+  readonly matches = computed(() => {
+    const selectionRegions = this.selectionRegions();
+    const searchTerm = this.searchTerm();
+    if (!searchTerm || !selectionRegions?.length) {
+      return [];
+    }
+
+    const spanBBox = this.bbox();
+    if (!spanBBox) {
+      return [];
+    }
+
+    const currentPageNumber = this.pageNumber();
+    const matchingRegion = selectionRegions.find(region => {
+      const regionValue = region.value();
+      if (!regionValue) {
+        return false;
+      }
+
+      return regionValue.selections.some(sel => {
+        if (sel.pageNumber !== currentPageNumber) {
+          return false;
+        }
+        const { x, y, width, height } = sel.rectangle;
+        return spanBBox.y >= y &&
+          spanBBox.y <= y + height &&
+          spanBBox.x >= x &&
+          spanBBox.x <= x + width;
+      });
+    });
+
+    const items = matchingRegion?.value()?.items;
+    if (!items) {
+      return [];
+    }
+
+    const strategy = this.strategyRegistry.getStrategy(this.pageService.selectedCardType());
+    return strategy.filterItemsBySearchTerm(items, searchTerm)
+      .filter(item => !this.candidatesService.isIgnored(item.id));
+  });
+
+  @HostBinding('style.top') get top() {
+    const  y = this.bbox()?.y;
+
+    if (y == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${y})`;
+  }
+
+  @HostBinding('style.left') get left() {
+    const x = this.bbox()?.x;
+
+    if (x == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${x})`;
+  }
+
+  @HostBinding('style.width') get width() {
+    const width = this.bbox()?.width;
+
+    if (width == undefined) {
+      return '0px';
+    }
+
+    return `calc(var(--page-width) * ${width})`;
+  }
+
+  @HostBinding('style.height') get height() {
+    const height = this.bbox()?.height;
+    if (height == undefined) {
+      return '0px';
+    }
+    return `calc(var(--page-width) * ${height})`;
+  }
+
+  getItemLabel(item: ExtractedItem): string {
+    const strategy = this.strategyRegistry.getStrategy(this.pageService.selectedCardType());
+    return strategy.getItemLabel(item);
+  }
+
+  removeItem(itemId: string): void {
+    this.candidatesService.ignoreItem(itemId);
+  }
+}

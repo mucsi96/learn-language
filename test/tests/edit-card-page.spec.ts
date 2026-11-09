@@ -96,8 +96,8 @@ test('card editing page', async ({ page }) => {
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('elindulni, elhagyni');
   await expect(page.getByLabel('Swiss German translation', { exact: true })).toHaveValue('abfahra, verlah');
   await expect(page.getByLabel('English translation', { exact: true })).toHaveValue('to leave');
-  await expect(page.getByLabel('Word type')).toHaveText('Főnév');
-  await expect(page.getByLabel('Gender')).toHaveText('Feminine');
+  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Főnév');
+  await expect(page.getByRole('combobox', { name: 'Gender' })).toHaveText('Feminine');
 
   // Forms section
   await expect(page.getByLabel('Form', { exact: true }).nth(0)).toHaveValue('fährt ab');
@@ -405,15 +405,16 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   await expect(favoriteButtons.nth(0)).not.toHaveAttribute('aria-pressed', 'true');
 
   await page.getByRole('button', { name: 'Update' }).click();
+  await expect(page.getByText('Card updated successfully')).toBeVisible();
 
-  await expect(async () => withDbConnection(async (client) => {
+  await withDbConnection(async (client) => {
     const result = await client.query("SELECT data FROM learn_language.cards WHERE id = 'abfahren-elindulni'");
     expect(result.rows.length).toBe(1);
     const cardData = result.rows[0].data;
 
     expect(cardData.examples[0].images[0].isFavorite).toBeUndefined();
     expect(cardData.examples[0].images[1].isFavorite).toBe(true);
-  })).toPass();
+  });
 });
 
 test('generates image with Gemini model', async ({ page }) => {
@@ -598,19 +599,19 @@ test('add image with context dialog', async ({ page }) => {
   // Open dialog and cancel -> no images added
   await page.getByRole('button', { name: 'Add image with context' }).first().click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeVisible();
-  await expect(page.getByRole('dialog', { name: 'Image generation context' }).getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
   await page.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(1);
 
   // Open dialog, enter context, generate -> 4 images added (1 OpenAI + 3 Gemini)
   await page.getByRole('button', { name: 'Add image with context' }).first().click();
-  await expect(page.getByRole('dialog', { name: 'Image generation context' }).getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
   await page
     .getByRole('textbox', { name: 'Image generation context' })
     .fill('A vintage steam train at sunset');
-  await expect(page.getByRole('dialog', { name: 'Image generation context' }).getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
-  await page.getByRole('dialog', { name: 'Image generation context' }).getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate' }).click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(5);
 });
@@ -654,7 +655,7 @@ test('image generation uses context instead of German sentence', async ({ page }
   await page
     .getByRole('textbox', { name: 'Image generation context' })
     .fill('A vintage steam train at sunset');
-  await page.getByRole('dialog', { name: 'Image generation context' }).getByRole('button', { name: 'Generate', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate' }).click();
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(4);
 
@@ -759,12 +760,12 @@ test('word type editing', async ({ page }) => {
   await navigateToCardEditing(page);
 
   // Verify initial word type
-  await expect(page.getByLabel('Word type')).toHaveText('Ige');
+  await expect(page.getByRole('combobox', { name: 'Word type' })).toHaveText('Ige');
 
   // Change the word type from VERB to NOUN
-  await page.getByLabel('Word type').click();
+  await page.getByRole('combobox', { name: 'Word type' }).click();
   await page.getByRole('option', { name: 'Főnév' }).click();
-  await page.getByLabel('Gender').click();
+  await page.getByRole('combobox', { name: 'Gender' }).click();
   await page.getByRole('option', { name: 'Masculine' }).click();
 
   // Submit the changes
@@ -1058,9 +1059,9 @@ test('grammar card editing shows complete sentence and gaps', async ({ page }) =
 
   await page.goto('/in-review-cards');
 
-  await expect(page.getByRole('textbox', { name: 'German sentence', exact: true })).toHaveValue('Der Hund [läuft] schnell.');
+  await expect(page.getByLabel('German sentence', { exact: true })).toHaveValue('Der Hund [läuft] schnell.');
   await expect(page.getByLabel('Hungarian translation', { exact: true })).toHaveValue('A kutya gyorsan fut.');
-  await expect(page.getByText('Der Hund _____ schnell.', { exact: true })).toBeVisible();
+  await expect(page.locator('.sentence-preview')).toContainText('Der Hund _____ schnell.');
 });
 
 test('grammar card editing allows adding gaps from selection', async ({ page }) => {
@@ -1084,7 +1085,7 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
 
   await page.goto('/in-review-cards');
 
-  const sentenceInput = page.getByRole('textbox', { name: 'German sentence', exact: true });
+  const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
   await sentenceInput.evaluate((el: HTMLTextAreaElement) => {
     el.setSelectionRange(4, 10);
@@ -1092,7 +1093,7 @@ test('grammar card editing allows adding gaps from selection', async ({ page }) 
 
   await page.getByRole('button', { name: 'Add Gap from Selection' }).click();
 
-  await expect(page.getByText('Sie ______ Kaffee.', { exact: true })).toBeVisible();
+  await expect(page.locator('.sentence-preview')).toContainText('Sie ______ Kaffee.');
 });
 
 test('grammar card editing allows removing gaps', async ({ page }) => {
@@ -1116,11 +1117,11 @@ test('grammar card editing allows removing gaps', async ({ page }) => {
 
   await page.goto('/in-review-cards');
 
-  await expect(page.getByText('Wir _____ ins Kino.', { exact: true })).toBeVisible();
+  await expect(page.locator('.sentence-preview')).toContainText('Wir _____ ins Kino.');
 
   await page.getByRole('button', { name: 'Remove gap' }).click();
 
-  await expect(page.getByRole('paragraph').filter({ hasText: /^Wir gehen ins Kino\.$/ })).toBeVisible();
+  await expect(page.locator('.sentence-preview')).toContainText('Wir gehen ins Kino.');
 });
 
 test('grammar card editing saves gaps to database', async ({ page }) => {
@@ -1144,7 +1145,7 @@ test('grammar card editing saves gaps to database', async ({ page }) => {
 
   await page.goto('/in-review-cards');
 
-  const sentenceInput = page.getByRole('textbox', { name: 'German sentence', exact: true });
+  const sentenceInput = page.getByLabel('German sentence', { exact: true });
   await sentenceInput.focus();
   await sentenceInput.evaluate((el: HTMLTextAreaElement) => {
     el.setSelectionRange(9, 15);
@@ -1185,7 +1186,7 @@ test('grammar card editing displays existing hint and saves edits to database', 
 
   await page.goto('/in-review-cards');
 
-  const hintInput = page.getByLabel('Hint', { exact: true });
+  const hintInput = page.getByLabel('Hint in German', { exact: true });
   await expect(hintInput).toHaveValue('sein');
 
   await hintInput.fill('sein / der');
@@ -1221,7 +1222,7 @@ test('grammar card editing allows adding a hint to a card without one', async ({
 
   await page.goto('/in-review-cards');
 
-  const hintInput = page.getByLabel('Hint', { exact: true });
+  const hintInput = page.getByLabel('Hint in German', { exact: true });
   await expect(hintInput).toHaveValue('');
 
   await hintInput.fill('der Park');

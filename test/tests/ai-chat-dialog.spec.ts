@@ -49,7 +49,7 @@ test('ask AI explains a card via text and highlights German words', async ({ pag
 
   await expect(dialog.getByText('Miért der Zug?')).toBeVisible();
   await expect(dialog.getByText(/Ez azért helyes/)).toBeVisible();
-  await expect(dialog.getByText('der Zug', { exact: true })).toHaveAttribute('lang', 'de');
+  await expect(dialog.getByText('der Zug', { exact: true })).toHaveClass(/german/);
 });
 
 test('ask AI interacts in English when the source AI interaction language is English', async ({ page }) => {
@@ -102,7 +102,7 @@ test('ask AI interacts in English when the source AI interaction language is Eng
 
   await expect(dialog.getByText('Why der Zug?')).toBeVisible();
   await expect(dialog.getByText(/This is correct because/)).toBeVisible();
-  await expect(dialog.getByText('der Zug', { exact: true })).toHaveAttribute('lang', 'de');
+  await expect(dialog.getByText('der Zug', { exact: true })).toHaveClass(/german/);
 });
 
 [

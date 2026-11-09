@@ -1,0 +1,25 @@
+@if (stats().studyMode === 'WITH_PARTNER' && stats().personStats.length > 0) {
+  <div class="partner-stats-container" role="region" aria-label="Session statistics">
+    @for (person of stats().personStats; track person.name) {
+      <div class="stats-container" role="group" [attr.aria-label]="person.name + ' statistics'">
+        <h3 class="person-title">{{ person.name }}</h3>
+        <app-stats-grid
+          [totalDurationMs]="person.totalDurationMs"
+          [averageDurationMs]="person.averageDurationMs"
+          [goodCount]="person.goodCount"
+          [badCount]="person.badCount"
+          [accuracyLabel]="person.name + ' accuracy'"
+        />
+      </div>
+    }
+  </div>
+} @else {
+  <div class="stats-container" role="region" aria-label="Session statistics">
+    <app-stats-grid
+      [totalDurationMs]="stats().totalDurationMs"
+      [averageDurationMs]="stats().averageDurationMs"
+      [goodCount]="stats().goodCount"
+      [badCount]="stats().badCount"
+    />
+  </div>
+}

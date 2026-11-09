@@ -1,0 +1,23 @@
+:root {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  width: 100%;
+}
+
+.sentence {
+  display: grid;
+  gap: 1rem;
+}
+
+.images-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.images-section h2 {
+  margin: 0;
+}

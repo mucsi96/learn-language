@@ -1,0 +1,39 @@
+.dialog-content {
+  min-width: 320px;
+}
+
+.intro {
+  margin: 0 0 16px 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+}
+
+.topic-field {
+  width: 100%;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  gap: 8px;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.empty-state-hint {
+  font-size: 13px;
+  opacity: 0.7;
+}

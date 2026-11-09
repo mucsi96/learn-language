@@ -1,0 +1,23 @@
+.settings-container {
+  display: flex;
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.settings-nav {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.settings-nav mat-nav-list {
+  padding: 0;
+}
+
+.settings-nav a.active {
+  background: var(--mat-sys-surface);
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+}

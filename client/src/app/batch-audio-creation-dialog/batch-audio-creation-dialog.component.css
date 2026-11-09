@@ -1,0 +1,4 @@
+.dialog-content {
+  overflow-y: auto;
+  min-width: 300px;
+}

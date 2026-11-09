@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
+}
+
+.billing-alert {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--mat-sys-error);
+  border-inline-start-width: 5px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, var(--bt-surface-1));
+  color: var(--mat-sys-on-surface);
+}
+
+.billing-alert > mat-icon {
+  flex-shrink: 0;
+  color: var(--mat-sys-error);
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0.5rem 0;
+}
+
+.details {
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.status-error {
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .billing-alert {
+    padding: 1rem;
+  }
+
+  .billing-alert > mat-icon {
+    display: none;
+  }
+}

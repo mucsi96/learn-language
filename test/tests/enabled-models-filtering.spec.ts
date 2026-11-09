@@ -68,7 +68,7 @@ test('bulk card creation only uses enabled models for classification operation',
 
   await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const logs = await getModelUsageLogs();
   const wordTypeLogs = logs.filter((log) => log.operationType === 'CLASSIFICATION');
@@ -97,7 +97,7 @@ test('bulk card creation only uses enabled models for translation operations', a
 
   await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const logs = await getModelUsageLogs();
 
@@ -127,7 +127,7 @@ test('different operation types can have different enabled models', async ({ pag
 
   await page.locator("button:has-text('Create')").filter({ hasText: 'Cards' }).click();
 
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close' })).toBeVisible();
 
   const logs = await getModelUsageLogs();
 

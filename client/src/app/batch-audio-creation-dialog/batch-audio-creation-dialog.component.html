@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Creating Audio</h2>
+
+<mat-dialog-content class="dialog-content">
+  <app-pipeline-progress
+    taskLabel="Audio"
+    toolLabel="Audio API"
+    [tasks]="batchAudioService.progress()"
+    [toolPool]="batchAudioService.toolPool"
+  />
+</mat-dialog-content>
+
+@if (!batchAudioService.isProcessing()) {
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="true">Close</button>
+</mat-dialog-actions>
+}

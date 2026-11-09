@@ -1,0 +1,141 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.learn-card-container {
+  padding: 1rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+  max-width: 1200px;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.learn-card {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: hsl(215, 28%, 17%);
+  border-radius: 16px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.learn-card:active {
+  transform: scale(0.98);
+}
+
+.start-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem;
+  min-height: 400px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.start-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.start-state h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.start-state p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0 1.5rem 0;
+  max-width: 400px;
+}
+
+.start-state button {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+}
+
+.start-state button + button {
+  margin-top: 1rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem;
+  min-height: 400px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.empty-state h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--mat-sys-on-surface);
+  font-weight: 500;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+  max-width: 400px;
+}
+
+.empty-state button {
+  margin-top: 1.5rem;
+}
+
+.grading-buttons-container {
+  flex-shrink: 0;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grading-buttons-container.hidden {
+  visibility: hidden;
+}
+
+.grading-buttons-container.hidden button {
+  pointer-events: none;
+}
+
+.grading-row-actions {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .grading-buttons-container {
+    justify-content: flex-end;
+    margin-left: calc(55% + 1rem);
+    width: calc(45% - 1rem);
+  }
+}

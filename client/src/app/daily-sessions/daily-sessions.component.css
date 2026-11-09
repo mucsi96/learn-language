@@ -1,0 +1,9 @@
+.daily-sessions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cleanup-button {
+  margin-top: 16px;
+}

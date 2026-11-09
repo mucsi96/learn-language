@@ -76,7 +76,7 @@ test('needs attention only filter hides clear sources', async ({ page }) => {
   await page.goto('/sources');
   await expect(page.getByRole('row', { name: 'Goethe A2' })).toBeVisible();
 
-  await page.getByRole('switch', { name: 'Needs attention only' }).press('Space');
+  await page.getByRole('switch', { name: 'Needs attention only' }).click();
 
   await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
   await expect(page.getByRole('row', { name: 'Goethe A2' })).not.toBeVisible();
@@ -86,7 +86,7 @@ test('needs attention only filter shows a message when nothing matches', async (
   await page.goto('/sources');
   await expect(page.getByRole('row', { name: 'Goethe A1' })).toBeVisible();
 
-  await page.getByRole('switch', { name: 'Needs attention only' }).press('Space');
+  await page.getByRole('switch', { name: 'Needs attention only' }).click();
 
   await expect(page.getByText('No sources need attention.')).toBeVisible();
   await expect(page.getByRole('row', { name: 'Goethe A1' })).not.toBeVisible();
@@ -302,7 +302,9 @@ test('can create a new source', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Source');
 
-  await page.getByRole('checkbox', { name: 'Vocabulary' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
@@ -313,7 +315,7 @@ test('can create a new source', async ({ page }) => {
     buffer: Buffer.from('PDF content'),
   });
 
-  await page.getByRole('textbox', { name: 'Start Page', exact: true }).fill('1');
+  await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'B2' }).click();
   await page.getByLabel('Format Type').click();
@@ -379,7 +381,9 @@ test('can add a card type to an existing source', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByRole('checkbox', { name: 'Grammar' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
@@ -545,7 +549,9 @@ test('validates required fields when creating source', async ({ page }) => {
   const createButton = page.getByRole('button', { name: 'Create' });
   await expect(createButton).toBeDisabled();
 
-  await page.getByRole('checkbox', { name: 'Vocabulary' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'PDF Document' }).click();
@@ -560,7 +566,7 @@ test('validates required fields when creating source', async ({ page }) => {
     buffer: Buffer.from('PDF content'),
   });
 
-  await page.getByRole('textbox', { name: 'Start Page', exact: true }).fill('1');
+  await page.getByLabel('Start Page').fill('1');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
   await page.getByLabel('Format Type').click();
@@ -589,7 +595,9 @@ test('can create a speech source with image collection', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Speech Source');
 
-  await page.getByRole('checkbox', { name: 'Speech' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Speech' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -619,7 +627,9 @@ test('can create a grammar source with image collection', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Grammar Source');
 
-  await page.getByRole('checkbox', { name: 'Grammar' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -649,8 +659,10 @@ test('can create a source with multiple card types', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Multi Type Source');
 
-  await page.getByRole('checkbox', { name: 'Vocabulary' }).press('Space');
-  await page.getByRole('checkbox', { name: 'Grammar' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Vocabulary' }).click();
+  await page.getByRole('option', { name: 'Grammar' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -679,7 +691,9 @@ test('can create a source with simple card type', async ({ page }) => {
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Test Simple Source');
 
-  await page.getByRole('checkbox', { name: 'Simple' }).press('Space');
+  await page.getByLabel('Card Type').click();
+  await page.getByRole('option', { name: 'Simple' }).click();
+  await page.keyboard.press('Escape');
 
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
@@ -706,8 +720,8 @@ test('edit dialog shows card limit and new card limit fields with defaults', asy
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  const cardLimitField = page.getByRole('textbox', { name: 'Card Limit', exact: true });
-  const newCardLimitField = page.getByRole('textbox', { name: 'New Card Limit', exact: true });
+  const cardLimitField = page.getByRole('spinbutton', { name: 'Card Limit', exact: true });
+  const newCardLimitField = page.getByRole('spinbutton', { name: 'New Card Limit', exact: true });
 
   await expect(cardLimitField).toBeVisible();
   await expect(newCardLimitField).toBeVisible();
@@ -723,8 +737,8 @@ test('can edit card limit and new card limit', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Edit Source' })).toBeVisible();
 
-  await page.getByRole('textbox', { name: 'Card Limit', exact: true }).fill('30');
-  await page.getByRole('textbox', { name: 'New Card Limit', exact: true }).fill('10');
+  await page.getByRole('spinbutton', { name: 'Card Limit', exact: true }).fill('30');
+  await page.getByRole('spinbutton', { name: 'New Card Limit', exact: true }).fill('10');
 
   await page.getByRole('button', { name: 'Update' }).click();
   await expect(page.getByRole('heading', { name: 'Edit Source' })).not.toBeVisible();
@@ -735,33 +749,6 @@ test('can edit card limit and new card limit', async ({ page }) => {
     expect(updatedSource?.newCardLimit).toBe(10);
   }).toPass();
 
-});
-
-test('mobile source form keeps actions visible and saves bounded numeric limits', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 400 });
-  await page.goto('/sources');
-  await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();
-  await page.getByRole('menuitem', { name: 'Edit' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Edit Source' });
-  const update = dialog.getByRole('button', { name: 'Update', exact: true });
-  await expect(dialog.getByRole('textbox', { name: 'Name', exact: true })).toBeInViewport();
-  await expect(update).toBeInViewport();
-  const limit = dialog.getByRole('textbox', { name: 'Card Limit', exact: true });
-  await limit.fill('');
-  await limit.press('Tab');
-  await expect(update).toBeDisabled();
-  expect((await getSource('goethe-a1'))?.cardLimit).toBe(50);
-  await limit.fill('0');
-  await limit.press('Tab');
-  await expect(limit).toHaveValue('1');
-  await dialog.getByRole('textbox', { name: 'New Card Limit', exact: true }).fill('12');
-  await expect(update).toBeInViewport();
-  await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeInViewport();
-  await update.click();
-  await expect(dialog).toBeHidden();
-  const source = await getSource('goethe-a1');
-  expect(source?.cardLimit).toBe(1);
-  expect(source?.newCardLimit).toBe(12);
 });
 
 test('can assign a learning partner to a source', async ({ page }) => {

@@ -1,0 +1,115 @@
+<h2 mat-dialog-title>Voice Selection</h2>
+
+<mat-dialog-content>
+  @if (voiceConfigurations.isLoading()) {
+    <div class="voice-groups">
+      @for (lang of ['hu', 'de']; track lang) {
+        <div class="language-group">
+          <div class="language-header">
+            <mat-icon>translate</mat-icon>
+            <h3>{{ getLanguageLabel(lang) }}</h3>
+          </div>
+          <div class="voice-grid">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <mat-card class="voice-card skeleton">
+                <mat-card-content>
+                  <div class="skeleton-name"></div>
+                  <div class="skeleton-model"></div>
+                  <div class="skeleton-hint"></div>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (voiceConfigurations.error()) {
+    <div class="error-container">
+      <mat-icon>error</mat-icon>
+      <p>Failed to load voice configurations. Please try again.</p>
+    </div>
+  } @else if (groupedVoices()) {
+    <div class="voice-groups">
+      @for (lang of ['hu', 'de']; track lang) {
+        @if (groupedVoices()![lang].length) {
+          <div class="language-group">
+            <div class="language-header">
+              <mat-icon>translate</mat-icon>
+              <h3>{{ getLanguageLabel(lang) }}</h3>
+            </div>
+
+            <div class="voice-grid">
+              @for (voiceCard of groupedVoices()![lang]; track voiceCard.config.id) {
+                <mat-card
+                  class="voice-card"
+                  [class.selected]="isSelected(voiceCard)"
+                  [class.generating]="isGenerating(voiceCard)"
+                  [class.has-audio]="!!voiceCard.audioData"
+                  (click)="onCardClick(voiceCard)"
+                  role="button"
+                  [attr.aria-label]="'Voice: ' + (voiceCard.config.displayName || voiceCard.config.voiceName)"
+                  tabindex="0">
+
+                  <!-- Selection indicator in corner -->
+                  @if (isSelected(voiceCard)) {
+                    <button
+                      mat-icon-button
+                      class="selection-indicator"
+                      (click)="selectVoice(voiceCard); $event.stopPropagation()"
+                      matTooltip="Selected">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                  } @else {
+                    <button
+                      mat-icon-button
+                      class="selection-indicator unselected"
+                      (click)="selectVoice(voiceCard); $event.stopPropagation()"
+                      matTooltip="Select this voice">
+                      <mat-icon>radio_button_unchecked</mat-icon>
+                    </button>
+                  }
+
+                  <!-- Playing indicator -->
+                  @if (isPlaying(voiceCard)) {
+                    <div class="playing-indicator">
+                      <mat-icon class="pulse">volume_up</mat-icon>
+                    </div>
+                  }
+
+                  <!-- Generating skeleton overlay -->
+                  @if (isGenerating(voiceCard)) {
+                    <div class="generating-overlay">
+                      <div class="skeleton-pulse"></div>
+                    </div>
+                  }
+
+                  <mat-card-content>
+                    <div class="voice-name">{{ voiceCard.config.displayName || voiceCard.config.voiceName }}</div>
+                    <div class="voice-model">{{ voiceCard.config.model }}</div>
+                    <div class="voice-hint">
+                      @if (!voiceCard.audioData && !isGenerating(voiceCard)) {
+                        <span class="hint-text">Click to preview</span>
+                      } @else if (voiceCard.audioData && !isGenerating(voiceCard) && !isPlaying(voiceCard)) {
+                        <span class="hint-text">Click to play</span>
+                      }
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cancel</button>
+  <button
+    mat-flat-button
+    (click)="save()"
+    [disabled]="voiceConfigurations.isLoading()">
+    Save
+  </button>
+</mat-dialog-actions>

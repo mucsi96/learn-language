@@ -1,0 +1,78 @@
+<div class="source-groups-container">
+  <div class="groups-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2>Source Groups</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="section-description">
+          Group sources together to share known words. A word added to any
+          source in a group is treated as already known across every source in
+          the same group.
+        </p>
+
+        <div class="add-group-form">
+          <mat-form-field appearance="outline" class="group-name-field">
+            <mat-label>Group name</mat-label>
+            <input
+              matInput
+              [formField]="groupForm.name"
+              placeholder="Enter group name"
+              aria-label="Group name"
+              (keydown.enter)="addGroup()"
+            />
+          </mat-form-field>
+          <button
+            mat-flat-button
+            (click)="addGroup()"
+            [disabled]="!formModel().name.trim() || isAdding()"
+            aria-label="Add group"
+          >
+            @if (isAdding()) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>add</mat-icon>
+            }
+            Add
+          </button>
+        </div>
+
+        @if (groups.isLoading()) {
+        <mat-list class="groups-list">
+          @for (row of skeletonRows; track $index) {
+          <mat-list-item>
+            <div class="skeleton skeleton-group"></div>
+          </mat-list-item>
+          }
+        </mat-list>
+        } @else if (groupsList().length === 0) {
+        <div class="empty-state">
+          <mat-icon>folder</mat-icon>
+          <p>No source groups yet</p>
+          <p class="empty-state-hint">Add a group to share known words between sources</p>
+        </div>
+        } @else {
+        <mat-list class="groups-list" role="list" aria-label="Source groups">
+          @for (group of groupsList(); track group.id) {
+          <mat-list-item role="listitem">
+            <span matListItemTitle>{{ group.name }}</span>
+            <div matListItemMeta class="group-actions">
+              <button
+                mat-icon-button
+                (click)="deleteGroup(group)"
+                matTooltip="Delete group"
+                [attr.aria-label]="'Delete ' + group.name"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+          }
+        </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

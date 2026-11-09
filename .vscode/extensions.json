@@ -2,7 +2,7 @@
     "recommendations": [
         "vmware.vscode-boot-dev-pack",
         "vscjava.vscode-java-pack",
-        "dbaeumer.vscode-eslint",
+        "angular.ng-template",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "anweber.vscode-httpyac",
