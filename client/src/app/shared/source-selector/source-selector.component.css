@@ -1,7 +1,18 @@
+:host {
+  flex: 1;
+  min-width: 0;
+}
+
 .source-selector-container {
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: flex-end;
+}
+
+.source-selector-container > button,
+.source-selector-container > span {
+  flex-shrink: 0;
 }
 
 .loading-placeholder {
@@ -16,9 +27,24 @@
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
-  max-width: 200px;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
   max-height: 32px;
   overflow-y: auto;
+}
+
+@media (max-width: 599px) {
+  :host,
+  .source-selector-container {
+    display: contents;
+  }
+
+  .stats-container {
+    flex-basis: 100%;
+    order: 1;
+    padding-bottom: 8px;
+  }
 }
 
 .stats-container app-state {

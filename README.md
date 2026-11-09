@@ -147,8 +147,8 @@ switching sources; large queues wrap within a scrollable area in the header.
 
 Starting or continuing a study session automatically starts a
 25-minute Pomodoro if there is no active countdown, including when the previous
-timer has expired. An already-running timer keeps its deadline. You can also click
-**Start Pomodoro** in the study header to start it independently. A linear progress
+timer has expired. An already-running timer keeps its deadline; a paused timer
+stays paused. A linear progress
 bar fills along the bottom of the screen over 25 minutes instead of displaying
 remaining time. The bar,
 its controls, and the break announcement appear only on study routes. Switching sources,
@@ -157,13 +157,22 @@ stored for the current browser tab. At zero, the
 full bar blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
-Click **Restart** in the header (or focus it and press Enter/Space) while studying to
+On study routes, the avatar menu offers **Pause Pomodoro** while running and
+**Resume Pomodoro** while paused. Pausing freezes the progress bar and preserves
+the remaining time across navigation, source changes, and reloads in this tab.
+Resuming counts down only that remaining time.
+
+Choose **Reset Pomodoro** in the avatar menu while studying to
 **start a new study session** and reset the countdown to 25 minutes.
 A failed session restart keeps
 the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
+Reset is available for running, paused, and expired timers. Outside an active
+study session it resets only the timer. Desktop and tablet due-card dots fill the
+remaining header space, aligned right, followed by the partner turn indicator.
+On mobile, dots occupy a full-width row below the controls.
 
 The installed iPad app uses the non-overlay system status bar, keeping the clock
 and battery indicators above the application header. Safe-area padding is retained
