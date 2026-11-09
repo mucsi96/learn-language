@@ -1,0 +1,52 @@
+logger:
+  enable: true
+  level: info
+  format: json
+server:
+  binding: <%= get_env(name="BINDING", default="127.0.0.1") %>
+  port: <%= get_env(name="SERVER_PORT", default="8073") %>
+  host: http://localhost
+  middlewares:
+    etag:
+      enable: false
+    fallback:
+      enable: false
+workers:
+  mode: BackgroundAsync
+database:
+  uri: <%= get_env(name="DATABASE_URL") %>
+  enable_logging: false
+  min_connections: 1
+  max_connections: 20
+  connect_timeout: 30000
+  idle_timeout: 300000
+  auto_migrate: true
+  dangerously_truncate: false
+  dangerously_recreate: false
+  run_on_start: CREATE SCHEMA IF NOT EXISTS learn_language
+settings:
+  oidc:
+    issuer: <%= get_env(name="OIDC_ISSUER") %>
+    audience: <%= get_env(name="API_CLIENT_ID") %>
+  app_origin: <%= get_env(name="APP_ORIGIN") %>
+  storage_directory: <%= get_env(name="STORAGE_DIRECTORY") %>
+  token_encryption_key: <%= get_env(name="TOKEN_ENCRYPTION_KEY") %>
+  providers:
+    openai:
+      base_url: <%= get_env(name="OPENAI_BASE_URL") %>
+      api_key: <%= get_env(name="OPENAI_API_KEY") %>
+    anthropic:
+      base_url: <%= get_env(name="ANTHROPIC_BASE_URL") %>
+      api_key: <%= get_env(name="ANTHROPIC_API_KEY") %>
+    google:
+      base_url: <%= get_env(name="GOOGLE_AI_BASE_URL") %>
+      api_key: <%= get_env(name="GOOGLE_AI_API_KEY") %>
+    xai:
+      base_url: <%= get_env(name="XAI_BASE_URL") %>
+      api_key: <%= get_env(name="XAI_API_KEY") %>
+    ideogram:
+      base_url: <%= get_env(name="IDEOGRAM_BASE_URL") %>
+      api_key: <%= get_env(name="IDEOGRAM_API_KEY") %>
+    elevenlabs:
+      base_url: <%= get_env(name="ELEVEN_LABS_BASE_URL") %>
+      api_key: <%= get_env(name="ELEVEN_LABS_API_KEY") %>
