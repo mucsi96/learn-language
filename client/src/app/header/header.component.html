@@ -1,4 +1,7 @@
 @if (isStudyRoute()) {
+  @if (pomodoro.loadFailed()) {
+    <span role="alert">Could not load Pomodoro. <button mat-button (click)="pomodoro.reload()">Retry Pomodoro</button></span>
+  }
   @if (pomodoro.seconds() !== null) {
     <mat-progress-bar class="pomodoro" mode="determinate" aria-label="Study Pomodoro"
       [value]="pomodoro.progress()!" [class.expired]="pomodoro.seconds() === 0" />
@@ -12,11 +15,11 @@
 </button>
 <mat-menu #menu="matMenu">
   @if (isStudyRoute() && pomodoro.seconds() !== null) {
-    <button mat-menu-item [disabled]="restart()?.disabled() === true" (click)="resetTimer()">Reset Pomodoro</button>
+    <button mat-menu-item [disabled]="pomodoro.busy() || restart()?.disabled() === true" (click)="resetTimer()">Reset Pomodoro</button>
     @if (pomodoro.paused()) {
-      <button mat-menu-item (click)="pomodoro.resume()">Resume Pomodoro</button>
+      <button mat-menu-item [disabled]="pomodoro.busy()" (click)="pomodoro.resume()">Resume Pomodoro</button>
     } @else if (pomodoro.seconds()! > 0) {
-      <button mat-menu-item (click)="pomodoro.pause()">Pause Pomodoro</button>
+      <button mat-menu-item [disabled]="pomodoro.busy()" (click)="pomodoro.pause()">Pause Pomodoro</button>
     }
   }
   <span class="profile-name">

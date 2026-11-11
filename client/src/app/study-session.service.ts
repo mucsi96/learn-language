@@ -83,9 +83,9 @@ export class StudySessionService {
     );
     if (session) {
       if (restart) {
-        this.pomodoro.start();
+        await this.pomodoro.start();
       } else {
-        this.pomodoro.startIfInactive();
+        await this.pomodoro.startIfInactive();
       }
       this.sourceId.set(sourceId);
       this.hasSession.set(true);
