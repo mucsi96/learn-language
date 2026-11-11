@@ -15,6 +15,9 @@ export default defineConfig({
   workers: 1,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    ...(process.env.PLAYWRIGHT_WS_ENDPOINT ? {
+      connectOptions: { wsEndpoint: process.env.PLAYWRIGHT_WS_ENDPOINT },
+    } : {}),
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:8170',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */

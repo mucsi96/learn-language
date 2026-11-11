@@ -85,6 +85,14 @@ deep links, role denial, mutation origins, dictionary/export tokens, and telemet
 For local Angular development, provide a gateway session/proxy in front of the
 dev server; the app no longer performs a direct Entra login.
 
+CI runs the browser in Microsoft's prebuilt Playwright container, with its version
+read from the installed test dependency. This includes the browser's Linux
+dependencies without installing Ubuntu packages on the runner. The browser server
+binds to loopback port 3075 using host networking; tests still run on the host so
+database helpers and Podman restart tests retain access to the test stack.
+`PLAYWRIGHT_WS_ENDPOINT` selects this remote browser connection; local tests use
+their installed browser when the variable is unset.
+
 ## FSRS scheduling
 
 The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
