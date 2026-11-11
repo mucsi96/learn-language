@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import * as fs from 'fs';
+import { text } from 'node:stream/consumers';
 import { test, expect } from '../fixtures';
 import { createChatModelSetting, setupDefaultChatModelSettings, withDbConnection } from '../utils';
 
@@ -21,8 +21,7 @@ async function createTokenViaUI(page: Page, name: string): Promise<string> {
 
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('ai-dictionary.token');
-  const filePath = await download.path();
-  return fs.readFileSync(filePath!, 'utf-8');
+  return text(await download.createReadStream());
 }
 
 async function lookupWord(
