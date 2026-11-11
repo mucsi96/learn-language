@@ -1519,3 +1519,5 @@ databaseChangeLog:
       file: db/changelog/story-folders.yaml
   - include:
       file: db/changelog/pomodoro.yaml
+  - include:
+      file: db/changelog/beszedfordulatok-speech.sql

@@ -116,6 +116,18 @@ translation requests for languages whose required text is already complete.
 
 Regression coverage: `cd test && npx playwright test json-source.spec.ts`.
 
+### Beszedfordulatok speech conversion
+
+On deployment, Liquibase converts the source with ID `beszedfordulatok` and its
+vocabulary cards to Speech. Each original phrase and its translations become the
+first, selected speech example. Previous examples (including images) remain as
+unselected examples; original fields and audio references are retained. Existing
+speech cards, card IDs, scheduling, review logs and session queues are preserved.
+An absent source is a no-op. Unsupported card types or malformed vocabulary
+phrases stop the migration atomically rather than losing content.
+
+Regression coverage: `cd test && npx playwright test beszedfordulatok-speech.spec.ts`.
+
 ## FSRS scheduling
 
 The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
