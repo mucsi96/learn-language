@@ -120,7 +120,7 @@ export class GrammarCardType implements CardTypeStrategy {
 
     try {
       progressCallback(30, 'Translating to Hungarian...');
-      const hungarianResult =
+      const hungarianResult = cardData.examples?.[0]?.hu?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -138,14 +138,16 @@ export class GrammarCardType implements CardTypeStrategy {
       progressCallback(90, 'Preparing grammar card data...');
 
       return {
+        ...cardData,
         examples: [
           {
+            ...cardData.examples?.[0],
             de: sentence,
-            hu: hungarianResult.response.translation,
+            hu: hungarianResult ? hungarianResult.response.translation : cardData.examples?.[0]?.hu,
             isSelected: true,
           },
         ],
-        translationModel: hungarianResult.model,
+        translationModel: hungarianResult?.model ?? cardData.translationModel,
         extractionModel: cardData.extractionModel,
         ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
         ...(cardData.hint ? { hint: cardData.hint } : {}),

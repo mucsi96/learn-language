@@ -119,7 +119,7 @@ export class SpeechCardType implements CardTypeStrategy {
 
     try {
       progressCallback(15, 'Translating to Hungarian...');
-      const hungarianResult =
+      const hungarianResult = cardData.examples?.[0]?.hu?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -135,7 +135,7 @@ export class SpeechCardType implements CardTypeStrategy {
         );
 
       progressCallback(40, 'Translating to English...');
-      const englishResult =
+      const englishResult = cardData.examples?.[0]?.en?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -167,16 +167,18 @@ export class SpeechCardType implements CardTypeStrategy {
       progressCallback(90, 'Preparing speech card data...');
 
       return {
+        ...cardData,
         examples: [
           {
+            ...cardData.examples?.[0],
             de: sentence,
-            hu: hungarianResult.response.translation,
-            en: englishResult.response.translation,
+            hu: hungarianResult ? hungarianResult.response.translation : cardData.examples?.[0]?.hu,
+            en: englishResult ? englishResult.response.translation : cardData.examples?.[0]?.en,
             isSelected: true,
             images: imagesMap.get(0) ?? [],
           },
         ],
-        translationModel: hungarianResult.model,
+        translationModel: hungarianResult?.model ?? englishResult?.model ?? cardData.translationModel,
         extractionModel: cardData.extractionModel,
       };
     } catch (error) {

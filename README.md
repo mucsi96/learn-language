@@ -110,7 +110,9 @@ Each entry requires a unique string `id`. The type-specific fields are:
 - **Simple:** required `frontText` and `backText` (Markdown); optional `topic` and `category`.
 
 All fields are strings. Unknown fields and duplicate IDs within a batch are rejected.
-Use the existing draft completion workflow to generate missing translations and media.
+Use the existing draft completion workflow to fill missing translations and generate media.
+Completion retains supplied translations, including Swiss German speech text, and skips
+translation requests for languages whose required text is already complete.
 
 Regression coverage: `cd test && npx playwright test json-source.spec.ts`.
 

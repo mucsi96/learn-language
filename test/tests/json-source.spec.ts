@@ -122,6 +122,67 @@ test('create JSON source with simple cards', async ({ page }) => {
   });
 });
 
+[
+  {
+    type: 'SPEECH',
+    full: { sentence: 'Guten Tag!', hu: 'Saját magyar', en: 'My English', ch: 'Mis Schwiizerdütsch' },
+    partial: { sentence: 'Guten Abend!', hu: 'Másik saját magyar', ch: 'Guete Abig!' },
+    expectedFull: { examples: [{ de: 'Guten Tag!', hu: 'Saját magyar', en: 'My English', ch: 'Mis Schwiizerdütsch' }] },
+    expectedPartial: { examples: [{ de: 'Guten Abend!', hu: 'Másik saját magyar', en: 'Generated en', ch: 'Guete Abig!' }] },
+    expectedCalls: ['/api/translate-sentence/en'],
+  },
+  {
+    type: 'GRAMMAR',
+    full: { sentence: 'Ich gehe nach Hause.', hu: 'Saját magyar', grammarTopic: 'Präsens', hint: 'Mein Hinweis' },
+    partial: { sentence: 'Ich bin nach Hause gegangen.' },
+    expectedFull: { examples: [{ de: 'Ich gehe nach Hause.', hu: 'Saját magyar' }], grammarTopic: 'Präsens', hint: 'Mein Hinweis' },
+    expectedPartial: { examples: [{ de: 'Ich bin nach Hause gegangen.', hu: 'Generated hu' }] },
+    expectedCalls: ['/api/translate-sentence/hu'],
+  },
+  {
+    type: 'VOCABULARY',
+    full: { word: 'Haus', hu: 'Saját magyar', en: 'My English', ch: 'Mis Schwiizerdütsch' },
+    partial: { word: 'Baum', hu: 'Másik saját magyar', example: 'Der Baum ist groß.' },
+    expectedFull: { word: 'Haus', translation: { hu: 'Saját magyar', en: 'My English', ch: 'Mis Schwiizerdütsch' } },
+    expectedPartial: { word: 'Baum', translation: { hu: 'Másik saját magyar', en: 'Generated en', ch: 'Generated ch' }, examples: [{ de: 'Der Baum ist groß.', hu: 'Example hu', en: 'Example en', ch: 'Example ch' }] },
+    expectedCalls: ['/api/translate/hu', '/api/translate/ch', '/api/translate/en'],
+  },
+].forEach(({ type, full, partial, expectedFull, expectedPartial, expectedCalls }) => {
+  test(`completing imported ${type} drafts preserves translations and fills missing values`, async ({ page }) => {
+    await setupDefaultChatModelSettings();
+    await createSource({ id: 'json-completion', name: 'JSON completion', startPage: 1, languageLevel: 'A1', cardTypes: [type], sourceType: 'JSON', formatType: 'FLOWING_TEXT' });
+    await page.route('**/api/word-type?*', route => route.fulfill({ json: { type: 'NOUN' } }));
+    await page.route('**/api/gender?*', route => route.fulfill({ json: { gender: 'NEUTER' } }));
+    await page.route(/\/api\/translate(?:-sentence)?\//, async route => {
+      const language = new URL(route.request().url()).pathname.split('/').at(-1);
+      await route.fulfill({ json: { translation: `Generated ${language}`, examples: route.request().postDataJSON().examples?.map(() => `Example ${language}`) } });
+    });
+    await page.goto('/sources/json-completion/json');
+    await page.getByRole('button', { name: 'Import JSON' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+    await dialog.getByLabel('Cards JSON').fill(JSON.stringify([{ id: 'full', ...full }, { id: 'partial', ...partial }]));
+    await dialog.getByRole('button', { name: 'Import 2 cards' }).click();
+    await expect(page.getByText('Imported 2 cards as drafts')).toBeVisible();
+    await page.goto('/sources/json-completion/cards?filter=draft');
+    await page.getByRole('columnheader', { name: /Select all 2 cards/ }).getByRole('checkbox').click();
+    await page.getByRole('button').filter({ hasText: 'Complete 2 cards' }).click();
+    await expect(page.getByText('2 card(s) completed')).toBeVisible();
+    const cards = await withDbConnection(async client =>
+      (await client.query('SELECT id, readiness, data FROM learn_language.cards WHERE source_id = $1 ORDER BY id', ['json-completion'])).rows
+    );
+    expect(cards[0].readiness).toBe('IN_REVIEW');
+    expect(cards[1].readiness).toBe('IN_REVIEW');
+    expect(cards[0].data).toMatchObject(expectedFull);
+    expect(cards[1].data).toMatchObject(expectedPartial);
+    const translationRequests = (await page.requests()).filter(request => /\/api\/translate(?:-sentence)?\//.test(request.url()));
+    expect([...new Set(translationRequests.map(request => new URL(request.url()).pathname))].sort()).toEqual([...expectedCalls].sort());
+    expect(translationRequests.every(request => {
+      const body = request.postDataJSON();
+      return 'word' in partial ? body.word === partial.word : body.sentence === partial.sentence;
+    })).toBe(true);
+  });
+});
+
 test('JSON import changes its example and validation with the selected source card type', async ({ page }) => {
   await createSource({ id: 'mixed-json', name: 'Mixed JSON', startPage: 1, languageLevel: 'A1', cardTypes: ['SPEECH', 'GRAMMAR', 'VOCABULARY'], sourceType: 'JSON', formatType: 'FLOWING_TEXT' });
   await page.goto('/sources/mixed-json/json');
