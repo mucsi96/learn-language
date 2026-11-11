@@ -8,34 +8,32 @@ BEGIN
     ) OR EXISTS (
         SELECT 1 FROM learn_language.cards
         WHERE source_id = 'beszedfordulatok'
-          AND (type NOT IN ('VOCABULARY', 'SPEECH')
-            OR (type = 'VOCABULARY' AND (
-                jsonb_typeof(data->'word') IS DISTINCT FROM 'string'
-                OR btrim(data->>'word') = ''
-                OR (data->'examples' IS NOT NULL AND data->'examples' <> 'null'::jsonb
-                    AND jsonb_typeof(data->'examples') <> 'array')
+          AND (type NOT IN ('SIMPLE', 'SPEECH')
+            OR (type = 'SIMPLE' AND (
+                jsonb_typeof(data->'frontText') IS DISTINCT FROM 'string'
+                OR jsonb_typeof(data->'backText') IS DISTINCT FROM 'string'
+                OR cardinality(string_to_array(data->>'frontText', E'\n\n')) <> 3
+                OR cardinality(string_to_array(data->>'backText', E'\n\n')) NOT IN (2, 3)
+                OR split_part(data->>'frontText', E'\n\n', 3) NOT LIKE '**Példa:** %'
+                OR btrim(substr(split_part(data->>'frontText', E'\n\n', 3), 12)) = ''
+                OR btrim(split_part(data->>'backText', E'\n\n', 2)) = ''
+                OR length(split_part(data->>'backText', E'\n\n', 2))
+                    < length(replace(split_part(data->>'backText', E'\n\n', 1), '**', ''))
+                OR (data->'examples' IS NOT NULL AND data->'examples' NOT IN ('null'::jsonb, '[]'::jsonb))
             )))
     ) THEN
-        RAISE EXCEPTION 'Cannot convert beszedfordulatok: expected vocabulary phrases or speech cards';
+        RAISE EXCEPTION 'Cannot convert beszedfordulatok: expected simple cards with a longer bilingual example or speech cards';
     END IF;
 
     UPDATE learn_language.cards
     SET type = 'SPEECH',
         data = jsonb_set(data, '{examples}',
-            jsonb_build_array(jsonb_strip_nulls(jsonb_build_object(
-                'de', data->>'word',
-                'hu', data->'translation'->>'hu',
-                'en', data->'translation'->>'en',
-                'ch', data->'translation'->>'ch',
+            jsonb_build_array(jsonb_build_object(
+                'de', split_part(data->>'backText', E'\n\n', 2),
+                'hu', substr(split_part(data->>'frontText', E'\n\n', 3), 12),
                 'isSelected', true
-            ))) || CASE
-                WHEN jsonb_typeof(data->'examples') = 'array' THEN (
-                    SELECT COALESCE(jsonb_agg(example || '{"isSelected":false}'::jsonb ORDER BY position), '[]'::jsonb)
-                    FROM jsonb_array_elements(data->'examples') WITH ORDINALITY AS items(example, position)
-                )
-                ELSE '[]'::jsonb
-            END)
-    WHERE source_id = 'beszedfordulatok' AND type = 'VOCABULARY';
+            )))
+    WHERE source_id = 'beszedfordulatok' AND type = 'SIMPLE';
 
     UPDATE learn_language.sources
     SET card_types = 'SPEECH'

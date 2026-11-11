@@ -12,23 +12,24 @@ const snapshot = async () => Object.fromEntries(
   ] as const))
 );
 const createDeck = () => createSource({
-  id: 'beszedfordulatok', name: 'Beszédfordulatok', languageLevel: 'A2', cardTypes: ['VOCABULARY'],
+  id: 'beszedfordulatok', name: 'Beszédfordulatok', languageLevel: 'A2', cardTypes: ['SIMPLE'], sourceType: 'JSON',
 });
 
 test('converts phrases to studyable speech while preserving content, scheduling and history', async ({ page }) => {
   await createDeck();
   const data = {
-    word: 'Das kommt darauf an.', type: 'PHRASE',
-    translation: { hu: 'Attól függ.', en: 'It depends.', ch: 'Das chunnt druf aa.' },
+    frontText: '**Mondd németül:**\n\nAttól függ.\n\n**Példa:** Az időjárástól függ.',
+    backText: '**Das kommt darauf an.**\n\nDas kommt auf das Wetter an.\n\nKötetlen forma.',
+    topic: 'Beszélgetés', category: 'Német beszédfordulatok',
     audio: [{ id: 'phrase-audio', text: 'Das kommt darauf an.', language: 'de' }],
-    examples: [{ de: 'Das kommt auf das Wetter an.', hu: 'Az időjárástól függ.',
-      isSelected: true, images: [{ id: 'original-image', isFavorite: true }] }],
   };
-  await createCard({ cardId: 'phrase', sourceId: 'beszedfordulatok', data,
+  await createCard({ cardId: 'phrase', sourceId: 'beszedfordulatok', cardType: 'SIMPLE', data,
     state: 'REVIEW', stability: 18, difficulty: 4, reps: 7, lapses: 1,
     elapsedDays: 8, scheduledDays: 12, lastReview: new Date('2026-10-01T12:00:00Z'), flagged: true });
-  await createCard({ cardId: 'draft', sourceId: 'beszedfordulatok', readiness: 'DRAFT',
-    data: { word: 'Guten Tag!' } });
+  const draftData = { frontText: '**Mondd németül:**\n\nJó napot!\n\n**Példa:** Jó napot! Szabad itt?',
+    backText: '**Guten Tag!**\n\nGuten Tag! Ist hier frei?' };
+  await createCard({ cardId: 'draft', sourceId: 'beszedfordulatok', cardType: 'SIMPLE', readiness: 'DRAFT',
+    data: draftData });
   await createCard({ cardId: 'existing-speech', sourceId: 'beszedfordulatok', cardType: 'SPEECH',
     data: { examples: [{ de: 'Hallo!', hu: 'Szia!', isSelected: true }] } });
   await createSource({ id: 'other', name: 'beszedfordulatok', languageLevel: 'A1', cardTypes: ['VOCABULARY'] });
@@ -44,11 +45,10 @@ test('converts phrases to studyable speech while preserving content, scheduling 
       ? { ...source, card_types: 'SPEECH' } : source),
     cards: before.cards.map(card => card.id === 'phrase' ? {
       ...card, type: 'SPEECH', data: { ...data, examples: [
-        { de: data.word, ...data.translation, isSelected: true },
-        { ...data.examples[0], isSelected: false },
+        { de: 'Das kommt auf das Wetter an.', hu: 'Az időjárástól függ.', isSelected: true },
       ] },
     } : card.id === 'draft' ? { ...card, type: 'SPEECH',
-      data: { word: 'Guten Tag!', examples: [{ de: 'Guten Tag!', isSelected: true }] } } : card),
+      data: { ...draftData, examples: [{ de: 'Guten Tag! Ist hier frei?', hu: 'Jó napot! Szabad itt?', isSelected: true }] } } : card),
   });
   expect(await withDbConnection(async client => (await client.query(
     "SELECT type FROM learn_language.card_view WHERE id = 'phrase'"
@@ -59,9 +59,9 @@ test('converts phrases to studyable speech while preserving content, scheduling 
   await page.goto('/sources/beszedfordulatok/study');
   await page.getByRole('button', { name: 'Continue study session', exact: true }).click();
   const card = page.getByRole('article', { name: 'Flashcard' });
-  await expect(card.getByText('Attól függ.', { exact: true })).toBeVisible();
-  await card.getByText('Attól függ.', { exact: true }).click();
-  await expect(card.getByText('Das kommt darauf an.', { exact: true })).toBeVisible();
+  await expect(card.getByText('Az időjárástól függ.', { exact: true })).toBeVisible();
+  await card.getByText('Az időjárástól függ.', { exact: true }).click();
+  await expect(card.getByText('Das kommt auf das Wetter an.', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
   await expect.poll(async () => (await snapshot()).review_logs.length).toBe(2);
 });
@@ -74,12 +74,15 @@ test('does not change other decks when the target source is absent', async ({ pa
 });
 
 [
-  { label: 'unsupported card type', cardType: 'SIMPLE', data: { frontText: 'Front', backText: 'Back' } },
-  { label: 'missing phrase', cardType: 'VOCABULARY', data: { translation: { hu: 'Szia!' } } },
+  { label: 'unsupported card type', cardType: 'VOCABULARY', data: { word: 'Hallo!' } },
+  { label: 'missing example', cardType: 'SIMPLE', data: { frontText: 'Front', backText: 'Back' } },
 ].forEach(({ label, cardType, data }) => {
   test(`rejects ${label} atomically`, async ({ page }) => {
     await createDeck();
-    await createCard({ cardId: 'valid', sourceId: 'beszedfordulatok', data: { word: 'Hallo!' } });
+    await createCard({ cardId: 'valid', sourceId: 'beszedfordulatok', cardType: 'SIMPLE', data: {
+      frontText: '**Mondd németül:**\n\nSzia!\n\n**Példa:** Szia Anna!',
+      backText: '**Hallo!**\n\nHallo Anna!',
+    } });
     await createCard({ cardId: 'invalid', sourceId: 'beszedfordulatok', cardType, data });
     const before = await snapshot();
     await expect(migrate()).rejects.toThrow('Cannot convert beszedfordulatok');
