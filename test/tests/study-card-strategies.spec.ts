@@ -38,8 +38,10 @@ const strategies = [
 ];
 
 [
+  { width: 1440, height: 900 },
   { width: 1024, height: 768 },
   { width: 768, height: 1024 },
+  { width: 767, height: 1024 },
   { width: 390, height: 844 },
 ].forEach(({ width, height }) => {
   strategies.forEach(({ type, front, back, data }) => {
@@ -65,6 +67,10 @@ const strategies = [
       }
       const profile = page.getByRole('button', { name: 'Profile menu' });
       const headerBounds = await profile.boundingBox();
+      const dots = page.getByRole('group', { name: 'Due cards', exact: true });
+      await expect(dots.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(1);
+      await expect(dots).toBeInViewport({ ratio: 1 });
+      const hiddenAnswerDotsBounds = await dots.boundingBox();
       await prompt.click();
       await expect(card.getByText(back, { exact: true })).toBeVisible();
       const correct = page.getByRole('button', { name: 'Correct', exact: true });
@@ -73,6 +79,18 @@ const strategies = [
       expect(gradeBounds!.y + gradeBounds!.height).toBeLessThanOrEqual(height - 20);
       const incorrectBounds = await page.getByRole('button', { name: 'Incorrect', exact: true }).boundingBox();
       const cardBounds = await card.evaluate(element => element.parentElement!.getBoundingClientRect().toJSON());
+      const dotsBounds = await dots.boundingBox();
+      expect(dotsBounds).toEqual(hiddenAnswerDotsBounds);
+      expect(dotsBounds!.x).toBe(cardBounds!.x);
+      const firstDotBounds = await dots.getByRole('img').first().boundingBox();
+      expect(firstDotBounds!.x).toBe(dotsBounds!.x);
+      if (width >= 768) {
+        expect(dotsBounds!.x + dotsBounds!.width).toBeCloseTo(incorrectBounds!.x - 8, 0);
+        expect(dotsBounds!.y + dotsBounds!.height / 2).toBeCloseTo(gradeBounds!.y + gradeBounds!.height / 2, 0);
+      } else {
+        expect(dotsBounds!.y).toBeGreaterThanOrEqual(gradeBounds!.y + gradeBounds!.height);
+        expect(dotsBounds!.width).toBe(cardBounds!.width);
+      }
       const actions = page.getByRole('button', { name: 'Card actions', exact: true });
       await expect(actions).toBeInViewport({ ratio: 1 });
       const actionBounds = await actions.boundingBox();
@@ -88,8 +106,8 @@ const strategies = [
       expect(Math.abs(incorrectBounds!.width - gradeBounds!.width)).toBeLessThan(1);
       expect(gradeBounds!.height).toBeGreaterThanOrEqual(width >= 768 ? 48 : 44);
       expect(gradeBounds!.y - cardBounds!.y - cardBounds!.height).toBeCloseTo(16, 0);
-      expect(cardBounds!.x).toBe(16);
-      expect(width - cardBounds!.x - cardBounds!.width).toBe(16);
+      expect(cardBounds!.x).toBe(Math.max(16, (width - 1200) / 2 + 16));
+      expect(width - cardBounds!.x - cardBounds!.width).toBe(cardBounds!.x);
       if (width >= 768 && (type === 'VOCABULARY' || type === 'SPEECH')) {
         const image = card.getByRole('img');
         const imageBounds = await image.boundingBox();

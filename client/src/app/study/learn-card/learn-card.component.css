@@ -112,20 +112,32 @@
 
 .grading-buttons-container {
   flex-shrink: 0;
-  justify-content: center;
   width: 100%;
   box-sizing: border-box;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.5rem;
 }
 
-.grading-buttons-container.hidden {
+.hidden {
   visibility: hidden;
 }
 
-.grading-buttons-container.hidden button {
-  pointer-events: none;
+.stats-container {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  max-height: 32px;
+  overflow-y: auto;
+}
+
+.stats-container app-state {
+  display: contents;
 }
 
 .grading-row-actions {
@@ -134,8 +146,11 @@
 
 @media (min-width: 768px) {
   .grading-buttons-container {
-    justify-content: flex-end;
-    margin-left: calc(55% + 1rem);
-    width: calc(45% - 1rem);
+    grid-template-columns: calc(55% + 0.5rem) minmax(0, 1fr) auto;
+  }
+
+  .stats-container {
+    grid-column: 1;
+    grid-row: 1;
   }
 }

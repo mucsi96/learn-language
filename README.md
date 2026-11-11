@@ -138,10 +138,13 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 ## Study progress
 
-The study header reports due cards as colored dots, one per card: blue for New,
+The study grading area reports due cards as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
 label for assistive technology and a hover title. Dots update after grading and
-switching sources; large queues wrap within a scrollable area in the header.
+switching sources; large queues wrap within a bounded scrollable area. On desktop
+and tablet (768px and wider), dots are left-aligned and fill the space before the
+Incorrect and Correct buttons. On smaller screens, they occupy a full-width row
+below the buttons. Dots remain visible while the answer is hidden.
 
 ## Study Pomodoro
 
@@ -170,9 +173,8 @@ cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 Reset is available for running, paused, and expired timers. Outside an active
-study session it resets only the timer. Desktop and tablet due-card dots fill the
-remaining header space, aligned right, followed by the partner turn indicator.
-On mobile, dots occupy a full-width row below the controls.
+study session it resets only the timer. The partner turn indicator remains in the
+header beside the source selector.
 
 The installed iPad app uses the non-overlay system status bar, keeping the clock
 and battery indicators above the application header. Safe-area padding is retained

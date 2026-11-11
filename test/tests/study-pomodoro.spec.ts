@@ -262,15 +262,8 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     const dots = page.getByRole('group', { name: 'Due cards', exact: true });
     await expect(dots.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(30);
-    const dotsBounds = await dots.boundingBox();
-    const avatarBounds = await navigation.getByRole('button', { name: 'Profile menu' }).boundingBox();
-    if (width < 600) {
-      expect(dotsBounds!.y).toBeGreaterThanOrEqual(avatarBounds!.y + avatarBounds!.height);
-      expect(dotsBounds!.width).toBe(width - 32);
-    } else {
-      expect(dotsBounds!.width).toBeGreaterThan(200);
-      expect(dotsBounds!.y).toBeLessThan(avatarBounds!.y + avatarBounds!.height);
-    }
+    await expect(dots).toBeInViewport({ ratio: 1 });
+    await expect(navigation.getByRole('group', { name: 'Due cards', exact: true })).toHaveCount(0);
     await navigation.getByRole('button', { name: 'Profile menu' }).click();
     await expect(page.getByRole('menuitem', { name: 'Reset Pomodoro' })).toBeEnabled();
     await expect(page.getByRole('menuitem', { name: 'Settings', exact: true })).toBeVisible();

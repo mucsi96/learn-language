@@ -299,7 +299,7 @@ test('source selector routing works', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { name: 'tanulni' })).not.toBeVisible();
 });
 
-test('source selector shows one labeled dot per due card in each state', async ({ page }) => {
+test('study grading area shows one labeled dot per due card in each state', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
   await createCardsWithStates('goethe-a1', [
@@ -321,13 +321,14 @@ test('source selector shows one labeled dot per due card in each state', async (
   await expect(progress).toHaveText('');
 });
 
-test('large study queues keep all dots within a bounded header area', async ({ page }) => {
+test('large study queues keep all dots within a bounded grading area', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await createCardsWithStates('goethe-a1', [
     { state: 'NEW', count: 100, due_date: new Date(Date.now() - 86400000) },
   ]);
 
   await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
   await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(50);
   const dimensions = await progress.evaluate(element => ({
@@ -344,7 +345,7 @@ test('large study queues keep all dots within a bounded header area', async ({ p
   await expect(page.getByRole('button', { name: 'Goethe A1' })).toBeInViewport();
 });
 
-test('source selector stats update after changing source', async ({ page }) => {
+test('study dots update after changing source', async ({ page }) => {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 86400000);
   // Create cards in two different sources with different states
@@ -402,7 +403,8 @@ test('study progress dots disappear when the last review card is completed', asy
   await page.getByRole('article', { name: 'Flashcard' })
     .getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
-  await expect(progress).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+  await expect(progress).toHaveCount(0);
   await expect(progress.getByRole('img')).toHaveCount(0);
 });
 

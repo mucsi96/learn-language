@@ -104,14 +104,20 @@
     }
   </div>
 
-  <div class="grading-buttons-container" [class.hidden]="!isRevealed()">
+  <div class="grading-buttons-container">
+    <div class="stats-container" role="group" aria-label="Due cards">
+      @for (dueCount of dueCounts(); track dueCount.state) {
+        <app-state [state]="dueCount.state" [count]="dueCount.count" display="dots" />
+      }
+    </div>
     <app-card-grading-buttons
+      [class.hidden]="!isRevealed()"
       [card]="cardResource"
       [learningPartnerId]="currentTurn().partnerId"
       [reviewDuration]="reviewDuration()"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
-    <div class="grading-row-actions">
+    <div class="grading-row-actions" [class.hidden]="!isRevealed()">
       <app-card-actions
         [card]="cardResource"
         [sourceId]="sourceId()"
