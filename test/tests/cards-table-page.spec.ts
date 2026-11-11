@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures';
 import * as fs from 'fs';
+import { text } from 'node:stream/consumers';
 import * as path from 'path';
 import {
   createCard,
@@ -1166,8 +1167,7 @@ test('dictionary lookup creates draft card visible on cards page', async ({ page
   await page.getByRole('button', { name: 'Generate token' }).click();
 
   const download = await downloadPromise;
-  const filePath = await download.path();
-  const token = fs.readFileSync(filePath!, 'utf-8');
+  const token = await text(await download.createReadStream());
 
   const response = await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
@@ -1216,8 +1216,7 @@ test('dictionary lookup does not duplicate draft cards', async ({ page, baseURL 
   await page.getByRole('button', { name: 'Generate token' }).click();
 
   const download = await downloadPromise;
-  const filePath = await download.path();
-  const token = fs.readFileSync(filePath!, 'utf-8');
+  const token = await text(await download.createReadStream());
 
   await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',
@@ -1277,8 +1276,7 @@ test('completes selected draft cards from cards table', async ({ page, baseURL }
   await page.getByRole('button', { name: 'Generate token' }).click();
 
   const download = await downloadPromise;
-  const filePath = await download.path();
-  const token = fs.readFileSync(filePath!, 'utf-8');
+  const token = await text(await download.createReadStream());
 
   await fetch(`${baseURL}/api/dictionary`, {
     method: 'POST',

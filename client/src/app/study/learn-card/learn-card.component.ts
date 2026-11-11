@@ -32,6 +32,7 @@ import { SessionStatsComponent } from '../session-stats/session-stats.component'
 import { SourcesService } from '../../sources.service';
 import { CardsTableService } from '../../cards-table/cards-table.service';
 import { DueCardsService } from '../../due-cards.service';
+import { StateComponent } from '../../shared/state/state.component';
 import { NotificationsService } from '@mucsi96/angular-material-theme';
 
 @Component({
@@ -50,6 +51,7 @@ import { NotificationsService } from '@mucsi96/angular-material-theme';
     LearnCardSkeletonComponent,
     ConfettiComponent,
     SessionStatsComponent,
+    StateComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -99,6 +101,9 @@ export class LearnCardComponent implements OnDestroy {
   });
 
   readonly currentCardType = computed(() => this.card()?.type);
+  readonly dueCounts = computed(() =>
+    this.dueCardsService.dueCounts.value()?.filter(count => count.sourceId === this.sourceId())
+  );
 
   readonly suggestedKnownCount = computed(() => {
     const sourceId = this.sourceId();

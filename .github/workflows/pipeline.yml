@@ -127,20 +127,14 @@ jobs:
       - name: Install dependencies
         working-directory: test
         run: npm ci
-      - name: Restore Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('test/node_modules/playwright-core/package.json') }}
-      - name: Install Chromium and Linux dependencies
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Start Playwright browser server
         working-directory: test
-        run: npx playwright install chromium --with-deps
-      - name: Install Linux dependencies for cached Chromium
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        working-directory: test
-        run: npx playwright install-deps chromium
+        run: |
+          version=$(node -p "require('playwright/package.json').version")
+          podman run --detach --name playwright-browser --network host --ipc host \
+            mcr.microsoft.com/playwright:v${version}-noble \
+            npx --yes playwright@${version} run-server --port 3075 --host 127.0.0.1
+          timeout 120 bash -c 'until curl --fail --silent http://127.0.0.1:3075/ > /dev/null; do sleep 1; done'
       # Only the image tarballs. Without the pattern this also pulls the
       # .dockerbuild build records docker/build-push-action uploads on its own,
       # which this job has no use for and which failed the whole step when one
@@ -174,7 +168,12 @@ jobs:
         run: scripts/pod_up.sh
       - name: Run Playwright tests
         working-directory: test
+        env:
+          PLAYWRIGHT_WS_ENDPOINT: ws://127.0.0.1:3075/
         run: npx playwright test --shard=${{ matrix.shard }}/5
+      - name: Collect browser server logs
+        if: always()
+        run: podman logs playwright-browser
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         if: failure()

@@ -85,6 +85,14 @@ deep links, role denial, mutation origins, dictionary/export tokens, and telemet
 For local Angular development, provide a gateway session/proxy in front of the
 dev server; the app no longer performs a direct Entra login.
 
+CI runs the browser in Microsoft's prebuilt Playwright container, with its version
+read from the installed test dependency. This includes the browser's Linux
+dependencies without installing Ubuntu packages on the runner. The browser server
+binds to loopback port 3075 using host networking; tests still run on the host so
+database helpers and Podman restart tests retain access to the test stack.
+`PLAYWRIGHT_WS_ENDPOINT` selects this remote browser connection; local tests use
+their installed browser when the variable is unset.
+
 ## FSRS scheduling
 
 The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
@@ -138,10 +146,13 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 ## Study progress
 
-The study header reports due cards as colored dots, one per card: blue for New,
+The study grading area reports due cards as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
 label for assistive technology and a hover title. Dots update after grading and
-switching sources; large queues wrap within a scrollable area in the header.
+switching sources; large queues wrap within a bounded scrollable area. On desktop
+and tablet (768px and wider), dots are left-aligned and fill the space before the
+Incorrect and Correct buttons. On smaller screens, they occupy a full-width row
+below the buttons. Dots remain visible while the answer is hidden.
 
 ## Study Pomodoro
 
@@ -170,9 +181,8 @@ cards using its card limits and partner settings.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 Reset is available for running, paused, and expired timers. Outside an active
-study session it resets only the timer. Desktop and tablet due-card dots fill the
-remaining header space, aligned right, followed by the partner turn indicator.
-On mobile, dots occupy a full-width row below the controls.
+study session it resets only the timer. The partner turn indicator remains in the
+header beside the source selector.
 
 The installed iPad app uses the non-overlay system status bar, keeping the clock
 and battery indicators above the application header. Safe-area padding is retained

@@ -77,9 +77,7 @@ test('study page shows turn indicator when source has learning partner', async (
   await page.getByRole('button', { name: 'Start study session' }).click();
 
   await expect(page.getByRole('status', { name: 'Current turn' })).toBeVisible();
-  const dots = await page.getByRole('group', { name: 'Due cards', exact: true }).boundingBox();
-  const turn = await page.getByRole('status', { name: 'Current turn' }).boundingBox();
-  expect(turn!.x).toBeGreaterThanOrEqual(dots!.x + dots!.width);
+  await expect(page.getByRole('navigation').getByRole('status', { name: 'Current turn' })).toBeVisible();
 });
 
 test('study page keeps turn indicator visible when card is revealed', async ({ page }) => {
