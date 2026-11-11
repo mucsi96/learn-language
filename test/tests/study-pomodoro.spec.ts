@@ -1,5 +1,7 @@
 import { test, expect } from '../fixtures';
 import { Locator, Page } from '@playwright/test';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { createCard, createSource, createCardsWithStates, getReviewLogsByCardId, getStudySessionCardsBySource, withDbConnection } from '../utils';
 
 const expectProgress = async (progress: Locator, percent: number) => {
@@ -12,6 +14,206 @@ const resetPomodoro = async (page: Page) => {
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await page.getByRole('menuitem', { name: 'Reset Pomodoro' }).click();
 };
+
+const storedTimer = () => withDbConnection(async db => {
+  const result = await db.query(`SELECT ends_at, remaining_ms, version FROM learn_language.pomodoro_timers
+    WHERE user_id = '00000000-0000-0000-0000-000000000001'`);
+  return result.rows[0];
+});
+
+['running', 'paused'].forEach(state => {
+  test(`${state} Pomodoro survives closing the tab and restarting the backend`, async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.clock.install();
+    await page.goto('/sources/goethe-a1/study');
+    await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+    await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 0);
+    await page.clock.fastForward(60_000);
+    if (state === 'paused') {
+      await page.getByRole('button', { name: 'Profile menu' }).click();
+      await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).click();
+      await expect.poll(async () => (await storedTimer()).remaining_ms).not.toBeNull();
+    }
+    const saved = await storedTimer();
+    const now = await page.evaluate(() => Date.now());
+    const context = page.context();
+    await page.close();
+    await promisify(execFile)('podman', ['restart', 'learn-language-test-server']);
+    await expect.poll(async () => {
+      try { return (await context.request.get('/api/environment')).status(); }
+      catch { return 0; }
+    }, { timeout: 90_000 }).toBe(200);
+
+    const reopened = await context.newPage();
+    await reopened.clock.setSystemTime(now + 60_000);
+    await reopened.goto('/sources/goethe-a1/study');
+    await expectProgress(reopened.getByRole('progressbar', { name: 'Study Pomodoro' }), state === 'paused' ? 4 : 8);
+    expect(await reopened.evaluate(() => [
+      sessionStorage.getItem('pomodoroEndsAt'), sessionStorage.getItem('pomodoroRemainingMs'),
+    ])).toEqual([null, null]);
+    await reopened.getByRole('button', { name: 'Continue study session' }).click();
+    await expectProgress(reopened.getByRole('progressbar', { name: 'Study Pomodoro' }), state === 'paused' ? 4 : 8);
+    expect(await storedTimer()).toEqual(saved);
+    await reopened.close();
+  });
+});
+
+test('backend state wins over browser storage and delayed restoration when continuing', async ({ page, request, apiHeaders }) => {
+  const saved = { endsAt: null, remainingMs: 900_000, version: 0 };
+  expect((await request.put('/api/pomodoro', { headers: apiHeaders, data: saved })).status()).toBe(200);
+  await page.addInitScript(() => {
+    sessionStorage.setItem('pomodoroEndsAt', String(Date.now() + 1_500_000));
+    sessionStorage.setItem('pomodoroRemainingMs', '1');
+  });
+  await page.route('**/api/pomodoro', async route => {
+    if (route.request().method() === 'GET') {
+      await page.getByRole('button', { name: 'Start study session', exact: true }).waitFor();
+    }
+    await route.fallback();
+  });
+  const restored = page.waitForResponse('**/api/pomodoro');
+  await page.goto('/sources/goethe-a1/study');
+  await restored;
+  await page.unroute('**/api/pomodoro');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 40);
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Resume Pomodoro' })).toBeVisible();
+  expect((await storedTimer()).version).toBe('1');
+});
+
+[
+  { method: 'GET', status: 503, completed: false },
+  { method: 'PUT', status: 503, completed: true },
+  { method: 'PUT', status: 409, completed: false },
+].forEach(({ method, status, completed }) => {
+  test(`restart reconciles the queue when timer ${method} fails with ${status}`, async ({ page }) => {
+    await createSource({ id: 'limited', name: 'Limited', languageLevel: 'A1', cardTypes: ['VOCABULARY'], cardLimit: 1 });
+    await Promise.all(['first', 'second'].map((id, index) => createCard({
+      cardId: id, sourceId: 'limited',
+      data: { word: `${id} word`, type: 'NOUN', translation: { en: id, hu: `${id} prompt` } },
+      state: 'REVIEW', stability: 10, difficulty: 5, reps: 3,
+      lastReview: new Date(), elapsedDays: 1, scheduledDays: 10,
+      due: new Date(Date.now() - (2 - index) * 86_400_000),
+    })));
+    await page.goto('/sources/limited/study');
+    await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+    const card = page.getByRole('article', { name: 'Flashcard' });
+    await card.getByRole('heading', { name: 'first prompt' }).click();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+    if (completed) {
+      await page.getByRole('button', { name: 'Correct', exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+    } else {
+      await withDbConnection(db => db.query("UPDATE learn_language.cards SET due = NOW() + INTERVAL '7 days' WHERE id = 'first'"));
+    }
+    const reviews = await getReviewLogsByCardId('first');
+    const timer = await storedTimer();
+    await page.route('**/api/pomodoro', route => route.request().method() === method
+      ? route.fulfill({ status }) : route.fallback());
+    await resetPomodoro(page);
+    await expect(page.getByText('Could not save Pomodoro. Please retry.', { exact: true })).toBeVisible();
+    await expect(card.getByRole('heading', { name: 'second prompt' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
+    expect(await storedTimer()).toEqual(timer);
+    expect(await getReviewLogsByCardId('first')).toEqual(reviews);
+    await card.getByRole('heading', { name: 'second prompt' }).click();
+    await page.getByRole('button', { name: 'Correct', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+    expect(await getReviewLogsByCardId('second')).toHaveLength(1);
+  });
+});
+
+test('failed persistence keeps the running timer and allows retry', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/sources/goethe-a1/study');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  const timer = page.getByRole('progressbar', { name: 'Study Pomodoro' });
+  await expectProgress(timer, 0);
+  const saved = await storedTimer();
+  await page.route('**/api/pomodoro', route => route.request().method() === 'PUT'
+    ? route.fulfill({ status: 503 }) : route.fallback());
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).click();
+  await expect(page.getByText('Could not save Pomodoro. Please retry.', { exact: true })).toBeVisible();
+  expect(await storedTimer()).toEqual(saved);
+  await page.clock.fastForward(60_000);
+  await expectProgress(timer, 4);
+  await page.unroute('**/api/pomodoro');
+  await page.getByRole('button', { name: 'Profile menu' }).click();
+  await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).click();
+  await expect.poll(async () => (await storedTimer()).remaining_ms).not.toBeNull();
+  await page.reload();
+  await expectProgress(timer, 4);
+});
+
+test('failed restoration offers a retry without replacing the saved timer', async ({ page, request, apiHeaders }) => {
+  expect((await request.put('/api/pomodoro', {
+    headers: apiHeaders, data: { endsAt: null, remainingMs: 900_000, version: 0 },
+  })).status()).toBe(200);
+  await page.route('**/api/pomodoro', route => route.fulfill({ status: 503 }));
+  await page.goto('/sources/goethe-a1/study');
+  await expect(page.getByRole('alert')).toContainText('Could not load Pomodoro.');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  await expect(page.getByText('Could not save Pomodoro. Please retry.', { exact: true })).toBeVisible();
+  expect((await storedTimer()).version).toBe('1');
+  await page.unroute('**/api/pomodoro');
+  await page.getByRole('button', { name: 'Retry Pomodoro' }).click();
+  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 40);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('restoring an expired deadline does not restart it until study is started', async ({ page, request, apiHeaders }) => {
+  expect((await request.put('/api/pomodoro', {
+    headers: apiHeaders, data: { endsAt: Date.now() - 60_000, remainingMs: null, version: 0 },
+  })).status()).toBe(200);
+  await page.goto('/sources/goethe-a1/study');
+  const timer = page.getByRole('progressbar', { name: 'Study Pomodoro' });
+  await expectProgress(timer, 100);
+  await expect(page.getByRole('status')).toHaveText('Time for a break!');
+  expect((await storedTimer()).version).toBe('1');
+  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+  await expectProgress(timer, 0);
+  expect((await storedTimer()).version).toBe('2');
+});
+
+test('Pomodoro API isolates users, validates state and rejects stale writes', async ({ page, request, apiHeaders }) => {
+  await page.goto('/');
+  await withDbConnection(db => db.query(`INSERT INTO learn_language.pomodoro_timers
+    (user_id, ends_at, remaining_ms, version) VALUES ('another-user', NULL, 600000, 1)`));
+  const initial = await request.get('/api/pomodoro?userId=another-user', { headers: apiHeaders });
+  expect(initial.headers()['cache-control']).toContain('no-store');
+  expect(await initial.json()).toEqual({ endsAt: null, remainingMs: null, version: 0 });
+  expect((await request.get('/api/pomodoro')).status()).toBe(401);
+  const running = { endsAt: Date.now() + 1_500_000, remainingMs: null, version: 0 };
+  expect((await request.put('/api/pomodoro', { headers: { Authorization: apiHeaders.Authorization }, data: running })).status()).toBe(403);
+  expect((await request.put('/api/pomodoro', { headers: { ...apiHeaders, Origin: 'https://attacker.example' }, data: running })).status()).toBe(403);
+  await Promise.all([
+    { endsAt: null, remainingMs: null, version: 0 },
+    { endsAt: 1, remainingMs: 1000, version: 0 },
+    { endsAt: -1, remainingMs: null, version: 0 },
+    { endsAt: null, remainingMs: 0, version: 0 },
+    { endsAt: null, remainingMs: 1_500_001, version: 0 },
+    { ...running, version: -1 },
+    { ...running, version: null },
+  ].map(async data => {
+    expect((await request.put('/api/pomodoro', { headers: apiHeaders, data })).status()).toBe(400);
+  }));
+  const writes = await Promise.all([running, { ...running, endsAt: running.endsAt + 1000 }].map(data =>
+    request.put('/api/pomodoro', { headers: apiHeaders, data })));
+  expect(writes.filter(response => response.status() === 200)).toHaveLength(1);
+  expect(writes.filter(response => response.status() === 409)).toHaveLength(1);
+  const saved = await (await request.get('/api/pomodoro', { headers: apiHeaders })).json();
+  expect((await request.put('/api/pomodoro', {
+    headers: apiHeaders, data: { endsAt: null, remainingMs: 600_000, version: saved.version },
+  })).status()).toBe(200);
+  expect((await request.put('/api/pomodoro', { headers: apiHeaders, data: saved })).status()).toBe(409);
+  expect(await (await request.get('/api/pomodoro', { headers: apiHeaders })).json()).toEqual({
+    endsAt: null, remainingMs: 600_000, version: 2,
+  });
+  const other = await withDbConnection(db => db.query("SELECT remaining_ms, version FROM learn_language.pomodoro_timers WHERE user_id = 'another-user'"));
+  expect(other.rows).toEqual([{ remaining_ms: '600000', version: '1' }]);
+});
 
 test('starting and continuing study automatically starts an inactive Pomodoro', async ({ page }) => {
   await page.clock.install();
@@ -29,7 +231,7 @@ test('starting and continuing study automatically starts an inactive Pomodoro', 
   await expectProgress(timer, 0);
   await expect(page.getByRole('status')).not.toBeVisible();
 
-  await page.evaluate(() => sessionStorage.removeItem('pomodoroEndsAt'));
+  await withDbConnection(db => db.query('DELETE FROM learn_language.pomodoro_timers'));
   await page.reload();
   await expect(timer).not.toBeVisible();
   await page.getByRole('button', { name: 'Continue study session' }).click();
@@ -47,6 +249,7 @@ test('paused Pomodoro survives time, navigation, reload and session continuation
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).focus();
   await page.keyboard.press('Enter');
+  await expect.poll(async () => (await storedTimer()).remaining_ms).not.toBeNull();
   await expectProgress(timer, 4);
   await page.clock.fastForward(30 * 60_000);
   await expectProgress(timer, 4);
@@ -65,6 +268,8 @@ test('paused Pomodoro survives time, navigation, reload and session continuation
   await expect(page.getByRole('menuitem', { name: 'Pause Pomodoro' })).toHaveCount(0);
   await page.getByRole('menuitem', { name: 'Resume Pomodoro' }).focus();
   await page.keyboard.press('Space');
+  await expect.poll(async () => (await storedTimer()).remaining_ms).toBeNull();
+  await expect(page.getByRole('menuitem', { name: 'Resume Pomodoro' })).not.toBeVisible();
   await page.clock.fastForward(60_000);
   await expectProgress(timer, 8);
   expect(await getStudySessionCardsBySource('other')).toEqual(queue);
@@ -82,6 +287,7 @@ test('resetting a paused Pomodoro starts a fresh running countdown', async ({ pa
   await page.clock.fastForward(60_000);
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).click();
+  await expect.poll(async () => (await storedTimer()).remaining_ms).not.toBeNull();
   await resetPomodoro(page);
   await expectProgress(timer, 0);
   await page.reload();

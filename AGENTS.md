@@ -388,6 +388,7 @@ Tracks review history and performance metrics for spaced repetition
 - `POST /api/translations` - AI-powered translations
 - `POST /api/audio` - Generate pronunciation audio
 - `GET /api/cards/due` - Spaced repetition due cards query
+- `GET/PUT /api/pomodoro` - Restore/save the authenticated user's timer state with optimistic version checks
 - `GET /api/source/{sourceId}/study-session` - Get today's existing study session (204 if none)
 - `POST /api/source/{sourceId}/study-session` - Create or resume today's study session (idempotent)
 - `POST /api/source/{sourceId}/study-session/restart` - Replace this source's current session with a fresh due-card queue and Pomodoro deadline
@@ -447,7 +448,7 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Sessions automatically resume when returning to the study page on the same day
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
-- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active; paused timers stay paused. Its bottom progress bar, avatar-menu controls (Reset, Pause/Resume), and break announcement appear only on study routes. Reset during an active session restarts the source's session and countdown. Running deadlines and paused remaining time persist across navigation and reloads in the current browser tab; the full bar blinks on expiry (static with reduced motion) without interrupting study
+- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active; paused timers stay paused. Its bottom progress bar, avatar-menu controls (Reset, Pause/Resume), and break announcement appear only on study routes. Reset during an active session restarts the source's session and countdown. Running deadlines and paused remaining time persist on the backend per authenticated user across navigation, reloads, and app restarts; version checks reject concurrent stale writes. The full bar blinks on expiry (static with reduced motion) without interrupting study
 - Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support

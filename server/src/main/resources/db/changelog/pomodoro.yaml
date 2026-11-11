@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 64-persist-user-pomodoro
+      author: mucsi96
+      changes:
+        - sql: |
+            CREATE TABLE learn_language.pomodoro_timers (
+              user_id varchar(255) PRIMARY KEY,
+              ends_at bigint,
+              remaining_ms bigint,
+              version bigint NOT NULL,
+              CONSTRAINT pomodoro_state CHECK (
+                (ends_at > 0 AND remaining_ms IS NULL) OR
+                (ends_at IS NULL AND remaining_ms > 0 AND remaining_ms <= 1500000)
+              ),
+              CONSTRAINT pomodoro_has_state CHECK (ends_at IS NOT NULL OR remaining_ms IS NOT NULL)
+            );

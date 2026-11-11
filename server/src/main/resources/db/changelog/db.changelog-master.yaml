@@ -1517,3 +1517,5 @@ databaseChangeLog:
       file: db/changelog/audio-collections.yaml
   - include:
       file: db/changelog/story-folders.yaml
+  - include:
+      file: db/changelog/pomodoro.yaml

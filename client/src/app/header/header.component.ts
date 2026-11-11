@@ -36,7 +36,7 @@ export class HeaderComponent {
     if (restart) {
       if (!restart.disabled()) await restart.start();
     } else {
-      this.pomodoro.start();
+      await this.pomodoro.start();
     }
   }
 }

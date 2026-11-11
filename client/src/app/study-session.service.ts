@@ -82,14 +82,19 @@ export class StudySessionService {
       { method: 'POST' }
     );
     if (session) {
-      if (restart) {
-        this.pomodoro.start();
-      } else {
-        this.pomodoro.startIfInactive();
+      try {
+        if (restart) {
+          await this.pomodoro.start();
+        } else {
+          await this.pomodoro.startIfInactive();
+        }
+      } catch {
+        return session;
+      } finally {
+        this.sourceId.set(sourceId);
+        this.hasSession.set(true);
+        this.refreshSession();
       }
-      this.sourceId.set(sourceId);
-      this.hasSession.set(true);
-      this.refreshSession();
     }
     return session;
   }

@@ -187,20 +187,32 @@ bar fills along the bottom of the screen over 25 minutes instead of displaying
 remaining time. The bar,
 its controls, and the break announcement appear only on study routes. Switching sources,
 returning home, and reloading the page all keep its deadline. The countdown is
-stored for the current browser tab. At zero, the
+stored on the backend for the signed-in user, so reopening the app after a crash
+or closing the tab restores the original deadline. At zero, the
 full bar blinks and announces that it is time for a break; studying can continue.
 Reduced-motion settings disable the blinking.
 
 On study routes, the avatar menu offers **Pause Pomodoro** while running and
 **Resume Pomodoro** while paused. Pausing freezes the progress bar and preserves
-the remaining time across navigation, source changes, and reloads in this tab.
+the remaining time across navigation, source changes, reloads, and app restarts.
 Resuming counts down only that remaining time.
+
+Starting, pausing, resuming, and resetting save the timer before displaying the
+new state. Browser storage is no longer used. Failed loads offer a retry; failed
+saves keep the displayed timer and report an error. Updates read the latest state
+and use a version check so concurrent windows cannot overwrite a newer save.
+Timer reads and writes require the signed-in user's `readDecks` role; writes
+retain the API's exact-origin protection.
+
+Regression coverage: `cd test && npx playwright test study-pomodoro.spec.ts`.
 
 Choose **Reset Pomodoro** in the avatar menu while studying to
 **start a new study session** and reset the countdown to 25 minutes.
 A failed session restart keeps
 the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.
+If the session restart succeeds but saving the timer fails, the new queue is still
+shown, while the existing countdown is retained and the timer error is reported.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 Reset is available for running, paused, and expired timers. Outside an active
