@@ -133,6 +133,8 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('test/node_modules/playwright-core/package.json') }}
+      - name: Use the official Ubuntu package mirror
+        run: printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
       - name: Install Chromium and Linux dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: test
