@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
@@ -34,6 +35,11 @@ interface SentenceTranslationResponse {
 })
 export class SpeechCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'speech';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'speech-1', sentence: 'Wie geht es dir?', hu: 'Hogy vagy?', en: 'How are you?', ch: 'Wie gahts dir?' },
+    ['sentence'],
+    ({ sentence, hu, en, ch }) => ({ examples: [{ de: sentence, hu, en, ch }] })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
@@ -113,7 +119,7 @@ export class SpeechCardType implements CardTypeStrategy {
 
     try {
       progressCallback(15, 'Translating to Hungarian...');
-      const hungarianResult =
+      const hungarianResult = cardData.examples?.[0]?.hu?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -129,7 +135,7 @@ export class SpeechCardType implements CardTypeStrategy {
         );
 
       progressCallback(40, 'Translating to English...');
-      const englishResult =
+      const englishResult = cardData.examples?.[0]?.en?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -161,16 +167,18 @@ export class SpeechCardType implements CardTypeStrategy {
       progressCallback(90, 'Preparing speech card data...');
 
       return {
+        ...cardData,
         examples: [
           {
+            ...cardData.examples?.[0],
             de: sentence,
-            hu: hungarianResult.response.translation,
-            en: englishResult.response.translation,
+            hu: hungarianResult ? hungarianResult.response.translation : cardData.examples?.[0]?.hu,
+            en: englishResult ? englishResult.response.translation : cardData.examples?.[0]?.en,
             isSelected: true,
             images: imagesMap.get(0) ?? [],
           },
         ],
-        translationModel: hungarianResult.model,
+        translationModel: hungarianResult?.model ?? englishResult?.model ?? cardData.translationModel,
         extractionModel: cardData.extractionModel,
       };
     } catch (error) {

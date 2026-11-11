@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
@@ -47,6 +48,15 @@ interface WordIdResponse {
 })
 export class VocabularyCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'vocabulary';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'vocabulary-1', word: 'das Haus', hu: 'ház', en: 'house', ch: 's Huus', example: 'Das Haus ist groß.' },
+    ['word'],
+    ({ word, hu, en, ch, example }) => ({
+      word,
+      translation: { hu, en, ch },
+      examples: example ? [{ de: example }] : [],
+    })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
@@ -156,7 +166,8 @@ export class VocabularyCardType implements CardTypeStrategy {
       throw new Error('Card data is missing required word');
     }
     const forms = cardData.forms ?? [];
-    const germanExamples = (cardData.examples ?? []).map(e => e.de).filter(nonNullable);
+    const sourceExamples = (cardData.examples ?? []).filter(example => example.de);
+    const germanExamples = sourceExamples.map(example => example.de!);
 
     try {
       progressCallback(10, 'Detecting word type...');
@@ -194,7 +205,11 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       progressCallback(40, 'Translating to multiple languages...');
       const translationResults = await Promise.all(
-        languages.map(async (languageCode) => {
+        languages.filter(languageCode =>
+          !cardData.translation?.[languageCode]?.trim() ||
+          sourceExamples.some(example => !example[languageCode]?.trim())
+        ).map(async (languageCode) => {
+          const missingExamples = sourceExamples.filter(example => !example[languageCode]?.trim());
           const result = await this.multiModelService.callWithModel<TranslationResponse>(
             'translation',
             (model: string, headers?: Record<string, string>) => fetchJson<TranslationResponse>(
@@ -203,28 +218,28 @@ export class VocabularyCardType implements CardTypeStrategy {
               {
                 body: {
                   word,
-                  examples: germanExamples,
+                  examples: missingExamples.map(example => example.de!),
                 },
                 method: 'POST',
                 headers,
               }
             )
           );
-          return { languageCode, translation: result.response, model: result.model };
+          return { languageCode, translation: result.response, model: result.model, missingExamples };
         })
       );
 
-      const translationModel = translationResults[0]?.model;
-      const translationMap = Object.fromEntries(
+      const translationModel = translationResults[0]?.model ?? cardData.translationModel;
+      const translationMap = { ...cardData.translation, ...Object.fromEntries(
         translationResults.map(({ languageCode, translation }) => [
           languageCode,
-          translation.translation
+          cardData.translation?.[languageCode]?.trim() ? cardData.translation[languageCode] : translation.translation
         ])
-      );
+      ) };
       const exampleTranslations = Object.fromEntries(
-        translationResults.map(({ languageCode, translation }) => [
+        translationResults.map(({ languageCode, translation, missingExamples }) => [
           languageCode,
-          translation.examples || []
+          new Map(missingExamples.map((example, index) => [example, translation.examples[index]]))
         ])
       );
 
@@ -247,11 +262,14 @@ export class VocabularyCardType implements CardTypeStrategy {
       progressCallback(90, 'Preparing vocabulary card data...');
 
       const examples = germanExamples.map((example, index) => ({
+        ...sourceExamples[index],
         ...Object.fromEntries([
           ['de', example],
           ...languages.map((languageCode) => [
             languageCode,
-            exampleTranslations[languageCode]?.[index] || ''
+            sourceExamples[index][languageCode]?.trim()
+              ? sourceExamples[index][languageCode]
+              : exampleTranslations[languageCode]?.get(sourceExamples[index])
           ])
         ]),
         isSelected: index === 0,
@@ -259,6 +277,7 @@ export class VocabularyCardType implements CardTypeStrategy {
       }));
 
       return {
+        ...cardData,
         word,
         type: wordTypeResult.response.type,
         gender,

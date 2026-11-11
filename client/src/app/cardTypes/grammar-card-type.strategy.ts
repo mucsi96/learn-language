@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
@@ -33,6 +34,11 @@ interface SentenceTranslationResponse {
 })
 export class GrammarCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'grammar';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'grammar-1', sentence: 'Ich bin gestern nach Hause gegangen.', hu: 'Tegnap hazamentem.', grammarTopic: 'Perfekt', hint: 'Use sein with movement verbs.' },
+    ['sentence'],
+    ({ sentence, hu, grammarTopic, hint }) => ({ examples: [{ de: sentence, hu }], grammarTopic, hint })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
@@ -114,7 +120,7 @@ export class GrammarCardType implements CardTypeStrategy {
 
     try {
       progressCallback(30, 'Translating to Hungarian...');
-      const hungarianResult =
+      const hungarianResult = cardData.examples?.[0]?.hu?.trim() ? undefined :
         await this.multiModelService.callWithModel<SentenceTranslationResponse>(
           'translation',
           (model: string, headers?: Record<string, string>) =>
@@ -132,14 +138,16 @@ export class GrammarCardType implements CardTypeStrategy {
       progressCallback(90, 'Preparing grammar card data...');
 
       return {
+        ...cardData,
         examples: [
           {
+            ...cardData.examples?.[0],
             de: sentence,
-            hu: hungarianResult.response.translation,
+            hu: hungarianResult ? hungarianResult.response.translation : cardData.examples?.[0]?.hu,
             isSelected: true,
           },
         ],
-        translationModel: hungarianResult.model,
+        translationModel: hungarianResult?.model ?? cardData.translationModel,
         extractionModel: cardData.extractionModel,
         ...(cardData.grammarTopic ? { grammarTopic: cardData.grammarTopic } : {}),
         ...(cardData.hint ? { hint: cardData.hint } : {}),

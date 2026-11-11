@@ -5,7 +5,7 @@
     </a>
     <h1>{{ source()?.name ?? sourceId() }}</h1>
     <span class="spacer"></span>
-    <button mat-flat-button bt-color="primary" (click)="importJson()" [disabled]="importing()">
+    <button mat-flat-button bt-color="primary" (click)="importJson()" [disabled]="importing() || !source()?.cardTypes?.length">
       <mat-icon>upload_file</mat-icon>
       Import JSON
     </button>
@@ -18,7 +18,7 @@
   <section class="panel">
     <h2 class="panel-title">Cards</h2>
     <p class="hint">
-      Cards are added to this source by importing a JSON array of simple cards.
+      Cards are added to this source by importing a JSON array matching one of its card types.
       Imported cards are created as drafts.
     </p>
     <p class="card-count">{{ source()?.cardCount ?? 0 }} cards in this source</p>

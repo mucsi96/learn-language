@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import {
   CardTypeStrategy,
   CardType,
@@ -17,6 +18,11 @@ import { CardReadiness } from '../shared/state/card-readiness';
 })
 export class SimpleCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'simple';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'Card id', frontText: 'Question (Markdown)', backText: 'Answer (Markdown)', topic: 'Optional topic', category: 'Optional category' },
+    ['frontText', 'backText'],
+    ({ id, ...data }) => data
+  );
   readonly completionReadiness: CardReadiness = 'READY';
 
   async extractItems(_request: ExtractionRequest): Promise<ExtractedItem[]> {

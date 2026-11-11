@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { newCardScheduling } from './shared/state/fsrs-scheduler';
 import { fetchJson } from './utils/fetchJson';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
-import { CardCreatePayload, SimpleCardSuggestion } from './parser/types';
+import { CardCreatePayload } from './parser/types';
+import { JsonCardSuggestion } from './cardTypes/json-card-import';
 import { CardReadiness } from './shared/state/card-readiness';
 
 const CARD_CREATION_CHUNK_SIZE = 10;
@@ -16,9 +17,9 @@ export class JsonSourceService {
 
   async createCards(
     sourceId: string,
-    suggestions: SimpleCardSuggestion[],
+    suggestions: JsonCardSuggestion[],
     readiness: CardReadiness
-  ): Promise<SimpleCardSuggestion[]> {
+  ): Promise<JsonCardSuggestion[]> {
     const chunks = Array.from(
       { length: Math.ceil(suggestions.length / CARD_CREATION_CHUNK_SIZE) },
       (_, index) =>
@@ -46,20 +47,15 @@ export class JsonSourceService {
 
   private createCard(
     sourceId: string,
-    suggestion: SimpleCardSuggestion,
+    suggestion: JsonCardSuggestion,
     readiness: CardReadiness
   ): Promise<unknown> {
     const cardPayload = {
       id: suggestion.id,
       sourceId,
       sourcePageNumber: 1,
-      type: 'simple' as const,
-      data: {
-        frontText: suggestion.frontText,
-        backText: suggestion.backText,
-        ...(suggestion.topic ? { topic: suggestion.topic } : {}),
-        ...(suggestion.category ? { category: suggestion.category } : {}),
-      },
+      type: suggestion.type,
+      data: suggestion.data,
       ...newCardScheduling(suggestion.id),
       readiness,
     } satisfies CardCreatePayload;

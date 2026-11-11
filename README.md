@@ -93,6 +93,29 @@ database helpers and Podman restart tests retain access to the test stack.
 `PLAYWRIGHT_WS_ENDPOINT` selects this remote browser connection; local tests use
 their installed browser when the variable is unset.
 
+## JSON card sources
+
+In **Sources → Add Source**, choose **JSON** and select the card types to import:
+Vocabulary, Speech, Grammar, or Simple. Open **Pages → Import JSON** and choose
+one of that source's card types. The example and validation update with the selection.
+Imports create drafts; existing matching IDs in the same source and card type update
+their content while retaining scheduling and review history.
+
+Each entry requires a unique string `id`. The type-specific fields are:
+
+- **Vocabulary:** required `word`; optional `hu`, `en`, `ch` translations and a
+  German `example` sentence.
+- **Speech:** required German `sentence`; optional `hu`, `en`, `ch` translations.
+- **Grammar:** required German `sentence`; optional `hu`, `grammarTopic`, and `hint`.
+- **Simple:** required `frontText` and `backText` (Markdown); optional `topic` and `category`.
+
+All fields are strings. Unknown fields and duplicate IDs within a batch are rejected.
+Use the existing draft completion workflow to fill missing translations and generate media.
+Completion retains supplied translations, including Swiss German speech text, and skips
+translation requests for languages whose required text is already complete.
+
+Regression coverage: `cd test && npx playwright test json-source.spec.ts`.
+
 ## FSRS scheduling
 
 The client uses the ts-fsrs v6 `defineScheduler` API with **FSRS-6** and its
