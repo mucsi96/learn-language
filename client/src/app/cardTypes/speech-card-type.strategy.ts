@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
@@ -34,6 +35,11 @@ interface SentenceTranslationResponse {
 })
 export class SpeechCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'speech';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'speech-1', sentence: 'Wie geht es dir?', hu: 'Hogy vagy?', en: 'How are you?', ch: 'Wie gahts dir?' },
+    ['sentence'],
+    ({ sentence, hu, en, ch }) => ({ examples: [{ de: sentence, hu, en, ch }] })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);

@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { languages } from '../shared/constants/languages';
@@ -47,6 +48,15 @@ interface WordIdResponse {
 })
 export class VocabularyCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'vocabulary';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'vocabulary-1', word: 'das Haus', hu: 'ház', en: 'house', ch: 's Huus', example: 'Das Haus ist groß.' },
+    ['word'],
+    ({ word, hu, en, ch, example }) => ({
+      word,
+      translation: { hu, en, ch },
+      examples: example ? [{ de: example }] : [],
+    })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);

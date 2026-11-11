@@ -64,7 +64,7 @@ export class SourceDialogComponent {
   readonly isAudioCollection = computed(() => this.formModel().sourceType === 'audioCollection');
 
   readonly forcedCardType = computed<CardType | undefined>(() =>
-    this.isJson() ? 'simple' : this.isWordTriage() || this.isAudioCollection() ? 'vocabulary' : undefined
+    this.isWordTriage() || this.isAudioCollection() ? 'vocabulary' : undefined
   );
 
   readonly cardTypes = computed(() => {
@@ -128,7 +128,7 @@ export class SourceDialogComponent {
     );
     validate(path.formatType, (ctx) => {
       const cardTypes = ctx.valueOf(path.cardTypes);
-      if (!this.isWordTriage() && !this.isAudioCollection() && cardTypes.includes('vocabulary') && !ctx.value()) {
+      if (!this.isJson() && !this.isWordTriage() && !this.isAudioCollection() && cardTypes.includes('vocabulary') && !ctx.value()) {
         return requiredError();
       }
       return undefined;
@@ -178,7 +178,7 @@ export class SourceDialogComponent {
         startPage: result.startPage,
         languageLevel: result.languageLevel || undefined,
         cardTypes: cardTypes.length > 0 ? cardTypes : undefined,
-        formatType: this.isAudioCollection() ? 'flowingText' : this.isWordTriage()
+        formatType: this.isJson() || this.isAudioCollection() ? 'flowingText' : this.isWordTriage()
           ? undefined
           : cardTypes.includes('vocabulary')
             ? result.formatType || undefined

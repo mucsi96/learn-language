@@ -2,12 +2,20 @@
 
 <mat-dialog-content class="dialog-content">
   <p class="intro">
-    Paste a JSON array of cards below. Each card needs an <code>id</code>, a
-    <code>frontText</code> and a <code>backText</code> (both Markdown);
-    <code>topic</code> and <code>category</code> are optional. Imported cards
-    are created as drafts.
+    Paste a JSON array matching the selected card type. Each card needs a unique
+    <code>id</code>. Simple cards require frontText and backText; speech and grammar
+    cards require sentence; vocabulary cards require word. Other shown fields are
+    optional. Imported cards are created as drafts.
   </p>
-  <pre class="json-example" aria-label="Expected JSON structure">{{ exampleJson }}</pre>
+  <mat-form-field>
+    <mat-label>Card type</mat-label>
+    <mat-select [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event)">
+      @for (type of cardTypes; track type.code) {
+        <mat-option [value]="type.code">{{ type.displayName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <pre class="json-example" aria-label="Expected JSON structure">{{ exampleJson() }}</pre>
   <mat-form-field appearance="fill" class="full-width">
     <mat-label>Cards JSON</mat-label>
     <textarea

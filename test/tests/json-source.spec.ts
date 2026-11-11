@@ -18,13 +18,16 @@ async function pressRemoteKey(page: Page, key: string) {
   );
 }
 
-test('create JSON source restricted to simple cards', async ({ page }) => {
+test('create JSON source with simple cards', async ({ page }) => {
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Add Source' }).click();
 
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('CKAD Prep');
   await page.getByLabel('Source Type').click();
   await page.getByRole('option', { name: 'JSON' }).click();
+  await page.getByLabel('Card Types').click();
+  await page.getByRole('option', { name: 'Simple', exact: true }).click();
+  await page.keyboard.press('Escape');
   await page.getByLabel('Language Level').click();
   await page.getByRole('option', { name: 'A1' }).click();
 
@@ -48,6 +51,104 @@ test('create JSON source restricted to simple cards', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/sources\/ckad-prep\/json/);
   await expect(page.getByRole('button', { name: 'Import JSON' })).toBeVisible();
+});
+
+[
+  {
+    type: 'Speech',
+    fields: { sentence: 'Wie geht es dir?', hu: 'Hogy vagy?', en: 'How are you?', ch: 'Wie gahts dir?' },
+    requiredField: 'sentence',
+    data: { examples: [{ de: 'Wie geht es dir?', hu: 'Hogy vagy?', en: 'How are you?', ch: 'Wie gahts dir?' }] },
+    editLabel: 'German sentence',
+    editValue: 'Wie geht es dir?',
+  },
+  {
+    type: 'Grammar',
+    fields: { sentence: 'Ich bin gestern nach Hause gegangen.', hu: 'Tegnap hazamentem.', grammarTopic: 'Perfekt', hint: 'Use sein with movement verbs.' },
+    requiredField: 'sentence',
+    data: { examples: [{ de: 'Ich bin gestern nach Hause gegangen.', hu: 'Tegnap hazamentem.' }], grammarTopic: 'Perfekt', hint: 'Use sein with movement verbs.' },
+    editLabel: 'German sentence',
+    editValue: 'Ich bin gestern nach Hause gegangen.',
+  },
+  {
+    type: 'Vocabulary',
+    fields: { word: 'das Haus', hu: 'ház', en: 'house', ch: 's Huus', example: 'Das Haus ist groß.' },
+    requiredField: 'word',
+    data: { word: 'das Haus', translation: { hu: 'ház', en: 'house', ch: 's Huus' }, examples: [{ de: 'Das Haus ist groß.' }] },
+    editLabel: 'German translation',
+    editValue: 'das Haus',
+  },
+].forEach(({ type, fields, requiredField, data, editLabel, editValue }) => {
+  test(`create and import ${type} JSON source`, async ({ page }) => {
+    const sourceId = `json-${type.toLowerCase()}`;
+    await page.goto('/sources');
+    await page.getByRole('button', { name: 'Add Source' }).click();
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill(`JSON ${type}`);
+    await page.getByLabel('Source Type').click();
+    await page.getByRole('option', { name: 'JSON', exact: true }).click();
+    await page.getByLabel('Card Types').click();
+    await page.getByRole('option', { name: type, exact: true }).click();
+    await page.keyboard.press('Escape');
+    await page.getByLabel('Language Level').click();
+    await page.getByRole('option', { name: 'A1 - Beginner', exact: true }).click();
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Add New Source' })).not.toBeVisible();
+    expect((await getSource(sourceId))?.cardTypes).toEqual([type.toUpperCase()]);
+
+    await page.getByRole('button', { name: `Actions for JSON ${type}` }).click();
+    await page.getByRole('menuitem', { name: 'Pages', exact: true }).click();
+    await page.getByRole('button', { name: 'Import JSON' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+    await expect(dialog.getByRole('combobox', { name: 'Card type', exact: true })).toContainText(type);
+    await expect(dialog.getByLabel('Expected JSON structure')).toContainText(requiredField);
+    await expect(dialog.getByLabel('Expected JSON structure')).not.toContainText('frontText');
+    await dialog.getByLabel('Cards JSON').fill(JSON.stringify([{ id: `${sourceId}-1` }]));
+    await expect(dialog.getByRole('alert')).toContainText(`"${requiredField}" must be a non-empty string.`);
+    await expect(dialog.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+    await dialog.getByLabel('Cards JSON').fill(JSON.stringify([{ id: `${sourceId}-1`, ...fields, hu: 123 }]));
+    await expect(dialog.getByRole('alert')).toContainText('"hu" must be a string.');
+    await dialog.getByLabel('Cards JSON').fill(JSON.stringify([{ id: `${sourceId}-1`, ...fields }]));
+    await dialog.getByRole('button', { name: 'Import 1 card', exact: true }).click();
+    await expect(page.getByText('Imported 1 cards as drafts')).toBeVisible();
+    const card = await withDbConnection(async client =>
+      (await client.query('SELECT type, readiness, state, data FROM learn_language.cards WHERE id = $1', [`${sourceId}-1`])).rows[0]
+    );
+    expect(card.type).toBe(type.toUpperCase());
+    expect(card.readiness).toBe('DRAFT');
+    expect(card.state).toBe('NEW');
+    expect(card.data).toMatchObject(data);
+    await page.goto(`/sources/${sourceId}/page/1/cards/${sourceId}-1`);
+    await expect(page.getByLabel(editLabel, { exact: true })).toHaveValue(editValue);
+  });
+});
+
+test('JSON import changes its example and validation with the selected source card type', async ({ page }) => {
+  await createSource({ id: 'mixed-json', name: 'Mixed JSON', startPage: 1, languageLevel: 'A1', cardTypes: ['SPEECH', 'GRAMMAR', 'VOCABULARY'], sourceType: 'JSON', formatType: 'FLOWING_TEXT' });
+  await page.goto('/sources/mixed-json/json');
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Import cards from JSON' });
+  await dialog.getByLabel('Cards JSON').fill('[{"id":"mixed-1","sentence":"Guten Tag!"}]');
+  await expect(dialog.getByRole('button', { name: 'Import 1 card' })).toBeEnabled();
+  await dialog.getByRole('combobox', { name: 'Card type', exact: true }).click();
+  await expect(page.getByRole('option', { name: 'Simple', exact: true })).toHaveCount(0);
+  await page.getByRole('option', { name: 'Grammar', exact: true }).click();
+  await expect(dialog.getByLabel('Expected JSON structure')).toContainText('grammarTopic');
+  await dialog.getByRole('combobox', { name: 'Card type', exact: true }).click();
+  await page.getByRole('option', { name: 'Vocabulary', exact: true }).click();
+  await expect(dialog.getByLabel('Expected JSON structure')).toContainText('word');
+  await expect(dialog.getByLabel('Expected JSON structure')).not.toContainText('grammarTopic');
+  await expect(dialog.getByRole('alert')).toContainText('"word" must be a non-empty string.');
+  await expect(dialog.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+  await dialog.getByLabel('Cards JSON').fill('[{"id":"mixed-1","word":"Haus"},{"id":"mixed-1","word":"Baum"}]');
+  await expect(dialog.getByRole('alert')).toHaveText('Card ids must be unique within an import.');
+  await dialog.getByLabel('Cards JSON').fill('[{"id":"mixed-1","word":"Haus"}]');
+  await dialog.getByRole('button', { name: 'Import 1 card' }).click();
+  await expect(page.getByText('Imported 1 cards as drafts')).toBeVisible();
+  const card = await withDbConnection(async client =>
+    (await client.query('SELECT type, data FROM learn_language.cards WHERE id = $1', ['mixed-1'])).rows[0]
+  );
+  expect(card.type).toBe('VOCABULARY');
+  expect(card.data.word).toBe('Haus');
 });
 
 test('typing practice can be toggled off when editing a JSON source', async ({ page }) => {

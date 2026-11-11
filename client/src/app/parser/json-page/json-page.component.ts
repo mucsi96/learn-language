@@ -10,9 +10,10 @@ import { dialogResult } from '../../utils/dialog-result';
 import { SourcesService } from '../../sources.service';
 import { JsonSourceService } from '../../json-source.service';
 import {
-  SimpleCardImportDialogComponent,
-  SimpleCardImportDialogResult,
-} from '../../simple-card-import-dialog/simple-card-import-dialog.component';
+  JsonCardImportDialogComponent,
+  JsonCardImportDialogResult,
+} from '../../json-card-import-dialog/json-card-import-dialog.component';
+import { CardType } from '../types';
 
 @Component({
   selector: 'app-json-page',
@@ -48,14 +49,15 @@ export class JsonPageComponent {
 
   async importJson(): Promise<void> {
     const sourceId = this.sourceId();
-    if (!sourceId) {
+    const cardTypes = this.source()?.cardTypes;
+    if (!sourceId || !cardTypes?.length) {
       return;
     }
     const ref = this.dialog.open<
-      SimpleCardImportDialogComponent,
-      void,
-      SimpleCardImportDialogResult
-    >(SimpleCardImportDialogComponent, { width: '640px' });
+      JsonCardImportDialogComponent,
+      { cardTypes: CardType[] },
+      JsonCardImportDialogResult
+    >(JsonCardImportDialogComponent, { width: '640px', data: { cardTypes } });
     const result = await dialogResult(ref);
     if (!result || result.cards.length === 0) {
       return;

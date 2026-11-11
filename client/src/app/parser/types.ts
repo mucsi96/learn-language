@@ -1,6 +1,7 @@
 import { CardReadiness } from '../shared/state/card-readiness';
 import { CardState } from '../shared/state/card-state';
 import { AudioData } from '../shared/types/audio-generation.types';
+import type { JsonCardImport } from '../cardTypes/json-card-import';
 
 export type Profile = {
   name: string;
@@ -211,6 +212,7 @@ export type LanguageTexts = {
 };
 
 export type CardTypeStrategy = {
+  jsonImport: JsonCardImport;
   cardType: CardType;
   completionReadiness: CardReadiness;
   extractItems(request: ExtractionRequest): Promise<ExtractedItem[]>;
@@ -239,14 +241,6 @@ export type SourceFormatType =
   | 'flowingText';
 export type SourceType = 'pdf' | 'images' | 'ebookDictionary' | 'json' | 'wordTriage' | 'audioCollection';
 export type AiLanguage = 'hungarian' | 'english';
-
-export type SimpleCardSuggestion = {
-  id: string;
-  frontText: string;
-  backText: string;
-  topic?: string;
-  category?: string;
-};
 
 export type Source = {
   id: string;

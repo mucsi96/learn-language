@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { defineJsonCardImport } from './json-card-import';
 import { HttpClient } from '@angular/common/http';
 import { fetchJson } from '../utils/fetchJson';
 import { MultiModelService } from '../multi-model.service';
@@ -33,6 +34,11 @@ interface SentenceTranslationResponse {
 })
 export class GrammarCardType implements CardTypeStrategy {
   readonly cardType: CardType = 'grammar';
+  readonly jsonImport = defineJsonCardImport(
+    { id: 'grammar-1', sentence: 'Ich bin gestern nach Hause gegangen.', hu: 'Tegnap hazamentem.', grammarTopic: 'Perfekt', hint: 'Use sein with movement verbs.' },
+    ['sentence'],
+    ({ sentence, hu, grammarTopic, hint }) => ({ examples: [{ de: sentence, hu }], grammarTopic, hint })
+  );
   readonly completionReadiness: CardReadiness = 'IN_REVIEW';
 
   private readonly http = inject(HttpClient);
