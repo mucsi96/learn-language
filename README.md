@@ -211,6 +211,8 @@ Choose **Reset Pomodoro** in the avatar menu while studying to
 A failed session restart keeps
 the existing countdown. This replaces that source's current queue with currently due
 cards using its card limits and partner settings.
+If the session restart succeeds but saving the timer fails, the new queue is still
+shown, while the existing countdown is retained and the timer error is reported.
 Card progress and review history are preserved. Other sources' sessions are
 unaffected.
 Reset is available for running, paused, and expired timers. Outside an active

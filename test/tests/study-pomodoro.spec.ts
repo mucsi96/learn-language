@@ -71,12 +71,57 @@ test('backend state wins over browser storage and delayed restoration when conti
     }
     await route.fallback();
   });
+  const restored = page.waitForResponse('**/api/pomodoro');
   await page.goto('/sources/goethe-a1/study');
+  await restored;
+  await page.unroute('**/api/pomodoro');
   await page.getByRole('button', { name: 'Start study session', exact: true }).click();
   await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 40);
   await page.getByRole('button', { name: 'Profile menu' }).click();
   await expect(page.getByRole('menuitem', { name: 'Resume Pomodoro' })).toBeVisible();
   expect((await storedTimer()).version).toBe('1');
+});
+
+[
+  { method: 'GET', status: 503, completed: false },
+  { method: 'PUT', status: 503, completed: true },
+  { method: 'PUT', status: 409, completed: false },
+].forEach(({ method, status, completed }) => {
+  test(`restart reconciles the queue when timer ${method} fails with ${status}`, async ({ page }) => {
+    await createSource({ id: 'limited', name: 'Limited', languageLevel: 'A1', cardTypes: ['VOCABULARY'], cardLimit: 1 });
+    await Promise.all(['first', 'second'].map((id, index) => createCard({
+      cardId: id, sourceId: 'limited',
+      data: { word: `${id} word`, type: 'NOUN', translation: { en: id, hu: `${id} prompt` } },
+      state: 'REVIEW', stability: 10, difficulty: 5, reps: 3,
+      lastReview: new Date(), elapsedDays: 1, scheduledDays: 10,
+      due: new Date(Date.now() - (2 - index) * 86_400_000),
+    })));
+    await page.goto('/sources/limited/study');
+    await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+    const card = page.getByRole('article', { name: 'Flashcard' });
+    await card.getByRole('heading', { name: 'first prompt' }).click();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+    if (completed) {
+      await page.getByRole('button', { name: 'Correct', exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+    } else {
+      await withDbConnection(db => db.query("UPDATE learn_language.cards SET due = NOW() + INTERVAL '7 days' WHERE id = 'first'"));
+    }
+    const reviews = await getReviewLogsByCardId('first');
+    const timer = await storedTimer();
+    await page.route('**/api/pomodoro', route => route.request().method() === method
+      ? route.fulfill({ status }) : route.fallback());
+    await resetPomodoro(page);
+    await expect(page.getByText('Could not save Pomodoro. Please retry.', { exact: true })).toBeVisible();
+    await expect(card.getByRole('heading', { name: 'second prompt' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
+    expect(await storedTimer()).toEqual(timer);
+    expect(await getReviewLogsByCardId('first')).toEqual(reviews);
+    await card.getByRole('heading', { name: 'second prompt' }).click();
+    await page.getByRole('button', { name: 'Correct', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+    expect(await getReviewLogsByCardId('second')).toHaveLength(1);
+  });
 });
 
 test('failed persistence keeps the running timer and allows retry', async ({ page }) => {
