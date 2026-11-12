@@ -9,7 +9,7 @@ import {
 } from './parser/types';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
 import { CardTypeRegistry } from './cardTypes/card-type.registry';
-import { VoiceConfigService } from './voice-config/voice-config.service';
+import { VoiceConfigService, VoiceConfiguration } from './voice-config/voice-config.service';
 import {
   AudioSourceRequest,
   AudioData,
@@ -23,15 +23,6 @@ import {
   PipelineTask,
   ProgressUpdater,
 } from './utils/processing-pipeline';
-
-interface VoiceConfiguration {
-  id: number;
-  voiceId: string;
-  model: string;
-  language: string;
-  displayName: string | null;
-  isEnabled: boolean;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -125,6 +116,14 @@ export class BatchAudioCreationService {
     const label = strategy.getCardDisplayLabel(card);
 
     try {
+      const audioItems = this.filterAudioItems(strategy.getAudioItems(card));
+      const itemsNeedingAudio = audioItems.filter(
+        (item) => !this.hasAudioForText(existingAudioList, item.text)
+      );
+      const voices = itemsNeedingAudio.map(item =>
+        this.getVoiceForLanguage(item.language, cardIndex, item.voiceGenderHint)
+      );
+
       updateProgress('in-progress', `${label}: Cleaning up unused audio...`);
       const cleanedAudioList = await this.cleanupUnusedAudio(
         card,
@@ -134,23 +133,9 @@ export class BatchAudioCreationService {
 
       updateProgress('in-progress', `${label}: Generating audio...`);
 
-      const audioItems = this.filterAudioItems(strategy.getAudioItems(card));
-      const itemsNeedingAudio = audioItems.filter(
-        (item) => !this.hasAudioForText(cleanedAudioList, item.text)
-      );
-
-      const voicesByLanguage = new Map(
-        [...new Set(itemsNeedingAudio.map((item) => item.language))].map(
-          (language) => [
-            language,
-            this.getVoiceForLanguage(language, cardIndex),
-          ]
-        )
-      );
-
       const generatedAudio = await this.generateAudioForItems(
         itemsNeedingAudio,
-        voicesByLanguage,
+        voices,
         updateProgress,
         label,
         toolsRequested
@@ -184,7 +169,7 @@ export class BatchAudioCreationService {
 
   private async generateAudioForItems(
     items: AudioGenerationItem[],
-    voicesByLanguage: Map<string, VoiceModelPair>,
+    voices: VoiceModelPair[],
     updateProgress: ProgressUpdater,
     label: string,
     onToolsRequested: () => void
@@ -199,7 +184,7 @@ export class BatchAudioCreationService {
 
     return Promise.all(
       items.map(async (item, i) => {
-        const voice = voicesByLanguage.get(item.language)!;
+        const voice = voices[i];
         await acquirePromises[i];
         try {
           const audioData = await fetchJson<AudioData>(
@@ -273,10 +258,12 @@ export class BatchAudioCreationService {
 
   private getVoiceForLanguage(
     language: string,
-    cardIndex: number
+    cardIndex: number,
+    gender?: 'male' | 'female' | null
   ): VoiceModelPair {
     const languageVoices = this.voiceConfigs.filter(
-      (config) => config.language === language && config.isEnabled
+      (config) => config.language === language && config.isEnabled &&
+        (!gender || config.gender === gender)
     );
 
     if (languageVoices.length > 0) {
@@ -284,6 +271,6 @@ export class BatchAudioCreationService {
       return { voice: config.voiceId, model: config.model };
     }
 
-    throw new Error(`No voices configured for language: ${language}`);
+    throw new Error(`No enabled ${gender ? `${gender} ` : ''}voice configured for language: ${language}`);
   }
 }

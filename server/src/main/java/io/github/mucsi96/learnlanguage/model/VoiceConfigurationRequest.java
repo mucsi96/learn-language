@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,10 @@ public class VoiceConfigurationRequest {
 
     @NotBlank
     private String language;
+
+    @NotBlank
+    @Pattern(regexp = "male|female")
+    private String gender;
 
     private String displayName;
 

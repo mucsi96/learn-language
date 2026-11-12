@@ -82,6 +82,7 @@ export class VoiceConfigComponent {
     'displayName',
     'category',
     'model',
+    'gender',
     'enabled',
     'actions',
   ];
@@ -146,6 +147,14 @@ export class VoiceConfigComponent {
 
   async toggleEnabled(config: VoiceConfiguration): Promise<void> {
     await this.service.toggleEnabled(config);
+  }
+
+  async updateGender(config: VoiceConfiguration, gender: 'male' | 'female'): Promise<void> {
+    await this.service.updateConfiguration(config.id, {
+      ...config,
+      displayName: config.displayName ?? undefined,
+      gender,
+    });
   }
 
   async openAddDialog(): Promise<void> {

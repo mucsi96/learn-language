@@ -32,6 +32,9 @@ public class VoiceConfiguration {
     @Column(nullable = false, length = 10)
     private String language;
 
+    @Column(length = 6)
+    private String gender;
+
     @Column(name = "display_name")
     private String displayName;
 

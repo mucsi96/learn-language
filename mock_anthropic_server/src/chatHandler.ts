@@ -242,6 +242,12 @@ export class ChatHandler {
   }
 
   async processRequest(request: ClaudeRequest): Promise<any> {
+    if (messagesMatch(request, 'Identify the speaking voice', '')) {
+      return createClaudeResponse({
+        voiceGenderHint: messagesMatch(request, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
+          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+      });
+    }
     if (!request.messages || !Array.isArray(request.messages)) {
       throw new Error('Invalid request format');
     }

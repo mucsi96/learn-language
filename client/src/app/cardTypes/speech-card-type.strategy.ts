@@ -208,10 +208,10 @@ export class SpeechCardType implements CardTypeStrategy {
     const example = card.data.examples?.[0];
     return [
       example?.de
-        ? { text: example.de, language: LANGUAGE_CODES.GERMAN }
+        ? { text: example.de, language: LANGUAGE_CODES.GERMAN, voiceGenderHint: example.voiceGenderHint }
         : null,
       example?.hu
-        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN, isFront: true }
+        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN, isFront: true, voiceGenderHint: example.voiceGenderHint }
         : null,
     ].filter(nonNullable);
   }

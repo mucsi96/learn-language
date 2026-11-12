@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required } from '@angular/forms/signals';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -47,11 +47,12 @@ export class AddVoiceDialogComponent {
   readonly formModel = signal({
     voice: null as Voice | null,
     language: '',
+    gender: '' as '' | 'male' | 'female',
     model: this.getDefaultModelId(),
     displayName: '',
     isEnabled: true,
   });
-  readonly voiceForm = form(this.formModel);
+  readonly voiceForm = form(this.formModel, path => required(path.gender));
 
   readonly availableModels = computed(() => {
     const voice = this.formModel().voice;
@@ -80,6 +81,7 @@ export class AddVoiceDialogComponent {
     () =>
       this.formModel().voice !== null &&
       this.formModel().language !== '' &&
+      this.formModel().gender !== '' &&
       this.formModel().model !== ''
   );
 
@@ -88,6 +90,7 @@ export class AddVoiceDialogComponent {
     this.formModel.update((m) => ({
       ...m,
       language: langs.length === 1 ? langs[0] : '',
+      gender: '',
       model: this.getDefaultModelId(this.availableModels()),
       displayName: m.voice?.displayName ?? '',
     }));
@@ -106,7 +109,9 @@ export class AddVoiceDialogComponent {
     if (!this.isValid()) return;
 
     const data = this.formModel();
+    if (!data.gender) return;
     const request: VoiceConfigurationRequest = {
+      gender: data.gender,
       voiceId: data.voice!.id,
       language: data.language,
       model: data.model,

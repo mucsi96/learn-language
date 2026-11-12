@@ -26,6 +26,13 @@
 
   @if (formModel().voice) {
     <mat-form-field appearance="outline">
+      <mat-label>Voice gender</mat-label>
+      <mat-select [formField]="voiceForm.gender">
+        <mat-option value="male">Male</mat-option>
+        <mat-option value="female">Female</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Language</mat-label>
       <mat-select
         [formField]="voiceForm.language"

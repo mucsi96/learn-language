@@ -182,6 +182,7 @@ export class GrammarCardType implements CardTypeStrategy {
         ? {
             text: example.de.replace(createGrammarGapRegex(), '$1'),
             language: LANGUAGE_CODES.GERMAN,
+            voiceGenderHint: example.voiceGenderHint,
           }
         : null,
     ].filter(nonNullable);

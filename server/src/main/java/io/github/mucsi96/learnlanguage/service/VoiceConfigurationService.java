@@ -32,6 +32,7 @@ public class VoiceConfigurationService {
   public List<VoiceConfigurationResponse> getEnabledVoiceConfigurations() {
     Map<String, VoiceResponse> voicesMap = getVoicesMap();
     return voiceConfigurationRepository.findByIsEnabledTrue().stream()
+        .filter(config -> config.getGender() != null)
         .map(config -> toResponse(config, voicesMap))
         .toList();
   }
@@ -39,6 +40,7 @@ public class VoiceConfigurationService {
   public List<VoiceConfigurationResponse> getEnabledVoiceConfigurationsByLanguage(String language) {
     Map<String, VoiceResponse> voicesMap = getVoicesMap();
     return voiceConfigurationRepository.findByLanguageAndIsEnabledTrue(language).stream()
+        .filter(config -> config.getGender() != null)
         .map(config -> toResponse(config, voicesMap))
         .toList();
   }
@@ -55,6 +57,7 @@ public class VoiceConfigurationService {
         .voiceId(request.getVoiceId())
         .model(request.getModel())
         .language(request.getLanguage())
+        .gender(request.getGender())
         .displayName(request.getDisplayName())
         .isEnabled(request.getIsEnabled() != null ? request.getIsEnabled() : true)
         .build();
@@ -70,6 +73,7 @@ public class VoiceConfigurationService {
     config.setVoiceId(request.getVoiceId());
     config.setModel(request.getModel());
     config.setLanguage(request.getLanguage());
+    config.setGender(request.getGender());
     config.setDisplayName(request.getDisplayName());
     if (request.getIsEnabled() != null) {
       config.setIsEnabled(request.getIsEnabled());
@@ -91,6 +95,7 @@ public class VoiceConfigurationService {
         .voiceName(voice != null ? voice.getDisplayName() : null)
         .model(config.getModel())
         .language(config.getLanguage())
+        .gender(config.getGender())
         .displayName(config.getDisplayName())
         .isEnabled(config.getIsEnabled())
         .category(voice != null ? voice.getCategory() : null)

@@ -835,20 +835,21 @@ export async function getModelUsageLogs(): Promise<
 }
 
 export async function createVoiceConfiguration(params: {
+  gender?: 'male' | 'female' | null;
   voiceId: string;
   model: string;
   language: string;
   displayName?: string | null;
   isEnabled?: boolean;
 }): Promise<number> {
-  const { voiceId, model, language, displayName = null, isEnabled = true } = params;
+  const { voiceId, model, language, displayName = null, isEnabled = true, gender = 'male' } = params;
 
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `INSERT INTO learn_language.voice_configurations (voice_id, model, language, display_name, is_enabled)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO learn_language.voice_configurations (voice_id, model, language, display_name, is_enabled, gender)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
-      [voiceId, model, language, displayName, isEnabled]
+      [voiceId, model, language, displayName, isEnabled, gender]
     );
     return result.rows[0].id;
   });
@@ -856,6 +857,7 @@ export async function createVoiceConfiguration(params: {
 
 export async function getVoiceConfigurations(): Promise<
   Array<{
+    gender: 'male' | 'female' | null;
     id: number;
     voiceId: string;
     model: string;
@@ -866,7 +868,7 @@ export async function getVoiceConfigurations(): Promise<
 > {
   return await withDbConnection(async (client) => {
     const result = await client.query(
-      `SELECT id, voice_id as "voiceId", model, language,
+      `SELECT id, voice_id as "voiceId", model, language, gender,
               display_name as "displayName", is_enabled as "isEnabled"
        FROM learn_language.voice_configurations
        ORDER BY id`

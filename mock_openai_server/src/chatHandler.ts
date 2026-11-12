@@ -271,6 +271,12 @@ export class ChatHandler {
   }
 
   async processMessages(messages: ChatMessage[]): Promise<any> {
+    if (messagesMatch(messages, 'Identify the speaking voice', '')) {
+      return createAssistantResponse({
+        voiceGenderHint: messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
+          : messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+      });
+    }
     if (!messages || !Array.isArray(messages)) {
       throw new Error('Invalid request format');
     }
