@@ -20,6 +20,9 @@ async function failOpenAi(path: string, code = 'insufficient_quota') {
 
 async function prepareImageCard() {
   await createChatModelSetting({
+    modelName: 'gemini-3.1-pro-preview', operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true,
+  });
+  await createChatModelSetting({
     modelName: 'gpt-5.6-sol', operationType: 'IMAGE_DESCRIPTION', isEnabled: true, isPrimary: true,
   });
   await createImageModelSetting({ modelName: 'gpt-image-2.5-sunburst-auto', imageCount: 1 });
