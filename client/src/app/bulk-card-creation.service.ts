@@ -213,7 +213,10 @@ export class BulkCardCreationService {
           headers,
         })
       );
-      return { ...example, voiceGenderHint: result.voiceGenderHint };
+      const { voiceGenderHint: previousHint, ...exampleWithoutHint } = example;
+      return result.voiceGenderHint == null
+        ? exampleWithoutHint
+        : { ...exampleWithoutHint, voiceGenderHint: result.voiceGenderHint };
     }));
 
     updateProgress('in-progress', `${label}: Updating card...`);

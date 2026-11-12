@@ -1,6 +1,8 @@
 package io.github.mucsi96.learnlanguage.service;
 
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -9,7 +11,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class VoiceGenderService {
-    public record VoiceGenderResponse(String voiceGenderHint) {}
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record VoiceGenderResponse(
+        @Schema(nullable = true, description = "male or female only when explicit; otherwise JSON null")
+        String voiceGenderHint
+    ) {}
 
     private final ChatService chatService;
 
@@ -17,7 +23,7 @@ public class VoiceGenderService {
         final var response = chatService.callWithLogging(model, OperationType.CLASSIFICATION, """
             Identify the speaking voice only when the German sentence itself unambiguously
             identifies the speaker as male or female. Return JSON with voiceGenderHint set
-            to "male", "female", or null. When unclear, return null.
+            to "male", "female", or JSON null (never the string "null"). When unclear, return null.
             For example: "Ich bin Mutter." -> "female"; "Ich bin Vater." -> "male".
             "Meine Mutter kommt." and "Ich gehe einkaufen." -> null.
             Do not infer the speaker from grammatical noun gender, a person being addressed
