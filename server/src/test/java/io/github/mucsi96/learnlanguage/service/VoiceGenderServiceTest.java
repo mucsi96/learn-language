@@ -23,6 +23,8 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.google.genai.GoogleGenAiChatModel;
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.OperationType;
@@ -60,8 +62,46 @@ class VoiceGenderServiceTest {
         final var hint = schema.path("properties").path("voiceGenderHint");
         assertThat(hint.path("type")).isEqualTo(mapper.readTree("[\"string\",\"null\"]"));
         assertThat(hint.has("enum")).isFalse();
+        assertThat(hint.path("pattern").asString()).isEqualTo("^(male|female)$");
         assertThat(schema.path("required")).isEqualTo(mapper.readTree("[\"voiceGenderHint\"]"));
         assertThat(schema.path("additionalProperties").asBoolean()).isFalse();
+    }
+
+    @Test
+    void sendsGeminiCompatibleNullableStructuredOutput() {
+        final var model = mock(GoogleGenAiChatModel.class);
+        when(model.getOptions()).thenReturn(GoogleGenAiChatOptions.builder().build());
+        when(model.call(any(Prompt.class))).thenReturn(new ChatResponse(List.of(
+            new Generation(new AssistantMessage("{\"voiceGenderHint\":null}")))));
+        final var chat = new ChatService(new ChatClientService(null, null, model, null),
+            mock(ModelUsageLoggingService.class), mapper, null, null, null);
+
+        final var result = new VoiceGenderService(chat).classify("Hallo!", ChatModel.GEMINI_3_1_PRO_PREVIEW);
+
+        assertThat(result.voiceGenderHint()).isNull();
+        final var prompt = ArgumentCaptor.forClass(Prompt.class);
+        verify(model).call(prompt.capture());
+        final var options = (GoogleGenAiChatOptions) prompt.getValue().getOptions();
+        final var schema = com.google.genai.types.Schema.fromJson(options.getOutputSchema());
+        final var hint = schema.properties().orElseThrow().get("voiceGenderHint");
+        assertThat(hint.nullable()).contains(true);
+        assertThat(schema.required().orElseThrow()).contains("voiceGenderHint");
+    }
+
+    @Test
+    void convertsNestedNullableSchemasWithoutChangingOtherConstraints() {
+        final var chat = new ChatService(null, null, mapper, null, null, null);
+        final var schema = mapper.readTree("""
+            {"type":"object","properties":{"items":{"type":"array","items":{
+              "anyOf":[{"type":["null","string"],"pattern":"male|female"},{"type":"boolean"}]
+            }}}}
+            """);
+        final var expected = mapper.readTree("""
+            {"type":"object","properties":{"items":{"type":"array","items":{
+              "anyOf":[{"type":"string","nullable":true,"pattern":"male|female"},{"type":"boolean"}]
+            }}}}
+            """);
+        assertThat(chat.geminiSchema(schema)).isEqualTo(expected);
     }
 
     @ParameterizedTest

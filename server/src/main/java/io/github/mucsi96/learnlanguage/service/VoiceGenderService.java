@@ -13,7 +13,8 @@ import lombok.RequiredArgsConstructor;
 public class VoiceGenderService {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record VoiceGenderResponse(
-        @Schema(nullable = true, description = "male or female only when explicit; otherwise JSON null")
+        @Schema(nullable = true, pattern = "^(male|female)$",
+            description = "male or female only when explicit; otherwise JSON null")
         String voiceGenderHint
     ) {}
 

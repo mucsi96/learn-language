@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createVoiceConfiguration, getVoiceConfigurations, setupDefaultChatModelSettings, withDbConnection } from '../utils';
+import { createCard, createChatModelSetting, createVoiceConfiguration, getVoiceConfigurations, withDbConnection } from '../utils';
 
 test('legacy voice requires an explicit gender and retains its configuration', async ({ page, request, apiHeaders }) => {
   const id = await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v3', language: 'de', gender: null });
@@ -28,11 +28,11 @@ test('voice API rejects missing and unsupported genders on create and update', a
 });
 
 [
-  { type: 'GRAMMAR', source: 'grammar-a1' },
-  { type: 'SPEECH', source: 'speech-a1' },
-].forEach(({ type, source }) => {
+  { type: 'GRAMMAR', source: 'grammar-a1', model: 'gemini-3.1-pro-preview' },
+  { type: 'SPEECH', source: 'speech-a1', model: 'gpt-6.1-sol' },
+].forEach(({ type, source, model }) => {
   test(`${type} completion persists explicit speaker hints and removes ambiguous hints`, async ({ page, request, apiHeaders }) => {
-    await setupDefaultChatModelSettings();
+    await createChatModelSetting({ modelName: model, operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true });
     const sentences = [
       { de: 'Ich bin Mutter.', hu: 'Anya vagyok.', hint: 'female' },
       { de: 'Ich bin Vater.', hu: 'Apa vagyok.', hint: 'male' },
@@ -40,7 +40,7 @@ test('voice API rejects missing and unsupported genders on create and update', a
     ];
     await Promise.all(sentences.map((sentence, index) => createCard({
       cardId: `hint-${index}`, sourceId: source, cardType: type, readiness: 'DRAFT',
-      data: { examples: [{ de: sentence.de, hu: sentence.hu, voiceGenderHint: 'male' }] },
+      data: { examples: [{ de: sentence.de, hu: sentence.hu, en: 'Existing translation', ch: 'Existing translation', voiceGenderHint: 'male', images: [{ id: 'existing-image', isFavorite: true }] }] },
     })));
     await page.goto(`/sources/${source}/cards?filter=draft`);
     await page.getByRole('columnheader', { name: /Select all 3 cards/ }).getByRole('checkbox').click();
