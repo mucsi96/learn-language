@@ -33,6 +33,12 @@ test('voice API rejects missing and unsupported genders on create and update', a
 ].forEach(({ type, source, model }) => {
   test(`${type} completion persists explicit speaker hints and removes ambiguous hints`, async ({ page, request, apiHeaders }) => {
     await createChatModelSetting({ modelName: model, operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true });
+    const unknownVoice = await request.post(`/api/voice-gender?model=${model}`, {
+      headers: apiHeaders,
+      data: { sentence: 'Meine Mutter kommt.' },
+    });
+    expect(unknownVoice.ok()).toBe(true);
+    expect(await unknownVoice.json()).toEqual({});
     const sentences = [
       { de: 'Ich bin Mutter.', hu: 'Anya vagyok.', hint: 'female' },
       { de: 'Ich bin Vater.', hu: 'Apa vagyok.', hint: 'male' },
