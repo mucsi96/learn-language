@@ -21,10 +21,6 @@ export class StudySessionService {
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
   readonly hasExistingSession = signal(false);
-  readonly restartControl = signal<{
-    disabled: () => boolean;
-    start: () => Promise<void>;
-  } | null>(null);
 
   readonly currentCard = resource({
     params: () => ({
@@ -75,19 +71,15 @@ export class StudySessionService {
     }
   }
 
-  async createSession(sourceId: string, restart = false): Promise<StudySession | null> {
+  async createSession(sourceId: string): Promise<StudySession | null> {
     const session = await fetchJson<StudySession>(
       this.http,
-      `/api/source/${sourceId}/study-session${restart ? '/restart' : ''}`,
+      `/api/source/${sourceId}/study-session`,
       { method: 'POST' }
     );
     if (session) {
       try {
-        if (restart) {
-          await this.pomodoro.start();
-        } else {
-          await this.pomodoro.startIfInactive();
-        }
+        await this.pomodoro.startIfInactive();
       } catch {
         return session;
       } finally {

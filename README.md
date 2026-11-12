@@ -206,18 +206,13 @@ retain the API's exact-origin protection.
 
 Regression coverage: `cd test && npx playwright test study-pomodoro.spec.ts`.
 
-Choose **Reset Pomodoro** in the avatar menu while studying to
-**start a new study session** and reset the countdown to 25 minutes.
-A failed session restart keeps
-the existing countdown. This replaces that source's current queue with currently due
-cards using its card limits and partner settings.
-If the session restart succeeds but saving the timer fails, the new queue is still
-shown, while the existing countdown is retained and the timer error is reported.
-Card progress and review history are preserved. Other sources' sessions are
-unaffected.
-Reset is available for running, paused, and expired timers. Outside an active
-study session it resets only the timer. The partner turn indicator remains in the
-header beside the source selector.
+Choose **Reset Pomodoro** in the avatar menu while studying to reset the countdown
+to 25 minutes. Reset affects only the timer: the study session, card order, current
+card, revealed answer, and partner turn are preserved. A failed timer save keeps
+the existing countdown and reports an error.
+Reset is available for running, paused, and expired timers, including while a card
+is being graded or after the session is complete. The partner turn indicator
+remains in the header beside the source selector.
 
 The installed iPad app uses the non-overlay system status bar, keeping the clock
 and battery indicators above the application header. Safe-area padding is retained

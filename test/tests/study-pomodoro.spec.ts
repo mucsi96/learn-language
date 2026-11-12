@@ -87,7 +87,7 @@ test('backend state wins over browser storage and delayed restoration when conti
   { method: 'PUT', status: 503, completed: true },
   { method: 'PUT', status: 409, completed: false },
 ].forEach(({ method, status, completed }) => {
-  test(`restart reconciles the queue when timer ${method} fails with ${status}`, async ({ page }) => {
+  test(`reset preserves the session when timer ${method} fails with ${status}`, async ({ page }) => {
     await createSource({ id: 'limited', name: 'Limited', languageLevel: 'A1', cardTypes: ['VOCABULARY'], cardLimit: 1 });
     await Promise.all(['first', 'second'].map((id, index) => createCard({
       cardId: id, sourceId: 'limited',
@@ -108,19 +108,22 @@ test('backend state wins over browser storage and delayed restoration when conti
       await withDbConnection(db => db.query("UPDATE learn_language.cards SET due = NOW() + INTERVAL '7 days' WHERE id = 'first'"));
     }
     const reviews = await getReviewLogsByCardId('first');
+    const queue = await getStudySessionCardsBySource('limited');
     const timer = await storedTimer();
     await page.route('**/api/pomodoro', route => route.request().method() === method
       ? route.fulfill({ status }) : route.fallback());
     await resetPomodoro(page);
     await expect(page.getByText('Could not save Pomodoro. Please retry.', { exact: true })).toBeVisible();
-    await expect(card.getByRole('heading', { name: 'second prompt' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Correct', exact: true })).not.toBeVisible();
+    if (completed) {
+      await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+    } else {
+      await expect(card.getByRole('heading', { name: 'first word', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+    }
     expect(await storedTimer()).toEqual(timer);
+    expect(await getStudySessionCardsBySource('limited')).toEqual(queue);
     expect(await getReviewLogsByCardId('first')).toEqual(reviews);
-    await card.getByRole('heading', { name: 'second prompt' }).click();
-    await page.getByRole('button', { name: 'Correct', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
-    expect(await getReviewLogsByCardId('second')).toHaveLength(1);
+    expect(await getReviewLogsByCardId('second')).toHaveLength(0);
   });
 });
 
@@ -298,30 +301,43 @@ test('resetting a paused Pomodoro starts a fresh running countdown', async ({ pa
   await expect(page.getByRole('menuitem', { name: 'Resume Pomodoro' })).toHaveCount(0);
 });
 
-test('failed timer restart preserves the countdown and study queue', async ({ page }) => {
-  await createCard({
-    cardId: 'restart-failure', sourceId: 'goethe-a1', sourcePageNumber: 1,
-    data: { word: 'lernen', type: 'VERB', translation: { en: 'learn', hu: 'tanulni' } },
+['running', 'paused', 'expired'].forEach(state => {
+  test(`resetting a ${state} timer preserves card order and the revealed answer`, async ({ page, apiHeaders }) => {
+    await createCard({
+      cardId: 'restart-failure', sourceId: 'goethe-a1', sourcePageNumber: 1,
+      data: { word: 'lernen', type: 'VERB', translation: { en: 'learn', hu: 'tanulni' } },
+    });
+    await page.clock.install();
+    await page.goto('/sources/goethe-a1/study');
+    await page.getByRole('button', { name: 'Start study session', exact: true }).click();
+    await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 0);
+    await page.clock.fastForward(60_000);
+    await page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' }).click();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+    await createCard({
+      cardId: 'new-due-card', sourceId: 'goethe-a1', sourcePageNumber: 1,
+      data: { word: 'neu', type: 'ADJECTIVE', translation: { en: 'new', hu: 'új' } },
+    });
+    if (state === 'paused') {
+      await page.getByRole('button', { name: 'Profile menu' }).click();
+      await page.getByRole('menuitem', { name: 'Pause Pomodoro' }).click();
+      await expect.poll(async () => (await storedTimer()).remaining_ms).not.toBeNull();
+    } else if (state === 'expired') {
+      await page.clock.fastForward(25 * 60_000);
+      await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 100);
+    }
+    const queue = await getStudySessionCardsBySource('goethe-a1');
+    const session = await page.request.get('/api/source/goethe-a1/study-session', { headers: apiHeaders }).then(response => response.json());
+    const saved = await storedTimer();
+    await resetPomodoro(page);
+    await expect.poll(async () => (await storedTimer()).version).not.toBe(saved.version);
+    await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 0);
+    expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
+    expect(await page.request.get('/api/source/goethe-a1/study-session', { headers: apiHeaders }).then(response => response.json())).toEqual(session);
+    await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'lernen', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+    expect(await getReviewLogsByCardId('restart-failure')).toHaveLength(0);
   });
-  await page.clock.install();
-  await page.goto('/sources/goethe-a1/study');
-  await page.getByRole('button', { name: 'Start study session', exact: true }).click();
-  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 0);
-  await page.clock.fastForward(60_000);
-  const queue = await getStudySessionCardsBySource('goethe-a1');
-  await page.route('**/study-session/restart', route => route.fulfill({ status: 500, body: 'Restart failed' }));
-  const failed = page.waitForResponse('**/study-session/restart');
-  await page.getByRole('button', { name: 'Profile menu' }).click();
-  const restart = page.getByRole('menuitem', { name: 'Reset Pomodoro' });
-  await restart.click();
-  expect((await failed).status()).toBe(500);
-  await page.getByRole('button', { name: 'Profile menu' }).click();
-  await expect(restart).toBeEnabled();
-  await page.keyboard.press('Escape');
-  await expectProgress(page.getByRole('progressbar', { name: 'Study Pomodoro' }), 4);
-  expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
-  await page.getByRole('button', { name: 'Profile menu' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Start new study session' })).toHaveCount(0);
 });
 
 test('a failed study session start does not start the Pomodoro', async ({ page }) => {
@@ -476,7 +492,7 @@ test('Pomodoro runs independently of sources, sessions and navigation', async ({
   });
 });
 
-test('new same-day session selects remaining due cards and preserves completed reviews', async ({ page }) => {
+test('reset preserves a completed session even when other cards are due', async ({ page }) => {
   await createSource({ id: 'limited', name: 'Limited', languageLevel: 'A1', cardTypes: ['VOCABULARY'], cardLimit: 1 });
   await Promise.all(['first', 'second'].map((id, index) => createCard({
     cardId: id, sourceId: 'limited', sourcePageNumber: 1,
@@ -492,19 +508,22 @@ test('new same-day session selects remaining due cards and preserves completed r
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
   const reviews = await getReviewLogsByCardId('first');
   expect(reviews).toHaveLength(1);
+  const queue = await getStudySessionCardsBySource('limited');
+  const saved = await storedTimer();
   await resetPomodoro(page);
-  await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
+  await expect.poll(async () => (await storedTimer()).version).not.toBe(saved.version);
+  await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
   expect(await getReviewLogsByCardId('first')).toEqual(reviews);
-  expect(await getStudySessionCardsBySource('limited')).toHaveLength(1);
+  expect(await getStudySessionCardsBySource('limited')).toEqual(queue);
 
   await page.reload();
   await page.getByRole('button', { name: 'Continue study session' }).click();
-  await resetPomodoro(page);
-  await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
+  expect(await getReviewLogsByCardId('second')).toHaveLength(0);
 });
 
 ['button', 'keyboard'].forEach(input => {
-  test(`restart waits for an in-flight ${input} grade`, async ({ page }) => {
+  test(`timer reset is independent of an in-flight ${input} grade`, async ({ page }) => {
     await createSource({ id: 'limited', name: 'Limited', languageLevel: 'A1', cardTypes: ['VOCABULARY'], cardLimit: 1 });
     await Promise.all(['first', 'second'].map((id, index) => createCard({
       cardId: id, sourceId: 'limited', sourcePageNumber: 1,
@@ -519,9 +538,11 @@ test('new same-day session selects remaining due cards and preserves completed r
     await page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'first' }).click();
     await page.route('**/api/card/first', async route => {
       await page.getByRole('button', { name: 'Profile menu' }).click();
-      await expect(restart).toBeDisabled();
+      await expect(restart).toBeEnabled();
       await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeDisabled();
-      await page.keyboard.press('Escape');
+      const saved = await storedTimer();
+      await restart.click();
+      await expect.poll(async () => (await storedTimer()).version).not.toBe(saved.version);
       await route.fallback();
     });
     if (input === 'button') {
@@ -531,14 +552,11 @@ test('new same-day session selects remaining due cards and preserves completed r
     }
     await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
     expect(await getReviewLogsByCardId('first')).toHaveLength(1);
-    await page.getByRole('button', { name: 'Profile menu' }).click();
-    await expect(restart).toBeEnabled();
-    await restart.click();
-    await expect(page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'second' })).toBeVisible();
+    expect(await getReviewLogsByCardId('second')).toHaveLength(0);
   });
 });
 
-test('restart stops old-card audio even when the new queue is empty', async ({ page }) => {
+test('timer reset preserves current-card audio and the revealed answer', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperties(HTMLMediaElement.prototype, {
       load: { value() {} },
@@ -561,11 +579,11 @@ test('restart stops old-card audio even when the new queue is empty', async ({ p
   await page.getByRole('article', { name: 'Flashcard' }).getByRole('heading', { name: 'tanulni' }).click();
   await expect.poll(() => page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(true);
   await withDbConnection(client => client.query("UPDATE learn_language.cards SET due = NOW() + INTERVAL '7 days' WHERE id = 'audio-card'"));
-  await page.route('**/study-session/restart', async route => {
-    expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(false);
-    await route.fallback();
-  });
+  const saved = await storedTimer();
+  const queue = await getStudySessionCardsBySource('goethe-a1');
   await resetPomodoro(page);
-  await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
-  expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(false);
+  await expect.poll(async () => (await storedTimer()).version).not.toBe(saved.version);
+  await expect(page.getByRole('button', { name: 'Correct', exact: true })).toBeVisible();
+  expect(await getStudySessionCardsBySource('goethe-a1')).toEqual(queue);
+  expect(await page.evaluate(() => Reflect.get(window, 'playingStudyAudio'))).toBe(true);
 });
