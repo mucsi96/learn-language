@@ -271,10 +271,10 @@ export class ChatHandler {
   }
 
   async processMessages(messages: ChatMessage[]): Promise<any> {
-    if (messagesMatch(messages, 'Identify the speaking voice', '')) {
+    if (messagesMatch(messages, "Identify the speaker's gender", '')) {
       return createAssistantResponse({
-        voiceGenderHint: messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
-          : messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : 'unknown',
+        speakerGenderHint: messagesMatch(messages, "Identify the speaker's gender", 'Ich bin Mutter.') ? 'female'
+          : messagesMatch(messages, "Identify the speaker's gender", 'Ich bin Vater.') ? 'male' : 'unknown',
       });
     }
     if (!messages || !Array.isArray(messages)) {

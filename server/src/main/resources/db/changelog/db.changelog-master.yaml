@@ -1521,3 +1521,5 @@ databaseChangeLog:
       file: db/changelog/pomodoro.yaml
   - include:
       file: db/changelog/voice-gender.yaml
+  - include:
+      file: db/changelog/speaker-gender-hint.yaml

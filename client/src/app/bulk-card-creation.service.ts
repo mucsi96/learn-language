@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Card, CardCreatePayload, CardData, Example } from './parser/types';
+import { Card, CardCreatePayload, CardData } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { newCardScheduling } from './shared/state/fsrs-scheduler';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
@@ -20,14 +20,14 @@ import {
   ProgressUpdater,
 } from './utils/processing-pipeline';
 import { RateLimitTokenService } from './rate-limit-token.service';
-import { MultiModelService } from './multi-model.service';
+import { SpeakerGenderService } from './speaker-gender.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
-  private readonly multiModelService = inject(MultiModelService);
+  private readonly speakerGenderService = inject(SpeakerGenderService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progress = signal<DotProgress[]>([]);
@@ -195,32 +195,24 @@ export class BulkCardCreationService {
       updateProgress('in-progress', `${label}: ${step}`);
     };
 
+    updateProgress('in-progress', `${label}: Identifying sentence speakers...`);
+    const examples = await Promise.all((cardData.examples ?? []).map(async (example) => {
+      if (!example.de) return example;
+      const result = await this.speakerGenderService.classify(example.de);
+      const { speakerGenderHint: previousHint, ...exampleWithoutHint } = example;
+      return { ...exampleWithoutHint, ...result };
+    }));
+
     const enrichedData = await strategy.createCardData(
-      cardData,
+      { ...cardData, ...(cardData.examples ? { examples } : {}) },
       progressCallback,
       toolsRequested
     );
 
-    updateProgress('in-progress', `${label}: Identifying sentence voices...`);
-
-    const examples = await Promise.all((enrichedData.examples ?? []).map(async (example) => {
-      if (!example.de) return example;
-      const result = await this.multiModelService.call<Pick<Example, 'voiceGenderHint'>>(
-        'classification',
-        (model, headers) => fetchJson(this.http, `/api/voice-gender?model=${model}`, {
-          method: 'POST',
-          body: { sentence: example.de },
-          headers,
-        })
-      );
-      const { voiceGenderHint: previousHint, ...exampleWithoutHint } = example;
-      return { ...exampleWithoutHint, ...result };
-    }));
-
     updateProgress('in-progress', `${label}: Updating card...`);
     await fetchJson(this.http, `/api/card/${cardId}`, {
       body: {
-        data: { ...enrichedData, ...(enrichedData.examples ? { examples } : {}) },
+        data: enrichedData,
         readiness: strategy.completionReadiness,
       },
       method: 'PUT',

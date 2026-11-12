@@ -8,20 +8,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
 import io.github.mucsi96.learnlanguage.model.SentenceTranslationRequest;
-import io.github.mucsi96.learnlanguage.service.VoiceGenderService;
-import io.github.mucsi96.learnlanguage.service.VoiceGenderService.VoiceGenderResponse;
+import io.github.mucsi96.learnlanguage.service.SpeakerGenderService;
+import io.github.mucsi96.learnlanguage.service.SpeakerGenderService.SpeakerGenderResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-public class VoiceGenderController {
-    private final VoiceGenderService voiceGenderService;
+public class SpeakerGenderController {
+    private final SpeakerGenderService speakerGenderService;
 
     @PreAuthorize("hasAuthority('APPROLE_createDeck')")
-    @PostMapping("/voice-gender")
-    public VoiceGenderResponse classify(@Valid @RequestBody SentenceTranslationRequest request,
+    @PostMapping("/speaker-gender")
+    public SpeakerGenderResponse classify(@Valid @RequestBody SentenceTranslationRequest request,
             @RequestParam ChatModel model) {
-        return voiceGenderService.classify(request.getSentence(), model);
+        return speakerGenderService.classify(request.getSentence(), model);
     }
 }

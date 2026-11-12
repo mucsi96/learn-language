@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-example-speaker-gender-hint
+      author: mucsi96
+      changes:
+        - sqlFile:
+            path: speaker-gender-hint.sql
+            relativeToChangelogFile: true

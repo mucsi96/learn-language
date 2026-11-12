@@ -121,7 +121,7 @@ export class BatchAudioCreationService {
         (item) => !this.hasAudioForText(existingAudioList, item.text)
       );
       const voices = itemsNeedingAudio.map(item =>
-        this.getVoiceForLanguage(item.language, cardIndex, item.voiceGenderHint)
+        this.getVoiceForLanguage(item.language, cardIndex, item.speakerGenderHint)
       );
 
       updateProgress('in-progress', `${label}: Cleaning up unused audio...`);

@@ -10,6 +10,7 @@ import { GridImageResource, GridImageValue } from './image-grid/image-grid.compo
 import { ImageModelSettingsService } from '../image-model-settings/image-model-settings.service';
 import { RateLimitTokenService } from '../rate-limit-token.service';
 import { describeImageScenes } from '../utils/image-descriptions.util';
+import { SpeakerGenderService } from '../speaker-gender.service';
 
 type PendingImageResource = {
   gridResource: GridImageResource;
@@ -18,6 +19,7 @@ type PendingImageResource = {
 
 @Injectable({ providedIn: 'root' })
 export class ImageResourceService {
+  private readonly speakerGenderService = inject(SpeakerGenderService);
   private readonly injector = inject(Injector);
   private readonly http = inject(HttpClient);
   private readonly imageModelSettingsService = inject(ImageModelSettingsService);
@@ -59,6 +61,7 @@ export class ImageResourceService {
       const descriptions = await describeImageScenes(this.http, {
         input,
         context,
+        ...await this.speakerGenderService.classify(input),
         count: subtasks.length,
       });
       await Promise.all(

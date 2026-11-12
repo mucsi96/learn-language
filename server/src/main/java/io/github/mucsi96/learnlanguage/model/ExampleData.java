@@ -22,7 +22,7 @@ public class ExampleData implements Serializable {
   private String ch;
 
   @JsonInclude(Include.NON_NULL)
-  private String voiceGenderHint;
+  private String speakerGenderHint;
 
   @JsonInclude(Include.NON_DEFAULT)
   private Boolean isSelected;

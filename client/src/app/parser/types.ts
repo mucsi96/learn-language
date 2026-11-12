@@ -37,7 +37,7 @@ export type ExampleImage = {
 };
 
 export type Example = {
-  voiceGenderHint?: 'male' | 'female' | null;
+  speakerGenderHint?: 'male' | 'female' | null;
   de?: string;
   hu?: string;
   en?: string;
@@ -200,7 +200,7 @@ export type BulkCreationContext = {
 };
 
 export type AudioGenerationItem = {
-  voiceGenderHint?: 'male' | 'female' | null;
+  speakerGenderHint?: 'male' | 'female' | null;
   text: string;
   language: string;
   context?: string;

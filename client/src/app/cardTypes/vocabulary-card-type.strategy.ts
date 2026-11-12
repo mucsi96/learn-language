@@ -247,7 +247,7 @@ export class VocabularyCardType implements CardTypeStrategy {
 
       const imageInputs = germanExamples
         .map((germanExample, exampleIndex) =>
-          germanExample ? { exampleIndex, input: germanExample } : null
+          germanExample ? { exampleIndex, input: germanExample, speakerGenderHint: sourceExamples[exampleIndex].speakerGenderHint } : null
         )
         .filter(nonNullable);
 
@@ -319,8 +319,8 @@ export class VocabularyCardType implements CardTypeStrategy {
     return [
       card.data.word ? { text: card.data.word, language: LANGUAGE_CODES.GERMAN, context: selectedExample?.['de'], singleWord: true } : null,
       card.data.translation?.['hu'] ? { text: card.data.translation['hu'], language: LANGUAGE_CODES.HUNGARIAN, context: selectedExample?.['hu'], singleWord: true, isFront: true } : null,
-      selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN, voiceGenderHint: selectedExample.voiceGenderHint } : null,
-      selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN, isFront: true, voiceGenderHint: selectedExample.voiceGenderHint } : null,
+      selectedExample?.['de'] ? { text: selectedExample['de'], language: LANGUAGE_CODES.GERMAN, speakerGenderHint: selectedExample.speakerGenderHint } : null,
+      selectedExample?.['hu'] ? { text: selectedExample['hu'], language: LANGUAGE_CODES.HUNGARIAN, isFront: true, speakerGenderHint: selectedExample.speakerGenderHint } : null,
     ].filter(nonNullable);
   }
 

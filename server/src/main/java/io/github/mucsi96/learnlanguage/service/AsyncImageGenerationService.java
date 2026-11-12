@@ -27,7 +27,7 @@ public class AsyncImageGenerationService {
   public void generate(UUID id, ImageSourceRequest request) {
     try {
       final String description = request.getDescription() != null ? request.getDescription()
-          : imageService.describeScenes(request.getInput(), request.getContext(), 1).descriptions().getFirst();
+          : imageService.describeScenes(request.getInput(), request.getContext(), 1, request.getSpeakerGenderHint()).descriptions().getFirst();
       final GeneratedImage generatedImage = imageService.generateImage(description, request.getModel());
       final String filePath = "images/%s.webp".formatted(id);
       ffmpegService.resizeImage(

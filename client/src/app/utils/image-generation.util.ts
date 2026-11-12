@@ -9,6 +9,7 @@ import { describeImageScenes } from './image-descriptions.util';
 export type ImageGenerationInput = {
   exampleIndex: number;
   input: string;
+  speakerGenderHint?: 'male' | 'female' | null;
 };
 
 export type ImagesByIndex = Map<number, ExampleImage[]>;
@@ -35,7 +36,7 @@ export const generateExampleImages = async (
   const descriptionResults = await Promise.allSettled(
     inputs.map(async (input) => ({
       input,
-      descriptions: await describeImageScenes(http, { input: input.input, count: models.length }),
+      descriptions: await describeImageScenes(http, { input: input.input, speakerGenderHint: input.speakerGenderHint, count: models.length }),
     }))
   );
   const subtasks = descriptionResults.flatMap((result) =>

@@ -22,6 +22,9 @@ public class ImageSourceRequest {
   @Size(max = 500)
   private String context;
 
+  @Pattern(regexp = "male|female")
+  private String speakerGenderHint;
+
   @Pattern(regexp = "(?s).*\\S.*")
   private String description;
 }

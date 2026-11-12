@@ -257,7 +257,7 @@ export class EditVocabularyCardComponent {
       ),
       forms: this.forms()?.map((form) => form()),
       examples: this.examples()?.map((example, index: number) => ({
-        voiceGenderHint: this.card()?.data.examples?.find(original => original.de === example())?.voiceGenderHint,
+        speakerGenderHint: this.card()?.data.examples?.find(original => original.de === example())?.speakerGenderHint,
         ...Object.fromEntries([
           ['de', example()],
           ...languages.map((languageCode) => [

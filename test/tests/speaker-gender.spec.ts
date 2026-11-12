@@ -1,5 +1,42 @@
 import { test, expect } from '../fixtures';
-import { createCard, createChatModelSetting, createVoiceConfiguration, getVoiceConfigurations, withDbConnection } from '../utils';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { createCard, createChatModelSetting, createImageModelSetting, createVoiceConfiguration, getVoiceConfigurations, getModelUsageLogs, withDbConnection } from '../utils';
+
+test('migration renames legacy hints without changing card content or scheduling', async ({ page, request, apiHeaders }) => {
+  await page.goto('/');
+  const examples = [
+    { de: 'Ich bin Mutter.', voiceGenderHint: 'female', images: [{ id: 'kept-image', isFavorite: true }] },
+    { de: 'Ich bin Vater.', voiceGenderHint: 'male' },
+    { de: 'Hallo!', voiceGenderHint: null },
+    { de: 'Meine Mutter kommt.' },
+    { de: 'Ich bin Mutter.', voiceGenderHint: 'male', speakerGenderHint: 'female' },
+  ];
+  await createCard({ cardId: 'legacy-hints', sourceId: 'goethe-a1', data: { word: 'Mutter', examples }, readiness: 'READY', reps: 5 });
+  await createCard({ cardId: 'empty-examples', sourceId: 'goethe-a1', data: { examples: [] } });
+  await createCard({ cardId: 'no-examples', sourceId: 'goethe-a1', data: { word: 'Haus' } });
+  const sql = await readFile(join(__dirname, '../../server/src/main/resources/db/changelog/speaker-gender-hint.sql'), 'utf8');
+  await withDbConnection(async db => {
+    const before = (await db.query('SELECT * FROM learn_language.cards ORDER BY id')).rows;
+    await db.query(sql);
+    const after = (await db.query('SELECT * FROM learn_language.cards ORDER BY id')).rows;
+    expect(after).toEqual(before.map(card => card.id !== 'legacy-hints' ? card : {
+      ...card,
+      data: { ...card.data, examples: [
+        { de: 'Ich bin Mutter.', speakerGenderHint: 'female', images: [{ id: 'kept-image', isFavorite: true }] },
+        { de: 'Ich bin Vater.', speakerGenderHint: 'male' },
+        { de: 'Hallo!', speakerGenderHint: null },
+        { de: 'Meine Mutter kommt.' },
+        { de: 'Ich bin Mutter.', speakerGenderHint: 'female' },
+      ] },
+    }));
+    await db.query(sql);
+    expect((await db.query('SELECT * FROM learn_language.cards ORDER BY id')).rows).toEqual(after);
+  });
+  const response = await request.get('/api/card/legacy-hints', { headers: apiHeaders });
+  expect(response.ok()).toBe(true);
+  expect((await response.json()).data.examples[0].speakerGenderHint).toBe('female');
+});
 
 test('legacy voice requires an explicit gender and retains its configuration', async ({ page, request, apiHeaders }) => {
   const id = await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v3', language: 'de', gender: null });
@@ -30,10 +67,13 @@ test('voice API rejects missing and unsupported genders on create and update', a
 [
   { type: 'GRAMMAR', source: 'grammar-a1', model: 'gemini-3.1-pro-preview' },
   { type: 'SPEECH', source: 'speech-a1', model: 'gpt-6.1-sol' },
+  { type: 'VOCABULARY', source: 'goethe-a1', model: 'gpt-6.1-sol' },
 ].forEach(({ type, source, model }) => {
   test(`${type} completion persists explicit speaker hints and removes ambiguous hints`, async ({ page, request, apiHeaders }) => {
     await createChatModelSetting({ modelName: model, operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true });
-    const unknownVoice = await request.post(`/api/voice-gender?model=${model}`, {
+    await createChatModelSetting({ modelName: 'gpt-6.1-sol', operationType: 'IMAGE_DESCRIPTION', isEnabled: true, isPrimary: true });
+    await createImageModelSetting({ modelName: 'gpt-image-2-low', imageCount: 1 });
+    const unknownVoice = await request.post(`/api/speaker-gender?model=${model}`, {
       headers: apiHeaders,
       data: { sentence: 'Meine Mutter kommt.' },
     });
@@ -46,7 +86,10 @@ test('voice API rejects missing and unsupported genders on create and update', a
     ];
     await Promise.all(sentences.map((sentence, index) => createCard({
       cardId: `hint-${index}`, sourceId: source, cardType: type, readiness: 'DRAFT',
-      data: { examples: [{ de: sentence.de, hu: sentence.hu, en: 'Existing translation', ch: 'Existing translation', voiceGenderHint: 'male', images: [{ id: 'existing-image', isFavorite: true }] }] },
+      data: {
+        word: 'abfahren', translation: { hu: 'elindulni', en: 'depart', ch: 'abfahre' },
+        examples: [{ de: sentence.de, hu: sentence.hu, en: 'Existing translation', ch: 'Existing translation', speakerGenderHint: 'male', images: [{ id: 'existing-image', isFavorite: true }] }],
+      },
     })));
     await page.goto(`/sources/${source}/cards?filter=draft`);
     await page.getByRole('columnheader', { name: /Select all 3 cards/ }).getByRole('checkbox').click();
@@ -55,11 +98,24 @@ test('voice API rejects missing and unsupported genders on create and update', a
     await Promise.all(sentences.map(async (sentence, index) => {
       const response = await request.get(`/api/card/hint-${index}`, { headers: apiHeaders });
       expect(response.ok()).toBe(true);
-      expect((await response.json()).data.examples[0].voiceGenderHint).toBe(sentence.hint);
+      expect((await response.json()).data.examples[0].speakerGenderHint).toBe(sentence.hint);
       const example = await withDbConnection(async client =>
         (await client.query("SELECT data->'examples'->0 AS example FROM learn_language.cards WHERE id = $1", [`hint-${index}`])).rows[0].example
       );
-      expect(Object.hasOwn(example, 'voiceGenderHint')).toBe(sentence.hint !== undefined);
+      expect(Object.hasOwn(example, 'speakerGenderHint')).toBe(sentence.hint !== undefined);
+      expect(Object.hasOwn(example, 'voiceGenderHint')).toBe(false);
+      if (type !== 'GRAMMAR') {
+        expect(example.images).toHaveLength(1);
+        const logs = await getModelUsageLogs();
+        const description = logs.find(log => log.operationType === 'IMAGE_DESCRIPTION'
+          && log.responseContent?.includes(sentence.de));
+        expect(description).toBeDefined();
+        if (sentence.hint) {
+          expect(description!.responseContent).toContain(`Speaker gender hint: ${sentence.hint}`);
+        } else {
+          expect(description!.responseContent).not.toContain('Speaker gender hint:');
+        }
+      }
     }));
   });
 });
@@ -78,7 +134,7 @@ test('voice API rejects missing and unsupported genders on create and update', a
       cardId: 'hinted-audio', sourceId: source, cardType: type, sourcePageNumber: 1, readiness: 'REVIEWED',
       data: {
         word: 'Mutter', translation: { hu: 'anya' },
-        examples: [{ de: 'Ich bin Mutter.', hu: 'Anya vagyok.', voiceGenderHint: 'female', isSelected: true }],
+        examples: [{ de: 'Ich bin Mutter.', hu: 'Anya vagyok.', speakerGenderHint: 'female', isSelected: true }],
       },
     });
     const editUrl = `/sources/${source}/page/1/cards/hinted-audio`;
@@ -108,7 +164,7 @@ test('voice API rejects missing and unsupported genders on create and update', a
     const example = await withDbConnection(async client =>
       (await client.query("SELECT data->'examples'->0 AS example FROM learn_language.cards WHERE id = 'hinted-audio'")).rows[0].example
     );
-    expect(example.voiceGenderHint).toBeUndefined();
+    expect(example.speakerGenderHint).toBeUndefined();
   });
 });
 
@@ -117,7 +173,7 @@ test('bulk audio fails when matching voices are disabled instead of ignoring a h
   await createVoiceConfiguration({ voiceId: 'test-voice-hu', model: 'eleven_v3', language: 'de', gender: 'female', isEnabled: false });
   await createCard({
     cardId: 'missing-voice', sourceId: 'grammar-a1', cardType: 'GRAMMAR', readiness: 'REVIEWED',
-    data: { examples: [{ de: 'Ich bin Mutter.', hu: 'Anya vagyok.', voiceGenderHint: 'female', isSelected: true }] },
+    data: { examples: [{ de: 'Ich bin Mutter.', hu: 'Anya vagyok.', speakerGenderHint: 'female', isSelected: true }] },
   });
   await page.goto('/in-review-cards');
   await page.getByRole('button', { name: 'Generate audio for cards' }).click();
@@ -127,4 +183,34 @@ test('bulk audio fails when matching voices are disabled instead of ignoring a h
   );
   expect(card.readiness).toBe('REVIEWED');
   expect(card.data.audio).toBeUndefined();
+});
+
+[
+  { type: 'VOCABULARY', source: 'goethe-a1', label: 'Example in German' },
+  { type: 'SPEECH', source: 'speech-a1', label: 'German sentence' },
+].forEach(({ type, source, label }) => {
+  test(`${type} image generation uses the edited speaker with custom context`, async ({ page }) => {
+    await createChatModelSetting({ modelName: 'gpt-6.1-sol', operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true });
+    await createChatModelSetting({ modelName: 'gpt-6.1-sol', operationType: 'IMAGE_DESCRIPTION', isEnabled: true, isPrimary: true });
+    await createImageModelSetting({ modelName: 'gpt-image-2-low', imageCount: 1 });
+    await createCard({
+      cardId: 'speaker-image', sourceId: source, cardType: type, sourcePageNumber: 1,
+      data: { word: 'Mutter', examples: [{ de: 'Ich bin Mutter.', hu: 'Anya vagyok.', speakerGenderHint: 'female', isSelected: true }] },
+    });
+    await page.goto(`/sources/${source}/page/1/cards/speaker-image`);
+    await page.getByLabel(label, { exact: true }).fill('Ich bin Vater.');
+    const sceneRequest = page.waitForRequest(req => req.url().endsWith('/api/image/descriptions'));
+    const imageRequest = page.waitForRequest(req => req.url().endsWith('/api/image') && req.method() === 'POST');
+    await page.getByRole('button', { name: 'Add image with context' }).first().click();
+    await page.getByRole('textbox', { name: 'Image generation context' }).fill('A sunny garden');
+    await page.getByRole('button', { name: 'Generate', exact: true }).click();
+    expect((await sceneRequest).postDataJSON()).toEqual({
+      input: 'Ich bin Vater.', context: 'A sunny garden', count: 1, speakerGenderHint: 'male',
+    });
+    const description = (await imageRequest).postDataJSON().description;
+    expect(description).toContain('Speaker gender hint: male');
+    expect(description).toContain('Ich bin Vater.');
+    expect(description).toContain('A sunny garden');
+    await expect(page.getByRole('img')).toHaveCount(1);
+  });
 });

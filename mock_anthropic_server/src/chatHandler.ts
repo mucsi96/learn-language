@@ -242,10 +242,10 @@ export class ChatHandler {
   }
 
   async processRequest(request: ClaudeRequest): Promise<any> {
-    if (messagesMatch(request, 'Identify the speaking voice', '')) {
+    if (messagesMatch(request, "Identify the speaker's gender", '')) {
       return createClaudeResponse({
-        voiceGenderHint: messagesMatch(request, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
-          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : 'unknown',
+        speakerGenderHint: messagesMatch(request, "Identify the speaker's gender", 'Ich bin Mutter.') ? 'female'
+          : messagesMatch(request, "Identify the speaker's gender", 'Ich bin Vater.') ? 'male' : 'unknown',
       });
     }
     if (!request.messages || !Array.isArray(request.messages)) {

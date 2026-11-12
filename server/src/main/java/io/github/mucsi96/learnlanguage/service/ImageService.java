@@ -26,6 +26,11 @@ public class ImageService {
       backgrounds, camera angles or wording. Compare the ideas before answering and replace \
       near-duplicates with genuinely different scenarios. \
       Every scene must independently preserve the meaning and all explicit details of the input. \
+      When a speaker gender hint is supplied, it identifies the speaker of the example sentence, \
+      not other people mentioned or the grammatical gender of nouns. If the speaker is depicted, \
+      explicitly preserve that gender in every scene description. Do not transfer it to other people \
+      or invent a speaker when the scene does not call for one. Without a hint, do not infer the \
+      speaker's gender from grammatical noun gender or people merely mentioned. \
       For a narrowly specified context, explore the most different plausible situations within \
       those constraints rather than contradicting them. \
       Write each idea as a self-contained, detailed visual description of one photorealistic scene. \
@@ -61,13 +66,15 @@ public class ImageService {
         .build();
   }
 
-  public ImageDescriptionsResponse describeScenes(String input, String context, int count) {
+  public ImageDescriptionsResponse describeScenes(String input, String context, int count, String speakerGenderHint) {
     final String descriptionInput = context == null || context.isBlank() ? input : context;
+    final String speakerContext = speakerGenderHint == null ? ""
+        : "\nExample sentence:\n%s\nSpeaker gender hint: %s".formatted(input, speakerGenderHint);
     final ImageDescriptionsResponse result = chatService.callWithLogging(
         chatModelSettingService.getPrimaryModel(OperationType.IMAGE_DESCRIPTION),
         OperationType.IMAGE_DESCRIPTION,
         DESCRIPTION_SYSTEM_PROMPT,
-        "Count: %d\nInput:\n%s".formatted(count, descriptionInput),
+        "Count: %d\nInput:\n%s%s".formatted(count, descriptionInput, speakerContext),
         ImageDescriptionsResponse.class);
     final List<String> descriptions = result.descriptions();
     if (descriptions == null || descriptions.size() != count

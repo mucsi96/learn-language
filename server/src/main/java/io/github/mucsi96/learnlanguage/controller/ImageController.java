@@ -49,7 +49,7 @@ public class ImageController {
   @PostMapping("/image/descriptions")
   @PreAuthorize("hasAuthority('APPROLE_createDeck')")
   public ImageDescriptionsResponse describeImages(@Valid @RequestBody ImageDescriptionsRequest request) {
-    return imageService.describeScenes(request.input(), request.context(), request.count());
+    return imageService.describeScenes(request.input(), request.context(), request.count(), request.speakerGenderHint());
   }
 
   @PostMapping("/image")

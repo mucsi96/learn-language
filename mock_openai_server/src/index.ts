@@ -93,10 +93,10 @@ app.post('/audio/transcriptions', (req, res) => {
 app.post('/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;
-    if (messagesMatch(messages, 'Identify the speaking voice', '')) {
+    if (messagesMatch(messages, "Identify the speaker's gender", '')) {
       const format = req.body.response_format;
       const schema = format?.json_schema?.schema;
-      const hint = schema?.properties?.voiceGenderHint;
+      const hint = schema?.properties?.speakerGenderHint;
       if (format?.type !== 'json_schema' || format.json_schema.strict !== true
           || hint?.type !== 'string' || !Array.isArray(hint.enum) || hint.enum.length !== 3
           || !['male', 'female', 'unknown'].every(value => hint.enum.includes(value))) {

@@ -7,6 +7,7 @@ export interface ImageSourceRequest {
 
 export interface ImageDescriptionsRequest {
   input: string;
+  speakerGenderHint?: 'male' | 'female' | null;
   context?: string;
   count: number;
 }

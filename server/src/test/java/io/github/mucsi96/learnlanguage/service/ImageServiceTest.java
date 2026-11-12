@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +34,7 @@ class ImageServiceTest {
     final var descriptions = List.of("A family boarding a steam train.", "A driver preparing a steam locomotive.");
     respondWith(descriptions);
 
-    final var result = service.describeScenes("abfahren", "A steam train at sunset", 2);
+    final var result = service.describeScenes("abfahren", "A steam train at sunset", 2, null);
 
     assertEquals(descriptions, result.descriptions());
     verify(chatService).callWithLogging(eq(model), eq(OperationType.IMAGE_DESCRIPTION), anyString(),
@@ -44,7 +45,7 @@ class ImageServiceTest {
   void usesTheOriginalInputWhenContextIsBlank() {
     respondWith(List.of("A family boarding a train."));
 
-    service.describeScenes("abfahren", " ", 1);
+    service.describeScenes("abfahren", " ", 1, null);
 
     verify(chatService).callWithLogging(eq(model), eq(OperationType.IMAGE_DESCRIPTION), anyString(),
         eq("Count: 1\nInput:\nabfahren"), eq(ImageDescriptionsResponse.class));
@@ -55,7 +56,7 @@ class ImageServiceTest {
   void rejectsIncompleteOrRepeatedSceneBatches(List<String> descriptions) {
     respondWith(descriptions);
 
-    assertThrows(IllegalStateException.class, () -> service.describeScenes("abfahren", null, 2));
+    assertThrows(IllegalStateException.class, () -> service.describeScenes("abfahren", null, 2, null));
   }
 
   private static Stream<List<String>> invalidDescriptions() {
@@ -69,5 +70,18 @@ class ImageServiceTest {
     when(chatService.callWithLogging(eq(model), eq(OperationType.IMAGE_DESCRIPTION), anyString(),
         anyString(), eq(ImageDescriptionsResponse.class)))
         .thenReturn(new ImageDescriptionsResponse(descriptions));
+  }
+
+  @ParameterizedTest
+  @org.junit.jupiter.params.provider.ValueSource(strings = {"male", "female"})
+  void preservesSpeakerContextAlongsideCustomSceneInstructions(String gender) {
+    respondWith(List.of("A parent in a garden."));
+
+    service.describeScenes("Ich bin Mutter.", "A sunny garden", 1, gender);
+
+    verify(chatService).callWithLogging(eq(model), eq(OperationType.IMAGE_DESCRIPTION),
+        contains("not other people mentioned or the grammatical gender of nouns"),
+        eq("Count: 1\nInput:\nA sunny garden\nExample sentence:\nIch bin Mutter.\nSpeaker gender hint: " + gender),
+        eq(ImageDescriptionsResponse.class));
   }
 }

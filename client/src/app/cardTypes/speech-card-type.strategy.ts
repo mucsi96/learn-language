@@ -153,7 +153,7 @@ export class SpeechCardType implements CardTypeStrategy {
       progressCallback(60, 'Generating images...');
 
       const imageInputs = sentence
-        ? [{ exampleIndex: 0, input: sentence }]
+        ? [{ exampleIndex: 0, input: sentence, speakerGenderHint: cardData.examples?.[0]?.speakerGenderHint }]
         : [];
 
       const imagesMap = await generateExampleImages(
@@ -208,10 +208,10 @@ export class SpeechCardType implements CardTypeStrategy {
     const example = card.data.examples?.[0];
     return [
       example?.de
-        ? { text: example.de, language: LANGUAGE_CODES.GERMAN, voiceGenderHint: example.voiceGenderHint }
+        ? { text: example.de, language: LANGUAGE_CODES.GERMAN, speakerGenderHint: example.speakerGenderHint }
         : null,
       example?.hu
-        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN, isFront: true, voiceGenderHint: example.voiceGenderHint }
+        ? { text: example.hu, language: LANGUAGE_CODES.HUNGARIAN, isFront: true, speakerGenderHint: example.speakerGenderHint }
         : null,
     ].filter(nonNullable);
   }

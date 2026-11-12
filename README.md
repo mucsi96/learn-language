@@ -155,8 +155,9 @@ they become available for audio generation; the upgrade never guesses a gender.
 The gender can also be changed directly in the voice table.
 
 Card completion classifies each German example using the configured Classification
-model. An optional `voiceGenderHint` is saved on the example only when the sentence
-clearly identifies its speaker; ambiguous sentences have no hint. Grammatical noun
+model before generating images. An optional `speakerGenderHint` is saved on the
+example only when the sentence clearly identifies its speaker; ambiguous sentences
+have no hint. Grammatical noun
 gender and people merely mentioned in the sentence do not identify the speaker.
 Bulk audio uses a matching enabled voice in each language for hinted sentences,
 including their translations. Unhinted sentences and standalone vocabulary words
@@ -165,7 +166,13 @@ an error instead of silently using the wrong gender. Existing audio is preserved
 Editing preserves a hint while its German sentence is unchanged; changing that
 sentence clears the hint so it cannot describe a different speaker.
 
-Regression coverage: `cd test && npx playwright test voice-config.spec.ts voice-gender.spec.ts bulk-audio-creation.spec.ts`.
+Image scene planning receives the same hint and preserves the speaker's gender
+when depicting them, without applying it to other people in the sentence. Manual
+image generation classifies the current sentence, including unsaved edits, and
+retains that speaker context alongside custom scene instructions. A database
+migration renames existing example hints in place, preserving other card data.
+
+Regression coverage: `cd test && npx playwright test voice-config.spec.ts speaker-gender.spec.ts bulk-audio-creation.spec.ts`.
 
 New ElevenLabs voice configurations default to **Eleven v4** (`eleven_v4`) in
 **Settings → Voices**. Existing v3 and Turbo v2.5 configurations keep their model;
