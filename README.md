@@ -169,13 +169,19 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 ## Study progress
 
-The study grading area reports due cards as colored dots, one per card: blue for New,
+The study grading area shows the remaining session queue as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
-label for assistive technology and a hover title. Dots update after grading and
-switching sources; large queues wrap within a bounded scrollable area. On desktop
+label for assistive technology and a hover title. Dots follow the server's card order,
+including session limits and partner turns. The current card has a larger, outlined
+dot and an accessible current-step marker instead of a card-corner status tag.
+Reordering, state colors, active size, and removal animate after grading or skipping;
+reduced-motion preferences disable these effects. Dots update after switching
+sources; large queues wrap within a bounded scrollable area. On desktop
 and tablet (768px and wider), dots are left-aligned and fill the space before the
 Incorrect and Correct buttons. On smaller screens, they occupy a full-width row
 below the buttons. Dots remain visible while the answer is hidden.
+
+Regression coverage: `cd test && npx playwright test study-dots.spec.ts study-page.spec.ts study-card-strategies.spec.ts`.
 
 ## Study Pomodoro
 

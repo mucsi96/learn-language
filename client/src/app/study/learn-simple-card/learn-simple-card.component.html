@@ -9,12 +9,6 @@
       }
     </div>
   }
-  <div class="chips-corner">
-    @let state = card()?.value()?.state; @if (state !== undefined) {
-    <app-state [state]="state" />
-    }
-  </div>
-
   <div class="front-section markdown-body" aria-label="Front" [innerHTML]="frontText() | markdown"></div>
 
   @if (typingPractice()) {

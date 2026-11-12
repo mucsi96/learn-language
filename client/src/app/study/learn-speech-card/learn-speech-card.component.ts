@@ -13,7 +13,6 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
-import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { VoiceConfigService } from '../../voice-config/voice-config.service';
 
@@ -22,7 +21,7 @@ type ImageResource = ExampleImage & { url: string };
 @Component({
   selector: 'app-learn-speech-card',
   standalone: true,
-  imports: [CommonModule, StateComponent],
+  imports: [CommonModule],
   templateUrl: './learn-speech-card.component.html',
   styleUrls: ['../image-card.css', './learn-speech-card.component.css'],
   host: { role: 'article', 'aria-label': 'Flashcard' },

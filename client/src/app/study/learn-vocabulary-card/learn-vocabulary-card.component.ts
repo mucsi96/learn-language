@@ -14,7 +14,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { HttpClient } from '@angular/common/http';
 import { fetchAsset } from '../../utils/fetchAsset';
 import { ExampleImage } from '../../parser/types';
-import { StateComponent } from '../../shared/state/state.component';
 import { getWordTypeInfo } from '../../shared/word-type-translations';
 import { getGenderInfo } from '../../shared/gender-translations';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
@@ -28,7 +27,6 @@ type ImageResource = ExampleImage & { url: string };
   imports: [
     CommonModule,
     MatChipsModule,
-    StateComponent,
   ],
   templateUrl: './learn-vocabulary-card.component.html',
   styleUrls: ['../image-card.css', './learn-vocabulary-card.component.css'],

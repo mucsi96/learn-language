@@ -16,8 +16,6 @@
     <div class="word-type-chip" [style.background-color]="wordTypeInfo()?.color" aria-label="Word type">
       {{ wordTypeInfo()?.translation }}
     </div>
-    } @let state = card()?.value()?.state; @if (state !== undefined) {
-    <app-state [state]="state" />
     }
   </div>
 

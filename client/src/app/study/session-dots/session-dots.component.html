@@ -1,0 +1,13 @@
+<div class="queue" role="list" aria-label="Study queue" [style.height.px]="height()">
+  @for (card of queue(); track card.id; let index = $index) {
+    <div class="position" role="listitem"
+      [attr.data-card-id]="card.id"
+      [attr.aria-current]="card.id === activeId() ? 'step' : null"
+      [title]="names[card.state] + (card.id === activeId() ? ' — Current card' : '')"
+      [style.transform]="'translate(' + (index % columns()) * 20 + 'px, ' + Math.floor(index / columns()) * 20 + 'px)'"
+      animate.enter="entering" animate.leave="leaving">
+      <span class="dot" role="img" [attr.aria-label]="'State: ' + names[card.state]"
+        [attr.data-state]="card.state" [class.active]="card.id === activeId()"></span>
+    </div>
+  }
+</div>
