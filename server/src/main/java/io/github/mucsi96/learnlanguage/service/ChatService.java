@@ -5,9 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -23,10 +20,8 @@ import org.springframework.util.StringUtils;
 import com.azure.core.util.BinaryData;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.JsonNode;
 
 import io.github.mucsi96.learnlanguage.model.ChatModel;
-import io.github.mucsi96.learnlanguage.model.ModelProvider;
 import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import lombok.RequiredArgsConstructor;
@@ -184,13 +179,6 @@ public class ChatService {
         // which DefaultChatClient would otherwise feed to the converter.
         final var outputConverter = new BeanOutputConverter<T>(responseType) {
             @Override
-            public String getJsonSchema() {
-                final String schema = super.getJsonSchema();
-                return model.getProvider() == ModelProvider.GOOGLE
-                    ? geminiSchema(jsonMapper.readTree(schema)).toString() : schema;
-            }
-
-            @Override
             public T convert(String text) {
                 try {
                     return StringUtils.hasText(text) ? super.convert(text) : null;
@@ -234,27 +222,6 @@ public class ChatService {
             }
             throw error;
         }
-    }
-
-    // Gemini's SDK Schema accepts a scalar type and nullable, not JSON Schema type arrays.
-    JsonNode geminiSchema(JsonNode node) {
-        if (node.isArray()) {
-            return jsonMapper.valueToTree(node.valueStream().map(this::geminiSchema).toList());
-        }
-        if (!node.isObject()) {
-            return node;
-        }
-        final JsonNode type = node.path("type");
-        final boolean nullableType = type.isArray() && type.size() == 2
-            && type.valueStream().anyMatch(value -> value.asString().equals("null"));
-        final Stream<Map.Entry<String, JsonNode>> properties = node.properties().stream()
-            .filter(entry -> !nullableType || !entry.getKey().equals("nullable"))
-            .map(entry -> Map.entry(entry.getKey(), nullableType && entry.getKey().equals("type")
-                ? type.valueStream().filter(value -> !value.asString().equals("null")).findFirst().orElseThrow()
-                : geminiSchema(entry.getValue())));
-        return jsonMapper.valueToTree(Stream.concat(properties,
-            nullableType ? Stream.of(Map.entry("nullable", jsonMapper.valueToTree(true))) : Stream.empty())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     private String requireResponseText(String text, ChatModel model, OperationType operationType,

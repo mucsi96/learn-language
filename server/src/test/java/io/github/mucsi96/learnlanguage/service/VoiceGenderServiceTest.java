@@ -37,11 +37,11 @@ class VoiceGenderServiceTest {
         new BeanOutputConverter<>(VoiceGenderResponse.class);
 
     @Test
-    void sendsNullableProviderStructuredOutputAndAcceptsNull() {
+    void sendsProviderStructuredEnumOutputAndOmitsUnknown() {
         final var model = mock(OpenAiChatModel.class);
         when(model.getOptions()).thenReturn(OpenAiChatOptions.builder().build());
         when(model.call(any(Prompt.class))).thenReturn(new ChatResponse(List.of(
-            new Generation(new AssistantMessage("{\"voiceGenderHint\":null}")))));
+            new Generation(new AssistantMessage("{\"voiceGenderHint\":\"unknown\"}")))));
         final var chat = new ChatService(new ChatClientService(model, null, null, null),
             mock(ModelUsageLoggingService.class), mapper, null, null, null);
 
@@ -52,27 +52,26 @@ class VoiceGenderServiceTest {
         verify(model).call(prompt.capture());
         final var options = (OpenAiChatOptions) prompt.getValue().getOptions();
         final var schema = mapper.readTree(options.getOutputSchema());
-        assertThat(schema.path("properties").path("voiceGenderHint").path("type"))
-            .isEqualTo(mapper.readTree("[\"string\",\"null\"]"));
+        assertThat(schema.path("properties").path("voiceGenderHint").path("enum"))
+            .isEqualTo(mapper.readTree("[\"male\",\"female\",\"unknown\"]"));
     }
 
     @Test
-    void structuredOutputAllowsJsonNullWithoutAnEnumExcludingIt() {
+    void structuredOutputAllowsExactlyThreeEnumValues() {
         final var schema = mapper.readTree(converter.getJsonSchema());
         final var hint = schema.path("properties").path("voiceGenderHint");
-        assertThat(hint.path("type")).isEqualTo(mapper.readTree("[\"string\",\"null\"]"));
-        assertThat(hint.has("enum")).isFalse();
-        assertThat(hint.path("pattern").asString()).isEqualTo("^(male|female)$");
+        assertThat(hint.path("type").asString()).isEqualTo("string");
+        assertThat(hint.path("enum")).isEqualTo(mapper.readTree("[\"male\",\"female\",\"unknown\"]"));
         assertThat(schema.path("required")).isEqualTo(mapper.readTree("[\"voiceGenderHint\"]"));
         assertThat(schema.path("additionalProperties").asBoolean()).isFalse();
     }
 
     @Test
-    void sendsGeminiCompatibleNullableStructuredOutput() {
+    void sendsGeminiCompatibleEnumStructuredOutput() {
         final var model = mock(GoogleGenAiChatModel.class);
         when(model.getOptions()).thenReturn(GoogleGenAiChatOptions.builder().build());
         when(model.call(any(Prompt.class))).thenReturn(new ChatResponse(List.of(
-            new Generation(new AssistantMessage("{\"voiceGenderHint\":null}")))));
+            new Generation(new AssistantMessage("{\"voiceGenderHint\":\"unknown\"}")))));
         final var chat = new ChatService(new ChatClientService(null, null, model, null),
             mock(ModelUsageLoggingService.class), mapper, null, null, null);
 
@@ -84,29 +83,13 @@ class VoiceGenderServiceTest {
         final var options = (GoogleGenAiChatOptions) prompt.getValue().getOptions();
         final var schema = com.google.genai.types.Schema.fromJson(options.getOutputSchema());
         final var hint = schema.properties().orElseThrow().get("voiceGenderHint");
-        assertThat(hint.nullable()).contains(true);
+        assertThat(hint.enum_().orElseThrow()).containsExactly("male", "female", "unknown");
         assertThat(schema.required().orElseThrow()).contains("voiceGenderHint");
-    }
-
-    @Test
-    void convertsNestedNullableSchemasWithoutChangingOtherConstraints() {
-        final var chat = new ChatService(null, null, mapper, null, null, null);
-        final var schema = mapper.readTree("""
-            {"type":"object","properties":{"items":{"type":"array","items":{
-              "anyOf":[{"type":["null","string"],"pattern":"male|female"},{"type":"boolean"}]
-            }}}}
-            """);
-        final var expected = mapper.readTree("""
-            {"type":"object","properties":{"items":{"type":"array","items":{
-              "anyOf":[{"type":"string","nullable":true,"pattern":"male|female"},{"type":"boolean"}]
-            }}}}
-            """);
-        assertThat(chat.geminiSchema(schema)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {"male", "female"})
+    @ValueSource(strings = {"male", "female", "unknown"})
     void acceptsStructuredResponsesAndOmitsUnknownGender(String gender) {
         final var response = converter.convert("{\"voiceGenderHint\":" + mapper.writeValueAsString(gender) + "}");
         final var chat = mock(ChatService.class);
@@ -115,18 +98,16 @@ class VoiceGenderServiceTest {
 
         final var result = new VoiceGenderService(chat).classify("Hallo!", ChatModel.GPT_6_1_SOL);
 
-        assertThat(result.voiceGenderHint()).isEqualTo(gender);
-        assertThat(mapper.valueToTree(result).has("voiceGenderHint")).isEqualTo(gender != null);
+        final boolean unknown = gender == null || gender.equals("unknown");
+        final tools.jackson.databind.JsonNode json = mapper.valueToTree(result);
+        assertThat(json).isEqualTo(unknown
+            ? mapper.readTree("{}") : mapper.readTree("{\"voiceGenderHint\":\"" + gender + "\"}"));
     }
 
-    @Test
-    void rejectsValuesOutsideTheStructuredContract() {
-        final var chat = mock(ChatService.class);
-        when(chat.callWithLogging(eq(ChatModel.GPT_6_1_SOL), eq(OperationType.CLASSIFICATION),
-            anyString(), eq("Hallo!"), eq(VoiceGenderResponse.class)))
-            .thenReturn(new VoiceGenderResponse("null"));
-
-        assertThatThrownBy(() -> new VoiceGenderService(chat).classify("Hallo!", ChatModel.GPT_6_1_SOL))
-            .isInstanceOf(IllegalStateException.class);
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "other", ""})
+    void rejectsValuesOutsideTheStructuredContract(String value) {
+        assertThatThrownBy(() -> converter.convert("{\"voiceGenderHint\":" + mapper.writeValueAsString(value) + "}"))
+            .isInstanceOf(tools.jackson.core.JacksonException.class);
     }
 }

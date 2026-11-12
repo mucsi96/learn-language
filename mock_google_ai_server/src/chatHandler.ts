@@ -433,7 +433,7 @@ export class ChatHandler {
     if (messagesMatch(request, 'Identify the speaking voice', '')) {
       return createGeminiResponse({
         voiceGenderHint: messagesMatch(request, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
-          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : 'unknown',
       });
     }
     if (!request.contents || !Array.isArray(request.contents)) {

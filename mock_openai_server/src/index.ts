@@ -98,9 +98,9 @@ app.post('/chat/completions', async (req, res) => {
       const schema = format?.json_schema?.schema;
       const hint = schema?.properties?.voiceGenderHint;
       if (format?.type !== 'json_schema' || format.json_schema.strict !== true
-          || !Array.isArray(hint?.type) || !hint.type.includes('null')
-          || !hint.type.includes('string') || (hint.enum && !hint.enum.includes(null))) {
-        throw new Error('Voice classification requires structured output allowing JSON null');
+          || hint?.type !== 'string' || !Array.isArray(hint.enum) || hint.enum.length !== 3
+          || !['male', 'female', 'unknown'].every(value => hint.enum.includes(value))) {
+        throw new Error('Voice classification requires structured male/female/unknown enum output');
       }
     }
     const result = contentResponse(messages, req.body.model) ?? await chatHandler.processMessages(messages);
