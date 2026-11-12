@@ -214,9 +214,7 @@ export class BulkCardCreationService {
         })
       );
       const { voiceGenderHint: previousHint, ...exampleWithoutHint } = example;
-      return result.voiceGenderHint == null
-        ? exampleWithoutHint
-        : { ...exampleWithoutHint, voiceGenderHint: result.voiceGenderHint };
+      return { ...exampleWithoutHint, ...result };
     }));
 
     updateProgress('in-progress', `${label}: Updating card...`);
