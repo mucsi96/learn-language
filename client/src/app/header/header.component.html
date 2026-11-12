@@ -15,7 +15,7 @@
 </button>
 <mat-menu #menu="matMenu">
   @if (isStudyRoute() && pomodoro.seconds() !== null) {
-    <button mat-menu-item [disabled]="pomodoro.busy() || restart()?.disabled() === true" (click)="resetTimer()">Reset Pomodoro</button>
+    <button mat-menu-item [disabled]="pomodoro.busy()" (click)="pomodoro.start()">Reset Pomodoro</button>
     @if (pomodoro.paused()) {
       <button mat-menu-item [disabled]="pomodoro.busy()" (click)="pomodoro.resume()">Resume Pomodoro</button>
     } @else if (pomodoro.seconds()! > 0) {

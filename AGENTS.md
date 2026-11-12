@@ -448,7 +448,7 @@ Tests are located in the `test/tests/` directory with supporting utilities in `t
 - Sessions automatically resume when returning to the study page on the same day
 - No session IDs in browser URLs - sessions are resolved server-side by source and date
 - POST to create session is idempotent - returns existing today's session if one exists
-- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active; paused timers stay paused. Its bottom progress bar, avatar-menu controls (Reset, Pause/Resume), and break announcement appear only on study routes. Reset during an active session restarts the source's session and countdown. Running deadlines and paused remaining time persist on the backend per authenticated user across navigation, reloads, and app restarts; version checks reject concurrent stale writes. The full bar blinks on expiry (static with reduced motion) without interrupting study
+- Starting or continuing a study session starts the 25-minute Pomodoro only if no countdown is active; paused timers stay paused. Its bottom progress bar, avatar-menu controls (Reset, Pause/Resume), and break announcement appear only on study routes. Reset affects only the countdown and preserves the study session, card order, current card, and partner turn. Running deadlines and paused remaining time persist on the backend per authenticated user across navigation, reloads, and app restarts; version checks reject concurrent stale writes. The full bar blinks on expiry (static with reduced motion) without interrupting study
 - Sessions older than 1 day are automatically cleaned up
 
 ### Multilingual Support

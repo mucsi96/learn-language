@@ -168,11 +168,6 @@ export class LearnCardComponent implements OnDestroy {
   private previousSourceId: string | null = null;
 
   constructor() {
-    this.studySessionService.restartControl.set({
-      disabled: this.cannotStartSession,
-      start: () => this.startSession(true),
-    });
-
     effect(() => {
       const sourceId = this.sourceId();
       if (sourceId) {
@@ -211,15 +206,12 @@ export class LearnCardComponent implements OnDestroy {
     }
   }
 
-  async startSession(restart = false) {
+  async startSession() {
     const sourceId = this.sourceId();
     if (!sourceId || this.cannotStartSession()) return;
     this.isStartingSession.set(true);
-    if (restart) {
-      this.audioPlaybackService.releasePrepared();
-    }
     try {
-      await this.studySessionService.createSession(sourceId, restart);
+      await this.studySessionService.createSession(sourceId);
       this.isRevealed.set(false);
       this.lastPlayedTexts = [];
       this.lastPreparedCardId = null;
@@ -267,7 +259,6 @@ export class LearnCardComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.studySessionService.restartControl.set(null);
     this.audioPlaybackService.releasePrepared();
     this.studySessionService.clearSession();
   }
