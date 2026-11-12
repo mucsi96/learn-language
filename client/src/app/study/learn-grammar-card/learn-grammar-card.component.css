@@ -24,17 +24,6 @@
   gap: 0.5rem;
 }
 
-.chips-corner {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 10;
-}
-
 .grammar-topic-chip {
   position: absolute;
   top: 0.75rem;

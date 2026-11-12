@@ -290,6 +290,7 @@ export type StudySession = {
 
 export type StudySessionCard = {
   card: Card;
+  queue: { id: string; state: CardState }[];
   learningPartnerId: number | null;
   turnName: string;
   studyMode: 'SOLO' | 'WITH_PARTNER';
