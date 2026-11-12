@@ -245,7 +245,7 @@ export class ChatHandler {
     if (messagesMatch(request, 'Identify the speaking voice', '')) {
       return createClaudeResponse({
         voiceGenderHint: messagesMatch(request, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
-          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : 'unknown',
       });
     }
     if (!request.messages || !Array.isArray(request.messages)) {

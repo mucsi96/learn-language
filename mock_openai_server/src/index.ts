@@ -3,6 +3,7 @@ import { ImageGenerationHandler } from './imageGeneration';
 import { AudioGenerationHandler } from './audioGeneration';
 import { ChatHandler } from './chatHandler';
 import { contentFixtures, contentResponse, resetContentFixtures } from './contentFixtures';
+import { messagesMatch } from './utils';
 
 const app = express();
 const imageHandler = new ImageGenerationHandler();
@@ -92,6 +93,16 @@ app.post('/audio/transcriptions', (req, res) => {
 app.post('/chat/completions', async (req, res) => {
   try {
     const { messages } = req.body;
+    if (messagesMatch(messages, 'Identify the speaking voice', '')) {
+      const format = req.body.response_format;
+      const schema = format?.json_schema?.schema;
+      const hint = schema?.properties?.voiceGenderHint;
+      if (format?.type !== 'json_schema' || format.json_schema.strict !== true
+          || hint?.type !== 'string' || !Array.isArray(hint.enum) || hint.enum.length !== 3
+          || !['male', 'female', 'unknown'].every(value => hint.enum.includes(value))) {
+        throw new Error('Voice classification requires structured male/female/unknown enum output');
+      }
+    }
     const result = contentResponse(messages, req.body.model) ?? await chatHandler.processMessages(messages);
     res.status(200).json(result);
   } catch (error) {

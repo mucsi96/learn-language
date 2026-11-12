@@ -274,7 +274,7 @@ export class ChatHandler {
     if (messagesMatch(messages, 'Identify the speaking voice', '')) {
       return createAssistantResponse({
         voiceGenderHint: messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
-          : messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+          : messagesMatch(messages, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : 'unknown',
       });
     }
     if (!messages || !Array.isArray(messages)) {

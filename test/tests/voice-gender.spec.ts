@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { createCard, createVoiceConfiguration, getVoiceConfigurations, setupDefaultChatModelSettings, withDbConnection } from '../utils';
+import { createCard, createChatModelSetting, createVoiceConfiguration, getVoiceConfigurations, withDbConnection } from '../utils';
 
 test('legacy voice requires an explicit gender and retains its configuration', async ({ page, request, apiHeaders }) => {
   const id = await createVoiceConfiguration({ voiceId: 'test-voice-de', model: 'eleven_v3', language: 'de', gender: null });
@@ -27,26 +27,41 @@ test('voice API rejects missing and unsupported genders on create and update', a
   expect((await getVoiceConfigurations())[0].gender).toBe('male');
 });
 
-test('card completion persists explicit speaker hints and leaves ambiguous sentences empty', async ({ page, request, apiHeaders }) => {
-  await setupDefaultChatModelSettings();
-  const sentences = [
-    { de: 'Ich bin Mutter.', hu: 'Anya vagyok.', hint: 'female' },
-    { de: 'Ich bin Vater.', hu: 'Apa vagyok.', hint: 'male' },
-    { de: 'Meine Mutter kommt.', hu: 'Jön az anyám.', hint: undefined },
-  ];
-  await Promise.all(sentences.map((sentence, index) => createCard({
-    cardId: `hint-${index}`, sourceId: 'grammar-a1', cardType: 'GRAMMAR', readiness: 'DRAFT',
-    data: { examples: [{ de: sentence.de, hu: sentence.hu }] },
-  })));
-  await page.goto('/sources/grammar-a1/cards?filter=draft');
-  await page.getByRole('columnheader', { name: /Select all 3 cards/ }).getByRole('checkbox').click();
-  await page.getByRole('button').filter({ hasText: 'Complete 3 cards' }).click();
-  await expect(page.getByText('3 card(s) completed')).toBeVisible();
-  await Promise.all(sentences.map(async (sentence, index) => {
-    const response = await request.get(`/api/card/hint-${index}`, { headers: apiHeaders });
-    expect(response.ok()).toBe(true);
-    expect((await response.json()).data.examples[0].voiceGenderHint).toBe(sentence.hint);
-  }));
+[
+  { type: 'GRAMMAR', source: 'grammar-a1', model: 'gemini-3.1-pro-preview' },
+  { type: 'SPEECH', source: 'speech-a1', model: 'gpt-6.1-sol' },
+].forEach(({ type, source, model }) => {
+  test(`${type} completion persists explicit speaker hints and removes ambiguous hints`, async ({ page, request, apiHeaders }) => {
+    await createChatModelSetting({ modelName: model, operationType: 'CLASSIFICATION', isEnabled: true, isPrimary: true });
+    const unknownVoice = await request.post(`/api/voice-gender?model=${model}`, {
+      headers: apiHeaders,
+      data: { sentence: 'Meine Mutter kommt.' },
+    });
+    expect(unknownVoice.ok()).toBe(true);
+    expect(await unknownVoice.json()).toEqual({});
+    const sentences = [
+      { de: 'Ich bin Mutter.', hu: 'Anya vagyok.', hint: 'female' },
+      { de: 'Ich bin Vater.', hu: 'Apa vagyok.', hint: 'male' },
+      { de: 'Meine Mutter kommt.', hu: 'Jön az anyám.', hint: undefined },
+    ];
+    await Promise.all(sentences.map((sentence, index) => createCard({
+      cardId: `hint-${index}`, sourceId: source, cardType: type, readiness: 'DRAFT',
+      data: { examples: [{ de: sentence.de, hu: sentence.hu, en: 'Existing translation', ch: 'Existing translation', voiceGenderHint: 'male', images: [{ id: 'existing-image', isFavorite: true }] }] },
+    })));
+    await page.goto(`/sources/${source}/cards?filter=draft`);
+    await page.getByRole('columnheader', { name: /Select all 3 cards/ }).getByRole('checkbox').click();
+    await page.getByRole('button').filter({ hasText: 'Complete 3 cards' }).click();
+    await expect(page.getByText('3 card(s) completed')).toBeVisible();
+    await Promise.all(sentences.map(async (sentence, index) => {
+      const response = await request.get(`/api/card/hint-${index}`, { headers: apiHeaders });
+      expect(response.ok()).toBe(true);
+      expect((await response.json()).data.examples[0].voiceGenderHint).toBe(sentence.hint);
+      const example = await withDbConnection(async client =>
+        (await client.query("SELECT data->'examples'->0 AS example FROM learn_language.cards WHERE id = $1", [`hint-${index}`])).rows[0].example
+      );
+      expect(Object.hasOwn(example, 'voiceGenderHint')).toBe(sentence.hint !== undefined);
+    }));
+  });
 });
 
 [
