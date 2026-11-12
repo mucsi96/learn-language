@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Card, CardCreatePayload, CardData } from './parser/types';
+import { Card, CardCreatePayload, CardData, Example } from './parser/types';
 import { fetchJson } from './utils/fetchJson';
 import { newCardScheduling } from './shared/state/fsrs-scheduler';
 import { mapCardDatesToISOStrings } from './utils/date-mapping.util';
@@ -20,12 +20,14 @@ import {
   ProgressUpdater,
 } from './utils/processing-pipeline';
 import { RateLimitTokenService } from './rate-limit-token.service';
+import { MultiModelService } from './multi-model.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BulkCardCreationService {
   private readonly http = inject(HttpClient);
+  private readonly multiModelService = inject(MultiModelService);
   private readonly strategyRegistry = inject(CardTypeRegistry);
   private readonly rateLimitTokenService = inject(RateLimitTokenService);
   readonly progress = signal<DotProgress[]>([]);
@@ -199,10 +201,27 @@ export class BulkCardCreationService {
       toolsRequested
     );
 
-    updateProgress('in-progress', `${label}: Updating card...`);
+    updateProgress('in-progress', `${label}: Identifying sentence voices...`);
 
+    const examples = await Promise.all((enrichedData.examples ?? []).map(async (example) => {
+      if (!example.de) return example;
+      const result = await this.multiModelService.call<Pick<Example, 'voiceGenderHint'>>(
+        'classification',
+        (model, headers) => fetchJson(this.http, `/api/voice-gender?model=${model}`, {
+          method: 'POST',
+          body: { sentence: example.de },
+          headers,
+        })
+      );
+      return { ...example, voiceGenderHint: result.voiceGenderHint };
+    }));
+
+    updateProgress('in-progress', `${label}: Updating card...`);
     await fetchJson(this.http, `/api/card/${cardId}`, {
-      body: { data: enrichedData, readiness: strategy.completionReadiness },
+      body: {
+        data: { ...enrichedData, ...(enrichedData.examples ? { examples } : {}) },
+        readiness: strategy.completionReadiness,
+      },
       method: 'PUT',
     });
 

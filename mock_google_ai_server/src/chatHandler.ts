@@ -430,6 +430,12 @@ export class ChatHandler {
   }
 
   async processRequest(request: GeminiRequest): Promise<any> {
+    if (messagesMatch(request, 'Identify the speaking voice', '')) {
+      return createGeminiResponse({
+        voiceGenderHint: messagesMatch(request, 'Identify the speaking voice', 'Ich bin Mutter.') ? 'female'
+          : messagesMatch(request, 'Identify the speaking voice', 'Ich bin Vater.') ? 'male' : null,
+      });
+    }
     if (!request.contents || !Array.isArray(request.contents)) {
       throw new Error('Invalid request format');
     }

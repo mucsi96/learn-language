@@ -5,6 +5,7 @@ import { Card } from '../parser/types';
 import { ENVIRONMENT_CONFIG } from '../environment/environment.config';
 
 export interface VoiceConfiguration {
+  gender: 'male' | 'female' | null;
   id: number;
   voiceId: string;
   model: string;
@@ -14,6 +15,7 @@ export interface VoiceConfiguration {
 }
 
 export interface VoiceConfigurationRequest {
+  gender: 'male' | 'female';
   voiceId: string;
   model: string;
   language: string;
@@ -93,7 +95,9 @@ export class VoiceConfigService {
   }
 
   async toggleEnabled(config: VoiceConfiguration): Promise<void> {
+    if (!config.gender) throw new Error('Select a voice gender first');
     await this.updateConfiguration(config.id, {
+      gender: config.gender,
       voiceId: config.voiceId,
       model: config.model,
       language: config.language,

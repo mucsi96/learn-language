@@ -89,6 +89,12 @@
                 <div class="skeleton skeleton-toggle"></div>
               </td>
             </ng-container>
+            <ng-container matColumnDef="gender">
+              <th mat-header-cell *matHeaderCellDef>Voice gender</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="skeleton skeleton-toggle"></div>
+              </td>
+            </ng-container>
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let row">
@@ -148,6 +154,7 @@
               <td mat-cell *matCellDef="let config">
                 <mat-slide-toggle
                   [checked]="config.isEnabled"
+                  [disabled]="!config.gender"
                   (change)="toggleEnabled(config)"
                   [aria-label]="config.isEnabled ? 'Disable voice' : 'Enable voice'"
                 ></mat-slide-toggle>
@@ -182,6 +189,23 @@
                 >
                   <mat-icon>delete</mat-icon>
                 </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="gender">
+              <th mat-header-cell *matHeaderCellDef>Voice gender</th>
+              <td mat-cell *matCellDef="let config">
+                <mat-form-field>
+                  <mat-label>Voice gender</mat-label>
+                  <mat-select [value]="config.gender" required
+                    (selectionChange)="updateGender(config, $event.value)">
+                    <mat-option value="male">Male</mat-option>
+                    <mat-option value="female">Female</mat-option>
+                  </mat-select>
+                  @if (!config.gender) {
+                    <mat-hint>Select before generating audio</mat-hint>
+                  }
+                </mat-form-field>
               </td>
             </ng-container>
 

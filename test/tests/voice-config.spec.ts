@@ -57,6 +57,9 @@ test('can add a new voice configuration', async ({ page }) => {
   await page.getByLabel('Language').click();
   await page.getByRole('option', { name: 'German' }).click();
 
+  await expect(page.getByRole('button', { name: 'Add', exact: true })).toBeDisabled();
+  await page.getByLabel('Voice gender').click();
+  await page.getByRole('option', { name: 'Male', exact: true }).click();
   await page.getByRole('button', { name: 'Add' }).click();
 
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).not.toBeVisible();
@@ -67,6 +70,7 @@ test('can add a new voice configuration', async ({ page }) => {
   expect(configs[0].voiceId).toBe('test-voice-de');
   expect(configs[0].language).toBe('de');
   expect(configs[0].model).toBe('eleven_v4');
+  expect(configs[0].gender).toBe('male');
   await page.reload();
   await expect(page.getByText('Eleven v4', { exact: true })).toBeVisible();
 
@@ -100,6 +104,8 @@ test('can add a Gemini TTS voice configuration', async ({ page }) => {
   await expect(page.getByRole('option', { name: /Eleven v4/ })).not.toBeVisible();
   await page.getByRole('option', { name: /Gemini 3.1 Flash TTS/ }).click();
 
+  await page.getByLabel('Voice gender').click();
+  await page.getByRole('option', { name: 'Female', exact: true }).click();
   await page.getByRole('button', { name: 'Add' }).click();
 
   await expect(page.getByRole('heading', { name: 'Add Voice Configuration' })).not.toBeVisible();

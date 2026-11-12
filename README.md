@@ -149,6 +149,24 @@ test is `cd test && npx playwright test bootstrap-health.spec.ts`.
 
 ## ElevenLabs v4 audio
 
+Voice configurations require **Male** or **Female** in **Settings → Voices**.
+Existing configurations retain their settings but need a gender selected before
+they become available for audio generation; the upgrade never guesses a gender.
+The gender can also be changed directly in the voice table.
+
+Card completion classifies each German example using the configured Classification
+model. An optional `voiceGenderHint` is saved on the example only when the sentence
+clearly identifies its speaker; ambiguous sentences have no hint. Grammatical noun
+gender and people merely mentioned in the sentence do not identify the speaker.
+Bulk audio uses a matching enabled voice in each language for hinted sentences,
+including their translations. Unhinted sentences and standalone vocabulary words
+retain round-robin voice selection. If no matching voice exists, that card reports
+an error instead of silently using the wrong gender. Existing audio is preserved.
+Editing preserves a hint while its German sentence is unchanged; changing that
+sentence clears the hint so it cannot describe a different speaker.
+
+Regression coverage: `cd test && npx playwright test voice-config.spec.ts voice-gender.spec.ts bulk-audio-creation.spec.ts`.
+
 New ElevenLabs voice configurations default to **Eleven v4** (`eleven_v4`) in
 **Settings → Voices**. Existing v3 and Turbo v2.5 configurations keep their model;
 add a v4 configuration and disable the old one to opt in. Preview and card audio

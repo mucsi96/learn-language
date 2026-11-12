@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: voice-configuration-gender
+      author: mucsi96
+      changes:
+        - addColumn:
+            schemaName: learn_language
+            tableName: voice_configurations
+            columns:
+              - column:
+                  name: gender
+                  type: varchar(6)
+        - sql:
+            sql: ALTER TABLE learn_language.voice_configurations ADD CONSTRAINT voice_gender_values CHECK (gender IN ('male', 'female'))

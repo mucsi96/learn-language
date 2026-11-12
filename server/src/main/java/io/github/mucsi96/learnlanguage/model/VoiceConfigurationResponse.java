@@ -15,6 +15,7 @@ public class VoiceConfigurationResponse {
     private String voiceName;
     private String model;
     private String language;
+    private String gender;
     private String displayName;
     private Boolean isEnabled;
     private String category;

@@ -156,6 +156,7 @@ export class EditGrammarCardComponent {
       examples: [
         {
           de: sentence,
+          voiceGenderHint: this.card()?.data.examples?.find(example => example.de === sentence)?.voiceGenderHint,
           hu: hungarianTranslation,
           isSelected: true,
         },
