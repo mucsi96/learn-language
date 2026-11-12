@@ -60,3 +60,43 @@ import { createCard, createLearningPartner, createSource, getStudySessionCardsBy
     await retainedDot!.dispose();
   });
 });
+
+test('study dots retain their identity while the next card is fetched', async ({ page }) => {
+  await createSource({
+    id: 'slow-queue', name: 'Slow queue', languageLevel: 'A1', cardTypes: ['VOCABULARY'],
+  });
+  await Promise.all(['first', 'second'].map(id => createCard({
+    cardId: id, sourceId: 'slow-queue', state: 'NEW',
+    data: { word: id, type: 'NOUN', translation: { hu: id } },
+  })));
+  await page.goto('/sources/slow-queue/study');
+  await page.getByRole('button', { name: 'Start study session' }).click();
+  const dots = page.getByRole('list', { name: 'Study queue' }).getByRole('listitem');
+  await expect(dots).toHaveCount(2);
+  const activeDot = await dots.first().elementHandle();
+  const initialIds = await dots.evaluateAll(elements => elements.map(element => element.getAttribute('data-card-id')));
+  const responseGate = Promise.withResolvers<void>();
+  const requestSeen = Promise.withResolvers<void>();
+  await page.route('**/study-session/current-card', async route => {
+    requestSeen.resolve();
+    await responseGate.promise;
+    await route.fallback();
+  });
+
+  try {
+    await page.keyboard.press('h');
+    await page.getByRole('button', { name: 'Incorrect', exact: true }).click();
+    await requestSeen.promise;
+    await expect(dots).toHaveCount(2);
+    await expect(dots.first()).toHaveAttribute('aria-current', 'step');
+    expect(await activeDot!.evaluate(element => element.isConnected)).toBe(true);
+  } finally {
+    responseGate.resolve();
+  }
+
+  await expect.poll(() => dots.evaluateAll(elements => elements.map(element => element.getAttribute('data-card-id'))))
+    .toEqual([initialIds[1], initialIds[0]]);
+  expect(await activeDot!.evaluate(element => element.isConnected)).toBe(true);
+  await expect(dots.first()).toHaveAttribute('aria-current', 'step');
+  await activeDot!.dispose();
+});
