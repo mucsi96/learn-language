@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  min-width: 0;
+  max-height: 60px;
+  overflow-y: auto;
+}
+
+.queue {
+  position: relative;
+}
+
+.position {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background-color 450ms ease, scale 350ms ease, box-shadow 350ms ease;
+}
+
+.dot[data-state='NEW'] { background-color: #2196f3; }
+.dot[data-state='LEARNING'] { background-color: #4caf50; }
+.dot[data-state='REVIEW'] { background-color: #ffc107; }
+.dot[data-state='RELEARNING'] { background-color: #f44336; }
+
+.dot.active {
+  scale: 1.5;
+  box-shadow: 0 0 0 1px var(--mat-sys-surface), 0 0 0 2px var(--mat-sys-on-surface);
+}
+
+.entering { animation: appear 350ms ease-out; }
+.leaving { animation: disappear 350ms ease-in forwards; }
+
+@keyframes appear {
+  from { opacity: 0; scale: 0.3; }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes disappear {
+  to { opacity: 0; scale: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .position, .dot { transition: none; }
+  .entering, .leaving { animation-duration: 1ms; }
+}

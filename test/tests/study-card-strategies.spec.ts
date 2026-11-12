@@ -82,8 +82,9 @@ const strategies = [
       const dotsBounds = await dots.boundingBox();
       expect(dotsBounds).toEqual(hiddenAnswerDotsBounds);
       expect(dotsBounds!.x).toBe(cardBounds!.x);
-      const firstDotBounds = await dots.getByRole('img').first().boundingBox();
-      expect(firstDotBounds!.x).toBe(dotsBounds!.x);
+      await expect.poll(async () =>
+        (await dots.getByRole('listitem').first().boundingBox())?.x
+      ).toBe(dotsBounds!.x);
       if (width >= 768) {
         expect(dotsBounds!.x + dotsBounds!.width).toBeCloseTo(incorrectBounds!.x - 8, 0);
         expect(dotsBounds!.y + dotsBounds!.height / 2).toBeCloseTo(gradeBounds!.y + gradeBounds!.height / 2, 0);

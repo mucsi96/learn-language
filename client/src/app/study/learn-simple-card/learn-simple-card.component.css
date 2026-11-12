@@ -36,12 +36,6 @@
   font-size: 0.85rem;
 }
 
-.chips-corner {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
-
 .divider {
   width: 100%;
   border: none;

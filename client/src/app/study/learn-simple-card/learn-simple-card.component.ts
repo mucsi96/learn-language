@@ -15,7 +15,6 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { MarkdownPipe } from '../../shared/markdown.pipe';
 import { ENVIRONMENT_CONFIG } from '../../environment/environment.config';
@@ -34,7 +33,6 @@ interface AnswerCheckResult {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    StateComponent,
     MarkdownPipe,
   ],
   templateUrl: './learn-simple-card.component.html',

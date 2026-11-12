@@ -11,12 +11,6 @@
 </div>
 
 <div class="content-section">
-  <div class="chips-corner">
-    @let state = card()?.value()?.state; @if (state !== undefined) {
-    <app-state [state]="state" />
-    }
-  </div>
-
   <div class="sentence-section">
     <p class="sentence-text">{{ sentence() }}</p>
   </div>

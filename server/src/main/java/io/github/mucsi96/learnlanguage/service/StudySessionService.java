@@ -343,10 +343,11 @@ public class StudySessionService {
         final List<StudySessionCard> eligibleCards = session.getCards().stream()
                 .filter(c -> c.getCard().isReady())
                 .filter(c -> c.getCard().getDue().isBefore(startOfNextDay))
+                .sorted(Comparator.comparingInt(StudySessionCard::getPosition))
                 .toList();
 
         final Optional<StudySessionCard> nextCard = eligibleCards.stream()
-                .min(Comparator.comparingInt(StudySessionCard::getPosition));
+                .findFirst();
 
         return nextCard.map(sessionCard -> {
             final String turnName = sessionCard.getLearningPartner() != null
@@ -360,6 +361,10 @@ public class StudySessionService {
                             : null)
                     .turnName(turnName)
                     .studyMode(session.getStudyMode())
+                    .queue(eligibleCards.stream()
+                            .map(queued -> new StudySessionCardResponse.QueueCard(
+                                    queued.getCard().getId(), queued.getCard().getState()))
+                            .toList())
                     .build();
         });
     }

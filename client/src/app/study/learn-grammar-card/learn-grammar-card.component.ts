@@ -6,7 +6,6 @@ import {
   effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StateComponent } from '../../shared/state/state.component';
 import { CardResourceLike } from '../../shared/types/card-resource.types';
 import { createGrammarGapRegex } from '../../shared/constants/grammar.constants';
 import { VoiceConfigService } from '../../voice-config/voice-config.service';
@@ -19,7 +18,7 @@ type SentencePart = {
 @Component({
   selector: 'app-learn-grammar-card',
   standalone: true,
-  imports: [CommonModule, StateComponent],
+  imports: [CommonModule],
   templateUrl: './learn-grammar-card.component.html',
   styleUrl: './learn-grammar-card.component.css',
   host: { role: 'article', 'aria-label': 'Flashcard' },

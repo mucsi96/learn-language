@@ -31,13 +31,13 @@
     </button>
   }
 </div>
-} @else if (currentCardData.isLoading()) {
+} @else {
 <div class="learn-card-container">
+@if (currentCardData.isLoading()) {
   <div class="learn-card">
     <app-learn-card-skeleton />
   </div>
-</div>
-} @else if (card() === null || card() === undefined) {
+} @else if (!card()) {
 <app-confetti />
 <div class="empty-state">
   <mat-icon class="empty-icon">school</mat-icon>
@@ -66,7 +66,6 @@
   }
 </div>
 } @else {
-<div class="learn-card-container">
   <div
     class="learn-card"
     [class.revealed]="isRevealed()"
@@ -103,21 +102,18 @@
       }
     }
   </div>
-
+}
   <div class="grading-buttons-container">
-    <div class="stats-container" role="group" aria-label="Due cards">
-      @for (dueCount of dueCounts(); track dueCount.state) {
-        <app-state [state]="dueCount.state" [count]="dueCount.count" display="dots" />
-      }
-    </div>
+    <app-session-dots class="stats-container" [queue]="queue()" [activeId]="card()?.id" />
+    @if (card()) {
     <app-card-grading-buttons
-      [class.hidden]="!isRevealed()"
+      [class.hidden]="!isRevealed() || currentCardData.isLoading()"
       [card]="cardResource"
       [learningPartnerId]="currentTurn().partnerId"
       [reviewDuration]="reviewDuration()"
       (cardProcessed)="onCardProcessed()">
     </app-card-grading-buttons>
-    <div class="grading-row-actions" [class.hidden]="!isRevealed()">
+    <div class="grading-row-actions" [class.hidden]="!isRevealed() || currentCardData.isLoading()">
       <app-card-actions
         [card]="cardResource"
         [sourceId]="sourceId()"
@@ -125,6 +121,7 @@
         (cardProcessed)="onCardProcessed()">
       </app-card-actions>
     </div>
+    }
   </div>
 </div>
 }

@@ -169,7 +169,7 @@ test('study page initial state', async ({ page }) => {
   await expect(flashcard.getByRole('heading', { level: 2, name: 'elindulni, elhagyni' })).toBeVisible();
   await expect(flashcard.getByRole('heading', { level: 2, name: 'abfahren' })).not.toBeVisible();
   await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: New')).toBeVisible();
   await expect(flashcard.getByText('Gender: Neuter', { exact: true })).not.toBeVisible();
   await expect(flashcard.getByText('fährt ab')).not.toBeVisible();
   await expect(flashcard.getByText('fuhr ab')).not.toBeVisible();
@@ -227,7 +227,7 @@ test('study page revealed state', async ({ page }) => {
   await expect(flashcard.getByText('elindulni, elhagyni')).not.toBeVisible();
   await expect(flashcard.getByText('abfahra, verlah')).not.toBeVisible();
   await expect(flashcard.getByLabel('Word type')).toHaveText('Ige');
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Learning')).toBeVisible();
   await expect(flashcard.getByText('Gender: Neuter', { exact: true })).toBeVisible();
   await expect(flashcard.getByText('fährt ab')).toBeVisible();
   await expect(flashcard.getByText('fuhr ab')).toBeVisible();
@@ -338,7 +338,7 @@ test('large study queues keep all dots within a bounded grading area', async ({ 
     scrollWidth: element.scrollWidth,
   }));
   expect(dimensions.width).toBeGreaterThan(200);
-  expect(dimensions.height).toBeLessThanOrEqual(32);
+  expect(dimensions.height).toBeLessThanOrEqual(60);
   expect(dimensions.height).toBeGreaterThan(8);
   expect(dimensions.scrollHeight).toBeGreaterThanOrEqual(dimensions.height);
   expect(dimensions.scrollWidth).toBe(dimensions.width);
@@ -404,7 +404,6 @@ test('study progress dots disappear when the last review card is completed', asy
     .getByRole('heading', { name: 'tanulni' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'All caught up!' })).toBeVisible();
-  await expect(progress).toHaveCount(0);
   await expect(progress.getByRole('img')).toHaveCount(0);
 });
 
@@ -476,7 +475,7 @@ test('cards with in review readiness not shown on study page', async ({ page }) 
   const progress = page.getByRole('group', { name: 'Due cards', exact: true });
   await expect(progress.getByRole('img', { name: 'State: Review', exact: true })).toHaveCount(1);
   await expect(progress.getByRole('img', { name: 'State: New', exact: true })).toHaveCount(0);
-  await expect(flashcard.getByLabel('State: Review')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Review')).toBeVisible();
 });
 
 test('flag card menu item visible in context menu', async ({ page }) => {
@@ -1000,11 +999,11 @@ test('grading with no next card shows empty state', async ({ page }) => {
 
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
 
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: New')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Learning')).toBeVisible();
   await flashcard.getByRole('heading', { name: 'utolsó' }).click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
@@ -1322,7 +1321,7 @@ test('speech card study page initial state shows Hungarian translation', async (
   const flashcard = page.getByRole('article', { name: 'Flashcard' });
   await expect(flashcard.getByText('Jó reggelt, hogy van?')).toBeVisible();
   await expect(flashcard.getByText('Guten Morgen, wie geht es Ihnen?')).not.toBeVisible();
-  await expect(flashcard.getByLabel('State: New')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: New')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Jó reggelt, hogy van?' }));
   expect(await getImageColor(page, imageContent)).toBe('yellow');
 });
@@ -1356,7 +1355,7 @@ test('speech card study page revealed state shows German sentence', async ({ pag
 
   await expect(flashcard.getByText('Ich fahre jeden Tag mit dem Bus zur Arbeit.')).toBeVisible();
   await expect(flashcard.getByText('Minden nap busszal járok dolgozni.')).not.toBeVisible();
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Learning')).toBeVisible();
   const imageContent = await getImageContent(flashcard.getByRole('img', { name: 'Ich fahre jeden Tag mit dem Bus zur Arbeit.' }));
   expect(await getImageColor(page, imageContent)).toBe('green');
   await expect(page.getByRole('button', { name: 'Incorrect' })).toBeVisible();
@@ -1392,7 +1391,7 @@ test('speech card grading functionality', async ({ page }) => {
   await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Learning')).toBeVisible();
   await flashcard.getByText('Ma nagyon szép az idő.').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
@@ -1555,7 +1554,7 @@ test('grammar card grading functionality', async ({ page }) => {
   await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
-  await expect(flashcard.getByLabel('State: Learning')).toBeVisible();
+  await expect(page.getByRole('listitem').first().getByLabel('State: Learning')).toBeVisible();
   await flashcard.getByText('Er').click();
   await page.getByRole('button', { name: 'Correct', exact: true }).click();
 
