@@ -81,15 +81,11 @@ test('unhealthy filter does not show speech cards missing gender or word type', 
     cardType: 'SPEECH',
     sourcePageNumber: 1,
     data: {
-      word: 'Guten Morgen',
-      translation: { en: 'Good morning', hu: 'Jó reggelt', ch: 'Guete Morge' },
-      forms: [],
       examples: [
         {
           de: 'Guten Morgen, wie geht es Ihnen?',
           en: 'Good morning, how are you?',
           hu: 'Jó reggelt, hogy van?',
-          ch: 'Guete Morge, wie gaats Ihne?',
         },
       ],
     },
@@ -102,6 +98,32 @@ test('unhealthy filter does not show speech cards missing gender or word type', 
     const rows = await getGridData(grid);
     expect(rows).toHaveLength(0);
   }).toPass();
+});
+
+(['de', 'hu', 'en'] as const).flatMap((language) =>
+  [undefined, '', '   '].map((value) => ({ language, value }))
+).forEach(({ language, value }) => {
+  test(`unhealthy filter shows speech cards with ${language} ${JSON.stringify(value)}`, async ({ page }) => {
+    await createCard({
+      cardId: 'incomplete-speech',
+      sourceId: 'speech-a1',
+      cardType: 'SPEECH',
+      sourcePageNumber: 1,
+      data: {
+        translation: { en: 'Good morning', hu: 'Jó reggelt', ch: 'Guete Morge' },
+        examples: [{ de: 'Guten Morgen!', hu: 'Jó reggelt!', en: 'Good morning!', [language]: value }],
+      },
+    });
+
+    await page.goto('/sources/speech-a1/cards?filter=unhealthy');
+
+    const grid = page.getByRole('grid');
+    await expect(async () => {
+      const rows = await getGridData(grid);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]['ID']).toBe('incomplete-speech');
+    }).toPass();
+  });
 });
 
 test('unhealthy filter does not show non-noun vocabulary cards without gender', async ({ page }) => {
