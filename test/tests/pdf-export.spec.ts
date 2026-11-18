@@ -258,9 +258,32 @@ test('export button not visible on study page return when no struggled cards', a
   await expect(page.getByRole('button', { name: 'Export struggled cards as PDF' })).not.toBeVisible();
 });
 
-test('export struggled cards with partner mode triggers PDF download', async ({ page }) => {
+[
+  { width: 1024, height: 768 },
+  { width: 768, height: 1024 },
+  { width: 375, height: 667 },
+  { width: 844, height: 390 },
+].forEach((viewport) =>
+test(`partner summary actions remain usable at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+  await page.setViewportSize(viewport);
   const aliceId = await createLearningPartner({ name: 'Alice' });
   await setSourceLearningPartner('goethe-a1', aliceId);
+
+  await createCard({
+    cardId: 'summary-known-suggestion',
+    sourceId: 'goethe-a1',
+    sourcePageNumber: 98,
+    due: new Date(Date.now() + 2 * 86400000),
+    data: {
+      word: 'Hund',
+      type: 'NOUN',
+      translation: { en: 'dog', hu: 'kutya', ch: 'Hund' },
+    },
+    state: 'REVIEW',
+    stability: 50,
+    reps: 8,
+    lapses: 0,
+  });
 
   await createCard({
     cardId: 'partner-pdf-card-1',
@@ -340,9 +363,27 @@ test('export struggled cards with partner mode triggers PDF download', async ({ 
 
   await expect(page.getByText('All caught up!')).toBeVisible();
 
+  const markKnown = page.getByRole('button', { name: 'Mark 1 word as known' });
+  const exportPdf = page.getByRole('button', { name: 'Export struggled cards as PDF' });
+  await expect(markKnown).toBeVisible();
+  await expect(exportPdf).toBeVisible();
+  await Promise.all([markKnown, exportPdf].map(async (button) => {
+    const bounds = await button.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.height).toBeGreaterThanOrEqual(48);
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
+  }));
+  await expect(page.getByRole('region', { name: 'Session statistics' })).toBeVisible();
+  await exportPdf.scrollIntoViewIfNeeded();
+  await expect(exportPdf).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath('partner-summary.png'), fullPage: true });
+
+  await markKnown.click();
+  await expect(markKnown).not.toBeVisible();
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export struggled cards as PDF' }).click();
+  await exportPdf.click();
   const download = await downloadPromise;
 
   expect(download.suggestedFilename()).toBe('struggled-cards.pdf');
-});
+}));
