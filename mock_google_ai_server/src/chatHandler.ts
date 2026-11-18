@@ -374,22 +374,22 @@ export class ChatHandler {
     const systemContent = request.systemInstruction?.parts?.[0]?.text || '';
 
     if (systemContent.includes('German language teacher assisting an English-speaking learner')) {
-      return createGeminiResponse(
-        'This is correct because **der Zug** is a masculine noun, so we use the ' +
+      return createGeminiResponse({
+        explanation: 'This is correct because **der Zug** is a masculine noun, so we use the ' +
           '**der** article. In the example sentence **abfahren** is a separable verb, ' +
           'so **ab** moves to the end of the sentence.'
-      );
+      });
     }
 
     if (!systemContent.includes('German language teacher assisting a Hungarian learner')) {
       return null;
     }
 
-    return createGeminiResponse(
-      'Ez azért helyes, mert a **der Zug** szó hímnemű főnév, ezért a **der** ' +
+    return createGeminiResponse({
+      explanation: 'Ez azért helyes, mert a **der Zug** szó hímnemű főnév, ezért a **der** ' +
         'névelőt használjuk. A példamondatban az **abfahren** ige elváló igekötős, ' +
         'így a **ab** a mondat végére kerül.'
-    );
+    });
   }
 
   handleAnswerCheck(request: GeminiRequest): any | null {
