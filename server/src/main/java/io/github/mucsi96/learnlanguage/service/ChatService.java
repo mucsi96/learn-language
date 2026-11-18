@@ -100,62 +100,6 @@ public class ChatService {
         fileStorageService.saveFile(BinaryData.fromBytes(imageData), fileName);
     }
 
-    public String callForTextWithLogging(
-            ChatModel model,
-            OperationType operationType,
-            String systemPrompt,
-            String userMessage) {
-
-        long startTime = System.currentTimeMillis();
-
-        ChatClient chatClient = chatClientService.getChatClient(model);
-
-        ChatClient.CallResponseSpec callResponse = chatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(u -> u.text(userMessage))
-                .call();
-
-        final ChatResponse response = callProvider(model, callResponse::chatResponse);
-        final String text = extractResponseText(response);
-
-        long processingTime = System.currentTimeMillis() - startTime;
-
-        logUsage(model, operationType, response,
-                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
-                processingTime);
-
-        return requireResponseText(text, model, operationType, response);
-    }
-
-    public String callForTextWithHistory(
-            ChatModel model,
-            OperationType operationType,
-            String systemPrompt,
-            List<Message> messages) {
-
-        long startTime = System.currentTimeMillis();
-
-        ChatClient chatClient = chatClientService.getChatClient(model);
-
-        ChatClient.CallResponseSpec callResponse = chatClient
-                .prompt()
-                .system(systemPrompt)
-                .messages(messages)
-                .call();
-
-        final ChatResponse response = callProvider(model, callResponse::chatResponse);
-        final String text = extractResponseText(response);
-
-        long processingTime = System.currentTimeMillis() - startTime;
-
-        logUsage(model, operationType, response,
-                text != null ? jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(text) : "",
-                processingTime);
-
-        return requireResponseText(text, model, operationType, response);
-    }
-
     private <T> T callWithLoggingInternal(
             ChatModel model,
             OperationType operationType,
@@ -163,15 +107,37 @@ public class ChatService {
             Consumer<PromptUserSpec> userBuilder,
             Class<T> responseType) {
 
+        return callWithLoggingInternal(model, operationType, systemPrompt, userBuilder, List.of(), responseType);
+    }
+
+    public <T> T callWithHistory(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            List<Message> messages,
+            Class<T> responseType) {
+
+        return callWithLoggingInternal(model, operationType, systemPrompt, null, messages, responseType);
+    }
+
+    private <T> T callWithLoggingInternal(
+            ChatModel model,
+            OperationType operationType,
+            String systemPrompt,
+            Consumer<PromptUserSpec> userBuilder,
+            List<Message> messages,
+            Class<T> responseType) {
+
         long startTime = System.currentTimeMillis();
 
         ChatClient chatClient = chatClientService.getChatClient(model);
 
-        ChatClient.CallResponseSpec callResponse = chatClient
+        final var request = chatClient
                 .prompt()
                 .system(systemPrompt)
-                .user(userBuilder)
-                .call();
+                .messages(messages);
+        final ChatClient.CallResponseSpec callResponse = (userBuilder == null
+                ? request : request.user(userBuilder)).call();
 
         // Lenient on blank or unparsable text so the generation fallback below
         // runs instead of a parse error escaping from inside responseEntity:
@@ -222,12 +188,6 @@ public class ChatService {
             }
             throw error;
         }
-    }
-
-    private String requireResponseText(String text, ChatModel model, OperationType operationType,
-            ChatResponse response) {
-        return Optional.ofNullable(text)
-                .orElseThrow(() -> noContentException(model, operationType, response));
     }
 
     private IllegalStateException noContentException(ChatModel model, OperationType operationType,
