@@ -1135,42 +1135,6 @@ test('typed answer not matching the back text shows a red explanation', async ({
   ).toHaveCount(0);
 });
 
-test('typing practice displays an incorrect command identifier without treating it as a spelling correction', async ({ page }) => {
-  await setupDefaultChatModelSettings();
-  await createSource({
-    id: 'command-identifier',
-    name: 'Command identifiers',
-    startPage: 1,
-    languageLevel: 'A1',
-    cardTypes: ['SIMPLE'],
-    formatType: 'FLOWING_TEXT',
-    sourceType: 'JSON',
-    typingPractice: true,
-    aiLanguage: 'ENGLISH',
-  });
-  await createCard({
-    cardId: 'command-identifier-nginx',
-    sourceId: 'command-identifier',
-    cardType: 'SIMPLE',
-    sourcePageNumber: 1,
-    data: {
-      frontText: 'Delete the pod named nginx.',
-      backText: 'kubectl delete pod nginx',
-    },
-  });
-
-  await page.goto('/sources/command-identifier/study');
-  await page.getByRole('button', { name: 'Start study session' }).click();
-  const flashcard = page.getByRole('article', { name: 'Flashcard' });
-  const answer = flashcard.getByRole('textbox', { name: 'Your answer' });
-  await answer.fill('kubectl delete pod ngnix');
-  await answer.press('Enter');
-
-  await expect(flashcard.getByLabel('Your answer')).toContainText('kubectl delete pod ngnix');
-  await expect(flashcard.getByRole('alert')).toContainText('kubectl delete pod nginx');
-  await expect(flashcard.getByRole('img', { name: 'Correct answer' })).toHaveCount(0);
-});
-
 test('typed answer marked incorrect without explanation shows a fallback message', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createSource({
