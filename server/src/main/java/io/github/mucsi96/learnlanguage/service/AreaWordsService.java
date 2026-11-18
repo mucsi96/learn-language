@@ -32,12 +32,14 @@ public class AreaWordsService {
     String basePrompt = """
         You are a linguistic expert.
         You task is to extract the wordlist data from provided page image.
-        !IMPORTANT! In response please provide all extracted words in JSON array with objects containing following properties: "word", "forms", "examples".
+        Return a JSON object with a "wordList" array of objects containing "word", "forms", and "examples".
         The word property holds a string. it's the basic form of the word without any forms.""";
 
     String formsPrompt = switch (formatType) {
       case WORD_LIST_WITH_FORMS_AND_EXAMPLES -> """
-        The forms is a string array representing the different forms extracted from the document.
+        The forms property is a string array of standard grammatical forms. Use the document's
+        form hints as input, expanding abbreviations. If a form is omitted in the document,
+        generate the standard form rather than returning an empty array merely because it is not printed.
         Rules for generating forms:
         - In case of a noun generate the plural form from suggestion. For example if the word is written like "das Angebot, -e" then the plural form is "die Angebote". Or if the word is written like "der Aufzug, -ü, e" then the plural form is "die Aufzüge". Also if the word is written like "der Koffer, –" then the plural form is "die Koffer".
         - In case of verb it's the 3 forms of conjugation (3. Person Singular Präsens, 3. Person Singular Präteritum and 3. Person Singular Perfekt). Do NOT include pronouns (Du, Er/Sie/Es, etc.) - only the verb forms themselves (e.g. for aufnehmen the forms are "nimmt auf", "nahm auf", "hat aufgenommen").
@@ -61,11 +63,19 @@ public class AreaWordsService {
 
     ExtractedWordList example = new ExtractedWordList(List.of(
         new ExtractedWord("das Haus", List.of("die Häuser"), List.of("Das Haus ist groß.")),
-        new ExtractedWord("gehen", List.of("gehst", "geht", "ist gegangen"),
+        new ExtractedWord("gehen", List.of("geht", "ging", "ist gegangen"),
             List.of("Ich gehe jetzt.", "Er ist nach Hause gegangen."))));
 
     final String exampleJson = jsonMapper.writeValueAsString(example);
-    return basePrompt + formsPrompt + AdjectiveFormsPrompt.RULE + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
+    final String nounSensePrompt = """
+
+        Generate noun forms for the meaning used in the source examples or surrounding text.
+        If a noun is used as an uncountable substance or abstraction with no ordinary plural in
+        that sense, return an empty forms array. Do not substitute a rare technical plural or a
+        plural meaning varieties merely to fill the array. A plural for varieties is appropriate
+        only when the supplied context actually refers to varieties, not the substance itself.
+        """;
+    return basePrompt + formsPrompt + nounSensePrompt + AdjectiveFormsPrompt.RULE + examplesPrompt + "\nExample of the expected JSON response:\n" + exampleJson;
   }
 
   public List<WordResponse> getAreaWords(byte[] imageData, ChatModel model, SourceFormatType formatType,

@@ -1,6 +1,12 @@
 # learn-language
 Tools for language learning
 
+## AI prompt evaluation
+
+The [production-grounded prompt audit](docs/prompt-audit/README.md) inventories
+the prompts, documents evidence gaps, and provides reproducible production
+queries and a live before/after evaluation for extraction and answer grading.
+
 ## Gateway authentication and static hosting
 
 The gateway signs users in before serving Angular documents. A per-app

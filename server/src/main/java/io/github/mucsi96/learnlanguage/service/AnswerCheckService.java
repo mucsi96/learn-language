@@ -71,6 +71,11 @@ public class AnswerCheckService {
                 Decide whether the learner's answer conveys the same meaning as the expected answer \
                 on the back of the card. Minor differences in wording, spelling or phrasing are \
                 acceptable as long as the meaning matches.
+                The expected answer is one valid solution, not a requirement to use its exact \
+                wording, command or implementation. Mark valid alternatives correct when they \
+                satisfy the question; do not infer additional restrictions from the expected answer.
+                For commands or code, compare actual behavior rather than textual similarity. \
+                Invalid syntax or a different identifier is not a harmless spelling mistake.
                 When the answer is correct, set correct to true and leave the explanation empty.
                 When the answer is not correct, set correct to false and briefly explain what is \
                 wrong: describe what the learner's answer would mean or do, compared to what the \
