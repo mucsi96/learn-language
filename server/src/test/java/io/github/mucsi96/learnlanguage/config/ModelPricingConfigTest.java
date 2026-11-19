@@ -37,7 +37,7 @@ class ModelPricingConfigTest {
 
     @Test
     void calculatesActualUsageFromOfficialTokenRates() {
-        assertThat(pricingConfig.calculateGptImage25Cost(20, 100, 1_756))
+        assertThat(pricingConfig.calculateGptImageTokenCost(20, 100, 1_756))
             .isEqualByComparingTo(new BigDecimal("0.05358"));
     }
 

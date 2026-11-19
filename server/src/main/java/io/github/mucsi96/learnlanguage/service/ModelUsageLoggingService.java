@@ -79,7 +79,7 @@ public class ModelUsageLoggingService {
                 modelName, operationType, OperationIdContext.get(), imageCount, cost, processingTimeMs);
     }
 
-    public void logGptImage25Usage(
+    public void logGptImageTokenUsage(
             String modelName,
             OperationType operationType,
             int imageCount,
@@ -89,7 +89,7 @@ public class ModelUsageLoggingService {
             long outputTokens,
             long processingTimeMs) {
 
-        final BigDecimal cost = pricingConfig.calculateGptImage25Cost(
+        final BigDecimal cost = pricingConfig.calculateGptImageTokenCost(
                 textInputTokens, imageInputTokens, outputTokens);
 
         final ModelUsageLog usageLog = ModelUsageLog.builder()

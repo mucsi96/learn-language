@@ -48,9 +48,10 @@ public class ModelPricingConfig {
         Map.entry("gemini-3.7-flash", new ChatModelPricing(new BigDecimal("0.75"), new BigDecimal("3.75")))
     );
 
-    private static final BigDecimal GPT_IMAGE_2_5_TEXT_INPUT_PER_MILLION = new BigDecimal("5.00");
-    private static final BigDecimal GPT_IMAGE_2_5_IMAGE_INPUT_PER_MILLION = new BigDecimal("8.00");
-    private static final BigDecimal GPT_IMAGE_2_5_IMAGE_OUTPUT_PER_MILLION = new BigDecimal("30.00");
+    // Images API standard rates for GPT Image 2.5 and 2.6, verified 2026-11-19.
+    private static final BigDecimal GPT_IMAGE_TEXT_INPUT_PER_MILLION = new BigDecimal("5.00");
+    private static final BigDecimal GPT_IMAGE_IMAGE_INPUT_PER_MILLION = new BigDecimal("8.00");
+    private static final BigDecimal GPT_IMAGE_IMAGE_OUTPUT_PER_MILLION = new BigDecimal("30.00");
 
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
         // GPT Image 2 estimates at 1024x1024
@@ -116,12 +117,12 @@ public class ModelPricingConfig {
         return pricing.perImage().multiply(BigDecimal.valueOf(imageCount));
     }
 
-    public BigDecimal calculateGptImage25Cost(long textInputTokens, long imageInputTokens, long outputTokens) {
-        final BigDecimal textInputCost = GPT_IMAGE_2_5_TEXT_INPUT_PER_MILLION
+    public BigDecimal calculateGptImageTokenCost(long textInputTokens, long imageInputTokens, long outputTokens) {
+        final BigDecimal textInputCost = GPT_IMAGE_TEXT_INPUT_PER_MILLION
             .multiply(BigDecimal.valueOf(textInputTokens));
-        final BigDecimal imageInputCost = GPT_IMAGE_2_5_IMAGE_INPUT_PER_MILLION
+        final BigDecimal imageInputCost = GPT_IMAGE_IMAGE_INPUT_PER_MILLION
             .multiply(BigDecimal.valueOf(imageInputTokens));
-        final BigDecimal imageOutputCost = GPT_IMAGE_2_5_IMAGE_OUTPUT_PER_MILLION
+        final BigDecimal imageOutputCost = GPT_IMAGE_IMAGE_OUTPUT_PER_MILLION
             .multiply(BigDecimal.valueOf(outputTokens));
 
         return textInputCost.add(imageInputCost).add(imageOutputCost)
