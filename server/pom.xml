@@ -297,6 +297,10 @@
             <enabled>true</enabled>
           </metadataRepository>
           <buildArgs>
+            <!-- CI provisions swap for compiler peaks beyond its 16 GB RAM.
+                 Bound heap and concurrency independently of host sizing. -->
+            <buildArg>-J-Xmx14g</buildArg>
+            <buildArg>--parallelism=4</buildArg>
             <!-- musl, to match the Alpine runtime image, and deliberately not
                  a fully static link: static binaries segfault the moment they
                  start in a container, before GraalVM installs its own segfault

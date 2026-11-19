@@ -7,11 +7,12 @@ FROM docker.io/library/maven:3-eclipse-temurin-25-alpine AS maven
 # The toolchain is JDK 25 while the project's language level stays at 21: the
 # compiler targets 21 via java.version, and 25 is simply the JDK the current
 # Liberica NIK release ships.
-# NIK 25.0.5 exceeds the CI runner's memory during analysis; pin the verified 25.0.4.1 toolchain.
+# Keep native compiler upgrades explicit and independently verifiable.
 FROM docker.io/bellsoft/liberica-native-image-kit-container:jdk-25-nik-25-musl@sha256:27f41e0cf0d1683ddb6015a45f8431d865b51d0019b08134b751f91c27f56397 AS build
 
 COPY --from=maven /usr/share/maven /usr/share/maven
 ENV PATH="/usr/share/maven/bin:${PATH}"
+ENV MAVEN_OPTS="-Xmx512m"
 
 # The Spring profile is resolved during AOT processing and baked into the
 # executable, so an image serves exactly one profile. Build one image per

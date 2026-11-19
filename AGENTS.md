@@ -303,6 +303,14 @@ but then segfaults the moment it starts in the container - before GraalVM
 installs its own segfault handler, so with no output whatsoever, which looks
 exactly like a container that silently never starts.
 
+Native compilation uses a 14 GiB builder heap and four workers; Maven in the
+Docker build is capped at 512 MiB. Both native-build CI jobs provision 8 GiB of
+swap on their 16 GB runners for peak compiler memory. A 12 GiB builder heap
+failed with Java heap exhaustion during universe construction; the uncapped
+build also exhausted runner memory. Local native builds need comparable RAM
+and swap. These build limits are separate from the runtime executable's 512 MiB
+heap cap. The NIK base image is digest-pinned so compiler upgrades are explicit.
+
 ### Reproducing AOT problems without a native build
 
 Most AOT problems reproduce without waiting for a native compile (which takes
