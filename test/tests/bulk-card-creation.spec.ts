@@ -406,11 +406,11 @@ test('bulk card creation includes word data', async ({ page }) => {
     expect(await getImageColor(page, image1)).toBe('yellow');
     expect(await getImageColor(page, image2)).toBe('red');
 
-    expect(cardData.examples[0].images[0].model).toBe('Ideogram 4 (Quality)');
-    expect(cardData.examples[0].images[1].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[0].images[2].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[0].images[3].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[0].model).toBe('Ideogram 4 (Quality)');
+    expect(cardData.examples[0].images[0].model).toBe('GPT Image 2.6 Sunburst');
+    expect(cardData.examples[0].images[1].model).toBe('GPT Image 2.6 Flare');
+    expect(cardData.examples[0].images[2].model).toBe('GPT Image 2.6 Flare');
+    expect(cardData.examples[0].images[3].model).toBe('GPT Image 2.6 Flare');
+    expect(cardData.examples[1].images[0].model).toBe('GPT Image 2.6 Sunburst');
     expect(cardData.examples[0].images).toHaveLength(4);
     expect(cardData.examples[1].images).toHaveLength(4);
 
@@ -445,7 +445,7 @@ test('bulk card creation includes word data', async ({ page }) => {
 
 test('bulk card creation skips image generation for models with zero image count', async ({ page }) => {
   await setupDefaultChatModelSettings();
-  await createImageModelSetting({ modelName: 'ideogram-4-quality', imageCount: 2 });
+  await createImageModelSetting({ modelName: 'gpt-image-2.6-sunburst-medium', imageCount: 2 });
   await createRateLimitSetting({ key: 'image-per-minute', value: 60 });
   await page.goto('/sources');
   await page.getByRole('button', { name: 'Actions for Goethe A1' }).click();

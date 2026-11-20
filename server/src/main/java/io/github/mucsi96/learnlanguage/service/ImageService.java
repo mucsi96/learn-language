@@ -46,30 +46,14 @@ public class ImageService {
       """;
 
   private final OpenAIImageService openAIImageService;
-  private final GoogleImageService googleImageService;
-  private final IdeogramImageService ideogramImageService;
   private final ChatService chatService;
   private final ChatModelSettingService chatModelSettingService;
 
   public GeneratedImage generateImage(String prompt, ImageGenerationModel model) {
-    final byte[] data = switch (model) {
-      case GPT_IMAGE_2_LOW, GPT_IMAGE_2_MEDIUM, GPT_IMAGE_2_HIGH,
-          GPT_IMAGE_2_5_SUNBURST_LOW, GPT_IMAGE_2_5_SUNBURST_MEDIUM,
-          GPT_IMAGE_2_5_SUNBURST_HIGH, GPT_IMAGE_2_5_SUNBURST_XHIGH,
-          GPT_IMAGE_2_5_SUNBURST_MAX, GPT_IMAGE_2_5_SUNBURST_AUTO,
-          GPT_IMAGE_2_5_FLARE_LOW, GPT_IMAGE_2_5_FLARE_MEDIUM,
-          GPT_IMAGE_2_5_FLARE_HIGH, GPT_IMAGE_2_5_FLARE_XHIGH,
-          GPT_IMAGE_2_5_FLARE_MAX, GPT_IMAGE_2_5_FLARE_AUTO,
-          GPT_IMAGE_2_6_SUNBURST_LOW, GPT_IMAGE_2_6_SUNBURST_MEDIUM,
-          GPT_IMAGE_2_6_SUNBURST_HIGH, GPT_IMAGE_2_6_SUNBURST_AUTO,
-          GPT_IMAGE_2_6_FLARE_LOW, GPT_IMAGE_2_6_FLARE_MEDIUM,
-          GPT_IMAGE_2_6_FLARE_HIGH, GPT_IMAGE_2_6_FLARE_AUTO ->
-        openAIImageService.generateImage(prompt, model);
-      case IDEOGRAM_4_TURBO, IDEOGRAM_4_DEFAULT, IDEOGRAM_4_QUALITY ->
-        ideogramImageService.generateImage(prompt, model);
-      case GEMINI_3_PRO_IMAGE_PREVIEW ->
-        googleImageService.generateGeminiImage(prompt, model);
-    };
+    if (!ImageGenerationModel.availableModels().contains(model)) {
+      throw new IllegalArgumentException("Image model is no longer available: " + model.getModelName());
+    }
+    final byte[] data = openAIImageService.generateImage(prompt, model);
 
     return GeneratedImage.builder()
         .data(data)

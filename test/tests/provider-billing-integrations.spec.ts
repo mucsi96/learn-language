@@ -30,12 +30,6 @@ const scenarios = [
     billingUrl: 'https://aistudio.google.com/usage?tab=billing', image: false,
   },
   {
-    name: 'Gemini image', provider: 'google', providerName: 'Google Gemini', mockUrl: 'http://localhost:3071',
-    path: '/v1beta/models/gemini-3-pro-image-preview:generateContent', status: 403, body: googleError,
-    endpoint: '/image', request: { input: 'Wann fährt der Zug ab?', model: 'gemini-3-pro-image-preview' },
-    billingUrl: 'https://aistudio.google.com/usage?tab=billing', image: true,
-  },
-  {
     name: 'Gemini audio', provider: 'google', providerName: 'Google Gemini', mockUrl: 'http://localhost:3071',
     path: '/v1beta/models/gemini-3.1-flash-tts-preview:generateContent', status: 403, body: googleError,
     endpoint: '/audio', request: { input: 'Hallo', model: 'gemini-3.1-flash-tts-preview', voice: 'Kore', language: 'de' },
@@ -53,12 +47,6 @@ const scenarios = [
     body: { detail: { code: 'insufficient_credits', type: 'payment_required', message: 'Not enough credits.' } },
     endpoint: '/audio', request: { input: 'Hallo', model: 'eleven_v3', voice: 'test-voice', language: 'de' },
     billingUrl: 'https://elevenlabs.io/app/subscription', image: false,
-  },
-  {
-    name: 'Ideogram image', provider: 'ideogram', providerName: 'Ideogram', mockUrl: 'http://localhost:3074',
-    path: '/v1/ideogram-v4/generate', status: 402, body: { error: 'Insufficient balance' },
-    endpoint: '/image', request: { input: 'Wann fährt der Zug ab?', model: 'ideogram-4-default' },
-    billingUrl: 'https://ideogram.ai/manage-api', image: true,
   },
 ];
 

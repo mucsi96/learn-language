@@ -22,7 +22,7 @@ async function prepareImageCard() {
   await createChatModelSetting({
     modelName: 'gpt-5.6-sol', operationType: 'IMAGE_DESCRIPTION', isEnabled: true, isPrimary: true,
   });
-  await createImageModelSetting({ modelName: 'gpt-image-2.5-sunburst-auto', imageCount: 1 });
+  await createImageModelSetting({ modelName: 'gpt-image-2.6-sunburst-medium', imageCount: 1 });
   await createCard({
     cardId: 'abfahren-elindulni', sourceId: 'goethe-a1', sourcePageNumber: 9,
     data: {

@@ -26,7 +26,7 @@ class ImageServiceTest {
   private final ChatModelSettingService settings = mock(ChatModelSettingService.class);
   private final ChatModel model = ChatModel.GPT_5_6_SOL;
   private final ImageService service = new ImageService(mock(OpenAIImageService.class),
-      mock(GoogleImageService.class), mock(IdeogramImageService.class), chatService, settings);
+      chatService, settings);
 
   @Test
   void plansAllScenesInOneCallUsingTheExplicitContext() {

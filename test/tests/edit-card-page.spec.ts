@@ -237,8 +237,8 @@ test('card editing in db', async ({ page }) => {
 
   await expect(page.getByRole('img')).toHaveCount(6);
 
-  await expect(page.getByText('Ideogram 4 (Quality)')).toHaveCount(1);
-  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
+  await expect(page.getByText('GPT Image 2.6 Sunburst')).toHaveCount(1);
+  await expect(page.getByText('GPT Image 2.6 Flare')).toHaveCount(3);
 
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -279,10 +279,10 @@ test('card editing in db', async ({ page }) => {
 
     expect(cardData.examples[0].images).toHaveLength(1);
     expect(cardData.examples[1].images).toHaveLength(5);
-    expect(cardData.examples[1].images[1].model).toBe('Ideogram 4 (Quality)');
-    expect(cardData.examples[1].images[2].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[3].model).toBe('Gemini 3 Pro');
-    expect(cardData.examples[1].images[4].model).toBe('Gemini 3 Pro');
+    expect(cardData.examples[1].images[1].model).toBe('GPT Image 2.6 Sunburst');
+    expect(cardData.examples[1].images[2].model).toBe('GPT Image 2.6 Flare');
+    expect(cardData.examples[1].images[3].model).toBe('GPT Image 2.6 Flare');
+    expect(cardData.examples[1].images[4].model).toBe('GPT Image 2.6 Flare');
   });
 });
 
@@ -417,10 +417,10 @@ test('favorite toggle on newly generated image', async ({ page }) => {
   });
 });
 
-test('generates image with Gemini model', async ({ page }) => {
+test('generates image with OpenAI Flare model', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createImageModelSetting({
-    modelName: 'gemini-3-pro-image-preview',
+    modelName: 'gpt-image-2.6-flare-medium',
     imageCount: 1,
   });
   const image1 = uploadMockImage(blueImage);
@@ -453,7 +453,7 @@ test('generates image with Gemini model', async ({ page }) => {
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(page.getByRole('img')).toHaveCount(2);
 
-  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(1);
+  await expect(page.getByText('GPT Image 2.6 Flare')).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   const generatedImageContent = await getImageContent(
@@ -473,13 +473,12 @@ test('generates image with Gemini model', async ({ page }) => {
   const generationLog = logs.find((log) => log.operationType === 'IMAGE_GENERATION');
   expect(generationLog).toBeDefined();
   expect(generationLog!.modelType).toBe('IMAGE');
-  expect(generationLog!.modelName).toBe('gemini-3-pro-image-preview');
+  expect(generationLog!.modelName).toBe('gpt-image-2.6-flare-medium');
 });
 
 [
-  { version: '2.5', quality: 'max', qualityLabel: 'Max', cost: 0.21082 },
-  { version: '2.6', quality: 'high', qualityLabel: 'High', cost: 0.05278 },
-].forEach(({ version, quality, qualityLabel, cost }) =>
+  { version: '2.6', quality: 'medium', cost: 0.01327 },
+].forEach(({ version, quality, cost }) =>
 test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   await Promise.all(
     ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION', 'IMAGE_DESCRIPTION'].map((operationType) =>
@@ -493,7 +492,7 @@ test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   );
   await Promise.all([
     createImageModelSetting({
-      modelName: `gpt-image-${version}-sunburst-auto`,
+      modelName: `gpt-image-${version}-sunburst-medium`,
       imageCount: 1,
     }),
     createImageModelSetting({
@@ -531,8 +530,8 @@ test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(page.getByRole('img')).toHaveCount(3);
 
-  await expect(page.getByText(`GPT Image ${version} Sunburst (Auto)`)).toHaveCount(1);
-  await expect(page.getByText(`GPT Image ${version} Flare (${qualityLabel})`)).toHaveCount(1);
+  await expect(page.getByText(`GPT Image ${version} Sunburst`, { exact: true })).toHaveCount(1);
+  await expect(page.getByText(`GPT Image ${version} Flare`, { exact: true })).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   const generatedImageContent = await getImageContent(
@@ -556,13 +555,13 @@ test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   expect(generationLogs.every((log) => log.modelType === 'IMAGE')).toBe(true);
   expect(generationLogs.map((log) => log.modelName).sort()).toEqual([
     `gpt-image-${version}-flare-${quality}`,
-    `gpt-image-${version}-sunburst-auto`,
+    `gpt-image-${version}-sunburst-medium`,
   ]);
 
-  const autoGenerationLog = generationLogs.find((log) => log.modelName === `gpt-image-${version}-sunburst-auto`);
+  const autoGenerationLog = generationLogs.find((log) => log.modelName === `gpt-image-${version}-sunburst-medium`);
   expect(Number(autoGenerationLog!.inputTokens)).toBe(20);
-  expect(Number(autoGenerationLog!.outputTokens)).toBe(1756);
-  expect(Number(autoGenerationLog!.costUsd)).toBe(0.05278);
+  expect(Number(autoGenerationLog!.outputTokens)).toBe(439);
+  expect(Number(autoGenerationLog!.costUsd)).toBe(0.01327);
 
   const flareGenerationLog = generationLogs.find((log) => log.modelName === `gpt-image-${version}-flare-${quality}`);
   expect(Number(flareGenerationLog!.costUsd)).toBe(cost);
@@ -608,7 +607,6 @@ test('add image with context dialog', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Image generation context' })).toBeHidden();
   await expect(page.getByRole('img')).toHaveCount(1);
 
-  // Open dialog, enter context, generate -> 4 images added (1 OpenAI + 3 Gemini)
   await page.getByRole('button', { name: 'Add image with context' }).first().click();
   await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
   await page
@@ -623,7 +621,7 @@ test('add image with context dialog', async ({ page }) => {
 test('image generation uses context instead of German sentence', async ({ page }) => {
   await setupDefaultChatModelSettings();
   await createImageModelSetting({
-    modelName: 'gemini-3-pro-image-preview',
+    modelName: 'gpt-image-2.6-flare-medium',
     imageCount: 3,
   });
   const image1 = uploadMockImage(blueImage);
@@ -831,8 +829,8 @@ test('example image addition', async ({ page }) => {
 
   await expect(page.getByRole('img')).toHaveCount(5);
 
-  await expect(page.getByText('Ideogram 4 (Quality)')).toHaveCount(1);
-  await expect(page.getByText('Gemini 3 Pro')).toHaveCount(3);
+  await expect(page.getByText('GPT Image 2.6 Sunburst')).toHaveCount(1);
+  await expect(page.getByText('GPT Image 2.6 Flare')).toHaveCount(3);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
