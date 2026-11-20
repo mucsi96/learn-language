@@ -1,0 +1,13 @@
+:host { display: block; padding: 24px; }
+section { max-width: 960px; margin: auto; }
+.table-container { overflow: auto; max-height: 65vh; margin: 24px 0; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; }
+caption { padding: 16px; font-weight: 500; text-align: left; }
+th { background: var(--mat-sys-surface-container); text-align: left; }
+th, td { padding: 16px; width: 50%; vertical-align: top; overflow-wrap: anywhere; }
+td { border-top: 1px solid var(--mat-sys-outline-variant); white-space: pre-wrap; }
+p { margin: 0 0 8px; }
+@media (max-width: 599px) {
+  :host { padding: 12px; }
+  th, td { padding: 12px; }
+}

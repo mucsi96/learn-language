@@ -4,6 +4,8 @@
     <app-learn-card-skeleton />
   </div>
 </div>
+} @else if (introductionCards().length) {
+  <app-new-card-introduction [cards]="introductionCards()" (continueStudy)="finishIntroduction()" />
 } @else if (!hasSession()) {
 <div class="start-state">
   <mat-icon class="start-icon">school</mat-icon>

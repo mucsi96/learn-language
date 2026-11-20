@@ -23,6 +23,7 @@ public class SourceRequest {
     private SourceFormatType formatType;
     private Integer cardLimit;
     private Integer newCardLimit;
+    private NewCardIntroduction newCardIntroduction;
     private Boolean typingPractice;
     private AiLanguage aiLanguage;
     private Integer learningPartnerId;

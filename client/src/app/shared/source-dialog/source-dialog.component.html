@@ -189,6 +189,14 @@
         </mat-form-field>
 
         <mat-form-field appearance="fill">
+          <mat-label>New card introduction</mat-label>
+          <mat-select [formField]="sourceForm.newCardIntroduction">
+            <mat-option value="DIRECT">Start studying immediately</mat-option>
+            <mat-option value="TABLE">Preview new cards in a table</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
           <mat-label>Group</mat-label>
           <mat-select [formField]="sourceForm.groupId">
             <mat-option [value]="null">None</mat-option>

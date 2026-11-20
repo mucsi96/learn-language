@@ -1523,3 +1523,5 @@ databaseChangeLog:
       file: db/changelog/voice-gender.yaml
   - include:
       file: db/changelog/speech-card-health.yaml
+  - include:
+      file: db/changelog/new-card-introduction.yaml

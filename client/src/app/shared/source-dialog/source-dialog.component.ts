@@ -85,6 +85,7 @@ export class SourceDialogComponent {
     formatType: SourceFormatType | '';
     cardLimit: number;
     newCardLimit: number;
+    newCardIntroduction: 'DIRECT' | 'TABLE';
     typingPractice: boolean;
     aiLanguage: AiLanguage;
     learningPartnerId: number | null;
@@ -100,6 +101,7 @@ export class SourceDialogComponent {
     formatType: this.data.source?.formatType ?? '',
     cardLimit: this.data.source?.cardLimit ?? 50,
     newCardLimit: this.data.source?.newCardLimit ?? 50,
+    newCardIntroduction: this.data.source?.newCardIntroduction ?? 'DIRECT',
     typingPractice: this.data.source?.typingPractice ?? false,
     aiLanguage: this.data.source?.aiLanguage ?? 'hungarian',
     learningPartnerId: this.data.source?.learningPartnerId ?? null,
@@ -187,6 +189,7 @@ export class SourceDialogComponent {
               : undefined,
         cardLimit: result.cardLimit,
         newCardLimit: result.newCardLimit,
+        newCardIntroduction: result.newCardIntroduction,
         typingPractice: result.sourceType === 'json' ? result.typingPractice : false,
         aiLanguage: result.aiLanguage,
         learningPartnerId: this.data.mode === 'edit' && result.learningPartnerId === null

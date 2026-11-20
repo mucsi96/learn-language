@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.entity;
 
 import io.github.mucsi96.learnlanguage.model.AiLanguage;
+import io.github.mucsi96.learnlanguage.model.NewCardIntroduction;
 import io.github.mucsi96.learnlanguage.model.CardType;
 import io.github.mucsi96.learnlanguage.model.LanguageLevel;
 import io.github.mucsi96.learnlanguage.model.SourceFormatType;
@@ -61,6 +62,11 @@ public class Source {
 
   @Column(name = "new_card_limit")
   private Integer newCardLimit;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "new_card_introduction", nullable = false)
+  @Builder.Default
+  private NewCardIntroduction newCardIntroduction = NewCardIntroduction.DIRECT;
 
   @Column(name = "typing_practice", nullable = false)
   @Builder.Default

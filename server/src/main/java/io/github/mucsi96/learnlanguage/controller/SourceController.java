@@ -1,5 +1,7 @@
 package io.github.mucsi96.learnlanguage.controller;
 
+import io.github.mucsi96.learnlanguage.model.NewCardIntroduction;
+
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.parseTimezone;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfDayUtc;
 import static io.github.mucsi96.learnlanguage.util.TimezoneUtils.startOfNextDayUtc;
@@ -143,6 +145,7 @@ public class SourceController {
           .cardLimit(source.getCardLimit())
           .newCardLimit(source.getNewCardLimit())
           .typingPractice(source.getTypingPractice())
+          .newCardIntroduction(source.getNewCardIntroduction())
           .aiLanguage(source.getAiLanguage())
           .learningPartnerId(source.getLearningPartner() != null ? source.getLearningPartner().getId() : null)
           .groupId(source.getGroup() != null ? source.getGroup().getId() : null)
@@ -346,6 +349,7 @@ public class SourceController {
         .cardLimit(request.getCardLimit())
         .newCardLimit(request.getNewCardLimit())
         .typingPractice(request.getTypingPractice() != null ? request.getTypingPractice() : false)
+        .newCardIntroduction(request.getNewCardIntroduction() != null ? request.getNewCardIntroduction() : NewCardIntroduction.DIRECT)
         .aiLanguage(request.getAiLanguage() != null ? request.getAiLanguage() : AiLanguage.HUNGARIAN)
         .learningPartner(request.getLearningPartnerId() != null
             ? learningPartnerService.getLearningPartnerById(request.getLearningPartnerId())
@@ -400,6 +404,7 @@ public class SourceController {
         .cardLimit(request.getCardLimit() != null ? request.getCardLimit() : existingSource.getCardLimit())
         .newCardLimit(request.getNewCardLimit() != null ? request.getNewCardLimit() : existingSource.getNewCardLimit())
         .typingPractice(request.getTypingPractice() != null ? request.getTypingPractice() : existingSource.getTypingPractice())
+        .newCardIntroduction(request.getNewCardIntroduction() != null ? request.getNewCardIntroduction() : existingSource.getNewCardIntroduction())
         .aiLanguage(request.getAiLanguage() != null ? request.getAiLanguage() : existingSource.getAiLanguage())
         .learningPartner(resolveLearningPartner(request.getLearningPartnerId(), existingSource))
         .group(resolveGroup(request.getGroupId(), existingSource))

@@ -203,6 +203,16 @@ no eligible vocabulary cards, the preview explains why it is empty.
 
 ## Study progress
 
+In **Sources → Edit → New card introduction**, select **Preview new cards in a
+table** to read both sides of the session's new cards before studying. The default
+is **Start studying immediately**, including for existing sources. The preview
+uses the actual queue after card limits and partner assignment, supports every
+card type, and leaves scheduling and review history untouched. **Continue to
+study** opens the usual study view and starts the Pomodoro if inactive. Resuming
+a session previews its remaining new cards; sessions without new cards skip it.
+
+Regression coverage: `cd test && npx playwright test new-card-introduction.spec.ts`.
+
 The study grading area shows the remaining session queue as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
 label for assistive technology and a hover title. Dots follow the server's card order,
