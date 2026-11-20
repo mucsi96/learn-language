@@ -478,6 +478,7 @@ test('generates image with OpenAI Flare model', async ({ page }) => {
 
 [
   { version: '2.6', quality: 'medium', cost: 0.01327 },
+  { version: '2.5', quality: 'medium', cost: 0.01327 },
 ].forEach(({ version, quality, cost }) =>
 test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   await Promise.all(

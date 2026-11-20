@@ -149,9 +149,9 @@ test is `cd test && npx playwright test bootstrap-health.spec.ts`.
 
 ## OpenAI Images 2.6
 
-**Settings → Image Models** offers only GPT Image 2.6 Sunburst and Flare.
+**Settings → Image Models** offers GPT Image 2.6 and 2.5 Sunburst and Flare (four models).
 Set an image count above zero to enable a model for manual and bulk example-image
-generation. Both explicitly use medium quality; the API default is auto.
+generation. All four explicitly use medium quality; the API default is auto.
 Existing medium image counts are retained; retired selections are ignored.
 Images use the existing 1024×1024 JPEG output and the provider's default complexity.
 

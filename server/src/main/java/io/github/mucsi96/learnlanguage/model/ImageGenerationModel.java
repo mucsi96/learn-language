@@ -16,13 +16,13 @@ public enum ImageGenerationModel {
     GPT_IMAGE_2_MEDIUM("gpt-image-2-medium", "gpt-image-2", "GPT Image 2 (Medium)", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_HIGH("gpt-image-2-high", "gpt-image-2", "GPT Image 2 (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_SUNBURST_LOW("gpt-image-2.5-sunburst-low", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_5_SUNBURST_MEDIUM("gpt-image-2.5-sunburst-medium", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_5_SUNBURST_MEDIUM("gpt-image-2.5-sunburst-medium", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_5_SUNBURST_HIGH("gpt-image-2.5-sunburst-high", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_SUNBURST_XHIGH("gpt-image-2.5-sunburst-xhigh", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (XHigh)", ImageQuality.XHIGH, null),
     GPT_IMAGE_2_5_SUNBURST_MAX("gpt-image-2.5-sunburst-max", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Max)", ImageQuality.MAX, null),
     GPT_IMAGE_2_5_SUNBURST_AUTO("gpt-image-2.5-sunburst-auto", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Auto)", ImageQuality.AUTO, null),
     GPT_IMAGE_2_5_FLARE_LOW("gpt-image-2.5-flare-low", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_5_FLARE_MEDIUM("gpt-image-2.5-flare-medium", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_5_FLARE_MEDIUM("gpt-image-2.5-flare-medium", "gpt-image-2.5-flare", "GPT Image 2.5 Flare", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_5_FLARE_HIGH("gpt-image-2.5-flare-high", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_FLARE_XHIGH("gpt-image-2.5-flare-xhigh", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (XHigh)", ImageQuality.XHIGH, null),
     GPT_IMAGE_2_5_FLARE_MAX("gpt-image-2.5-flare-max", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Max)", ImageQuality.MAX, null),
@@ -56,7 +56,8 @@ public enum ImageGenerationModel {
     }
 
     public static List<ImageGenerationModel> availableModels() {
-        return List.of(GPT_IMAGE_2_6_SUNBURST_MEDIUM, GPT_IMAGE_2_6_FLARE_MEDIUM);
+        return List.of(GPT_IMAGE_2_6_SUNBURST_MEDIUM, GPT_IMAGE_2_6_FLARE_MEDIUM,
+            GPT_IMAGE_2_5_SUNBURST_MEDIUM, GPT_IMAGE_2_5_FLARE_MEDIUM);
     }
 
     public String getApiModelName() {
