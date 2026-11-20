@@ -211,7 +211,12 @@ card type, and leaves scheduling and review history untouched. **Continue to
 study** opens the usual study view and starts the Pomodoro if inactive. Resuming
 a session previews its remaining new cards; sessions without new cards skip it.
 
-Regression coverage: `cd test && npx playwright test new-card-introduction.spec.ts`.
+The dropdown is the first, full-width field in **Study Settings** in both **Add
+Source** and **Edit Source**, for PDF, Image Collection, Ebook Dictionary, JSON,
+Word Triage, and Audio Collection sources. On phones, the dialog uses a single
+column; scroll down to Study Settings.
+
+Regression coverage: `cd test && npx playwright test new-card-introduction.spec.ts source-introduction-settings.spec.ts`.
 
 The study grading area shows the remaining session queue as colored dots, one per card: blue for New,
 green for Learning, amber for Review, and red for Relearning. Each dot has a state
