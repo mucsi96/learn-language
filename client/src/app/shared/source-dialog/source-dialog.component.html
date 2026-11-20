@@ -155,9 +155,18 @@
       }
     </section>
 
-    <section class="form-section">
-      <h3 class="section-title">Study Settings</h3>
+    <section class="form-section" aria-labelledby="study-settings-title">
+      <h3 class="section-title" id="study-settings-title">Study Settings</h3>
       <div class="form-grid">
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>New card introduction</mat-label>
+          <mat-select [formField]="sourceForm.newCardIntroduction">
+            <mat-option value="DIRECT">Start studying immediately</mat-option>
+            <mat-option value="TABLE">Preview new cards in a table</mat-option>
+          </mat-select>
+          <mat-hint>Choose how learners meet new cards before studying.</mat-hint>
+        </mat-form-field>
+
         <mat-form-field appearance="fill">
           <mat-label>Card Limit</mat-label>
           <input
@@ -185,14 +194,6 @@
             @for (partner of partners.value() ?? []; track partner.id) {
             <mat-option [value]="partner.id">{{ partner.name }}</mat-option>
             }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>New card introduction</mat-label>
-          <mat-select [formField]="sourceForm.newCardIntroduction">
-            <mat-option value="DIRECT">Start studying immediately</mat-option>
-            <mat-option value="TABLE">Preview new cards in a table</mat-option>
           </mat-select>
         </mat-form-field>
 
