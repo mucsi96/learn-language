@@ -465,9 +465,9 @@ test('bulk card creation skips image generation for models with zero image count
 
     expect(cardData.word).toBe('abfahren');
     expect(cardData.examples[0].images.length).toBe(2);
-    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'Ideogram 4 (Quality)')).toBe(true);
+    expect(cardData.examples[0].images.every((img: { model: string }) => img.model === 'GPT Image 2.6 Sunburst')).toBe(true);
     expect(cardData.examples[1].images.length).toBe(2);
-    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'Ideogram 4 (Quality)')).toBe(true);
+    expect(cardData.examples[1].images.every((img: { model: string }) => img.model === 'GPT Image 2.6 Sunburst')).toBe(true);
   });
 });
 

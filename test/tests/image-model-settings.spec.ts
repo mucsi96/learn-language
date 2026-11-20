@@ -12,7 +12,7 @@ test('displays only the latest two OpenAI image models without quality labels', 
   await createImageModelSetting({ modelName: 'gpt-image-2.6-sunburst-high', imageCount: 3 });
   await createImageModelSetting({ modelName: 'gemini-3-pro-image-preview', imageCount: 5 });
   await page.goto('/settings/image-models');
-  await expect(page.getByRole('spinbutton')).toHaveCount(2);
+  await expect(page.getByRole('spinbutton', { name: /^Image count for / })).toHaveCount(2);
   await Promise.all(['Sunburst', 'Flare'].map(async (model) => {
     await expect(page.getByRole('spinbutton', {
       name: `Image count for GPT Image 2.6 ${model}`, exact: true,
