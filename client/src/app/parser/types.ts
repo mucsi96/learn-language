@@ -264,6 +264,7 @@ export type Source = {
   formatType?: SourceFormatType;
   cardLimit?: number;
   newCardLimit?: number;
+  newCardIntroduction: 'DIRECT' | 'TABLE';
   typingPractice?: boolean;
   aiLanguage?: AiLanguage;
   learningPartnerId?: number | null;
@@ -286,6 +287,7 @@ export type ImageSource = {
 };
 
 export type StudySession = {
+  introductionCards: Card[];
   pomodoroEndsAt: number;
   sessionId: string;
 };

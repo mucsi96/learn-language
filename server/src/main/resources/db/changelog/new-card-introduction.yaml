@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-new-card-introduction
+      author: mucsi96
+      changes:
+        - addColumn:
+            tableName: sources
+            columns:
+              - column:
+                  name: new_card_introduction
+                  type: varchar(32)
+                  defaultValue: DIRECT
+                  constraints:
+                    nullable: false

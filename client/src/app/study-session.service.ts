@@ -3,7 +3,7 @@ import { Injectable, Injector, computed, inject, resource, signal } from '@angul
 import { SourcesService } from './sources.service';
 import { firstValueFrom } from 'rxjs';
 import { fetchJson } from './utils/fetchJson';
-import { SessionStats, StudySession, StudySessionCard } from './parser/types';
+import { Card, SessionStats, StudySession, StudySessionCard } from './parser/types';
 import { mapCardDatesFromISOStrings } from './utils/date-mapping.util';
 import { DueCardsService } from './due-cards.service';
 import { PomodoroService } from './pomodoro.service';
@@ -21,6 +21,7 @@ export class StudySessionService {
   readonly sourceId = signal<string | undefined>(undefined);
   readonly hasSession = signal(false);
   readonly hasExistingSession = signal(false);
+  readonly introductionCards = signal<Card[]>([]);
 
   readonly currentCard = resource({
     params: () => ({
@@ -78,17 +79,23 @@ export class StudySessionService {
       { method: 'POST' }
     );
     if (session) {
-      try {
-        await this.pomodoro.startIfInactive();
-      } catch {
-        return session;
-      } finally {
-        this.sourceId.set(sourceId);
-        this.hasSession.set(true);
-        this.refreshSession();
-      }
+      this.sourceId.set(sourceId);
+      this.introductionCards.set(session.introductionCards);
+      if (session.introductionCards.length === 0) await this.beginStudy();
     }
     return session;
+  }
+
+  async beginStudy(): Promise<void> {
+    try {
+      await this.pomodoro.startIfInactive();
+    } catch {
+      // Timer failures are reported by PomodoroService and must not block studying.
+    } finally {
+      this.introductionCards.set([]);
+      this.hasSession.set(true);
+      this.refreshSession();
+    }
   }
 
   async skipCard(sourceId: string, cardId: string): Promise<void> {
@@ -127,6 +134,7 @@ export class StudySessionService {
   }
 
   clearSession() {
+    this.introductionCards.set([]);
     this.sourceId.set(undefined);
     this.hasSession.set(false);
     this.hasExistingSession.set(false);

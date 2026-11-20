@@ -1,0 +1,38 @@
+<section aria-labelledby="introduction-title">
+  <h2 id="introduction-title">Meet your new cards</h2>
+  <p>Read both sides before you begin. These are the new cards in today's study queue.</p>
+  <div class="table-container" tabindex="0" role="region" aria-label="New cards preview">
+    <table>
+      <caption>Today's new cards ({{ cards().length }})</caption>
+      <thead><tr><th scope="col">German / Front</th><th scope="col">Translation / Back</th></tr></thead>
+      <tbody>
+        @for (card of cards(); track card.id) {
+          <tr>
+            <td>
+              @switch (card.type) {
+                @case ('simple') { <div [innerHTML]="card.data.frontText | markdown"></div> }
+                @case ('vocabulary') {
+                  <strong>{{ card.data.word }}</strong>
+                  @for (example of card.data.examples; track $index) { <p>{{ example.de }}</p> }
+                }
+                @default { @for (example of card.data.examples; track $index) { <p>{{ example.de }}</p> } }
+              }
+            </td>
+            <td>
+              @if (card.type === 'simple') { <div [innerHTML]="card.data.backText | markdown"></div> }
+              @else {
+                @if (card.data.translation?.['hu']; as text) { <p lang="hu">{{ text }}</p> }
+                @if (card.data.translation?.['en']; as text) { <p lang="en">{{ text }}</p> }
+                @for (example of card.data.examples; track $index) {
+                  @if (example.hu) { <p lang="hu">{{ example.hu }}</p> }
+                  @if (example.en) { <p lang="en">{{ example.en }}</p> }
+                }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <button mat-flat-button (click)="continueStudy.emit()">Continue to study</button>
+</section>

@@ -32,6 +32,7 @@ import io.github.mucsi96.learnlanguage.entity.StudySessionCard;
 import io.github.mucsi96.learnlanguage.entity.ReviewLog;
 import io.github.mucsi96.learnlanguage.exception.ResourceNotFoundException;
 import io.github.mucsi96.learnlanguage.model.CardResponse;
+import io.github.mucsi96.learnlanguage.model.NewCardIntroduction;
 import io.github.mucsi96.learnlanguage.model.SessionStatsResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionCardResponse;
 import io.github.mucsi96.learnlanguage.model.StudySessionResponse;
@@ -60,7 +61,7 @@ public class StudySessionService {
     @Transactional(readOnly = true)
     public Optional<StudySessionResponse> getExistingSession(String sourceId, LocalDateTime startOfDay) {
         return studySessionRepository.findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay)
-                .map(this::toSessionResponse);
+                .map(session -> toSessionResponse(session, startOfDay.plusDays(1)));
     }
 
     @Transactional
@@ -83,7 +84,7 @@ public class StudySessionService {
         final Optional<StudySession> existingSession = studySessionRepository
                 .findBySource_IdAndCreatedAtGreaterThanEqual(sourceId, startOfDay);
         if (existingSession.isPresent() && !restart) {
-            return toSessionResponse(existingSession.get());
+            return toSessionResponse(existingSession.get(), startOfNextDay);
         }
         existingSession.ifPresent(studySessionRepository::delete);
         studySessionRepository.flush();
@@ -112,12 +113,22 @@ public class StudySessionService {
 
         studySessionRepository.save(sessionWithCards);
 
-        return toSessionResponse(sessionWithCards);
+        return toSessionResponse(sessionWithCards, startOfNextDay);
     }
 
-    private StudySessionResponse toSessionResponse(StudySession session) {
+    private StudySessionResponse toSessionResponse(StudySession session, LocalDateTime startOfNextDay) {
         return StudySessionResponse.builder()
                 .sessionId(session.getId())
+                .introductionCards(session.getSource().getNewCardIntroduction() == NewCardIntroduction.TABLE
+                        ? session.getCards().stream()
+                                .sorted(Comparator.comparingInt(StudySessionCard::getPosition))
+                                .map(StudySessionCard::getCard)
+                                .filter(Card::isReady)
+                                .filter(card -> "NEW".equals(card.getState()))
+                                .filter(card -> card.getDue().isBefore(startOfNextDay))
+                                .map(CardResponse::from)
+                                .toList()
+                        : List.of())
                 .pomodoroEndsAt(session.getCreatedAt().plusMinutes(25).toInstant(ZoneOffset.UTC).toEpochMilli())
                 .build();
     }

@@ -34,6 +34,7 @@ import { CardsTableService } from '../../cards-table/cards-table.service';
 import { DueCardsService } from '../../due-cards.service';
 import { SessionDotsComponent } from '../session-dots/session-dots.component';
 import { NotificationsService } from '@mucsi96/angular-material-theme';
+import { NewCardIntroductionComponent } from '../new-card-introduction/new-card-introduction.component';
 
 @Component({
   selector: 'app-learn-card',
@@ -52,6 +53,7 @@ import { NotificationsService } from '@mucsi96/angular-material-theme';
     ConfettiComponent,
     SessionStatsComponent,
     SessionDotsComponent,
+    NewCardIntroductionComponent,
   ],
   templateUrl: './learn-card.component.html',
   styleUrl: './learn-card.component.css',
@@ -84,6 +86,7 @@ export class LearnCardComponent implements OnDestroy {
 
   readonly isRevealed = signal(false);
   readonly hasSession = this.studySessionService.hasSession;
+  readonly introductionCards = this.studySessionService.introductionCards;
   readonly hasExistingSession = this.studySessionService.hasExistingSession;
   readonly isCheckingSession = signal(true);
   readonly isStartingSession = signal(false);
@@ -229,6 +232,15 @@ export class LearnCardComponent implements OnDestroy {
     'j': 'Again',
     'k': 'Good',
   } as const satisfies Record<string, 'Again' | 'Good'>;
+
+  async finishIntroduction() {
+    this.isStartingSession.set(true);
+    try {
+      await this.studySessionService.beginStudy();
+    } finally {
+      this.isStartingSession.set(false);
+    }
+  }
 
   @HostListener('document:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {
