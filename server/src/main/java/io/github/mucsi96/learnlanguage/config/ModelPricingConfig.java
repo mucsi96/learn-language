@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Configuration;
 
+import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
+
 // Pricing sources:
 // OpenAI: https://developers.openai.com/api/docs/pricing
 // Google: https://ai.google.dev/gemini-api/docs/pricing
@@ -17,6 +19,8 @@ public class ModelPricingConfig {
 
     public record ChatModelPricing(BigDecimal inputPerMillion, BigDecimal outputPerMillion) {}
     public record ImageModelPricing(BigDecimal perImage) {}
+    public record ImageTokenPricing(BigDecimal textInputPerMillion, BigDecimal imageInputPerMillion,
+            BigDecimal imageOutputPerMillion) {}
     public record AudioModelPricing(BigDecimal perThousandCharacters) {}
 
     private static final Map<String, ChatModelPricing> CHAT_MODEL_PRICING = Map.ofEntries(
@@ -49,9 +53,20 @@ public class ModelPricingConfig {
     );
 
     // Images API standard rates for GPT Image 2.5 and 2.6, verified 2026-11-19.
-    private static final BigDecimal GPT_IMAGE_TEXT_INPUT_PER_MILLION = new BigDecimal("5.00");
-    private static final BigDecimal GPT_IMAGE_IMAGE_INPUT_PER_MILLION = new BigDecimal("8.00");
-    private static final BigDecimal GPT_IMAGE_IMAGE_OUTPUT_PER_MILLION = new BigDecimal("30.00");
+    private static final ImageTokenPricing GPT_IMAGE_2_5_SUNBURST_PRICING = new ImageTokenPricing(
+        new BigDecimal("5.00"), new BigDecimal("8.00"), new BigDecimal("30.00"));
+    private static final ImageTokenPricing GPT_IMAGE_2_5_FLARE_PRICING = new ImageTokenPricing(
+        new BigDecimal("5.00"), new BigDecimal("8.00"), new BigDecimal("30.00"));
+    private static final ImageTokenPricing GPT_IMAGE_2_6_SUNBURST_PRICING = new ImageTokenPricing(
+        new BigDecimal("5.00"), new BigDecimal("8.00"), new BigDecimal("30.00"));
+    private static final ImageTokenPricing GPT_IMAGE_2_6_FLARE_PRICING = new ImageTokenPricing(
+        new BigDecimal("5.00"), new BigDecimal("8.00"), new BigDecimal("30.00"));
+
+    private static final Map<String, ImageTokenPricing> IMAGE_TOKEN_PRICING = Map.of(
+        "gpt-image-2.5-sunburst", GPT_IMAGE_2_5_SUNBURST_PRICING,
+        "gpt-image-2.5-flare", GPT_IMAGE_2_5_FLARE_PRICING,
+        "gpt-image-2.6-sunburst", GPT_IMAGE_2_6_SUNBURST_PRICING,
+        "gpt-image-2.6-flare", GPT_IMAGE_2_6_FLARE_PRICING);
 
     private static final Map<String, ImageModelPricing> IMAGE_MODEL_PRICING = Map.ofEntries(
         // GPT Image 2 estimates at 1024x1024
@@ -117,12 +132,16 @@ public class ModelPricingConfig {
         return pricing.perImage().multiply(BigDecimal.valueOf(imageCount));
     }
 
-    public BigDecimal calculateGptImageTokenCost(long textInputTokens, long imageInputTokens, long outputTokens) {
-        final BigDecimal textInputCost = GPT_IMAGE_TEXT_INPUT_PER_MILLION
+    public BigDecimal calculateGptImageTokenCost(String modelName, long textInputTokens, long imageInputTokens,
+            long outputTokens) {
+        final String apiModelName = ImageGenerationModel.fromString(modelName).getApiModelName();
+        final ImageTokenPricing pricing = Optional.ofNullable(IMAGE_TOKEN_PRICING.get(apiModelName))
+            .orElseThrow(() -> new IllegalArgumentException("No image token pricing for model: " + modelName));
+        final BigDecimal textInputCost = pricing.textInputPerMillion()
             .multiply(BigDecimal.valueOf(textInputTokens));
-        final BigDecimal imageInputCost = GPT_IMAGE_IMAGE_INPUT_PER_MILLION
+        final BigDecimal imageInputCost = pricing.imageInputPerMillion()
             .multiply(BigDecimal.valueOf(imageInputTokens));
-        final BigDecimal imageOutputCost = GPT_IMAGE_IMAGE_OUTPUT_PER_MILLION
+        final BigDecimal imageOutputCost = pricing.imageOutputPerMillion()
             .multiply(BigDecimal.valueOf(outputTokens));
 
         return textInputCost.add(imageInputCost).add(imageOutputCost)

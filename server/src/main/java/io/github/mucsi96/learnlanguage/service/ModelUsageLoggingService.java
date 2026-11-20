@@ -90,7 +90,7 @@ public class ModelUsageLoggingService {
             long processingTimeMs) {
 
         final BigDecimal cost = pricingConfig.calculateGptImageTokenCost(
-                textInputTokens, imageInputTokens, outputTokens);
+                modelName, textInputTokens, imageInputTokens, outputTokens);
 
         final ModelUsageLog usageLog = ModelUsageLog.builder()
                 .modelName(modelName)
