@@ -46,11 +46,12 @@ public class OpenAIImageService {
                 .orElseThrow(() -> new RuntimeException("No image data returned from OpenAI API"));
 
             final long processingTime = System.currentTimeMillis() - startTime;
-            if (model.getApiModelName().startsWith("gpt-image-2.5-")) {
+            if (model.getApiModelName().startsWith("gpt-image-2.5-")
+                    || model.getApiModelName().startsWith("gpt-image-2.6-")) {
                 final ImagesResponse.Usage usage = response.usage().orElseThrow(
-                    () -> new IllegalStateException("OpenAI did not return GPT Image 2.5 usage"));
+                    () -> new IllegalStateException("OpenAI did not return usage for " + model.getApiModelName()));
                 final ImagesResponse.Usage.InputTokensDetails inputTokens = usage.inputTokensDetails();
-                usageLoggingService.logGptImage25Usage(
+                usageLoggingService.logGptImageTokenUsage(
                     model.getModelName(),
                     OperationType.IMAGE_GENERATION,
                     1,

@@ -23,6 +23,13 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v6
+      - name: Provision native compiler swap
+        run: |
+          sudo fallocate -l 8G /mnt/native-image.swap
+          sudo chmod 600 /mnt/native-image.swap
+          sudo mkswap /mnt/native-image.swap
+          sudo swapon /mnt/native-image.swap
+          free -h
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       # The Spring profile is resolved during AOT processing and baked into the
@@ -233,6 +240,14 @@ jobs:
         with:
           prefix: 'server'
           src: server
+      - name: Provision native compiler swap
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: |
+          sudo fallocate -l 8G /mnt/native-image.swap
+          sudo chmod 600 /mnt/native-image.swap
+          sudo mkswap /mnt/native-image.swap
+          sudo swapon /mnt/native-image.swap
+          free -h
       - name: Set up Docker Buildx
         if: steps.get_next_version.outputs.hasNextVersion == 'true'
         uses: docker/setup-buildx-action@v3

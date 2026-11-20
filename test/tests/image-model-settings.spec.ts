@@ -32,6 +32,14 @@ test('displays all image model quality variants with default image counts', asyn
     'GPT Image 2.5 Flare (XHigh)',
     'GPT Image 2.5 Flare (Max)',
     'GPT Image 2.5 Flare (Auto)',
+    'GPT Image 2.6 Sunburst (Low)',
+    'GPT Image 2.6 Sunburst (Medium)',
+    'GPT Image 2.6 Sunburst (High)',
+    'GPT Image 2.6 Sunburst (Auto)',
+    'GPT Image 2.6 Flare (Low)',
+    'GPT Image 2.6 Flare (Medium)',
+    'GPT Image 2.6 Flare (High)',
+    'GPT Image 2.6 Flare (Auto)',
     'Ideogram 4 (Turbo)',
     'Ideogram 4 (Default)',
     'Ideogram 4 (Quality)',
@@ -77,6 +85,23 @@ test('can update image count for a model variant', async ({ page }) => {
     expect(gptSetting).toBeDefined();
     expect(gptSetting!.imageCount).toBe(4);
   }).toPass();
+});
+
+['Sunburst', 'Flare'].forEach((model) => {
+  ['Low', 'Medium', 'High', 'Auto'].forEach((quality) => {
+    test(`persists GPT Image 2.6 ${model} ${quality} image count`, async ({ page }) => {
+      await page.goto('/settings/image-models');
+      const input = page.getByRole('spinbutton', { name: `Image count for GPT Image 2.6 ${model} (${quality})` });
+      await input.fill('2');
+      await input.dispatchEvent('change');
+      await expect(async () => {
+        const settings = await getImageModelSettings();
+        expect(settings.find((setting) => setting.modelName === `gpt-image-2.6-${model.toLowerCase()}-${quality.toLowerCase()}`)?.imageCount).toBe(2);
+      }).toPass();
+      await page.reload();
+      await expect(input).toHaveValue('2');
+    });
+  });
 });
 
 test('settings page shows image models link in navigation', async ({ page }) => {

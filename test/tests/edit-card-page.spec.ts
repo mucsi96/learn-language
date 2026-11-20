@@ -476,7 +476,11 @@ test('generates image with Gemini model', async ({ page }) => {
   expect(generationLog!.modelName).toBe('gemini-3-pro-image-preview');
 });
 
-test('generates image with OpenAI models', async ({ page }) => {
+[
+  { version: '2.5', quality: 'max', qualityLabel: 'Max', cost: 0.21082 },
+  { version: '2.6', quality: 'high', qualityLabel: 'High', cost: 0.05278 },
+].forEach(({ version, quality, qualityLabel, cost }) =>
+test(`generates image with OpenAI ${version} models`, async ({ page }) => {
   await Promise.all(
     ['TRANSLATION', 'EXTRACTION', 'CLASSIFICATION', 'EXPLANATION', 'IMAGE_DESCRIPTION'].map((operationType) =>
       createChatModelSetting({
@@ -489,11 +493,11 @@ test('generates image with OpenAI models', async ({ page }) => {
   );
   await Promise.all([
     createImageModelSetting({
-      modelName: 'gpt-image-2.5-sunburst-auto',
+      modelName: `gpt-image-${version}-sunburst-auto`,
       imageCount: 1,
     }),
     createImageModelSetting({
-      modelName: 'gpt-image-2.5-flare-max',
+      modelName: `gpt-image-${version}-flare-${quality}`,
       imageCount: 1,
     }),
   ]);
@@ -527,8 +531,8 @@ test('generates image with OpenAI models', async ({ page }) => {
   await page.getByRole('button', { name: 'Add example image' }).first().click();
   await expect(page.getByRole('img')).toHaveCount(3);
 
-  await expect(page.getByText('GPT Image 2.5 Sunburst (Auto)')).toHaveCount(1);
-  await expect(page.getByText('GPT Image 2.5 Flare (Max)')).toHaveCount(1);
+  await expect(page.getByText(`GPT Image ${version} Sunburst (Auto)`)).toHaveCount(1);
+  await expect(page.getByText(`GPT Image ${version} Flare (${qualityLabel})`)).toHaveCount(1);
   await expect(page.getByText('Card updated successfully')).toBeVisible();
 
   const generatedImageContent = await getImageContent(
@@ -551,18 +555,18 @@ test('generates image with OpenAI models', async ({ page }) => {
   expect(generationLogs).toHaveLength(2);
   expect(generationLogs.every((log) => log.modelType === 'IMAGE')).toBe(true);
   expect(generationLogs.map((log) => log.modelName).sort()).toEqual([
-    'gpt-image-2.5-flare-max',
-    'gpt-image-2.5-sunburst-auto',
+    `gpt-image-${version}-flare-${quality}`,
+    `gpt-image-${version}-sunburst-auto`,
   ]);
 
-  const autoGenerationLog = generationLogs.find((log) => log.modelName === 'gpt-image-2.5-sunburst-auto');
+  const autoGenerationLog = generationLogs.find((log) => log.modelName === `gpt-image-${version}-sunburst-auto`);
   expect(Number(autoGenerationLog!.inputTokens)).toBe(20);
   expect(Number(autoGenerationLog!.outputTokens)).toBe(1756);
   expect(Number(autoGenerationLog!.costUsd)).toBe(0.05278);
 
-  const maxGenerationLog = generationLogs.find((log) => log.modelName === 'gpt-image-2.5-flare-max');
-  expect(Number(maxGenerationLog!.costUsd)).toBe(0.21082);
-});
+  const flareGenerationLog = generationLogs.find((log) => log.modelName === `gpt-image-${version}-flare-${quality}`);
+  expect(Number(flareGenerationLog!.costUsd)).toBe(cost);
+}));
 
 test('add image with context dialog', async ({ page }) => {
   await setupDefaultChatModelSettings();

@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ModelPricingConfigTest {
 
@@ -35,10 +36,21 @@ class ModelPricingConfigTest {
             .isEqualByComparingTo(expectedCost);
     }
 
-    @Test
-    void calculatesActualUsageFromOfficialTokenRates() {
-        assertThat(pricingConfig.calculateGptImage25Cost(20, 100, 1_756))
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "gpt-image-2.5-sunburst-auto", "gpt-image-2.5-flare-max",
+        "gpt-image-2.6-sunburst-auto", "gpt-image-2.6-flare-high"
+    })
+    void calculatesActualUsageFromOfficialTokenRates(String modelName) {
+        assertThat(pricingConfig.calculateGptImageTokenCost(modelName, 20, 100, 1_756))
             .isEqualByComparingTo(new BigDecimal("0.05358"));
+    }
+
+    @Test
+    void rejectsModelsWithoutTokenRates() {
+        assertThatThrownBy(() -> pricingConfig.calculateGptImageTokenCost("gpt-image-2-high", 20, 0, 1_756))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("No image token pricing for model: gpt-image-2-high");
     }
 
     @Test
