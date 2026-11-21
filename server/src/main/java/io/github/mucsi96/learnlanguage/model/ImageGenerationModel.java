@@ -1,6 +1,7 @@
 package io.github.mucsi96.learnlanguage.model;
 
 import java.util.Arrays;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -15,23 +16,23 @@ public enum ImageGenerationModel {
     GPT_IMAGE_2_MEDIUM("gpt-image-2-medium", "gpt-image-2", "GPT Image 2 (Medium)", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_HIGH("gpt-image-2-high", "gpt-image-2", "GPT Image 2 (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_SUNBURST_LOW("gpt-image-2.5-sunburst-low", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_5_SUNBURST_MEDIUM("gpt-image-2.5-sunburst-medium", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_5_SUNBURST_MEDIUM("gpt-image-2.5-sunburst-medium", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_5_SUNBURST_HIGH("gpt-image-2.5-sunburst-high", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_SUNBURST_XHIGH("gpt-image-2.5-sunburst-xhigh", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (XHigh)", ImageQuality.XHIGH, null),
     GPT_IMAGE_2_5_SUNBURST_MAX("gpt-image-2.5-sunburst-max", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Max)", ImageQuality.MAX, null),
     GPT_IMAGE_2_5_SUNBURST_AUTO("gpt-image-2.5-sunburst-auto", "gpt-image-2.5-sunburst", "GPT Image 2.5 Sunburst (Auto)", ImageQuality.AUTO, null),
     GPT_IMAGE_2_5_FLARE_LOW("gpt-image-2.5-flare-low", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_5_FLARE_MEDIUM("gpt-image-2.5-flare-medium", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_5_FLARE_MEDIUM("gpt-image-2.5-flare-medium", "gpt-image-2.5-flare", "GPT Image 2.5 Flare", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_5_FLARE_HIGH("gpt-image-2.5-flare-high", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_5_FLARE_XHIGH("gpt-image-2.5-flare-xhigh", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (XHigh)", ImageQuality.XHIGH, null),
     GPT_IMAGE_2_5_FLARE_MAX("gpt-image-2.5-flare-max", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Max)", ImageQuality.MAX, null),
     GPT_IMAGE_2_5_FLARE_AUTO("gpt-image-2.5-flare-auto", "gpt-image-2.5-flare", "GPT Image 2.5 Flare (Auto)", ImageQuality.AUTO, null),
     GPT_IMAGE_2_6_SUNBURST_LOW("gpt-image-2.6-sunburst-low", "gpt-image-2.6-sunburst", "GPT Image 2.6 Sunburst (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_6_SUNBURST_MEDIUM("gpt-image-2.6-sunburst-medium", "gpt-image-2.6-sunburst", "GPT Image 2.6 Sunburst (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_6_SUNBURST_MEDIUM("gpt-image-2.6-sunburst-medium", "gpt-image-2.6-sunburst", "GPT Image 2.6 Sunburst", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_6_SUNBURST_HIGH("gpt-image-2.6-sunburst-high", "gpt-image-2.6-sunburst", "GPT Image 2.6 Sunburst (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_6_SUNBURST_AUTO("gpt-image-2.6-sunburst-auto", "gpt-image-2.6-sunburst", "GPT Image 2.6 Sunburst (Auto)", ImageQuality.AUTO, null),
     GPT_IMAGE_2_6_FLARE_LOW("gpt-image-2.6-flare-low", "gpt-image-2.6-flare", "GPT Image 2.6 Flare (Low)", ImageQuality.LOW, null),
-    GPT_IMAGE_2_6_FLARE_MEDIUM("gpt-image-2.6-flare-medium", "gpt-image-2.6-flare", "GPT Image 2.6 Flare (Medium)", ImageQuality.MEDIUM, null),
+    GPT_IMAGE_2_6_FLARE_MEDIUM("gpt-image-2.6-flare-medium", "gpt-image-2.6-flare", "GPT Image 2.6 Flare", ImageQuality.MEDIUM, null),
     GPT_IMAGE_2_6_FLARE_HIGH("gpt-image-2.6-flare-high", "gpt-image-2.6-flare", "GPT Image 2.6 Flare (High)", ImageQuality.HIGH, null),
     GPT_IMAGE_2_6_FLARE_AUTO("gpt-image-2.6-flare-auto", "gpt-image-2.6-flare", "GPT Image 2.6 Flare (Auto)", ImageQuality.AUTO, null),
     IDEOGRAM_4_TURBO("ideogram-4-turbo", "ideogram-v4", "Ideogram 4 (Turbo)", ImageQuality.LOW, "2048x2048"),
@@ -52,6 +53,11 @@ public enum ImageGenerationModel {
     @JsonValue
     public String getModelName() {
         return id;
+    }
+
+    public static List<ImageGenerationModel> availableModels() {
+        return List.of(GPT_IMAGE_2_6_SUNBURST_MEDIUM, GPT_IMAGE_2_6_FLARE_MEDIUM,
+            GPT_IMAGE_2_5_SUNBURST_MEDIUM, GPT_IMAGE_2_5_FLARE_MEDIUM);
     }
 
     public String getApiModelName() {

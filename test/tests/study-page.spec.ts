@@ -423,6 +423,7 @@ test('source selector dropdown shows stats', async ({ page }) => {
   // Navigate to the study page
   await page.goto('/sources/goethe-a1/study');
   await page.getByRole('button', { name: 'Start study session' }).click();
+  await expect(page.getByRole('article', { name: 'Flashcard' })).toBeVisible();
 
   // Open the source selector dropdown
   await page.getByRole('button', { name: 'Goethe A1' }).click();

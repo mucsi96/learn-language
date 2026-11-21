@@ -149,17 +149,18 @@ test is `cd test && npx playwright test bootstrap-health.spec.ts`.
 
 ## OpenAI Images 2.6
 
-**Settings → Image Models** offers GPT Image 2.6 Sunburst and Flare in Low,
-Medium, High, and Auto quality. Set an image count above zero to enable a variant
-for manual and bulk example-image generation. Existing model selections are retained.
+**Settings → Image Models** offers GPT Image 2.6 and 2.5 Sunburst and Flare (four models).
+Set an image count above zero to enable a model for manual and bulk example-image
+generation. All four explicitly use medium quality; the API default is auto.
+Existing medium image counts are retained; retired selections are ignored.
 Images use the existing 1024×1024 JPEG output and the provider's default complexity.
 
-Usage costs are calculated from returned tokens, including Auto quality: $5 per
+Usage costs are calculated from returned tokens: $5 per
 million text input tokens, $8 per million image input tokens, and $30 per million
 image output tokens ([OpenAI pricing](https://developers.openai.com/api/docs/pricing),
 verified November 19, 2026). These are token-based costs, not fixed per-image estimates.
 The [Images API reference](https://developers.openai.com/api/reference/resources/images/methods/generate)
-documents XHigh and Max specifically for 2.5, so those variants remain limited to 2.5.
+documents the quality parameter and its auto default.
 
 Regression coverage: `cd test && npx playwright test image-model-settings.spec.ts edit-card-page.spec.ts -g 'image model|image count|image models|OpenAI'`.
 

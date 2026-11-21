@@ -965,8 +965,8 @@ export async function createImageModelSetting(params: {
 }
 
 const DEFAULT_IMAGE_MODEL_SETTINGS = [
-  { modelName: 'ideogram-4-quality', imageCount: 1 },
-  { modelName: 'gemini-3-pro-image-preview', imageCount: 3 },
+  { modelName: 'gpt-image-2.6-sunburst-medium', imageCount: 1 },
+  { modelName: 'gpt-image-2.6-flare-medium', imageCount: 3 },
 ];
 
 export async function setupDefaultImageModelSettings(): Promise<void> {

@@ -9,7 +9,6 @@ import com.openai.models.images.ImageGenerateParams;
 import com.openai.models.images.ImagesResponse;
 
 import io.github.mucsi96.learnlanguage.model.ImageGenerationModel;
-import io.github.mucsi96.learnlanguage.model.ImageGenerationModel.ImageQuality;
 import io.github.mucsi96.learnlanguage.model.OperationType;
 import io.github.mucsi96.learnlanguage.exception.ProviderBillingException;
 import io.github.mucsi96.learnlanguage.model.ModelProvider;
@@ -32,7 +31,7 @@ public class OpenAIImageService {
                 .prompt(ImagePromptBuilder.build(input))
                 .model(model.getApiModelName())
                 .size(ImageGenerateParams.Size._1024X1024)
-                .quality(toQuality(model.getQuality()))
+                .quality(ImageGenerateParams.Quality.MEDIUM)
                 .n(1)
                 .outputFormat(ImageGenerateParams.OutputFormat.JPEG)
                 .outputCompression(75)
@@ -76,14 +75,4 @@ public class OpenAIImageService {
         }
     }
 
-    private ImageGenerateParams.Quality toQuality(ImageQuality quality) {
-        return switch (quality) {
-            case LOW -> ImageGenerateParams.Quality.LOW;
-            case MEDIUM -> ImageGenerateParams.Quality.MEDIUM;
-            case HIGH -> ImageGenerateParams.Quality.HIGH;
-            case XHIGH -> ImageGenerateParams.Quality.of("xhigh");
-            case MAX -> ImageGenerateParams.Quality.of("max");
-            case AUTO -> ImageGenerateParams.Quality.AUTO;
-        };
-    }
 }

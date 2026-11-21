@@ -1,6 +1,5 @@
 package io.github.mucsi96.learnlanguage.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,7 +26,7 @@ public class ImageModelSettingService {
         final Map<String, ImageModelSetting> overrides = imageModelSettingRepository.findAll().stream()
                 .collect(Collectors.toMap(ImageModelSetting::getModelName, Function.identity()));
 
-        return Arrays.stream(ImageGenerationModel.values())
+        return ImageGenerationModel.availableModels().stream()
                 .map(model -> {
                     final Optional<ImageModelSetting> setting = Optional
                             .ofNullable(overrides.get(model.getModelName()));
@@ -43,6 +42,9 @@ public class ImageModelSettingService {
     @Transactional
     public ImageModelResponse updateSetting(ImageModelSettingRequest request) {
         final ImageGenerationModel model = ImageGenerationModel.fromString(request.getModelName());
+        if (!ImageGenerationModel.availableModels().contains(model)) {
+            throw new IllegalArgumentException("Image model is no longer available: " + request.getModelName());
+        }
 
         final ImageModelSetting setting = imageModelSettingRepository
                 .findByModelName(request.getModelName())
