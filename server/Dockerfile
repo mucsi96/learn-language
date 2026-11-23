@@ -8,7 +8,7 @@ FROM docker.io/library/maven:3-eclipse-temurin-25-alpine AS maven
 # compiler targets 21 via java.version, and 25 is simply the JDK the current
 # Liberica NIK release ships.
 # Keep native compiler upgrades explicit and independently verifiable.
-FROM docker.io/bellsoft/liberica-native-image-kit-container:jdk-25-nik-25-musl@sha256:27f41e0cf0d1683ddb6015a45f8431d865b51d0019b08134b751f91c27f56397 AS build
+FROM docker.io/bellsoft/liberica-native-image-kit-container:jdk-25-nik-25-musl@sha256:176b5aee1a78cabed2ff5b573ee828f273688633bdd55c97ab58db8060a742fd AS build
 
 COPY --from=maven /usr/share/maven /usr/share/maven
 ENV PATH="/usr/share/maven/bin:${PATH}"
